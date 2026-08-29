@@ -162,116 +162,324 @@ func (this *NdaxCore) Describe() any {
 		"api": map[string]any{
 			"public": map[string]any{
 				"get": map[string]any{
-					"Activate2FA":                     1,
-					"Authenticate2FA":                 1,
-					"AuthenticateUser":                1,
-					"EnableXP2FA":                     1,
-					"GetL2Snapshot":                   1,
-					"GetLevel1":                       1,
-					"GetValidate2FARequiredEndpoints": 1,
-					"LogOut":                          1,
-					"GetTickerHistory":                1,
-					"GetProduct":                      1,
-					"GetProducts":                     1,
-					"GetInstrument":                   1,
-					"GetInstruments":                  1,
-					"GetEarliestTickTime":             1,
-					"Ping":                            1,
-					"assets":                          1,
-					"orderbook":                       1,
-					"ticker":                          1,
-					"summary":                         1,
-					"trades":                          1,
-					"GetLastTrades":                   1,
-					"ConfirmWithdraw":                 1,
-					"SubscribeLevel1":                 1,
-					"SubscribeLevel2":                 1,
-					"SubscribeTicker":                 1,
-					"SubscribeTrades":                 1,
-					"SubscribeBlockTrades":            1,
-					"UnsubscribeBlockTrades":          1,
-					"UnsubscribeLevel1":               1,
-					"UnsubscribeLevel2":               1,
-					"UnsubscribeTicker":               1,
-					"UnsubscribeTrades":               1,
-					"Authenticate":                    1,
+					"Activate2FA": map[string]any{
+						"cost": 1,
+					},
+					"Authenticate2FA": map[string]any{
+						"cost": 1,
+					},
+					"AuthenticateUser": map[string]any{
+						"cost": 1,
+					},
+					"EnableXP2FA": map[string]any{
+						"cost": 1,
+					},
+					"GetL2Snapshot": map[string]any{
+						"cost": 1,
+					},
+					"GetLevel1": map[string]any{
+						"cost": 1,
+					},
+					"GetValidate2FARequiredEndpoints": map[string]any{
+						"cost": 1,
+					},
+					"LogOut": map[string]any{
+						"cost": 1,
+					},
+					"GetTickerHistory": map[string]any{
+						"cost": 1,
+					},
+					"GetProduct": map[string]any{
+						"cost": 1,
+					},
+					"GetProducts": map[string]any{
+						"cost": 1,
+					},
+					"GetInstrument": map[string]any{
+						"cost": 1,
+					},
+					"GetInstruments": map[string]any{
+						"cost": 1,
+					},
+					"GetEarliestTickTime": map[string]any{
+						"cost": 1,
+					},
+					"Ping": map[string]any{
+						"cost": 1,
+					},
+					"assets": map[string]any{
+						"cost": 1,
+					},
+					"orderbook": map[string]any{
+						"cost": 1,
+					},
+					"ticker": map[string]any{
+						"cost": 1,
+					},
+					"summary": map[string]any{
+						"cost": 1,
+					},
+					"trades": map[string]any{
+						"cost": 1,
+					},
+					"GetLastTrades": map[string]any{
+						"cost": 1,
+					},
+					"ConfirmWithdraw": map[string]any{
+						"cost": 1,
+					},
+					"SubscribeLevel1": map[string]any{
+						"cost": 1,
+					},
+					"SubscribeLevel2": map[string]any{
+						"cost": 1,
+					},
+					"SubscribeTicker": map[string]any{
+						"cost": 1,
+					},
+					"SubscribeTrades": map[string]any{
+						"cost": 1,
+					},
+					"SubscribeBlockTrades": map[string]any{
+						"cost": 1,
+					},
+					"UnsubscribeBlockTrades": map[string]any{
+						"cost": 1,
+					},
+					"UnsubscribeLevel1": map[string]any{
+						"cost": 1,
+					},
+					"UnsubscribeLevel2": map[string]any{
+						"cost": 1,
+					},
+					"UnsubscribeTicker": map[string]any{
+						"cost": 1,
+					},
+					"UnsubscribeTrades": map[string]any{
+						"cost": 1,
+					},
+					"Authenticate": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 			"private": map[string]any{
 				"get": map[string]any{
-					"GetUserAccountInfos":                1,
-					"GetUserAccounts":                    1,
-					"GetUserAffiliateCount":              1,
-					"GetUserAffiliateTag":                1,
-					"GetUserConfig":                      1,
-					"GetAllUnredactedUserConfigsForUser": 1,
-					"GetUnredactedUserConfigByKey":       1,
-					"GetUserDevices":                     1,
-					"GetUserReportTickets":               1,
-					"GetUserReportWriterResultRecords":   1,
-					"GetAccountInfo":                     1,
-					"GetAccountPositions":                1,
-					"GetAllAccountConfigs":               1,
-					"GetTreasuryProductsForAccount":      1,
-					"GetAccountTrades":                   1,
-					"GetAccountTransactions":             1,
-					"GetOpenTradeReports":                1,
-					"GetAllOpenTradeReports":             1,
-					"GetTradesHistory":                   1,
-					"GetOpenOrders":                      1,
-					"GetOpenQuotes":                      1,
-					"GetOrderFee":                        1,
-					"GetOrderHistory":                    1,
-					"GetOrdersHistory":                   1,
-					"GetOrderStatus":                     1,
-					"GetOmsFeeTiers":                     1,
-					"GetAccountDepositTransactions":      1,
-					"GetAccountWithdrawTransactions":     1,
-					"GetAllDepositRequestInfoTemplates":  1,
-					"GetDepositInfo":                     1,
-					"GetDepositRequestInfoTemplate":      1,
-					"GetDeposits":                        1,
-					"GetDepositTicket":                   1,
-					"GetDepositTickets":                  1,
-					"GetOMSWithdrawFees":                 1,
-					"GetWithdrawFee":                     1,
-					"GetWithdraws":                       1,
-					"GetWithdrawTemplate":                1,
-					"GetWithdrawTemplateTypes":           1,
-					"GetWithdrawTicket":                  1,
-					"GetWithdrawTicketAttachment":        1,
-					"GetWithdrawTickets":                 1,
-					"GetDepositTicketAttachment":         1,
+					"GetUserAccountInfos": map[string]any{
+						"cost": 1,
+					},
+					"GetUserAccounts": map[string]any{
+						"cost": 1,
+					},
+					"GetUserAffiliateCount": map[string]any{
+						"cost": 1,
+					},
+					"GetUserAffiliateTag": map[string]any{
+						"cost": 1,
+					},
+					"GetUserConfig": map[string]any{
+						"cost": 1,
+					},
+					"GetAllUnredactedUserConfigsForUser": map[string]any{
+						"cost": 1,
+					},
+					"GetUnredactedUserConfigByKey": map[string]any{
+						"cost": 1,
+					},
+					"GetUserDevices": map[string]any{
+						"cost": 1,
+					},
+					"GetUserReportTickets": map[string]any{
+						"cost": 1,
+					},
+					"GetUserReportWriterResultRecords": map[string]any{
+						"cost": 1,
+					},
+					"GetAccountInfo": map[string]any{
+						"cost": 1,
+					},
+					"GetAccountPositions": map[string]any{
+						"cost": 1,
+					},
+					"GetAllAccountConfigs": map[string]any{
+						"cost": 1,
+					},
+					"GetTreasuryProductsForAccount": map[string]any{
+						"cost": 1,
+					},
+					"GetAccountTrades": map[string]any{
+						"cost": 1,
+					},
+					"GetAccountTransactions": map[string]any{
+						"cost": 1,
+					},
+					"GetOpenTradeReports": map[string]any{
+						"cost": 1,
+					},
+					"GetAllOpenTradeReports": map[string]any{
+						"cost": 1,
+					},
+					"GetTradesHistory": map[string]any{
+						"cost": 1,
+					},
+					"GetOpenOrders": map[string]any{
+						"cost": 1,
+					},
+					"GetOpenQuotes": map[string]any{
+						"cost": 1,
+					},
+					"GetOrderFee": map[string]any{
+						"cost": 1,
+					},
+					"GetOrderHistory": map[string]any{
+						"cost": 1,
+					},
+					"GetOrdersHistory": map[string]any{
+						"cost": 1,
+					},
+					"GetOrderStatus": map[string]any{
+						"cost": 1,
+					},
+					"GetOmsFeeTiers": map[string]any{
+						"cost": 1,
+					},
+					"GetAccountDepositTransactions": map[string]any{
+						"cost": 1,
+					},
+					"GetAccountWithdrawTransactions": map[string]any{
+						"cost": 1,
+					},
+					"GetAllDepositRequestInfoTemplates": map[string]any{
+						"cost": 1,
+					},
+					"GetDepositInfo": map[string]any{
+						"cost": 1,
+					},
+					"GetDepositRequestInfoTemplate": map[string]any{
+						"cost": 1,
+					},
+					"GetDeposits": map[string]any{
+						"cost": 1,
+					},
+					"GetDepositTicket": map[string]any{
+						"cost": 1,
+					},
+					"GetDepositTickets": map[string]any{
+						"cost": 1,
+					},
+					"GetOMSWithdrawFees": map[string]any{
+						"cost": 1,
+					},
+					"GetWithdrawFee": map[string]any{
+						"cost": 1,
+					},
+					"GetWithdraws": map[string]any{
+						"cost": 1,
+					},
+					"GetWithdrawTemplate": map[string]any{
+						"cost": 1,
+					},
+					"GetWithdrawTemplateTypes": map[string]any{
+						"cost": 1,
+					},
+					"GetWithdrawTicket": map[string]any{
+						"cost": 1,
+					},
+					"GetWithdrawTicketAttachment": map[string]any{
+						"cost": 1,
+					},
+					"GetWithdrawTickets": map[string]any{
+						"cost": 1,
+					},
+					"GetDepositTicketAttachment": map[string]any{
+						"cost": 1,
+					},
 				},
 				"post": map[string]any{
-					"AddUserAffiliateTag":               1,
-					"AddDepositTicketAttachment":        1,
-					"AddWithdrawTicketAttachment":       1,
-					"CancelUserReport":                  1,
-					"RegisterNewDevice":                 1,
-					"SubscribeAccountEvents":            1,
-					"UpdateUserAffiliateTag":            1,
-					"GenerateTradeActivityReport":       1,
-					"GenerateTransactionActivityReport": 1,
-					"GenerateTreasuryActivityReport":    1,
-					"ScheduleTradeActivityReport":       1,
-					"ScheduleTransactionActivityReport": 1,
-					"ScheduleTreasuryActivityReport":    1,
-					"CancelAllOrders":                   1,
-					"CancelOrder":                       1,
-					"CancelQuote":                       1,
-					"CancelReplaceOrder":                1,
-					"CreateQuote":                       1,
-					"ModifyOrder":                       1,
-					"SendOrder":                         1,
-					"SubmitBlockTrade":                  1,
-					"UpdateQuote":                       1,
-					"CancelWithdraw":                    1,
-					"CreateDepositTicket":               1,
-					"CreateWithdrawTicket":              1,
-					"SubmitDepositTicketComment":        1,
-					"SubmitWithdrawTicketComment":       1,
-					"GetOrderHistoryByOrderId":          1,
+					"AddUserAffiliateTag": map[string]any{
+						"cost": 1,
+					},
+					"AddDepositTicketAttachment": map[string]any{
+						"cost": 1,
+					},
+					"AddWithdrawTicketAttachment": map[string]any{
+						"cost": 1,
+					},
+					"CancelUserReport": map[string]any{
+						"cost": 1,
+					},
+					"RegisterNewDevice": map[string]any{
+						"cost": 1,
+					},
+					"SubscribeAccountEvents": map[string]any{
+						"cost": 1,
+					},
+					"UpdateUserAffiliateTag": map[string]any{
+						"cost": 1,
+					},
+					"GenerateTradeActivityReport": map[string]any{
+						"cost": 1,
+					},
+					"GenerateTransactionActivityReport": map[string]any{
+						"cost": 1,
+					},
+					"GenerateTreasuryActivityReport": map[string]any{
+						"cost": 1,
+					},
+					"ScheduleTradeActivityReport": map[string]any{
+						"cost": 1,
+					},
+					"ScheduleTransactionActivityReport": map[string]any{
+						"cost": 1,
+					},
+					"ScheduleTreasuryActivityReport": map[string]any{
+						"cost": 1,
+					},
+					"CancelAllOrders": map[string]any{
+						"cost": 1,
+					},
+					"CancelOrder": map[string]any{
+						"cost": 1,
+					},
+					"CancelQuote": map[string]any{
+						"cost": 1,
+					},
+					"CancelReplaceOrder": map[string]any{
+						"cost": 1,
+					},
+					"CreateQuote": map[string]any{
+						"cost": 1,
+					},
+					"ModifyOrder": map[string]any{
+						"cost": 1,
+					},
+					"SendOrder": map[string]any{
+						"cost": 1,
+					},
+					"SubmitBlockTrade": map[string]any{
+						"cost": 1,
+					},
+					"UpdateQuote": map[string]any{
+						"cost": 1,
+					},
+					"CancelWithdraw": map[string]any{
+						"cost": 1,
+					},
+					"CreateDepositTicket": map[string]any{
+						"cost": 1,
+					},
+					"CreateWithdrawTicket": map[string]any{
+						"cost": 1,
+					},
+					"SubmitDepositTicketComment": map[string]any{
+						"cost": 1,
+					},
+					"SubmitWithdrawTicketComment": map[string]any{
+						"cost": 1,
+					},
+					"GetOrderHistoryByOrderId": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 		},
@@ -406,33 +614,33 @@ func (this *NdaxCore) Describe() any {
  * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
 func (this *NdaxCore) FetchStatus(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		response := (<-this.PublicGetPing(params))
-		PanicOnError(response)
-		//
-		//     {
-		//         "msg":"PONG"
-		//     }
-		//
-		var message any = this.SafeString(response, "msg")
-
-		ch <- map[string]any{
-			"status":  Ternary(IsTrue((IsEqual(message, "PONG"))), "ok", "error"),
-			"updated": nil,
-			"eta":     nil,
-			"url":     nil,
-			"info":    response,
-		}
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchStatusBody(ch, optionalArgs...)
 	return ch
+}
+func (this *NdaxCore) fetchStatusBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	response := (<-this.PublicGetPing(params))
+	PanicOnError(response)
+	//
+	//     {
+	//         "msg":"PONG"
+	//     }
+	//
+	var message any = this.SafeString(response, "msg")
+
+	ch <- map[string]any{
+		"status":  Ternary(IsTrue((IsEqual(message, "PONG"))), "ok", "error"),
+		"updated": nil,
+		"eta":     nil,
+		"url":     nil,
+		"info":    response,
+	}
+	return nil
 }
 
 /**
@@ -444,69 +652,69 @@ func (this *NdaxCore) FetchStatus(optionalArgs ...any) <-chan any {
  * @returns response from exchange
  */
 func (this *NdaxCore) SignIn(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		this.CheckRequiredCredentials()
-		if IsTrue(IsTrue(IsEqual(this.Login, nil)) || IsTrue(IsEqual(this.Password, nil))) {
-			panic(AuthenticationError(Add(this.Id, " signIn() requires exchange.login, exchange.password")))
-		}
-		var request any = map[string]any{
-			"grant_type": "client_credentials",
-		}
+	ch := make(chan any, 1)
+	go this.signInBody(ch, optionalArgs...)
+	return ch
+}
+func (this *NdaxCore) signInBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	this.CheckRequiredCredentials()
+	if IsTrue(IsTrue(IsEqual(this.Login, nil)) || IsTrue(IsEqual(this.Password, nil))) {
+		panic(AuthenticationError(Add(this.Id, " signIn() requires exchange.login, exchange.password")))
+	}
+	var request map[string]any = map[string]any{
+		"grant_type": "client_credentials",
+	}
 
-		response := (<-this.PublicGetAuthenticate(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "Authenticated":true,
-		//         "Requires2FA":true,
-		//         "AuthType":"Google",
-		//         "AddtlInfo":"",
-		//         "Pending2FaToken": "6f5c4e66-f3ee-493e-9227-31cc0583b55f"
-		//     }
-		//
-		var sessionToken any = this.SafeString(response, "SessionToken")
-		if IsTrue(!IsEqual(sessionToken, nil)) {
-			AddElementToObject(this.Options, "sessionToken", sessionToken)
-
-			ch <- response
-			return nil
-		}
-		var pending2faToken any = this.SafeString(response, "Pending2FaToken")
-		if IsTrue(!IsEqual(pending2faToken, nil)) {
-			if IsTrue(IsEqual(this.Twofa, nil)) {
-				panic(AuthenticationError(Add(this.Id, " signIn() requires exchange.twofa credentials")))
-			}
-			AddElementToObject(this.Options, "pending2faToken", pending2faToken)
-			request = map[string]any{
-				"Code": Totp(this.Twofa),
-			}
-
-			responseInner := (<-this.PublicGetAuthenticate2FA(this.Extend(request, params)))
-			PanicOnError(responseInner)
-			//
-			//     {
-			//         "Authenticated": true,
-			//         "UserId":57764,
-			//         "SessionToken":"4a2a5857-c4e5-4fac-b09e-2c4c30b591a0"
-			//     }
-			//
-			sessionToken = this.SafeString(responseInner, "SessionToken")
-			AddElementToObject(this.Options, "sessionToken", sessionToken)
-
-			ch <- responseInner
-			return nil
-		}
+	response := (<-this.PublicGetAuthenticate(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "Authenticated":true,
+	//         "Requires2FA":true,
+	//         "AuthType":"Google",
+	//         "AddtlInfo":"",
+	//         "Pending2FaToken": "6f5c4e66-f3ee-493e-9227-31cc0583b55f"
+	//     }
+	//
+	var sessionToken any = this.SafeString(response, "SessionToken")
+	if IsTrue(!IsEqual(sessionToken, nil)) {
+		AddElementToObject(this.Options, "sessionToken", sessionToken)
 
 		ch <- response
 		return nil
+	}
+	var pending2faToken any = this.SafeString(response, "Pending2FaToken")
+	if IsTrue(!IsEqual(pending2faToken, nil)) {
+		if IsTrue(IsEqual(this.Twofa, nil)) {
+			panic(AuthenticationError(Add(this.Id, " signIn() requires exchange.twofa credentials")))
+		}
+		AddElementToObject(this.Options, "pending2faToken", pending2faToken)
+		request = map[string]any{
+			"Code": Totp(this.Twofa),
+		}
 
-	}()
-	return ch
+		responseInner := (<-this.PublicGetAuthenticate2FA(this.Extend(request, params)))
+		PanicOnError(responseInner)
+		//
+		//     {
+		//         "Authenticated": true,
+		//         "UserId":57764,
+		//         "SessionToken":"4a2a5857-c4e5-4fac-b09e-2c4c30b591a0"
+		//     }
+		//
+		sessionToken = this.SafeString(responseInner, "SessionToken")
+		AddElementToObject(this.Options, "sessionToken", sessionToken)
+
+		ch <- responseInner
+		return nil
+	}
+
+	ch <- response
+	return nil
 }
 
 /**
@@ -518,44 +726,44 @@ func (this *NdaxCore) SignIn(optionalArgs ...any) <-chan any {
  * @returns {object} an associative dictionary of currencies
  */
 func (this *NdaxCore) FetchCurrencies(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		var omsId any = this.SafeInteger(this.Options, "omsId", 1)
-		var request any = map[string]any{
-			"omsId": omsId,
-		}
-
-		response := (<-this.PublicGetGetProducts(this.Extend(request, params)))
-		PanicOnError(response)
-
-		//
-		//    [
-		//        {
-		//            "OMSId": "1",
-		//            "ProductId": "1",
-		//            "Product": "BTC",
-		//            "ProductFullName": "Bitcoin",
-		//            "MasterDataUniqueProductSymbol": "",
-		//            "ProductType": "CryptoCurrency",
-		//            "DecimalPlaces": "8",
-		//            "TickSize": "0.0000000100000000000000000000",
-		//            "DepositEnabled": true,
-		//            "WithdrawEnabled": true,
-		//            "NoFees": false,
-		//            "IsDisabled": false,
-		//            "MarginEnabled": false
-		//        },
-		//        ...
-		//
-		ch <- this.ParseCurrencies(response)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchCurrenciesBody(ch, optionalArgs...)
 	return ch
+}
+func (this *NdaxCore) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	var omsId any = this.SafeInteger(this.Options, "omsId", 1)
+	var request map[string]any = map[string]any{
+		"omsId": omsId,
+	}
+
+	response := (<-this.PublicGetGetProducts(this.Extend(request, params)))
+	PanicOnError(response)
+
+	//
+	//    [
+	//        {
+	//            "OMSId": "1",
+	//            "ProductId": "1",
+	//            "Product": "BTC",
+	//            "ProductFullName": "Bitcoin",
+	//            "MasterDataUniqueProductSymbol": "",
+	//            "ProductType": "CryptoCurrency",
+	//            "DecimalPlaces": "8",
+	//            "TickSize": "0.0000000100000000000000000000",
+	//            "DepositEnabled": true,
+	//            "WithdrawEnabled": true,
+	//            "NoFees": false,
+	//            "IsDisabled": false,
+	//            "MarginEnabled": false
+	//        },
+	//        ...
+	//
+	ch <- this.ParseCurrencies(response)
+	return nil
 }
 func (this *NdaxCore) ParseCurrency(rawCurrency any) any {
 	var id any = this.SafeString(rawCurrency, "ProductId")
@@ -573,7 +781,7 @@ func (this *NdaxCore) ParseCurrency(rawCurrency any) any {
 		"type":      typeVar,
 		"precision": this.SafeNumber(rawCurrency, "TickSize"),
 		"info":      rawCurrency,
-		"active":    !IsTrue(this.SafeBool(rawCurrency, "IsDisabled")),
+		"active":    (!IsEqual(this.SafeBool(rawCurrency, "IsDisabled"), true)),
 		"deposit":   this.SafeBool(rawCurrency, "DepositEnabled"),
 		"withdraw":  this.SafeBool(rawCurrency, "WithdrawEnabled"),
 		"fee":       nil,
@@ -601,71 +809,71 @@ func (this *NdaxCore) ParseCurrency(rawCurrency any) any {
  * @returns {object[]} an array of objects representing market data
  */
 func (this *NdaxCore) FetchMarkets(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		var omsId any = this.SafeInteger(this.Options, "omsId", 1)
-		var request any = map[string]any{
-			"omsId": omsId,
-		}
-
-		response := (<-this.PublicGetGetInstruments(this.Extend(request, params)))
-		PanicOnError(response)
-
-		//
-		//     [
-		//         {
-		//             "OMSId":1,
-		//             "InstrumentId":3,
-		//             "Symbol":"LTCBTC",
-		//             "Product1":3,
-		//             "Product1Symbol":"LTC",
-		//             "Product2":1,
-		//             "Product2Symbol":"BTC",
-		//             "InstrumentType":"Standard",
-		//             "VenueInstrumentId":3,
-		//             "VenueId":1,
-		//             "SortIndex":0,
-		//             "SessionStatus":"Running",
-		//             "PreviousSessionStatus":"Stopped",
-		//             "SessionStatusDateTime":"2020-11-25T19:42:15.245Z",
-		//             "SelfTradePrevention":true,
-		//             "QuantityIncrement":0.0000000100000000000000000000,
-		//             "PriceIncrement":0.0000000100000000000000000000,
-		//             "MinimumQuantity":0.0100000000000000000000000000,
-		//             "MinimumPrice":0.0000010000000000000000000000,
-		//             "VenueSymbol":"LTCBTC",
-		//             "IsDisable":false,
-		//             "MasterDataId":0,
-		//             "PriceCollarThreshold":0.0000000000000000000000000000,
-		//             "PriceCollarPercent":0.0000000000000000000000000000,
-		//             "PriceCollarEnabled":false,
-		//             "PriceFloorLimit":0.0000000000000000000000000000,
-		//             "PriceFloorLimitEnabled":false,
-		//             "PriceCeilingLimit":0.0000000000000000000000000000,
-		//             "PriceCeilingLimitEnabled":false,
-		//             "CreateWithMarketRunning":true,
-		//             "AllowOnlyMarketMakerCounterParty":false,
-		//             "PriceCollarIndexDifference":0.0000000000000000000000000000,
-		//             "PriceCollarConvertToOtcEnabled":false,
-		//             "PriceCollarConvertToOtcClientUserId":0,
-		//             "PriceCollarConvertToOtcAccountId":0,
-		//             "PriceCollarConvertToOtcThreshold":0.0000000000000000000000000000,
-		//             "OtcConvertSizeThreshold":0.0000000000000000000000000000,
-		//             "OtcConvertSizeEnabled":false,
-		//             "OtcTradesPublic":true,
-		//             "PriceTier":0
-		//         },
-		//     ]
-		//
-		ch <- this.ParseMarkets(response)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchMarketsBody(ch, optionalArgs...)
 	return ch
+}
+func (this *NdaxCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	var omsId any = this.SafeInteger(this.Options, "omsId", 1)
+	var request map[string]any = map[string]any{
+		"omsId": omsId,
+	}
+
+	response := (<-this.PublicGetGetInstruments(this.Extend(request, params)))
+	PanicOnError(response)
+
+	//
+	//     [
+	//         {
+	//             "OMSId":1,
+	//             "InstrumentId":3,
+	//             "Symbol":"LTCBTC",
+	//             "Product1":3,
+	//             "Product1Symbol":"LTC",
+	//             "Product2":1,
+	//             "Product2Symbol":"BTC",
+	//             "InstrumentType":"Standard",
+	//             "VenueInstrumentId":3,
+	//             "VenueId":1,
+	//             "SortIndex":0,
+	//             "SessionStatus":"Running",
+	//             "PreviousSessionStatus":"Stopped",
+	//             "SessionStatusDateTime":"2020-11-25T19:42:15.245Z",
+	//             "SelfTradePrevention":true,
+	//             "QuantityIncrement":0.0000000100000000000000000000,
+	//             "PriceIncrement":0.0000000100000000000000000000,
+	//             "MinimumQuantity":0.0100000000000000000000000000,
+	//             "MinimumPrice":0.0000010000000000000000000000,
+	//             "VenueSymbol":"LTCBTC",
+	//             "IsDisable":false,
+	//             "MasterDataId":0,
+	//             "PriceCollarThreshold":0.0000000000000000000000000000,
+	//             "PriceCollarPercent":0.0000000000000000000000000000,
+	//             "PriceCollarEnabled":false,
+	//             "PriceFloorLimit":0.0000000000000000000000000000,
+	//             "PriceFloorLimitEnabled":false,
+	//             "PriceCeilingLimit":0.0000000000000000000000000000,
+	//             "PriceCeilingLimitEnabled":false,
+	//             "CreateWithMarketRunning":true,
+	//             "AllowOnlyMarketMakerCounterParty":false,
+	//             "PriceCollarIndexDifference":0.0000000000000000000000000000,
+	//             "PriceCollarConvertToOtcEnabled":false,
+	//             "PriceCollarConvertToOtcClientUserId":0,
+	//             "PriceCollarConvertToOtcAccountId":0,
+	//             "PriceCollarConvertToOtcThreshold":0.0000000000000000000000000000,
+	//             "OtcConvertSizeThreshold":0.0000000000000000000000000000,
+	//             "OtcConvertSizeEnabled":false,
+	//             "OtcTradesPublic":true,
+	//             "PriceTier":0
+	//         },
+	//     ]
+	//
+	ch <- this.ParseMarkets(response)
+	return nil
 }
 func (this *NdaxCore) ParseMarket(market any) any {
 	var id any = this.SafeString(market, "InstrumentId")
@@ -676,8 +884,8 @@ func (this *NdaxCore) ParseMarket(market any) any {
 	var quote any = this.SafeCurrencyCode(this.SafeString(market, "Product2Symbol"))
 	var sessionStatus any = this.SafeString(market, "SessionStatus")
 	var isDisable any = this.SafeValue(market, "IsDisable")
-	var sessionRunning any = (IsEqual(sessionStatus, "Running"))
-	return map[string]any{
+	var sessionRunning bool = (IsEqual(sessionStatus, "Running"))
+	return this.SafeMarketStructure(map[string]any{
 		"id":             id,
 		"symbol":         Add(Add(base, "/"), quote),
 		"base":           base,
@@ -692,7 +900,7 @@ func (this *NdaxCore) ParseMarket(market any) any {
 		"swap":           false,
 		"future":         false,
 		"option":         false,
-		"active":         (IsTrue(sessionRunning) && !IsTrue(isDisable)),
+		"active":         (IsTrue(sessionRunning) && IsTrue((!IsEqual(isDisable, true)))),
 		"contract":       false,
 		"linear":         nil,
 		"inverse":        nil,
@@ -725,7 +933,7 @@ func (this *NdaxCore) ParseMarket(market any) any {
 		},
 		"created": nil,
 		"info":    market,
-	}
+	})
 }
 func (this *NdaxCore) ParseOrderBook(orderbook any, symbol any, optionalArgs ...any) any {
 	timestamp := GetArg(optionalArgs, 0, nil)
@@ -741,7 +949,7 @@ func (this *NdaxCore) ParseOrderBook(orderbook any, symbol any, optionalArgs ...
 	countOrIdKey := GetArg(optionalArgs, 5, 2)
 	_ = countOrIdKey
 	var nonce any = nil
-	var result any = map[string]any{
+	var result map[string]any = map[string]any{
 		"symbol":    symbol,
 		"bids":      []any{},
 		"asks":      []any{},
@@ -769,7 +977,7 @@ func (this *NdaxCore) ParseOrderBook(orderbook any, symbol any, optionalArgs ...
 		}
 		var bidask any = this.ParseOrderBookBidAsk(level, priceKey, amountKey)
 		var levelSide any = this.SafeInteger(level, 9)
-		var side any = Ternary(IsTrue(levelSide), asksKey, bidsKey)
+		var side any = Ternary(IsTrue((IsTrue(IsTrue(!IsEqual(levelSide, nil)) && IsTrue(!IsEqual(levelSide, nil))) && IsTrue(!IsEqual(levelSide, 0)))), asksKey, bidsKey)
 		retRes71312 := GetValue(result, side)
 		AppendToArray(&retRes71312, bidask)
 	}
@@ -789,61 +997,61 @@ func (this *NdaxCore) ParseOrderBook(orderbook any, symbol any, optionalArgs ...
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *NdaxCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		limit := GetArg(optionalArgs, 0, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		var omsId any = this.SafeInteger(this.Options, "omsId", 1)
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes73612 := (<-this.LoadMarkets())
-			PanicOnError(retRes73612)
-		}
-		var market any = this.Market(symbol)
-		limit = Ternary(IsTrue((IsEqual(limit, nil))), 100, limit) // default 100
-		var request any = map[string]any{
-			"omsId":        omsId,
-			"InstrumentId": GetValue(market, "id"),
-			"Depth":        limit,
-		}
-
-		response := (<-this.PublicGetGetL2Snapshot(this.Extend(request, params)))
-		PanicOnError(response)
-
-		//
-		//     [
-		//         [
-		//             0,   // 0 MDUpdateId
-		//             1,   // 1 Number of Unique Accounts
-		//             123, // 2 ActionDateTime in Posix format X 1000
-		//             0,   // 3 ActionType 0 (New), 1 (Update), 2(Delete)
-		//             0.0, // 4 LastTradePrice
-		//             0,   // 5 Number of Orders
-		//             0.0, // 6 Price
-		//             0,   // 7 ProductPairCode
-		//             0.0, // 8 Quantity
-		//             0,   // 9 Side
-		//         ],
-		//         [97244115,1,1607456142963,0,19069.32,1,19069.31,8,0.140095,0],
-		//         [97244115,0,1607456142963,0,19069.32,1,19068.64,8,0.0055,0],
-		//         [97244115,0,1607456142963,0,19069.32,1,19068.26,8,0.021291,0],
-		//         [97244115,1,1607456142964,0,19069.32,1,19069.32,8,0.099636,1],
-		//         [97244115,0,1607456142964,0,19069.32,1,19069.98,8,0.1,1],
-		//         [97244115,0,1607456142964,0,19069.32,1,19069.99,8,0.141604,1],
-		//     ]
-		//
-		ch <- this.ParseOrderBook(response, symbol)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *NdaxCore) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	limit := GetArg(optionalArgs, 0, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	var omsId any = this.SafeInteger(this.Options, "omsId", 1)
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes73612 := (<-this.LoadMarkets())
+		PanicOnError(retRes73612)
+	}
+	var market any = this.Market(symbol)
+	limit = Ternary(IsTrue((IsEqual(limit, nil))), 100, limit) // default 100
+	var request map[string]any = map[string]any{
+		"omsId":        omsId,
+		"InstrumentId": GetValue(market, "id"),
+		"Depth":        limit,
+	}
+
+	response := (<-this.PublicGetGetL2Snapshot(this.Extend(request, params)))
+	PanicOnError(response)
+
+	//
+	//     [
+	//         [
+	//             0,   // 0 MDUpdateId
+	//             1,   // 1 Number of Unique Accounts
+	//             123, // 2 ActionDateTime in Posix format X 1000
+	//             0,   // 3 ActionType 0 (New), 1 (Update), 2(Delete)
+	//             0.0, // 4 LastTradePrice
+	//             0,   // 5 Number of Orders
+	//             0.0, // 6 Price
+	//             0,   // 7 ProductPairCode
+	//             0.0, // 8 Quantity
+	//             0,   // 9 Side
+	//         ],
+	//         [97244115,1,1607456142963,0,19069.32,1,19069.31,8,0.140095,0],
+	//         [97244115,0,1607456142963,0,19069.32,1,19068.64,8,0.0055,0],
+	//         [97244115,0,1607456142963,0,19069.32,1,19068.26,8,0.021291,0],
+	//         [97244115,1,1607456142964,0,19069.32,1,19069.32,8,0.099636,1],
+	//         [97244115,0,1607456142964,0,19069.32,1,19069.98,8,0.1,1],
+	//         [97244115,0,1607456142964,0,19069.32,1,19069.99,8,0.141604,1],
+	//     ]
+	//
+	ch <- this.ParseOrderBook(response, symbol)
+	return nil
 }
 func (this *NdaxCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	//
@@ -941,45 +1149,45 @@ func (this *NdaxCore) ParseTicker(ticker any, optionalArgs ...any) any {
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *NdaxCore) FetchTickers(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbols := GetArg(optionalArgs, 0, nil)
-		_ = symbols
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes86612 := (<-this.LoadMarkets())
-			PanicOnError(retRes86612)
-		}
-		symbols = this.MarketSymbols(symbols)
-
-		response := (<-this.PublicGetSummary(params))
-		PanicOnError(response)
-		//
-		//     [
-		//         {
-		//             "trading_pairs":"BTC_CAD",
-		//             "last_price":75925.37,
-		//             "lowest_ask":75926.63,
-		//             "highest_bid":66.435340000000000000000000000,
-		//             "base_volume":75774.93,
-		//             "quote_volume":5112197.7830825000000000000000,
-		//             "price_change_percent_24h":-5.3894893561980828521107542600,
-		//             "highest_price_24h":79813.51,
-		//             "lowest_price_24h":73700.01
-		//         }
-		//     ]
-		//
-		var tickers any = this.ParseTickers(response)
-
-		ch <- this.FilterByArrayTickers(tickers, "symbol", symbols)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchTickersBody(ch, optionalArgs...)
 	return ch
+}
+func (this *NdaxCore) fetchTickersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbols := GetArg(optionalArgs, 0, nil)
+	_ = symbols
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes86612 := (<-this.LoadMarkets())
+		PanicOnError(retRes86612)
+	}
+	symbols = this.MarketSymbols(symbols)
+
+	response := (<-this.PublicGetSummary(params))
+	PanicOnError(response)
+	//
+	//     [
+	//         {
+	//             "trading_pairs":"BTC_CAD",
+	//             "last_price":75925.37,
+	//             "lowest_ask":75926.63,
+	//             "highest_bid":66.435340000000000000000000000,
+	//             "base_volume":75774.93,
+	//             "quote_volume":5112197.7830825000000000000000,
+	//             "price_change_percent_24h":-5.3894893561980828521107542600,
+	//             "highest_price_24h":79813.51,
+	//             "lowest_price_24h":73700.01
+	//         }
+	//     ]
+	//
+	var tickers any = this.ParseTickers(response)
+
+	ch <- this.FilterByArrayTickers(tickers, "symbol", symbols)
+	return nil
 }
 
 /**
@@ -992,62 +1200,62 @@ func (this *NdaxCore) FetchTickers(optionalArgs ...any) <-chan any {
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *NdaxCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		var omsId any = this.SafeInteger(this.Options, "omsId", 1)
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes90112 := (<-this.LoadMarkets())
-			PanicOnError(retRes90112)
-		}
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"omsId":        omsId,
-			"InstrumentId": GetValue(market, "id"),
-		}
-
-		response := (<-this.PublicGetGetLevel1(this.Extend(request, params)))
-		PanicOnError(response)
-
-		//
-		//     {
-		//         "OMSId":1,
-		//         "InstrumentId":8,
-		//         "BestBid":19069.31,
-		//         "BestOffer":19069.32,
-		//         "LastTradedPx":19069.32,
-		//         "LastTradedQty":0.0001,
-		//         "LastTradeTime":1607040406424,
-		//         "SessionOpen":19069.32,
-		//         "SessionHigh":19069.32,
-		//         "SessionLow":19069.32,
-		//         "SessionClose":19069.32,
-		//         "Volume":0.0001,
-		//         "CurrentDayVolume":0.0001,
-		//         "CurrentDayNotional":1.906932,
-		//         "CurrentDayNumTrades":1,
-		//         "CurrentDayPxChange":0.00,
-		//         "Rolling24HrVolume":0.000000000000000000000000000,
-		//         "Rolling24HrNotional":0.00000000000000000000000,
-		//         "Rolling24NumTrades":0,
-		//         "Rolling24HrPxChange":0,
-		//         "TimeStamp":"1607040406425",
-		//         "BidQty":0,
-		//         "AskQty":0,
-		//         "BidOrderCt":0,
-		//         "AskOrderCt":0,
-		//         "Rolling24HrPxChangePercent":0,
-		//     }
-		//
-		ch <- this.ParseTicker(response, market)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchTickerBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *NdaxCore) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	var omsId any = this.SafeInteger(this.Options, "omsId", 1)
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes90112 := (<-this.LoadMarkets())
+		PanicOnError(retRes90112)
+	}
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"omsId":        omsId,
+		"InstrumentId": GetValue(market, "id"),
+	}
+
+	response := (<-this.PublicGetGetLevel1(this.Extend(request, params)))
+	PanicOnError(response)
+
+	//
+	//     {
+	//         "OMSId":1,
+	//         "InstrumentId":8,
+	//         "BestBid":19069.31,
+	//         "BestOffer":19069.32,
+	//         "LastTradedPx":19069.32,
+	//         "LastTradedQty":0.0001,
+	//         "LastTradeTime":1607040406424,
+	//         "SessionOpen":19069.32,
+	//         "SessionHigh":19069.32,
+	//         "SessionLow":19069.32,
+	//         "SessionClose":19069.32,
+	//         "Volume":0.0001,
+	//         "CurrentDayVolume":0.0001,
+	//         "CurrentDayNotional":1.906932,
+	//         "CurrentDayNumTrades":1,
+	//         "CurrentDayPxChange":0.00,
+	//         "Rolling24HrVolume":0.000000000000000000000000000,
+	//         "Rolling24HrNotional":0.00000000000000000000000,
+	//         "Rolling24NumTrades":0,
+	//         "Rolling24HrPxChange":0,
+	//         "TimeStamp":"1607040406425",
+	//         "BidQty":0,
+	//         "AskQty":0,
+	//         "BidOrderCt":0,
+	//         "AskOrderCt":0,
+	//         "Rolling24HrPxChangePercent":0,
+	//     }
+	//
+	ch <- this.ParseTicker(response, market)
+	return nil
 }
 func (this *NdaxCore) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	//
@@ -1081,61 +1289,65 @@ func (this *NdaxCore) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
 func (this *NdaxCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		timeframe := GetArg(optionalArgs, 0, "1m")
-		_ = timeframe
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		var omsId any = this.SafeInteger(this.Options, "omsId", 1)
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes98112 := (<-this.LoadMarkets())
-			PanicOnError(retRes98112)
-		}
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"omsId":        omsId,
-			"InstrumentId": GetValue(market, "id"),
-			"Interval":     this.SafeString(this.Timeframes, timeframe, timeframe),
-		}
-		var duration any = this.ParseTimeframe(timeframe)
-		var now any = this.Milliseconds()
-		if IsTrue(IsEqual(since, nil)) {
-			if IsTrue(!IsEqual(limit, nil)) {
-				AddElementToObject(request, "FromDate", this.Ymdhms(Subtract(now, Multiply(Multiply(duration, limit), 1000))))
-				AddElementToObject(request, "ToDate", this.Ymdhms(now))
-			}
-		} else {
-			AddElementToObject(request, "FromDate", this.Ymdhms(since))
-			if IsTrue(IsEqual(limit, nil)) {
-				AddElementToObject(request, "ToDate", this.Ymdhms(now))
-			} else {
-				AddElementToObject(request, "ToDate", this.Ymdhms(this.Sum(since, Multiply(Multiply(duration, limit), 1000))))
-			}
-		}
-
-		response := (<-this.PublicGetGetTickerHistory(this.Extend(request, params)))
-		PanicOnError(response)
-
-		//
-		//     [
-		//         [1607299260000,19069.32,19069.32,19069.32,19069.32,0,19069.31,19069.32,8,1607299200000],
-		//         [1607299320000,19069.32,19069.32,19069.32,19069.32,0,19069.31,19069.32,8,1607299260000],
-		//         [1607299380000,19069.32,19069.32,19069.32,19069.32,0,19069.31,19069.32,8,1607299320000],
-		//     ]
-		//
-		ch <- this.ParseOHLCVs(response, market, timeframe, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *NdaxCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	timeframe := GetArg(optionalArgs, 0, "1m")
+	_ = timeframe
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	var omsId any = this.SafeInteger(this.Options, "omsId", 1)
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes98112 := (<-this.LoadMarkets())
+		PanicOnError(retRes98112)
+	}
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"omsId":        omsId,
+		"InstrumentId": GetValue(market, "id"),
+		"Interval":     this.SafeString(this.Timeframes, timeframe, timeframe),
+	}
+	var duration any = this.ParseTimeframe(timeframe)
+	var now int64 = this.Milliseconds()
+	if IsTrue(IsEqual(since, nil)) {
+		if IsTrue(!IsEqual(limit, nil)) {
+			AddElementToObject(request, "FromDate", this.Ymdhms(Subtract(now, Multiply(Multiply(duration, limit), 1000))))
+			AddElementToObject(request, "ToDate", this.Ymdhms(now))
+		}
+	} else {
+		AddElementToObject(request, "FromDate", this.Ymdhms(since))
+		if IsTrue(IsEqual(limit, nil)) {
+			AddElementToObject(request, "ToDate", this.Ymdhms(now))
+		} else {
+			AddElementToObject(request, "ToDate", this.Ymdhms(this.Sum(since, Multiply(Multiply(duration, limit), 1000))))
+		}
+	}
+
+	response := (<-this.PublicGetGetTickerHistory(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     [
+	//         [1607299260000,19069.32,19069.32,19069.32,19069.32,0,19069.31,19069.32,8,1607299200000],
+	//         [1607299320000,19069.32,19069.32,19069.32,19069.32,0,19069.31,19069.32,8,1607299260000],
+	//         [1607299380000,19069.32,19069.32,19069.32,19069.32,0,19069.31,19069.32,8,1607299320000],
+	//     ]
+	//
+	var candles any = []any{}
+	if IsTrue(IsArray(response)) {
+		candles = response
+	}
+
+	ch <- this.ParseOHLCVs(candles, market, timeframe, since, limit)
+	return nil
 }
 func (this *NdaxCore) ParseTrade(trade any, optionalArgs ...any) any {
 	//
@@ -1257,7 +1469,7 @@ func (this *NdaxCore) ParseTrade(trade any, optionalArgs ...any) any {
 	var side any = nil
 	var orderId any = nil
 	var takerOrMaker any = nil
-	var fee any = map[string]any{}
+	var fee map[string]any = map[string]any{}
 	var typeVar any = nil
 	if IsTrue(IsArray(trade)) {
 		priceString = this.SafeString(trade, 3)
@@ -1266,7 +1478,7 @@ func (this *NdaxCore) ParseTrade(trade any, optionalArgs ...any) any {
 		id = this.SafeString(trade, 0)
 		marketId = this.SafeString(trade, 1)
 		var takerSide any = this.SafeValue(trade, 8)
-		side = Ternary(IsTrue(takerSide), "sell", "buy")
+		side = Ternary(IsTrue((IsEqual(takerSide, true))), "sell", "buy")
 		orderId = this.SafeString(trade, 4)
 	} else {
 		timestamp = this.SafeInteger2(trade, "TradeTimeMS", "ReceiveTime")
@@ -1318,46 +1530,46 @@ func (this *NdaxCore) ParseTrade(trade any, optionalArgs ...any) any {
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *NdaxCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		since := GetArg(optionalArgs, 0, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 1, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 2, map[string]any{})
-		_ = params
-		var omsId any = this.SafeInteger(this.Options, "omsId", 1)
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes119612 := (<-this.LoadMarkets())
-			PanicOnError(retRes119612)
-		}
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"omsId":        omsId,
-			"InstrumentId": GetValue(market, "id"),
-		}
-		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "Count", limit)
-		}
-
-		response := (<-this.PublicGetGetLastTrades(this.Extend(request, params)))
-		PanicOnError(response)
-
-		//
-		//     [
-		//         [6913253,8,0.03340802,19116.08,2543425077,2543425482,1606935922416,0,1,0,0],
-		//         [6913254,8,0.01391671,19117.42,2543427510,2543427811,1606935927998,1,1,0,0],
-		//         [6913255,8,0.000006,19107.81,2543430495,2543430793,1606935933881,2,0,0,0],
-		//     ]
-		//
-		ch <- this.ParseTrades(response, market, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *NdaxCore) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	since := GetArg(optionalArgs, 0, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 1, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 2, map[string]any{})
+	_ = params
+	var omsId any = this.SafeInteger(this.Options, "omsId", 1)
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes120012 := (<-this.LoadMarkets())
+		PanicOnError(retRes120012)
+	}
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"omsId":        omsId,
+		"InstrumentId": GetValue(market, "id"),
+	}
+	if IsTrue(!IsEqual(limit, nil)) {
+		AddElementToObject(request, "Count", limit)
+	}
+
+	response := (<-this.PublicGetGetLastTrades(this.Extend(request, params)))
+	PanicOnError(response)
+
+	//
+	//     [
+	//         [6913253,8,0.03340802,19116.08,2543425077,2543425482,1606935922416,0,1,0,0],
+	//         [6913254,8,0.01391671,19117.42,2543427510,2543427811,1606935927998,1,1,0,0],
+	//         [6913255,8,0.000006,19107.81,2543430495,2543430793,1606935933881,2,0,0,0],
+	//     ]
+	//
+	ch <- this.ParseTrades(response, market, since, limit)
+	return nil
 }
 
 /**
@@ -1369,47 +1581,47 @@ func (this *NdaxCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
  * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
  */
 func (this *NdaxCore) FetchAccounts(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if !IsTrue(this.Login) {
-			panic(AuthenticationError(Add(this.Id, " fetchAccounts() requires exchange.login email credential")))
-		}
-		var omsId any = this.SafeInteger(this.Options, "omsId", 1)
-		this.CheckRequiredCredentials()
-		var request any = map[string]any{
-			"omsId":    omsId,
-			"UserId":   this.Uid,
-			"UserName": this.Login,
-		}
-
-		response := (<-this.PrivateGetGetUserAccounts(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     [ 449 ] // comma-separated list of account ids
-		//
-		var result any = []any{}
-		for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
-			var accountId any = this.SafeString(response, i)
-			AppendToArray(&result, map[string]any{
-				"id":       accountId,
-				"type":     nil,
-				"currency": nil,
-				"info":     accountId,
-			})
-		}
-
-		ch <- result
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchAccountsBody(ch, optionalArgs...)
 	return ch
 }
+func (this *NdaxCore) fetchAccountsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsTrue((IsEqual(this.Login, nil))) || IsTrue((IsEqual(this.Login, "")))) {
+		panic(AuthenticationError(Add(this.Id, " fetchAccounts() requires exchange.login email credential")))
+	}
+	var omsId any = this.SafeInteger(this.Options, "omsId", 1)
+	this.CheckRequiredCredentials()
+	var request map[string]any = map[string]any{
+		"omsId":    omsId,
+		"UserId":   this.Uid,
+		"UserName": this.Login,
+	}
+
+	response := (<-this.PrivateGetGetUserAccounts(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     [ 449 ] // comma-separated list of account ids
+	//
+	var result any = []any{}
+	for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
+		var accountId any = this.SafeString(response, i)
+		AppendToArray(&result, map[string]any{
+			"id":       accountId,
+			"type":     nil,
+			"currency": nil,
+			"info":     accountId,
+		})
+	}
+
+	ch <- result
+	return nil
+}
 func (this *NdaxCore) ParseBalance(response any) any {
-	var result any = map[string]any{
+	var result map[string]any = map[string]any{
 		"info":      response,
 		"timestamp": nil,
 		"datetime":  nil,
@@ -1417,12 +1629,14 @@ func (this *NdaxCore) ParseBalance(response any) any {
 	for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
 		var balance any = GetValue(response, i)
 		var currencyId any = this.SafeString(balance, "ProductId")
-		if IsTrue(IsTrue((!IsEqual(currencyId, nil))) && IsTrue((InOp(this.Currencies_by_id, currencyId)))) {
+		if IsTrue(IsTrue(IsTrue((!IsEqual(currencyId, nil))) && IsTrue((!IsEqual(this.Currencies_by_id, nil)))) && IsTrue((InOp(this.Currencies_by_id, currencyId)))) {
 			var code any = this.SafeCurrencyCode(currencyId)
 			var account any = this.Account()
 			AddElementToObject(account, "total", this.SafeString(balance, "Amount"))
 			AddElementToObject(account, "used", this.SafeString(balance, "Hold"))
-			AddElementToObject(result, code, account)
+			if IsTrue(!IsEqual(code, nil)) {
+				AddElementToObject(result, code, account)
+			}
 		}
 	}
 	return this.SafeBalance(result)
@@ -1437,74 +1651,74 @@ func (this *NdaxCore) ParseBalance(response any) any {
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *NdaxCore) FetchBalance(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		var omsId any = this.SafeInteger(this.Options, "omsId", 1)
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes128412 := (<-this.LoadMarkets())
-			PanicOnError(retRes128412)
-		}
-
-		retRes12868 := (<-this.LoadAccounts())
-		PanicOnError(retRes12868)
-		var defaultAccountId any = this.SafeInteger2(this.Options, "accountId", "AccountId")
-		var accountId any = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
-		if IsTrue(IsEqual(accountId, nil)) {
-			accountId = this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id"))
-		}
-		params = this.Omit(params, []any{"accountId", "AccountId"})
-		var request any = map[string]any{
-			"omsId":     omsId,
-			"AccountId": accountId,
-		}
-
-		response := (<-this.PrivateGetGetAccountPositions(this.Extend(request, params)))
-		PanicOnError(response)
-
-		//
-		//     [
-		//         {
-		//             "OMSId":1,
-		//             "AccountId":449,
-		//             "ProductSymbol":"BTC",
-		//             "ProductId":1,
-		//             "Amount":10.000000000000000000000000000,
-		//             "Hold":0,
-		//             "PendingDeposits":0.0000000000000000000000000000,
-		//             "PendingWithdraws":0.0000000000000000000000000000,
-		//             "TotalDayDeposits":10.000000000000000000000000000,
-		//             "TotalMonthDeposits":10.000000000000000000000000000,
-		//             "TotalYearDeposits":10.000000000000000000000000000,
-		//             "TotalDayDepositNotional":10.000000000000000000000000000,
-		//             "TotalMonthDepositNotional":10.000000000000000000000000000,
-		//             "TotalYearDepositNotional":10.000000000000000000000000000,
-		//             "TotalDayWithdraws":0,
-		//             "TotalMonthWithdraws":0,
-		//             "TotalYearWithdraws":0,
-		//             "TotalDayWithdrawNotional":0,
-		//             "TotalMonthWithdrawNotional":0,
-		//             "TotalYearWithdrawNotional":0,
-		//             "NotionalProductId":8,
-		//             "NotionalProductSymbol":"USDT",
-		//             "NotionalValue":10.000000000000000000000000000,
-		//             "NotionalHoldAmount":0,
-		//             "NotionalRate":1
-		//         },
-		//     ]
-		//
-		ch <- this.ParseBalance(response)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchBalanceBody(ch, optionalArgs...)
 	return ch
 }
+func (this *NdaxCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	var omsId any = this.SafeInteger(this.Options, "omsId", 1)
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes129012 := (<-this.LoadMarkets())
+		PanicOnError(retRes129012)
+	}
+
+	retRes12928 := (<-this.LoadAccounts())
+	PanicOnError(retRes12928)
+	var defaultAccountId any = this.SafeInteger2(this.Options, "accountId", "AccountId")
+	var accountId any = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
+	if IsTrue(IsEqual(accountId, nil)) {
+		accountId = this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id"))
+	}
+	params = this.Omit(params, []any{"accountId", "AccountId"})
+	var request map[string]any = map[string]any{
+		"omsId":     omsId,
+		"AccountId": accountId,
+	}
+
+	response := (<-this.PrivateGetGetAccountPositions(this.Extend(request, params)))
+	PanicOnError(response)
+
+	//
+	//     [
+	//         {
+	//             "OMSId":1,
+	//             "AccountId":449,
+	//             "ProductSymbol":"BTC",
+	//             "ProductId":1,
+	//             "Amount":10.000000000000000000000000000,
+	//             "Hold":0,
+	//             "PendingDeposits":0.0000000000000000000000000000,
+	//             "PendingWithdraws":0.0000000000000000000000000000,
+	//             "TotalDayDeposits":10.000000000000000000000000000,
+	//             "TotalMonthDeposits":10.000000000000000000000000000,
+	//             "TotalYearDeposits":10.000000000000000000000000000,
+	//             "TotalDayDepositNotional":10.000000000000000000000000000,
+	//             "TotalMonthDepositNotional":10.000000000000000000000000000,
+	//             "TotalYearDepositNotional":10.000000000000000000000000000,
+	//             "TotalDayWithdraws":0,
+	//             "TotalMonthWithdraws":0,
+	//             "TotalYearWithdraws":0,
+	//             "TotalDayWithdrawNotional":0,
+	//             "TotalMonthWithdrawNotional":0,
+	//             "TotalYearWithdrawNotional":0,
+	//             "NotionalProductId":8,
+	//             "NotionalProductSymbol":"USDT",
+	//             "NotionalValue":10.000000000000000000000000000,
+	//             "NotionalHoldAmount":0,
+	//             "NotionalRate":1
+	//         },
+	//     ]
+	//
+	ch <- this.ParseBalance(response)
+	return nil
+}
 func (this *NdaxCore) ParseLedgerEntryType(typeVar any) any {
-	var types any = map[string]any{
+	var types map[string]any = map[string]any{
 		"Trade":             "trade",
 		"Deposit":           "transaction",
 		"Withdraw":          "transaction",
@@ -1592,71 +1806,71 @@ func (this *NdaxCore) ParseLedgerEntry(item any, optionalArgs ...any) any {
  * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */
 func (this *NdaxCore) FetchLedger(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		code := GetArg(optionalArgs, 0, nil)
-		_ = code
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		var omsId any = this.SafeInteger(this.Options, "omsId", 1)
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes142212 := (<-this.LoadMarkets())
-			PanicOnError(retRes142212)
-		}
-
-		retRes14248 := (<-this.LoadAccounts())
-		PanicOnError(retRes14248)
-		var defaultAccountId any = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
-		var accountId any = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
-		params = this.Omit(params, []any{"accountId", "AccountId"})
-		var request any = map[string]any{
-			"omsId":     omsId,
-			"AccountId": accountId,
-		}
-		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "Depth", limit)
-		}
-
-		response := (<-this.PrivateGetGetAccountTransactions(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     [
-		//         {
-		//             "TransactionId":2663709493,
-		//             "ReferenceId":68,
-		//             "OMSId":1,
-		//             "AccountId":449,
-		//             "CR":10.000000000000000000000000000,
-		//             "DR":0.0000000000000000000000000000,
-		//             "Counterparty":3,
-		//             "TransactionType":"Other",
-		//             "ReferenceType":"Deposit",
-		//             "ProductId":1,
-		//             "Balance":10.000000000000000000000000000,
-		//             "TimeStamp":1607532331591
-		//         },
-		//     ]
-		//
-		var currency any = nil
-		if IsTrue(!IsEqual(code, nil)) {
-			currency = this.Currency(code)
-		}
-
-		ch <- this.ParseLedger(response, currency, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchLedgerBody(ch, optionalArgs...)
 	return ch
 }
+func (this *NdaxCore) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	code := GetArg(optionalArgs, 0, nil)
+	_ = code
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	var omsId any = this.SafeInteger(this.Options, "omsId", 1)
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes142812 := (<-this.LoadMarkets())
+		PanicOnError(retRes142812)
+	}
+
+	retRes14308 := (<-this.LoadAccounts())
+	PanicOnError(retRes14308)
+	var defaultAccountId any = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
+	var accountId any = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
+	params = this.Omit(params, []any{"accountId", "AccountId"})
+	var request map[string]any = map[string]any{
+		"omsId":     omsId,
+		"AccountId": accountId,
+	}
+	if IsTrue(!IsEqual(limit, nil)) {
+		AddElementToObject(request, "Depth", limit)
+	}
+
+	response := (<-this.PrivateGetGetAccountTransactions(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     [
+	//         {
+	//             "TransactionId":2663709493,
+	//             "ReferenceId":68,
+	//             "OMSId":1,
+	//             "AccountId":449,
+	//             "CR":10.000000000000000000000000000,
+	//             "DR":0.0000000000000000000000000000,
+	//             "Counterparty":3,
+	//             "TransactionType":"Other",
+	//             "ReferenceType":"Deposit",
+	//             "ProductId":1,
+	//             "Balance":10.000000000000000000000000000,
+	//             "TimeStamp":1607532331591
+	//         },
+	//     ]
+	//
+	var currency any = nil
+	if IsTrue(!IsEqual(code, nil)) {
+		currency = this.Currency(code)
+	}
+
+	ch <- this.ParseLedger(response, currency, since, limit)
+	return nil
+}
 func (this *NdaxCore) ParseOrderStatus(status any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"Accepted":      "open",
 		"Rejected":      "rejected",
 		"Working":       "open",
@@ -1782,74 +1996,78 @@ func (this *NdaxCore) ParseOrder(order any, optionalArgs ...any) any {
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *NdaxCore) CreateOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		price := GetArg(optionalArgs, 0, nil)
-		_ = price
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		var omsId any = this.SafeInteger(this.Options, "omsId", 1)
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes158912 := (<-this.LoadMarkets())
-			PanicOnError(retRes158912)
-		}
-
-		retRes15918 := (<-this.LoadAccounts())
-		PanicOnError(retRes15918)
-		var defaultAccountId any = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
-		var accountId any = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
-		var clientOrderId any = this.SafeInteger2(params, "ClientOrderId", "clientOrderId")
-		var orderType any = this.SafeInteger(GetValue(this.Options, "orderTypes"), this.Capitalize(typeVar))
-		var triggerPrice any = this.SafeString(params, "triggerPrice")
-		if IsTrue(!IsEqual(triggerPrice, nil)) {
-			if IsTrue(IsEqual(typeVar, "market")) {
-				orderType = 3
-			} else if IsTrue(IsEqual(typeVar, "limit")) {
-				orderType = 4
-			}
-		}
-		params = this.Omit(params, []any{"accountId", "AccountId", "clientOrderId", "ClientOrderId", "triggerPrice"})
-		var market any = this.Market(symbol)
-		var orderSide any = Ternary(IsTrue((IsEqual(side, "buy"))), 0, 1)
-		var amountString any = this.AmountToPrecision(symbol, amount)
-		var request any = map[string]any{
-			"InstrumentId": this.ParseToInt(GetValue(market, "id")),
-			"omsId":        omsId,
-			"AccountId":    accountId,
-			"TimeInForce":  1,
-			"Side":         orderSide,
-			"Quantity":     Ternary(IsTrue((IsEqual(amountString, nil))), nil, ParseFloat(amountString)),
-			"OrderType":    orderType,
-		}
-		// If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
-		if IsTrue(!IsEqual(price, nil)) {
-			AddElementToObject(request, "LimitPrice", ParseFloat(this.PriceToPrecision(symbol, price)))
-		}
-		if IsTrue(!IsEqual(clientOrderId, nil)) {
-			AddElementToObject(request, "ClientOrderId", clientOrderId)
-		}
-		if IsTrue(!IsEqual(triggerPrice, nil)) {
-			AddElementToObject(request, "StopPrice", triggerPrice)
-		}
-
-		response := (<-this.PrivatePostSendOrder(this.Extend(request, params)))
-		PanicOnError(response)
-
-		//
-		//     {
-		//         "status":"Accepted",
-		//         "errormsg":"",
-		//         "OrderId": 2543565231
-		//     }
-		//
-		ch <- this.ParseOrder(response, market)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
+}
+func (this *NdaxCore) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	price := GetArg(optionalArgs, 0, nil)
+	_ = price
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	var omsId any = this.SafeInteger(this.Options, "omsId", 1)
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes159512 := (<-this.LoadMarkets())
+		PanicOnError(retRes159512)
+	}
+
+	retRes15978 := (<-this.LoadAccounts())
+	PanicOnError(retRes15978)
+	var defaultAccountId any = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
+	var accountId any = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
+	var clientOrderId any = this.SafeInteger2(params, "ClientOrderId", "clientOrderId")
+	var orderType any = this.SafeInteger(GetValue(this.Options, "orderTypes"), this.Capitalize(typeVar))
+	var triggerPrice any = this.SafeString(params, "triggerPrice")
+	if IsTrue(!IsEqual(triggerPrice, nil)) {
+		if IsTrue(IsEqual(typeVar, "market")) {
+			orderType = 3
+		} else if IsTrue(IsEqual(typeVar, "limit")) {
+			orderType = 4
+		}
+	}
+	params = this.Omit(params, []any{"accountId", "AccountId", "clientOrderId", "ClientOrderId", "triggerPrice"})
+	var market any = this.Market(symbol)
+	var orderSide any = Ternary(IsTrue((IsEqual(side, "buy"))), 0, 1)
+	var amountString any = this.AmountToPrecision(symbol, amount)
+	var request map[string]any = map[string]any{
+		"InstrumentId": this.ParseToInt(GetValue(market, "id")),
+		"omsId":        omsId,
+		"AccountId":    accountId,
+		"TimeInForce":  1,
+		"Side":         orderSide,
+		"Quantity":     Ternary(IsTrue((IsEqual(amountString, nil))), nil, ParseFloat(amountString)),
+		"OrderType":    orderType,
+	}
+	// If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
+	if IsTrue(!IsEqual(price, nil)) {
+		var limitPriceString any = this.PriceToPrecision(symbol, price)
+		if IsTrue(IsEqual(limitPriceString, nil)) {
+			limitPriceString = "0"
+		}
+		AddElementToObject(request, "LimitPrice", ParseFloat(limitPriceString))
+	}
+	if IsTrue(!IsEqual(clientOrderId, nil)) {
+		AddElementToObject(request, "ClientOrderId", clientOrderId)
+	}
+	if IsTrue(!IsEqual(triggerPrice, nil)) {
+		AddElementToObject(request, "StopPrice", triggerPrice)
+	}
+
+	response := (<-this.PrivatePostSendOrder(this.Extend(request, params)))
+	PanicOnError(response)
+
+	//
+	//     {
+	//         "status":"Accepted",
+	//         "errormsg":"",
+	//         "OrderId": 2543565231
+	//     }
+	//
+	ch <- this.ParseOrder(response, market)
+	return nil
 }
 
 /**
@@ -1867,66 +2085,70 @@ func (this *NdaxCore) CreateOrder(symbol any, typeVar any, side any, amount any,
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *NdaxCore) EditOrder(id any, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		amount := GetArg(optionalArgs, 0, nil)
-		_ = amount
-		price := GetArg(optionalArgs, 1, nil)
-		_ = price
-		params := GetArg(optionalArgs, 2, map[string]any{})
-		_ = params
-		var omsId any = this.SafeInteger(this.Options, "omsId", 1)
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes166412 := (<-this.LoadMarkets())
-			PanicOnError(retRes166412)
-		}
-
-		retRes16668 := (<-this.LoadAccounts())
-		PanicOnError(retRes16668)
-		var defaultAccountId any = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
-		var accountId any = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
-		var clientOrderId any = this.SafeInteger2(params, "ClientOrderId", "clientOrderId")
-		params = this.Omit(params, []any{"accountId", "AccountId", "clientOrderId", "ClientOrderId"})
-		var market any = this.Market(symbol)
-		var orderSide any = Ternary(IsTrue((IsEqual(side, "buy"))), 0, 1)
-		var amountString any = this.AmountToPrecision(symbol, amount)
-		var request any = map[string]any{
-			"OrderIdToReplace": ParseInt(id),
-			"InstrumentId":     this.ParseToInt(GetValue(market, "id")),
-			"omsId":            omsId,
-			"AccountId":        accountId,
-			"TimeInForce":      1,
-			"Side":             orderSide,
-			"Quantity":         Ternary(IsTrue((IsEqual(amountString, nil))), nil, ParseFloat(amountString)),
-			"OrderType":        this.SafeInteger(GetValue(this.Options, "orderTypes"), this.Capitalize(typeVar)),
-		}
-		// If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
-		if IsTrue(!IsEqual(price, nil)) {
-			AddElementToObject(request, "LimitPrice", ParseFloat(this.PriceToPrecision(symbol, price)))
-		}
-		if IsTrue(!IsEqual(clientOrderId, nil)) {
-			AddElementToObject(request, "ClientOrderId", clientOrderId)
-		}
-
-		response := (<-this.PrivatePostCancelReplaceOrder(this.Extend(request, params)))
-		PanicOnError(response)
-
-		//
-		//     {
-		//         "replacementOrderId": 1234,
-		//         "replacementClOrdId": 1561,
-		//         "origOrderId": 5678,
-		//         "origClOrdId": 91011,
-		//     }
-		//
-		ch <- this.ParseOrder(response, market)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
+}
+func (this *NdaxCore) editOrderBody(ch chan any, id any, symbol any, typeVar any, side any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	amount := GetArg(optionalArgs, 0, nil)
+	_ = amount
+	price := GetArg(optionalArgs, 1, nil)
+	_ = price
+	params := GetArg(optionalArgs, 2, map[string]any{})
+	_ = params
+	var omsId any = this.SafeInteger(this.Options, "omsId", 1)
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes167412 := (<-this.LoadMarkets())
+		PanicOnError(retRes167412)
+	}
+
+	retRes16768 := (<-this.LoadAccounts())
+	PanicOnError(retRes16768)
+	var defaultAccountId any = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
+	var accountId any = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
+	var clientOrderId any = this.SafeInteger2(params, "ClientOrderId", "clientOrderId")
+	params = this.Omit(params, []any{"accountId", "AccountId", "clientOrderId", "ClientOrderId"})
+	var market any = this.Market(symbol)
+	var orderSide any = Ternary(IsTrue((IsEqual(side, "buy"))), 0, 1)
+	var amountString any = this.AmountToPrecision(symbol, amount)
+	var request map[string]any = map[string]any{
+		"OrderIdToReplace": ParseInt(id),
+		"InstrumentId":     this.ParseToInt(GetValue(market, "id")),
+		"omsId":            omsId,
+		"AccountId":        accountId,
+		"TimeInForce":      1,
+		"Side":             orderSide,
+		"Quantity":         Ternary(IsTrue((IsEqual(amountString, nil))), nil, ParseFloat(amountString)),
+		"OrderType":        this.SafeInteger(GetValue(this.Options, "orderTypes"), this.Capitalize(typeVar)),
+	}
+	// If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
+	if IsTrue(!IsEqual(price, nil)) {
+		var limitPriceString any = this.PriceToPrecision(symbol, price)
+		if IsTrue(IsEqual(limitPriceString, nil)) {
+			limitPriceString = "0"
+		}
+		AddElementToObject(request, "LimitPrice", ParseFloat(limitPriceString))
+	}
+	if IsTrue(!IsEqual(clientOrderId, nil)) {
+		AddElementToObject(request, "ClientOrderId", clientOrderId)
+	}
+
+	response := (<-this.PrivatePostCancelReplaceOrder(this.Extend(request, params)))
+	PanicOnError(response)
+
+	//
+	//     {
+	//         "replacementOrderId": 1234,
+	//         "replacementClOrdId": 1561,
+	//         "origOrderId": 5678,
+	//         "origClOrdId": 91011,
+	//     }
+	//
+	ch <- this.ParseOrder(response, market)
+	return nil
 }
 
 /**
@@ -1941,97 +2163,97 @@ func (this *NdaxCore) EditOrder(id any, symbol any, typeVar any, side any, optio
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *NdaxCore) FetchMyTrades(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		var omsId any = this.SafeInteger(this.Options, "omsId", 1)
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes172612 := (<-this.LoadMarkets())
-			PanicOnError(retRes172612)
-		}
-
-		retRes17288 := (<-this.LoadAccounts())
-		PanicOnError(retRes17288)
-		var defaultAccountId any = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
-		var accountId any = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
-		params = this.Omit(params, []any{"accountId", "AccountId"})
-		var request any = map[string]any{
-			"omsId":     omsId,
-			"AccountId": accountId,
-		}
-		var market any = nil
-		if IsTrue(!IsEqual(symbol, nil)) {
-			market = this.Market(symbol)
-			AddElementToObject(request, "InstrumentId", GetValue(market, "id"))
-		}
-		if IsTrue(!IsEqual(since, nil)) {
-			AddElementToObject(request, "StartTimeStamp", this.ParseToInt(Divide(since, 1000)))
-		}
-		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "Depth", limit)
-		}
-
-		response := (<-this.PrivateGetGetTradesHistory(this.Extend(request, params)))
-		PanicOnError(response)
-
-		//
-		//     [
-		//         {
-		//             "OMSId":1,
-		//             "ExecutionId":16916567,
-		//             "TradeId":14476351,
-		//             "OrderId":2543565231,
-		//             "AccountId":449,
-		//             "AccountName":"igor@ccxt.trade",
-		//             "SubAccountId":0,
-		//             "ClientOrderId":0,
-		//             "InstrumentId":8,
-		//             "Side":"Sell",
-		//             "OrderType":"Market",
-		//             "Quantity":0.1230000000000000000000000000,
-		//             "RemainingQuantity":0.0000000000000000000000000000,
-		//             "Price":19069.310000000000000000000000,
-		//             "Value":2345.5251300000000000000000000,
-		//             "CounterParty":"7",
-		//             "OrderTradeRevision":1,
-		//             "Direction":"NoChange",
-		//             "IsBlockTrade":false,
-		//             "Fee":1.1727625650000000000000000000,
-		//             "FeeProductId":8,
-		//             "OrderOriginator":446,
-		//             "UserName":"igor@ccxt.trade",
-		//             "TradeTimeMS":1607565031569,
-		//             "MakerTaker":"Taker",
-		//             "AdapterTradeId":0,
-		//             "InsideBid":19069.310000000000000000000000,
-		//             "InsideBidSize":0.2400950000000000000000000000,
-		//             "InsideAsk":19069.320000000000000000000000,
-		//             "InsideAskSize":0.0997360000000000000000000000,
-		//             "IsQuote":false,
-		//             "CounterPartyClientUserId":1,
-		//             "NotionalProductId":2,
-		//             "NotionalRate":1.0000000000000000000000000000,
-		//             "NotionalValue":2345.5251300000000000000000000,
-		//             "NotionalHoldAmount":0,
-		//             "TradeTime":637431618315686826
-		//         }
-		//     ]
-		//
-		ch <- this.ParseTrades(response, market, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchMyTradesBody(ch, optionalArgs...)
 	return ch
+}
+func (this *NdaxCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	var omsId any = this.SafeInteger(this.Options, "omsId", 1)
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes174012 := (<-this.LoadMarkets())
+		PanicOnError(retRes174012)
+	}
+
+	retRes17428 := (<-this.LoadAccounts())
+	PanicOnError(retRes17428)
+	var defaultAccountId any = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
+	var accountId any = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
+	params = this.Omit(params, []any{"accountId", "AccountId"})
+	var request map[string]any = map[string]any{
+		"omsId":     omsId,
+		"AccountId": accountId,
+	}
+	var market any = nil
+	if IsTrue(!IsEqual(symbol, nil)) {
+		market = this.Market(symbol)
+		AddElementToObject(request, "InstrumentId", GetValue(market, "id"))
+	}
+	if IsTrue(!IsEqual(since, nil)) {
+		AddElementToObject(request, "StartTimeStamp", this.ParseToInt(Divide(since, 1000)))
+	}
+	if IsTrue(!IsEqual(limit, nil)) {
+		AddElementToObject(request, "Depth", limit)
+	}
+
+	response := (<-this.PrivateGetGetTradesHistory(this.Extend(request, params)))
+	PanicOnError(response)
+
+	//
+	//     [
+	//         {
+	//             "OMSId":1,
+	//             "ExecutionId":16916567,
+	//             "TradeId":14476351,
+	//             "OrderId":2543565231,
+	//             "AccountId":449,
+	//             "AccountName":"igor@ccxt.trade",
+	//             "SubAccountId":0,
+	//             "ClientOrderId":0,
+	//             "InstrumentId":8,
+	//             "Side":"Sell",
+	//             "OrderType":"Market",
+	//             "Quantity":0.1230000000000000000000000000,
+	//             "RemainingQuantity":0.0000000000000000000000000000,
+	//             "Price":19069.310000000000000000000000,
+	//             "Value":2345.5251300000000000000000000,
+	//             "CounterParty":"7",
+	//             "OrderTradeRevision":1,
+	//             "Direction":"NoChange",
+	//             "IsBlockTrade":false,
+	//             "Fee":1.1727625650000000000000000000,
+	//             "FeeProductId":8,
+	//             "OrderOriginator":446,
+	//             "UserName":"igor@ccxt.trade",
+	//             "TradeTimeMS":1607565031569,
+	//             "MakerTaker":"Taker",
+	//             "AdapterTradeId":0,
+	//             "InsideBid":19069.310000000000000000000000,
+	//             "InsideBidSize":0.2400950000000000000000000000,
+	//             "InsideAsk":19069.320000000000000000000000,
+	//             "InsideAskSize":0.0997360000000000000000000000,
+	//             "IsQuote":false,
+	//             "CounterPartyClientUserId":1,
+	//             "NotionalProductId":2,
+	//             "NotionalRate":1.0000000000000000000000000000,
+	//             "NotionalValue":2345.5251300000000000000000000,
+	//             "NotionalHoldAmount":0,
+	//             "TradeTime":637431618315686826
+	//         }
+	//     ]
+	//
+	ch <- this.ParseTrades(response, market, since, limit)
+	return nil
 }
 
 /**
@@ -2039,58 +2261,58 @@ func (this *NdaxCore) FetchMyTrades(optionalArgs ...any) <-chan any {
  * @name ndax#cancelAllOrders
  * @description cancel all open orders
  * @see https://apidoc.ndax.io/#cancelallorders
- * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+ * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *NdaxCore) CancelAllOrders(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		var omsId any = this.SafeInteger(this.Options, "omsId", 1)
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes181512 := (<-this.LoadMarkets())
-			PanicOnError(retRes181512)
-		}
-
-		retRes18178 := (<-this.LoadAccounts())
-		PanicOnError(retRes18178)
-		var defaultAccountId any = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
-		var accountId any = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
-		params = this.Omit(params, []any{"accountId", "AccountId"})
-		var request any = map[string]any{
-			"omsId":     omsId,
-			"AccountId": accountId,
-		}
-		if IsTrue(!IsEqual(symbol, nil)) {
-			var market any = this.Market(symbol)
-			AddElementToObject(request, "IntrumentId", GetValue(market, "id"))
-		}
-
-		response := (<-this.PrivatePostCancelAllOrders(this.Extend(request, params)))
-		PanicOnError(response)
-
-		//
-		//     {
-		//         "result":true,
-		//         "errormsg":null,
-		//         "errorcode":0,
-		//         "detail":null
-		//     }
-		//
-		ch <- []any{this.SafeOrder(map[string]any{
-			"info": response,
-		})}
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.cancelAllOrdersBody(ch, optionalArgs...)
 	return ch
+}
+func (this *NdaxCore) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	var omsId any = this.SafeInteger(this.Options, "omsId", 1)
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes182912 := (<-this.LoadMarkets())
+		PanicOnError(retRes182912)
+	}
+
+	retRes18318 := (<-this.LoadAccounts())
+	PanicOnError(retRes18318)
+	var defaultAccountId any = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
+	var accountId any = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
+	params = this.Omit(params, []any{"accountId", "AccountId"})
+	var request map[string]any = map[string]any{
+		"omsId":     omsId,
+		"AccountId": accountId,
+	}
+	if IsTrue(!IsEqual(symbol, nil)) {
+		var market any = this.Market(symbol)
+		AddElementToObject(request, "IntrumentId", GetValue(market, "id"))
+	}
+
+	response := (<-this.PrivatePostCancelAllOrders(this.Extend(request, params)))
+	PanicOnError(response)
+
+	//
+	//     {
+	//         "result":true,
+	//         "errormsg":null,
+	//         "errorcode":0,
+	//         "detail":null
+	//     }
+	//
+	ch <- []any{this.SafeOrder(map[string]any{
+		"info": response,
+	})}
+	return nil
 }
 
 /**
@@ -2105,53 +2327,53 @@ func (this *NdaxCore) CancelAllOrders(optionalArgs ...any) <-chan any {
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *NdaxCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		var omsId any = this.SafeInteger(this.Options, "omsId", 1)
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes185912 := (<-this.LoadMarkets())
-			PanicOnError(retRes185912)
-		}
-
-		retRes18618 := (<-this.LoadAccounts())
-		PanicOnError(retRes18618)
-		// const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', this.parseToInt (this.accounts[0]['id']));
-		// const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
-		// params = this.omit (params, [ 'accountId', 'AccountId' ]);
-		var market any = nil
-		if IsTrue(!IsEqual(symbol, nil)) {
-			market = this.Market(symbol)
-		}
-		var request any = map[string]any{
-			"omsId": omsId,
-		}
-		var clientOrderId any = this.SafeInteger2(params, "clientOrderId", "ClOrderId")
-		if IsTrue(!IsEqual(clientOrderId, nil)) {
-			AddElementToObject(request, "ClOrderId", clientOrderId)
-		} else {
-			AddElementToObject(request, "OrderId", ParseInt(id))
-		}
-		params = this.Omit(params, []any{"clientOrderId", "ClOrderId"})
-
-		response := (<-this.PrivatePostCancelOrder(this.Extend(request, params)))
-		PanicOnError(response)
-		var order any = this.ParseOrder(response, market)
-
-		ch <- this.Extend(order, map[string]any{
-			"id":            id,
-			"clientOrderId": clientOrderId,
-		})
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
+}
+func (this *NdaxCore) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	var omsId any = this.SafeInteger(this.Options, "omsId", 1)
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes187312 := (<-this.LoadMarkets())
+		PanicOnError(retRes187312)
+	}
+
+	retRes18758 := (<-this.LoadAccounts())
+	PanicOnError(retRes18758)
+	// const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', this.parseToInt (this.accounts[0]['id']));
+	// const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
+	// params = this.omit (params, [ 'accountId', 'AccountId' ]);
+	var market any = nil
+	if IsTrue(!IsEqual(symbol, nil)) {
+		market = this.Market(symbol)
+	}
+	var request map[string]any = map[string]any{
+		"omsId": omsId,
+	}
+	var clientOrderId any = this.SafeInteger2(params, "clientOrderId", "ClOrderId")
+	if IsTrue(!IsEqual(clientOrderId, nil)) {
+		AddElementToObject(request, "ClOrderId", clientOrderId)
+	} else {
+		AddElementToObject(request, "OrderId", ParseInt(id))
+	}
+	params = this.Omit(params, []any{"clientOrderId", "ClOrderId"})
+
+	response := (<-this.PrivatePostCancelOrder(this.Extend(request, params)))
+	PanicOnError(response)
+	var order any = this.ParseOrder(response, market)
+
+	ch <- this.Extend(order, map[string]any{
+		"id":            id,
+		"clientOrderId": clientOrderId,
+	})
+	return nil
 }
 
 /**
@@ -2166,97 +2388,97 @@ func (this *NdaxCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *NdaxCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		var omsId any = this.SafeInteger(this.Options, "omsId", 1)
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes190212 := (<-this.LoadMarkets())
-			PanicOnError(retRes190212)
-		}
-
-		retRes19048 := (<-this.LoadAccounts())
-		PanicOnError(retRes19048)
-		var defaultAccountId any = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
-		var accountId any = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
-		params = this.Omit(params, []any{"accountId", "AccountId"})
-		var market any = nil
-		if IsTrue(!IsEqual(symbol, nil)) {
-			market = this.Market(symbol)
-		}
-		var request any = map[string]any{
-			"omsId":     omsId,
-			"AccountId": accountId,
-		}
-
-		response := (<-this.PrivateGetGetOpenOrders(this.Extend(request, params)))
-		PanicOnError(response)
-
-		//
-		//     [
-		//         {
-		//             "Side":"Buy",
-		//             "OrderId":2543565233,
-		//             "Price":19010,
-		//             "Quantity":0.345,
-		//             "DisplayQuantity":0.345,
-		//             "Instrument":8,
-		//             "Account":449,
-		//             "AccountName":"igor@ccxt.trade",
-		//             "OrderType":"Limit",
-		//             "ClientOrderId":0,
-		//             "OrderState":"Working",
-		//             "ReceiveTime":1607579326003,
-		//             "ReceiveTimeTicks":637431761260028981,
-		//             "LastUpdatedTime":1607579326005,
-		//             "LastUpdatedTimeTicks":637431761260054714,
-		//             "OrigQuantity":0.345,
-		//             "QuantityExecuted":0,
-		//             "GrossValueExecuted":0,
-		//             "ExecutableValue":0,
-		//             "AvgPrice":0,
-		//             "CounterPartyId":0,
-		//             "ChangeReason":"NewInputAccepted",
-		//             "OrigOrderId":2543565233,
-		//             "OrigClOrdId":0,
-		//             "EnteredBy":446,
-		//             "UserName":"igor@ccxt.trade",
-		//             "IsQuote":false,
-		//             "InsideAsk":19069.32,
-		//             "InsideAskSize":0.099736,
-		//             "InsideBid":19068.25,
-		//             "InsideBidSize":1.330001,
-		//             "LastTradePrice":19068.25,
-		//             "RejectReason":"",
-		//             "IsLockedIn":false,
-		//             "CancelReason":"",
-		//             "OrderFlag":"AddedToBook",
-		//             "UseMargin":false,
-		//             "StopPrice":0,
-		//             "PegPriceType":"Unknown",
-		//             "PegOffset":0,
-		//             "PegLimitOffset":0,
-		//             "IpAddress":null,
-		//             "ClientOrderIdUuid":null,
-		//             "OMSId":1
-		//         }
-		//     ]
-		//
-		ch <- this.ParseOrders(response, market, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOpenOrdersBody(ch, optionalArgs...)
 	return ch
+}
+func (this *NdaxCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	var omsId any = this.SafeInteger(this.Options, "omsId", 1)
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes191612 := (<-this.LoadMarkets())
+		PanicOnError(retRes191612)
+	}
+
+	retRes19188 := (<-this.LoadAccounts())
+	PanicOnError(retRes19188)
+	var defaultAccountId any = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
+	var accountId any = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
+	params = this.Omit(params, []any{"accountId", "AccountId"})
+	var market any = nil
+	if IsTrue(!IsEqual(symbol, nil)) {
+		market = this.Market(symbol)
+	}
+	var request map[string]any = map[string]any{
+		"omsId":     omsId,
+		"AccountId": accountId,
+	}
+
+	response := (<-this.PrivateGetGetOpenOrders(this.Extend(request, params)))
+	PanicOnError(response)
+
+	//
+	//     [
+	//         {
+	//             "Side":"Buy",
+	//             "OrderId":2543565233,
+	//             "Price":19010,
+	//             "Quantity":0.345,
+	//             "DisplayQuantity":0.345,
+	//             "Instrument":8,
+	//             "Account":449,
+	//             "AccountName":"igor@ccxt.trade",
+	//             "OrderType":"Limit",
+	//             "ClientOrderId":0,
+	//             "OrderState":"Working",
+	//             "ReceiveTime":1607579326003,
+	//             "ReceiveTimeTicks":637431761260028981,
+	//             "LastUpdatedTime":1607579326005,
+	//             "LastUpdatedTimeTicks":637431761260054714,
+	//             "OrigQuantity":0.345,
+	//             "QuantityExecuted":0,
+	//             "GrossValueExecuted":0,
+	//             "ExecutableValue":0,
+	//             "AvgPrice":0,
+	//             "CounterPartyId":0,
+	//             "ChangeReason":"NewInputAccepted",
+	//             "OrigOrderId":2543565233,
+	//             "OrigClOrdId":0,
+	//             "EnteredBy":446,
+	//             "UserName":"igor@ccxt.trade",
+	//             "IsQuote":false,
+	//             "InsideAsk":19069.32,
+	//             "InsideAskSize":0.099736,
+	//             "InsideBid":19068.25,
+	//             "InsideBidSize":1.330001,
+	//             "LastTradePrice":19068.25,
+	//             "RejectReason":"",
+	//             "IsLockedIn":false,
+	//             "CancelReason":"",
+	//             "OrderFlag":"AddedToBook",
+	//             "UseMargin":false,
+	//             "StopPrice":0,
+	//             "PegPriceType":"Unknown",
+	//             "PegOffset":0,
+	//             "PegLimitOffset":0,
+	//             "IpAddress":null,
+	//             "ClientOrderIdUuid":null,
+	//             "OMSId":1
+	//         }
+	//     ]
+	//
+	ch <- this.ParseOrders(response, market, since, limit)
+	return nil
 }
 
 /**
@@ -2271,104 +2493,104 @@ func (this *NdaxCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *NdaxCore) FetchOrders(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		var omsId any = this.SafeInteger(this.Options, "omsId", 1)
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes198412 := (<-this.LoadMarkets())
-			PanicOnError(retRes198412)
-		}
-
-		retRes19868 := (<-this.LoadAccounts())
-		PanicOnError(retRes19868)
-		var defaultAccountId any = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
-		var accountId any = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
-		params = this.Omit(params, []any{"accountId", "AccountId"})
-		var request any = map[string]any{
-			"omsId":     omsId,
-			"AccountId": accountId,
-		}
-		var market any = nil
-		if IsTrue(!IsEqual(symbol, nil)) {
-			market = this.Market(symbol)
-			AddElementToObject(request, "InstrumentId", GetValue(market, "id"))
-		}
-		if IsTrue(!IsEqual(since, nil)) {
-			AddElementToObject(request, "StartTimeStamp", this.ParseToInt(Divide(since, 1000)))
-		}
-		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "Depth", limit)
-		}
-
-		response := (<-this.PrivateGetGetOrdersHistory(this.Extend(request, params)))
-		PanicOnError(response)
-
-		//
-		//     [
-		//         {
-		//             "Side":"Buy",
-		//             "OrderId":2543565233,
-		//             "Price":19010.000000000000000000000000,
-		//             "Quantity":0.0000000000000000000000000000,
-		//             "DisplayQuantity":0.3450000000000000000000000000,
-		//             "Instrument":8,
-		//             "Account":449,
-		//             "AccountName":"igor@ccxt.trade",
-		//             "OrderType":"Limit",
-		//             "ClientOrderId":0,
-		//             "OrderState":"Canceled",
-		//             "ReceiveTime":1607579326003,
-		//             "ReceiveTimeTicks":637431761260028981,
-		//             "LastUpdatedTime":1607580965346,
-		//             "LastUpdatedTimeTicks":637431777653463754,
-		//             "OrigQuantity":0.3450000000000000000000000000,
-		//             "QuantityExecuted":0.0000000000000000000000000000,
-		//             "GrossValueExecuted":0.0000000000000000000000000000,
-		//             "ExecutableValue":0.0000000000000000000000000000,
-		//             "AvgPrice":0.0000000000000000000000000000,
-		//             "CounterPartyId":0,
-		//             "ChangeReason":"UserModified",
-		//             "OrigOrderId":2543565233,
-		//             "OrigClOrdId":0,
-		//             "EnteredBy":446,
-		//             "UserName":"igor@ccxt.trade",
-		//             "IsQuote":false,
-		//             "InsideAsk":19069.320000000000000000000000,
-		//             "InsideAskSize":0.0997360000000000000000000000,
-		//             "InsideBid":19068.250000000000000000000000,
-		//             "InsideBidSize":1.3300010000000000000000000000,
-		//             "LastTradePrice":19068.250000000000000000000000,
-		//             "RejectReason":"",
-		//             "IsLockedIn":false,
-		//             "CancelReason":"UserModified",
-		//             "OrderFlag":"AddedToBook, RemovedFromBook",
-		//             "UseMargin":false,
-		//             "StopPrice":0.0000000000000000000000000000,
-		//             "PegPriceType":"Unknown",
-		//             "PegOffset":0.0000000000000000000000000000,
-		//             "PegLimitOffset":0.0000000000000000000000000000,
-		//             "IpAddress":"x.x.x.x",
-		//             "ClientOrderIdUuid":null,
-		//             "OMSId":1
-		//         },
-		//     ]
-		//
-		ch <- this.ParseOrders(response, market, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOrdersBody(ch, optionalArgs...)
 	return ch
+}
+func (this *NdaxCore) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	var omsId any = this.SafeInteger(this.Options, "omsId", 1)
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes199812 := (<-this.LoadMarkets())
+		PanicOnError(retRes199812)
+	}
+
+	retRes20008 := (<-this.LoadAccounts())
+	PanicOnError(retRes20008)
+	var defaultAccountId any = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
+	var accountId any = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
+	params = this.Omit(params, []any{"accountId", "AccountId"})
+	var request map[string]any = map[string]any{
+		"omsId":     omsId,
+		"AccountId": accountId,
+	}
+	var market any = nil
+	if IsTrue(!IsEqual(symbol, nil)) {
+		market = this.Market(symbol)
+		AddElementToObject(request, "InstrumentId", GetValue(market, "id"))
+	}
+	if IsTrue(!IsEqual(since, nil)) {
+		AddElementToObject(request, "StartTimeStamp", this.ParseToInt(Divide(since, 1000)))
+	}
+	if IsTrue(!IsEqual(limit, nil)) {
+		AddElementToObject(request, "Depth", limit)
+	}
+
+	response := (<-this.PrivateGetGetOrdersHistory(this.Extend(request, params)))
+	PanicOnError(response)
+
+	//
+	//     [
+	//         {
+	//             "Side":"Buy",
+	//             "OrderId":2543565233,
+	//             "Price":19010.000000000000000000000000,
+	//             "Quantity":0.0000000000000000000000000000,
+	//             "DisplayQuantity":0.3450000000000000000000000000,
+	//             "Instrument":8,
+	//             "Account":449,
+	//             "AccountName":"igor@ccxt.trade",
+	//             "OrderType":"Limit",
+	//             "ClientOrderId":0,
+	//             "OrderState":"Canceled",
+	//             "ReceiveTime":1607579326003,
+	//             "ReceiveTimeTicks":637431761260028981,
+	//             "LastUpdatedTime":1607580965346,
+	//             "LastUpdatedTimeTicks":637431777653463754,
+	//             "OrigQuantity":0.3450000000000000000000000000,
+	//             "QuantityExecuted":0.0000000000000000000000000000,
+	//             "GrossValueExecuted":0.0000000000000000000000000000,
+	//             "ExecutableValue":0.0000000000000000000000000000,
+	//             "AvgPrice":0.0000000000000000000000000000,
+	//             "CounterPartyId":0,
+	//             "ChangeReason":"UserModified",
+	//             "OrigOrderId":2543565233,
+	//             "OrigClOrdId":0,
+	//             "EnteredBy":446,
+	//             "UserName":"igor@ccxt.trade",
+	//             "IsQuote":false,
+	//             "InsideAsk":19069.320000000000000000000000,
+	//             "InsideAskSize":0.0997360000000000000000000000,
+	//             "InsideBid":19068.250000000000000000000000,
+	//             "InsideBidSize":1.3300010000000000000000000000,
+	//             "LastTradePrice":19068.250000000000000000000000,
+	//             "RejectReason":"",
+	//             "IsLockedIn":false,
+	//             "CancelReason":"UserModified",
+	//             "OrderFlag":"AddedToBook, RemovedFromBook",
+	//             "UseMargin":false,
+	//             "StopPrice":0.0000000000000000000000000000,
+	//             "PegPriceType":"Unknown",
+	//             "PegOffset":0.0000000000000000000000000000,
+	//             "PegLimitOffset":0.0000000000000000000000000000,
+	//             "IpAddress":"x.x.x.x",
+	//             "ClientOrderIdUuid":null,
+	//             "OMSId":1
+	//         },
+	//     ]
+	//
+	ch <- this.ParseOrders(response, market, since, limit)
+	return nil
 }
 
 /**
@@ -2382,92 +2604,92 @@ func (this *NdaxCore) FetchOrders(optionalArgs ...any) <-chan any {
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *NdaxCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		var omsId any = this.SafeInteger(this.Options, "omsId", 1)
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes208112 := (<-this.LoadMarkets())
-			PanicOnError(retRes208112)
-		}
-
-		retRes20838 := (<-this.LoadAccounts())
-		PanicOnError(retRes20838)
-		var defaultAccountId any = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
-		var accountId any = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
-		params = this.Omit(params, []any{"accountId", "AccountId"})
-		var market any = nil
-		if IsTrue(!IsEqual(symbol, nil)) {
-			market = this.Market(symbol)
-		}
-		var request any = map[string]any{
-			"omsId":     omsId,
-			"AccountId": accountId,
-			"OrderId":   ParseInt(id),
-		}
-
-		response := (<-this.PrivateGetGetOrderStatus(this.Extend(request, params)))
-		PanicOnError(response)
-
-		//
-		//     {
-		//         "Side":"Sell",
-		//         "OrderId":2543565232,
-		//         "Price":0.0000000000000000000000000000,
-		//         "Quantity":0.0000000000000000000000000000,
-		//         "DisplayQuantity":0.0000000000000000000000000000,
-		//         "Instrument":8,
-		//         "Account":449,
-		//         "AccountName":"igor@ccxt.trade",
-		//         "OrderType":"Market",
-		//         "ClientOrderId":0,
-		//         "OrderState":"FullyExecuted",
-		//         "ReceiveTime":1607569475591,
-		//         "ReceiveTimeTicks":637431662755912377,
-		//         "LastUpdatedTime":1607569475596,
-		//         "LastUpdatedTimeTicks":637431662755960902,
-		//         "OrigQuantity":1.0000000000000000000000000000,
-		//         "QuantityExecuted":1.0000000000000000000000000000,
-		//         "GrossValueExecuted":19068.270478610000000000000000,
-		//         "ExecutableValue":0.0000000000000000000000000000,
-		//         "AvgPrice":19068.270478610000000000000000,
-		//         "CounterPartyId":0,
-		//         "ChangeReason":"Trade",
-		//         "OrigOrderId":2543565232,
-		//         "OrigClOrdId":0,
-		//         "EnteredBy":446,
-		//         "UserName":"igor@ccxt.trade",
-		//         "IsQuote":false,
-		//         "InsideAsk":19069.320000000000000000000000,
-		//         "InsideAskSize":0.0997360000000000000000000000,
-		//         "InsideBid":19069.310000000000000000000000,
-		//         "InsideBidSize":0.2400950000000000000000000000,
-		//         "LastTradePrice":19069.310000000000000000000000,
-		//         "RejectReason":"",
-		//         "IsLockedIn":false,
-		//         "CancelReason":"",
-		//         "OrderFlag":"0",
-		//         "UseMargin":false,
-		//         "StopPrice":0.0000000000000000000000000000,
-		//         "PegPriceType":"Unknown",
-		//         "PegOffset":0.0000000000000000000000000000,
-		//         "PegLimitOffset":0.0000000000000000000000000000,
-		//         "IpAddress":"x.x.x.x",
-		//         "ClientOrderIdUuid":null,
-		//         "OMSId":1
-		//     }
-		//
-		ch <- this.ParseOrder(response, market)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOrderBody(ch, id, optionalArgs...)
 	return ch
+}
+func (this *NdaxCore) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	var omsId any = this.SafeInteger(this.Options, "omsId", 1)
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes209512 := (<-this.LoadMarkets())
+		PanicOnError(retRes209512)
+	}
+
+	retRes20978 := (<-this.LoadAccounts())
+	PanicOnError(retRes20978)
+	var defaultAccountId any = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
+	var accountId any = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
+	params = this.Omit(params, []any{"accountId", "AccountId"})
+	var market any = nil
+	if IsTrue(!IsEqual(symbol, nil)) {
+		market = this.Market(symbol)
+	}
+	var request map[string]any = map[string]any{
+		"omsId":     omsId,
+		"AccountId": accountId,
+		"OrderId":   ParseInt(id),
+	}
+
+	response := (<-this.PrivateGetGetOrderStatus(this.Extend(request, params)))
+	PanicOnError(response)
+
+	//
+	//     {
+	//         "Side":"Sell",
+	//         "OrderId":2543565232,
+	//         "Price":0.0000000000000000000000000000,
+	//         "Quantity":0.0000000000000000000000000000,
+	//         "DisplayQuantity":0.0000000000000000000000000000,
+	//         "Instrument":8,
+	//         "Account":449,
+	//         "AccountName":"igor@ccxt.trade",
+	//         "OrderType":"Market",
+	//         "ClientOrderId":0,
+	//         "OrderState":"FullyExecuted",
+	//         "ReceiveTime":1607569475591,
+	//         "ReceiveTimeTicks":637431662755912377,
+	//         "LastUpdatedTime":1607569475596,
+	//         "LastUpdatedTimeTicks":637431662755960902,
+	//         "OrigQuantity":1.0000000000000000000000000000,
+	//         "QuantityExecuted":1.0000000000000000000000000000,
+	//         "GrossValueExecuted":19068.270478610000000000000000,
+	//         "ExecutableValue":0.0000000000000000000000000000,
+	//         "AvgPrice":19068.270478610000000000000000,
+	//         "CounterPartyId":0,
+	//         "ChangeReason":"Trade",
+	//         "OrigOrderId":2543565232,
+	//         "OrigClOrdId":0,
+	//         "EnteredBy":446,
+	//         "UserName":"igor@ccxt.trade",
+	//         "IsQuote":false,
+	//         "InsideAsk":19069.320000000000000000000000,
+	//         "InsideAskSize":0.0997360000000000000000000000,
+	//         "InsideBid":19069.310000000000000000000000,
+	//         "InsideBidSize":0.2400950000000000000000000000,
+	//         "LastTradePrice":19069.310000000000000000000000,
+	//         "RejectReason":"",
+	//         "IsLockedIn":false,
+	//         "CancelReason":"",
+	//         "OrderFlag":"0",
+	//         "UseMargin":false,
+	//         "StopPrice":0.0000000000000000000000000000,
+	//         "PegPriceType":"Unknown",
+	//         "PegOffset":0.0000000000000000000000000000,
+	//         "PegLimitOffset":0.0000000000000000000000000000,
+	//         "IpAddress":"x.x.x.x",
+	//         "ClientOrderIdUuid":null,
+	//         "OMSId":1
+	//     }
+	//
+	ch <- this.ParseOrder(response, market)
+	return nil
 }
 
 /**
@@ -2483,99 +2705,99 @@ func (this *NdaxCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *NdaxCore) FetchOrderTrades(id any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		var omsId any = this.SafeInteger(this.Options, "omsId", 1)
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes216312 := (<-this.LoadMarkets())
-			PanicOnError(retRes216312)
-		}
-
-		retRes21658 := (<-this.LoadAccounts())
-		PanicOnError(retRes21658)
-		// const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', this.parseToInt (this.accounts[0]['id']));
-		// const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
-		// params = this.omit (params, [ 'accountId', 'AccountId' ]);
-		var market any = nil
-		if IsTrue(!IsEqual(symbol, nil)) {
-			market = this.Market(symbol)
-		}
-		var request any = map[string]any{
-			"OMSId":   this.ParseToInt(omsId),
-			"OrderId": ParseInt(id),
-		}
-
-		response := (<-this.PrivatePostGetOrderHistoryByOrderId(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     [
-		//         {
-		//             "Side":"Sell",
-		//             "OrderId":2543565235,
-		//             "Price":18600.000000000000000000000000,
-		//             "Quantity":0.0000000000000000000000000000,
-		//             "DisplayQuantity":0.0000000000000000000000000000,
-		//             "Instrument":8,
-		//             "Account":449,
-		//             "AccountName":"igor@ccxt.trade",
-		//             "OrderType":"Limit",
-		//             "ClientOrderId":0,
-		//             "OrderState":"FullyExecuted",
-		//             "ReceiveTime":1607585844956,
-		//             "ReceiveTimeTicks":637431826449564182,
-		//             "LastUpdatedTime":1607585844959,
-		//             "LastUpdatedTimeTicks":637431826449593893,
-		//             "OrigQuantity":0.1230000000000000000000000000,
-		//             "QuantityExecuted":0.1230000000000000000000000000,
-		//             "GrossValueExecuted":2345.3947500000000000000000000,
-		//             "ExecutableValue":0.0000000000000000000000000000,
-		//             "AvgPrice":19068.250000000000000000000000,
-		//             "CounterPartyId":0,
-		//             "ChangeReason":"Trade",
-		//             "OrigOrderId":2543565235,
-		//             "OrigClOrdId":0,
-		//             "EnteredBy":446,
-		//             "UserName":"igor@ccxt.trade",
-		//             "IsQuote":false,
-		//             "InsideAsk":19069.320000000000000000000000,
-		//             "InsideAskSize":0.0997360000000000000000000000,
-		//             "InsideBid":19068.250000000000000000000000,
-		//             "InsideBidSize":1.3300010000000000000000000000,
-		//             "LastTradePrice":19068.250000000000000000000000,
-		//             "RejectReason":"",
-		//             "IsLockedIn":false,
-		//             "CancelReason":"",
-		//             "OrderFlag":"0",
-		//             "UseMargin":false,
-		//             "StopPrice":0.0000000000000000000000000000,
-		//             "PegPriceType":"Unknown",
-		//             "PegOffset":0.0000000000000000000000000000,
-		//             "PegLimitOffset":0.0000000000000000000000000000,
-		//             "IpAddress":"x.x.x.x",
-		//             "ClientOrderIdUuid":null,
-		//             "OMSId":1
-		//         },
-		//     ]
-		//
-		var grouped any = this.GroupBy(response, "ChangeReason")
-		var trades any = this.SafeList(grouped, "Trade", []any{})
-
-		ch <- this.ParseTrades(trades, market, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOrderTradesBody(ch, id, optionalArgs...)
 	return ch
+}
+func (this *NdaxCore) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	var omsId any = this.SafeInteger(this.Options, "omsId", 1)
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes217712 := (<-this.LoadMarkets())
+		PanicOnError(retRes217712)
+	}
+
+	retRes21798 := (<-this.LoadAccounts())
+	PanicOnError(retRes21798)
+	// const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', this.parseToInt (this.accounts[0]['id']));
+	// const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
+	// params = this.omit (params, [ 'accountId', 'AccountId' ]);
+	var market any = nil
+	if IsTrue(!IsEqual(symbol, nil)) {
+		market = this.Market(symbol)
+	}
+	var request map[string]any = map[string]any{
+		"OMSId":   this.ParseToInt(omsId),
+		"OrderId": ParseInt(id),
+	}
+
+	response := (<-this.PrivatePostGetOrderHistoryByOrderId(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     [
+	//         {
+	//             "Side":"Sell",
+	//             "OrderId":2543565235,
+	//             "Price":18600.000000000000000000000000,
+	//             "Quantity":0.0000000000000000000000000000,
+	//             "DisplayQuantity":0.0000000000000000000000000000,
+	//             "Instrument":8,
+	//             "Account":449,
+	//             "AccountName":"igor@ccxt.trade",
+	//             "OrderType":"Limit",
+	//             "ClientOrderId":0,
+	//             "OrderState":"FullyExecuted",
+	//             "ReceiveTime":1607585844956,
+	//             "ReceiveTimeTicks":637431826449564182,
+	//             "LastUpdatedTime":1607585844959,
+	//             "LastUpdatedTimeTicks":637431826449593893,
+	//             "OrigQuantity":0.1230000000000000000000000000,
+	//             "QuantityExecuted":0.1230000000000000000000000000,
+	//             "GrossValueExecuted":2345.3947500000000000000000000,
+	//             "ExecutableValue":0.0000000000000000000000000000,
+	//             "AvgPrice":19068.250000000000000000000000,
+	//             "CounterPartyId":0,
+	//             "ChangeReason":"Trade",
+	//             "OrigOrderId":2543565235,
+	//             "OrigClOrdId":0,
+	//             "EnteredBy":446,
+	//             "UserName":"igor@ccxt.trade",
+	//             "IsQuote":false,
+	//             "InsideAsk":19069.320000000000000000000000,
+	//             "InsideAskSize":0.0997360000000000000000000000,
+	//             "InsideBid":19068.250000000000000000000000,
+	//             "InsideBidSize":1.3300010000000000000000000000,
+	//             "LastTradePrice":19068.250000000000000000000000,
+	//             "RejectReason":"",
+	//             "IsLockedIn":false,
+	//             "CancelReason":"",
+	//             "OrderFlag":"0",
+	//             "UseMargin":false,
+	//             "StopPrice":0.0000000000000000000000000000,
+	//             "PegPriceType":"Unknown",
+	//             "PegOffset":0.0000000000000000000000000000,
+	//             "PegLimitOffset":0.0000000000000000000000000000,
+	//             "IpAddress":"x.x.x.x",
+	//             "ClientOrderIdUuid":null,
+	//             "OMSId":1
+	//         },
+	//     ]
+	//
+	var grouped map[string]any = this.GroupBy(response, "ChangeReason")
+	var trades any = this.SafeList(grouped, "Trade", []any{})
+
+	ch <- this.ParseTrades(trades, market, since, limit)
+	return nil
 }
 
 /**
@@ -2587,52 +2809,52 @@ func (this *NdaxCore) FetchOrderTrades(id any, optionalArgs ...any) <-chan any {
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
 func (this *NdaxCore) FetchDepositAddress(code any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		var omsId any = this.SafeInteger(this.Options, "omsId", 1)
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes224512 := (<-this.LoadMarkets())
-			PanicOnError(retRes224512)
-		}
-
-		retRes22478 := (<-this.LoadAccounts())
-		PanicOnError(retRes22478)
-		var defaultAccountId any = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
-		var accountId any = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
-		params = this.Omit(params, []any{"accountId", "AccountId"})
-		var currency any = this.Currency(code)
-		var request any = map[string]any{
-			"omsId":          omsId,
-			"AccountId":      accountId,
-			"ProductId":      GetValue(currency, "id"),
-			"GenerateNewKey": false,
-		}
-
-		response := (<-this.PrivateGetGetDepositInfo(this.Extend(request, params)))
-		PanicOnError(response)
-
-		//
-		//     {
-		//         "result":true,
-		//         "errormsg":null,
-		//         "statuscode":0,
-		//         "AssetManagerId":1,
-		//         "AccountId":57922,
-		//         "AssetId":16,
-		//         "ProviderId":23,
-		//         "DepositInfo":"[\"0x8A27564b5c30b91C93B1591821642420F323a210\"]"
-		//     }
-		//
-		ch <- this.ParseDepositAddress(response, currency)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchDepositAddressBody(ch, code, optionalArgs...)
 	return ch
+}
+func (this *NdaxCore) fetchDepositAddressBody(ch chan any, code any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	var omsId any = this.SafeInteger(this.Options, "omsId", 1)
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes225912 := (<-this.LoadMarkets())
+		PanicOnError(retRes225912)
+	}
+
+	retRes22618 := (<-this.LoadAccounts())
+	PanicOnError(retRes22618)
+	var defaultAccountId any = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
+	var accountId any = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
+	params = this.Omit(params, []any{"accountId", "AccountId"})
+	var currency any = this.Currency(code)
+	var request map[string]any = map[string]any{
+		"omsId":          omsId,
+		"AccountId":      accountId,
+		"ProductId":      GetValue(currency, "id"),
+		"GenerateNewKey": false,
+	}
+
+	response := (<-this.PrivateGetGetDepositInfo(this.Extend(request, params)))
+	PanicOnError(response)
+
+	//
+	//     {
+	//         "result":true,
+	//         "errormsg":null,
+	//         "statuscode":0,
+	//         "AssetManagerId":1,
+	//         "AccountId":57922,
+	//         "AssetId":16,
+	//         "ProviderId":23,
+	//         "DepositInfo":"[\"0x8A27564b5c30b91C93B1591821642420F323a210\"]"
+	//     }
+	//
+	ch <- this.ParseDepositAddress(response, currency)
+	return nil
 }
 func (this *NdaxCore) ParseDepositAddress(depositAddress any, optionalArgs ...any) any {
 	//
@@ -2653,9 +2875,9 @@ func (this *NdaxCore) ParseDepositAddress(depositAddress any, optionalArgs ...an
 	_ = currency
 	var depositInfoString any = this.SafeString(depositAddress, "DepositInfo", "[]")
 	var depositInfo any = JsonParse(depositInfoString)
-	var depositInfoLength any = GetArrayLength(depositInfo)
+	var depositInfoLength int = GetArrayLength(depositInfo)
 	var lastString any = this.SafeString(depositInfo, Subtract(depositInfoLength, 1), "")
-	var parts any = Split(lastString, "?memo=")
+	var parts []string = Split(lastString, "?memo=")
 	var address any = this.SafeString(parts, 0)
 	var tag any = this.SafeString(parts, 1)
 	var code any = nil
@@ -2681,23 +2903,23 @@ func (this *NdaxCore) ParseDepositAddress(depositAddress any, optionalArgs ...an
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
 func (this *NdaxCore) CreateDepositAddress(code any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		var request any = map[string]any{
-			"GenerateNewKey": true,
-		}
-
-		retRes232215 := (<-this.FetchDepositAddress(code, this.Extend(request, params)))
-		PanicOnError(retRes232215)
-		ch <- retRes232215
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.createDepositAddressBody(ch, code, optionalArgs...)
 	return ch
+}
+func (this *NdaxCore) createDepositAddressBody(ch chan any, code any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	var request map[string]any = map[string]any{
+		"GenerateNewKey": true,
+	}
+
+	retRes233615 := (<-this.FetchDepositAddress(code, this.Extend(request, params)))
+	PanicOnError(retRes233615)
+	ch <- retRes233615
+	return nil
 }
 
 /**
@@ -2712,80 +2934,80 @@ func (this *NdaxCore) CreateDepositAddress(code any, optionalArgs ...any) <-chan
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *NdaxCore) FetchDeposits(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		code := GetArg(optionalArgs, 0, nil)
-		_ = code
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		var omsId any = this.SafeInteger(this.Options, "omsId", 1)
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes233912 := (<-this.LoadMarkets())
-			PanicOnError(retRes233912)
-		}
-
-		retRes23418 := (<-this.LoadAccounts())
-		PanicOnError(retRes23418)
-		var defaultAccountId any = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
-		var accountId any = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
-		params = this.Omit(params, []any{"accountId", "AccountId"})
-		var currency any = nil
-		if IsTrue(!IsEqual(code, nil)) {
-			currency = this.Currency(code)
-		}
-		var request any = map[string]any{
-			"omsId":     omsId,
-			"AccountId": accountId,
-		}
-
-		response := (<-this.PrivateGetGetDeposits(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//    "[
-		//        {
-		//            "OMSId": 1,
-		//            "DepositId": 44,
-		//            "AccountId": 449,
-		//            "SubAccountId": 0,
-		//            "ProductId": 4,
-		//            "Amount": 200.00000000000000000000000000,
-		//            "LastUpdateTimeStamp": 637431291261187806,
-		//            "ProductType": "CryptoCurrency",
-		//            "TicketStatus": "FullyProcessed",
-		//            "DepositInfo": "{
-		//                "AccountProviderId":42,
-		//                "AccountProviderName":"USDT_BSC",
-		//                "TXId":"0x3879b02632c69482646409e991149290bc9a58e4603be63c7c2c90a843f45d2b",
-		//                "FromAddress":"0x8894E0a0c962CB723c1976a4421c95949bE2D4E3",
-		//                "ToAddress":"0x5428EcEB1F7Ee058f64158589e27D087149230CB"
-		//            },",
-		//            "DepositCode": "ab0e23d5-a9ce-4d94-865f-9ab464fb1de3",
-		//            "TicketNumber": 71,
-		//            "NotionalProductId": 13,
-		//            "NotionalValue": 200.00000000000000000000000000,
-		//            "FeeAmount": 0.0000000000000000000000000000,
-		//        },
-		//        ...
-		//    ]"
-		//
-		if IsTrue(IsString(response)) {
-
-			ch <- this.ParseTransactions(JsonParse(response), currency, since, limit)
-			return nil
-		}
-
-		ch <- this.ParseTransactions(response, currency, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchDepositsBody(ch, optionalArgs...)
 	return ch
+}
+func (this *NdaxCore) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	code := GetArg(optionalArgs, 0, nil)
+	_ = code
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	var omsId any = this.SafeInteger(this.Options, "omsId", 1)
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes235312 := (<-this.LoadMarkets())
+		PanicOnError(retRes235312)
+	}
+
+	retRes23558 := (<-this.LoadAccounts())
+	PanicOnError(retRes23558)
+	var defaultAccountId any = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
+	var accountId any = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
+	params = this.Omit(params, []any{"accountId", "AccountId"})
+	var currency any = nil
+	if IsTrue(!IsEqual(code, nil)) {
+		currency = this.Currency(code)
+	}
+	var request map[string]any = map[string]any{
+		"omsId":     omsId,
+		"AccountId": accountId,
+	}
+
+	response := (<-this.PrivateGetGetDeposits(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//    "[
+	//        {
+	//            "OMSId": 1,
+	//            "DepositId": 44,
+	//            "AccountId": 449,
+	//            "SubAccountId": 0,
+	//            "ProductId": 4,
+	//            "Amount": 200.00000000000000000000000000,
+	//            "LastUpdateTimeStamp": 637431291261187806,
+	//            "ProductType": "CryptoCurrency",
+	//            "TicketStatus": "FullyProcessed",
+	//            "DepositInfo": "{
+	//                "AccountProviderId":42,
+	//                "AccountProviderName":"USDT_BSC",
+	//                "TXId":"0x3879b02632c69482646409e991149290bc9a58e4603be63c7c2c90a843f45d2b",
+	//                "FromAddress":"0x8894E0a0c962CB723c1976a4421c95949bE2D4E3",
+	//                "ToAddress":"0x5428EcEB1F7Ee058f64158589e27D087149230CB"
+	//            },",
+	//            "DepositCode": "ab0e23d5-a9ce-4d94-865f-9ab464fb1de3",
+	//            "TicketNumber": 71,
+	//            "NotionalProductId": 13,
+	//            "NotionalValue": 200.00000000000000000000000000,
+	//            "FeeAmount": 0.0000000000000000000000000000,
+	//        },
+	//        ...
+	//    ]"
+	//
+	if IsTrue(IsString(response)) {
+
+		ch <- this.ParseTransactions(JsonParse(response), currency, since, limit)
+		return nil
+	}
+
+	ch <- this.ParseTransactions(response, currency, since, limit)
+	return nil
 }
 
 /**
@@ -2800,78 +3022,78 @@ func (this *NdaxCore) FetchDeposits(optionalArgs ...any) <-chan any {
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *NdaxCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		code := GetArg(optionalArgs, 0, nil)
-		_ = code
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		var omsId any = this.SafeInteger(this.Options, "omsId", 1)
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes240212 := (<-this.LoadMarkets())
-			PanicOnError(retRes240212)
-		}
-
-		retRes24048 := (<-this.LoadAccounts())
-		PanicOnError(retRes24048)
-		var defaultAccountId any = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
-		var accountId any = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
-		params = this.Omit(params, []any{"accountId", "AccountId"})
-		var currency any = nil
-		if IsTrue(!IsEqual(code, nil)) {
-			currency = this.Currency(code)
-		}
-		var request any = map[string]any{
-			"omsId":     omsId,
-			"AccountId": accountId,
-		}
-
-		response := (<-this.PrivateGetGetWithdraws(this.Extend(request, params)))
-		PanicOnError(response)
-
-		//
-		//     [
-		//         {
-		//             "Amount": 0.0,
-		//             "FeeAmount": 0.0,
-		//             "NotionalValue": 0.0,
-		//             "WithdrawId": 0,
-		//             "AssetManagerId": 0,
-		//             "AccountId": 0,
-		//             "AssetId": 0,
-		//             "TemplateForm": "{\"TemplateType\": \"TetherRPCWithdraw\",\"Comment\": \"TestWithdraw\",\"ExternalAddress\": \"ms6C3pKAAr8gRCcnVebs8VRkVrjcvqNYv3\"}",
-		//             "TemplateFormType": "TetherRPCWithdraw",
-		//             "omsId": 0,
-		//             "TicketStatus": 0,
-		//             "TicketNumber": 0,
-		//             "WithdrawTransactionDetails": "",
-		//             "WithdrawType": "",
-		//             "WithdrawCode": "490b4fa3-53fc-44f4-bd29-7e16be86fba3",
-		//             "AssetType": 0,
-		//             "Reaccepted": true,
-		//             "NotionalProductId": 0
-		//         },
-		//     ]
-		//
-		ch <- this.ParseTransactions(response, currency, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchWithdrawalsBody(ch, optionalArgs...)
 	return ch
+}
+func (this *NdaxCore) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	code := GetArg(optionalArgs, 0, nil)
+	_ = code
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	var omsId any = this.SafeInteger(this.Options, "omsId", 1)
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes241612 := (<-this.LoadMarkets())
+		PanicOnError(retRes241612)
+	}
+
+	retRes24188 := (<-this.LoadAccounts())
+	PanicOnError(retRes24188)
+	var defaultAccountId any = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
+	var accountId any = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
+	params = this.Omit(params, []any{"accountId", "AccountId"})
+	var currency any = nil
+	if IsTrue(!IsEqual(code, nil)) {
+		currency = this.Currency(code)
+	}
+	var request map[string]any = map[string]any{
+		"omsId":     omsId,
+		"AccountId": accountId,
+	}
+
+	response := (<-this.PrivateGetGetWithdraws(this.Extend(request, params)))
+	PanicOnError(response)
+
+	//
+	//     [
+	//         {
+	//             "Amount": 0.0,
+	//             "FeeAmount": 0.0,
+	//             "NotionalValue": 0.0,
+	//             "WithdrawId": 0,
+	//             "AssetManagerId": 0,
+	//             "AccountId": 0,
+	//             "AssetId": 0,
+	//             "TemplateForm": "{\"TemplateType\": \"TetherRPCWithdraw\",\"Comment\": \"TestWithdraw\",\"ExternalAddress\": \"ms6C3pKAAr8gRCcnVebs8VRkVrjcvqNYv3\"}",
+	//             "TemplateFormType": "TetherRPCWithdraw",
+	//             "omsId": 0,
+	//             "TicketStatus": 0,
+	//             "TicketNumber": 0,
+	//             "WithdrawTransactionDetails": "",
+	//             "WithdrawType": "",
+	//             "WithdrawCode": "490b4fa3-53fc-44f4-bd29-7e16be86fba3",
+	//             "AssetType": 0,
+	//             "Reaccepted": true,
+	//             "NotionalProductId": 0
+	//         },
+	//     ]
+	//
+	ch <- this.ParseTransactions(response, currency, since, limit)
+	return nil
 }
 func (this *NdaxCore) ParseTransactionStatusByType(optionalArgs ...any) any {
 	status := GetArg(optionalArgs, 0, nil)
 	_ = status
 	typeVar := GetArg(optionalArgs, 1, nil)
 	_ = typeVar
-	var statusesByType any = map[string]any{
+	var statusesByType map[string]any = map[string]any{
 		"deposit": map[string]any{
 			"New":              "pending",
 			"AdminProcessing":  "pending",
@@ -2994,7 +3216,7 @@ func (this *NdaxCore) ParseTransaction(transaction any, optionalArgs ...any) any
 	var timestamp any = this.SafeInteger(templateForm, "TimeSubmitted")
 	var feeCost any = this.SafeNumber(transaction, "FeeAmount")
 	var transactionStatus any = this.SafeString(transaction, "TicketStatus")
-	var fee any = map[string]any{}
+	var fee map[string]any = map[string]any{}
 	if IsTrue(!IsEqual(feeCost, nil)) {
 		fee = map[string]any{
 			"currency": code,
@@ -3037,115 +3259,115 @@ func (this *NdaxCore) ParseTransaction(transaction any, optionalArgs ...any) any
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *NdaxCore) Withdraw(code any, amount any, address any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		tag := GetArg(optionalArgs, 0, nil)
-		_ = tag
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		tagparamsVariable := this.HandleWithdrawTagAndParams(tag, params)
-		tag = GetValue(tagparamsVariable, 0)
-		params = GetValue(tagparamsVariable, 1)
-		// this method required login, password and twofa key
-		var sessionToken any = this.SafeString(this.Options, "sessionToken")
-		if IsTrue(IsEqual(sessionToken, nil)) {
-			panic(AuthenticationError(Add(this.Id, " call signIn() method to obtain a session token")))
-		}
-		if IsTrue(IsEqual(this.Twofa, nil)) {
-			panic(AuthenticationError(Add(this.Id, " withdraw() requires exchange.twofa credentials")))
-		}
-		this.CheckAddress(address)
-		var omsId any = this.SafeInteger(this.Options, "omsId", 1)
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes261912 := (<-this.LoadMarkets())
-			PanicOnError(retRes261912)
-		}
-
-		retRes26218 := (<-this.LoadAccounts())
-		PanicOnError(retRes26218)
-		var defaultAccountId any = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
-		var accountId any = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
-		params = this.Omit(params, []any{"accountId", "AccountId"})
-		var currency any = this.Currency(code)
-		var withdrawTemplateTypesRequest any = map[string]any{
-			"omsId":     omsId,
-			"AccountId": accountId,
-			"ProductId": GetValue(currency, "id"),
-		}
-
-		withdrawTemplateTypesResponse := (<-this.PrivateGetGetWithdrawTemplateTypes(withdrawTemplateTypesRequest))
-		PanicOnError(withdrawTemplateTypesResponse)
-		//
-		//     {
-		//         "result": true,
-		//         "errormsg": null,
-		//         "statuscode": "0",
-		//         "TemplateTypes": [
-		//             { AccountProviderId: "14", TemplateName: "ToExternalBitcoinAddress", AccountProviderName: "BitgoRPC-BTC" },
-		//             { AccountProviderId: "20", TemplateName: "ToExternalBitcoinAddress", AccountProviderName: "TrezorBTC" },
-		//             { AccountProviderId: "31", TemplateName: "BTC", AccountProviderName: "BTC Fireblocks 1" }
-		//         ]
-		//     }
-		//
-		var templateTypes any = this.SafeValue(withdrawTemplateTypesResponse, "TemplateTypes", []any{})
-		var firstTemplateType any = this.SafeValue(templateTypes, 0)
-		if IsTrue(IsEqual(firstTemplateType, nil)) {
-			panic(ExchangeError(Add(Add(this.Id, " withdraw() could not find a withdraw template type for "), GetValue(currency, "code"))))
-		}
-		var templateName any = this.SafeString(firstTemplateType, "TemplateName")
-		var withdrawTemplateRequest any = map[string]any{
-			"omsId":             omsId,
-			"AccountId":         accountId,
-			"ProductId":         GetValue(currency, "id"),
-			"TemplateType":      templateName,
-			"AccountProviderId": GetValue(firstTemplateType, "AccountProviderId"),
-		}
-
-		withdrawTemplateResponse := (<-this.PrivateGetGetWithdrawTemplate(withdrawTemplateRequest))
-		PanicOnError(withdrawTemplateResponse)
-		//
-		//     {
-		//         "result": true,
-		//         "errormsg": null,
-		//         "statuscode": "0",
-		//         "Template": "{\"TemplateType\":\"ToExternalBitcoinAddress\",\"Comment\":\"\",\"ExternalAddress\":\"\"}"
-		//     }
-		//
-		var template any = this.SafeString(withdrawTemplateResponse, "Template")
-		if IsTrue(IsEqual(template, nil)) {
-			panic(ExchangeError(Add(Add(this.Id, " withdraw() could not find a withdraw template for "), GetValue(currency, "code"))))
-		}
-		var withdrawTemplate any = JsonParse(template)
-		AddElementToObject(withdrawTemplate, "ExternalAddress", address)
-		if IsTrue(!IsEqual(tag, nil)) {
-			if IsTrue(InOp(withdrawTemplate, "Memo")) {
-				AddElementToObject(withdrawTemplate, "Memo", tag)
-			}
-		}
-		var withdrawPayload any = map[string]any{
-			"omsId":        omsId,
-			"AccountId":    accountId,
-			"ProductId":    GetValue(currency, "id"),
-			"TemplateForm": this.Json(withdrawTemplate),
-			"TemplateType": templateName,
-		}
-		var withdrawRequest any = map[string]any{
-			"TfaType": "Google",
-			"TFaCode": Totp(this.Twofa),
-			"Payload": this.Json(withdrawPayload),
-		}
-
-		response := (<-this.PrivatePostCreateWithdrawTicket(this.DeepExtend(withdrawRequest, params)))
-		PanicOnError(response)
-
-		ch <- this.ParseTransaction(response, currency)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
+}
+func (this *NdaxCore) withdrawBody(ch chan any, code any, amount any, address any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	tag := GetArg(optionalArgs, 0, nil)
+	_ = tag
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	tagparamsVariable := this.HandleWithdrawTagAndParams(tag, params)
+	tag = GetValue(tagparamsVariable, 0)
+	params = GetValue(tagparamsVariable, 1)
+	// this method required login, password and twofa key
+	var sessionToken any = this.SafeString(this.Options, "sessionToken")
+	if IsTrue(IsEqual(sessionToken, nil)) {
+		panic(AuthenticationError(Add(this.Id, " call signIn() method to obtain a session token")))
+	}
+	if IsTrue(IsEqual(this.Twofa, nil)) {
+		panic(AuthenticationError(Add(this.Id, " withdraw() requires exchange.twofa credentials")))
+	}
+	this.CheckAddress(address)
+	var omsId any = this.SafeInteger(this.Options, "omsId", 1)
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes263312 := (<-this.LoadMarkets())
+		PanicOnError(retRes263312)
+	}
+
+	retRes26358 := (<-this.LoadAccounts())
+	PanicOnError(retRes26358)
+	var defaultAccountId any = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
+	var accountId any = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
+	params = this.Omit(params, []any{"accountId", "AccountId"})
+	var currency any = this.Currency(code)
+	var withdrawTemplateTypesRequest map[string]any = map[string]any{
+		"omsId":     omsId,
+		"AccountId": accountId,
+		"ProductId": GetValue(currency, "id"),
+	}
+
+	withdrawTemplateTypesResponse := (<-this.PrivateGetGetWithdrawTemplateTypes(withdrawTemplateTypesRequest))
+	PanicOnError(withdrawTemplateTypesResponse)
+	//
+	//     {
+	//         "result": true,
+	//         "errormsg": null,
+	//         "statuscode": "0",
+	//         "TemplateTypes": [
+	//             { AccountProviderId: "14", TemplateName: "ToExternalBitcoinAddress", AccountProviderName: "BitgoRPC-BTC" },
+	//             { AccountProviderId: "20", TemplateName: "ToExternalBitcoinAddress", AccountProviderName: "TrezorBTC" },
+	//             { AccountProviderId: "31", TemplateName: "BTC", AccountProviderName: "BTC Fireblocks 1" }
+	//         ]
+	//     }
+	//
+	var templateTypes any = this.SafeValue(withdrawTemplateTypesResponse, "TemplateTypes", []any{})
+	var firstTemplateType any = this.SafeValue(templateTypes, 0)
+	if IsTrue(IsEqual(firstTemplateType, nil)) {
+		panic(ExchangeError(Add(Add(this.Id, " withdraw() could not find a withdraw template type for "), GetValue(currency, "code"))))
+	}
+	var templateName any = this.SafeString(firstTemplateType, "TemplateName")
+	var withdrawTemplateRequest map[string]any = map[string]any{
+		"omsId":             omsId,
+		"AccountId":         accountId,
+		"ProductId":         GetValue(currency, "id"),
+		"TemplateType":      templateName,
+		"AccountProviderId": GetValue(firstTemplateType, "AccountProviderId"),
+	}
+
+	withdrawTemplateResponse := (<-this.PrivateGetGetWithdrawTemplate(withdrawTemplateRequest))
+	PanicOnError(withdrawTemplateResponse)
+	//
+	//     {
+	//         "result": true,
+	//         "errormsg": null,
+	//         "statuscode": "0",
+	//         "Template": "{\"TemplateType\":\"ToExternalBitcoinAddress\",\"Comment\":\"\",\"ExternalAddress\":\"\"}"
+	//     }
+	//
+	var template any = this.SafeString(withdrawTemplateResponse, "Template")
+	if IsTrue(IsEqual(template, nil)) {
+		panic(ExchangeError(Add(Add(this.Id, " withdraw() could not find a withdraw template for "), GetValue(currency, "code"))))
+	}
+	var withdrawTemplate any = JsonParse(template)
+	AddElementToObject(withdrawTemplate, "ExternalAddress", address)
+	if IsTrue(!IsEqual(tag, nil)) {
+		if IsTrue(InOp(withdrawTemplate, "Memo")) {
+			AddElementToObject(withdrawTemplate, "Memo", tag)
+		}
+	}
+	var withdrawPayload map[string]any = map[string]any{
+		"omsId":        omsId,
+		"AccountId":    accountId,
+		"ProductId":    GetValue(currency, "id"),
+		"TemplateForm": this.Json(withdrawTemplate),
+		"TemplateType": templateName,
+	}
+	var withdrawRequest map[string]any = map[string]any{
+		"TfaType": "Google",
+		"TFaCode": Totp(this.Twofa),
+		"Payload": this.Json(withdrawPayload),
+	}
+
+	response := (<-this.PrivatePostCreateWithdrawTicket(this.DeepExtend(withdrawRequest, params)))
+	PanicOnError(response)
+
+	ch <- this.ParseTransaction(response, currency)
+	return nil
 }
 func (this *NdaxCore) Nonce() any {
 	return this.Milliseconds()
@@ -3179,16 +3401,16 @@ func (this *NdaxCore) Sign(path any, optionalArgs ...any) any {
 				query = this.Omit(query, "pending2faToken")
 			}
 		}
-		if IsTrue(GetArrayLength(ObjectKeys(query))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 			url = Add(url, Add("?", this.Urlencode(query)))
 		}
 	} else if IsTrue(IsEqual(api, "private")) {
 		this.CheckRequiredCredentials()
 		var sessionToken any = this.SafeString(this.Options, "sessionToken")
 		if IsTrue(IsEqual(sessionToken, nil)) {
-			var nonce any = ToString(this.Nonce())
+			var nonce string = ToString(this.Nonce())
 			var auth any = Add(Add(nonce, this.Uid), this.ApiKey)
-			var signature any = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)
+			var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)
 			headers = map[string]any{
 				"Nonce":     nonce,
 				"APIKey":    this.ApiKey,
@@ -3204,7 +3426,7 @@ func (this *NdaxCore) Sign(path any, optionalArgs ...any) any {
 			AddElementToObject(headers, "Content-Type", "application/json")
 			body = this.Json(query)
 		} else {
-			if IsTrue(GetArrayLength(ObjectKeys(query))) {
+			if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 				url = Add(url, Add("?", this.Urlencode(query)))
 			}
 		}

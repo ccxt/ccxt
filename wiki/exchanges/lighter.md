@@ -53,6 +53,9 @@
 * [watchLiquidations](#watchliquidations)
 * [watchBalance](#watchbalance)
 * [unWatchOrders](#unwatchorders)
+* [createOrderWs](#createorderws)
+* [cancelOrderWs](#cancelorderws)
+* [cancelAllOrdersWs](#cancelallordersws)
 
 <a name="preLoadLighterLibrary" id="preloadlighterlibrary"></a>
 
@@ -218,7 +221,7 @@ lighter.fetchCurrencies (params?)
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>lighter</code>](#lighter)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://apidocs.lighter.xyz/reference/orderbookorders  
 
@@ -761,7 +764,7 @@ Either adds or reduces margin in an isolated position in order to set the margin
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified market symbol of the market to set margin in |
 | amount | <code>float</code> | Yes | the amount to set the margin to |
-| params | <code>object</code> | No | parameters specific to the bingx api endpoint |
+| params | <code>object</code> | No | parameters specific to the exchange API endpoint |
 | params.accountIndex | <code>string</code> | No | account index |
 | params.apiKeyIndex | <code>string</code> | No | api key index |
 
@@ -800,7 +803,7 @@ lighter.watchOrders (symbol, since?, limit?, params?)
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>lighter</code>](#lighter)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://apidocs.lighter.xyz/docs/websocket-reference#order-book  
 
@@ -1156,5 +1159,85 @@ unWatches information on multiple orders made by the user
 
 ```javascript
 lighter.unWatchOrders (symbol, params?)
+```
+
+
+<a name="createOrderWs" id="createorderws"></a>
+
+### createOrderWs{docsify-ignore}
+create a trade order
+
+**Kind**: instance method of [<code>lighter</code>](#lighter)  
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
+
+**See**: https://apidocs.lighter.xyz/docs/websocket-reference#send-tx  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to create an order in |
+| type | <code>string</code> | Yes | 'market' or 'limit' |
+| side | <code>string</code> | Yes | 'buy' or 'sell' |
+| amount | <code>float</code> | Yes | how much of currency you want to trade in units of base currency |
+| price | <code>float</code>, <code>undefined</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.timeInForce | <code>string</code> | No | 'GTT' or 'IOC', default is 'GTT' |
+| params.clientOrderId | <code>int</code> | No | client order id, should be unique for each order, default is a random number |
+| params.triggerPrice | <code>string</code> | No | trigger price for stop loss or take profit orders, in units of the quote currency |
+| params.reduceOnly | <code>boolean</code> | No | whether the order is reduce only, default false |
+| params.nonce | <code>int</code> | No | nonce for the account |
+| params.apiKeyIndex | <code>int</code> | No | apiKeyIndex |
+| params.accountIndex | <code>int</code> | No | accountIndex |
+| params.orderExpiry | <code>int</code> | No | orderExpiry |
+
+
+```javascript
+lighter.createOrderWs (symbol, type, side, amount, price?, params?)
+```
+
+
+<a name="cancelOrderWs" id="cancelorderws"></a>
+
+### cancelOrderWs{docsify-ignore}
+cancel multiple orders
+
+**Kind**: instance method of [<code>lighter</code>](#lighter)  
+**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/?id=order-structure)
+
+**See**: https://apidocs.lighter.xyz/docs/websocket-reference#send-tx  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| id | <code>string</code> | Yes | order id |
+| symbol | <code>string</code> | No | unified market symbol, default is undefined |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.accountIndex | <code>string</code> | No | account index |
+| params.apiKeyIndex | <code>string</code> | No | api key index |
+
+
+```javascript
+lighter.cancelOrderWs (id, symbol?, params?)
+```
+
+
+<a name="cancelAllOrdersWs" id="cancelallordersws"></a>
+
+### cancelAllOrdersWs{docsify-ignore}
+cancel all open orders in a market
+
+**Kind**: instance method of [<code>lighter</code>](#lighter)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
+
+**See**: https://apidocs.lighter.xyz/docs/websocket-reference#send-tx  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | No | unified market symbol of the market to cancel orders in |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.accountIndex | <code>string</code> | No | account index |
+| params.apiKeyIndex | <code>string</code> | No | api key index |
+
+
+```javascript
+lighter.cancelAllOrdersWs (symbol?, params?)
 ```
 

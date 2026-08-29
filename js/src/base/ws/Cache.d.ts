@@ -5,16 +5,19 @@ interface CustomArray extends Array<any> {
 declare class BaseCache extends Array {
     constructor(maxSize?: Int);
     clear(): void;
+    removeAt(index: any): any;
 }
 declare class ArrayCache extends BaseCache implements CustomArray {
     hashmap: object;
     constructor(maxSize?: Int);
     getLimit(symbol: any, limit: any): any;
+    clear(): void;
     append(item: any): void;
 }
 declare class ArrayCacheByTimestamp extends BaseCache {
     constructor(maxSize?: Int);
     getLimit(symbol: any, limit: any): any;
+    clear(): void;
     append(item: any): void;
 }
 declare class ArrayCacheBySymbolById extends ArrayCache {
@@ -22,7 +25,7 @@ declare class ArrayCacheBySymbolById extends ArrayCache {
     append(item: any): void;
 }
 declare class ArrayCacheByOutcomeById extends ArrayCacheBySymbolById {
-    constructor(maxSize?: any);
+    constructor(maxSize?: Int);
 }
 declare class ArrayCacheBySymbolBySide extends ArrayCache {
     constructor();

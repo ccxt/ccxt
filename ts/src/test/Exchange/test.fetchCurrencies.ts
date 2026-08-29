@@ -2,6 +2,7 @@ import assert from 'assert';
 import { Exchange } from "../../../ccxt.js";
 import testCurrency from './base/test.currency.js';
 import testSharedMethods from './base/test.sharedMethods.js';
+import type { Dict } from '../../base/types.js';
 
 
 async function testFetchCurrencies (exchange: Exchange, skippedProperties: object) {
@@ -15,7 +16,7 @@ async function testFetchCurrencies (exchange: Exchange, skippedProperties: objec
     const featuresSpot = exchange.safeDict (features, 'spot', {});
     const fetchCurrencies = exchange.safeDict (featuresSpot, 'fetchCurrencies', {});
     const isFetchCurrenciesPrivate = exchange.safeValue (fetchCurrencies, 'private', false);
-    if (!isFetchCurrenciesPrivate) {
+    if (isFetchCurrenciesPrivate !== true) {
         const values = Object.values (currencies);
         testSharedMethods.assertNonEmtpyArray (exchange, skippedProperties, method, values);
         const currenciesLength = values.length;
@@ -39,9 +40,9 @@ async function testFetchCurrencies (exchange: Exchange, skippedProperties: objec
             const withdraw = exchange.safeBool (currency, 'withdraw');
             const deposit = exchange.safeBool (currency, 'deposit');
             const isMicaCompliant = exchange.safeBool (exchange.options, 'mica', false);
-            const skipUsdtForMica = isMicaCompliant && code === 'USDT';
-            if (exchange.inArray (code, requiredActiveCurrencies) && !skipMajorCurrencyCheck && !skipUsdtForMica) {
-                assert (withdraw && deposit, 'Major currency ' + code + ' should have withdraw and deposit flags enabled ::: ' + exchange.json (currency));
+            const skipUsdtForMica = (isMicaCompliant === true) && (code === 'USDT');
+            if (exchange.inArray (code, requiredActiveCurrencies) && !skipMajorCurrencyCheck && (skipUsdtForMica !== true)) {
+                assert ((withdraw === true) && (deposit === true), 'Major currency ' + code + ' should have withdraw and deposit flags enabled ::: ' + exchange.json (currency));
             }
         }
         // check at least X% of currencies are active
@@ -54,7 +55,7 @@ async function testFetchCurrencies (exchange: Exchange, skippedProperties: objec
 
 function detectCurrencyConflicts (exchange: Exchange, currencyValues: any) {
     // detect if there are currencies with different ids for the same code
-    const ids = {};
+    const ids: Dict = {};
     const keys = Object.keys (currencyValues);
     for (let i = 0; i < keys.length; i++) {
         const key = keys[i];

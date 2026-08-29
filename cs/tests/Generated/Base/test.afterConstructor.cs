@@ -34,12 +34,12 @@ public partial class BaseTest
             object isSandboxModeEnabled = exchangeProp(exchange, "isSandboxModeEnabled");
             if (isTrue(expectEnabled))
             {
-                Assert(isSandboxModeEnabled);
+                Assert(isEqual(isSandboxModeEnabled, true));
                 Assert(isEqual(getValue(getValue(exchange.urls, "api"), "public"), "https://testnet.org"));
                 Assert(isEqual(getValue(getValue(exchange.urls, "apiBackup"), "public"), "https://example.com"));
             } else
             {
-                Assert(!isTrue(isSandboxModeEnabled));
+                Assert(!isEqual(isSandboxModeEnabled, true));
                 Assert(isEqual(getValue(getValue(exchange.urls, "api"), "public"), "https://example.com"));
                 Assert(isEqual(getValue(getValue(exchange.urls, "test"), "public"), "https://testnet.org"));
             }
@@ -96,7 +96,7 @@ public partial class BaseTest
                     { "BTC/USD", sampleMarket },
                 } },
             });
-            Assert(!isEqual(getValue(exchange2.markets, "BTC/USD"), null));
+            Assert(isTrue((!isEqual(exchange2.markets, null))) && isTrue((!isEqual(getValue(exchange2.markets, "BTC/USD"), null))));
         }
         public void helperTestProperties()
         {
@@ -277,7 +277,7 @@ public partial class BaseTest
             Assert(isEqual(exchange.timeout, 10000), "timeout should be 10000");
             Assert(isEqual(exchange.verbose, false), "verbose should be false");
             // Assert (exchangeProp (exchange, 'newUpdates') === true, 'newUpdates should be true'); // todo WS
-            Assert(!isTrue(exchangeProp(exchange, "reloadingMarkets")), "reloadingMarkets should be false");
+            Assert(!isEqual(exchangeProp(exchange, "reloadingMarkets"), true), "reloadingMarkets should be false");
             Assert(isEqual(exchangeProp(exchange, "marketsLoading"), null), "marketsLoading should be undefined");
             // undefined or false
             Assert(isEqual(exchange.version, null), "version should be undefined");
@@ -306,7 +306,7 @@ public partial class BaseTest
             // common props
             //
             Assert(isEqual(exchange.markets, null), "markets should be undefined");
-            Assert(isEqual(exchange.symbols, null), "symbols should be undefined");
+            Assert(isEqual(getArrayLength(exchange.symbols), 0), "symbols should be an empty array");
             Assert(isEqual(exchange.markets_by_id, null), "markets_by_id should be undefined");
             Assert(isEqual(exchange.ids, null), "ids should be undefined");
             AssertDeepEqual(exchange, new Dictionary<string, object>() {}, "currencies", exchange.currencies, new Dictionary<string, object>() {});

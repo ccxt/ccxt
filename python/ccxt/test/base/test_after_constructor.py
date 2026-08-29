@@ -43,7 +43,7 @@ def helper_test_sandbox_state(exchange, expect_enabled=True):
         assert exchange.urls['api']['public'] == 'https://testnet.org'
         assert exchange.urls['apiBackup']['public'] == 'https://example.com'
     else:
-        assert not is_sandbox_mode_enabled
+        assert is_sandbox_mode_enabled is not True
         assert exchange.urls['api']['public'] == 'https://example.com'
         assert exchange.urls['test']['public'] == 'https://testnet.org'
 
@@ -99,7 +99,7 @@ def helper_test_init_market():
             'BTC/USD': sample_market,
         },
     })
-    assert exchange2.markets['BTC/USD'] is not None
+    assert (exchange2.markets is not None) and (exchange2.markets['BTC/USD'] is not None)
 
 
 def helper_test_properties():
@@ -278,7 +278,7 @@ def helper_test_properties():
     assert exchange.timeout == 10000, 'timeout should be 10000'
     assert exchange.verbose is False, 'verbose should be false'
     # assert (testSharedMethods.exchangeProp (exchange, 'newUpdates') === true, 'newUpdates should be true'); # todo WS
-    assert not test_shared_methods.exchange_prop(exchange, 'reloadingMarkets'), 'reloadingMarkets should be false'
+    assert test_shared_methods.exchange_prop(exchange, 'reloadingMarkets') is not True, 'reloadingMarkets should be false'
     assert test_shared_methods.exchange_prop(exchange, 'marketsLoading') is None, 'marketsLoading should be undefined'
     # undefined or false
     assert exchange.version is None, 'version should be undefined'
@@ -307,7 +307,7 @@ def helper_test_properties():
     # common props
     #
     assert exchange.markets is None, 'markets should be undefined'
-    assert exchange.symbols is None, 'symbols should be undefined'
+    assert len(exchange.symbols) == 0, 'symbols should be an empty array'
     assert exchange.markets_by_id is None, 'markets_by_id should be undefined'
     assert exchange.ids is None, 'ids should be undefined'
     test_shared_methods.assert_deep_equal(exchange, {}, 'currencies', exchange.currencies, {})

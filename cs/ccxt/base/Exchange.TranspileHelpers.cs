@@ -563,6 +563,12 @@ public partial class BaseExchange
         {
             return ((string)value).Length; // fallback that should not be used
         }
+        else if (value is System.Collections.ICollection)
+        {
+            // typed core results (List<Order>, List<OHLCV>, ...) are not IList<object>;
+            // without this they silently measured as length 0
+            return ((System.Collections.ICollection)value).Count;
+        }
         else
         {
             return 0;
@@ -838,19 +844,70 @@ public partial class BaseExchange
 
     public async Task<List<object>> promiseAll(object promisesObj) => await PromiseAll(promisesObj);
 
+    // A generated implicit API method declares the shape its api leaf promised,
+    // so it returns Task<Dictionary<string, object>> / Task<List<object>> /
+    // Task<string> rather than Task<object>. Task<T> is invariant, so none of
+    // those IS a Task<object>: an `is Task<object>` test returns false and a
+    // hard cast throws. Every place that filters, casts or awaits an un-awaited
+    // task whose static type has been erased to object has to come through here
+    // instead, or a narrowed endpoint is silently dropped rather than awaited.
+    public static Task<object> AsTaskOfObject(object value)
+    {
+        if (value is Task<object> already)
+        {
+            return already;
+        }
+        if (value is Task task)
+        {
+            return AwaitAsObject(task);
+        }
+        return null;
+    }
+
+    // Await any Task<T> and re-box its result as object. Reflection is the only
+    // way back to the value once T is not statically known, and it only runs
+    // after the task completed, so it costs one property read per call.
+    private static async Task<object> AwaitAsObject(Task task)
+    {
+        await task.ConfigureAwait(false);
+        var resultProperty = task.GetType().GetProperty("Result");
+        if (resultProperty == null)
+        {
+            return null; // a non-generic Task has no result to unwrap
+        }
+        // reflective callers (callDynamically, fetchPaginatedCall*, promiseAll) feed the
+        // untyped object pipeline, so any typed struct/list coming back from a typed core
+        // is de-typed here into the plain dictionaries/rows that pipeline reads keys from
+        return FromTyped(resultProperty.GetValue(task));
+    }
+
     public static async Task<List<object>> PromiseAll(object promisesObj)
     {
         var promises = (IList<object>)promisesObj;
         var tasks = new List<Task<object>>();
         foreach (var promise in promises)
         {
-            if (promise is Task<object>)
+            var task = AsTaskOfObject(promise);
+            if (task != null)
             {
-                tasks.Add((Task<object>)promise);
+                tasks.Add(task);
             }
         }
         var results = await Task.WhenAll(tasks);
         return results.ToList();
+    }
+
+    // A watch* core hands back the LIVE order book: without a copy the caller keeps
+    // mutating with the ws thread. Idempotent, so re-entering an already-typed core
+    // (a tail `return await this.watchOrderBook(...)` override) copies only once.
+    public static ccxt.pro.IOrderBook ToOrderBookSnapshot(object value)
+    {
+        return (value is ccxt.pro.IOrderBook book) ? book.Copy() : null;
+    }
+
+    public static PredictionOrderBook ToPredictionOrderBookSnapshot(object value)
+    {
+        return (value is PredictionOrderBook already) ? already : new PredictionOrderBook(ToOrderBookSnapshot(value));
     }
 
     public static string toStringOrNull(object value)
@@ -886,6 +943,126 @@ public partial class BaseExchange
         return Math.Round((double)number, (int)decimals);
     }
 
+    // Typed cores are emitted PascalCase (`CreateOrder`), but the method-name strings that drive
+    // reflective dispatch stay camelCase — they double as `has`/`describe()` capability keys.
+    // Resolve the exact name first, then fall back to a case-insensitive match.
+    public static MethodInfo ResolveMethod(Type type, string methodName)
+    {
+        const BindingFlags flags = BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+        var mi = type.GetMethod(methodName, flags);
+        if (mi != null)
+        {
+            return mi;
+        }
+        return type.GetMethod(methodName, flags | BindingFlags.IgnoreCase);
+    }
+
+    // reflection binds by EXACT runtime type: a boxed Int32 does not land in an `Int64?`
+    // parameter, it throws ArgumentException. The generated cores now declare typed
+    // scalars, so every reflective arg list is converted to the target parameter types
+    // first. Impossible conversions are passed through unchanged so the original
+    // ArgumentException still surfaces instead of a helper-thrown one.
+    public static object[] coerceArgs(MethodInfo mi, object[] args)
+    {
+        if (mi == null || args == null)
+        {
+            return args;
+        }
+        var ps = mi.GetParameters();
+        var n = Math.Min(ps.Length, args.Length);
+        object[] outArgs = null;
+        for (var i = 0; i < n; i++)
+        {
+            var arg = args[i];
+            if (arg == null)
+            {
+                continue;
+            }
+            var target = ps[i].ParameterType;
+            if (target.IsByRef)
+            {
+                target = target.GetElementType();
+            }
+            if (target == null || target == typeof(object) || target.IsInstanceOfType(arg))
+            {
+                continue;
+            }
+            var effective = Nullable.GetUnderlyingType(target) ?? target;
+            if (effective.IsInstanceOfType(arg))
+            {
+                continue;
+            }
+            // numeric widening (Int32 → Int64?) plus JSON numbers → string id/code
+            // (static request fixtures decode order ids as Int64)
+            var numeric = (effective.IsPrimitive || effective == typeof(decimal)) && effective != typeof(bool) && effective != typeof(char);
+            if (!numeric && effective != typeof(string))
+            {
+                continue;
+            }
+            if (!(arg is IConvertible))
+            {
+                continue;
+            }
+            try
+            {
+                var converted = Convert.ChangeType(arg, effective, System.Globalization.CultureInfo.InvariantCulture);
+                if (outArgs == null)
+                {
+                    outArgs = new object[args.Length];
+                    Array.Copy(args, outArgs, args.Length);
+                }
+                outArgs[i] = converted;
+            }
+            catch
+            {
+                // leave the original value in place; Invoke reports the real mismatch
+            }
+        }
+        return outArgs ?? args;
+    }
+
+    // a direct `(Int64?)expr` unbox-cast of a boxed Int32 throws InvalidCastException,
+    // so every generated call site feeding a narrowed numeric core parameter converts
+    // through these instead of casting. null stays null (the parameter is optional).
+    public static Int64? ToInt64Arg(object value)
+    {
+        if (value == null)
+        {
+            return null;
+        }
+        if (value is Int64 l)
+        {
+            return l;
+        }
+        return Convert.ToInt64(value, System.Globalization.CultureInfo.InvariantCulture);
+    }
+
+    public static double? ToDoubleArg(object value)
+    {
+        if (value == null)
+        {
+            return null;
+        }
+        if (value is double d)
+        {
+            return d;
+        }
+        return Convert.ToDouble(value, System.Globalization.CultureInfo.InvariantCulture);
+    }
+
+    // required (non-optional) numeric positions: same conversion, but a missing value is
+    // a contract violation rather than an absent optional, so it surfaces as 0 like the
+    // untyped path did instead of throwing inside the helper.
+    public static double ToDoubleArgRequired(object value)
+    {
+        return (value == null) ? 0 : Convert.ToDouble(value, System.Globalization.CultureInfo.InvariantCulture);
+    }
+
+    public static Int64 ToInt64ArgRequired(object value)
+    {
+        return (value == null) ? 0 : Convert.ToInt64(value, System.Globalization.CultureInfo.InvariantCulture);
+    }
+
     public static object callDynamically(object obj, object methodName, object[] args = null)
     {
         args ??= new object[] { };
@@ -893,14 +1070,21 @@ public partial class BaseExchange
         {
             args = new object[] { null };
         }
-        return obj.GetType().GetMethod((string)methodName, BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).Invoke(obj, args);
+        var mi = ResolveMethod(obj.GetType(), (string)methodName);
+        var res = mi.Invoke(obj, coerceArgs(mi, args));
+        // The transpiled callers cast this result to Task<object> (the cast is
+        // emitted by ast-transpiler), which an implicit API method's narrowed
+        // Task<Dictionary<string, object>> would fail. Normalize here so the
+        // reflective path stays shape-agnostic, exactly like PromiseAll.
+        return AsTaskOfObject(res) ?? res;
     }
 
     public static async Task<object> callDynamicallyAsync(object obj, object methodName, object[] args = null)
     {
         args ??= new object[] { };
-        var res = obj.GetType().GetMethod((string)methodName, BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).Invoke(obj, args);
-        return await ((Task<object>)res);
+        var mi = ResolveMethod(obj.GetType(), (string)methodName);
+        var res = mi.Invoke(obj, coerceArgs(mi, args));
+        return await AsTaskOfObject(res);
     }
 
     public bool inOp(object obj, object key) => InOp(obj, key);
@@ -1022,5 +1206,22 @@ public partial class BaseExchange
         {
             throw new InvalidOperationException("Unsupported types for concatenation.");
         }
+    }
+
+    // reverses the typed-core boundary: hands a typed candle list back to the untyped object
+    // pipeline (pagination, arrayConcat, filterBySinceLimit) as plain 6-element rows
+    public static object FromOHLCVList(object candles)
+    {
+        if (!(candles is List<OHLCV>))
+        {
+            return candles;
+        }
+        var typed = (List<OHLCV>)candles;
+        var result = new List<object>(typed.Count);
+        foreach (var candle in typed)
+        {
+            result.Add(new List<object>() { candle.timestamp, candle.open, candle.high, candle.low, candle.close, candle.volume });
+        }
+        return result;
     }
 }

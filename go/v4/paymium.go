@@ -61,12 +61,88 @@ func (this *PaymiumCore) Describe() any {
 		},
 		"api": map[string]any{
 			"public": map[string]any{
-				"get": []any{"countries", "currencies", "data/{currency}/ticker", "data/{currency}/trades", "data/{currency}/depth", "bitcoin_charts/{id}/trades", "bitcoin_charts/{id}/depth"},
+				"get": map[string]any{
+					"countries": map[string]any{
+						"cost": 1,
+					},
+					"currencies": map[string]any{
+						"cost": 1,
+					},
+					"data/{currency}/ticker": map[string]any{
+						"cost": 1,
+					},
+					"data/{currency}/trades": map[string]any{
+						"cost": 1,
+					},
+					"data/{currency}/depth": map[string]any{
+						"cost": 1,
+					},
+					"bitcoin_charts/{id}/trades": map[string]any{
+						"cost": 1,
+					},
+					"bitcoin_charts/{id}/depth": map[string]any{
+						"cost": 1,
+					},
+				},
 			},
 			"private": map[string]any{
-				"get":    []any{"user", "user/addresses", "user/addresses/{address}", "user/orders", "user/orders/{uuid}", "user/price_alerts", "merchant/get_payment/{uuid}"},
-				"post":   []any{"user/addresses", "user/orders", "user/withdrawals", "user/email_transfers", "user/payment_requests", "user/price_alerts", "merchant/create_payment"},
-				"delete": []any{"user/orders/{uuid}", "user/orders/{uuid}/cancel", "user/price_alerts/{id}"},
+				"get": map[string]any{
+					"user": map[string]any{
+						"cost": 1,
+					},
+					"user/addresses": map[string]any{
+						"cost": 1,
+					},
+					"user/addresses/{address}": map[string]any{
+						"cost": 1,
+					},
+					"user/orders": map[string]any{
+						"cost": 1,
+					},
+					"user/orders/{uuid}": map[string]any{
+						"cost": 1,
+					},
+					"user/price_alerts": map[string]any{
+						"cost": 1,
+					},
+					"merchant/get_payment/{uuid}": map[string]any{
+						"cost": 1,
+					},
+				},
+				"post": map[string]any{
+					"user/addresses": map[string]any{
+						"cost": 1,
+					},
+					"user/orders": map[string]any{
+						"cost": 1,
+					},
+					"user/withdrawals": map[string]any{
+						"cost": 1,
+					},
+					"user/email_transfers": map[string]any{
+						"cost": 1,
+					},
+					"user/payment_requests": map[string]any{
+						"cost": 1,
+					},
+					"user/price_alerts": map[string]any{
+						"cost": 1,
+					},
+					"merchant/create_payment": map[string]any{
+						"cost": 1,
+					},
+				},
+				"delete": map[string]any{
+					"user/orders/{uuid}": map[string]any{
+						"cost": 1,
+					},
+					"user/orders/{uuid}/cancel": map[string]any{
+						"cost": 1,
+					},
+					"user/price_alerts/{id}": map[string]any{
+						"cost": 1,
+					},
+				},
 			},
 		},
 		"markets": map[string]any{
@@ -133,10 +209,10 @@ func (this *PaymiumCore) Describe() any {
 	})
 }
 func (this *PaymiumCore) ParseBalance(response any) any {
-	var result any = map[string]any{
+	var result map[string]any = map[string]any{
 		"info": response,
 	}
-	var currencies any = ObjectKeys(this.Currencies)
+	var currencies []string = ObjectKeys(this.Currencies)
 	for i := 0; IsLessThan(i, GetArrayLength(currencies)); i++ {
 		var code any = GetValue(currencies, i)
 		var currency any = this.Currency(code)
@@ -162,26 +238,26 @@ func (this *PaymiumCore) ParseBalance(response any) any {
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *PaymiumCore) FetchBalance(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes18912 := (<-this.LoadMarkets())
-			PanicOnError(retRes18912)
-		}
-
-		response := (<-this.PrivateGetUser(params))
-		PanicOnError(response)
-
-		ch <- this.ParseBalance(response)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchBalanceBody(ch, optionalArgs...)
 	return ch
+}
+func (this *PaymiumCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes18912 := (<-this.LoadMarkets())
+		PanicOnError(retRes18912)
+	}
+
+	response := (<-this.PrivateGetUser(params))
+	PanicOnError(response)
+
+	ch <- this.ParseBalance(response)
+	return nil
 }
 
 /**
@@ -192,35 +268,35 @@ func (this *PaymiumCore) FetchBalance(optionalArgs ...any) <-chan any {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *PaymiumCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		limit := GetArg(optionalArgs, 0, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes20712 := (<-this.LoadMarkets())
-			PanicOnError(retRes20712)
-		}
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"currency": GetValue(market, "id"),
-		}
-
-		response := (<-this.PublicGetDataCurrencyDepth(this.Extend(request, params)))
-		PanicOnError(response)
-
-		ch <- this.ParseOrderBook(response, GetValue(market, "symbol"), nil, "bids", "asks", "price", "amount")
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *PaymiumCore) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	limit := GetArg(optionalArgs, 0, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes20712 := (<-this.LoadMarkets())
+		PanicOnError(retRes20712)
+	}
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"currency": GetValue(market, "id"),
+	}
+
+	response := (<-this.PublicGetDataCurrencyDepth(this.Extend(request, params)))
+	PanicOnError(response)
+
+	ch <- this.ParseOrderBook(response, GetValue(market, "symbol"), nil, "bids", "asks", "price", "amount")
+	return nil
 }
 func (this *PaymiumCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	//
@@ -283,48 +359,48 @@ func (this *PaymiumCore) ParseTicker(ticker any, optionalArgs ...any) any {
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *PaymiumCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes27712 := (<-this.LoadMarkets())
-			PanicOnError(retRes27712)
-		}
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"currency": GetValue(market, "id"),
-		}
-
-		ticker := (<-this.PublicGetDataCurrencyTicker(this.Extend(request, params)))
-		PanicOnError(ticker)
-
-		//
-		// {
-		//     "high":"33740.82",
-		//     "low":"32185.15",
-		//     "volume":"4.7890433",
-		//     "bid":"33313.53",
-		//     "ask":"33497.97",
-		//     "midpoint":"33405.75",
-		//     "vwap":"32802.5263553",
-		//     "at":1643381654,
-		//     "price":"33143.91",
-		//     "open":"33116.86",
-		//     "variation":"0.0817",
-		//     "currency":"EUR",
-		//     "trade_id":"ce2f5152-3ac5-412d-9b24-9fa72338474c",
-		//     "size":"0.00041087"
-		// }
-		//
-		ch <- this.ParseTicker(ticker, market)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchTickerBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *PaymiumCore) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes27712 := (<-this.LoadMarkets())
+		PanicOnError(retRes27712)
+	}
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"currency": GetValue(market, "id"),
+	}
+
+	ticker := (<-this.PublicGetDataCurrencyTicker(this.Extend(request, params)))
+	PanicOnError(ticker)
+
+	//
+	// {
+	//     "high":"33740.82",
+	//     "low":"32185.15",
+	//     "volume":"4.7890433",
+	//     "bid":"33313.53",
+	//     "ask":"33497.97",
+	//     "midpoint":"33405.75",
+	//     "vwap":"32802.5263553",
+	//     "at":1643381654,
+	//     "price":"33143.91",
+	//     "open":"33116.86",
+	//     "variation":"0.0817",
+	//     "currency":"EUR",
+	//     "trade_id":"ce2f5152-3ac5-412d-9b24-9fa72338474c",
+	//     "size":"0.00041087"
+	// }
+	//
+	ch <- this.ParseTicker(ticker, market)
+	return nil
 }
 func (this *PaymiumCore) ParseTrade(trade any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
@@ -365,34 +441,34 @@ func (this *PaymiumCore) ParseTrade(trade any, optionalArgs ...any) any {
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *PaymiumCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		since := GetArg(optionalArgs, 0, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 1, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 2, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes34312 := (<-this.LoadMarkets())
-			PanicOnError(retRes34312)
-		}
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"currency": GetValue(market, "id"),
-		}
-
-		response := (<-this.PublicGetDataCurrencyTrades(this.Extend(request, params)))
-		PanicOnError(response)
-
-		ch <- this.ParseTrades(response, market, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *PaymiumCore) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	since := GetArg(optionalArgs, 0, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 1, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 2, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes34312 := (<-this.LoadMarkets())
+		PanicOnError(retRes34312)
+	}
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"currency": GetValue(market, "id"),
+	}
+
+	response := (<-this.PublicGetDataCurrencyTrades(this.Extend(request, params)))
+	PanicOnError(response)
+
+	ch <- this.ParseTrades(response, market, since, limit)
+	return nil
 }
 
 /**
@@ -405,34 +481,34 @@ func (this *PaymiumCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
 func (this *PaymiumCore) CreateDepositAddress(code any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes36412 := (<-this.LoadMarkets())
-			PanicOnError(retRes36412)
-		}
-
-		response := (<-this.PrivatePostUserAddresses(params))
-		PanicOnError(response)
-
-		//
-		//     {
-		//         "address": "1HdjGr6WCTcnmW1tNNsHX7fh4Jr5C2PeKe",
-		//         "valid_until": 1620041926,
-		//         "currency": "BTC",
-		//         "label": "Savings"
-		//     }
-		//
-		ch <- this.ParseDepositAddress(response)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.createDepositAddressBody(ch, code, optionalArgs...)
 	return ch
+}
+func (this *PaymiumCore) createDepositAddressBody(ch chan any, code any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes36412 := (<-this.LoadMarkets())
+		PanicOnError(retRes36412)
+	}
+
+	response := (<-this.PrivatePostUserAddresses(params))
+	PanicOnError(response)
+
+	//
+	//     {
+	//         "address": "1HdjGr6WCTcnmW1tNNsHX7fh4Jr5C2PeKe",
+	//         "valid_until": 1620041926,
+	//         "currency": "BTC",
+	//         "label": "Savings"
+	//     }
+	//
+	ch <- this.ParseDepositAddress(response)
+	return nil
 }
 
 /**
@@ -445,37 +521,37 @@ func (this *PaymiumCore) CreateDepositAddress(code any, optionalArgs ...any) <-c
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
 func (this *PaymiumCore) FetchDepositAddress(code any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes38912 := (<-this.LoadMarkets())
-			PanicOnError(retRes38912)
-		}
-		var request any = map[string]any{
-			"address": code,
-		}
-
-		response := (<-this.PrivateGetUserAddressesAddress(this.Extend(request, params)))
-		PanicOnError(response)
-
-		//
-		//     {
-		//         "address": "1HdjGr6WCTcnmW1tNNsHX7fh4Jr5C2PeKe",
-		//         "valid_until": 1620041926,
-		//         "currency": "BTC",
-		//         "label": "Savings"
-		//     }
-		//
-		ch <- this.ParseDepositAddress(response)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchDepositAddressBody(ch, code, optionalArgs...)
 	return ch
+}
+func (this *PaymiumCore) fetchDepositAddressBody(ch chan any, code any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes38912 := (<-this.LoadMarkets())
+		PanicOnError(retRes38912)
+	}
+	var request map[string]any = map[string]any{
+		"address": code,
+	}
+
+	response := (<-this.PrivateGetUserAddressesAddress(this.Extend(request, params)))
+	PanicOnError(response)
+
+	//
+	//     {
+	//         "address": "1HdjGr6WCTcnmW1tNNsHX7fh4Jr5C2PeKe",
+	//         "valid_until": 1620041926,
+	//         "currency": "BTC",
+	//         "label": "Savings"
+	//     }
+	//
+	ch <- this.ParseDepositAddress(response)
+	return nil
 }
 
 /**
@@ -488,38 +564,38 @@ func (this *PaymiumCore) FetchDepositAddress(code any, optionalArgs ...any) <-ch
  * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/?id=address-structure}
  */
 func (this *PaymiumCore) FetchDepositAddresses(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		codes := GetArg(optionalArgs, 0, nil)
-		_ = codes
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes41712 := (<-this.LoadMarkets())
-			PanicOnError(retRes41712)
-		}
-
-		response := (<-this.PrivateGetUserAddresses(params))
-		PanicOnError(response)
-
-		//
-		//     [
-		//         {
-		//             "address": "1HdjGr6WCTcnmW1tNNsHX7fh4Jr5C2PeKe",
-		//             "valid_until": 1620041926,
-		//             "currency": "BTC",
-		//             "label": "Savings"
-		//         }
-		//     ]
-		//
-		ch <- this.ParseDepositAddresses(response, codes)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchDepositAddressesBody(ch, optionalArgs...)
 	return ch
+}
+func (this *PaymiumCore) fetchDepositAddressesBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	codes := GetArg(optionalArgs, 0, nil)
+	_ = codes
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes41712 := (<-this.LoadMarkets())
+		PanicOnError(retRes41712)
+	}
+
+	response := (<-this.PrivateGetUserAddresses(params))
+	PanicOnError(response)
+
+	//
+	//     [
+	//         {
+	//             "address": "1HdjGr6WCTcnmW1tNNsHX7fh4Jr5C2PeKe",
+	//             "valid_until": 1620041926,
+	//             "currency": "BTC",
+	//             "label": "Savings"
+	//         }
+	//     ]
+	//
+	ch <- this.ParseDepositAddresses(response, codes)
+	return nil
 }
 func (this *PaymiumCore) ParseDepositAddress(depositAddress any, optionalArgs ...any) any {
 	//
@@ -557,41 +633,41 @@ func (this *PaymiumCore) ParseDepositAddress(depositAddress any, optionalArgs ..
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *PaymiumCore) CreateOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		price := GetArg(optionalArgs, 0, nil)
-		_ = price
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes46812 := (<-this.LoadMarkets())
-			PanicOnError(retRes46812)
-		}
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"type":      Add(this.Capitalize(typeVar), "Order"),
-			"currency":  GetValue(market, "id"),
-			"direction": side,
-			"amount":    amount,
-		}
-		if IsTrue(!IsEqual(typeVar, "market")) {
-			AddElementToObject(request, "price", price)
-		}
-
-		response := (<-this.PrivatePostUserOrders(this.Extend(request, params)))
-		PanicOnError(response)
-
-		ch <- this.SafeOrder(map[string]any{
-			"info": response,
-			"id":   GetValue(response, "uuid"),
-		}, market)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
+}
+func (this *PaymiumCore) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	price := GetArg(optionalArgs, 0, nil)
+	_ = price
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes46812 := (<-this.LoadMarkets())
+		PanicOnError(retRes46812)
+	}
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"type":      Add(this.Capitalize(typeVar), "Order"),
+		"currency":  GetValue(market, "id"),
+		"direction": side,
+		"amount":    amount,
+	}
+	if IsTrue(!IsEqual(typeVar, "market")) {
+		AddElementToObject(request, "price", price)
+	}
+
+	response := (<-this.PrivatePostUserOrders(this.Extend(request, params)))
+	PanicOnError(response)
+
+	ch <- this.SafeOrder(map[string]any{
+		"info": response,
+		"id":   this.SafeString(response, "uuid"),
+	}, market)
+	return nil
 }
 
 /**
@@ -600,33 +676,33 @@ func (this *PaymiumCore) CreateOrder(symbol any, typeVar any, side any, amount a
  * @description cancels an open order
  * @see https://paymium.github.io/api-documentation/#tag/Order/operation/cancel-order
  * @param {string} id order id
- * @param {string} symbol not used by paymium cancelOrder ()
+ * @param {string} symbol not used by cancelOrder ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *PaymiumCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		var request any = map[string]any{
-			"uuid": id,
-		}
-
-		response := (<-this.PrivateDeleteUserOrdersUuidCancel(this.Extend(request, params)))
-		PanicOnError(response)
-
-		ch <- this.SafeOrder(map[string]any{
-			"info": response,
-		})
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
+}
+func (this *PaymiumCore) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	var request map[string]any = map[string]any{
+		"uuid": id,
+	}
+
+	response := (<-this.PrivateDeleteUserOrdersUuidCancel(this.Extend(request, params)))
+	PanicOnError(response)
+
+	ch <- this.SafeOrder(map[string]any{
+		"info": response,
+	})
+	return nil
 }
 
 /**
@@ -642,70 +718,70 @@ func (this *PaymiumCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *PaymiumCore) Transfer(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes52112 := (<-this.LoadMarkets())
-			PanicOnError(retRes52112)
-		}
-		var currency any = this.Currency(code)
-		if IsTrue(IsLessThan(GetIndexOf(toAccount, "@"), 0)) {
-			panic(ExchangeError(Add(this.Id, " transfer() only allows transfers to an email address")))
-		}
-		if IsTrue(IsTrue(!IsEqual(code, "BTC")) && IsTrue(!IsEqual(code, "EUR"))) {
-			panic(ExchangeError(Add(this.Id, " transfer() only allows BTC or EUR")))
-		}
-		var request any = map[string]any{
-			"currency": GetValue(currency, "id"),
-			"amount":   this.CurrencyToPrecision(code, amount),
-			"email":    toAccount,
-		}
-
-		response := (<-this.PrivatePostUserEmailTransfers(this.Extend(request, params)))
-		PanicOnError(response)
-
-		//
-		//     {
-		//         "uuid": "968f4580-e26c-4ad8-8bcd-874d23d55296",
-		//         "type": "Transfer",
-		//         "currency": "BTC",
-		//         "currency_amount": "string",
-		//         "created_at": "2013-10-24T10:34:37.000Z",
-		//         "updated_at": "2013-10-24T10:34:37.000Z",
-		//         "amount": "1.0",
-		//         "state": "executed",
-		//         "currency_fee": "0.0",
-		//         "btc_fee": "0.0",
-		//         "comment": "string",
-		//         "traded_btc": "string",
-		//         "traded_currency": "string",
-		//         "direction": "buy",
-		//         "price": "string",
-		//         "account_operations": [
-		//             {
-		//                 "uuid": "968f4580-e26c-4ad8-8bcd-874d23d55296",
-		//                 "amount": "1.0",
-		//                 "currency": "BTC",
-		//                 "created_at": "2013-10-24T10:34:37.000Z",
-		//                 "created_at_int": 1389094259,
-		//                 "name": "account_operation",
-		//                 "address": "1FPDBXNqSkZMsw1kSkkajcj8berxDQkUoc",
-		//                 "tx_hash": "string",
-		//                 "is_trading_account": true
-		//             }
-		//         ]
-		//     }
-		//
-		ch <- this.ParseTransfer(response, currency)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
+}
+func (this *PaymiumCore) transferBody(ch chan any, code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes52112 := (<-this.LoadMarkets())
+		PanicOnError(retRes52112)
+	}
+	var currency any = this.Currency(code)
+	if IsTrue(IsLessThan(GetIndexOf(toAccount, "@"), 0)) {
+		panic(ExchangeError(Add(this.Id, " transfer() only allows transfers to an email address")))
+	}
+	if IsTrue(IsTrue(!IsEqual(code, "BTC")) && IsTrue(!IsEqual(code, "EUR"))) {
+		panic(ExchangeError(Add(this.Id, " transfer() only allows BTC or EUR")))
+	}
+	var request map[string]any = map[string]any{
+		"currency": GetValue(currency, "id"),
+		"amount":   this.CurrencyToPrecision(code, amount),
+		"email":    toAccount,
+	}
+
+	response := (<-this.PrivatePostUserEmailTransfers(this.Extend(request, params)))
+	PanicOnError(response)
+
+	//
+	//     {
+	//         "uuid": "968f4580-e26c-4ad8-8bcd-874d23d55296",
+	//         "type": "Transfer",
+	//         "currency": "BTC",
+	//         "currency_amount": "string",
+	//         "created_at": "2013-10-24T10:34:37.000Z",
+	//         "updated_at": "2013-10-24T10:34:37.000Z",
+	//         "amount": "1.0",
+	//         "state": "executed",
+	//         "currency_fee": "0.0",
+	//         "btc_fee": "0.0",
+	//         "comment": "string",
+	//         "traded_btc": "string",
+	//         "traded_currency": "string",
+	//         "direction": "buy",
+	//         "price": "string",
+	//         "account_operations": [
+	//             {
+	//                 "uuid": "968f4580-e26c-4ad8-8bcd-874d23d55296",
+	//                 "amount": "1.0",
+	//                 "currency": "BTC",
+	//                 "created_at": "2013-10-24T10:34:37.000Z",
+	//                 "created_at_int": 1389094259,
+	//                 "name": "account_operation",
+	//                 "address": "1FPDBXNqSkZMsw1kSkkajcj8berxDQkUoc",
+	//                 "tx_hash": "string",
+	//                 "is_trading_account": true
+	//             }
+	//         ]
+	//     }
+	//
+	ch <- this.ParseTransfer(response, currency)
+	return nil
 }
 func (this *PaymiumCore) ParseTransfer(transfer any, optionalArgs ...any) any {
 	//
@@ -761,7 +837,7 @@ func (this *PaymiumCore) ParseTransfer(transfer any, optionalArgs ...any) any {
 	}
 }
 func (this *PaymiumCore) ParseTransferStatus(status any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"executed": "ok",
 	}
 	return this.SafeString(statuses, status, status)
@@ -780,25 +856,25 @@ func (this *PaymiumCore) Sign(path any, optionalArgs ...any) any {
 	var url any = Add(Add(Add(Add(GetValue(GetValue(this.Urls, "api"), "rest"), "/"), this.Version), "/"), this.ImplodeParams(path, params))
 	var query any = this.Omit(params, this.ExtractParams(path))
 	if IsTrue(IsEqual(api, "public")) {
-		if IsTrue(GetArrayLength(ObjectKeys(query))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 			url = Add(url, Add("?", this.Urlencode(query)))
 		}
 	} else {
 		this.CheckRequiredCredentials()
-		var nonce any = ToString(this.Nonce())
+		var nonce string = ToString(this.Nonce())
 		var auth any = Add(nonce, url)
 		headers = map[string]any{
 			"Api-Key":   this.ApiKey,
 			"Api-Nonce": nonce,
 		}
 		if IsTrue(IsEqual(method, "POST")) {
-			if IsTrue(GetArrayLength(ObjectKeys(query))) {
+			if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 				body = this.Json(query)
 				auth = Add(auth, body)
 				AddElementToObject(headers, "Content-Type", "application/json")
 			}
 		} else {
-			if IsTrue(GetArrayLength(ObjectKeys(query))) {
+			if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 				var queryString any = this.Urlencode(query)
 				auth = Add(auth, queryString)
 				url = Add(url, Add("?", queryString))

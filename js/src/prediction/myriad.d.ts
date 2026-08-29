@@ -1,5 +1,6 @@
 import Exchange from '../abstract/prediction/myriad.js';
 import type { Int, Str, Num, Dict, int, Strings, PredictionOrderRequest, Market, PredictionOrderBook, OHLCV, PredictionTradingFee, PredictionEvent, Balances, fetchEventsParams, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition } from '../base/types.js';
+import type Client from '../base/ws/Client.js';
 /**
  * @class myriad
  * @augments Exchange
@@ -126,7 +127,7 @@ export default class myriad extends Exchange {
      * @param {float} [params.slippage] maximum slippage tolerance (default 0.005)
      * @returns {object} a quote object with price, shares, fees and the on-chain calldata
      */
-    fetchTradeQuote(outcome: string, side: string, amount: number, params?: {}): Promise<Dict>;
+    fetchTradeQuote(outcome: Str, side: Str, amount: Num, params?: {}): Promise<Dict>;
     /**
      * @ignore
      * @method
@@ -138,8 +139,8 @@ export default class myriad extends Exchange {
      */
     parseTradeQuote(quote: Dict, market?: any): Dict;
     signEvmTransaction(tx: Dict, privateKey: string): string;
-    ethRpc(rpcUrl: string, method: string, rpcParams: any[]): Promise<any>;
-    ensureErc20Allowance(rpcUrl: string, networkId: string, token: string, owner: string, spender: string): Promise<any>;
+    ethRpc(rpcUrl: Str, method: string, rpcParams: any[]): Promise<any>;
+    ensureErc20Allowance(rpcUrl: Str, networkId: Str, token: Str, owner: Str, spender: Str): Promise<any>;
     /**
      * @method
      * @name myriad#createOrder
@@ -164,7 +165,7 @@ export default class myriad extends Exchange {
      * @description signs an EIP-712 order and posts it to the gasless order book; the operator settles the match on-chain
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    createOrderbookOrder(outcome: string, type: Str, side: Str, amount: Num, price?: Num, params?: {}): Promise<PredictionOrder>;
+    createOrderbookOrder(outcome: Str, type: Str, side: Str, amount: Num, price?: Num, params?: {}): Promise<PredictionOrder>;
     /**
      * @ignore
      * @method
@@ -172,7 +173,7 @@ export default class myriad extends Exchange {
      * @description builds and EIP-712 signs a single order-book order; shared by createOrder and createOrders
      * @returns {object} a dict with the signed order, signature, timeInForce and networkId
      */
-    buildOrderbookOrder(outcome: string, type: Str, side: Str, amount: Num, price?: Num, params?: {}): Dict;
+    buildOrderbookOrder(outcome: Str, type: Str, side: Str, amount: Num, price?: Num, params?: {}): Dict;
     /**
      * @method
      * @name myriad#createOrders
@@ -432,7 +433,7 @@ export default class myriad extends Exchange {
     fetchBalance(params?: {}): Promise<Balances>;
     hexToDecimalString(hexValue: string): Str;
     fromWeiWithDecimals(hexValue: string, decimals: Int): Str;
-    parseTradeTx(txHash: string, quote: Dict, market: any, side: string): PredictionOrder;
+    parseTradeTx(txHash: Str, quote: Dict, market: any, side: Str): PredictionOrder;
     /**
      * @ignore
      * @method
@@ -452,7 +453,7 @@ export default class myriad extends Exchange {
      * @param {string} [eventSlug] the slug of the parent event
      * @returns {object} a [market structure](https://docs.ccxt.com/#/?id=market-structure)
      */
-    parseMyriadMarket(raw: Dict, eventSlug?: string): Market;
+    parseMyriadMarket(raw: Dict, eventSlug?: Str): Market;
     /**
      * @method
      * @name myriad#fetchTicker
@@ -493,7 +494,7 @@ export default class myriad extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
      */
-    fetchOrderBook(outcome: string, limit?: Int, params?: {}): Promise<PredictionOrderBook>;
+    fetchOrderBook(outcome: Str, limit?: Int, params?: {}): Promise<PredictionOrderBook>;
     /**
      * @ignore
      * @method
@@ -583,14 +584,14 @@ export default class myriad extends Exchange {
      * @returns {object} an event structure
      */
     parseEvent(rawEvent: Dict): any;
-    requestId(url: string): number;
+    requestId(url: Str): number;
     fromWei(wei: Str): Num;
     marketOutcomeToSymbol(networkId: Str, marketId: Str, outcomeId: Str): Str;
-    connectCentrifugo(url: string): Promise<any>;
-    pong(client: any, message?: any): Promise<void>;
+    connectCentrifugo(url: Str): Promise<any>;
+    pong(client: Client, message?: any): Promise<void>;
     subscribeMyriadChannel(messageHash: string, channel: string, params?: {}): Promise<any>;
     handleMessage(client: any, message: any): void;
-    handleCentrifugoFrame(client: any, msg: any): void;
+    handleCentrifugoFrame(client: Client, msg: any): void;
     /**
      * @method
      * @name myriad#watchOrderBook
@@ -602,7 +603,7 @@ export default class myriad extends Exchange {
      * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
      */
     watchOrderBook(outcome: string, limit?: Int, params?: {}): Promise<PredictionOrderBook>;
-    seedOrderBook(outcome: string, sym: string, limit?: Int): Promise<void>;
+    seedOrderBook(outcome: Str, sym: Str, limit?: Int): Promise<void>;
     handleOrderBook(client: any, data: any): void;
     /**
      * @method
@@ -693,7 +694,7 @@ export default class myriad extends Exchange {
     seedPositionBalances(trader: string): Promise<void>;
     handlePosition(client: any, data: any): void;
     walletAddressFromKeys(): string;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
     /**
      * @ignore
      * @method

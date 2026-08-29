@@ -4,7 +4,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.5.70'
+__version__ = '4.5.76'
 
 # ----------------------------------------------------------------------------
 
@@ -70,7 +70,6 @@ from ccxt.pro.bingx import bingx                                          # noqa
 from ccxt.pro.bitfinex import bitfinex                                    # noqa: F401
 from ccxt.pro.bitget import bitget                                        # noqa: F401
 from ccxt.pro.bithumb import bithumb                                      # noqa: F401
-from ccxt.pro.bitmart import bitmart                                      # noqa: F401
 from ccxt.pro.bitmex import bitmex                                        # noqa: F401
 from ccxt.pro.bitopro import bitopro                                      # noqa: F401
 from ccxt.pro.bitrue import bitrue                                        # noqa: F401
@@ -95,7 +94,6 @@ from ccxt.pro.deepcoin import deepcoin                                    # noqa
 from ccxt.pro.deribit import deribit                                      # noqa: F401
 from ccxt.pro.derive import derive                                        # noqa: F401
 from ccxt.pro.dydx import dydx                                            # noqa: F401
-from ccxt.pro.exmo import exmo                                            # noqa: F401
 from ccxt.pro.extended import extended                                    # noqa: F401
 from ccxt.pro.gate import gate                                            # noqa: F401
 from ccxt.pro.gateeu import gateeu                                        # noqa: F401
@@ -110,7 +108,6 @@ from ccxt.pro.independentreserve import independentreserve                # noqa
 from ccxt.pro.kraken import kraken                                        # noqa: F401
 from ccxt.pro.krakenfutures import krakenfutures                          # noqa: F401
 from ccxt.pro.kucoin import kucoin                                        # noqa: F401
-from ccxt.pro.kucoineu import kucoineu                                    # noqa: F401
 from ccxt.pro.kucoinfutures import kucoinfutures                          # noqa: F401
 from ccxt.pro.lbank import lbank                                          # noqa: F401
 from ccxt.pro.lighter import lighter                                      # noqa: F401
@@ -151,7 +148,6 @@ exchanges = [
     'bitfinex',
     'bitget',
     'bithumb',
-    'bitmart',
     'bitmex',
     'bitopro',
     'bitrue',
@@ -176,7 +172,6 @@ exchanges = [
     'deribit',
     'derive',
     'dydx',
-    'exmo',
     'extended',
     'gate',
     'gateeu',
@@ -191,7 +186,6 @@ exchanges = [
     'kraken',
     'krakenfutures',
     'kucoin',
-    'kucoineu',
     'kucoinfutures',
     'lbank',
     'lighter',

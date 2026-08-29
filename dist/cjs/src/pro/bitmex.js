@@ -24,7 +24,7 @@ class bitmex extends bitmex$1["default"] {
                 'watchOrderBook': true,
                 'watchOrderBookForSymbols': true,
                 'watchOrders': true,
-                'watchPostions': true,
+                'watchPositions': true,
                 'watchTicker': true,
                 'watchTickers': true,
                 'watchTrades': true,
@@ -715,7 +715,7 @@ class bitmex extends bitmex$1["default"] {
     handleAuthenticationMessage(client, message) {
         const authenticated = this.safeBool(message, 'success', false);
         const messageHash = 'authenticated';
-        if (authenticated) {
+        if (authenticated === true) {
             // we resolve the future here permanently so authentication only happens once
             const future = this.safeValue(client.futures, messageHash);
             future.resolve(true);
@@ -747,7 +747,8 @@ class bitmex extends bitmex$1["default"] {
         const subscriptionHash = 'position';
         let messageHash = 'positions';
         if (!this.isEmpty(symbols)) {
-            messageHash = '::' + symbols.join(',');
+            symbols = this.marketSymbols(symbols);
+            messageHash = 'positions::' + symbols.join(',');
         }
         const url = this.urls['api']['ws'];
         const request = {
@@ -1315,7 +1316,7 @@ class bitmex extends bitmex$1["default"] {
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
         let table = undefined;
@@ -1763,7 +1764,7 @@ class bitmex extends bitmex$1["default"] {
         //         ]
         //     }
         //
-        if (this.handleErrorMessage(client, message)) {
+        if (this.handleErrorMessage(client, message) === true) {
             const table = this.safeString(message, 'table');
             const methods = {
                 'orderBookL2': this.handleOrderBook,

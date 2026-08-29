@@ -10,7 +10,7 @@ async function testWatchLiquidationsForSymbols (exchange: Exchange, skippedPrope
     const method = 'watchLiquidationsForSymbols';
 
     // we have to skip some exchanges here due to the frequency of trading
-    const skippedExchanges = [];
+    const skippedExchanges: string[] = [];
 
     if (exchange.inArray (exchange.id, skippedExchanges)) {
         const m1 = (exchange.id + ' ' + method + '() test skipped');
@@ -18,7 +18,7 @@ async function testWatchLiquidationsForSymbols (exchange: Exchange, skippedPrope
         return false;
     }
 
-    if (!exchange.has[method]) {
+    if (exchange.has[method] === undefined || exchange.has[method] === false) {
         const m2 = (exchange.id + ' does not support ' + method + '() method');
         console.log (m2);
         return false;

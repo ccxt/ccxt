@@ -42,6 +42,9 @@ class lighter extends lighter$1["default"] {
                 'unWatchMarkPrice': true,
                 'unWatchMarkPrices': true,
                 'unWatchOrders': true,
+                'createOrderWs': true,
+                'cancelOrderWs': true,
+                'cancelAllOrdersWs': true,
             },
             'urls': {
                 'api': {
@@ -51,7 +54,9 @@ class lighter extends lighter$1["default"] {
                     'ws': 'wss://testnet.zklighter.elliot.ai/stream',
                 },
             },
-            'options': {},
+            'options': {
+                'requestId': this.createSafeDictionary(),
+            },
         });
     }
     getMessageHash(unifiedChannel, symbol = undefined, extra = undefined) {
@@ -182,7 +187,7 @@ class lighter extends lighter$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -354,7 +359,7 @@ class lighter extends lighter$1["default"] {
         if (symbols !== undefined) {
             symbolsLength = symbols.length;
         }
-        if (symbolsLength === 0) {
+        if ((symbols === undefined) || (symbolsLength === 0)) {
             messageHashes.push(this.getMessageHash('ticker'));
         }
         else {
@@ -472,7 +477,7 @@ class lighter extends lighter$1["default"] {
         const priceString = this.safeString(trade, 'price');
         const amountString = this.safeString(trade, 'size');
         const isMakerAsk = this.safeBool(trade, 'is_maker_ask');
-        const side = isMakerAsk ? 'buy' : 'sell';
+        const side = (isMakerAsk === true) ? 'buy' : 'sell';
         return this.safeTrade({
             'info': trade,
             'id': tradeId,
@@ -641,17 +646,17 @@ class lighter extends lighter$1["default"] {
                 // Own trades should use the account's order side
                 side = 'buy';
                 order = this.safeString(trade, 'bid_id');
-                takerOrMaker = isMakerAsk ? 'taker' : 'maker';
+                takerOrMaker = (isMakerAsk === true) ? 'taker' : 'maker';
             }
             else if (askAccountId === accountIndex) {
                 side = 'sell';
                 order = this.safeString(trade, 'ask_id');
-                takerOrMaker = isMakerAsk ? 'maker' : 'taker';
+                takerOrMaker = (isMakerAsk === true) ? 'maker' : 'taker';
             }
         }
         // public trades use Lighter's taker-side convention
         if (side === undefined) {
-            side = isMakerAsk ? 'buy' : 'sell';
+            side = (isMakerAsk === true) ? 'buy' : 'sell';
         }
         let fee = undefined;
         if (takerOrMaker !== undefined) {
@@ -838,12 +843,15 @@ class lighter extends lighter$1["default"] {
         //
         const timestamp = this.safeInteger(liquidation, 'timestamp');
         const isMakerAsk = this.safeBool(liquidation, 'is_maker_ask');
-        const side = isMakerAsk ? 'buy' : 'sell';
+        const side = (isMakerAsk === true) ? 'buy' : 'sell';
         const contracts = this.safeString(liquidation, 'size');
         const contractSize = this.safeString(market, 'contractSize');
         const price = this.safeString(liquidation, 'price');
         const baseValue = Precise["default"].stringMul(contracts, contractSize);
         const quoteValue = Precise["default"].stringMul(baseValue, price);
+        if (market === undefined) {
+            return undefined;
+        }
         return this.safeLiquidation({
             'info': liquidation,
             'symbol': market['symbol'],
@@ -1038,7 +1046,9 @@ class lighter extends lighter$1["default"] {
                 const account = this.account();
                 account['used'] = this.safeString(asset, 'locked_balance');
                 account['total'] = this.safeString(asset, 'balance');
-                balance[code] = account;
+                if (code !== undefined) {
+                    balance[code] = account;
+                }
             }
         }
         else {
@@ -1118,6 +1128,124 @@ class lighter extends lighter$1["default"] {
         }
         return await this.unsubscribe(messageHash, this.extend(request, params));
     }
+    requestId(url) {
+        const options = this.safeDict(this.options, 'requestId', this.createSafeDictionary());
+        const previousValue = this.safeInteger(options, url, 0);
+        const newValue = this.sum(previousValue, 1);
+        this.options['requestId'][url] = newValue;
+        return this.numberToString(newValue);
+    }
+    /**
+     * @method
+     * @name lighter#createOrderWs
+     * @description create a trade order
+     * @see https://apidocs.lighter.xyz/docs/websocket-reference#send-tx
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float|undefined} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.timeInForce] 'GTT' or 'IOC', default is 'GTT'
+     * @param {int} [params.clientOrderId] client order id, should be unique for each order, default is a random number
+     * @param {string} [params.triggerPrice] trigger price for stop loss or take profit orders, in units of the quote currency
+     * @param {boolean} [params.reduceOnly] whether the order is reduce only, default false
+     * @param {int} [params.nonce] nonce for the account
+     * @param {int} [params.apiKeyIndex] apiKeyIndex
+     * @param {int} [params.accountIndex] accountIndex
+     * @param {int} [params.orderExpiry] orderExpiry
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async createOrderWs(symbol, type, side, amount, price = undefined, params = {}) {
+        const url = this.urls['api']['ws'];
+        const requestId = this.requestId(url);
+        const messageHash = 'jsonapi/sendtx:' + requestId;
+        const [txType, txInfo, order, market] = await this.signAndCreateOrder('createOrderWs', symbol, type, side, amount, price, params);
+        const parsedTx = this.parseJson(txInfo);
+        const message = {
+            'type': 'jsonapi/sendtx',
+            'data': {
+                'id': requestId,
+                'tx_type': txType,
+                'tx_info': parsedTx,
+            },
+        };
+        const subscription = {
+            'id': requestId,
+        };
+        const rawMessage = await this.watch(url, messageHash, message, messageHash, subscription);
+        return this.parseOrder(this.deepExtend(rawMessage, order), market);
+    }
+    /**
+     * @method
+     * @name lighter#cancelOrderWs
+     * @description cancel multiple orders
+     * @see https://apidocs.lighter.xyz/docs/websocket-reference#send-tx
+     * @param {string} id order id
+     * @param {string} [symbol] unified market symbol, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.accountIndex] account index
+     * @param {string} [params.apiKeyIndex] api key index
+     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async cancelOrderWs(id, symbol = undefined, params = {}) {
+        const url = this.urls['api']['ws'];
+        const requestId = this.requestId(url);
+        const messageHash = 'jsonapi/sendtx:' + requestId;
+        const [txType, txInfo, market] = await this.signAndCancelOrder('cancelOrderWs', id, symbol, params);
+        const parsedTx = this.parseJson(txInfo);
+        const message = {
+            'type': 'jsonapi/sendtx',
+            'data': {
+                'id': requestId,
+                'tx_type': txType,
+                'tx_info': parsedTx,
+            },
+        };
+        const subscription = {
+            'id': requestId,
+        };
+        const rawMessage = await this.watch(url, messageHash, message, messageHash, subscription);
+        return this.parseOrder(rawMessage, market);
+    }
+    /**
+     * @method
+     * @name lighter#cancelAllOrdersWs
+     * @description cancel all open orders in a market
+     * @see https://apidocs.lighter.xyz/docs/websocket-reference#send-tx
+     * @param {string} [symbol] unified market symbol of the market to cancel orders in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.accountIndex] account index
+     * @param {string} [params.apiKeyIndex] api key index
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async cancelAllOrdersWs(symbol = undefined, params = {}) {
+        const url = this.urls['api']['ws'];
+        const requestId = this.requestId(url);
+        const messageHash = 'jsonapi/sendtx:' + requestId;
+        const [txType, txInfo] = await this.signAndCancelAllOrders('cancelAllOrdersWs', symbol, params);
+        const parsedTx = this.parseJson(txInfo);
+        const message = {
+            'type': 'jsonapi/sendtx',
+            'data': {
+                'id': requestId,
+                'tx_type': txType,
+                'tx_info': parsedTx,
+            },
+        };
+        const subscription = {
+            'id': requestId,
+        };
+        const rawMessage = await this.watch(url, messageHash, message, messageHash, subscription);
+        return this.parseOrders([rawMessage]);
+    }
+    handleWsSendtxApi(client, message) {
+        //
+        //     {"code":200,"id":"1786459718284","predicted_execution_time_ms":1786459719662,"tx_hash":"9959d3feb30d0a89fcfd4532f071ac99a98ee1202aa2a7f2c1299932b1e540b6ecdabd2b92616a14","type":"jsonapi/sendtx"}
+        //
+        const id = this.safeString(message, 'id');
+        client.resolve(message, 'jsonapi/sendtx:' + id);
+    }
     handleOrders(client, message) {
         //
         //    {
@@ -1187,6 +1315,21 @@ class lighter extends lighter$1["default"] {
             }
         }
         catch (e) {
+            const id = this.safeString(message, 'id');
+            if (id !== undefined) {
+                const subscriptionKeys = Object.keys(client.subscriptions);
+                for (let i = 0; i < subscriptionKeys.length; i++) {
+                    const subscriptionHash = subscriptionKeys[i];
+                    const subscriptionId = this.safeString(client.subscriptions[subscriptionHash], 'id');
+                    const subscription = this.safeString(client.subscriptions[subscriptionHash], 'subscription');
+                    if (id === subscriptionId) {
+                        client.reject(e, subscriptionHash);
+                        if (subscription !== undefined) {
+                            delete client.subscriptions[subscription];
+                        }
+                    }
+                }
+            }
             client.reject(e);
         }
         return true;
@@ -1198,6 +1341,10 @@ class lighter extends lighter$1["default"] {
         const type = this.safeString(message, 'type', '');
         if (type === 'ping') {
             this.handlePing(client, message);
+            return;
+        }
+        if (type === 'jsonapi/sendtx') {
+            this.handleWsSendtxApi(client, message);
             return;
         }
         const channel = this.safeString(message, 'channel', '');

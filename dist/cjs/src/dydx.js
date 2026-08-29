@@ -153,71 +153,71 @@ class dydx extends dydx$1["default"] {
             'api': {
                 'indexer': {
                     'get': {
-                        'addresses/{address}': 1,
-                        'addresses/{address}/parentSubaccountNumber/{number}': 1,
-                        'addresses/{address}/subaccountNumber/{subaccountNumber}': 1,
-                        'assetPositions': 1,
-                        'assetPositions/parentSubaccountNumber': 1,
-                        'candles/perpetualMarkets/{market}': 1,
-                        'compliance/screen/{address}': 1,
-                        'fills': 1,
-                        'fills/parentSubaccountNumber': 1,
-                        'fundingPayments': 1,
-                        'fundingPayments/parentSubaccount': 1,
-                        'height': 0.1,
-                        'historical-pnl': 1,
-                        'historical-pnl/parentSubaccountNumber': 1,
-                        'historicalBlockTradingRewards/{address}': 1,
-                        'historicalFunding/{market}': 1,
-                        'historicalTradingRewardAggregations/{address}': 1,
-                        'orderbooks/perpetualMarket/{market}': 1,
-                        'orders': 1,
-                        'orders/parentSubaccountNumber': 1,
-                        'orders/{orderId}': 1,
-                        'perpetualMarkets': 1,
-                        'perpetualPositions': 1,
-                        'perpetualPositions/parentSubaccountNumber': 1,
-                        'screen': 1,
-                        'sparklines': 1,
-                        'time': 1,
-                        'trades/perpetualMarket/{market}': 1,
-                        'transfers': 1,
-                        'transfers/between': 1,
-                        'transfers/parentSubaccountNumber': 1,
-                        'vault/v1/megavault/historicalPnl': 1,
-                        'vault/v1/megavault/positions': 1,
-                        'vault/v1/vaults/historicalPnl': 1,
+                        'addresses/{address}': { 'cost': 1 },
+                        'addresses/{address}/parentSubaccountNumber/{number}': { 'cost': 1 },
+                        'addresses/{address}/subaccountNumber/{subaccountNumber}': { 'cost': 1 },
+                        'assetPositions': { 'cost': 1 },
+                        'assetPositions/parentSubaccountNumber': { 'cost': 1 },
+                        'candles/perpetualMarkets/{market}': { 'cost': 1 },
+                        'compliance/screen/{address}': { 'cost': 1 },
+                        'fills': { 'cost': 1 },
+                        'fills/parentSubaccountNumber': { 'cost': 1 },
+                        'fundingPayments': { 'cost': 1 },
+                        'fundingPayments/parentSubaccount': { 'cost': 1 },
+                        'height': { 'cost': 0.1 },
+                        'historical-pnl': { 'cost': 1 },
+                        'historical-pnl/parentSubaccountNumber': { 'cost': 1 },
+                        'historicalBlockTradingRewards/{address}': { 'cost': 1 },
+                        'historicalFunding/{market}': { 'cost': 1 },
+                        'historicalTradingRewardAggregations/{address}': { 'cost': 1 },
+                        'orderbooks/perpetualMarket/{market}': { 'cost': 1 },
+                        'orders': { 'cost': 1 },
+                        'orders/parentSubaccountNumber': { 'cost': 1 },
+                        'orders/{orderId}': { 'cost': 1 },
+                        'perpetualMarkets': { 'cost': 1 },
+                        'perpetualPositions': { 'cost': 1 },
+                        'perpetualPositions/parentSubaccountNumber': { 'cost': 1 },
+                        'screen': { 'cost': 1 },
+                        'sparklines': { 'cost': 1 },
+                        'time': { 'cost': 1 },
+                        'trades/perpetualMarket/{market}': { 'cost': 1 },
+                        'transfers': { 'cost': 1 },
+                        'transfers/between': { 'cost': 1 },
+                        'transfers/parentSubaccountNumber': { 'cost': 1 },
+                        'vault/v1/megavault/historicalPnl': { 'cost': 1 },
+                        'vault/v1/megavault/positions': { 'cost': 1 },
+                        'vault/v1/vaults/historicalPnl': { 'cost': 1 },
                         //
-                        'perpetualMarketSparklines': 1,
-                        'perpetualMarkets/{ticker}': 1,
-                        'perpetualMarkets/{ticker}/orderbook': 1,
-                        'trades/perpetualMarket/{ticker}': 1,
-                        'historicalFunding/{ticker}': 1,
-                        'candles/{ticker}/{resolution}': 1,
-                        'addresses/{address}/subaccounts': 1,
-                        'addresses/{address}/subaccountNumber/{subaccountNumber}/assetPositions': 1,
-                        'addresses/{address}/subaccountNumber/{subaccountNumber}/perpetualPositions': 1,
-                        'addresses/{address}/subaccountNumber/{subaccountNumber}/orders': 1,
-                        'fills/parentSubaccount': 1,
-                        'historical-pnl/parentSubaccount': 1,
+                        'perpetualMarketSparklines': { 'cost': 1 },
+                        'perpetualMarkets/{ticker}': { 'cost': 1 },
+                        'perpetualMarkets/{ticker}/orderbook': { 'cost': 1 },
+                        'trades/perpetualMarket/{ticker}': { 'cost': 1 },
+                        'historicalFunding/{ticker}': { 'cost': 1 },
+                        'candles/{ticker}/{resolution}': { 'cost': 1 },
+                        'addresses/{address}/subaccounts': { 'cost': 1 },
+                        'addresses/{address}/subaccountNumber/{subaccountNumber}/assetPositions': { 'cost': 1 },
+                        'addresses/{address}/subaccountNumber/{subaccountNumber}/perpetualPositions': { 'cost': 1 },
+                        'addresses/{address}/subaccountNumber/{subaccountNumber}/orders': { 'cost': 1 },
+                        'fills/parentSubaccount': { 'cost': 1 },
+                        'historical-pnl/parentSubaccount': { 'cost': 1 },
                     },
                 },
                 'nodeRpc': {
                     'get': {
-                        'abci_info': 1,
-                        'block': 1,
-                        'broadcast_tx_async': 1,
-                        'broadcast_tx_sync': 1,
-                        'tx': 1,
+                        'abci_info': { 'cost': 1 },
+                        'block': { 'cost': 1 },
+                        'broadcast_tx_async': { 'cost': 1 },
+                        'broadcast_tx_sync': { 'cost': 1 },
+                        'tx': { 'cost': 1 },
                     },
                 },
                 'nodeRest': {
                     'get': {
-                        'cosmos/auth/v1beta1/account_info/{dydxAddress}': 1,
+                        'cosmos/auth/v1beta1/account_info/{dydxAddress}': { 'cost': 1 },
                     },
                     'post': {
-                        'cosmos/tx/v1beta1/encode': 1,
-                        'cosmos/tx/v1beta1/simulate': 1,
+                        'cosmos/tx/v1beta1/encode': { 'cost': 1 },
+                        'cosmos/tx/v1beta1/simulate': { 'cost': 1 },
                     },
                 },
             },
@@ -503,6 +503,9 @@ class dydx extends dydx$1["default"] {
         //
         const quoteId = 'USDC';
         const marketId = this.safeString(market, 'ticker');
+        if (marketId === undefined) {
+            throw new errors.ExchangeError(this.id + ' parseMarket() missing marketId');
+        }
         const parts = marketId.split('-');
         const baseName = this.safeString(parts, 0);
         const baseId = this.safeString(market, 'baseId', baseName); // idk where 'baseId' comes from, but leaving as is
@@ -1145,7 +1148,7 @@ class dydx extends dydx$1["default"] {
         let userAddress = undefined;
         let subAccountNumber = undefined;
         [userAddress, params] = this.handlePublicAddress('fetchPositions', params);
-        [subAccountNumber, params] = this.handleOptionAndParams(params, 'fetchOrders', 'subAccountNumber', '0');
+        [subAccountNumber, params] = this.handleOptionAndParams(params, 'fetchPositions', 'subAccountNumber', '0');
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -1286,9 +1289,18 @@ class dydx extends dydx$1["default"] {
         return r;
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a side argument');
+        }
         const reduceOnly = this.safeBool2(params, 'reduceOnly', 'reduce_only', false);
         const orderType = type.toUpperCase();
         const market = this.market(symbol);
+        if (side === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' createOrderRequest() requires a side argument');
+        }
         const orderSide = side.toUpperCase();
         let subaccountId = 0;
         [subaccountId, params] = this.handleOptionAndParams(params, 'createOrder', 'subAccountId', subaccountId);
@@ -1367,6 +1379,9 @@ class dydx extends dydx$1["default"] {
         if (orderFlag === 0) {
             if (goodTillBlock === undefined) {
                 // short term order
+                if (latestBlockHeight === undefined) {
+                    throw new errors.ExchangeError(this.id + ' method() missing latestBlockHeight');
+                }
                 goodTillBlock = latestBlockHeight + 20;
             }
         }
@@ -1408,7 +1423,13 @@ class dydx extends dydx$1["default"] {
             'value': orderPayload,
         };
         params = this.omit(params, ['reduceOnly', 'reduce_only', 'clientOrderId', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit', 'latestBlockHeight', 'goodTillBlock', 'goodTillBlockTimeInSeconds', 'subaccountId']);
-        const orderId = this.createOrderIdFromParts(this.getWalletAddress(), subaccountId, clientOrderId, orderFlag, marketInfo['clobPairId']);
+        const walletAddress = this.getWalletAddress();
+        const clobPairId = this.safeInteger(marketInfo, 'clobPairId', 0);
+        const subaccountIdValue = (subaccountId === undefined) ? 0 : subaccountId;
+        const clientOrderIdValue = (clientOrderId === undefined) ? 0 : clientOrderId;
+        const orderFlagValue = (orderFlag === undefined) ? 0 : orderFlag;
+        const clobPairIdValue = (clobPairId === undefined) ? 0 : clobPairId;
+        const orderId = this.createOrderIdFromParts(walletAddress, subaccountIdValue, clientOrderIdValue, orderFlagValue, clobPairIdValue);
         return [orderId, this.extend(signingPayload, params)];
     }
     createOrderIdFromParts(address, subAccountNumber, clientOrderId, orderFlags, clobPairId) {
@@ -1436,7 +1457,11 @@ class dydx extends dydx$1["default"] {
         //
         const result = this.safeDict(response, 'result');
         const info = this.safeDict(result, 'response');
-        return this.safeInteger(info, 'last_block_height');
+        const height = this.safeInteger(info, 'last_block_height');
+        if (height === undefined) {
+            throw new errors.ExchangeError(this.id + ' fetchLatestBlockHeight() could not parse last_block_height');
+        }
+        return height;
     }
     /**
      * @method
@@ -1518,7 +1543,7 @@ class dydx extends dydx$1["default"] {
     async cancelOrder(id, symbol = undefined, params = {}) {
         const isTrigger = this.safeBool2(params, 'trigger', 'stop', false);
         params = this.omit(params, ['trigger', 'stop']);
-        if (!isTrigger && (symbol === undefined)) {
+        if ((isTrigger !== true) && (symbol === undefined)) {
             throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
         }
         if (this.markets === undefined) {
@@ -1537,7 +1562,7 @@ class dydx extends dydx$1["default"] {
         let goodTillBlockTimeInSeconds = 2592000;
         [goodTillBlockTimeInSeconds, params] = this.handleOptionAndParams(params, 'cancelOrder', 'goodTillBlockTimeInSeconds', goodTillBlockTimeInSeconds); // default is 30 days
         let goodTillBlockTime = undefined;
-        const defaultOrderFlags = (isTrigger) ? 32 : 64;
+        const defaultOrderFlags = (isTrigger === true) ? 32 : 64;
         const orderFlags = this.safeInteger(params, 'orderFlags', defaultOrderFlags);
         let subAccountId = 0;
         [subAccountId, params] = this.handleOptionAndParams(params, 'cancelOrder', 'subAccountId', subAccountId);
@@ -1621,7 +1646,7 @@ class dydx extends dydx$1["default"] {
         }
         const market = this.market(symbol);
         const clientOrderIds = this.safeList(params, 'clientOrderIds');
-        if (!clientOrderIds) {
+        if (clientOrderIds === undefined) {
             throw new errors.NotSupported(this.id + ' cancelOrders only support clientOrderIds.');
         }
         let subAccountId = 0;
@@ -1683,7 +1708,7 @@ class dydx extends dydx$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -1837,6 +1862,9 @@ class dydx extends dydx$1["default"] {
         }
         const gasLimit = Math.ceil(this.parseToNumeric(Precise["default"].stringMul(gasUsed, defaultFeeMultiplier)));
         let feeAmount = Precise["default"].stringMul(this.numberToString(gasLimit), gasPrice);
+        if (feeAmount === undefined) {
+            throw new errors.ExchangeError(this.id + ' estimateTxFee() missing feeAmount');
+        }
         if (feeAmount.indexOf('.') >= 0) {
             feeAmount = this.numberToString(Math.ceil(this.parseToNumeric(feeAmount)));
         }
@@ -1871,7 +1899,7 @@ class dydx extends dydx$1["default"] {
         const fromSubaccountId = this.safeInteger(params, 'fromSubaccountId');
         const toSubaccountId = this.safeInteger(params, 'toSubaccountId');
         if (fromAccount !== 'main') {
-            // throw error if from subaccount id is undefind
+            // throw error if from subaccount id is undefined
             if (fromAccount === undefined) {
                 throw new errors.NotSupported(this.id + ' transfer only support main > subaccount and subaccount <> subaccount.');
             }
@@ -2335,9 +2363,9 @@ class dydx extends dydx$1["default"] {
             await this.loadMarkets();
         }
         let userAddress = undefined;
-        [userAddress, params] = this.handlePublicAddress('fetchAccounts', params);
+        [userAddress, params] = this.handlePublicAddress('fetchBalance', params);
         let subaccountNumber = undefined;
-        [subaccountNumber, params] = this.handleOptionAndParams(params, 'fetchAccounts', 'subaccountNumber', 0);
+        [subaccountNumber, params] = this.handleOptionAndParams(params, 'fetchBalance', 'subaccountNumber', 0);
         const request = {
             'address': userAddress,
             'subaccountNumber': subaccountNumber,
@@ -2439,7 +2467,7 @@ class dydx extends dydx$1["default"] {
         params = this.keysort(params);
         url += '/' + pathWithParams;
         if (method === 'GET') {
-            if (Object.keys(params).length) {
+            if (Object.keys(params).length > 0) {
                 url += '?' + this.urlencode(params);
             }
         }
@@ -2452,7 +2480,7 @@ class dydx extends dydx$1["default"] {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-        if (!response) {
+        if ((response === undefined) || (response === null)) {
             return undefined; // fallback to default error handler
         }
         //
@@ -2464,10 +2492,10 @@ class dydx extends dydx$1["default"] {
         //
         const result = this.safeDict(response, 'result');
         let errorCode = this.safeString(result, 'code');
-        if (!errorCode) {
+        if ((errorCode === undefined) || (errorCode === '')) {
             errorCode = this.safeString(response, 'code');
         }
-        if (errorCode) {
+        if ((errorCode !== undefined) && (errorCode !== '')) {
             const errorCodeNum = this.parseToNumeric(errorCode);
             if (errorCodeNum > 0) {
                 const feedback = this.id + ' ' + this.json(response);

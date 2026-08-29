@@ -1,5 +1,5 @@
 import Exchange from './abstract/coinsph.js';
-import type { Balances, Currency, Currencies, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int, DepositAddress, NullableDict } from './base/types.js';
+import type { Balances, Currency, CurrencyInterface, Currencies, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int, DepositAddress, NullableDict, Status } from './base/types.js';
 /**
  * @class coinsph
  * @augments Exchange
@@ -15,7 +15,7 @@ export default class coinsph extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     fetchCurrencies(params?: {}): Promise<Currencies>;
-    parseCurrency(rawCurrency: Dict): Currency;
+    parseCurrency(rawCurrency: Dict): CurrencyInterface;
     calculateRateLimiterCost(api: any, method: any, path: any, params: any, config?: {}): any;
     /**
      * @method
@@ -25,13 +25,7 @@ export default class coinsph extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    fetchStatus(params?: {}): Promise<{
-        status: string;
-        updated: any;
-        eta: any;
-        url: any;
-        info: any;
-    }>;
+    fetchStatus(params?: {}): Promise<Status>;
     /**
      * @method
      * @name coinsph#fetchTime
@@ -83,7 +77,7 @@ export default class coinsph extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return (default 100, max 200)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     /**
@@ -171,7 +165,7 @@ export default class coinsph extends Exchange {
      * @description fetches information on an order made by the user
      * @see https://docs.coins.ph/rest-api/#query-order-user_data
      * @param {int|string} id order id
-     * @param {string} symbol not used by coinsph fetchOrder ()
+     * @param {string} symbol not used by fetchOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -206,7 +200,7 @@ export default class coinsph extends Exchange {
      * @description cancels an open order
      * @see https://docs.coins.ph/rest-api/#cancel-order-trade
      * @param {string} id order id
-     * @param {string} symbol not used by coinsph cancelOrder ()
+     * @param {string} symbol not used by cancelOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -222,12 +216,12 @@ export default class coinsph extends Exchange {
      */
     cancelAllOrders(symbol?: Str, params?: {}): Promise<Order[]>;
     parseOrder(order: Dict, market?: Market): Order;
-    parseOrderSide(status: any): string;
-    encodeOrderSide(status: any): string;
-    parseOrderType(status: any): string;
-    encodeOrderType(status: any): string;
-    parseOrderStatus(status: Str): string;
-    parseOrderTimeInForce(status: any): string;
+    parseOrderSide(status: any): string | undefined;
+    encodeOrderSide(status: any): string | undefined;
+    parseOrderType(status: any): string | undefined;
+    encodeOrderType(status: any): string | undefined;
+    parseOrderStatus(status: Str): string | undefined;
+    parseOrderTimeInForce(status: any): string | undefined;
     /**
      * @method
      * @name coinsph#fetchTradingFee
@@ -255,7 +249,7 @@ export default class coinsph extends Exchange {
      * @see https://docs.coins.ph/rest-api/#withdrawuser_data
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
-     * @param {string} address not used by coinsph withdraw ()
+     * @param {string} address not used by withdraw ()
      * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
@@ -286,7 +280,7 @@ export default class coinsph extends Exchange {
      */
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
-    parseTransactionStatus(status: Str): string;
+    parseTransactionStatus(status: Str): string | undefined;
     /**
      * @method
      * @name coinsph#fetchDepositAddress
@@ -299,13 +293,13 @@ export default class coinsph extends Exchange {
      */
     fetchDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
     parseDepositAddress(depositAddress: any, currency?: Currency): DepositAddress;
-    urlEncodeQuery(query?: {}): string;
+    urlEncodeQuery(query?: Dict): string;
     parseArrayParam(array: any, key: any): string;
     sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
         url: any;
         method: string;
-        body: string;
-        headers: Dict;
+        body: Str;
+        headers: NullableDict;
     };
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

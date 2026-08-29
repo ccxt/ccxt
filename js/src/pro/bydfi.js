@@ -101,7 +101,7 @@ export default class bydfi extends bydfiRest {
         };
         const unsubscribe = this.safeBool(params, 'unsubscribe', false);
         let method = 'SUBSCRIBE';
-        if (unsubscribe) {
+        if (unsubscribe === true) {
             method = 'UNSUBSCRIBE';
             params = this.omit(params, 'unsubscribe');
             subscriptionParams['unsubscribe'] = true;
@@ -456,7 +456,7 @@ export default class bydfi extends bydfiRest {
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return (default and max is 100)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -879,7 +879,7 @@ export default class bydfi extends bydfiRest {
         const options = this.safeDict(this.options, 'watchBalance');
         const fetchBalanceSnapshot = this.safeBool(options, 'fetchBalanceSnapshot', false);
         const awaitBalanceSnapshot = this.safeBool(options, 'awaitBalanceSnapshot', true);
-        if (fetchBalanceSnapshot && awaitBalanceSnapshot) {
+        if ((fetchBalanceSnapshot === true) && (awaitBalanceSnapshot === true)) {
             await client.future('fetchBalanceSnapshot');
         }
         const messageHash = 'balance';
@@ -888,7 +888,7 @@ export default class bydfi extends bydfiRest {
     fetchBalanceSnapshot(client) {
         const options = this.safeValue(this.options, 'watchBalance');
         const fetchBalanceSnapshot = this.safeBool(options, 'fetchBalanceSnapshot', false);
-        if (fetchBalanceSnapshot) {
+        if (fetchBalanceSnapshot === true) {
             const messageHash = 'fetchBalanceSnapshot';
             if (!(messageHash in client.futures)) {
                 client.future(messageHash);
@@ -965,7 +965,9 @@ export default class bydfi extends bydfiRest {
                 const account = this.account();
                 account['total'] = this.safeString(balance, 'wb');
                 account['used'] = this.safeString(balance, 'tfm');
-                result[code] = account;
+                if (code !== undefined) {
+                    result[code] = account;
+                }
             }
             const parsedBalance = this.safeBalance(result);
             this.balance = this.extend(this.balance, parsedBalance);
@@ -983,7 +985,7 @@ export default class bydfi extends bydfiRest {
         const subscriptionsById = this.indexBy(client.subscriptions, 'id');
         const subscription = this.safeDict(subscriptionsById, id, {});
         const isUnSubMessage = this.safeBool(subscription, 'unsubscribe', false);
-        if (isUnSubMessage) {
+        if (isUnSubMessage === true) {
             this.handleUnSubscription(client, subscription);
         }
         return message;

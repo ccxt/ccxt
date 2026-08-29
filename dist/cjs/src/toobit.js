@@ -98,113 +98,112 @@ class toobit extends toobit$1["default"] {
                     'https://api-docs.toobit.com/',
                 ],
                 'referral': {
-                    'url': 'https://www.toobit.com/en-US/r?i=IFFPy0',
-                    'discount': 0.1,
+                    'url': 'https://www.toobit.com/en-US/r?i=dvCpJj',
                 },
                 'fees': 'https://www.toobit.com/fee',
             },
             'api': {
                 'common': {
                     'get': {
-                        'api/v1/time': 1,
-                        'api/v1/ping': 1,
-                        'api/v1/exchangeInfo': 1,
-                        'quote/v1/depth': 1, // todo: by limit 1-10
-                        'quote/v1/depth/merged': 1,
-                        'quote/v1/trades': 1,
-                        'quote/v1/klines': 1,
-                        'quote/v1/index/klines': 1,
-                        'quote/v1/indexPriceComponents': 1,
-                        'quote/v1/markPrice/klines': 1,
-                        'quote/v1/markPrice': 10, // 5 requests per second
-                        'quote/v1/index': 1,
-                        'quote/v1/ticker/24hr': 40, // todo: 1-40 depenidng noSymbol
-                        'quote/v1/contract/ticker/24hr': 40, // todo: 1-40 depenidng noSymbol
-                        'quote/v1/ticker/price': 1,
-                        'quote/v1/contract/ticker/price': 1,
-                        'quote/v1/ticker/bookTicker': 1,
-                        'quote/v1/contract/ticker/bookTicker': 1,
-                        'api/v1/futures/fundingRate': 1,
-                        'api/v1/futures/historyFundingRate': 1,
-                        'api/v1/futures/riskLimits': 1,
+                        'api/v1/time': { 'cost': 1 },
+                        'api/v1/ping': { 'cost': 1 },
+                        'api/v1/exchangeInfo': { 'cost': 1 },
+                        'quote/v1/depth': { 'cost': 1 }, // todo: by limit 1-10
+                        'quote/v1/depth/merged': { 'cost': 1 },
+                        'quote/v1/trades': { 'cost': 1 },
+                        'quote/v1/klines': { 'cost': 1 },
+                        'quote/v1/index/klines': { 'cost': 1 },
+                        'quote/v1/indexPriceComponents': { 'cost': 1 },
+                        'quote/v1/markPrice/klines': { 'cost': 1 },
+                        'quote/v1/markPrice': { 'cost': 10 }, // 5 requests per second
+                        'quote/v1/index': { 'cost': 1 },
+                        'quote/v1/ticker/24hr': { 'cost': 40 }, // todo: 1-40 depending noSymbol
+                        'quote/v1/contract/ticker/24hr': { 'cost': 40 }, // todo: 1-40 depending noSymbol
+                        'quote/v1/ticker/price': { 'cost': 1 },
+                        'quote/v1/contract/ticker/price': { 'cost': 1 },
+                        'quote/v1/ticker/bookTicker': { 'cost': 1 },
+                        'quote/v1/contract/ticker/bookTicker': { 'cost': 1 },
+                        'api/v1/futures/fundingRate': { 'cost': 1 },
+                        'api/v1/futures/historyFundingRate': { 'cost': 1 },
+                        'api/v1/futures/riskLimits': { 'cost': 1 },
                     },
                 },
                 'private': {
                     'get': {
-                        'api/v1/account': 5,
-                        'api/v1/account/checkApiKey': 1,
-                        'api/v1/spot/order': 1 * 1.67,
-                        'api/v1/spot/openOrders': 1 * 1.67,
-                        'api/v1/futures/openOrders': 1 * 1.67,
-                        'api/v1/spot/tradeOrders': 5 * 1.67,
-                        'api/v1/futures/historyOrders': 5 * 1.67,
-                        'api/v1/account/trades': 5 * 1.67,
-                        'api/v1/account/balanceFlow': 5,
-                        'api/v1/account/depositOrders': 5,
-                        'api/v1/account/withdrawOrders': 5,
-                        'api/v1/account/deposit/address': 1,
+                        'api/v1/account': { 'cost': 5 },
+                        'api/v1/account/checkApiKey': { 'cost': 1 },
+                        'api/v1/spot/order': { 'cost': 1 * 1.67 },
+                        'api/v1/spot/openOrders': { 'cost': 1 * 1.67 },
+                        'api/v1/futures/openOrders': { 'cost': 1 * 1.67 },
+                        'api/v1/spot/tradeOrders': { 'cost': 5 * 1.67 },
+                        'api/v1/futures/historyOrders': { 'cost': 5 * 1.67 },
+                        'api/v1/account/trades': { 'cost': 5 * 1.67 },
+                        'api/v1/account/balanceFlow': { 'cost': 5 },
+                        'api/v1/account/depositOrders': { 'cost': 5 },
+                        'api/v1/account/withdrawOrders': { 'cost': 5 },
+                        'api/v1/account/deposit/address': { 'cost': 1 },
                         // contracts
-                        'api/v1/subAccount': 5,
-                        'api/v1/account/subAccount': 5,
-                        'api/v1/subAccount/list': 5,
-                        'api/v1/futures/accountLeverage': 1,
-                        'api/v1/futures/order': 1 * 1.67,
-                        'api/v1/futures/positions': 5 * 1.67,
-                        'api/v1/futures/historyPositions': 5,
-                        'api/v1/futures/balance': 5,
-                        'api/v1/futures/userTrades': 5 * 1.67,
-                        'api/v1/futures/balanceFlow': 5,
-                        'api/v1/futures/commissionRate': 5,
-                        'api/v1/futures/todayPnl': 5,
-                        'api/v1/account/download/detail': 10,
-                        'api/v1/agent/inviteUserList': 1,
-                        'api/v1/agent/commissionDataList': 1,
-                        'api/v1/agent/commissionDataInfo': 1,
-                        'api/v1/agent/inviteRelationCheck': 1,
-                        'api/v1/agent/depositDetailList': 1,
-                        'api/v1/agent/querySubAgentData': 1,
-                        'api/v1/agent/spotOrdersList': 1,
-                        'api/v1/agent/futuresOrdersList': 1,
-                        'api/v1/agent/futuresPositionsList': 1,
-                        'api/v1/agent/invite-commission-detail': 1,
-                        'api/v1/agent/user/export': 1,
-                        'api/v1/agent/export-list': 1,
-                        'api/v1/agent/export-url': 1,
+                        'api/v1/subAccount': { 'cost': 5 },
+                        'api/v1/account/subAccount': { 'cost': 5 },
+                        'api/v1/subAccount/list': { 'cost': 5 },
+                        'api/v1/futures/accountLeverage': { 'cost': 1 },
+                        'api/v1/futures/order': { 'cost': 1 * 1.67 },
+                        'api/v1/futures/positions': { 'cost': 5 * 1.67 },
+                        'api/v1/futures/historyPositions': { 'cost': 5 },
+                        'api/v1/futures/balance': { 'cost': 5 },
+                        'api/v1/futures/userTrades': { 'cost': 5 * 1.67 },
+                        'api/v1/futures/balanceFlow': { 'cost': 5 },
+                        'api/v1/futures/commissionRate': { 'cost': 5 },
+                        'api/v1/futures/todayPnl': { 'cost': 5 },
+                        'api/v1/account/download/detail': { 'cost': 10 },
+                        'api/v1/agent/inviteUserList': { 'cost': 1 },
+                        'api/v1/agent/commissionDataList': { 'cost': 1 },
+                        'api/v1/agent/commissionDataInfo': { 'cost': 1 },
+                        'api/v1/agent/inviteRelationCheck': { 'cost': 1 },
+                        'api/v1/agent/depositDetailList': { 'cost': 1 },
+                        'api/v1/agent/querySubAgentData': { 'cost': 1 },
+                        'api/v1/agent/spotOrdersList': { 'cost': 1 },
+                        'api/v1/agent/futuresOrdersList': { 'cost': 1 },
+                        'api/v1/agent/futuresPositionsList': { 'cost': 1 },
+                        'api/v1/agent/invite-commission-detail': { 'cost': 1 },
+                        'api/v1/agent/user/export': { 'cost': 1 },
+                        'api/v1/agent/export-list': { 'cost': 1 },
+                        'api/v1/agent/export-url': { 'cost': 1 },
                     },
                     'post': {
-                        'api/v1/spot/orderTest': 1 * 1.67,
-                        'api/v1/spot/order': 1 * 1.67,
-                        'api/v1/futures/order': 1 * 1.67,
-                        'api/v1/spot/batchOrders': 2 * 1.67,
-                        'api/v1/subAccount/transfer': 1,
-                        'api/v1/account/withdraw': 1,
+                        'api/v1/spot/orderTest': { 'cost': 1 * 1.67 },
+                        'api/v1/spot/order': { 'cost': 1 * 1.67 },
+                        'api/v1/futures/order': { 'cost': 1 * 1.67 },
+                        'api/v1/spot/batchOrders': { 'cost': 2 * 1.67 },
+                        'api/v1/subAccount/transfer': { 'cost': 1 },
+                        'api/v1/account/withdraw': { 'cost': 1 },
                         // contracts
-                        'api/v1/futures/marginType': 1,
-                        'api/v1/futures/leverage': 1,
-                        'api/v1/futures/batchOrders': 2 * 1.67,
-                        'api/v1/futures/position/trading-stop': 3 * 1.67,
-                        'api/v1/futures/positionMargin': 1,
-                        'api/v1/futures/order/update': 2 * 1.67,
-                        'api/v1/futures/autoAddMargin': 1,
-                        'api/v1/futures/flashClose': 1,
-                        'api/v1/futures/reversePosition': 5,
-                        'api/v1/account/download/apply': 1000,
-                        'api/v1/userDataStream': 1,
-                        'api/v1/listenKey': 1,
+                        'api/v1/futures/marginType': { 'cost': 1 },
+                        'api/v1/futures/leverage': { 'cost': 1 },
+                        'api/v1/futures/batchOrders': { 'cost': 2 * 1.67 },
+                        'api/v1/futures/position/trading-stop': { 'cost': 3 * 1.67 },
+                        'api/v1/futures/positionMargin': { 'cost': 1 },
+                        'api/v1/futures/order/update': { 'cost': 2 * 1.67 },
+                        'api/v1/futures/autoAddMargin': { 'cost': 1 },
+                        'api/v1/futures/flashClose': { 'cost': 1 },
+                        'api/v1/futures/reversePosition': { 'cost': 5 },
+                        'api/v1/account/download/apply': { 'cost': 1000 },
+                        'api/v1/userDataStream': { 'cost': 1 },
+                        'api/v1/listenKey': { 'cost': 1 },
                     },
                     'delete': {
-                        'api/v1/spot/order': 1 * 1.67,
-                        'api/v1/futures/order': 1 * 1.67,
-                        'api/v1/spot/openOrders': 5 * 1.67,
-                        'api/v1/futures/batchOrders': 3 * 1.67,
-                        'api/v1/spot/cancelOrderByIds': 5 * 1.67,
-                        'api/v1/futures/cancelOrderByIds': 3 * 1.67,
-                        'api/v1/userDataStream': 1,
-                        'api/v1/listenKey': 1,
+                        'api/v1/spot/order': { 'cost': 1 * 1.67 },
+                        'api/v1/futures/order': { 'cost': 1 * 1.67 },
+                        'api/v1/spot/openOrders': { 'cost': 5 * 1.67 },
+                        'api/v1/futures/batchOrders': { 'cost': 3 * 1.67 },
+                        'api/v1/spot/cancelOrderByIds': { 'cost': 5 * 1.67 },
+                        'api/v1/futures/cancelOrderByIds': { 'cost': 3 * 1.67 },
+                        'api/v1/userDataStream': { 'cost': 1 },
+                        'api/v1/listenKey': { 'cost': 1 },
                     },
                     'put': {
-                        'api/v1/userDataStream': 1,
-                        'api/v1/listenKey': 1,
+                        'api/v1/userDataStream': { 'cost': 1 },
+                        'api/v1/listenKey': { 'cost': 1 },
                     },
                 },
             },
@@ -446,7 +445,7 @@ class toobit extends toobit$1["default"] {
                     'TRC20': 'TRX',
                     'SOL': 'SOL',
                     'MATIC': 'MATIC',
-                    'ARBONE': 'ARBITRUM',
+                    'ARBITRUM': 'ARBITRUM',
                     'BASE': 'BASE',
                     'TON': 'TON',
                     'AVAXC': 'AVAXC',
@@ -742,27 +741,29 @@ class toobit extends toobit$1["default"] {
             const rawNetwork = rawNetworks[j];
             const networkId = this.safeString(rawNetwork, 'chainType');
             const networkCode = this.networkIdToCode(networkId, code);
-            networks[networkCode] = {
-                'id': networkId,
-                'network': networkCode,
-                'margin': undefined,
-                'deposit': this.safeBool(rawNetwork, 'allowDeposit'),
-                'withdraw': this.safeBool(rawNetwork, 'allowWithdraw'),
-                'active': undefined,
-                'fee': this.safeNumber(rawNetwork, 'withdrawFee'),
-                'precision': undefined,
-                'limits': {
-                    'deposit': {
-                        'min': this.safeNumber(rawNetwork, 'minDepositQuantity'),
-                        'max': undefined,
+            if (networkCode !== undefined) {
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'margin': undefined,
+                    'deposit': this.safeBool(rawNetwork, 'allowDeposit'),
+                    'withdraw': this.safeBool(rawNetwork, 'allowWithdraw'),
+                    'active': undefined,
+                    'fee': this.safeNumber(rawNetwork, 'withdrawFee'),
+                    'precision': undefined,
+                    'limits': {
+                        'deposit': {
+                            'min': this.safeNumber(rawNetwork, 'minDepositQuantity'),
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': this.safeNumber(rawNetwork, 'minWithdrawQuantity'),
+                            'max': this.safeNumber(rawNetwork, 'maxWithdrawQuantity'),
+                        },
                     },
-                    'withdraw': {
-                        'min': this.safeNumber(rawNetwork, 'minWithdrawQuantity'),
-                        'max': this.safeNumber(rawNetwork, 'maxWithdrawQuantity'),
-                    },
-                },
-                'info': rawNetwork,
-            };
+                    'info': rawNetwork,
+                };
+            }
         }
         return this.safeCurrencyStructure({
             'id': id,
@@ -986,7 +987,7 @@ class toobit extends toobit$1["default"] {
             'option': false,
             'active': active,
             'contract': isContract,
-            'linear': isContract ? !inverse : undefined,
+            'linear': isContract ? (inverse !== true) : undefined,
             'inverse': isContract ? inverse : undefined,
             'contractSize': this.safeNumber(market, 'contractMultiplier'),
             'expiry': undefined,
@@ -1028,7 +1029,7 @@ class toobit extends toobit$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -1171,7 +1172,7 @@ class toobit extends toobit$1["default"] {
             }
         }
         else {
-            if (isBuyer) {
+            if (isBuyer === true) {
                 side = 'buy';
             }
             else {
@@ -1318,7 +1319,11 @@ class toobit extends toobit$1["default"] {
             //        ...
             //
         }
-        return this.parseOHLCVs(response, market, timeframe, since, limit);
+        let candles = [];
+        if (Array.isArray(response)) {
+            candles = response;
+        }
+        return this.parseOHLCVs(candles, market, timeframe, since, limit);
     }
     parseOHLCV(ohlcv, market = undefined) {
         return [
@@ -1389,6 +1394,11 @@ class toobit extends toobit$1["default"] {
         market = this.safeMarket(marketId, market);
         const timestamp = this.safeInteger(ticker, 't');
         const last = this.safeString(ticker, 'c');
+        let baseVolume = this.safeString(ticker, 'v');
+        if ((market['contract'] === true) && (market['contractSize'] !== undefined)) {
+            // 'v' counts contracts, and a ticker reports base volume
+            baseVolume = Precise["default"].stringMul(baseVolume, this.numberToString(market['contractSize']));
+        }
         return this.safeTicker({
             'symbol': market['symbol'],
             'timestamp': timestamp,
@@ -1405,9 +1415,10 @@ class toobit extends toobit$1["default"] {
             'last': last,
             'previousClose': undefined,
             'change': this.safeString(ticker, 'pc'),
-            'percentage': this.safeString(ticker, 'pcp'),
+            // 'pcp' is a ratio, and a ticker reports a percentage
+            'percentage': Precise["default"].stringMul(this.safeString(ticker, 'pcp'), '100'),
             'average': undefined,
-            'baseVolume': this.safeString(ticker, 'v'),
+            'baseVolume': baseVolume,
             'quoteVolume': this.safeString(ticker, 'qv'),
             'info': ticker,
         }, market);
@@ -1523,7 +1534,7 @@ class toobit extends toobit$1["default"] {
      * @see https://api-docs.toobit.com/api/usdt-m-market-data.html#funding-rate
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [funding rates structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexe by market symbols
+     * @returns {object[]} a list of [funding rates structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
      */
     async fetchFundingRates(symbols = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -1695,7 +1706,9 @@ class toobit extends toobit$1["default"] {
             account['free'] = this.safeString2(balance, 'free', 'availableBalance');
             account['total'] = this.safeString2(balance, 'total', 'balance');
             account['used'] = this.safeString(balance, 'locked');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1711,6 +1724,7 @@ class toobit extends toobit$1["default"] {
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
@@ -1720,7 +1734,7 @@ class toobit extends toobit$1["default"] {
         const market = this.market(symbol);
         let request = {};
         let response = {};
-        if (market['spot']) {
+        if (market['spot'] === true) {
             [request, params] = this.createOrderRequest(symbol, type, side, amount, price, params);
             response = await this.privatePostApiV1SpotOrder(this.extend(request, params));
         }
@@ -1754,6 +1768,9 @@ class toobit extends toobit$1["default"] {
         return this.parseOrder(response, market);
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a type argument');
+        }
         const market = this.market(symbol);
         if (side === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a side argument');
@@ -1768,20 +1785,18 @@ class toobit extends toobit$1["default"] {
         }
         let cost = undefined;
         [cost, params] = this.handleParamString(params, 'cost');
-        if (type === 'market') {
-            if (cost === undefined && side === 'buy') {
+        if (type === 'market' && side === 'buy') {
+            if (cost === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' createOrder() requires params["cost"] for market buy order');
             }
-            else {
-                request['quantity'] = this.costToPrecision(symbol, cost);
-            }
+            request['quantity'] = this.costToPrecision(symbol, cost);
         }
         else {
             request['quantity'] = this.amountToPrecision(symbol, amount);
         }
         let isPostOnly = undefined;
         [isPostOnly, params] = this.handlePostOnly(type === 'market', false, params);
-        if (isPostOnly) {
+        if (isPostOnly === true) {
             request['type'] = 'LIMIT_MAKER';
         }
         else {
@@ -1790,6 +1805,12 @@ class toobit extends toobit$1["default"] {
         return [request, params];
     }
     createContractOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a side argument');
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -1798,10 +1819,10 @@ class toobit extends toobit$1["default"] {
         let reduceOnly = undefined;
         [reduceOnly, params] = this.handleParamBool(params, 'reduceOnly');
         if (side === 'buy') {
-            side = reduceOnly ? 'SELL_CLOSE' : 'BUY_OPEN';
+            side = (reduceOnly === true) ? 'BUY_CLOSE' : 'BUY_OPEN';
         }
         else if (side === 'sell') {
-            side = reduceOnly ? 'BUY_CLOSE' : 'SELL_OPEN';
+            side = (reduceOnly === true) ? 'SELL_CLOSE' : 'SELL_OPEN';
         }
         request['side'] = side;
         if (price !== undefined) {
@@ -1817,7 +1838,7 @@ class toobit extends toobit$1["default"] {
         }
         let isPostOnly = undefined;
         [isPostOnly, params] = this.handlePostOnly(type === 'market', false, params);
-        if (isPostOnly) {
+        if (isPostOnly === true) {
             request['timeInForce'] = 'LIMIT_MAKER';
         }
         const values = this.handleTriggerPricesAndParams(symbol, params);
@@ -1928,7 +1949,19 @@ class toobit extends toobit$1["default"] {
         const marketId = this.safeString(order, 'symbol');
         market = this.safeMarket(marketId, market);
         const rawType = this.safeString(order, 'type');
-        const rawSideLower = this.safeStringLower(order, 'side');
+        let rawSideLower = this.safeStringLower(order, 'side');
+        let reduceOnly = undefined;
+        if (rawSideLower !== undefined) {
+            // contract orders arrive as BUY_OPEN, SELL_CLOSE and the like -
+            // the suffix is the only signal that carries reduceOnly, so read
+            // it before discarding it (spot sides have no suffix: undefined)
+            const sideParts = rawSideLower.split('_');
+            const sideSuffix = this.safeString(sideParts, 1);
+            if (sideSuffix !== undefined) {
+                reduceOnly = (sideSuffix === 'close');
+            }
+            rawSideLower = this.safeString(sideParts, 0);
+        }
         let triggerPrice = this.omitZero(this.safeString(order, 'stopPrice'));
         if (triggerPrice === '0.0') {
             triggerPrice = undefined;
@@ -1957,7 +1990,7 @@ class toobit extends toobit$1["default"] {
             'trades': undefined,
             'fee': undefined,
             'marginMode': undefined,
-            'reduceOnly': undefined,
+            'reduceOnly': reduceOnly,
             'leverage': undefined,
             'hedged': undefined,
         }, market);
@@ -2152,7 +2185,7 @@ class toobit extends toobit$1["default"] {
         };
         const market = this.market(symbol);
         let response = {};
-        if (market['spot']) {
+        if (market['spot'] === true) {
             response = await this.privateGetApiV1SpotOrder(this.extend(request, params));
         }
         else {
@@ -2214,7 +2247,7 @@ class toobit extends toobit$1["default"] {
             request['limit'] = limit;
         }
         let marketType = undefined;
-        [marketType, params] = this.handleMarketTypeAndParams('fetchOrders', market, params);
+        [marketType, params] = this.handleMarketTypeAndParams('fetchOpenOrders', market, params);
         let response = [];
         if (marketType === 'spot') {
             response = await this.privateGetApiV1SpotOpenOrders(this.extend(request, params));
@@ -2379,8 +2412,12 @@ class toobit extends toobit$1["default"] {
             //
         }
         const ordersList = [];
-        for (let i = 0; i < response.length; i++) {
-            ordersList.push({ 'result': response[i] });
+        let responseList = [];
+        if (Array.isArray(response)) {
+            responseList = response;
+        }
+        for (let i = 0; i < responseList.length; i++) {
+            ordersList.push({ 'result': responseList[i] });
         }
         return this.parseOrders(ordersList, market, since, limit);
     }
@@ -2555,7 +2592,7 @@ class toobit extends toobit$1["default"] {
             request['limit'] = limit;
         }
         let marketType = undefined;
-        [marketType, params] = this.handleMarketTypeAndParams('cancelAllOrders', undefined, params);
+        [marketType, params] = this.handleMarketTypeAndParams('fetchLedger', undefined, params);
         let response = undefined;
         if (marketType === 'spot') {
             response = await this.privateGetApiV1AccountBalanceFlow(this.extend(request, params));
@@ -2948,7 +2985,7 @@ class toobit extends toobit$1["default"] {
             'coin': currency['id'],
             'address': address,
             'quantity': this.currencyToPrecision(currency['code'], amount),
-            'chainType': networkCode,
+            'chainType': this.networkCodeToId(networkCode, code),
             'clientOrderId': this.milliseconds(),
         };
         if (tag !== undefined) {
@@ -3047,20 +3084,20 @@ class toobit extends toobit$1["default"] {
         //
         // [
         //     {
-        //         "symbol":"BTC-SWAP-USDT", //symbol
-        //         "leverage":"20",  // leverage
+        //         "symbolId":"ETH-SWAP-USDT",
+        //         "leverage":"50",
         //         "marginType":"CROSS" // CROSS;ISOLATED
         //     }
         // ]
         //
-        const data = this.safeDict(response, 'data', {});
+        const data = this.safeDict(response, 0, {});
         return this.parseLeverage(data, market);
     }
     parseLeverage(leverage, market = undefined) {
-        const marketId = this.safeString(leverage, 'symbol');
+        const marketId = this.safeString2(leverage, 'symbolId', 'symbol');
         const leverageValue = this.safeInteger(leverage, 'leverage');
-        const marginType = this.safeString(leverage, 'marginType');
-        const marginMode = (marginType === 'crossed') ? 'cross' : 'isolated';
+        const marginType = this.safeStringLower(leverage, 'marginType');
+        const marginMode = (marginType === 'cross') ? 'cross' : 'isolated';
         return {
             'info': leverage,
             'symbol': this.safeSymbol(marketId, market),
@@ -3163,7 +3200,7 @@ class toobit extends toobit$1["default"] {
         if (api !== 'private') {
             // Public endpoints
             if (!isPost) {
-                if (Object.keys(query).length) {
+                if (Object.keys(query).length > 0) {
                     url += '?' + this.urlencode(query);
                 }
             }
@@ -3216,7 +3253,7 @@ class toobit extends toobit$1["default"] {
         }
         const errorCode = this.safeString(response, 'code');
         const message = this.safeString(response, 'msg');
-        if (errorCode && errorCode !== '200' && errorCode !== '0') {
+        if ((errorCode !== undefined && errorCode !== '') && errorCode !== '200' && errorCode !== '0') {
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);

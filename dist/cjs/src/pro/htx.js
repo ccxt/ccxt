@@ -224,6 +224,9 @@ class htx extends htx$1["default"] {
         //
         const tick = this.safeValue(message, 'tick', {});
         const ch = this.safeString(message, 'ch');
+        if (ch === undefined) {
+            return message;
+        }
         const parts = ch.split('.');
         const marketId = this.safeString(parts, 1);
         const market = this.safeMarket(marketId);
@@ -232,7 +235,9 @@ class htx extends htx$1["default"] {
         ticker['timestamp'] = timestamp;
         ticker['datetime'] = this.iso8601(timestamp);
         const symbol = ticker['symbol'];
-        this.tickers[symbol] = ticker;
+        if (symbol !== undefined) {
+            this.tickers[symbol] = ticker;
+        }
         client.resolve(ticker, ch);
         return message;
     }
@@ -309,6 +314,9 @@ class htx extends htx$1["default"] {
         const tick = this.safeValue(message, 'tick', {});
         const data = this.safeValue(tick, 'data', {});
         const ch = this.safeString(message, 'ch');
+        if (ch === undefined) {
+            return message;
+        }
         const parts = ch.split('.');
         const marketId = this.safeString(parts, 1);
         const market = this.safeMarket(marketId);
@@ -397,6 +405,9 @@ class htx extends htx$1["default"] {
         //     }
         //
         const ch = this.safeString(message, 'ch');
+        if (ch === undefined) {
+            return;
+        }
         const parts = ch.split('.');
         const marketId = this.safeString(parts, 1);
         const market = this.safeMarket(marketId);
@@ -404,11 +415,13 @@ class htx extends htx$1["default"] {
         const interval = this.safeString(parts, 3);
         const timeframe = this.findTimeframe(interval);
         this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
-        let stored = this.safeValue(this.ohlcvs[symbol], timeframe);
+        let stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
             stored = new Cache.ArrayCacheByTimestamp(limit);
-            this.ohlcvs[symbol][timeframe] = stored;
+            if (symbol !== undefined && timeframe !== undefined) {
+                this.ohlcvs[symbol][timeframe] = stored;
+            }
         }
         const tick = this.safeValue(message, 'tick');
         const parsed = this.parseOHLCV(tick, market);
@@ -425,7 +438,7 @@ class htx extends htx$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -446,7 +459,7 @@ class htx extends htx$1["default"] {
             throw new errors.ExchangeError(this.id + ' watchOrderBook market accepts limits of 5, 20, 150 or 400 only');
         }
         let messageHash = undefined;
-        if (market['spot']) {
+        if (market['spot'] === true) {
             messageHash = 'market.' + market['id'] + '.mbp.' + this.numberToString(limit);
         }
         else {
@@ -454,7 +467,7 @@ class htx extends htx$1["default"] {
         }
         const url = this.getUrlByMarketType(market['type'], market['linear'], false, true);
         let method = this.handleOrderBookSubscription;
-        if (!market['spot']) {
+        if (market['spot'] !== true) {
             params = this.extend(params);
             params['data_type'] = 'incremental';
             method = undefined;
@@ -483,13 +496,13 @@ class htx extends htx$1["default"] {
         const options = this.safeDict(this.options, 'watchOrderBook', {});
         const depth = this.safeInteger(options, 'depth', 150);
         let subMessageHash = undefined;
-        if (market['spot']) {
+        if (market['spot'] === true) {
             subMessageHash = 'market.' + market['id'] + '.mbp.' + this.numberToString(depth);
         }
         else {
             subMessageHash = 'market.' + market['id'] + '.depth.size_' + this.numberToString(depth) + '.high_freq';
         }
-        if (!(market['spot'])) {
+        if (market['spot'] !== true) {
             params['data_type'] = 'incremental';
         }
         return await this.unsubscribePublic(market, subMessageHash, topic, params);
@@ -518,10 +531,13 @@ class htx extends htx$1["default"] {
         //
         const symbol = this.safeString(subscription, 'symbol');
         const messageHash = this.safeString(subscription, 'messageHash');
+        if (messageHash === undefined) {
+            return;
+        }
         const id = this.safeString(message, 'id');
         const lastTimestamp = this.safeInteger(subscription, 'lastTimestamp');
         try {
-            const orderbook = this.orderbooks[symbol];
+            const orderbook = this.safeValue(this.orderbooks, symbol);
             const data = this.safeValue(message, 'data');
             const messages = orderbook.cache;
             const firstMessage = this.safeValue(messages, 0, {});
@@ -529,6 +545,9 @@ class htx extends htx$1["default"] {
             const tick = this.safeValue(firstMessage, 'tick');
             const sequence = this.safeInteger(tick, 'prevSeqNum');
             const nonce = this.safeInteger(data, 'seqNum');
+            if (nonce === undefined) {
+                return;
+            }
             snapshot['nonce'] = nonce;
             const snapshotTimestamp = this.safeInteger(message, 'ts');
             subscription['lastTimestamp'] = snapshotTimestamp;
@@ -543,7 +562,10 @@ class htx extends htx$1["default"] {
                     // safety guard
                     if (messageHash in client.subscriptions) {
                         numAttempts = this.sum(numAttempts, 1);
-                        const delayTime = this.sum(1000, lastTimestamp - snapshotTimestamp);
+                        let delayTime = 1000;
+                        if ((lastTimestamp !== undefined) && (snapshotTimestamp !== undefined)) {
+                            delayTime = this.sum(1000, lastTimestamp - snapshotTimestamp);
+                        }
                         subscription['numAttempts'] = numAttempts;
                         client.subscriptions[messageHash] = subscription;
                         this.delay(delayTime, this.watchOrderBookSnapshot, client, message, subscription);
@@ -561,13 +583,19 @@ class htx extends htx$1["default"] {
                     this.handleOrderBookMessage(client, messages[i]);
                 }
                 orderbook.cache = [];
-                this.orderbooks[symbol] = orderbook;
+                if (symbol !== undefined) {
+                    this.orderbooks[symbol] = orderbook;
+                }
                 client.resolve(orderbook, messageHash);
             }
         }
         catch (e) {
-            delete client.subscriptions[messageHash];
-            delete this.orderbooks[symbol];
+            if (messageHash !== undefined) {
+                delete client.subscriptions[messageHash];
+            }
+            if (symbol !== undefined) {
+                delete this.orderbooks[symbol];
+            }
             client.reject(e, messageHash);
         }
     }
@@ -602,7 +630,9 @@ class htx extends htx$1["default"] {
             return orderbook.limit();
         }
         catch (e) {
-            delete client.subscriptions[messageHash];
+            if (messageHash !== undefined) {
+                delete client.subscriptions[messageHash];
+            }
             client.reject(e, messageHash);
         }
         return undefined;
@@ -703,18 +733,18 @@ class htx extends htx$1["default"] {
         }
         if ((prevSeqNum !== undefined) && prevSeqNum > this.safeInteger(orderbook, 'nonce', 0)) {
             const checksum = this.handleOption('watchOrderBook', 'checksum', true);
-            if (checksum) {
+            if (checksum === true) {
                 throw new errors.ChecksumError(this.id + ' ' + this.orderbookChecksumMessage(symbol));
             }
         }
-        const spotConditon = market['spot'] && (prevSeqNum === orderbook['nonce']);
-        const nonSpotCondition = market['contract'] && (version - 1 === orderbook['nonce']);
-        if (spotConditon || nonSpotCondition) {
+        const spotConditon = (market['spot'] === true) && (prevSeqNum === orderbook['nonce']);
+        const nonSpotCondition = (market['contract'] === true) && (version !== undefined) && (version - 1 === orderbook['nonce']);
+        if ((spotConditon === true) || (nonSpotCondition === true)) {
             const asks = this.safeValue(tick, 'asks', []);
             const bids = this.safeValue(tick, 'bids', []);
             this.handleDeltas(orderbook['asks'], asks);
             this.handleDeltas(orderbook['bids'], bids);
-            orderbook['nonce'] = spotConditon ? seqNum : version;
+            orderbook['nonce'] = (spotConditon === true) ? seqNum : version;
             orderbook['timestamp'] = timestamp;
             orderbook['datetime'] = this.iso8601(timestamp);
         }
@@ -769,11 +799,17 @@ class htx extends htx$1["default"] {
         const tick = this.safeDict(message, 'tick');
         const event = this.safeString(tick, 'event');
         const ch = this.safeString(message, 'ch');
+        if (ch === undefined) {
+            return;
+        }
         const parts = ch.split('.');
         const marketId = this.safeString(parts, 1);
         const symbol = this.safeSymbol(marketId);
         if (!(symbol in this.orderbooks)) {
             const size = this.safeString(parts, 3);
+            if (size === undefined) {
+                return;
+            }
             const sizeParts = size.split('_');
             const limit = this.safeInteger(sizeParts, 1);
             this.orderbooks[symbol] = this.orderBook({}, limit);
@@ -791,8 +827,10 @@ class htx extends htx$1["default"] {
         const symbol = this.safeString(subscription, 'symbol');
         const market = this.market(symbol);
         const limit = this.safeInteger(subscription, 'limit');
-        this.orderbooks[symbol] = this.orderBook({}, limit);
-        if (market['spot']) {
+        if (symbol !== undefined) {
+            this.orderbooks[symbol] = this.orderBook({}, limit);
+        }
+        if (market['spot'] === true) {
             this.spawn(this.watchOrderBookSnapshot, client, message, subscription);
         }
     }
@@ -824,7 +862,7 @@ class htx extends htx$1["default"] {
             market = this.market(symbol);
             symbol = market['symbol'];
             type = market['type'];
-            subType = market['linear'] ? 'linear' : 'inverse';
+            subType = (market['linear'] === true) ? 'linear' : 'inverse';
             marketId = market['lowercaseId'];
         }
         else {
@@ -866,6 +904,9 @@ class htx extends htx$1["default"] {
             'isV5': isV5Linear,
         };
         trades = await this.subscribePrivate(channel, messageHash, type, subType, params, subscriptionParams);
+        if (trades === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' watchMyTrades() trades is required');
+        }
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
@@ -877,7 +918,10 @@ class htx extends htx$1["default"] {
         let orderType = this.safeString(this.options, 'orderType', 'orders'); // orders or matchOrders
         orderType = this.safeString(params, 'orderType', orderType);
         params = this.omit(params, 'orderType');
-        const marketCode = (market !== undefined) ? market['lowercaseId'].toLowerCase() : undefined;
+        let marketCode = undefined;
+        if ((market !== undefined) && (market['lowercaseId'] !== undefined)) {
+            marketCode = market['lowercaseId'].toLowerCase();
+        }
         const baseId = (market !== undefined) ? market['baseId'] : undefined;
         const prefix = orderType;
         messageHash = prefix;
@@ -919,7 +963,10 @@ class htx extends htx$1["default"] {
     getV5LinearChannelAndMessageHash(topic, market = undefined, params = {}) {
         const contractCode = (market !== undefined) ? market['id'] : this.safeString(params, 'contract_code', '*');
         const channel = topic;
-        const messageHash = (contractCode === '*') ? topic : (topic + '.' + contractCode.toLowerCase());
+        let messageHash = topic;
+        if ((contractCode !== undefined) && (contractCode !== '*')) {
+            messageHash = topic + '.' + contractCode.toLowerCase();
+        }
         params = this.omit(params, 'contract_code');
         const requestParams = this.extend({
             'contract_code': contractCode,
@@ -951,7 +998,7 @@ class htx extends htx$1["default"] {
             symbol = market['symbol'];
             type = market['type'];
             suffix = market['lowercaseId'];
-            subType = market['linear'] ? 'linear' : 'inverse';
+            subType = (market['linear'] === true) ? 'linear' : 'inverse';
         }
         else {
             type = this.safeString(this.options, 'defaultType', 'spot');
@@ -1235,6 +1282,9 @@ class htx extends htx$1["default"] {
         }
         // when we make a global subscription (for contracts only) our message hash can't have a symbol/currency attached
         // so we're removing it here
+        if (messageHash === undefined) {
+            return;
+        }
         let genericMessageHash = messageHash.replace('.' + market['lowercaseId'], '');
         const lowerCaseBaseId = this.safeStringLower(market, 'baseId');
         genericMessageHash = genericMessageHash.replace('.' + lowerCaseBaseId, '');
@@ -1487,8 +1537,9 @@ class htx extends htx$1["default"] {
         //         "orderId": 509835753860328
         //     }
         //
-        market = this.safeMarket(undefined, market);
-        const symbol = market['symbol'];
+        const marketResolved = this.safeMarket(undefined, market);
+        market = marketResolved;
+        const symbol = marketResolved['symbol'];
         const tradeId = this.safeString(trade, 'tradeId');
         const price = this.safeString(trade, 'tradePrice');
         const amount = this.safeString(trade, 'tradeVolume');
@@ -1504,7 +1555,7 @@ class htx extends htx$1["default"] {
         const aggressor = this.safeValue(trade, 'aggressor');
         let takerOrMaker = undefined;
         if (aggressor !== undefined) {
-            takerOrMaker = aggressor ? 'taker' : 'maker';
+            takerOrMaker = (aggressor === true) ? 'taker' : 'maker';
         }
         return this.safeTrade({
             'info': trade,
@@ -1541,7 +1592,7 @@ class htx extends htx$1["default"] {
         }
         let market = undefined;
         let messageHash = '';
-        if (!this.isEmpty(symbols)) {
+        if ((!this.isEmpty(symbols)) && (symbols !== undefined)) {
             market = this.getMarketFromSymbols(symbols);
             messageHash = '::' + symbols.join(',');
         }
@@ -1549,7 +1600,7 @@ class htx extends htx$1["default"] {
         let subType = undefined;
         if (market !== undefined) {
             type = market['type'];
-            subType = market['linear'] ? 'linear' : 'inverse';
+            subType = (market['linear'] === true) ? 'linear' : 'inverse';
         }
         else {
             [type, params] = this.handleMarketTypeAndParams('watchPositions', market, params);
@@ -1570,8 +1621,10 @@ class htx extends htx$1["default"] {
         messageHash = marginMode + ':positions' + messageHash;
         let channel = (marginMode === 'cross') ? 'positions_cross.*' : 'positions.*';
         if (isV5Linear) {
-            const isOneMarket = (!this.isEmpty(symbols) && (symbols.length === 1));
-            const v5Market = isOneMarket ? market : undefined;
+            let v5Market = undefined;
+            if ((symbols !== undefined) && (symbols.length === 1)) {
+                v5Market = market;
+            }
             const channelAndMessageHashAndParams = this.getV5LinearChannelAndMessageHash('positions', v5Market, params);
             channel = this.safeString(channelAndMessageHashAndParams, 0);
             params = this.safeValue(channelAndMessageHashAndParams, 2, {});
@@ -1584,7 +1637,7 @@ class htx extends htx$1["default"] {
         if (this.newUpdates) {
             return newPositions;
         }
-        return this.filterBySymbolsSinceLimit(this.positions[url][marginMode], symbols, since, limit, false);
+        return this.filterBySymbolsSinceLimit(this.safeValue(this.safeValue(this.positions, url), marginMode), symbols, since, limit, false);
     }
     handlePositions(client, message) {
         //
@@ -1774,7 +1827,7 @@ class htx extends htx$1["default"] {
             let prefix = 'accounts';
             messageHash = prefix;
             if (subType === 'linear') {
-                if (isUnifiedAccount) {
+                if (isUnifiedAccount === true) {
                     // usdt contracts account
                     prefix = 'accounts_unify';
                     messageHash = prefix;
@@ -1786,7 +1839,7 @@ class htx extends htx$1["default"] {
                     messageHash = prefix;
                     if (marginMode === 'isolated') {
                         // isolated margin only allows filtering by symbol3
-                        if (symbol !== undefined) {
+                        if ((symbol !== undefined) && (market !== undefined)) {
                             messageHash += '.' + market['id'];
                             channel = messageHash;
                         }
@@ -1971,13 +2024,18 @@ class htx extends htx$1["default"] {
             const account = this.account();
             account['free'] = this.safeString(data, 'available');
             account['total'] = this.safeString(data, 'balance');
-            this.balance[code] = account;
+            if (code !== undefined) {
+                this.balance[code] = account;
+            }
             this.balance = this.safeBalance(this.balance);
             client.resolve(this.balance, channel);
         }
         else {
             // contract balance
             const topic = this.safeString(message, 'topic');
+            if (topic === undefined) {
+                return;
+            }
             if (topic === 'account') {
                 const accountData = this.safeDict(message, 'data', {});
                 const details = this.safeList(accountData, 'details', []);
@@ -2013,6 +2071,9 @@ class htx extends htx$1["default"] {
                 // client.subscription hash = 'accounts.usdt'
                 // we do 'accounts' + '.' + data[0]]['margin_asset'] to get it
                 const currencyId = this.safeString2(first, 'margin_asset', 'symbol');
+                if (currencyId === undefined) {
+                    return;
+                }
                 messageHash += '.' + currencyId.toLowerCase();
                 subscription = this.safeValue(client.subscriptions, messageHash);
             }
@@ -2038,7 +2099,9 @@ class htx extends htx$1["default"] {
                 const unifiedAccount = this.account();
                 unifiedAccount['free'] = this.safeString(first, 'withdraw_available');
                 unifiedAccount['used'] = marginFrozen;
-                this.balance[code] = unifiedAccount;
+                if (code !== undefined) {
+                    this.balance[code] = unifiedAccount;
+                }
                 this.balance = this.safeBalance(this.balance);
                 client.resolve(this.balance, 'accounts_unify');
             }
@@ -2080,7 +2143,9 @@ class htx extends htx$1["default"] {
                         account['used'] = this.safeString(isolatedBalance, 'margin_frozen');
                         const currencyId = this.safeString2(isolatedBalance, 'margin_asset', 'symbol');
                         const code = this.safeCurrencyCode(currencyId);
-                        this.balance[code] = account;
+                        if (code !== undefined) {
+                            this.balance[code] = account;
+                        }
                         this.balance = this.safeBalance(this.balance);
                     }
                 }
@@ -2094,7 +2159,9 @@ class htx extends htx$1["default"] {
                     const account = this.account();
                     account['free'] = this.safeString(balance, 'margin_available');
                     account['used'] = this.safeString(balance, 'margin_frozen');
-                    this.balance[code] = account;
+                    if (code !== undefined) {
+                        this.balance[code] = account;
+                    }
                     this.balance = this.safeBalance(this.balance);
                 }
             }
@@ -2119,6 +2186,9 @@ class htx extends htx$1["default"] {
         //     }
         //
         const id = this.safeString(message, 'id');
+        if (id === undefined) {
+            return;
+        }
         const subscriptionsById = this.indexBy(client.subscriptions, 'id');
         const subscription = this.safeDict(subscriptionsById, id);
         if (subscription !== undefined) {
@@ -2129,7 +2199,9 @@ class htx extends htx$1["default"] {
             }
             // clean up
             if (id in client.subscriptions) {
-                delete client.subscriptions[id];
+                if (id !== undefined) {
+                    delete client.subscriptions[id];
+                }
             }
         }
         if ('unsubbed' in message) {
@@ -2383,6 +2455,9 @@ class htx extends htx$1["default"] {
         const status = this.safeString(message, 'status');
         if (status === 'error') {
             const id = this.safeString(message, 'id');
+            if (id === undefined) {
+                return false;
+            }
             const subscriptionsById = this.indexBy(client.subscriptions, 'id');
             const subscription = this.safeValue(subscriptionsById, id);
             if (subscription !== undefined) {
@@ -2396,7 +2471,16 @@ class htx extends htx$1["default"] {
                     client.reject(e, messageHash);
                     client.reject(e, id);
                     if (id in client.subscriptions) {
-                        delete client.subscriptions[id];
+                        if (id !== undefined) {
+                            delete client.subscriptions[id];
+                        }
+                    }
+                    // the subscription is keyed by the messageHash, not by the id -
+                    // without removing it a repeated watch call attaches to a future
+                    // that nothing will resolve instead of resubscribing, see
+                    // https://github.com/ccxt/ccxt/issues/10280
+                    if ((messageHash !== undefined) && (messageHash in client.subscriptions)) {
+                        delete client.subscriptions[messageHash];
                     }
                 }
             }
@@ -2426,7 +2510,7 @@ class htx extends htx$1["default"] {
         return true;
     }
     handleMessage(client, message) {
-        if (this.handleErrorMessage(client, message)) {
+        if (this.handleErrorMessage(client, message) === true) {
             //
             //     {"id":1583414227,"status":"ok","subbed":"market.btcusdt.mbp.150","ts":1583414229143}
             //
@@ -2721,7 +2805,7 @@ class htx extends htx$1["default"] {
         const aggressor = this.safeValue(trade, 'aggressor');
         let takerOrMaker = undefined;
         if (aggressor !== undefined) {
-            takerOrMaker = aggressor ? 'taker' : 'maker';
+            takerOrMaker = (aggressor === true) ? 'taker' : 'maker';
         }
         else {
             takerOrMaker = this.safeStringLower(trade, 'role');
@@ -2817,6 +2901,9 @@ class htx extends htx$1["default"] {
         };
         const messageHash = 'unsubscribe::' + subMessageHash;
         const isFeed = (topic === 'orderbook');
+        if (market === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' unsubscribePublic() market is required');
+        }
         const url = this.getUrlByMarketType(market['type'], market['linear'], false, isFeed);
         const subscription = {
             'unsubscribe': true,

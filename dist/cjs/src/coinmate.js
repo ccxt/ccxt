@@ -97,6 +97,7 @@ class coinmate extends coinmate$1["default"] {
                 'fetchSettlementHistory': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
+                'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFee': true,
                 'fetchTradingFees': false,
@@ -133,73 +134,76 @@ class coinmate extends coinmate$1["default"] {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'orderBook',
-                        'ticker',
-                        'tickerAll',
-                        'products',
-                        'transactions',
-                        'tradingPairs',
-                        'system/time',
-                    ],
+                    'get': {
+                        'orderBook': { 'cost': 1 },
+                        'ticker': { 'cost': 1 },
+                        'tickerAll': { 'cost': 1 },
+                        'products': { 'cost': 1 },
+                        'transactions': { 'cost': 1 },
+                        'tradingPairs': { 'cost': 1 },
+                        'system/time': { 'cost': 1 },
+                    },
                 },
                 'private': {
-                    'post': [
-                        'currencies',
-                        'balances',
-                        'bitcoinCashWithdrawal',
-                        'bitcoinCashDepositAddresses',
-                        'bitcoinDepositAddresses',
-                        'bitcoinWithdrawal',
-                        'bitcoinWithdrawalFees',
-                        'buyInstant',
-                        'buyLimit',
-                        'cancelOrder',
-                        'cancelOrderWithInfo',
-                        'createVoucher',
-                        'dashDepositAddresses',
-                        'dashWithdrawal',
-                        'ethereumWithdrawal',
-                        'ethereumDepositAddresses',
-                        'litecoinWithdrawal',
-                        'litecoinDepositAddresses',
-                        'openOrders',
-                        'order',
-                        'orderHistory',
-                        'orderById',
-                        'pusherAuth',
-                        'redeemVoucher',
-                        'replaceByBuyLimit',
-                        'replaceByBuyInstant',
-                        'replaceBySellLimit',
-                        'replaceBySellInstant',
-                        'rippleDepositAddresses',
-                        'rippleWithdrawal',
-                        'sellInstant',
-                        'sellLimit',
-                        'transactionHistory',
-                        'traderFees',
-                        'tradeHistory',
-                        'transfer',
-                        'transferHistory',
-                        'unconfirmedBitcoinDeposits',
-                        'unconfirmedBitcoinCashDeposits',
-                        'unconfirmedDashDeposits',
-                        'unconfirmedEthereumDeposits',
-                        'unconfirmedLitecoinDeposits',
-                        'unconfirmedRippleDeposits',
-                        'cancelAllOpenOrders',
-                        'withdrawVirtualCurrency',
-                        'virtualCurrencyDepositAddresses',
-                        'unconfirmedVirtualCurrencyDeposits',
-                        'adaWithdrawal',
-                        'adaDepositAddresses',
-                        'unconfirmedAdaDeposits',
-                        'solWithdrawal',
-                        'solDepositAddresses',
-                        'unconfirmedSolDeposits',
-                        'bankWireWithdrawal',
-                    ],
+                    'post': {
+                        'currencies': { 'cost': 1 },
+                        'balances': { 'cost': 1 },
+                        'bitcoinCashWithdrawal': { 'cost': 1 },
+                        'bitcoinCashDepositAddresses': { 'cost': 1 },
+                        'bitcoinDepositAddresses': { 'cost': 1 },
+                        'bitcoinWithdrawal': { 'cost': 1 },
+                        'bitcoinWithdrawalFees': { 'cost': 1 },
+                        'buyInstant': { 'cost': 1 },
+                        'buyLimit': { 'cost': 1 },
+                        'cancelOrder': { 'cost': 1 },
+                        'cancelOrderWithInfo': { 'cost': 1 },
+                        'createVoucher': { 'cost': 1 },
+                        'dashDepositAddresses': { 'cost': 1 },
+                        'dashWithdrawal': { 'cost': 1 },
+                        'ethereumWithdrawal': { 'cost': 1 },
+                        'ethereumDepositAddresses': { 'cost': 1 },
+                        'litecoinWithdrawal': { 'cost': 1 },
+                        'litecoinDepositAddresses': { 'cost': 1 },
+                        'openOrders': { 'cost': 1 },
+                        'order': { 'cost': 1 },
+                        'orderHistory': { 'cost': 1 },
+                        'orderById': { 'cost': 1 },
+                        'pusherAuth': { 'cost': 1 },
+                        'redeemVoucher': { 'cost': 1 },
+                        'replaceByBuyLimit': { 'cost': 1 },
+                        'replaceByBuyInstant': { 'cost': 1 },
+                        'replaceBySellLimit': { 'cost': 1 },
+                        'replaceBySellInstant': { 'cost': 1 },
+                        'rippleDepositAddresses': { 'cost': 1 },
+                        'rippleWithdrawal': { 'cost': 1 },
+                        'sellInstant': { 'cost': 1 },
+                        'sellLimit': { 'cost': 1 },
+                        'transactionHistory': { 'cost': 1 },
+                        'traderFees': { 'cost': 1 },
+                        'tradeHistory': { 'cost': 1 },
+                        'transfer': { 'cost': 1 },
+                        'transferHistory': { 'cost': 1 },
+                        'unconfirmedBitcoinDeposits': { 'cost': 1 },
+                        'unconfirmedBitcoinCashDeposits': { 'cost': 1 },
+                        'unconfirmedDashDeposits': { 'cost': 1 },
+                        'unconfirmedEthereumDeposits': { 'cost': 1 },
+                        'unconfirmedLitecoinDeposits': { 'cost': 1 },
+                        'unconfirmedRippleDeposits': { 'cost': 1 },
+                        'cancelAllOpenOrders': { 'cost': 1 },
+                        'withdrawVirtualCurrency': { 'cost': 1 },
+                        'virtualCurrencyDepositAddresses': { 'cost': 1 },
+                        'unconfirmedVirtualCurrencyDeposits': { 'cost': 1 },
+                        'adaWithdrawal': { 'cost': 1 },
+                        'adaDepositAddresses': { 'cost': 1 },
+                        'unconfirmedAdaDeposits': { 'cost': 1 },
+                        'daiWithdrawal': { 'cost': 1 },
+                        'daiDepositAddresses': { 'cost': 1 },
+                        'unconfirmedDaiDeposits': { 'cost': 1 },
+                        'solWithdrawal': { 'cost': 1 },
+                        'solDepositAddresses': { 'cost': 1 },
+                        'unconfirmedSolDeposits': { 'cost': 1 },
+                        'bankWireWithdrawal': { 'cost': 1 },
+                    },
                 },
             },
             'fees': {
@@ -334,10 +338,10 @@ class coinmate extends coinmate$1["default"] {
     /**
      * @method
      * @name coinmate#fetchTime
-     * @description fetches the current integer timestamp in milliseconds from the bingx server
+     * @description fetches the current integer timestamp in milliseconds from the exchange server
      * @see https://coinmate.docs.apiary.io/#reference/system/get-server-time/get
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {int} the current integer timestamp in milliseconds from the bingx server
+     * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
     async fetchTime(params = {}) {
         const response = await this.publicGetSystemTime(params);
@@ -478,7 +482,7 @@ class coinmate extends coinmate$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -490,7 +494,7 @@ class coinmate extends coinmate$1["default"] {
             'groupByPriceLimit': 'False',
         };
         const response = await this.publicGetOrderBook(this.extend(request, params));
-        const orderbook = response['data'];
+        const orderbook = this.safeDict(response, 'data', {});
         const timestamp = this.safeTimestamp(orderbook, 'timestamp');
         return this.parseOrderBook(orderbook, market['symbol'], timestamp, 'bids', 'asks', 'price', 'amount');
     }
@@ -644,7 +648,7 @@ class coinmate extends coinmate$1["default"] {
             request['currency'] = currency['id'];
         }
         const response = await this.privatePostTransferHistory(this.extend(request, params));
-        const items = response['data'];
+        const items = this.safeList(response, 'data', []);
         return this.parseTransactions(items, undefined, since, limit);
     }
     parseTransactionStatus(status) {
@@ -768,7 +772,38 @@ class coinmate extends coinmate$1["default"] {
         if (tag !== undefined) {
             request['destinationTag'] = tag;
         }
-        const response = await this[method](this.extend(request, params));
+        const requestParams = this.extend(request, params);
+        let response = undefined;
+        if (method === 'privatePostBitcoinWithdrawal') {
+            response = await this.privatePostBitcoinWithdrawal(requestParams);
+        }
+        else if (method === 'privatePostLitecoinWithdrawal') {
+            response = await this.privatePostLitecoinWithdrawal(requestParams);
+        }
+        else if (method === 'privatePostBitcoinCashWithdrawal') {
+            response = await this.privatePostBitcoinCashWithdrawal(requestParams);
+        }
+        else if (method === 'privatePostEthereumWithdrawal') {
+            response = await this.privatePostEthereumWithdrawal(requestParams);
+        }
+        else if (method === 'privatePostRippleWithdrawal') {
+            response = await this.privatePostRippleWithdrawal(requestParams);
+        }
+        else if (method === 'privatePostDashWithdrawal') {
+            response = await this.privatePostDashWithdrawal(requestParams);
+        }
+        else if (method === 'privatePostDaiWithdrawal') {
+            response = await this.privatePostDaiWithdrawal(requestParams);
+        }
+        else if (method === 'privatePostAdaWithdrawal') {
+            response = await this.privatePostAdaWithdrawal(requestParams);
+        }
+        else if (method === 'privatePostSolWithdrawal') {
+            response = await this.privatePostSolWithdrawal(requestParams);
+        }
+        else {
+            throw new errors.ExchangeError(this.id + ' withdraw() does not support the ' + method + ' method');
+        }
         //
         //     {
         //         "error": false,
@@ -781,7 +816,7 @@ class coinmate extends coinmate$1["default"] {
         const data = this.safeValue(response, 'data');
         const transaction = this.parseTransaction(data, currency);
         const fillResponseFromRequest = this.safeBool(withdrawOptions, 'fillResponseFromRequest', true);
-        if (fillResponseFromRequest) {
+        if (fillResponseFromRequest === true) {
             transaction['amount'] = amount;
             transaction['currency'] = code;
             transaction['address'] = address;
@@ -979,7 +1014,8 @@ class coinmate extends coinmate$1["default"] {
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         const response = await this.privatePostOpenOrders(this.extend({}, params));
         const extension = { 'status': 'open' };
-        return this.parseOrders(response['data'], undefined, since, limit, extension);
+        const data = this.safeList(response, 'data', []);
+        return this.parseOrders(data, undefined, since, limit, extension);
     }
     /**
      * @method
@@ -1008,7 +1044,8 @@ class coinmate extends coinmate$1["default"] {
             request['limit'] = limit;
         }
         const response = await this.privatePostOrderHistory(this.extend(request, params));
-        return this.parseOrders(response['data'], market, since, limit);
+        const data = this.safeList(response, 'data', []);
+        return this.parseOrders(data, market, since, limit);
     }
     parseOrderStatus(status) {
         const statuses = {
@@ -1151,7 +1188,23 @@ class coinmate extends coinmate$1["default"] {
             request['price'] = this.priceToPrecision(symbol, price);
             method += this.capitalize(type);
         }
-        const response = await this[method](this.extend(request, params));
+        const requestParams = this.extend(request, params);
+        let response = undefined;
+        if (method === 'privatePostBuyInstant') {
+            response = await this.privatePostBuyInstant(requestParams);
+        }
+        else if (method === 'privatePostSellInstant') {
+            response = await this.privatePostSellInstant(requestParams);
+        }
+        else if (method === 'privatePostBuyLimit') {
+            response = await this.privatePostBuyLimit(requestParams);
+        }
+        else if (method === 'privatePostSellLimit') {
+            response = await this.privatePostSellLimit(requestParams);
+        }
+        else {
+            throw new errors.InvalidOrder(this.id + ' createOrder() does not support order type ' + type);
+        }
         const id = this.safeString(response, 'data');
         return this.safeOrder({
             'info': response,
@@ -1177,7 +1230,7 @@ class coinmate extends coinmate$1["default"] {
             'orderId': id,
         };
         let market = undefined;
-        if (symbol) {
+        if ((symbol !== undefined) && (symbol !== '')) {
             market = this.market(symbol);
         }
         const response = await this.privatePostOrderById(this.extend(request, params));
@@ -1190,7 +1243,7 @@ class coinmate extends coinmate$1["default"] {
      * @description cancels an open order
      * @see https://coinmate.docs.apiary.io/#reference/order/cancel-order/post
      * @param {string} id order id
-     * @param {string} symbol not used by coinmate cancelOrder ()
+     * @param {string} symbol not used by cancelOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -1217,7 +1270,7 @@ class coinmate extends coinmate$1["default"] {
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api']['rest'] + '/' + path;
         if (api === 'public') {
-            if (Object.keys(params).length) {
+            if (Object.keys(params).length > 0) {
                 url += '?' + this.urlencode(params);
             }
         }

@@ -57,47 +57,47 @@ func (this *LunoCore) Describe() any {
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *LunoCore) WatchTrades(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		since := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = since
-		limit := ccxt.GetArg(optionalArgs, 1, nil)
-		_ = limit
-		params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
-		_ = params
-		this.CheckRequiredCredentials()
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
-
-			retRes5212 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes5212)
-		}
-		var market any = this.Market(symbol)
-		symbol = ccxt.GetValue(market, "symbol")
-		var subscriptionHash any = ccxt.Add("/stream/", ccxt.GetValue(market, "id"))
-		var subscription any = map[string]any{
-			"symbol": symbol,
-		}
-		var url any = ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), subscriptionHash)
-		var messageHash any = ccxt.Add("trades:", symbol)
-		var subscribe any = map[string]any{
-			"api_key_id":     this.ApiKey,
-			"api_key_secret": this.Secret,
-		}
-		var request any = this.DeepExtend(subscribe, params)
-
-		trades := (<-this.Watch(url, messageHash, request, subscriptionHash, subscription))
-		ccxt.PanicOnError(trades)
-		if ccxt.IsTrue(this.NewUpdates) {
-			limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
-		}
-
-		ch <- this.FilterBySinceLimit(trades, since, limit, "timestamp", true)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchTradesBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *LunoCore) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	since := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = since
+	limit := ccxt.GetArg(optionalArgs, 1, nil)
+	_ = limit
+	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
+	_ = params
+	this.CheckRequiredCredentials()
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes5212 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes5212)
+	}
+	var market any = this.Market(symbol)
+	symbol = ccxt.GetValue(market, "symbol")
+	var subscriptionHash any = ccxt.Add("/stream/", ccxt.GetValue(market, "id"))
+	var subscription map[string]any = map[string]any{
+		"symbol": symbol,
+	}
+	var url any = ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), subscriptionHash)
+	var messageHash any = ccxt.Add("trades:", symbol)
+	var subscribe map[string]any = map[string]any{
+		"api_key_id":     this.ApiKey,
+		"api_key_secret": this.Secret,
+	}
+	var request map[string]any = this.DeepExtend(subscribe, params)
+
+	trades := (<-this.Watch(url, messageHash, request, subscriptionHash, subscription))
+	ccxt.PanicOnError(trades)
+	if ccxt.IsTrue(this.NewUpdates) {
+		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
+	}
+
+	ch <- this.FilterBySinceLimit(trades, since, limit, "timestamp", true)
+	return nil
 }
 func (this *LunoCore) HandleTrades(client any, message any, subscription any) {
 	//
@@ -116,7 +116,7 @@ func (this *LunoCore) HandleTrades(client any, message any, subscription any) {
 	//     }
 	//
 	var rawTrades any = this.SafeValue(message, "trade_updates", []any{})
-	var length any = ccxt.GetArrayLength(rawTrades)
+	var length int = ccxt.GetArrayLength(rawTrades)
 	if ccxt.IsTrue(ccxt.IsEqual(length, 0)) {
 		return
 	}
@@ -151,12 +151,13 @@ func (this *LunoCore) ParseTrade(trade any, optionalArgs ...any) any {
 	//
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
+	var symbol any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(market, nil))), nil, ccxt.GetValue(market, "symbol"))
 	return this.SafeTrade(map[string]any{
 		"info":         trade,
 		"id":           nil,
 		"timestamp":    nil,
 		"datetime":     nil,
-		"symbol":       ccxt.GetValue(market, "symbol"),
+		"symbol":       symbol,
 		"order":        nil,
 		"type":         nil,
 		"side":         nil,
@@ -177,45 +178,45 @@ func (this *LunoCore) ParseTrade(trade any, optionalArgs ...any) any {
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {objectConstructor} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.type] accepts l2 or l3 for level 2 or level 3 order book
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *LunoCore) WatchOrderBook(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		limit := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = limit
-		params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		this.CheckRequiredCredentials()
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
-
-			retRes15512 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes15512)
-		}
-		var market any = this.Market(symbol)
-		symbol = ccxt.GetValue(market, "symbol")
-		var subscriptionHash any = ccxt.Add("/stream/", ccxt.GetValue(market, "id"))
-		var subscription any = map[string]any{
-			"symbol": symbol,
-		}
-		var url any = ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), subscriptionHash)
-		var messageHash any = ccxt.Add("orderbook:", symbol)
-		var subscribe any = map[string]any{
-			"api_key_id":     this.ApiKey,
-			"api_key_secret": this.Secret,
-		}
-		var request any = this.DeepExtend(subscribe, params)
-
-		orderbook := (<-this.Watch(url, messageHash, request, subscriptionHash, subscription))
-		ccxt.PanicOnError(orderbook)
-
-		ch <- orderbook.(ccxt.OrderBookInterface).Limit()
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *LunoCore) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	limit := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = limit
+	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	this.CheckRequiredCredentials()
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes15612 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes15612)
+	}
+	var market any = this.Market(symbol)
+	symbol = ccxt.GetValue(market, "symbol")
+	var subscriptionHash any = ccxt.Add("/stream/", ccxt.GetValue(market, "id"))
+	var subscription map[string]any = map[string]any{
+		"symbol": symbol,
+	}
+	var url any = ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), subscriptionHash)
+	var messageHash any = ccxt.Add("orderbook:", symbol)
+	var subscribe map[string]any = map[string]any{
+		"api_key_id":     this.ApiKey,
+		"api_key_secret": this.Secret,
+	}
+	var request map[string]any = this.DeepExtend(subscribe, params)
+
+	orderbook := (<-this.Watch(url, messageHash, request, subscriptionHash, subscription))
+	ccxt.PanicOnError(orderbook)
+
+	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
+	return nil
 }
 func (this *LunoCore) HandleOrderBook(client any, message any, subscription any) {
 	//
@@ -393,7 +394,7 @@ func (this *LunoCore) HandleMessage(client any, message any) {
 		return
 	}
 	var subscriptions any = ccxt.ObjectValues(client.(ccxt.ClientInterface).GetSubscriptions())
-	var handlers any = []any{this.HandleOrderBook, this.HandleTrades}
+	var handlers []any = []any{this.HandleOrderBook, this.HandleTrades}
 	for j := 0; ccxt.IsLessThan(j, ccxt.GetArrayLength(handlers)); j++ {
 		var handler any = ccxt.GetValue(handlers, j)
 		ccxt.CallDynamically(handler, client, message, ccxt.GetValue(subscriptions, 0))

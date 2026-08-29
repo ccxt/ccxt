@@ -6,8 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bit2c import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees
-from typing import List
+from ccxt.base.types import Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -21,7 +20,7 @@ from ccxt.base.precise import Precise
 
 class bit2c(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(bit2c, self).describe(), {
             'id': 'bit2c',
             'name': 'Bit2C',
@@ -135,37 +134,37 @@ class bit2c(Exchange, ImplicitAPI):
             },
             'api': {
                 'public': {
-                    'get': [
-                        'Exchanges/{pair}/Ticker',
-                        'Exchanges/{pair}/orderbook',
-                        'Exchanges/{pair}/trades',
-                        'Exchanges/{pair}/lasttrades',
-                    ],
+                    'get': {
+                        'Exchanges/{pair}/Ticker': {'cost': 1},
+                        'Exchanges/{pair}/orderbook': {'cost': 1},
+                        'Exchanges/{pair}/trades': {'cost': 1},
+                        'Exchanges/{pair}/lasttrades': {'cost': 1},
+                    },
                 },
                 'private': {
-                    'post': [
-                        'Merchant/CreateCheckout',
-                        'Funds/AddCoinFundsRequest',
-                        'Order/AddFund',
-                        'Order/AddOrder',
-                        'Order/GetById',
-                        'Order/AddOrderMarketPriceBuy',
-                        'Order/AddOrderMarketPriceSell',
-                        'Order/CancelOrder',
-                        'Order/AddCoinFundsRequest',
-                        'Order/AddStopOrder',
-                        'Payment/GetMyId',
-                        'Payment/Send',
-                        'Payment/Pay',
-                    ],
-                    'get': [
-                        'Account/Balance',
-                        'Account/Balance/v2',
-                        'Order/MyOrders',
-                        'Order/GetById',
-                        'Order/AccountHistory',
-                        'Order/OrderHistory',
-                    ],
+                    'post': {
+                        'Merchant/CreateCheckout': {'cost': 1},
+                        'Funds/AddCoinFundsRequest': {'cost': 1},
+                        'Order/AddFund': {'cost': 1},
+                        'Order/AddOrder': {'cost': 1},
+                        'Order/GetById': {'cost': 1},
+                        'Order/AddOrderMarketPriceBuy': {'cost': 1},
+                        'Order/AddOrderMarketPriceSell': {'cost': 1},
+                        'Order/CancelOrder': {'cost': 1},
+                        'Order/AddCoinFundsRequest': {'cost': 1},
+                        'Order/AddStopOrder': {'cost': 1},
+                        'Payment/GetMyId': {'cost': 1},
+                        'Payment/Send': {'cost': 1},
+                        'Payment/Pay': {'cost': 1},
+                    },
+                    'get': {
+                        'Account/Balance': {'cost': 1},
+                        'Account/Balance/v2': {'cost': 1},
+                        'Order/MyOrders': {'cost': 1},
+                        'Order/GetById': {'cost': 1},
+                        'Order/AccountHistory': {'cost': 1},
+                        'Order/OrderHistory': {'cost': 1},
+                    },
                 },
             },
             'markets': {
@@ -291,7 +290,7 @@ class bit2c(Exchange, ImplicitAPI):
             },
         })
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: object) -> Balances:
         result = {
             'info': response,
             'timestamp': None,
@@ -374,7 +373,7 @@ class bit2c(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             await self.load_markets()
@@ -383,7 +382,29 @@ class bit2c(Exchange, ImplicitAPI):
             'pair': market['id'],
         }
         orderbook = await self.publicGetExchangesPairOrderbook(self.extend(request, params))
-        return self.parse_order_book(orderbook, symbol)
+        # the full orderbook.json snapshot can contain dead orders - rows
+        # published with a zero amount at their limit price, hours-stable and
+        # sometimes crossing the real market. per the api docs the endpoint
+        # contains open orders only, and the venue's own orderbook-top.json ui
+        # feed filters these rows out, so a non-positive amount is a dead order
+        # their full snapshot failed to purge - it is removed here, which also
+        # uncrosses the book. rows are positional price and amount pairs
+        rawBids = self.safe_list(orderbook, 'bids', [])
+        rawAsks = self.safe_list(orderbook, 'asks', [])
+        bids = []
+        asks = []
+        for i in range(0, len(rawBids)):
+            bidRow = rawBids[i]
+            bidAmount = self.safe_string(bidRow, 1)
+            if Precise.string_gt(bidAmount, '0'):
+                bids.append(bidRow)
+        for i in range(0, len(rawAsks)):
+            askRow = rawAsks[i]
+            askAmount = self.safe_string(askRow, 1)
+            if Precise.string_gt(askAmount, '0'):
+                asks.append(askRow)
+        filtered = {'bids': bids, 'asks': asks}
+        return self.parse_order_book(filtered, symbol)
 
     def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         symbol = self.safe_symbol(None, market)
@@ -432,7 +453,7 @@ class bit2c(Exchange, ImplicitAPI):
         response = await self.publicGetExchangesPairTicker(self.extend(request, params))
         return self.parse_ticker(response, market)
 
-    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -457,21 +478,25 @@ class bit2c(Exchange, ImplicitAPI):
             request['date'] = self.parse_to_int(since)
         if limit is not None:
             request['limit'] = limit  # max 100000
-        response = None
+        responseList = []
         if method == 'public_get_exchanges_pair_trades':
             response = await self.publicGetExchangesPairTrades(self.extend(request, params))
+            #
+            #     [
+            #         {"date":1651785980,"price":127975.68,"amount":0.3750321,"isBid":true,"tid":1261018},
+            #         {"date":1651785980,"price":127987.70,"amount":0.0389527820303982335802581029,"isBid":true,"tid":1261020},
+            #         {"date":1651786701,"price":128084.03,"amount":0.0015614749161156156626239821,"isBid":true,"tid":1261022},
+            #     ]
+            #
+            if isinstance(response, str):
+                raise ExchangeError(response)
+            responseList = self.to_array(response)
         else:
             response = await self.publicGetExchangesPairLasttrades(self.extend(request, params))
-        #
-        #     [
-        #         {"date":1651785980,"price":127975.68,"amount":0.3750321,"isBid":true,"tid":1261018},
-        #         {"date":1651785980,"price":127987.70,"amount":0.0389527820303982335802581029,"isBid":true,"tid":1261020},
-        #         {"date":1651786701,"price":128084.03,"amount":0.0015614749161156156626239821,"isBid":true,"tid":1261022},
-        #     ]
-        #
-        if isinstance(response, str):
-            raise ExchangeError(response)
-        return self.parse_trades(response, market, since, limit)
+            if isinstance(response, str):
+                raise ExchangeError(response)
+            responseList = self.to_array(response)
+        return self.parse_trades(responseList, market, since, limit)
 
     async def fetch_trading_fees(self, params={}) -> TradingFees:
         """
@@ -538,21 +563,24 @@ class bit2c(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        method = 'privatePostOrderAddOrder'
         market = self.market(symbol)
         request = {
             'Amount': amount,
             'Pair': market['id'],
         }
+        response = None
         if type == 'market':
-            method += 'MarketPrice' + self.capitalize(side)
+            if side == 'buy':
+                response = await self.privatePostOrderAddOrderMarketPriceBuy(self.extend(request, params))
+            else:
+                response = await self.privatePostOrderAddOrderMarketPriceSell(self.extend(request, params))
         else:
             request['Price'] = price
             amountString = self.number_to_string(amount)
             priceString = self.number_to_string(price)
             request['Total'] = self.parse_to_numeric(Precise.string_mul(amountString, priceString))
             request['IsBid'] = (side == 'buy')
-        response = await getattr(self, method)(self.extend(request, params))
+            response = await self.privatePostOrderAddOrder(self.extend(request, params))
         return self.parse_order(response, market)
 
     async def cancel_order(self, id: str, symbol: Str = None, params={}):
@@ -572,7 +600,7 @@ class bit2c(Exchange, ImplicitAPI):
         response = await self.privatePostOrderCancelOrder(self.extend(request, params))
         return self.parse_order(response)
 
-    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -802,9 +830,12 @@ class bit2c(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        return self.parse_trades(response, market, since, limit)
+        responseList = []
+        if response is not None:
+            responseList = self.to_array(response)
+        return self.parse_trades(responseList, market, since, limit)
 
-    def remove_comma_from_value(self, str):
+    def remove_comma_from_value(self, str: object):
         newString = ''
         strParts = str.split(',')
         for i in range(0, len(strParts)):
@@ -864,8 +895,8 @@ class bit2c(Exchange, ImplicitAPI):
             market = self.safe_market(marketId, market)
             market = self.safe_market(reference_parts[0], market)
             isMaker = self.safe_value(trade, 'isMaker')
-            makerOrTaker = 'maker' if isMaker else 'taker'
-            orderId = reference_parts[2] if isMaker else reference_parts[1]
+            makerOrTaker = 'maker' if (isMaker is True) else 'taker'
+            orderId = reference_parts[2] if (isMaker is True) else reference_parts[1]
             action = self.safe_integer(trade, 'action')
             if action == 0:
                 side = 'buy'
@@ -884,7 +915,7 @@ class bit2c(Exchange, ImplicitAPI):
             amount = self.safe_string(trade, 'amount')
             side = self.safe_value(trade, 'isBid')
             if side is not None:
-                if side:
+                if (side is not None) and (side != ''):
                     side = 'buy'
                 else:
                     side = 'sell'
@@ -905,7 +936,7 @@ class bit2c(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    def is_fiat(self, code):
+    def is_fiat(self, code: object):
         return code == 'NIS'
 
     async def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
@@ -935,7 +966,7 @@ class bit2c(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_address(response, currency)
 
-    def parse_deposit_address(self, depositAddress, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositAddress: object, currency: Currency = None) -> DepositAddress:
         #
         #     {
         #         "address": "0xf14b94518d74aff2b1a6d3429471bcfcd3881d42",
@@ -956,7 +987,7 @@ class bit2c(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         url = self.urls['api']['rest'] + '/' + self.implode_params(path, params)
         if api == 'public':
             url += '.json'
@@ -968,7 +999,7 @@ class bit2c(Exchange, ImplicitAPI):
             }, params)
             auth = self.urlencode(query)
             if method == 'GET':
-                if query:
+                if len(query) > 0:
                     url += '?' + auth
             else:
                 body = auth
@@ -980,7 +1011,7 @@ class bit2c(Exchange, ImplicitAPI):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:
             return None  # fallback to default error handler
         #

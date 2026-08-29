@@ -54,12 +54,88 @@ public partial class paymium : Exchange
             } },
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"countries", "currencies", "data/{currency}/ticker", "data/{currency}/trades", "data/{currency}/depth", "bitcoin_charts/{id}/trades", "bitcoin_charts/{id}/depth"} },
+                    { "get", new Dictionary<string, object>() {
+                        { "countries", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "currencies", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "data/{currency}/ticker", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "data/{currency}/trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "data/{currency}/depth", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "bitcoin_charts/{id}/trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "bitcoin_charts/{id}/depth", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
                 } },
                 { "private", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"user", "user/addresses", "user/addresses/{address}", "user/orders", "user/orders/{uuid}", "user/price_alerts", "merchant/get_payment/{uuid}"} },
-                    { "post", new List<object>() {"user/addresses", "user/orders", "user/withdrawals", "user/email_transfers", "user/payment_requests", "user/price_alerts", "merchant/create_payment"} },
-                    { "delete", new List<object>() {"user/orders/{uuid}", "user/orders/{uuid}/cancel", "user/price_alerts/{id}"} },
+                    { "get", new Dictionary<string, object>() {
+                        { "user", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "user/addresses", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "user/addresses/{address}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "user/orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "user/orders/{uuid}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "user/price_alerts", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "merchant/get_payment/{uuid}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
+                    { "post", new Dictionary<string, object>() {
+                        { "user/addresses", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "user/orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "user/withdrawals", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "user/email_transfers", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "user/payment_requests", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "user/price_alerts", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "merchant/create_payment", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
+                    { "delete", new Dictionary<string, object>() {
+                        { "user/orders/{uuid}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "user/orders/{uuid}/cancel", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "user/price_alerts/{id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
                 } },
             } },
             { "markets", new Dictionary<string, object>() {
@@ -131,7 +207,7 @@ public partial class paymium : Exchange
         object result = new Dictionary<string, object>() {
             { "info", response },
         };
-        object currencies = new List<object>(((IDictionary<string,object>)this.currencies).Keys);
+        List<object> currencies = new List<object>(((IDictionary<string,object>)this.currencies).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(currencies)); postFixIncrement(ref i))
         {
             object code = getValue(currencies, i);
@@ -177,9 +253,9 @@ public partial class paymium : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
+    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -253,7 +329,7 @@ public partial class paymium : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> fetchTicker(object symbol, object parameters = null)
+    public async override Task<ccxt.Ticker> FetchTicker(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -283,7 +359,7 @@ public partial class paymium : Exchange
         //     "size":"0.00041087"
         // }
         //
-        return this.parseTicker(ticker, market);
+        return ccxt.BaseExchange.ToTicker(this.parseTicker(ticker, market));
     }
 
     public override object parseTrade(object trade, object market = null)
@@ -323,7 +399,7 @@ public partial class paymium : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> FetchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -335,7 +411,7 @@ public partial class paymium : Exchange
             { "currency", getValue(market, "id") },
         };
         object response = await this.publicGetDataCurrencyTrades(this.extend(request, parameters));
-        return this.parseTrades(response, market, since, limit);
+        return ccxt.BaseExchange.ToTradeList(this.parseTrades(response, market, since, limit));
     }
 
     /**
@@ -347,7 +423,7 @@ public partial class paymium : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public async override Task<object> createDepositAddress(object code, object parameters = null)
+    public async override Task<ccxt.DepositAddress> CreateDepositAddress(string code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -363,7 +439,7 @@ public partial class paymium : Exchange
         //         "label": "Savings"
         //     }
         //
-        return this.parseDepositAddress(response);
+        return ccxt.BaseExchange.ToDepositAddress(this.parseDepositAddress(response));
     }
 
     /**
@@ -375,7 +451,7 @@ public partial class paymium : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public async override Task<object> fetchDepositAddress(object code, object parameters = null)
+    public async override Task<ccxt.DepositAddress> FetchDepositAddress(string code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -394,7 +470,7 @@ public partial class paymium : Exchange
         //         "label": "Savings"
         //     }
         //
-        return this.parseDepositAddress(response);
+        return ccxt.BaseExchange.ToDepositAddress(this.parseDepositAddress(response));
     }
 
     /**
@@ -406,7 +482,7 @@ public partial class paymium : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public async override Task<object> fetchDepositAddresses(object codes = null, object parameters = null)
+    public async override Task<List<ccxt.DepositAddress>> FetchDepositAddresses(object codes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -424,7 +500,7 @@ public partial class paymium : Exchange
         //         }
         //     ]
         //
-        return this.parseDepositAddresses(response, codes);
+        return ccxt.BaseExchange.ToDepositAddressList(this.parseDepositAddresses(response, codes));
     }
 
     public override object parseDepositAddress(object depositAddress, object currency = null)
@@ -461,7 +537,7 @@ public partial class paymium : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -480,10 +556,7 @@ public partial class paymium : Exchange
             ((IDictionary<string,object>)request)["price"] = price;
         }
         object response = await this.privatePostUserOrders(this.extend(request, parameters));
-        return this.safeOrder(new Dictionary<string, object>() {
-            { "info", response },
-            { "id", getValue(response, "uuid") },
-        }, market);
+        return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "info", response },             { "id", this.safeString(response, "uuid") },         }, market));
     }
 
     /**
@@ -492,20 +565,18 @@ public partial class paymium : Exchange
      * @description cancels an open order
      * @see https://paymium.github.io/api-documentation/#tag/Order/operation/cancel-order
      * @param {string} id order id
-     * @param {string} symbol not used by paymium cancelOrder ()
+     * @param {string} symbol not used by cancelOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> CancelOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object request = new Dictionary<string, object>() {
             { "uuid", id },
         };
         object response = await this.privateDeleteUserOrdersUuidCancel(this.extend(request, parameters));
-        return this.safeOrder(new Dictionary<string, object>() {
-            { "info", response },
-        });
+        return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "info", response },         }));
     }
 
     /**
@@ -520,7 +591,7 @@ public partial class paymium : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public async override Task<object> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
+    public async override Task<object> transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -647,14 +718,14 @@ public partial class paymium : Exchange
         object query = this.omit(parameters, this.extractParams(path));
         if (isTrue(isEqual(api, "public")))
         {
-            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+            if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
             {
                 url = add(url, add("?", this.urlencode(query)));
             }
         } else
         {
             this.checkRequiredCredentials();
-            object nonce = ((object)this.nonce()).ToString();
+            string nonce = ((object)this.nonce()).ToString();
             object auth = add(nonce, url);
             headers = new Dictionary<string, object>() {
                 { "Api-Key", this.apiKey },
@@ -662,7 +733,7 @@ public partial class paymium : Exchange
             };
             if (isTrue(isEqual(method, "POST")))
             {
-                if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+                if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
                 {
                     body = this.json(query);
                     auth = add(auth, body);
@@ -670,7 +741,7 @@ public partial class paymium : Exchange
                 }
             } else
             {
-                if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+                if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
                 {
                     object queryString = this.urlencode(query);
                     auth = add(auth, queryString);

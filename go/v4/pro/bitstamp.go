@@ -62,43 +62,43 @@ func (this *BitstampCore) Describe() any {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *BitstampCore) WatchOrderBook(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		limit := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = limit
-		params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
-
-			retRes6012 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes6012)
-		}
-		var market any = this.Market(symbol)
-		symbol = ccxt.GetValue(market, "symbol")
-		var messageHash any = ccxt.Add("orderbook:", symbol)
-		var channel any = ccxt.Add("diff_order_book_", ccxt.GetValue(market, "id"))
-		var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-		var request any = map[string]any{
-			"event": "bts:subscribe",
-			"data": map[string]any{
-				"channel": channel,
-			},
-		}
-		var message any = this.Extend(request, params)
-
-		orderbook := (<-this.Watch(url, messageHash, message, messageHash))
-		ccxt.PanicOnError(orderbook)
-
-		ch <- orderbook.(ccxt.OrderBookInterface).Limit()
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *BitstampCore) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	limit := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = limit
+	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes6012 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes6012)
+	}
+	var market any = this.Market(symbol)
+	symbol = ccxt.GetValue(market, "symbol")
+	var messageHash any = ccxt.Add("orderbook:", symbol)
+	var channel any = ccxt.Add("diff_order_book_", ccxt.GetValue(market, "id"))
+	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+	var request map[string]any = map[string]any{
+		"event": "bts:subscribe",
+		"data": map[string]any{
+			"channel": channel,
+		},
+	}
+	var message map[string]any = this.Extend(request, params)
+
+	orderbook := (<-this.Watch(url, messageHash, message, messageHash))
+	ccxt.PanicOnError(orderbook)
+
+	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
+	return nil
 }
 func (this *BitstampCore) HandleOrderBook(client any, message any) {
 	//
@@ -125,16 +125,22 @@ func (this *BitstampCore) HandleOrderBook(client any, message any) {
 	//     }
 	//
 	var channel any = this.SafeString(message, "channel")
-	var parts any = ccxt.Split(channel, "_")
+	if ccxt.IsTrue(ccxt.IsEqual(channel, nil)) {
+		return
+	}
+	var parts []string = ccxt.Split(channel, "_")
 	var marketId any = this.SafeString(parts, 3)
 	var symbol any = this.SafeSymbol(marketId)
 	var storedOrderBook any = this.SafeValue(this.Orderbooks, symbol)
 	var nonce any = this.SafeValue(storedOrderBook, "nonce")
 	var delta any = this.SafeValue(message, "data")
 	var deltaNonce any = this.SafeInteger(delta, "microtimestamp")
+	if ccxt.IsTrue(ccxt.IsEqual(deltaNonce, nil)) {
+		return
+	}
 	var messageHash any = ccxt.Add("orderbook:", symbol)
 	if ccxt.IsTrue(ccxt.IsEqual(nonce, nil)) {
-		var cacheLength any = ccxt.GetArrayLength(storedOrderBook.(ccxt.OrderBookInterface).GetCache())
+		var cacheLength int = ccxt.GetArrayLength(storedOrderBook.(ccxt.OrderBookInterface).GetCache())
 		// the rest API is very delayed
 		// usually it takes at least 4-5 deltas to resolve
 		var snapshotDelay any = this.HandleOption("watchOrderBook", "snapshotDelay", 6)
@@ -171,8 +177,11 @@ func (this *BitstampCore) GetCacheIndex(orderbook any, deltas any) any {
 	// we will consider it a fail
 	var firstElement any = ccxt.GetValue(deltas, 0)
 	var firstElementNonce any = this.SafeInteger(firstElement, "microtimestamp")
+	if ccxt.IsTrue(ccxt.IsEqual(firstElementNonce, nil)) {
+		return ccxt.OpNeg(1)
+	}
 	var nonce any = this.SafeInteger(orderbook, "nonce")
-	if ccxt.IsTrue(ccxt.IsLessThan(nonce, firstElementNonce)) {
+	if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(nonce, nil))) || ccxt.IsTrue((ccxt.IsLessThan(nonce, firstElementNonce)))) {
 		return ccxt.OpNeg(1)
 	}
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(deltas)); i++ {
@@ -196,45 +205,45 @@ func (this *BitstampCore) GetCacheIndex(orderbook any, deltas any) any {
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *BitstampCore) WatchTrades(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		since := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = since
-		limit := ccxt.GetArg(optionalArgs, 1, nil)
-		_ = limit
-		params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
-		_ = params
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
-
-			retRes17812 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes17812)
-		}
-		var market any = this.Market(symbol)
-		symbol = ccxt.GetValue(market, "symbol")
-		var messageHash any = ccxt.Add("trades:", symbol)
-		var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-		var channel any = ccxt.Add("live_trades_", ccxt.GetValue(market, "id"))
-		var request any = map[string]any{
-			"event": "bts:subscribe",
-			"data": map[string]any{
-				"channel": channel,
-			},
-		}
-		var message any = this.Extend(request, params)
-
-		trades := (<-this.Watch(url, messageHash, message, messageHash))
-		ccxt.PanicOnError(trades)
-		if ccxt.IsTrue(this.NewUpdates) {
-			limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
-		}
-
-		ch <- this.FilterBySinceLimit(trades, since, limit, "timestamp", true)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchTradesBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *BitstampCore) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	since := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = since
+	limit := ccxt.GetArg(optionalArgs, 1, nil)
+	_ = limit
+	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
+	_ = params
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes18712 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes18712)
+	}
+	var market any = this.Market(symbol)
+	symbol = ccxt.GetValue(market, "symbol")
+	var messageHash any = ccxt.Add("trades:", symbol)
+	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+	var channel any = ccxt.Add("live_trades_", ccxt.GetValue(market, "id"))
+	var request map[string]any = map[string]any{
+		"event": "bts:subscribe",
+		"data": map[string]any{
+			"channel": channel,
+		},
+	}
+	var message map[string]any = this.Extend(request, params)
+
+	trades := (<-this.Watch(url, messageHash, message, messageHash))
+	ccxt.PanicOnError(trades)
+	if ccxt.IsTrue(this.NewUpdates) {
+		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
+	}
+
+	ch <- this.FilterBySinceLimit(trades, since, limit, "timestamp", true)
+	return nil
 }
 func (this *BitstampCore) ParseWsTrade(trade any, optionalArgs ...any) any {
 	//
@@ -253,11 +262,14 @@ func (this *BitstampCore) ParseWsTrade(trade any, optionalArgs ...any) any {
 	//
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
-	var microtimestamp any = this.SafeInteger(trade, "microtimestamp")
+	var microtimestamp any = this.SafeInteger(trade, "microtimestamp", 0)
 	var id any = this.SafeString(trade, "id")
 	var timestamp any = this.ParseToInt(ccxt.Divide(microtimestamp, 1000))
 	var price any = this.SafeString(trade, "price")
 	var amount any = this.SafeString(trade, "amount")
+	if ccxt.IsTrue(ccxt.IsEqual(market, nil)) {
+		market = this.SafeMarket(nil, market)
+	}
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var sideRaw any = this.SafeInteger(trade, "type")
 	var side any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(sideRaw, 0))), "buy", "sell")
@@ -299,7 +311,10 @@ func (this *BitstampCore) HandleTrade(client any, message any) {
 	// the trade streams push raw trade information in real-time
 	// each trade has a unique buyer and seller
 	var channel any = this.SafeString(message, "channel")
-	var parts any = ccxt.Split(channel, "_")
+	if ccxt.IsTrue(ccxt.IsEqual(channel, nil)) {
+		return
+	}
+	var parts []string = ccxt.Split(channel, "_")
 	var marketId any = this.SafeString(parts, 2)
 	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
@@ -327,48 +342,48 @@ func (this *BitstampCore) HandleTrade(client any, message any) {
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BitstampCore) WatchOrders(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		symbol := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := ccxt.GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := ccxt.GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if ccxt.IsTrue(ccxt.IsEqual(symbol, nil)) {
-			panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " watchOrders() requires a symbol argument")))
-		}
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
-
-			retRes29312 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes29312)
-		}
-		var market any = this.Market(symbol)
-		symbol = ccxt.GetValue(market, "symbol")
-		var channel any = "private-my_orders"
-		var messageHash any = ccxt.Add(ccxt.Add(channel, "_"), ccxt.GetValue(market, "id"))
-		var subscription any = map[string]any{
-			"symbol": symbol,
-			"limit":  limit,
-			"type":   channel,
-			"params": params,
-		}
-
-		orders := (<-this.SubscribePrivate(subscription, messageHash, params))
-		ccxt.PanicOnError(orders)
-		if ccxt.IsTrue(this.NewUpdates) {
-			limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
-		}
-
-		ch <- this.FilterBySinceLimit(orders, since, limit, "timestamp", true)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchOrdersBody(ch, optionalArgs...)
 	return ch
+}
+func (this *BitstampCore) watchOrdersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := ccxt.GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if ccxt.IsTrue(ccxt.IsEqual(symbol, nil)) {
+		panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " watchOrders() requires a symbol argument")))
+	}
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes30812 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes30812)
+	}
+	var market any = this.Market(symbol)
+	symbol = ccxt.GetValue(market, "symbol")
+	var channel string = "private-my_orders"
+	var messageHash any = ccxt.Add(ccxt.Add(channel, "_"), ccxt.GetValue(market, "id"))
+	var subscription map[string]any = map[string]any{
+		"symbol": symbol,
+		"limit":  limit,
+		"type":   channel,
+		"params": params,
+	}
+
+	orders := (<-this.SubscribePrivate(subscription, messageHash, params))
+	ccxt.PanicOnError(orders)
+	if ccxt.IsTrue(this.NewUpdates) {
+		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
+	}
+
+	ch <- this.FilterBySinceLimit(orders, since, limit, "timestamp", true)
+	return nil
 }
 func (this *BitstampCore) HandleOrders(client any, message any) {
 	//
@@ -484,7 +499,10 @@ func (this *BitstampCore) ParseWsOrder(order any, optionalArgs ...any) any {
 }
 func (this *BitstampCore) HandleOrderBookSubscription(client any, message any) {
 	var channel any = this.SafeString(message, "channel")
-	var parts any = ccxt.Split(channel, "_")
+	if ccxt.IsTrue(ccxt.IsEqual(channel, nil)) {
+		return
+	}
+	var parts []string = ccxt.Split(channel, "_")
 	var marketId any = this.SafeString(parts, 3)
 	var symbol any = this.SafeSymbol(marketId)
 	ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook())
@@ -503,6 +521,9 @@ func (this *BitstampCore) HandleSubscriptionStatus(client any, message any) {
 	//     }
 	//
 	var channel any = this.SafeString(message, "channel")
+	if ccxt.IsTrue(ccxt.IsEqual(channel, nil)) {
+		return
+	}
 	if ccxt.IsTrue(ccxt.IsGreaterThan(ccxt.GetIndexOf(channel, "order_book"), ccxt.OpNeg(1))) {
 		this.HandleOrderBookSubscription(client, message)
 	}
@@ -546,12 +567,15 @@ func (this *BitstampCore) HandleSubject(client any, message any) {
 	//     }
 	//
 	var channel any = this.SafeString(message, "channel")
-	var methods any = map[string]any{
+	if ccxt.IsTrue(ccxt.IsEqual(channel, nil)) {
+		return
+	}
+	var methods map[string]any = map[string]any{
 		"live_trades":       this.HandleTrade,
 		"diff_order_book":   this.HandleOrderBook,
 		"private-my_orders": this.HandleOrders,
 	}
-	var keys any = ccxt.ObjectKeys(methods)
+	var keys []string = ccxt.ObjectKeys(methods)
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(keys)); i++ {
 		var key any = ccxt.GetValue(keys, i)
 		if ccxt.IsTrue(ccxt.IsGreaterThan(ccxt.GetIndexOf(channel, key), ccxt.OpNeg(1))) {
@@ -576,7 +600,7 @@ func (this *BitstampCore) HandleErrorMessage(client any, message any) any {
 	return true
 }
 func (this *BitstampCore) HandleMessage(client any, message any) {
-	if !ccxt.IsTrue(this.HandleErrorMessage(client, message)) {
+	if ccxt.IsTrue(!ccxt.IsEqual(this.HandleErrorMessage(client, message), true)) {
 		return
 	}
 	//
@@ -619,67 +643,121 @@ func (this *BitstampCore) HandleMessage(client any, message any) {
 	}
 }
 func (this *BitstampCore) Authenticate(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		this.CheckRequiredCredentials()
-		var time any = this.Milliseconds()
-		var expiresIn any = this.SafeInteger(this.Options, "expiresIn")
-		if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(expiresIn, nil))) || ccxt.IsTrue((ccxt.IsGreaterThan(time, expiresIn)))) {
+	ch := make(chan any, 1)
+	go this.authenticateBody(ch, optionalArgs...)
+	return ch
+}
+func (this *BitstampCore) authenticateBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	this.CheckRequiredCredentials()
+	var time int64 = this.Milliseconds()
+	var expiresIn any = this.SafeInteger(this.Options, "expiresIn")
+	if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(expiresIn, nil))) || ccxt.IsTrue((ccxt.IsGreaterThan(time, expiresIn)))) {
+		// single-flight leader election on a never-dialed client, see
+		// https://github.com/ccxt/ccxt/issues/29393: the websocket token is
+		// minted by a private REST call and cached in this.options, so N
+		// concurrent subscribePrivate () calls on a cold instance all pass
+		// the staleness check above and each mint their own token - the
+		// tokens are short lived (valid_sec is 60), so this burns the
+		// private endpoint and only the last write survives.
+		// the flight is registered in client.futures and settled through
+		// client.resolve / client.reject, so every mutation of that map
+		// goes through the client's own accessors in the ported languages
+		var messageHash string = "authenticateFlight"
+		var client any = this.Client("authenticationFlights")
+		if ccxt.IsTrue(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
+			// a flight is already in progress - wake when the leader
+			// settles it: the token is then in this.options
 
-			response := (<-this.PrivatePostWebsocketsToken(params))
-			ccxt.PanicOnError(response)
-			//
-			// {
-			//     "valid_sec":60,
-			//     "token":"siPaT4m6VGQCdsDCVbLBemiphHQs552e",
-			//     "user_id":4848701
-			// }
-			//
-			var sessionToken any = this.SafeString(response, "token")
-			if ccxt.IsTrue(!ccxt.IsEqual(sessionToken, nil)) {
+			retRes60916 := (<-client.(ccxt.ClientInterface).Future(messageHash))
+			ccxt.PanicOnError(retRes60916)
+
+			return nil
+		}
+		var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
+
+		{
+			func(this *BitstampCore) (ret_ any) {
+				defer func() {
+					if e := recover(); e != nil {
+						if e == "break" {
+							return
+						}
+						ret_ = func(this *BitstampCore) any {
+							// catch block:
+							// reject the flight - all waiters throw and the next caller
+							// re-leads instead of deadlocking on a dead flight
+							client.(ccxt.ClientInterface).Reject(e, messageHash)
+							return nil
+						}(this)
+					}
+				}()
+				// try block:
+
+				response := (<-this.PrivatePostWebsocketsToken(params))
+				ccxt.PanicOnError(response)
+				//
+				// {
+				//     "valid_sec":60,
+				//     "token":"siPaT4m6VGQCdsDCVbLBemiphHQs552e",
+				//     "user_id":4848701
+				// }
+				//
+				var sessionToken any = this.SafeString(response, "token")
+				if ccxt.IsTrue(ccxt.IsEqual(sessionToken, nil)) {
+					panic(ccxt.AuthenticationError(ccxt.Add(this.Id, " authenticate() received an empty token")))
+				}
 				var userId any = this.SafeString(response, "user_id")
 				var validity any = this.SafeIntegerProduct(response, "valid_sec", 1000)
 				ccxt.AddElementToObject(this.Options, "expiresIn", this.Sum(time, validity))
 				ccxt.AddElementToObject(this.Options, "userId", userId)
 				ccxt.AddElementToObject(this.Options, "wsSessionToken", sessionToken)
-			}
+				// settle the flight: client.resolve deletes the future from
+				// client.futures and wakes every waiter parked on it
+				client.(ccxt.ClientInterface).Resolve(sessionToken, messageHash)
+				return nil
+			}(this)
+
 		}
-		return nil
-	}()
-	return ch
+		// rethrows to the leader and marks the promise handled, so an
+		// alone leader's rejection is never unhandled
+
+		retRes64512 := <-future.(*ccxt.Future).Await()
+		ccxt.PanicOnError(retRes64512)
+	}
+	return nil
 }
 func (this *BitstampCore) SubscribePrivate(subscription any, messageHash any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-
-		retRes5918 := (<-this.Authenticate())
-		ccxt.PanicOnError(retRes5918)
-		messageHash = ccxt.Add(messageHash, ccxt.Add("-", ccxt.GetValue(this.Options, "userId")))
-		var request any = map[string]any{
-			"event": "bts:subscribe",
-			"data": map[string]any{
-				"channel": messageHash,
-				"auth":    ccxt.GetValue(this.Options, "wsSessionToken"),
-			},
-		}
-		ccxt.AddElementToObject(subscription, "messageHash", messageHash)
-
-		retRes60115 := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash, subscription))
-		ccxt.PanicOnError(retRes60115)
-		ch <- retRes60115
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.subscribePrivateBody(ch, subscription, messageHash, optionalArgs...)
 	return ch
+}
+func (this *BitstampCore) subscribePrivateBody(ch chan any, subscription any, messageHash any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+
+	retRes6518 := (<-this.Authenticate())
+	ccxt.PanicOnError(retRes6518)
+	messageHash = ccxt.Add(messageHash, ccxt.Add("-", ccxt.GetValue(this.Options, "userId")))
+	var request map[string]any = map[string]any{
+		"event": "bts:subscribe",
+		"data": map[string]any{
+			"channel": messageHash,
+			"auth":    ccxt.GetValue(this.Options, "wsSessionToken"),
+		},
+	}
+	ccxt.AddElementToObject(subscription, "messageHash", messageHash)
+
+	retRes66115 := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash, subscription))
+	ccxt.PanicOnError(retRes66115)
+	ch <- retRes66115
+	return nil
 }
 
 func (this *BitstampCore) Init(userConfig map[string]any) {

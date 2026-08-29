@@ -34,7 +34,7 @@ export default class hitbtc extends Exchange {
                 'addMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
-                'closePosition': false,
+                'closePosition': true,
                 'createDepositAddress': true,
                 'createOrder': true,
                 'createPostOnlyOrder': true,
@@ -136,129 +136,129 @@ export default class hitbtc extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'public/currency': 10,
-                        'public/currency/{currency}': 10,
-                        'public/symbol': 10,
-                        'public/symbol/{symbol}': 10,
-                        'public/ticker': 10,
-                        'public/ticker/{symbol}': 10,
-                        'public/price/rate': 10,
-                        'public/price/history': 10,
-                        'public/price/ticker': 10,
-                        'public/price/ticker/{symbol}': 10,
-                        'public/trades': 10,
-                        'public/trades/{symbol}': 10,
-                        'public/orderbook': 10,
-                        'public/orderbook/{symbol}': 10,
-                        'public/candles': 10,
-                        'public/candles/{symbol}': 10,
-                        'public/converted/candles': 10,
-                        'public/converted/candles/{symbol}': 10,
-                        'public/futures/info': 10,
-                        'public/futures/info/{symbol}': 10,
-                        'public/futures/history/funding': 10,
-                        'public/futures/history/funding/{symbol}': 10,
-                        'public/futures/candles/index_price': 10,
-                        'public/futures/candles/index_price/{symbol}': 10,
-                        'public/futures/candles/mark_price': 10,
-                        'public/futures/candles/mark_price/{symbol}': 10,
-                        'public/futures/candles/premium_index': 10,
-                        'public/futures/candles/premium_index/{symbol}': 10,
-                        'public/futures/candles/open_interest': 10,
-                        'public/futures/candles/open_interest/{symbol}': 10,
+                        'public/currency': { 'cost': 10 },
+                        'public/currency/{currency}': { 'cost': 10 },
+                        'public/symbol': { 'cost': 10 },
+                        'public/symbol/{symbol}': { 'cost': 10 },
+                        'public/ticker': { 'cost': 10 },
+                        'public/ticker/{symbol}': { 'cost': 10 },
+                        'public/price/rate': { 'cost': 10 },
+                        'public/price/history': { 'cost': 10 },
+                        'public/price/ticker': { 'cost': 10 },
+                        'public/price/ticker/{symbol}': { 'cost': 10 },
+                        'public/trades': { 'cost': 10 },
+                        'public/trades/{symbol}': { 'cost': 10 },
+                        'public/orderbook': { 'cost': 10 },
+                        'public/orderbook/{symbol}': { 'cost': 10 },
+                        'public/candles': { 'cost': 10 },
+                        'public/candles/{symbol}': { 'cost': 10 },
+                        'public/converted/candles': { 'cost': 10 },
+                        'public/converted/candles/{symbol}': { 'cost': 10 },
+                        'public/futures/info': { 'cost': 10 },
+                        'public/futures/info/{symbol}': { 'cost': 10 },
+                        'public/futures/history/funding': { 'cost': 10 },
+                        'public/futures/history/funding/{symbol}': { 'cost': 10 },
+                        'public/futures/candles/index_price': { 'cost': 10 },
+                        'public/futures/candles/index_price/{symbol}': { 'cost': 10 },
+                        'public/futures/candles/mark_price': { 'cost': 10 },
+                        'public/futures/candles/mark_price/{symbol}': { 'cost': 10 },
+                        'public/futures/candles/premium_index': { 'cost': 10 },
+                        'public/futures/candles/premium_index/{symbol}': { 'cost': 10 },
+                        'public/futures/candles/open_interest': { 'cost': 10 },
+                        'public/futures/candles/open_interest/{symbol}': { 'cost': 10 },
                     },
                 },
                 'private': {
                     'get': {
-                        'spot/balance': 15,
-                        'spot/balance/{currency}': 15,
-                        'spot/order': 1,
-                        'spot/order/{client_order_id}': 1,
-                        'spot/fee': 15,
-                        'spot/fee/{symbol}': 15,
-                        'spot/history/order': 15,
-                        'spot/history/trade': 15,
-                        'margin/account': 1,
-                        'margin/account/isolated/{symbol}': 1,
-                        'margin/account/cross/{currency}': 1,
-                        'margin/order': 1,
-                        'margin/order/{client_order_id}': 1,
-                        'margin/config': 15,
-                        'margin/history/order': 15,
-                        'margin/history/trade': 15,
-                        'margin/history/positions': 15,
-                        'margin/history/clearing': 15,
-                        'futures/balance': 15,
-                        'futures/balance/{currency}': 15,
-                        'futures/account': 1,
-                        'futures/account/isolated/{symbol}': 1,
-                        'futures/order': 1,
-                        'futures/order/{client_order_id}': 1,
-                        'futures/config': 15,
-                        'futures/fee': 15,
-                        'futures/fee/{symbol}': 15,
-                        'futures/history/order': 15,
-                        'futures/history/trade': 15,
-                        'futures/history/positions': 15,
-                        'futures/history/clearing': 15,
-                        'wallet/balance': 30,
-                        'wallet/balance/{currency}': 30,
-                        'wallet/crypto/address': 30,
-                        'wallet/crypto/address/recent-deposit': 30,
-                        'wallet/crypto/address/recent-withdraw': 30,
-                        'wallet/crypto/address/check-mine': 30,
-                        'wallet/transactions': 30,
-                        'wallet/transactions/{tx_id}': 30,
-                        'wallet/crypto/fee/estimate': 30,
-                        'wallet/airdrops': 30,
-                        'wallet/amount-locks': 30,
-                        'sub-account': 15,
-                        'sub-account/acl': 15,
-                        'sub-account/balance/{subAccID}': 15,
-                        'sub-account/crypto/address/{subAccID}/{currency}': 15,
+                        'spot/balance': { 'cost': 15 },
+                        'spot/balance/{currency}': { 'cost': 15 },
+                        'spot/order': { 'cost': 1 },
+                        'spot/order/{client_order_id}': { 'cost': 1 },
+                        'spot/fee': { 'cost': 15 },
+                        'spot/fee/{symbol}': { 'cost': 15 },
+                        'spot/history/order': { 'cost': 15 },
+                        'spot/history/trade': { 'cost': 15 },
+                        'margin/account': { 'cost': 1 },
+                        'margin/account/isolated/{symbol}': { 'cost': 1 },
+                        'margin/account/cross/{currency}': { 'cost': 1 },
+                        'margin/order': { 'cost': 1 },
+                        'margin/order/{client_order_id}': { 'cost': 1 },
+                        'margin/config': { 'cost': 15 },
+                        'margin/history/order': { 'cost': 15 },
+                        'margin/history/trade': { 'cost': 15 },
+                        'margin/history/positions': { 'cost': 15 },
+                        'margin/history/clearing': { 'cost': 15 },
+                        'futures/balance': { 'cost': 15 },
+                        'futures/balance/{currency}': { 'cost': 15 },
+                        'futures/account': { 'cost': 1 },
+                        'futures/account/isolated/{symbol}': { 'cost': 1 },
+                        'futures/order': { 'cost': 1 },
+                        'futures/order/{client_order_id}': { 'cost': 1 },
+                        'futures/config': { 'cost': 15 },
+                        'futures/fee': { 'cost': 15 },
+                        'futures/fee/{symbol}': { 'cost': 15 },
+                        'futures/history/order': { 'cost': 15 },
+                        'futures/history/trade': { 'cost': 15 },
+                        'futures/history/positions': { 'cost': 15 },
+                        'futures/history/clearing': { 'cost': 15 },
+                        'wallet/balance': { 'cost': 30 },
+                        'wallet/balance/{currency}': { 'cost': 30 },
+                        'wallet/crypto/address': { 'cost': 30 },
+                        'wallet/crypto/address/recent-deposit': { 'cost': 30 },
+                        'wallet/crypto/address/recent-withdraw': { 'cost': 30 },
+                        'wallet/crypto/address/check-mine': { 'cost': 30 },
+                        'wallet/transactions': { 'cost': 30 },
+                        'wallet/transactions/{tx_id}': { 'cost': 30 },
+                        'wallet/crypto/fee/estimate': { 'cost': 30 },
+                        'wallet/airdrops': { 'cost': 30 },
+                        'wallet/amount-locks': { 'cost': 30 },
+                        'sub-account': { 'cost': 15 },
+                        'sub-account/acl': { 'cost': 15 },
+                        'sub-account/balance/{subAccID}': { 'cost': 15 },
+                        'sub-account/crypto/address/{subAccID}/{currency}': { 'cost': 15 },
                     },
                     'post': {
-                        'spot/order': 1,
-                        'spot/order/list': 1,
-                        'margin/order': 1,
-                        'margin/order/list': 1,
-                        'futures/order': 1,
-                        'futures/order/list': 1,
-                        'wallet/crypto/address': 30,
-                        'wallet/crypto/withdraw': 30,
-                        'wallet/convert': 30,
-                        'wallet/transfer': 30,
-                        'wallet/internal/withdraw': 30,
-                        'wallet/crypto/check-offchain-available': 30,
-                        'wallet/crypto/fees/estimate': 30,
-                        'wallet/airdrops/{id}/claim': 30,
-                        'sub-account/freeze': 15,
-                        'sub-account/activate': 15,
-                        'sub-account/transfer': 15,
-                        'sub-account/acl': 15,
+                        'spot/order': { 'cost': 1 },
+                        'spot/order/list': { 'cost': 1 },
+                        'margin/order': { 'cost': 1 },
+                        'margin/order/list': { 'cost': 1 },
+                        'futures/order': { 'cost': 1 },
+                        'futures/order/list': { 'cost': 1 },
+                        'wallet/crypto/address': { 'cost': 30 },
+                        'wallet/crypto/withdraw': { 'cost': 30 },
+                        'wallet/convert': { 'cost': 30 },
+                        'wallet/transfer': { 'cost': 30 },
+                        'wallet/internal/withdraw': { 'cost': 30 },
+                        'wallet/crypto/check-offchain-available': { 'cost': 30 },
+                        'wallet/crypto/fees/estimate': { 'cost': 30 },
+                        'wallet/airdrops/{id}/claim': { 'cost': 30 },
+                        'sub-account/freeze': { 'cost': 15 },
+                        'sub-account/activate': { 'cost': 15 },
+                        'sub-account/transfer': { 'cost': 15 },
+                        'sub-account/acl': { 'cost': 15 },
                     },
                     'patch': {
-                        'spot/order/{client_order_id}': 1,
-                        'margin/order/{client_order_id}': 1,
-                        'futures/order/{client_order_id}': 1,
+                        'spot/order/{client_order_id}': { 'cost': 1 },
+                        'margin/order/{client_order_id}': { 'cost': 1 },
+                        'futures/order/{client_order_id}': { 'cost': 1 },
                     },
                     'delete': {
-                        'spot/order': 1,
-                        'spot/order/{client_order_id}': 1,
-                        'margin/position': 1,
-                        'margin/position/isolated/{symbol}': 1,
-                        'margin/order': 1,
-                        'margin/order/{client_order_id}': 1,
-                        'futures/position': 1,
-                        'futures/position/{margin_mode}/{symbol}': 1,
-                        'futures/order': 1,
-                        'futures/order/{client_order_id}': 1,
-                        'wallet/crypto/withdraw/{id}': 30,
+                        'spot/order': { 'cost': 1 },
+                        'spot/order/{client_order_id}': { 'cost': 1 },
+                        'margin/position': { 'cost': 1 },
+                        'margin/position/isolated/{symbol}': { 'cost': 1 },
+                        'margin/order': { 'cost': 1 },
+                        'margin/order/{client_order_id}': { 'cost': 1 },
+                        'futures/position': { 'cost': 1 },
+                        'futures/position/{margin_mode}/{symbol}': { 'cost': 1 },
+                        'futures/order': { 'cost': 1 },
+                        'futures/order/{client_order_id}': { 'cost': 1 },
+                        'wallet/crypto/withdraw/{id}': { 'cost': 30 },
                     },
                     'put': {
-                        'margin/account/isolated/{symbol}': 1,
-                        'futures/account/isolated/{symbol}': 1,
-                        'wallet/crypto/withdraw/{id}': 30,
+                        'margin/account/isolated/{symbol}': { 'cost': 1 },
+                        'futures/account/isolated/{symbol}': { 'cost': 1 },
+                        'wallet/crypto/withdraw/{id}': { 'cost': 30 },
                     },
                 },
             },
@@ -976,22 +976,24 @@ export default class hitbtc extends Exchange {
             const networkId = this.safeString2(rawNetwork, 'protocol', 'network');
             let networkCode = this.networkIdToCode(networkId, code);
             networkCode = (networkCode !== undefined) ? networkCode.toUpperCase() : code; // as hitbtc is white label, ensure we safeguard from possible bugs
-            networks[networkCode] = {
-                'info': rawNetwork,
-                'id': networkId,
-                'network': networkCode,
-                'active': undefined,
-                'fee': this.safeNumber(rawNetwork, 'payout_fee'),
-                'deposit': this.safeBool(rawNetwork, 'payin_enabled'),
-                'withdraw': this.safeBool(rawNetwork, 'payout_enabled'),
-                'precision': this.safeNumber(rawNetwork, 'precision_payout'),
-                'limits': {
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
+            if (networkCode !== undefined) {
+                networks[networkCode] = {
+                    'info': rawNetwork,
+                    'id': networkId,
+                    'network': networkCode,
+                    'active': undefined,
+                    'fee': this.safeNumber(rawNetwork, 'payout_fee'),
+                    'deposit': this.safeBool(rawNetwork, 'payin_enabled'),
+                    'withdraw': this.safeBool(rawNetwork, 'payout_enabled'),
+                    'precision': this.safeNumber(rawNetwork, 'precision_payout'),
+                    'limits': {
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                     },
-                },
-            };
+                };
+            }
         }
         return this.safeCurrencyStructure({
             'info': entry,
@@ -999,7 +1001,7 @@ export default class hitbtc extends Exchange {
             'id': currencyId,
             'precision': this.safeNumber(entry, 'precision_transfer'),
             'name': this.safeString(entry, 'full_name'),
-            'active': !this.safeBool(entry, 'delisted'),
+            'active': this.safeBool(entry, 'delisted') !== true,
             'deposit': this.safeBool(entry, 'payin_enabled'),
             'withdraw': this.safeBool(entry, 'payout_enabled'),
             'networks': networks,
@@ -1104,7 +1106,9 @@ export default class hitbtc extends Exchange {
             const account = this.account();
             account['free'] = this.safeString(entry, 'available');
             account['used'] = this.safeString(entry, 'reserved');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1225,7 +1229,7 @@ export default class hitbtc extends Exchange {
             const marketId = keys[i];
             const market = this.safeMarket(marketId);
             const symbol = market['symbol'];
-            const entry = response[marketId];
+            const entry = this.safeDict(response, marketId, {});
             result[symbol] = this.parseTicker(entry, market);
         }
         return this.filterByArrayTickers(result, 'symbol', symbols);
@@ -1308,7 +1312,7 @@ export default class hitbtc extends Exchange {
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const marketInner = this.market(marketId);
-            const rawTrades = response[marketId];
+            const rawTrades = this.safeList(response, marketId, []);
             const parsed = this.parseTrades(rawTrades, marketInner);
             trades = this.arrayConcat(trades, parsed);
         }
@@ -1436,7 +1440,7 @@ export default class hitbtc extends Exchange {
         const taker = this.safeValue(trade, 'taker');
         let takerOrMaker;
         if (taker !== undefined) {
-            takerOrMaker = taker ? 'taker' : 'maker';
+            takerOrMaker = (taker === true) ? 'taker' : 'maker';
         }
         else {
             takerOrMaker = 'taker'; // the only case when `taker` field is missing, is public fetchTrades and it must be taker
@@ -1693,10 +1697,10 @@ export default class hitbtc extends Exchange {
         const marketIds = Object.keys(response);
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
-            const orderbook = response[marketId];
+            const orderbook = this.safeDict(response, marketId, {});
             const symbol = this.safeSymbol(marketId);
             const timestamp = this.parse8601(this.safeString(orderbook, 'timestamp'));
-            result[symbol] = this.parseOrderBook(response[marketId], symbol, timestamp, 'bid', 'ask');
+            result[symbol] = this.parseOrderBook(orderbook, symbol, timestamp, 'bid', 'ask');
         }
         return result;
     }
@@ -1708,7 +1712,7 @@ export default class hitbtc extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -1905,7 +1909,8 @@ export default class hitbtc extends Exchange {
         //         },
         //     ]
         //
-        return this.parseOHLCVs(response, market, timeframe, since, limit);
+        const ohlcvs = this.toArray(response);
+        return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
     }
     parseOHLCV(ohlcv, market = undefined) {
         //
@@ -2283,7 +2288,7 @@ export default class hitbtc extends Exchange {
      * @see https://api.hitbtc.com/#cancel-all-spot-orders
      * @see https://api.hitbtc.com/#cancel-futures-orders
      * @see https://api.hitbtc.com/#cancel-all-margin-orders
-     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported
      * @param {bool} [params.margin] true for canceling margin orders
@@ -2868,7 +2873,7 @@ export default class hitbtc extends Exchange {
         }
         const withdrawOptions = this.safeValue(this.options, 'withdraw', {});
         const includeFee = this.safeBool(withdrawOptions, 'includeFee', false);
-        if (includeFee) {
+        if (includeFee === true) {
             request['include_fee'] = true;
         }
         const response = await this.privatePostWalletCryptoWithdraw(this.extend(request, params));
@@ -3003,7 +3008,7 @@ export default class hitbtc extends Exchange {
         for (let i = 0; i < contracts.length; i++) {
             const marketId = contracts[i];
             const marketInner = this.safeMarket(marketId);
-            const fundingRateData = response[marketId];
+            const fundingRateData = this.safeList(response, marketId, []);
             for (let j = 0; j < fundingRateData.length; j++) {
                 const entry = fundingRateData[j];
                 const symbolInner = this.safeSymbol(marketInner['symbol']);
@@ -3027,7 +3032,7 @@ export default class hitbtc extends Exchange {
      * @description fetch all open positions
      * @see https://api.hitbtc.com/#get-futures-margin-accounts
      * @see https://api.hitbtc.com/#get-all-margin-accounts
-     * @param {string[]|undefined} symbols not used by hitbtc fetchPositions ()
+     * @param {string[]|undefined} symbols not used by fetchPositions ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported, defaults to spot-margin endpoint if this is set
      * @param {bool} [params.margin] true for fetching spot-margin positions
@@ -3329,7 +3334,8 @@ export default class hitbtc extends Exchange {
         for (let i = 0; i < markets.length; i++) {
             const marketId = markets[i];
             const marketInner = this.safeMarket(marketId);
-            results.push(this.parseOpenInterest(response[marketId], marketInner));
+            const openInterest = this.safeDict(response, marketId, {});
+            results.push(this.parseOpenInterest(openInterest, marketInner));
         }
         return this.filterByArray(results, 'symbol', symbols);
     }
@@ -3347,7 +3353,7 @@ export default class hitbtc extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (!market['swap']) {
+        if (market['swap'] !== true) {
             throw new BadSymbol(this.id + ' fetchOpenInterest() supports swap contracts only');
         }
         const request = {
@@ -3385,7 +3391,7 @@ export default class hitbtc extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (!market['swap']) {
+        if (market['swap'] !== true) {
             throw new BadSymbol(this.id + ' fetchFundingRate() supports swap contracts only');
         }
         const request = {
@@ -3454,7 +3460,7 @@ export default class hitbtc extends Exchange {
         }
         const market = this.market(symbol);
         const leverage = this.safeString(params, 'leverage');
-        if (market['swap']) {
+        if (market['swap'] === true) {
             if (leverage === undefined) {
                 throw new ArgumentsRequired(this.id + ' modifyMarginHelper() requires a leverage parameter for swap markets');
             }
@@ -3807,7 +3813,7 @@ export default class hitbtc extends Exchange {
      * @see https://api.hitbtc.com/#close-all-futures-margin-positions
      * @param {string} symbol unified ccxt market symbol
      * @param {string} side 'buy' or 'sell'
-     * @param {object} [params] extra parameters specific to the okx api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.symbol] *required* unified market symbol
      * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'cross'
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
@@ -3899,7 +3905,7 @@ export default class hitbtc extends Exchange {
             'Content-Type': 'application/json',
         };
         if (method === 'GET') {
-            if (queryLength) {
+            if ((queryLength !== undefined) && (queryLength !== 0)) {
                 getRequest = '?' + this.urlencode(query);
                 url = url + getRequest;
             }

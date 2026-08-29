@@ -5,38 +5,38 @@
 
 // -------------------------------------------------------------------------------
 
-import { implicitReturnType } from '../base/types.js';
+import { Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
-    publicGetTickerALLQuoteId (params?: {}): Promise<implicitReturnType>;
-    publicGetTickerBaseIdQuoteId (params?: {}): Promise<implicitReturnType>;
-    publicGetOrderbookALLQuoteId (params?: {}): Promise<implicitReturnType>;
-    publicGetOrderbookBaseIdQuoteId (params?: {}): Promise<implicitReturnType>;
-    publicGetTransactionHistoryBaseIdQuoteId (params?: {}): Promise<implicitReturnType>;
-    publicGetNetworkInfo (params?: {}): Promise<implicitReturnType>;
-    publicGetAssetsstatusMultichainALL (params?: {}): Promise<implicitReturnType>;
-    publicGetAssetsstatusMultichainCurrency (params?: {}): Promise<implicitReturnType>;
-    publicGetWithdrawMinimumALL (params?: {}): Promise<implicitReturnType>;
-    publicGetWithdrawMinimumCurrency (params?: {}): Promise<implicitReturnType>;
-    publicGetAssetsstatusALL (params?: {}): Promise<implicitReturnType>;
-    publicGetAssetsstatusBaseId (params?: {}): Promise<implicitReturnType>;
-    publicGetCandlestickBaseIdQuoteIdInterval (params?: {}): Promise<implicitReturnType>;
-    privatePostInfoAccount (params?: {}): Promise<implicitReturnType>;
-    privatePostInfoBalance (params?: {}): Promise<implicitReturnType>;
-    privatePostInfoWalletAddress (params?: {}): Promise<implicitReturnType>;
-    privatePostInfoTicker (params?: {}): Promise<implicitReturnType>;
-    privatePostInfoOrders (params?: {}): Promise<implicitReturnType>;
-    privatePostInfoUserTransactions (params?: {}): Promise<implicitReturnType>;
-    privatePostInfoOrderDetail (params?: {}): Promise<implicitReturnType>;
-    privatePostTradePlace (params?: {}): Promise<implicitReturnType>;
-    privatePostTradeCancel (params?: {}): Promise<implicitReturnType>;
-    privatePostTradeBtcWithdrawal (params?: {}): Promise<implicitReturnType>;
-    privatePostTradeKrwDeposit (params?: {}): Promise<implicitReturnType>;
-    privatePostTradeKrwWithdrawal (params?: {}): Promise<implicitReturnType>;
-    privatePostTradeMarketBuy (params?: {}): Promise<implicitReturnType>;
-    privatePostTradeMarketSell (params?: {}): Promise<implicitReturnType>;
-    privatePostTradeStopLimit (params?: {}): Promise<implicitReturnType>;
+    publicGetTickerALLQuoteId (params?: {}): Promise<Dict>;
+    publicGetTickerBaseIdQuoteId (params?: {}): Promise<Dict>;
+    publicGetOrderbookALLQuoteId (params?: {}): Promise<Dict>;
+    publicGetOrderbookBaseIdQuoteId (params?: {}): Promise<Dict>;
+    publicGetTransactionHistoryBaseIdQuoteId (params?: {}): Promise<Dict>;
+    publicGetNetworkInfo (params?: {}): Promise<Dict>;
+    publicGetAssetsstatusMultichainALL (params?: {}): Promise<Dict>;
+    publicGetAssetsstatusMultichainCurrency (params?: {}): Promise<Dict>;
+    publicGetWithdrawMinimumALL (params?: {}): Promise<Dict>;
+    publicGetWithdrawMinimumCurrency (params?: {}): Promise<Dict>;
+    publicGetAssetsstatusALL (params?: {}): Promise<Dict>;
+    publicGetAssetsstatusBaseId (params?: {}): Promise<Dict>;
+    publicGetCandlestickBaseIdQuoteIdInterval (params?: {}): Promise<Dict>;
+    privatePostInfoAccount (params?: {}): Promise<Dict>;
+    privatePostInfoBalance (params?: {}): Promise<Dict>;
+    privatePostInfoWalletAddress (params?: {}): Promise<Dict>;
+    privatePostInfoTicker (params?: {}): Promise<Dict>;
+    privatePostInfoOrders (params?: {}): Promise<Dict>;
+    privatePostInfoUserTransactions (params?: {}): Promise<Dict>;
+    privatePostInfoOrderDetail (params?: {}): Promise<Dict>;
+    privatePostTradePlace (params?: {}): Promise<Dict>;
+    privatePostTradeCancel (params?: {}): Promise<Dict>;
+    privatePostTradeBtcWithdrawal (params?: {}): Promise<Dict>;
+    privatePostTradeKrwDeposit (params?: {}): Promise<Dict>;
+    privatePostTradeKrwWithdrawal (params?: {}): Promise<Dict>;
+    privatePostTradeMarketBuy (params?: {}): Promise<Dict>;
+    privatePostTradeMarketSell (params?: {}): Promise<Dict>;
+    privatePostTradeStopLimit (params?: {}): Promise<Dict>;
 }
 abstract class Exchange extends _Exchange {}
 

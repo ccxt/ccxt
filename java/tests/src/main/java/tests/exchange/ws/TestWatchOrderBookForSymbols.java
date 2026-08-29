@@ -17,14 +17,18 @@ public class TestWatchOrderBookForSymbols extends BaseTest {
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
         Object method = "watchOrderBookForSymbols";
+        // as in `watchOrderBook`, a pending subscription can not be cancelled, so the
+        // loop has to be bounded by the deadline alone. waiting for every requested
+        // symbol to be seen would hang forever whenever one of them stays idle.
+        Object maxIdleTime = 5000;
         Object currentTime = exchange.milliseconds();
         Object deadline = Helpers.add(currentTime, 15000);
-        Object seenSymbols = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-        // keep polling until the time window elapses and every requested symbol has been observed
-        while (Helpers.isTrue(Helpers.isLessThan(currentTime, deadline)) || Helpers.isTrue(Helpers.isLessThan(Helpers.getArrayLength(seenSymbols), Helpers.getArrayLength(symbols))))
+        Object idle = false;
+        while (Helpers.isTrue((Helpers.isLessThan(currentTime, deadline))) && !Helpers.isTrue(idle))
         {
             Object response = null;
             Object succeeded = true;
+            Object startTime = exchange.milliseconds();
             try
             {
                 response = (exchange.watchOrderBookForSymbols(symbols)).join();
@@ -33,21 +37,19 @@ public class TestWatchOrderBookForSymbols extends BaseTest {
                 // interim workaround for InvalidNonce raised by the c# runtime
                 if (Helpers.isTrue(!Helpers.isTrue(TestSharedMethods.isTemporaryFailure(e)) && !Helpers.isTrue((Helpers.isInstance(e, InvalidNonce.class)))))
                 {
-                    throw new RuntimeException(e);
+                    throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                 }
-                currentTime = exchange.milliseconds();
                 succeeded = false;
             }
+            currentTime = exchange.milliseconds();
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(succeeded, true))) && Helpers.isTrue((!Helpers.isEqual(response, null)))))
             {
-                Assert(exchange.isDictionary(response), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " "), exchange.json(symbols)), " must return a dictionary. "), exchange.json(response)));
-                currentTime = exchange.milliseconds();
-                TestSharedMethods.AssertInArray(exchange, skippedProperties, method, response, "symbol", symbols);
                 TestOrderBook.testOrderBook(exchange, skippedProperties, method, response, null);
-                Object symbol = Helpers.GetValue(response, "symbol");
-                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(symbol, null))) && !Helpers.isTrue(exchange.inArray(symbol, seenSymbols))))
+                TestSharedMethods.AssertInArray(exchange, skippedProperties, method, response, "symbol", symbols);
+                Object elapsed = Helpers.subtract(currentTime, startTime);
+                if (Helpers.isTrue(Helpers.isGreaterThan(elapsed, maxIdleTime)))
                 {
-                    ((java.util.List<Object>)seenSymbols).add(symbol);
+                    idle = true;
                 }
             }
         }

@@ -57,7 +57,7 @@ public partial class nado : Exchange
                 { "withdraw", false },
             } },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://github.com/user-attachments/assets/142df520-1e1d-4a04-bfda-fe33e5768e63" },
+                { "logo", "https://github.com/user-attachments/assets/811f4e1a-a8b5-4b9e-84c2-0f88997bd274" },
                 { "api", new Dictionary<string, object>() {
                     { "gateway", "https://gateway.prod.nado.xyz/v1" },
                     { "gatewayV2", "https://gateway.prod.nado.xyz/v2" },
@@ -79,48 +79,76 @@ public partial class nado : Exchange
                 { "gateway", new Dictionary<string, object>() {
                     { "public", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
-                            { "symbols", 2 },
-                            { "query", 1 },
-                            { "edge/query", 1 },
+                            { "symbols", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "query", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "edge/query", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                         { "post", new Dictionary<string, object>() {
-                            { "query", 1 },
+                            { "query", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                     } },
                     { "private", new Dictionary<string, object>() {
                         { "post", new Dictionary<string, object>() {
-                            { "execute", 1 },
+                            { "execute", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                     } },
                 } },
                 { "gatewayV2", new Dictionary<string, object>() {
                     { "public", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
-                            { "assets", 2 },
-                            { "pairs", 1 },
-                            { "orderbook", 1 },
+                            { "assets", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "pairs", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "orderbook", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                     } },
                 } },
                 { "archive", new Dictionary<string, object>() {
                     { "post", new Dictionary<string, object>() {
-                        { "", 1 },
+                        { "", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "archiveV2", new Dictionary<string, object>() {
                     { "public", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
-                            { "tickers", 1 },
-                            { "contracts", 1 },
-                            { "trades", 1 },
+                            { "tickers", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "contracts", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "trades", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                     } },
                 } },
                 { "trigger", new Dictionary<string, object>() {
                     { "private", new Dictionary<string, object>() {
                         { "post", new Dictionary<string, object>() {
-                            { "execute", 1 },
-                            { "query", 1 },
+                            { "execute", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "query", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                     } },
                 } },
@@ -338,7 +366,7 @@ public partial class nado : Exchange
      * @param {int} [params.id] client-provided request id, returned by the exchange in the response
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
@@ -346,7 +374,7 @@ public partial class nado : Exchange
         object market = this.market(symbol);
         object request = await this.createOrderRequest(symbol, type, side, amount, price, parameters);
         object placeOrder = this.safeDict(request, "place_order", new Dictionary<string, object>() {});
-        object isTriggerOrder = (inOp(placeOrder, "trigger"));
+        bool isTriggerOrder = (inOp(placeOrder, "trigger"));
         object response = null;
         if (isTrue(isTriggerOrder))
         {
@@ -366,9 +394,7 @@ public partial class nado : Exchange
         //         "id": 100
         //     }
         //
-        return this.parseOrder(this.extend(new Dictionary<string, object>() {
-            { "place_order", placeOrder },
-        }, response), market);
+        return ccxt.BaseExchange.ToOrder(this.parseOrder(this.extend(new Dictionary<string, object>() {             { "place_order", placeOrder },         }, response), market));
     }
 
     /**
@@ -439,14 +465,14 @@ public partial class nado : Exchange
         {
             ((IDictionary<string,object>)placeOrder)["spot_leverage"] = spotLeverage;
         }
-        object isBuy = (isEqual(side, "buy"));
+        bool isBuy = (isEqual(side, "buy"));
         object triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
         object stopLossTriggerPrice = this.safeString(parameters, "stopLossPrice");
         object takeProfitTriggerPrice = this.safeString(parameters, "takeProfitPrice");
-        object isStopLossOrder = !isEqual(stopLossTriggerPrice, null);
-        object isTakeProfitOrder = !isEqual(takeProfitTriggerPrice, null);
-        object isStopOrder = !isEqual(triggerPrice, null);
-        object isTriggerOrder = isTrue(isTrue(isStopOrder) || isTrue(isStopLossOrder)) || isTrue(isTakeProfitOrder);
+        bool isStopLossOrder = !isEqual(stopLossTriggerPrice, null);
+        bool isTakeProfitOrder = !isEqual(takeProfitTriggerPrice, null);
+        bool isStopOrder = !isEqual(triggerPrice, null);
+        bool isTriggerOrder = isTrue(isTrue(isStopOrder) || isTrue(isStopLossOrder)) || isTrue(isTakeProfitOrder);
         if (isTrue(isStopOrder))
         {
             object triggerDirection = this.safeStringLower(parameters, "triggerDirection");
@@ -525,7 +551,7 @@ public partial class nado : Exchange
      * @param {int} [params.id] client-provided request id, returned by the exchange in the response
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
+    public async override Task<ccxt.Order> EditOrder(string id, string symbol, string type, string side, double? amount = null, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
@@ -545,9 +571,7 @@ public partial class nado : Exchange
         //
         object cancelAndPlace = this.safeDict(request, "cancel_and_place", new Dictionary<string, object>() {});
         object placeOrder = this.safeDict(cancelAndPlace, "place_order", new Dictionary<string, object>() {});
-        return this.parseOrder(this.extend(new Dictionary<string, object>() {
-            { "place_order", placeOrder },
-        }, response), market);
+        return ccxt.BaseExchange.ToOrder(this.parseOrder(this.extend(new Dictionary<string, object>() {             { "place_order", placeOrder },         }, response), market));
     }
 
     /**
@@ -675,11 +699,11 @@ public partial class nado : Exchange
      * @param {int} [params.id] client-provided request id, returned by the exchange in the response
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> CancelOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object orders = await this.cancelOrders(new List<object>() {id}, symbol, parameters);
-        return this.safeDict(orders, 0);
+        object orders = await this.cancelOrders(new List<object>() {id},((string)symbol), parameters);
+        return ccxt.BaseExchange.ToOrder(this.safeDict(orders, 0));
     }
 
     /**
@@ -694,7 +718,7 @@ public partial class nado : Exchange
      * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> CancelAllOrders(string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
@@ -708,7 +732,7 @@ public partial class nado : Exchange
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         object request = await this.cancelAllOrdersRequest(symbol, parameters);
         object response = null;
-        if (isTrue(trigger))
+        if (isTrue(isEqual(trigger, true)))
         {
             response = await this.triggerPrivatePostExecute(request);
         } else
@@ -724,7 +748,7 @@ public partial class nado : Exchange
                 { "status", "canceled" },
             }, getValue(cancelledOrders, i)), market));
         }
-        return result;
+        return ccxt.BaseExchange.ToOrderList(result);
     }
 
     /**
@@ -798,7 +822,7 @@ public partial class nado : Exchange
      * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
+    public async override Task<object> cancelOrders(object ids, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
@@ -812,7 +836,7 @@ public partial class nado : Exchange
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         object request = await this.cancelOrdersRequest(ids, symbol, parameters);
         object response = null;
-        if (isTrue(trigger))
+        if (isTrue(isEqual(trigger, true)))
         {
             response = await this.triggerPrivatePostExecute(request);
         } else
@@ -910,7 +934,7 @@ public partial class nado : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> FetchOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -945,7 +969,7 @@ public partial class nado : Exchange
         //     }
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return this.parseOrder(data, market);
+        return ccxt.BaseExchange.ToOrder(this.parseOrder(data, market));
     }
 
     /**
@@ -961,7 +985,7 @@ public partial class nado : Exchange
      * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> FetchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -973,13 +997,13 @@ public partial class nado : Exchange
             ((IList<object>)productIds).Add(this.parseToInt(getValue(market, "id")));
         }
         object subaccount = null;
-        var subaccountparametersVariable = this.handleOptionAndParams(parameters, "fetchOpenOrders", "subaccount", "default");
+        var subaccountparametersVariable = this.handleOptionAndParams(parameters, "fetchOrders", "subaccount", "default");
         subaccount = ((IList<object>)subaccountparametersVariable)[0];
         parameters = ((IList<object>)subaccountparametersVariable)[1];
         object sender = this.createSubaccount(this.walletAddress, subaccount);
         object trigger = this.safeBool2(parameters, "stop", "trigger");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
-        if (!isTrue(trigger))
+        if (isTrue(!isEqual(trigger, true)))
         {
             throw new NotSupported ((string)add(this.id, " fetchOrders only support trigger")) ;
         }
@@ -1037,7 +1061,7 @@ public partial class nado : Exchange
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object orders = this.safeList(data, "orders", new List<object>() {});
-        return this.parseOrders(orders, market, since, limit);
+        return ccxt.BaseExchange.ToOrderList(this.parseOrders(orders, market, since, limit));
     }
 
     /**
@@ -1054,7 +1078,7 @@ public partial class nado : Exchange
      * @param {boolean} [params.trigger] whether the order is a trigger order
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> FetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.walletAddress, null)))
@@ -1068,9 +1092,9 @@ public partial class nado : Exchange
         parameters = ((IList<object>)subaccountparametersVariable)[1];
         object sender = this.createSubaccount(this.walletAddress, subaccount);
         object trigger = this.safeBool2(parameters, "stop", "trigger");
-        if (isTrue(trigger))
+        if (isTrue(isEqual(trigger, true)))
         {
-            return await this.fetchOrders(symbol, since, null, this.extend(parameters, new Dictionary<string, object>() {
+            return await this.FetchOrders(((string)symbol),ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(null), this.extend(parameters, new Dictionary<string, object>() {
                 { "status_types", new List<object>() {"waiting_price", "waiting_dependency"} },
             }));
         }
@@ -1114,9 +1138,7 @@ public partial class nado : Exchange
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object orders = this.safeList(data, "orders", new List<object>() {});
-        return this.parseOrders(orders, market, since, limit, new Dictionary<string, object>() {
-            { "status", "open" },
-        });
+        return ccxt.BaseExchange.ToOrderList(this.parseOrders(orders, market, since, limit, new Dictionary<string, object>() {             { "status", "open" },         }));
     }
 
     /**
@@ -1134,7 +1156,7 @@ public partial class nado : Exchange
      * @param {boolean} [params.trigger] whether the order is a trigger order
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> FetchClosedOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.walletAddress, null)))
@@ -1153,9 +1175,9 @@ public partial class nado : Exchange
         parameters = ((IList<object>)subaccountparametersVariable)[1];
         object sender = this.createSubaccount(this.walletAddress, subaccount);
         object trigger = this.safeBool2(parameters, "stop", "trigger");
-        if (isTrue(trigger))
+        if (isTrue(isEqual(trigger, true)))
         {
-            return await this.fetchOrders(symbol, since, null, this.extend(parameters, new Dictionary<string, object>() {
+            return await this.FetchOrders(((string)symbol),ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(null), this.extend(parameters, new Dictionary<string, object>() {
                 { "status_types", new List<object>() {"triggered", "triggering", "twap_executing", "twap_completed"} },
             }));
         }
@@ -1208,7 +1230,7 @@ public partial class nado : Exchange
                 }, order));
             }
         }
-        return this.parseOrders(closedOrders, market, since, limit);
+        return ccxt.BaseExchange.ToOrderList(this.parseOrders(closedOrders, market, since, limit));
     }
 
     /**
@@ -1223,10 +1245,10 @@ public partial class nado : Exchange
      * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchCanceledOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> FetchCanceledOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.fetchOrders(symbol, since, null, this.extend(parameters, new Dictionary<string, object>() {
+        return await this.FetchOrders(((string)symbol),ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(null), this.extend(parameters, new Dictionary<string, object>() {
             { "status_types", new List<object>() {"cancelled", "internal_error"} },
         }));
     }
@@ -1243,10 +1265,10 @@ public partial class nado : Exchange
      * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchCanceledAndClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> FetchCanceledAndClosedOrders(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.fetchOrders(symbol, since, null, this.extend(parameters, new Dictionary<string, object>() {
+        return await this.FetchOrders(((string)symbol),ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(null), this.extend(parameters, new Dictionary<string, object>() {
             { "status_types", new List<object>() {"cancelled", "internal_error", "triggered", "triggering", "twap_executing", "twap_completed"} },
         }));
     }
@@ -1264,7 +1286,7 @@ public partial class nado : Exchange
      * @param {int} [params.until] timestamp in ms of the latest trade to fetch
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
-    public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> FetchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.walletAddress, null)))
@@ -1329,7 +1351,7 @@ public partial class nado : Exchange
         //
         object matches = this.safeList(response, "matches", new List<object>() {});
         object txs = this.safeList(response, "txs", new List<object>() {});
-        object txsBySubmission = this.indexBy(txs, "submission_idx");
+        Dictionary<string, object> txsBySubmission = this.indexBy(txs, "submission_idx");
         object trades = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(matches)); postFixIncrement(ref i))
         {
@@ -1338,7 +1360,7 @@ public partial class nado : Exchange
             object tx = this.safeDict(txsBySubmission, submissionIdx, new Dictionary<string, object>() {});
             ((IList<object>)trades).Add(this.extend(tx, match));
         }
-        return this.parseTrades(trades, market, since, limit);
+        return ccxt.BaseExchange.ToTradeList(this.parseTrades(trades, market, since, limit));
     }
 
     /**
@@ -1403,10 +1425,10 @@ public partial class nado : Exchange
      * @param {int} [params.until] timestamp in ms of the latest deposit to fetch
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Transaction>> FetchDeposits(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.queryTransactionsByEventType("deposit_collateral", "deposit", "fetchDeposits", code, since, limit, parameters);
+        return ccxt.BaseExchange.ToTransactionList(await this.queryTransactionsByEventType("deposit_collateral", "deposit", "fetchDeposits", code, since, limit, parameters));
     }
 
     /**
@@ -1422,10 +1444,10 @@ public partial class nado : Exchange
      * @param {int} [params.until] timestamp in ms of the latest withdrawal to fetch
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Transaction>> FetchWithdrawals(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.queryTransactionsByEventType("withdraw_collateral", "withdrawal", "fetchWithdrawals", code, since, limit, parameters);
+        return ccxt.BaseExchange.ToTransactionList(await this.queryTransactionsByEventType("withdraw_collateral", "withdrawal", "fetchWithdrawals", code, since, limit, parameters));
     }
 
     public async virtual Task<object> queryTransactionsByEventType(object eventType, object transactionType, object methodName, object code = null, object since = null, object limit = null, object parameters = null)
@@ -1513,7 +1535,7 @@ public partial class nado : Exchange
                     break;
                 }
             }
-            object transaction = this.extend(new Dictionary<string, object>() {}, tx);
+            Dictionary<string, object> transaction = this.extend(new Dictionary<string, object>() {}, tx);
             transaction = this.extend(transaction, eventVar);
             ((IDictionary<string,object>)transaction)["transaction_type"] = transactionType;
             ((IList<object>)transactions).Add(this.parseTransaction(transaction, currency));
@@ -1531,7 +1553,7 @@ public partial class nado : Exchange
      * @param {string} [params.subaccount] the 12-byte subaccount identifier, defaults to 'default'
      * @returns {Position[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
-    public async override Task<object> fetchPositions(object symbols = null, object parameters = null)
+    public async override Task<List<ccxt.Position>> FetchPositions(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.walletAddress, null)))
@@ -1605,7 +1627,7 @@ public partial class nado : Exchange
                 { "product", product },
             }, position)));
         }
-        return this.filterByArrayPositions(result, "symbol", symbols, false);
+        return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", symbols, false));
     }
 
     /**
@@ -1642,7 +1664,7 @@ public partial class nado : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    public async override Task<object> fetchStatus(object parameters = null)
+    public async override Task<ccxt.Status> FetchStatus(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object request = new Dictionary<string, object>() {
@@ -1657,13 +1679,7 @@ public partial class nado : Exchange
         //     }
         //
         object status = this.safeString(response, "data");
-        return new Dictionary<string, object>() {
-            { "status", ((bool) isTrue((isEqual(status, "active")))) ? "ok" : "error" },
-            { "updated", null },
-            { "eta", null },
-            { "url", null },
-            { "info", response },
-        };
+        return ccxt.BaseExchange.ToStatus(new Dictionary<string, object>() {             { "status", ((bool) isTrue((isEqual(status, "active")))) ? "ok" : "error" },             { "updated", null },             { "eta", null },             { "url", null },             { "info", response },         });
     }
 
     /**
@@ -1692,13 +1708,21 @@ public partial class nado : Exchange
         for (object i = 0; isLessThan(i, getArrayLength(pairs)); postFixIncrement(ref i))
         {
             object rawPair = getValue(pairs, i);
-            ((IDictionary<string,object>)pairsById)[(string)this.safeString(rawPair, "product_id")] = rawPair;
+            object pairProductId = this.safeString(rawPair, "product_id");
+            if (isTrue(!isEqual(pairProductId, null)))
+            {
+                ((IDictionary<string,object>)pairsById)[(string)pairProductId] = rawPair;
+            }
         }
         object assetsById = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(assets)); postFixIncrement(ref i))
         {
             object rawAsset = getValue(assets, i);
-            ((IDictionary<string,object>)assetsById)[(string)this.safeString(rawAsset, "product_id")] = rawAsset;
+            object assetProductId = this.safeString(rawAsset, "product_id");
+            if (isTrue(!isEqual(assetProductId, null)))
+            {
+                ((IDictionary<string,object>)assetsById)[(string)assetProductId] = rawAsset;
+            }
         }
         object assetsByCode = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(assets)); postFixIncrement(ref i))
@@ -1706,6 +1730,10 @@ public partial class nado : Exchange
             object rawAsset = getValue(assets, i);
             object assetSymbol = this.safeString(rawAsset, "symbol");
             object assetCode = this.safeCurrencyCode(this.removeMarketSuffix(assetSymbol));
+            if (isTrue(isEqual(assetCode, null)))
+            {
+                continue;
+            }
             object previous = this.safeDict(assetsByCode, assetCode);
             if (isTrue(isEqual(previous, null)))
             {
@@ -1716,7 +1744,7 @@ public partial class nado : Exchange
                 object previousWithdraw = this.safeBool(previous, "can_withdraw", false);
                 object currentDeposit = this.safeBool(rawAsset, "can_deposit", false);
                 object currentWithdraw = this.safeBool(rawAsset, "can_withdraw", false);
-                if (isTrue(isTrue(!isTrue(previousDeposit) && !isTrue(previousWithdraw)) && isTrue((isTrue(currentDeposit) || isTrue(currentWithdraw)))))
+                if (isTrue(isTrue(isTrue((!isEqual(previousDeposit, true))) && isTrue((!isEqual(previousWithdraw, true)))) && isTrue((isTrue((isEqual(currentDeposit, true))) || isTrue((isEqual(currentWithdraw, true)))))))
                 {
                     ((IDictionary<string,object>)assetsByCode)[(string)assetCode] = rawAsset;
                 }
@@ -1731,7 +1759,7 @@ public partial class nado : Exchange
             object asset = this.safeDict(assetsById, id, new Dictionary<string, object>() {});
             object rawType = this.safeString(market, "type");
             object type = ((bool) isTrue((isEqual(rawType, "perp")))) ? "swap" : rawType;
-            object contract = (isEqual(type, "swap"));
+            bool contract = (isEqual(type, "swap"));
             object tickerId = this.safeString2(pair, "ticker_id", "tickerId");
             if (isTrue(isEqual(tickerId, null)))
             {
@@ -1753,11 +1781,11 @@ public partial class nado : Exchange
                 symbol = add(symbol, add(":", settle));
             }
             object tradingStatus = this.safeString(market, "trading_status");
-            object active = (!isEqual(tradingStatus, "not_tradable"));
+            bool active = (!isEqual(tradingStatus, "not_tradable"));
             object priceIncrement = this.parseX18(this.safeString(market, "price_increment_x18"));
             object amountIncrement = this.parseX18(this.safeString(market, "size_increment"));
             object minCost = this.parseX18(this.safeString(market, "min_size"));
-            ((IList<object>)markets).Add(new Dictionary<string, object>() {
+            ((IList<object>)markets).Add(this.safeMarketStructure(new Dictionary<string, object>() {
                 { "id", id },
                 { "lowercaseId", null },
                 { "symbol", symbol },
@@ -1813,7 +1841,7 @@ public partial class nado : Exchange
                     { "v2Pair", pair },
                     { "v2Asset", asset },
                 }) },
-            });
+            }));
         }
         return markets;
     }
@@ -1831,11 +1859,16 @@ public partial class nado : Exchange
         parameters ??= new Dictionary<string, object>();
         object response = await this.gatewayV2PublicGetAssets(parameters);
         object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        object assets = this.toArray(response);
+        for (object i = 0; isLessThan(i, getArrayLength(assets)); postFixIncrement(ref i))
         {
-            object currency = getValue(response, i);
+            object currency = getValue(assets, i);
             object parsed = this.parseCurrency(currency);
             object code = this.safeString(parsed, "code");
+            if (isTrue(isEqual(code, null)))
+            {
+                continue;
+            }
             object previous = this.safeDict(result, code);
             object canDeposit = this.safeBool(currency, "can_deposit", false);
             object canWithdraw = this.safeBool(currency, "can_withdraw", false);
@@ -1846,7 +1879,7 @@ public partial class nado : Exchange
             {
                 object previousDeposit = this.safeBool(previous, "deposit", false);
                 object previousWithdraw = this.safeBool(previous, "withdraw", false);
-                if (isTrue(isTrue(!isTrue(previousDeposit) && !isTrue(previousWithdraw)) && isTrue((isTrue(canDeposit) || isTrue(canWithdraw)))))
+                if (isTrue(isTrue(isTrue((!isEqual(previousDeposit, true))) && isTrue((!isEqual(previousWithdraw, true)))) && isTrue((isTrue((isEqual(canDeposit, true))) || isTrue((isEqual(canWithdraw, true)))))))
                 {
                     ((IDictionary<string,object>)result)[(string)code] = parsed;
                 }
@@ -1897,13 +1930,18 @@ public partial class nado : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> fetchTicker(object symbol, object parameters = null)
+    public async override Task<ccxt.Ticker> FetchTicker(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
         object tickers = await this.fetchTickers(new List<object>() {symbol}, parameters);
-        return this.safeTicker(this.safeDict(tickers, symbol), market);
+        object ticker = this.safeDict(tickers, symbol);
+        if (isTrue(isEqual(ticker, null)))
+        {
+            throw new BadSymbol ((string)add(add(this.id, " fetchTicker() ticker not found for "), symbol)) ;
+        }
+        return ccxt.BaseExchange.ToTicker(this.safeTicker(ticker, market));
     }
 
     /**
@@ -1916,12 +1954,12 @@ public partial class nado : Exchange
      * @param {boolean} [params.edge] whether to retrieve volume and open interest metrics for all chains, defaults to true
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public async override Task<object> fetchFundingRate(object symbol, object parameters = null)
+    public async override Task<ccxt.FundingRate> FetchFundingRate(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
-        if (!isTrue(getValue(market, "swap")))
+        if (isTrue(!isEqual(getValue(market, "swap"), true)))
         {
             throw new BadSymbol ((string)add(this.id, " fetchFundingRate() supports swap contracts only")) ;
         }
@@ -1951,7 +1989,7 @@ public partial class nado : Exchange
         //     }
         //
         object data = this.safeDict(response, tickerId, new Dictionary<string, object>() {});
-        return this.parseFundingRate(data, market);
+        return ccxt.BaseExchange.ToFundingRate(this.parseFundingRate(data, market));
     }
 
     /**
@@ -1966,7 +2004,7 @@ public partial class nado : Exchange
      * @param {string} [params.subaccount] the 12-byte subaccount identifier, defaults to 'default'
      * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
-    public async override Task<object> fetchFundingHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.FundingHistory>> FetchFundingHistory(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -1979,7 +2017,7 @@ public partial class nado : Exchange
         }
         await this.loadMarkets();
         object market = this.market(symbol);
-        if (!isTrue(getValue(market, "swap")))
+        if (isTrue(!isEqual(getValue(market, "swap"), true)))
         {
             throw new BadSymbol ((string)add(this.id, " fetchFundingHistory() supports swap contracts only")) ;
         }
@@ -2019,7 +2057,7 @@ public partial class nado : Exchange
             ((IList<object>)result).Add(this.parseFundingHistory(getValue(fundingPayments, i), market));
         }
         object sorted = this.sortBy(result, "timestamp");
-        return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
+        return ccxt.BaseExchange.ToFundingHistoryList(this.filterBySymbolSinceLimit(sorted, symbol, since, limit));
     }
 
     /**
@@ -2061,12 +2099,12 @@ public partial class nado : Exchange
         //         }
         //     }
         //
-        object tickers = new List<object>(((IDictionary<string,object>)response).Keys);
+        List<object> tickers = new List<object>(((IDictionary<string,object>)response).Keys);
         object rates = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(tickers)); postFixIncrement(ref i))
         {
             object ticker = getValue(tickers, i);
-            ((IList<object>)rates).Add(getValue(response, ticker));
+            ((IList<object>)rates).Add(this.safeDict(response, ticker, new Dictionary<string, object>() {}));
         }
         return this.parseFundingRates(rates, symbols);
     }
@@ -2081,12 +2119,12 @@ public partial class nado : Exchange
      * @param {boolean} [params.edge] whether to retrieve volume and open interest metrics for all chains, defaults to true
      * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    public async override Task<object> fetchOpenInterest(object symbol, object parameters = null)
+    public async override Task<ccxt.OpenInterest> FetchOpenInterest(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
-        if (!isTrue(getValue(market, "swap")))
+        if (isTrue(!isEqual(getValue(market, "swap"), true)))
         {
             throw new BadSymbol ((string)add(this.id, " fetchOpenInterest() supports swap contracts only")) ;
         }
@@ -2116,7 +2154,7 @@ public partial class nado : Exchange
         //     }
         //
         object data = this.safeDict(response, tickerId, new Dictionary<string, object>() {});
-        return this.parseOpenInterest(data, market);
+        return ccxt.BaseExchange.ToOpenInterest(this.parseOpenInterest(data, market));
     }
 
     /**
@@ -2158,12 +2196,12 @@ public partial class nado : Exchange
         //         }
         //     }
         //
-        object tickers = new List<object>(((IDictionary<string,object>)response).Keys);
+        List<object> tickers = new List<object>(((IDictionary<string,object>)response).Keys);
         object interests = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(tickers)); postFixIncrement(ref i))
         {
             object ticker = getValue(tickers, i);
-            ((IList<object>)interests).Add(getValue(response, ticker));
+            ((IList<object>)interests).Add(this.safeDict(response, ticker, new Dictionary<string, object>() {}));
         }
         return this.parseOpenInterests(interests, symbols);
     }
@@ -2176,9 +2214,9 @@ public partial class nado : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
+    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -2220,7 +2258,7 @@ public partial class nado : Exchange
      * @param {int} [params.max_trade_id] max trade id to include in the result for pagination
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> FetchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -2248,7 +2286,7 @@ public partial class nado : Exchange
         //         }
         //     ]
         //
-        return this.parseTrades(response, market, since, limit);
+        return ccxt.BaseExchange.ToTradeList(this.parseTrades(response, market, since, limit));
     }
 
     /**
@@ -2264,9 +2302,10 @@ public partial class nado : Exchange
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        timeframe ??= "1m";
+        object timeframeVar = timeframe;
+        timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -2275,7 +2314,7 @@ public partial class nado : Exchange
         object request = new Dictionary<string, object>() {
             { "candlesticks", new Dictionary<string, object>() {
                 { "product_id", this.parseToInt(getValue(market, "id")) },
-                { "granularity", this.safeInteger(this.timeframes, timeframe, this.parseTimeframe(timeframe)) },
+                { "granularity", this.safeInteger(this.timeframes, timeframeVar, this.parseTimeframe(timeframeVar)) },
             } },
         };
         if (isTrue(!isEqual(limit, null)))
@@ -2305,7 +2344,7 @@ public partial class nado : Exchange
         //     }
         //
         object data = this.safeList(response, "candlesticks", new List<object>() {});
-        return this.parseOHLCVs(data, market, timeframe, since, limit);
+        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(data, market, timeframeVar, since, limit));
     }
 
     public override object parseOHLCV(object ohlcv, object market = null)
@@ -2361,7 +2400,7 @@ public partial class nado : Exchange
         market = this.safeMarket(marketId, market);
         object timestamp = this.safeTimestamp(trade, "timestamp");
         object rawOrder = this.safeDict(trade, "order");
-        object isArchiveMatch = !isEqual(rawOrder, null);
+        bool isArchiveMatch = !isEqual(rawOrder, null);
         object order = ((bool) isTrue((isEqual(rawOrder, null)))) ? new Dictionary<string, object>() {} : rawOrder;
         object amountString = this.safeString(trade, "base_filled");
         object costString = this.safeString(trade, "quote_filled");
@@ -2657,7 +2696,7 @@ public partial class nado : Exchange
             } else if (isTrue(isEqual(code, currencyId)))
             {
                 object market = this.safeMarket(currencyId, null, null, "spot");
-                if (isTrue(this.safeBool(market, "spot")))
+                if (isTrue(isEqual(this.safeBool(market, "spot"), true)))
                 {
                     code = this.safeString(market, "base", code);
                 }
@@ -2668,7 +2707,10 @@ public partial class nado : Exchange
             ((IDictionary<string,object>)account)["total"] = amount;
             // the subaccount balance carries no locked/reserved breakdown, the whole amount is spendable
             ((IDictionary<string,object>)account)["free"] = amount;
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -3057,6 +3099,10 @@ public partial class nado : Exchange
 
     public virtual object convertToX18(object value)
     {
+        if (isTrue(isEqual(value, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " convertToX18() requires a value")) ;
+        }
         return Precise.stringDiv(Precise.stringMul(value, "1000000000000000000"), "1", 0);
     }
 
@@ -3103,19 +3149,19 @@ public partial class nado : Exchange
         {
             appendix = Precise.stringAdd(appendix, Precise.stringMul(this.numberToString(orderType), "512"));
         }
-        if (isTrue(reduceOnly))
+        if (isTrue(isEqual(reduceOnly, true)))
         {
             appendix = Precise.stringAdd(appendix, "2048");
         }
         object buildFee = this.safeBool(this.options, "builderFee", true);
-        if (isTrue(buildFee))
+        if (isTrue(isEqual(buildFee, true)))
         {
             object builder = this.safeString(this.options, "builder", "4500");
             object builderFeeRate = this.safeString(this.options, "feeRate", "10"); // 10 units = 0.01%
             appendix = Precise.stringAdd(appendix, Precise.stringMul(builder, "281474976710656")); // 1<<48
             appendix = Precise.stringAdd(appendix, Precise.stringMul(builderFeeRate, "274877906944")); // 1<<32
         }
-        if (isTrue(isTriggerOrder))
+        if (isTrue(isEqual(isTriggerOrder, true)))
         {
             appendix = Precise.stringAdd(appendix, "4096");
         }
@@ -3127,9 +3173,13 @@ public partial class nado : Exchange
         subaccount ??= "default";
         if (isTrue(isEqual(walletAddress, null)))
         {
-            throw new ArgumentsRequired ((string)add(this.id, " createOrder() requires exchange.walletAddress")) ;
+            throw new ArgumentsRequired ((string)add(this.id, " createSubaccount() requires walletAddress")) ;
         }
-        object address = ((string)this.remove0xPrefix(walletAddress)).ToLower();
+        if (isTrue(isEqual(subaccount, null)))
+        {
+            subaccount = "default";
+        }
+        string address = ((string)this.remove0xPrefix(walletAddress)).ToLower();
         if (isTrue(!isEqual(getArrayLength(address), 40)))
         {
             throw new BadRequest ((string)add(this.id, " createOrder() requires a 20-byte walletAddress")) ;
@@ -3167,7 +3217,11 @@ public partial class nado : Exchange
     public virtual object padHex(object value, object length, object left = null)
     {
         left ??= true;
-        object zeros = "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
+        if (isTrue(isEqual(length, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " padHex() requires length")) ;
+        }
+        string zeros = "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
         object padded = ((bool) isTrue(left)) ? (add(zeros, value)) : (add(value, zeros));
         if (isTrue(left))
         {
@@ -3288,10 +3342,14 @@ public partial class nado : Exchange
 
     public virtual object signHash(object hash, object privateKey)
     {
+        if (isTrue(isEqual(privateKey, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " signHash() requires privateKey")) ;
+        }
         object signature = ecdsa(slice(hash, -64, null), slice(privateKey, -64, null), secp256k1, null);
         object r = getValue(signature, "r");
         object s = getValue(signature, "s");
-        object v = ((string)this.intToBase16(this.sum(27, getValue(signature, "v")))).ToLower();
+        string v = ((string)this.intToBase16(this.sum(27, getValue(signature, "v")))).ToLower();
         return add(add(add("0x", this.padHex(r, 64)), this.padHex(s, 64)), v);
     }
 
@@ -3331,7 +3389,7 @@ public partial class nado : Exchange
         }
         if (isTrue(isEqual(method, "GET")))
         {
-            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+            if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
             {
                 url = add(url, add("?", this.urlencode(query)));
             }
@@ -3350,7 +3408,7 @@ public partial class nado : Exchange
 
     public override object handleErrors(object httpCode, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)
     {
-        if (!isTrue(response))
+        if (isTrue(isTrue((isEqual(response, null))) || isTrue((isEqual(response, null)))))
         {
             return null;  // fallback to default error handler
         }

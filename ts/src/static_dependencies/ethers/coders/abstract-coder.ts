@@ -168,7 +168,7 @@ export class Result extends Array<any> {
     /**
      *  @_ignore
      */
-    slice(start?: number | undefined, end?: number | undefined): Result {
+    override slice(start?: number | undefined, end?: number | undefined): Result {
         if (start == null) { start = 0; }
         if (start < 0) {
             start += this.length;
@@ -194,7 +194,7 @@ export class Result extends Array<any> {
     /**
      *  @_ignore
      */
-    filter(callback: (el: any, index: number, array: Result) => boolean, thisArg?: any): Result {
+    override filter(callback: (el: any, index: number, array: Result) => boolean, thisArg?: any): Result {
         const result: Array<any> = [ ], names: Array<null | string> = [ ];
         for (let i = 0; i < this.length; i++) {
             const item = this[i];
@@ -214,7 +214,7 @@ export class Result extends Array<any> {
     /**
      *  @_ignore
      */
-    map<T extends any = any>(callback: (el: any, index: number, array: Result) => T, thisArg?: any): Array<T> {
+    override map<T extends any = any>(callback: (el: any, index: number, array: Result) => T, thisArg?: any): Array<T> {
         const result: Array<T> = [ ];
         for (let i = 0; i < this.length; i++) {
             const item = this[i];

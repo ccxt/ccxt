@@ -736,7 +736,7 @@ nado.fetchOpenInterests (symbols?, params?)
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>nado</code>](#nado)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://docs.nado.xyz/developer-resources/api/v2/orderbook  
 
@@ -895,7 +895,7 @@ nado.unWatchTradesForSymbols (symbols, params?)
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>nado</code>](#nado)  
-**Returns**: <code>OrderBook</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>OrderBook</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://docs.nado.xyz/developer-resources/api/subscriptions/streams  
 
@@ -938,7 +938,7 @@ nado.unWatchOrderBook (symbol, params?)
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for a list of symbols
 
 **Kind**: instance method of [<code>nado</code>](#nado)  
-**Returns**: <code>OrderBook</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>OrderBook</code> - an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
 
 **See**: https://docs.nado.xyz/developer-resources/api/subscriptions/streams  
 

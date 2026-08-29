@@ -23,7 +23,7 @@ public partial class woofipro : Exchange
                 { "swap", true },
                 { "future", false },
                 { "option", false },
-                { "addMargin", false },
+                { "addMargin", true },
                 { "borrowCrossMargin", false },
                 { "borrowIsolatedMargin", false },
                 { "borrowMargin", false },
@@ -40,6 +40,7 @@ public partial class woofipro : Exchange
                 { "createMarketOrderWithCost", false },
                 { "createMarketSellOrderWithCost", false },
                 { "createOrder", true },
+                { "createOrders", true },
                 { "createOrderWithTakeProfitAndStopLoss", true },
                 { "createReduceOnlyOrder", true },
                 { "createStopLimitOrder", false },
@@ -50,6 +51,7 @@ public partial class woofipro : Exchange
                 { "createTrailingAmountOrder", false },
                 { "createTrailingPercentOrder", false },
                 { "createTriggerOrder", true },
+                { "editOrder", true },
                 { "fetchAccounts", false },
                 { "fetchAllGreeks", false },
                 { "fetchBalance", true },
@@ -83,12 +85,15 @@ public partial class woofipro : Exchange
                 { "fetchLedger", true },
                 { "fetchLeverage", true },
                 { "fetchMarginAdjustmentHistory", false },
-                { "fetchMarginMode", false },
+                { "fetchMarginMode", true },
+                { "fetchMarginModes", true },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", false },
                 { "fetchMyTrades", true },
                 { "fetchOHLCV", true },
+                { "fetchOpenInterest", true },
                 { "fetchOpenInterestHistory", false },
+                { "fetchOpenInterests", true },
                 { "fetchOpenOrder", false },
                 { "fetchOpenOrders", true },
                 { "fetchOption", false },
@@ -102,8 +107,8 @@ public partial class woofipro : Exchange
                 { "fetchPositions", true },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchStatus", true },
-                { "fetchTicker", false },
-                { "fetchTickers", false },
+                { "fetchTicker", true },
+                { "fetchTickers", true },
                 { "fetchTime", true },
                 { "fetchTrades", true },
                 { "fetchTradingFee", false },
@@ -112,11 +117,12 @@ public partial class woofipro : Exchange
                 { "fetchTransfers", false },
                 { "fetchVolatilityHistory", false },
                 { "fetchWithdrawals", true },
-                { "reduceMargin", false },
+                { "reduceMargin", true },
                 { "repayCrossMargin", false },
                 { "repayIsolatedMargin", false },
                 { "setLeverage", true },
                 { "setMargin", false },
+                { "setMarginMode", true },
                 { "setPositionMode", false },
                 { "transfer", false },
                 { "withdraw", true },
@@ -145,7 +151,7 @@ public partial class woofipro : Exchange
                     { "private", "https://testnet-api-evm.orderly.org" },
                 } },
                 { "www", "https://dex.woo.org" },
-                { "doc", new List<object>() {"https://orderly.network/docs/build-on-omnichain/building-on-evm"} },
+                { "doc", new List<object>() {"https://orderly.network/docs/build-on-omnichain/building-on-omnichain"} },
                 { "fees", new List<object>() {"https://dex.woo.org/en/orderly"} },
                 { "referral", new Dictionary<string, object>() {
                     { "url", "https://dex.woo.org/en/trade?ref=CCXT" },
@@ -156,133 +162,372 @@ public partial class woofipro : Exchange
                 { "v1", new Dictionary<string, object>() {
                     { "public", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
-                            { "public/volume/stats", 1 },
-                            { "public/broker/name", 1 },
-                            { "public/chain_info/{broker_id}", 1 },
-                            { "public/system_info", 1 },
-                            { "public/vault_balance", 1 },
-                            { "public/insurancefund", 1 },
-                            { "public/chain_info", 1 },
-                            { "faucet/usdc", 1 },
-                            { "public/account", 1 },
-                            { "get_account", 1 },
-                            { "registration_nonce", 1 },
-                            { "get_orderly_key", 1 },
-                            { "public/liquidation", 1 },
-                            { "public/liquidated_positions", 1 },
-                            { "public/config", 1 },
-                            { "public/campaign/ranking", 10 },
-                            { "public/campaign/stats", 10 },
-                            { "public/campaign/user", 10 },
-                            { "public/campaign/stats/details", 10 },
-                            { "public/campaigns", 10 },
-                            { "public/points/leaderboard", 1 },
-                            { "client/points", 1 },
-                            { "public/points/epoch", 1 },
-                            { "public/points/epoch_dates", 1 },
-                            { "public/referral/check_ref_code", 1 },
-                            { "public/referral/verify_ref_code", 1 },
-                            { "referral/admin_info", 1 },
-                            { "referral/info", 1 },
-                            { "referral/referee_info", 1 },
-                            { "referral/referee_rebate_summary", 1 },
-                            { "referral/referee_history", 1 },
-                            { "referral/referral_history", 1 },
-                            { "referral/rebate_summary", 1 },
-                            { "client/distribution_history", 1 },
-                            { "tv/config", 1 },
-                            { "tv/history", 1 },
-                            { "tv/symbol_info", 1 },
-                            { "public/funding_rate_history", 1 },
-                            { "public/funding_rate/{symbol}", 0.33 },
-                            { "public/funding_rates", 1 },
-                            { "public/info", 1 },
-                            { "public/info/{symbol}", 1 },
-                            { "public/market_trades", 1 },
-                            { "public/token", 1 },
-                            { "public/futures", 1 },
-                            { "public/futures/{symbol}", 1 },
+                            { "public/volume/stats", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/broker/name", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/chain_info/{broker_id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/system_info", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/vault_balance", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/insurancefund", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/chain_info", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "faucet/usdc", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/account", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "get_account", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "registration_nonce", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "get_orderly_key", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/liquidation", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/liquidated_positions", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/config", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/campaign/ranking", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "public/campaign/stats", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "public/campaign/user", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "public/campaign/stats/details", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "public/campaigns", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "public/points/leaderboard", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "client/points", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/points/epoch", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/points/epoch_dates", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/referral/check_ref_code", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/referral/verify_ref_code", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "referral/admin_info", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "referral/info", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "referral/referee_info", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "referral/referee_rebate_summary", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "referral/referee_history", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "referral/referral_history", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "referral/rebate_summary", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "client/distribution_history", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "tv/config", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "tv/history", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "tv/symbol_info", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/funding_rate_history", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/funding_rate/{symbol}", new Dictionary<string, object>() {
+                                { "cost", 0.33 },
+                            } },
+                            { "public/funding_rates", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/info", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/info/{symbol}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/market_trades", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/token", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/futures", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/futures/{symbol}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                         { "post", new Dictionary<string, object>() {
-                            { "register_account", 1 },
+                            { "register_account", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                     } },
                     { "private", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
-                            { "client/key_info", 6 },
-                            { "client/orderly_key_ip_restriction", 6 },
-                            { "order/{oid}", 1 },
-                            { "client/order/{client_order_id}", 1 },
-                            { "algo/order/{oid}", 1 },
-                            { "algo/client/order/{client_order_id}", 1 },
-                            { "orders", 1 },
-                            { "algo/orders", 1 },
-                            { "trade/{tid}", 1 },
-                            { "trades", 1 },
-                            { "order/{oid}/trades", 1 },
-                            { "client/liquidator_liquidations", 1 },
-                            { "liquidations", 1 },
-                            { "asset/history", 60 },
-                            { "client/holding", 1 },
-                            { "withdraw_nonce", 1 },
-                            { "settle_nonce", 1 },
-                            { "pnl_settlement/history", 1 },
-                            { "volume/user/daily", 60 },
-                            { "volume/user/stats", 60 },
-                            { "client/statistics", 60 },
-                            { "client/info", 60 },
-                            { "client/statistics/daily", 60 },
-                            { "positions", 3.33 },
-                            { "position/{symbol}", 3.33 },
-                            { "funding_fee/history", 30 },
-                            { "notification/inbox/notifications", 60 },
-                            { "notification/inbox/unread", 60 },
-                            { "volume/broker/daily", 60 },
-                            { "broker/fee_rate/default", 10 },
-                            { "broker/user_info", 10 },
-                            { "orderbook/{symbol}", 1 },
-                            { "kline", 1 },
+                            { "client/key_info", new Dictionary<string, object>() {
+                                { "cost", 6 },
+                            } },
+                            { "client/orderly_key_ip_restriction", new Dictionary<string, object>() {
+                                { "cost", 6 },
+                            } },
+                            { "order/{oid}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "client/order/{client_order_id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "algo/order/{oid}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "algo/client/order/{client_order_id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "orders", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "algo/orders", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "trade/{tid}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "trades", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "order/{oid}/trades", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "client/liquidator_liquidations", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "liquidations", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "asset/history", new Dictionary<string, object>() {
+                                { "cost", 60 },
+                            } },
+                            { "client/holding", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "withdraw_nonce", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "settle_nonce", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "pnl_settlement/history", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "volume/user/daily", new Dictionary<string, object>() {
+                                { "cost", 60 },
+                            } },
+                            { "volume/user/stats", new Dictionary<string, object>() {
+                                { "cost", 60 },
+                            } },
+                            { "client/statistics", new Dictionary<string, object>() {
+                                { "cost", 60 },
+                            } },
+                            { "client/info", new Dictionary<string, object>() {
+                                { "cost", 60 },
+                            } },
+                            { "client/statistics/daily", new Dictionary<string, object>() {
+                                { "cost", 60 },
+                            } },
+                            { "positions", new Dictionary<string, object>() {
+                                { "cost", 3.33 },
+                            } },
+                            { "position/{symbol}", new Dictionary<string, object>() {
+                                { "cost", 3.33 },
+                            } },
+                            { "funding_fee/history", new Dictionary<string, object>() {
+                                { "cost", 30 },
+                            } },
+                            { "notification/inbox/notifications", new Dictionary<string, object>() {
+                                { "cost", 60 },
+                            } },
+                            { "notification/inbox/unread", new Dictionary<string, object>() {
+                                { "cost", 60 },
+                            } },
+                            { "volume/broker/daily", new Dictionary<string, object>() {
+                                { "cost", 60 },
+                            } },
+                            { "broker/fee_rate/default", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "broker/user_info", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "orderbook/{symbol}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "kline", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "client/margin_modes", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                         { "post", new Dictionary<string, object>() {
-                            { "orderly_key", 1 },
-                            { "client/set_orderly_key_ip_restriction", 6 },
-                            { "client/reset_orderly_key_ip_restriction", 6 },
-                            { "order", 1 },
-                            { "batch-order", 10 },
-                            { "algo/order", 1 },
-                            { "liquidation", 1 },
-                            { "claim_insurance_fund", 1 },
-                            { "withdraw_request", 1 },
-                            { "settle_pnl", 1 },
-                            { "notification/inbox/mark_read", 60 },
-                            { "notification/inbox/mark_read_all", 60 },
-                            { "client/leverage", 120 },
-                            { "client/maintenance_config", 60 },
-                            { "delegate_signer", 10 },
-                            { "delegate_orderly_key", 10 },
-                            { "delegate_settle_pnl", 10 },
-                            { "delegate_withdraw_request", 10 },
-                            { "broker/fee_rate/set", 10 },
-                            { "broker/fee_rate/set_default", 10 },
-                            { "broker/fee_rate/default", 10 },
-                            { "referral/create", 10 },
-                            { "referral/update", 10 },
-                            { "referral/bind", 10 },
-                            { "referral/edit_split", 10 },
+                            { "orderly_key", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "client/set_orderly_key_ip_restriction", new Dictionary<string, object>() {
+                                { "cost", 6 },
+                            } },
+                            { "client/reset_orderly_key_ip_restriction", new Dictionary<string, object>() {
+                                { "cost", 6 },
+                            } },
+                            { "order", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "batch-order", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "algo/order", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "liquidation", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "claim_insurance_fund", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "withdraw_request", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "settle_pnl", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "notification/inbox/mark_read", new Dictionary<string, object>() {
+                                { "cost", 60 },
+                            } },
+                            { "notification/inbox/mark_read_all", new Dictionary<string, object>() {
+                                { "cost", 60 },
+                            } },
+                            { "client/leverage", new Dictionary<string, object>() {
+                                { "cost", 120 },
+                            } },
+                            { "client/margin_mode", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "position_margin", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "client/maintenance_config", new Dictionary<string, object>() {
+                                { "cost", 60 },
+                            } },
+                            { "delegate_signer", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "delegate_orderly_key", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "delegate_settle_pnl", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "delegate_withdraw_request", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "broker/fee_rate/set", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "broker/fee_rate/set_default", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "broker/fee_rate/default", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "referral/create", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "referral/update", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "referral/bind", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "referral/edit_split", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
                         } },
                         { "put", new Dictionary<string, object>() {
-                            { "order", 1 },
-                            { "algo/order", 1 },
+                            { "order", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "algo/order", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                         { "delete", new Dictionary<string, object>() {
-                            { "order", 1 },
-                            { "algo/order", 1 },
-                            { "client/order", 1 },
-                            { "algo/client/order", 1 },
-                            { "algo/orders", 1 },
-                            { "orders", 1 },
-                            { "batch-order", 1 },
-                            { "client/batch-order", 1 },
+                            { "order", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "algo/order", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "client/order", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "algo/client/order", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "algo/orders", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "orders", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "batch-order", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "client/batch-order", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                     } },
                 } },
@@ -437,11 +682,11 @@ public partial class woofipro : Exchange
      * @method
      * @name woofipro#fetchStatus
      * @description the latest known information on the availability of the exchange API
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-system-maintenance-status
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-system-maintenance-status
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    public async override Task<object> fetchStatus(object parameters = null)
+    public async override Task<ccxt.Status> FetchStatus(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.v1PublicGetPublicSystemInfo(parameters);
@@ -467,20 +712,14 @@ public partial class woofipro : Exchange
         {
             status = "maintenance";
         }
-        return new Dictionary<string, object>() {
-            { "status", status },
-            { "updated", null },
-            { "eta", null },
-            { "url", null },
-            { "info", response },
-        };
+        return ccxt.BaseExchange.ToStatus(new Dictionary<string, object>() {             { "status", status },             { "updated", null },             { "eta", null },             { "url", null },             { "info", response },         });
     }
 
     /**
      * @method
      * @name woofipro#fetchTime
      * @description fetches the current integer timestamp in milliseconds from the exchange server
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-system-maintenance-status
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-system-maintenance-status
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
@@ -531,8 +770,12 @@ public partial class woofipro : Exchange
         //   }
         //
         object marketId = this.safeString(market, "symbol");
-        object parts = ((string)marketId).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
-        object marketType = "swap";
+        if (isTrue(isEqual(marketId, null)))
+        {
+            throw new ExchangeError ((string)add(this.id, " parseMarket() missing marketId")) ;
+        }
+        List<object> parts = ((string)marketId).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+        string marketType = "swap";
         object baseId = this.safeString(parts, 1);
         object quoteId = this.safeString(parts, 2);
         object bs = this.safeCurrencyCode(baseId);
@@ -540,7 +783,7 @@ public partial class woofipro : Exchange
         object settleId = this.safeString(parts, 2);
         object settle = this.safeCurrencyCode(settleId);
         object symbol = add(add(add(add(bs, "/"), quote), ":"), settle);
-        return new Dictionary<string, object>() {
+        return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", marketId },
             { "symbol", symbol },
             { "base", bs },
@@ -588,14 +831,14 @@ public partial class woofipro : Exchange
             } },
             { "created", this.safeInteger(market, "created_time") },
             { "info", market },
-        };
+        });
     }
 
     /**
      * @method
      * @name woofipro#fetchMarkets
      * @description retrieves data on all markets for woofipro
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-available-symbols
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-available-symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
@@ -647,8 +890,8 @@ public partial class woofipro : Exchange
      * @method
      * @name woofipro#fetchCurrencies
      * @description fetches all available currencies on an exchange
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-supported-collateral-info#get-supported-collateral-info
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-supported-chains-per-builder#get-supported-chains-per-builder
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-supported-collateral-info#get-supported-collateral-info
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-supported-chains-per-builder#get-supported-chains-per-builder
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
@@ -687,7 +930,7 @@ public partial class woofipro : Exchange
         object tokenRows = this.safeList(tokenData, "rows", new List<object>() {});
         object chainData = this.safeDict(chainResponse, "data", new Dictionary<string, object>() {});
         object chainRows = this.safeList(chainData, "rows", new List<object>() {});
-        object indexedChains = this.indexBy(chainRows, "chain_id");
+        Dictionary<string, object> indexedChains = this.indexBy(chainRows, "chain_id");
         for (object i = 0; isLessThan(i, getArrayLength(tokenRows)); postFixIncrement(ref i))
         {
             object token = getValue(tokenRows, i);
@@ -695,6 +938,10 @@ public partial class woofipro : Exchange
                 { "_token", token },
                 { "_indexedChains", indexedChains },
             });
+            if (isTrue(isEqual(parsed, null)))
+            {
+                throw new ExchangeError ((string)add(this.id, " fetchCurrencies() could not resolve parsed")) ;
+            }
             ((IDictionary<string,object>)result)[(string)getValue(parsed, "code")] = parsed;
         }
         return result;
@@ -713,31 +960,34 @@ public partial class woofipro : Exchange
             object networkEntry = getValue(networks, j);
             object networkId = this.safeString(networkEntry, "chain_id");
             object networkRow = this.safeDict(indexedChains, networkId);
-            object networkName = this.safeString(networkRow, "name");
+            object networkName = this.safeString(networkRow, "name", networkId);
             object networkCode = this.networkIdToCode(networkName, code);
-            ((IDictionary<string,object>)resultingNetworks)[(string)networkCode] = new Dictionary<string, object>() {
-                { "id", networkId },
-                { "network", networkCode },
-                { "limits", new Dictionary<string, object>() {
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
+            if (isTrue(!isEqual(networkCode, null)))
+            {
+                ((IDictionary<string,object>)resultingNetworks)[(string)networkCode] = new Dictionary<string, object>() {
+                    { "id", networkId },
+                    { "network", networkCode },
+                    { "limits", new Dictionary<string, object>() {
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "min", null },
+                            { "max", null },
+                        } },
+                        { "deposit", new Dictionary<string, object>() {
+                            { "min", null },
+                            { "max", null },
+                        } },
                     } },
-                    { "deposit", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
+                    { "active", null },
+                    { "deposit", null },
+                    { "withdraw", null },
+                    { "fee", this.safeNumber(networkEntry, "withdrawal_fee") },
+                    { "precision", this.parseNumber(this.parsePrecision(this.safeString(networkEntry, "decimals"))) },
+                    { "info", new Dictionary<string, object>() {
+                        { "network", networkEntry },
+                        { "networkRow", networkRow },
                     } },
-                } },
-                { "active", null },
-                { "deposit", null },
-                { "withdraw", null },
-                { "fee", this.safeNumber(networkEntry, "withdrawal_fee") },
-                { "precision", this.parseNumber(this.parsePrecision(this.safeString(networkEntry, "decimals"))) },
-                { "info", new Dictionary<string, object>() {
-                    { "network", networkEntry },
-                    { "networkRow", networkRow },
-                } },
-            };
+                };
+            }
         }
         return this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "id", currencyId },
@@ -808,7 +1058,7 @@ public partial class woofipro : Exchange
         //         "is_maker": "1"
         //     }
         //
-        object isFromFetchOrder = (inOp(trade, "id"));
+        bool isFromFetchOrder = (inOp(trade, "id"));
         object timestamp = this.safeInteger(trade, "executed_timestamp");
         object marketId = this.safeString(trade, "symbol");
         market = this.safeMarket(marketId, market);
@@ -818,7 +1068,7 @@ public partial class woofipro : Exchange
         object order_id = this.safeString(trade, "order_id");
         object fee = this.parseTokenAndFeeTemp(trade, "fee_asset", "fee");
         object feeCost = this.safeString(fee, "cost");
-        if (isTrue(!isEqual(feeCost, null)))
+        if (isTrue(isTrue((!isEqual(fee, null))) && isTrue((!isEqual(feeCost, null)))))
         {
             ((IDictionary<string,object>)fee)["cost"] = feeCost;
         }
@@ -828,7 +1078,7 @@ public partial class woofipro : Exchange
         object takerOrMaker = null;
         if (isTrue(isFromFetchOrder))
         {
-            object isMaker = isEqual(this.safeString(trade, "is_maker"), "1");
+            bool isMaker = isEqual(this.safeString(trade, "is_maker"), "1");
             takerOrMaker = ((bool) isTrue(isMaker)) ? "maker" : "taker";
         }
         return this.safeTrade(new Dictionary<string, object>() {
@@ -852,14 +1102,14 @@ public partial class woofipro : Exchange
      * @method
      * @name woofipro#fetchTrades
      * @description get the list of most recent trades for a particular symbol
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-market-trades
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-trades
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> FetchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -892,7 +1142,7 @@ public partial class woofipro : Exchange
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object rows = this.safeList(data, "rows", new List<object>() {});
-        return this.parseTrades(rows, market, since, limit);
+        return ccxt.BaseExchange.ToTradeList(this.parseTrades(rows, market, since, limit));
     }
 
     public override object parseFundingRate(object fundingRate, object market = null)
@@ -954,27 +1204,27 @@ public partial class woofipro : Exchange
      * @method
      * @name woofipro#fetchFundingInterval
      * @description fetch the current funding rate interval
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-predicted-funding-rate-for-one-market
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-predicted-funding-rate-for-one-market
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public async override Task<object> fetchFundingInterval(object symbol, object parameters = null)
+    public async override Task<ccxt.FundingRate> FetchFundingInterval(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.fetchFundingRate(symbol, parameters);
+        return await this.FetchFundingRate(((string)symbol), parameters);
     }
 
     /**
      * @method
      * @name woofipro#fetchFundingRate
      * @description fetch the current funding rate
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-predicted-funding-rate-for-one-market
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-predicted-funding-rate-for-one-market
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public async override Task<object> fetchFundingRate(object symbol, object parameters = null)
+    public async override Task<ccxt.FundingRate> FetchFundingRate(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1002,14 +1252,14 @@ public partial class woofipro : Exchange
         // }
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return this.parseFundingRate(data, market);
+        return ccxt.BaseExchange.ToFundingRate(this.parseFundingRate(data, market));
     }
 
     /**
      * @method
      * @name woofipro#fetchFundingRates
      * @description fetch the current funding rate for multiple markets
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-predicted-funding-rates-for-all-markets
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-predicted-funding-rates-for-all-markets
      * @param {string[]} symbols unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
@@ -1045,11 +1295,294 @@ public partial class woofipro : Exchange
         return this.parseFundingRates(rows, symbols);
     }
 
+    public override object parseTicker(object ticker, object market = null)
+    {
+        //
+        //     {
+        //         "symbol": "PERP_BTC_USDC",
+        //         "index_price": 64185.4,
+        //         "mark_price": 64171.0,
+        //         "sum_unitary_funding": 26522.3,
+        //         "est_funding_rate": 0.0001,
+        //         "last_funding_rate": 0.00010041,
+        //         "next_funding_time": 1786032000000,
+        //         "open_interest": 110.64612,
+        //         "24h_open": 64105.6,
+        //         "24h_close": 64180.0,
+        //         "24h_high": 64941.0,
+        //         "24h_low": 63837.6,
+        //         "24h_volume": 102.2817,
+        //         "24h_amount": 6595662.199482
+        //     }
+        //
+        object marketId = this.safeString(ticker, "symbol");
+        market = this.safeMarket(marketId, market);
+        object timestamp = this.safeInteger(ticker, "timestamp");
+        return this.safeTicker(new Dictionary<string, object>() {
+            { "symbol", getValue(market, "symbol") },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "high", this.safeString(ticker, "24h_high") },
+            { "low", this.safeString(ticker, "24h_low") },
+            { "bid", null },
+            { "bidVolume", null },
+            { "ask", null },
+            { "askVolume", null },
+            { "vwap", null },
+            { "open", this.safeString(ticker, "24h_open") },
+            { "close", this.safeString(ticker, "24h_close") },
+            { "last", this.safeString(ticker, "24h_close") },
+            { "previousClose", null },
+            { "change", null },
+            { "percentage", null },
+            { "average", null },
+            { "baseVolume", this.safeString(ticker, "24h_volume") },
+            { "quoteVolume", this.safeString(ticker, "24h_amount") },
+            { "indexPrice", this.safeString(ticker, "index_price") },
+            { "markPrice", this.safeString(ticker, "mark_price") },
+            { "info", ticker },
+        }, market);
+    }
+
+    /**
+     * @method
+     * @name woofipro#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-one-symbol
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public async override Task<ccxt.Ticker> FetchTicker(string symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
+        object market = this.market(symbol);
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+        };
+        object response = await this.v1PublicGetPublicFuturesSymbol(this.extend(request, parameters));
+        //
+        // {
+        //     "success": true,
+        //     "timestamp": 1786022130191,
+        //     "data": {
+        //         "symbol": "PERP_BTC_USDC",
+        //         "index_price": 64185.4,
+        //         "mark_price": 64171.0,
+        //         "sum_unitary_funding": 26522.3,
+        //         "est_funding_rate": 0.0001,
+        //         "last_funding_rate": 0.00010041,
+        //         "next_funding_time": 1786032000000,
+        //         "open_interest": 110.64612,
+        //         "24h_open": 64105.6,
+        //         "24h_close": 64180.0,
+        //         "24h_high": 64941.0,
+        //         "24h_low": 63837.6,
+        //         "24h_volume": 102.2817,
+        //         "24h_amount": 6595662.199482
+        //     }
+        // }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        ((IDictionary<string,object>)data)["timestamp"] = this.safeInteger(response, "timestamp");
+        return ccxt.BaseExchange.ToTicker(this.parseTicker(data, market));
+    }
+
+    /**
+     * @method
+     * @name woofipro#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-all-symbols
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
+        symbols = this.marketSymbols(symbols);
+        object response = await this.v1PublicGetPublicFutures(parameters);
+        //
+        // {
+        //     "success": true,
+        //     "timestamp": 1786022130191,
+        //     "data": {
+        //         "rows": [{
+        //             "symbol": "PERP_BTC_USDC",
+        //             "index_price": 64185.4,
+        //             "mark_price": 64171.0,
+        //             "sum_unitary_funding": 26522.3,
+        //             "est_funding_rate": 0.0001,
+        //             "last_funding_rate": 0.00010041,
+        //             "next_funding_time": 1786032000000,
+        //             "open_interest": 110.64612,
+        //             "24h_open": 64105.6,
+        //             "24h_close": 64180.0,
+        //             "24h_high": 64941.0,
+        //             "24h_low": 63837.6,
+        //             "24h_volume": 102.2817,
+        //             "24h_amount": 6595662.199482
+        //         }]
+        //     }
+        // }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object rows = this.safeList(data, "rows", new List<object>() {});
+        object timestamp = this.safeInteger(response, "timestamp");
+        object result = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
+        {
+            object row = getValue(rows, i);
+            object marketId = this.safeString(row, "symbol", "");
+            if (isTrue(isTrue((isEqual(this.markets_by_id, null))) || !isTrue((inOp(this.markets_by_id, marketId)))))
+            {
+                continue;
+            }
+            Dictionary<string, object> ticker = this.extend(new Dictionary<string, object>() {
+                { "timestamp", timestamp },
+            }, row);
+            ((IList<object>)result).Add(this.parseTicker(ticker));
+        }
+        return this.filterByArrayTickers(result, "symbol", symbols);
+    }
+
+    public override object parseOpenInterest(object interest, object market = null)
+    {
+        //
+        //     {
+        //         "symbol": "PERP_BTC_USDC",
+        //         "index_price": 64185.4,
+        //         "mark_price": 64171.0,
+        //         "open_interest": 110.64612,
+        //         "24h_open": 64105.6,
+        //         "24h_close": 64180.0,
+        //         "24h_high": 64941.0,
+        //         "24h_low": 63837.6,
+        //         "24h_volume": 102.2817,
+        //         "24h_amount": 6595662.199482
+        //     }
+        //
+        object marketId = this.safeString(interest, "symbol");
+        market = this.safeMarket(marketId, market);
+        object timestamp = this.safeInteger(interest, "timestamp");
+        object amount = this.safeNumber2(interest, "open_interest", "openInterest");
+        return this.safeOpenInterest(new Dictionary<string, object>() {
+            { "symbol", getValue(market, "symbol") },
+            { "openInterestAmount", amount },
+            { "openInterestValue", null },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "info", interest },
+        }, market);
+    }
+
+    /**
+     * @method
+     * @name woofipro#fetchOpenInterest
+     * @description retrieves the open interest of a contract trading pair
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-one-symbol
+     * @param {string} symbol unified CCXT market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
+     */
+    public async override Task<ccxt.OpenInterest> FetchOpenInterest(string symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
+        object market = this.market(symbol);
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+        };
+        object response = await this.v1PublicGetPublicFuturesSymbol(this.extend(request, parameters));
+        //
+        // {
+        //     "success": true,
+        //     "timestamp": 1786022130191,
+        //     "data": {
+        //         "symbol": "PERP_BTC_USDC",
+        //         "index_price": 64185.4,
+        //         "mark_price": 64171.0,
+        //         "open_interest": 110.64612,
+        //         "24h_volume": 102.2817,
+        //         "24h_amount": 6595662.199482
+        //     }
+        // }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        ((IDictionary<string,object>)data)["timestamp"] = this.safeInteger(response, "timestamp");
+        return ccxt.BaseExchange.ToOpenInterest(this.parseOpenInterest(data, market));
+    }
+
+    /**
+     * @method
+     * @name woofipro#fetchOpenInterests
+     * @description retrieves the open interest for a list of contract trading pairs
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-all-symbols
+     * @param {string[]} [symbols] a list of unified CCXT market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
+     */
+    public async override Task<object> fetchOpenInterests(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
+        symbols = this.marketSymbols(symbols);
+        object response = await this.v1PublicGetPublicFutures(parameters);
+        //
+        // {
+        //     "success": true,
+        //     "timestamp": 1786022130191,
+        //     "data": {
+        //         "rows": [{
+        //             "symbol": "PERP_BTC_USDC",
+        //             "index_price": 64185.4,
+        //             "mark_price": 64171.0,
+        //             "open_interest": 110.64612,
+        //             "24h_volume": 102.2817,
+        //             "24h_amount": 6595662.199482
+        //         }]
+        //     }
+        // }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object rows = this.safeList(data, "rows", new List<object>() {});
+        object timestamp = this.safeInteger(response, "timestamp");
+        object result = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
+        {
+            object row = getValue(rows, i);
+            object marketId = this.safeString(row, "symbol", "");
+            if (isTrue(isTrue((isEqual(this.markets_by_id, null))) || !isTrue((inOp(this.markets_by_id, marketId)))))
+            {
+                continue;
+            }
+            Dictionary<string, object> interest = this.extend(new Dictionary<string, object>() {
+                { "timestamp", timestamp },
+            }, row);
+            ((IList<object>)result).Add(this.parseOpenInterest(interest));
+        }
+        return this.filterByArray(result, "symbol", symbols);
+    }
+
     /**
      * @method
      * @name woofipro#fetchFundingRateHistory
      * @description fetches historical funding rate prices
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-funding-rate-history-for-one-market
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-funding-rate-history-for-one-market
      * @param {string} symbol unified symbol of the market to fetch the funding rate history for
      * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
      * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
@@ -1058,8 +1591,9 @@ public partial class woofipro : Exchange
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
-    public async override Task<object> fetchFundingRateHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.FundingRateHistory>> FetchFundingRateHistory(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
@@ -1071,13 +1605,13 @@ public partial class woofipro : Exchange
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
-            return await this.fetchPaginatedCallIncremental("fetchFundingRateHistory", symbol, since, limit, parameters, "page", 25);
+            return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallIncremental("fetchFundingRateHistory", symbolVar, since, limit, parameters, "page", 25));
         }
         object request = new Dictionary<string, object>() {};
-        if (isTrue(!isEqual(symbol, null)))
+        if (isTrue(!isEqual(symbolVar, null)))
         {
-            object market = this.market(symbol);
-            symbol = getValue(market, "symbol");
+            object market = this.market(symbolVar);
+            symbolVar = getValue(market, "symbol");
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
         }
         if (isTrue(!isEqual(since, null)))
@@ -1124,7 +1658,7 @@ public partial class woofipro : Exchange
             });
         }
         object sorted = this.sortBy(rates, "timestamp");
-        return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
+        return ccxt.BaseExchange.ToFundingRateHistoryList(this.filterBySymbolSinceLimit(sorted, symbolVar, since, limit));
     }
 
     public override object parseIncome(object income, object market = null)
@@ -1165,7 +1699,7 @@ public partial class woofipro : Exchange
      * @method
      * @name woofipro#fetchFundingHistory
      * @description fetch the history of funding payments paid and received on this account
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-funding-fee-history
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-funding-fee-history
      * @param {string} [symbol] unified market symbol
      * @param {int} [since] the earliest time in ms to fetch funding history for
      * @param {int} [limit] the maximum number of funding history structures to retrieve
@@ -1173,7 +1707,7 @@ public partial class woofipro : Exchange
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
-    public async override Task<object> fetchFundingHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.FundingHistory>> FetchFundingHistory(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1186,7 +1720,7 @@ public partial class woofipro : Exchange
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
-            return await this.fetchPaginatedCallIncremental("fetchFundingHistory", symbol, since, limit, parameters, "page", 500);
+            return ccxt.BaseExchange.ToFundingHistoryList(await this.fetchPaginatedCallIncremental("fetchFundingHistory", symbol, since, limit, parameters, "page", 500));
         }
         object request = new Dictionary<string, object>() {};
         object market = null;
@@ -1235,14 +1769,14 @@ public partial class woofipro : Exchange
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object rows = this.safeList(data, "rows", new List<object>() {});
-        return this.parseIncomes(rows, market, since, limit);
+        return ccxt.BaseExchange.ToFundingHistoryList(this.parseIncomes(rows, market, since, limit));
     }
 
     /**
      * @method
      * @name woofipro#fetchTradingFees
      * @description fetch the trading fees for multiple markets
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-account-information
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-account-information
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
@@ -1285,9 +1819,10 @@ public partial class woofipro : Exchange
         object maker = this.safeString(data, "futures_maker_fee_rate");
         object taker = this.safeString(data, "futures_taker_fee_rate");
         object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(this.symbols)); postFixIncrement(ref i))
+        object symbols = this.symbols;
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
-            object symbol = getValue(this.symbols, i);
+            object symbol = getValue(symbols, i);
             ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
                 { "info", response },
                 { "symbol", symbol },
@@ -1304,14 +1839,15 @@ public partial class woofipro : Exchange
      * @method
      * @name woofipro#fetchOrderBook
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/orderbook-snapshot
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/orderbook-snapshot
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
+    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
@@ -1321,10 +1857,10 @@ public partial class woofipro : Exchange
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
-        if (isTrue(!isEqual(limit, null)))
+        if (isTrue(!isEqual(limitVar, null)))
         {
-            limit = mathMin(limit, 1000);
-            ((IDictionary<string,object>)request)["max_level"] = limit;
+            limitVar = mathMin(limitVar, 1000);
+            ((IDictionary<string,object>)request)["max_level"] = limitVar;
         }
         object response = await this.v1PrivateGetOrderbookSymbol(this.extend(request, parameters));
         //
@@ -1357,7 +1893,7 @@ public partial class woofipro : Exchange
     /**
      * @method
      * @name woofipro#fetchOHLCV
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-kline
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-kline
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
@@ -1366,9 +1902,10 @@ public partial class woofipro : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        timeframe ??= "1m";
+        object timeframeVar = timeframe;
+        timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
@@ -1377,7 +1914,7 @@ public partial class woofipro : Exchange
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
-            { "type", this.safeString(this.timeframes, timeframe, timeframe) },
+            { "type", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
         if (isTrue(!isEqual(limit, null)))
         {
@@ -1406,7 +1943,7 @@ public partial class woofipro : Exchange
         // }
         //
         object rows = this.safeList(data, "rows", new List<object>() {});
-        return this.parseOHLCVs(rows, market, timeframe, since, limit);
+        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(rows, market, timeframeVar, since, limit));
     }
 
     public override object parseOrder(object order, object market = null)
@@ -1473,9 +2010,9 @@ public partial class woofipro : Exchange
             status = ((bool) isTrue((success))) ? "NEW" : "REJECTED";
         }
         object side = this.safeStringLower(order, "side");
-        object filled = this.omitZero(this.safeValue2(order, "executed", "totalExecutedQuantity"));
+        object filled = this.safeStringN(order, new List<object>() {"total_executed_quantity", "totalExecutedQuantity", "executed_quantity", "executed"});
         object average = this.omitZero(this.safeString2(order, "average_executed_price", "averageExecutedPrice"));
-        object remaining = Precise.stringSub(cost, filled);
+        object remaining = Precise.stringSub(amount, filled);
         object fee = this.safeValue2(order, "total_fee", "totalFee");
         object feeCurrency = this.safeString2(order, "fee_asset", "feeAsset");
         object transactions = this.safeValue(order, "Transactions");
@@ -1487,7 +2024,7 @@ public partial class woofipro : Exchange
         {
             object first = this.safeValue(childOrders, 0);
             object innerChildOrders = this.safeValue(first, "childOrders", new List<object>() {});
-            object innerChildOrdersLength = getArrayLength(innerChildOrders);
+            int innerChildOrdersLength = getArrayLength(innerChildOrders);
             if (isTrue(isGreaterThan(innerChildOrdersLength, 0)))
             {
                 object takeProfitOrder = this.safeValue(innerChildOrders, 0);
@@ -1571,24 +2108,36 @@ public partial class woofipro : Exchange
 
     public virtual object createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @ignore
-        * @name woofipro#createOrderRequest
-        * @description helper function to build the request
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market' or 'limit'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much you want to trade in units of the base currency
-        * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} request to be sent to the exchange
-        */
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(type, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a type argument")) ;
+        }
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a side argument")) ;
+        }
+        /**
+         * @method
+         * @ignore
+         * @name woofipro#createOrderRequest
+         * @description helper function to build the request
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency
+         * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} request to be sent to the exchange
+         */
         object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
-        object orderType = ((string)type).ToUpper();
+        string orderType = ((string)type).ToUpper();
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " createOrderRequest() requires a side argument")) ;
+        }
         object market = this.market(symbol);
-        object orderSide = ((string)side).ToUpper();
+        string orderSide = ((string)side).ToUpper();
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
             { "side", orderSide },
@@ -1596,11 +2145,11 @@ public partial class woofipro : Exchange
         object triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
         object stopLoss = this.safeValue(parameters, "stopLoss");
         object takeProfit = this.safeValue(parameters, "takeProfit");
-        object hasStopLoss = (!isEqual(stopLoss, null));
-        object hasTakeProfit = (!isEqual(takeProfit, null));
+        bool hasStopLoss = (!isEqual(stopLoss, null));
+        bool hasTakeProfit = (!isEqual(takeProfit, null));
         object algoType = this.safeString(parameters, "algoType");
-        object isConditional = isTrue(isTrue(isTrue(!isEqual(triggerPrice, null)) || isTrue(hasStopLoss)) || isTrue(hasTakeProfit)) || isTrue((!isEqual(this.safeValue(parameters, "childOrders"), null)));
-        object isMarket = isEqual(orderType, "MARKET");
+        bool isConditional = isTrue(isTrue(isTrue(!isEqual(triggerPrice, null)) || isTrue(hasStopLoss)) || isTrue(hasTakeProfit)) || isTrue((!isEqual(this.safeValue(parameters, "childOrders"), null)));
+        bool isMarket = isEqual(orderType, "MARKET");
         object timeInForce = this.safeStringLower(parameters, "timeInForce");
         object postOnly = this.isPostOnly(isMarket, null, parameters);
         object orderQtyKey = ((bool) isTrue(isConditional)) ? "quantity" : "order_quantity";
@@ -1620,7 +2169,7 @@ public partial class woofipro : Exchange
                 ((IDictionary<string,object>)request)["order_type"] = "IOC";
             }
         }
-        if (isTrue(reduceOnly))
+        if (isTrue(isEqual(reduceOnly, true)))
         {
             ((IDictionary<string,object>)request)["reduce_only"] = reduceOnly;
         }
@@ -1647,17 +2196,11 @@ public partial class woofipro : Exchange
         } else if (isTrue(isTrue(hasStopLoss) || isTrue(hasTakeProfit)))
         {
             ((IDictionary<string,object>)request)["algo_type"] = "TP_SL";
-            object outterOrder = new Dictionary<string, object>() {
-                { "symbol", getValue(market, "id") },
-                { "reduce_only", false },
-                { "algo_type", "POSITIONAL_TP_SL" },
-                { "child_orders", new List<object>() {} },
-            };
-            object childOrders = getValue(outterOrder, "child_orders");
+            object childOrders = new List<object>() {};
             object closeSide = ((bool) isTrue((isEqual(orderSide, "BUY")))) ? "SELL" : "BUY";
             if (isTrue(hasStopLoss))
             {
-                object stopLossPrice = this.safeNumber2(stopLoss, "triggerPrice", "price", stopLoss);
+                object stopLossPrice = this.safeValue2(stopLoss, "triggerPrice", "price", stopLoss);
                 object stopLossOrder = new Dictionary<string, object>() {
                     { "side", closeSide },
                     { "algo_type", "TP_SL" },
@@ -1669,7 +2212,7 @@ public partial class woofipro : Exchange
             }
             if (isTrue(hasTakeProfit))
             {
-                object takeProfitPrice = this.safeNumber2(takeProfit, "triggerPrice", "price", takeProfit);
+                object takeProfitPrice = this.safeValue2(takeProfit, "triggerPrice", "price", takeProfit);
                 object takeProfitOrder = new Dictionary<string, object>() {
                     { "side", closeSide },
                     { "algo_type", "TP_SL" },
@@ -1677,8 +2220,14 @@ public partial class woofipro : Exchange
                     { "type", "LIMIT" },
                     { "reduce_only", true },
                 };
-                ((IList<object>)outterOrder).Add(takeProfitOrder);
+                ((IList<object>)childOrders).Add(takeProfitOrder);
             }
+            object outterOrder = new Dictionary<string, object>() {
+                { "symbol", getValue(market, "id") },
+                { "reduce_only", false },
+                { "algo_type", "POSITIONAL_TP_SL" },
+                { "child_orders", childOrders },
+            };
             ((IDictionary<string,object>)request)["child_orders"] = new List<object>() {outterOrder};
         }
         parameters = this.omit(parameters, new List<object>() {"reduceOnly", "reduce_only", "clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLoss", "takeProfit"});
@@ -1689,8 +2238,8 @@ public partial class woofipro : Exchange
      * @method
      * @name woofipro#createOrder
      * @description create a trade order
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/create-order
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/create-algo-order
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/create-order
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/create-algo-order
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -1707,7 +2256,7 @@ public partial class woofipro : Exchange
      * @param {string} [params.clientOrderId] a unique id for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1719,7 +2268,7 @@ public partial class woofipro : Exchange
         object triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
         object stopLoss = this.safeValue(parameters, "stopLoss");
         object takeProfit = this.safeValue(parameters, "takeProfit");
-        object isConditional = isTrue(isTrue(isTrue(!isEqual(triggerPrice, null)) || isTrue(!isEqual(stopLoss, null))) || isTrue(!isEqual(takeProfit, null))) || isTrue((!isEqual(this.safeValue(parameters, "childOrders"), null)));
+        bool isConditional = isTrue(isTrue(isTrue(!isEqual(triggerPrice, null)) || isTrue(!isEqual(stopLoss, null))) || isTrue(!isEqual(takeProfit, null))) || isTrue((!isEqual(this.safeValue(parameters, "childOrders"), null)));
         object response = null;
         if (isTrue(isConditional))
         {
@@ -1732,19 +2281,19 @@ public partial class woofipro : Exchange
         ((IDictionary<string,object>)data)["timestamp"] = this.safeInteger(response, "timestamp");
         object order = this.parseOrder(data, market);
         ((IDictionary<string,object>)order)["type"] = type;
-        return order;
+        return ccxt.BaseExchange.ToOrder(order);
     }
 
     /**
      * @method
      * @name woofipro#createOrders
      * @description *contract only* create a list of trade orders
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/batch-create-order
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/batch-create-order
      * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> createOrders(object orders, object parameters = null)
+    public async override Task<List<ccxt.Order>> CreateOrders(object orders, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1764,7 +2313,7 @@ public partial class woofipro : Exchange
             object triggerPrice = this.safeString2(orderParams, "triggerPrice", "stopPrice");
             object stopLoss = this.safeValue(orderParams, "stopLoss");
             object takeProfit = this.safeValue(orderParams, "takeProfit");
-            object isConditional = isTrue(isTrue(isTrue(!isEqual(triggerPrice, null)) || isTrue(!isEqual(stopLoss, null))) || isTrue(!isEqual(takeProfit, null))) || isTrue((!isEqual(this.safeValue(orderParams, "childOrders"), null)));
+            bool isConditional = isTrue(isTrue(isTrue(!isEqual(triggerPrice, null)) || isTrue(!isEqual(stopLoss, null))) || isTrue(!isEqual(takeProfit, null))) || isTrue((!isEqual(this.safeValue(orderParams, "childOrders"), null)));
             if (isTrue(isConditional))
             {
                 throw new NotSupported ((string)add(this.id, " createOrders() only support non-stop order")) ;
@@ -1795,15 +2344,15 @@ public partial class woofipro : Exchange
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object rows = this.safeList(data, "rows", new List<object>() {});
-        return this.parseOrders(rows);
+        return ccxt.BaseExchange.ToOrderList(this.parseOrders(rows));
     }
 
     /**
      * @method
      * @name woofipro#editOrder
      * @description edit a trade order
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/edit-order
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/edit-algo-order
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/edit-order
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/edit-algo-order
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
@@ -1816,7 +2365,7 @@ public partial class woofipro : Exchange
      * @param {float} [params.takeProfitPrice] price to trigger take-profit orders
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
+    public async override Task<ccxt.Order> EditOrder(string id, string symbol, string type, string side, double? amount = null, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1832,7 +2381,7 @@ public partial class woofipro : Exchange
         {
             ((IDictionary<string,object>)request)["triggerPrice"] = this.priceToPrecision(symbol, triggerPrice);
         }
-        object isConditional = isTrue((!isEqual(triggerPrice, null))) || isTrue((!isEqual(this.safeValue(parameters, "childOrders"), null)));
+        bool isConditional = isTrue((!isEqual(triggerPrice, null))) || isTrue((!isEqual(this.safeValue(parameters, "childOrders"), null)));
         object orderQtyKey = ((bool) isTrue(isConditional)) ? "quantity" : "order_quantity";
         object priceKey = ((bool) isTrue(isConditional)) ? "price" : "order_price";
         if (isTrue(!isEqual(price, null)))
@@ -1845,6 +2394,10 @@ public partial class woofipro : Exchange
         }
         parameters = this.omit(parameters, new List<object>() {"stopPrice", "triggerPrice", "takeProfitPrice", "stopLossPrice", "trailingTriggerPrice", "trailingAmount", "trailingPercent"});
         object response = null;
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " editOrder() requires a side argument")) ;
+        }
         if (isTrue(isConditional))
         {
             response = await this.v1PrivatePutAlgoOrder(this.extend(request, parameters));
@@ -1852,9 +2405,9 @@ public partial class woofipro : Exchange
         {
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
             ((IDictionary<string,object>)request)["side"] = ((string)side).ToUpper();
-            object orderType = ((string)type).ToUpper();
+            string orderType = ((string)type).ToUpper();
             object timeInForce = this.safeStringLower(parameters, "timeInForce");
-            object isMarket = isEqual(orderType, "MARKET");
+            bool isMarket = isEqual(orderType, "MARKET");
             object postOnly = this.isPostOnly(isMarket, null, parameters);
             if (isTrue(postOnly))
             {
@@ -1890,16 +2443,16 @@ public partial class woofipro : Exchange
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         ((IDictionary<string,object>)data)["timestamp"] = this.safeInteger(response, "timestamp");
-        return this.parseOrder(data, market);
+        return ccxt.BaseExchange.ToOrder(this.parseOrder(data, market));
     }
 
     /**
      * @method
      * @name woofipro#cancelOrder
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-order
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-order-by-client_order_id
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-algo-order
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-algo-order-by-client_order_id
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-order
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-order-by-client_order_id
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-algo-order
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-algo-order-by-client_order_id
      * @description cancels an open order
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
@@ -1908,12 +2461,12 @@ public partial class woofipro : Exchange
      * @param {string} [params.clientOrderId] a unique id for the order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> CancelOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object trigger = this.safeBool2(parameters, "stop", "trigger", false);
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
-        if (isTrue(!isTrue(trigger) && isTrue((isEqual(symbol, null)))))
+        if (isTrue(isTrue((!isEqual(trigger, true))) && isTrue((isEqual(symbol, null)))))
         {
             throw new ArgumentsRequired ((string)add(this.id, " cancelOrder() requires a symbol argument")) ;
         }
@@ -1931,9 +2484,9 @@ public partial class woofipro : Exchange
         };
         object clientOrderIdUnified = this.safeString2(parameters, "clOrdID", "clientOrderId");
         object clientOrderIdExchangeSpecific = this.safeString(parameters, "client_order_id", clientOrderIdUnified);
-        object isByClientOrder = !isEqual(clientOrderIdExchangeSpecific, null);
+        bool isByClientOrder = !isEqual(clientOrderIdExchangeSpecific, null);
         object response = null;
-        if (isTrue(trigger))
+        if (isTrue(isEqual(trigger, true)))
         {
             if (isTrue(isByClientOrder))
             {
@@ -1983,27 +2536,28 @@ public partial class woofipro : Exchange
         {
             ((IDictionary<string,object>)extendParams)["id"] = id;
         }
-        if (isTrue(trigger))
+        if (isTrue(isEqual(trigger, true)))
         {
-            return this.extend(this.parseOrder(response), extendParams);
+            object parsedResponse = ((bool) isTrue((isEqual(response, null)))) ? new Dictionary<string, object>() {} : response;
+            return ccxt.BaseExchange.ToOrder(this.extend(this.parseOrder(parsedResponse), extendParams));
         }
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return this.extend(this.parseOrder(data), extendParams);
+        return ccxt.BaseExchange.ToOrder(this.extend(this.parseOrder(data), extendParams));
     }
 
     /**
      * @method
      * @name woofipro#cancelOrders
      * @description cancel multiple orders
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/batch-cancel-orders
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/batch-cancel-orders-by-client_order_id
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/batch-cancel-orders
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/batch-cancel-orders-by-client_order_id
      * @param {string[]} ids order ids
      * @param {string} [symbol] unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string[]} [params.client_order_ids] max length 10 e.g. ["my_id_1","my_id_2"], encode the double quotes. No space after comma
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
+    public async override Task<object> cancelOrders(object ids, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2014,7 +2568,7 @@ public partial class woofipro : Exchange
         parameters = this.omit(parameters, new List<object>() {"clOrdIDs", "clientOrderIds", "client_order_ids"});
         object request = new Dictionary<string, object>() {};
         object response = null;
-        if (isTrue(clientOrderIds))
+        if (isTrue(!isEqual(clientOrderIds, null)))
         {
             ((IDictionary<string,object>)request)["client_order_ids"] = String.Join(",", ((IList<object>)clientOrderIds).ToArray());
             response = await this.v1PrivateDeleteClientBatchOrder(this.extend(request, parameters));
@@ -2040,15 +2594,15 @@ public partial class woofipro : Exchange
     /**
      * @method
      * @name woofipro#cancelAllOrders
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-all-pending-algo-orders
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-orders-in-bulk
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-all-pending-algo-orders
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-all-pending-orders
      * @description cancel all open orders in a market
-     * @param {string} symbol unified market symbol
+     * @param {string} [symbol] unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] whether the order is a stop/algo order
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> CancelAllOrders(string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2064,7 +2618,7 @@ public partial class woofipro : Exchange
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
         }
         object response = null;
-        if (isTrue(trigger))
+        if (isTrue(isEqual(trigger, true)))
         {
             response = await this.v1PrivateDeleteAlgoOrders(this.extend(request, parameters));
         } else
@@ -2086,18 +2640,16 @@ public partial class woofipro : Exchange
         //     }
         // }
         //
-        return new List<object> {this.safeOrder(new Dictionary<string, object>() {
-    { "info", response },
-})};
+        return ccxt.BaseExchange.ToOrderList(new List<object> {this.safeOrder(new Dictionary<string, object>() {     { "info", response }, })});
     }
 
     /**
      * @method
      * @name woofipro#fetchOrder
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-order-by-order_id
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-order-by-client_order_id
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-order-by-order_id
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-order-by-client_order_id
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-order-by-order_id
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-order-by-client_order_id
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-order-by-order_id
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-order-by-client_order_id
      * @description fetches information on an order made by the user
      * @param {string} id the order id
      * @param {string} symbol unified symbol of the market the order was made in
@@ -2106,7 +2658,7 @@ public partial class woofipro : Exchange
      * @param {string} [params.clientOrderId] a unique id for the order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> FetchOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2123,9 +2675,9 @@ public partial class woofipro : Exchange
         object clientOrderId = this.safeStringN(parameters, new List<object>() {"clOrdID", "clientOrderId", "client_order_id"});
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger", "clOrdID", "clientOrderId", "client_order_id"});
         object response = null;
-        if (isTrue(trigger))
+        if (isTrue(isEqual(trigger, true)))
         {
-            if (isTrue(clientOrderId))
+            if (isTrue(isTrue(!isEqual(clientOrderId, null)) && isTrue(!isEqual(clientOrderId, ""))))
             {
                 ((IDictionary<string,object>)request)["client_order_id"] = clientOrderId;
                 response = await this.v1PrivateGetAlgoClientOrderClientOrderId(this.extend(request, parameters));
@@ -2136,7 +2688,7 @@ public partial class woofipro : Exchange
             }
         } else
         {
-            if (isTrue(clientOrderId))
+            if (isTrue(isTrue((!isEqual(clientOrderId, null))) && isTrue((!isEqual(clientOrderId, "")))))
             {
                 ((IDictionary<string,object>)request)["client_order_id"] = clientOrderId;
                 response = await this.v1PrivateGetClientOrderClientOrderId(this.extend(request, parameters));
@@ -2174,15 +2726,16 @@ public partial class woofipro : Exchange
         // }
         //
         object orders = this.safeDict(response, "data", response);
-        return this.parseOrder(orders, market);
+        object parsedOrders = ((bool) isTrue((isEqual(orders, null)))) ? new Dictionary<string, object>() {} : orders;
+        return ccxt.BaseExchange.ToOrder(this.parseOrder(parsedOrders, market));
     }
 
     /**
      * @method
      * @name woofipro#fetchOrders
      * @description fetches information on multiple orders made by the user
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-orders
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-orders
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-orders
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-orders
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -2194,7 +2747,7 @@ public partial class woofipro : Exchange
      * @param {int} params.until timestamp in ms of the latest order to fetch
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> FetchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2203,13 +2756,13 @@ public partial class woofipro : Exchange
         }
         object paginate = false;
         object isTrigger = this.safeBool2(parameters, "stop", "trigger", false);
-        object maxLimit = ((bool) isTrue((isTrigger))) ? 100 : 500;
+        object maxLimit = ((bool) isTrue((isEqual(isTrigger, true)))) ? 100 : 500;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOrders", "paginate");
         paginate = ((IList<object>)paginateparametersVariable)[0];
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
-            return await this.fetchPaginatedCallIncremental("fetchOrders", symbol, since, limit, parameters, "page", maxLimit);
+            return ccxt.BaseExchange.ToOrderList(await this.fetchPaginatedCallIncremental("fetchOrders", symbol, since, limit, parameters, "page", maxLimit));
         }
         object request = new Dictionary<string, object>() {};
         object market = null;
@@ -2230,7 +2783,7 @@ public partial class woofipro : Exchange
         {
             ((IDictionary<string,object>)request)["size"] = maxLimit;
         }
-        if (isTrue(isTrigger))
+        if (isTrue(isEqual(isTrigger, true)))
         {
             ((IDictionary<string,object>)request)["algo_type"] = "STOP";
         }
@@ -2238,7 +2791,7 @@ public partial class woofipro : Exchange
         request = ((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
         object response = null;
-        if (isTrue(isTrigger))
+        if (isTrue(isEqual(isTrigger, true)))
         {
             response = await this.v1PrivateGetAlgoOrders(this.extend(request, parameters));
         } else
@@ -2281,15 +2834,15 @@ public partial class woofipro : Exchange
         //
         object data = this.safeValue(response, "data", response);
         object orders = this.safeList(data, "rows");
-        return this.parseOrders(orders, market, since, limit);
+        return ccxt.BaseExchange.ToOrderList(this.parseOrders(orders, market, since, limit));
     }
 
     /**
      * @method
      * @name woofipro#fetchOpenOrders
      * @description fetches information on multiple orders made by the user
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-orders
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-orders
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-orders
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-orders
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -2301,25 +2854,25 @@ public partial class woofipro : Exchange
      * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> FetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        object extendedParams = this.extend(parameters, new Dictionary<string, object>() {
+        Dictionary<string, object> extendedParams = this.extend(parameters, new Dictionary<string, object>() {
             { "status", "INCOMPLETE" },
         });
-        return await this.fetchOrders(symbol, since, limit, extendedParams);
+        return await this.FetchOrders(((string)symbol),ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), extendedParams);
     }
 
     /**
      * @method
      * @name woofipro#fetchClosedOrders
      * @description fetches information on multiple orders made by the user
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-orders
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-orders
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-orders
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-orders
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -2331,24 +2884,24 @@ public partial class woofipro : Exchange
      * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> FetchClosedOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        object extendedParams = this.extend(parameters, new Dictionary<string, object>() {
+        Dictionary<string, object> extendedParams = this.extend(parameters, new Dictionary<string, object>() {
             { "status", "COMPLETED" },
         });
-        return await this.fetchOrders(symbol, since, limit, extendedParams);
+        return await this.FetchOrders(((string)symbol),ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), extendedParams);
     }
 
     /**
      * @method
      * @name woofipro#fetchOrderTrades
      * @description fetch all the trades made from a single order
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-all-trades-of-specific-order
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-all-trades-of-specific-order
      * @param {string} id order id
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
@@ -2356,7 +2909,7 @@ public partial class woofipro : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<object> fetchOrderTrades(object id, object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> FetchOrderTrades(string id, string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2395,13 +2948,13 @@ public partial class woofipro : Exchange
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object trades = this.safeList(data, "rows", new List<object>() {});
-        return this.parseTrades(trades, market, since, limit, parameters);
+        return ccxt.BaseExchange.ToTradeList(this.parseTrades(trades, market, since, limit, parameters));
     }
 
     /**
      * @method
      * @name woofipro#fetchMyTrades
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-trades
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-trades
      * @description fetch all trades made by the user
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
@@ -2411,7 +2964,7 @@ public partial class woofipro : Exchange
      * @param {int} params.until timestamp in ms of the latest trade to fetch
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> FetchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2424,7 +2977,7 @@ public partial class woofipro : Exchange
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
-            return await this.fetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, parameters, "page", 500);
+            return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, parameters, "page", 500));
         }
         object request = new Dictionary<string, object>() {};
         object market = null;
@@ -2476,7 +3029,7 @@ public partial class woofipro : Exchange
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object trades = this.safeList(data, "rows", new List<object>() {});
-        return this.parseTrades(trades, market, since, limit, parameters);
+        return ccxt.BaseExchange.ToTradeList(this.parseTrades(trades, market, since, limit, parameters));
     }
 
     public override object parseBalance(object response)
@@ -2491,8 +3044,11 @@ public partial class woofipro : Exchange
             object code = this.safeCurrencyCode(this.safeString(balance, "token"));
             object account = this.account();
             ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "holding");
-            ((IDictionary<string,object>)account)["frozen"] = this.safeString(balance, "frozen");
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "frozen");
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -2501,7 +3057,7 @@ public partial class woofipro : Exchange
      * @method
      * @name woofipro#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-current-holding
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-current-holding
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
@@ -2625,27 +3181,27 @@ public partial class woofipro : Exchange
             { "BALANCE", "transaction" },
             { "COLLATERAL", "transfer" },
         };
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((string)type), type);
     }
 
     /**
      * @method
      * @name woofipro#fetchLedger
      * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
      * @param {string} [code] unified currency code, default is undefined
      * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
      * @param {int} [limit] max number of ledger entries to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
-    public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.LedgerEntry>> FetchLedger(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object currencyRows = await this.getAssetHistoryRows(code, since, limit, parameters);
         object currency = this.safeValue(currencyRows, 0);
         object rows = this.safeList(currencyRows, 1);
-        return this.parseLedger(rows, currency, since, limit, parameters);
+        return ccxt.BaseExchange.ToLedgerEntryList(this.parseLedger(rows, currency, since, limit, parameters));
     }
 
     public override object parseTransaction(object transaction, object currency = null)
@@ -2701,54 +3257,54 @@ public partial class woofipro : Exchange
      * @method
      * @name woofipro#fetchDeposits
      * @description fetch all deposits made to an account
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch deposits for
      * @param {int} [limit] the maximum number of deposits structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Transaction>> FetchDeposits(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object request = new Dictionary<string, object>() {
             { "side", "DEPOSIT" },
         };
-        return await this.fetchDepositsWithdrawals(code, since, limit, this.extend(request, parameters));
+        return await this.FetchDepositsWithdrawals(code,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), this.extend(request, parameters));
     }
 
     /**
      * @method
      * @name woofipro#fetchWithdrawals
      * @description fetch all withdrawals made from an account
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch withdrawals for
      * @param {int} [limit] the maximum number of withdrawals structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Transaction>> FetchWithdrawals(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object request = new Dictionary<string, object>() {
             { "side", "WITHDRAW" },
         };
-        return await this.fetchDepositsWithdrawals(code, since, limit, this.extend(request, parameters));
+        return await this.FetchDepositsWithdrawals(code,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), this.extend(request, parameters));
     }
 
     /**
      * @method
      * @name woofipro#fetchDepositsWithdrawals
      * @description fetch history of deposits and withdrawals
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
      * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
      * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
      * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<object> fetchDepositsWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Transaction>> FetchDepositsWithdrawals(object code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object request = new Dictionary<string, object>() {};
@@ -2766,7 +3322,12 @@ public partial class woofipro : Exchange
         //         "success":true
         //     }
         //
-        return this.parseTransactions(rows, currency, since, limit, parameters);
+        object rowsList = new List<object>() {};
+        if (isTrue(!isEqual(rows, null)))
+        {
+            rowsList = rows;
+        }
+        return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(rowsList, currency, since, limit, parameters));
     }
 
     public async virtual Task<object> getWithdrawNonce(object parameters = null)
@@ -2809,7 +3370,7 @@ public partial class woofipro : Exchange
      * @method
      * @name woofipro#withdraw
      * @description make a withdrawal
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/create-withdraw-request
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/create-withdraw-request
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
@@ -2817,23 +3378,24 @@ public partial class woofipro : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
+    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
     {
+        object codeVar = code;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
         this.checkAddress(address);
-        if (isTrue(!isEqual(code, null)))
+        if (isTrue(!isEqual(codeVar, null)))
         {
-            code = ((string)code).ToUpper();
-            if (isTrue(!isEqual(code, "USDC")))
+            codeVar = ((string)codeVar).ToUpper();
+            if (isTrue(!isEqual(codeVar, "USDC")))
             {
                 throw new NotSupported ((string)add(this.id, " withdraw() only support USDC")) ;
             }
         }
-        object currency = this.currency(code);
+        object currency = this.currency(codeVar);
         object verifyingContractAddress = this.safeString(this.options, "verifyingContractAddress");
         object chainId = this.safeString(parameters, "chainId");
         object currencyNetworks = this.safeDict(currency, "networks", new Dictionary<string, object>() {});
@@ -2879,7 +3441,7 @@ public partial class woofipro : Exchange
             { "brokerId", this.safeString(this.options, "keyBrokerId", "woofi_pro") },
             { "chainId", this.parseToInt(chainId) },
             { "receiver", address },
-            { "token", code },
+            { "token", codeVar },
             { "amount", ((object)amount).ToString() },
             { "withdrawNonce", withdrawNonce },
             { "timestamp", nonce },
@@ -2904,7 +3466,220 @@ public partial class woofipro : Exchange
         //     }
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return this.parseTransaction(data, currency);
+        return ccxt.BaseExchange.ToTransaction(this.parseTransaction(data, currency));
+    }
+
+    public override object parseMarginMode(object marginMode, object market = null)
+    {
+        //
+        //     {
+        //         "symbol": "PERP_BTC_USDC",
+        //         "default_margin_mode": "CROSS"
+        //     }
+        //
+        object marketId = this.safeString(marginMode, "symbol");
+        market = this.safeMarket(marketId, market);
+        return new Dictionary<string, object>() {
+            { "info", marginMode },
+            { "symbol", getValue(market, "symbol") },
+            { "marginMode", this.safeStringLower(marginMode, "default_margin_mode") },
+        };
+    }
+
+    /**
+     * @method
+     * @name woofipro#fetchMarginModes
+     * @description fetches the set margin mode of every contract market
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-margin-modes
+     * @param {string[]} [symbols] a list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/?id=margin-mode-structure}
+     */
+    public async override Task<object> fetchMarginModes(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
+        symbols = this.marketSymbols(symbols);
+        object response = await this.v1PrivateGetClientMarginModes(parameters);
+        //
+        // {
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //         "rows": [{
+        //             "symbol": "PERP_BTC_USDC",
+        //             "default_margin_mode": "CROSS"
+        //         }]
+        //     }
+        // }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object rows = this.safeList(data, "rows", new List<object>() {});
+        return this.parseMarginModes(rows, symbols, "symbol");
+    }
+
+    /**
+     * @method
+     * @name woofipro#fetchMarginMode
+     * @description fetches the set margin mode of a contract market
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-margin-modes
+     * @param {string} symbol unified symbol of the market
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
+     */
+    public async override Task<ccxt.MarginMode> FetchMarginMode(string symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
+        object market = this.market(symbol);
+        object marginModes = await this.fetchMarginModes(new List<object>() {getValue(market, "symbol")}, parameters);
+        object marginMode = this.safeDict(marginModes, getValue(market, "symbol"));
+        if (isTrue(isEqual(marginMode, null)))
+        {
+            throw new BadSymbol ((string)add(add(this.id, " fetchMarginMode() did not return a margin mode for "), getValue(market, "symbol"))) ;
+        }
+        return ccxt.BaseExchange.ToMarginMode(marginMode);
+    }
+
+    /**
+     * @method
+     * @name woofipro#setMarginMode
+     * @description set margin mode to 'cross' or 'isolated' for a market
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/update-margin-mode
+     * @param {string} marginMode 'cross' or 'isolated'
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} response from the exchange
+     */
+    public async override Task<object> setMarginMode(string marginMode, string symbol = null, object parameters = null)
+    {
+        object marginModeVar = marginMode;
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(symbol, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " setMarginMode() requires a symbol argument")) ;
+        }
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
+        marginModeVar = ((string)marginModeVar).ToLower();
+        if (isTrue(isTrue(!isEqual(marginModeVar, "cross")) && isTrue(!isEqual(marginModeVar, "isolated"))))
+        {
+            throw new BadRequest ((string)add(this.id, " setMarginMode() marginMode must be either cross or isolated")) ;
+        }
+        object market = this.market(symbol);
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+            { "default_margin_mode", ((string)marginModeVar).ToUpper() },
+        };
+        //
+        // {
+        //     "success": true,
+        //     "timestamp": 1702989203989
+        // }
+        //
+        return await this.v1PrivatePostClientMarginMode(this.extend(request, parameters));
+    }
+
+    public override object parseMarginModification(object data, object market = null)
+    {
+        //
+        //     {
+        //         "success": true,
+        //         "timestamp": 1702989203989
+        //     }
+        //
+        object timestamp = this.safeInteger(data, "timestamp");
+        object success = this.safeBool(data, "success", false);
+        return new Dictionary<string, object>() {
+            { "info", data },
+            { "symbol", this.safeString(market, "symbol") },
+            { "type", null },
+            { "marginMode", "isolated" },
+            { "amount", null },
+            { "total", null },
+            { "code", this.safeString(market, "settle") },
+            { "status", ((bool) isTrue((isEqual(success, true)))) ? "ok" : "failed" },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+        };
+    }
+
+    /**
+     * @method
+     * @ignore
+     * @name woofipro#modifyMarginHelper
+     * @description add or reduce isolated position margin
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/add-or-reduce-position-margin
+     * @param {string} symbol unified market symbol
+     * @param {float} amount amount of margin to add or reduce
+     * @param {string} type 'ADD' or 'REDUCE'
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
+     */
+    public async virtual Task<object> modifyMarginHelper(object symbol, object amount, object type, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
+        object market = this.market(symbol);
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+            { "amount", this.numberToString(amount) },
+            { "type", type },
+        };
+        object response = await this.v1PrivatePostPositionMargin(this.extend(request, parameters));
+        //
+        // {
+        //     "success": true,
+        //     "timestamp": 1702989203989
+        // }
+        //
+        object modification = this.parseMarginModification(response, market);
+        ((IDictionary<string,object>)modification)["type"] = ((bool) isTrue((isEqual(type, "ADD")))) ? "add" : "reduce";
+        ((IDictionary<string,object>)modification)["amount"] = this.parseNumber(this.numberToString(amount));
+        return modification;
+    }
+
+    /**
+     * @method
+     * @name woofipro#addMargin
+     * @description add margin to an isolated position
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/add-or-reduce-position-margin
+     * @param {string} symbol unified market symbol
+     * @param {float} amount amount of margin to add
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
+     */
+    public async override Task<object> addMargin(string symbol, object amount, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        return await this.modifyMarginHelper(symbol, amount, "ADD", parameters);
+    }
+
+    /**
+     * @method
+     * @name woofipro#reduceMargin
+     * @description remove margin from an isolated position
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/add-or-reduce-position-margin
+     * @param {string} symbol unified market symbol
+     * @param {float} amount amount of margin to remove
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=reduce-margin-structure}
+     */
+    public async override Task<object> reduceMargin(string symbol, object amount, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        return await this.modifyMarginHelper(symbol, amount, "REDUCE", parameters);
     }
 
     public override object parseLeverage(object leverage, object market = null)
@@ -2923,12 +3698,12 @@ public partial class woofipro : Exchange
      * @method
      * @name woofipro#fetchLeverage
      * @description fetch the set leverage for a market
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-account-information
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-account-information
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    public async override Task<object> fetchLeverage(object symbol, object parameters = null)
+    public async override Task<ccxt.Leverage> FetchLeverage(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2965,20 +3740,20 @@ public partial class woofipro : Exchange
         // }
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return this.parseLeverage(data, market);
+        return ccxt.BaseExchange.ToLeverage(this.parseLeverage(data, market));
     }
 
     /**
      * @method
      * @name woofipro#setLeverage
      * @description set the level of leverage for a market
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/update-leverage-setting
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/update-leverage-setting
      * @param {int} [leverage] the rate of leverage
      * @param {string} [symbol] unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public async override Task<object> setLeverage(object leverage, object symbol = null, object parameters = null)
+    public async override Task<object> setLeverage(object leverage, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -3072,13 +3847,13 @@ public partial class woofipro : Exchange
     /**
      * @method
      * @name woofipro#fetchPosition
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-one-position-info
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-one-position-info
      * @description fetch data on an open position
      * @param {string} symbol unified market symbol of the market the position is held in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public async override Task<object> fetchPosition(object symbol, object parameters = null)
+    public async override Task<ccxt.Position> FetchPosition(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -3116,20 +3891,20 @@ public partial class woofipro : Exchange
         //     }
         // }
         //
-        object data = this.safeDict(response, "data");
-        return this.parsePosition(data, market);
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        return ccxt.BaseExchange.ToPosition(this.parsePosition(data, market));
     }
 
     /**
      * @method
      * @name woofipro#fetchPositions
      * @description fetch all open positions
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-all-positions-info
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-all-positions-info
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public async override Task<object> fetchPositions(object symbols = null, object parameters = null)
+    public async override Task<List<ccxt.Position>> FetchPositions(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -3177,7 +3952,7 @@ public partial class woofipro : Exchange
         //
         object result = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object positions = this.safeList(result, "rows", new List<object>() {});
-        return this.parsePositions(positions, symbols);
+        return ccxt.BaseExchange.ToPositionList(this.parsePositions(positions, symbols));
     }
 
     public override object nonce()
@@ -3199,7 +3974,7 @@ public partial class woofipro : Exchange
         if (isTrue(isEqual(access, "public")))
         {
             url = add(url, pathWithParams);
-            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys))))
+            if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys)), 0)))
             {
                 url = add(url, add("?", this.urlencode(parameters)));
             }
@@ -3209,7 +3984,7 @@ public partial class woofipro : Exchange
             if (isTrue(isTrue((isTrue(isEqual(method, "POST")) || isTrue(isEqual(method, "PUT")))) && isTrue((isTrue(isTrue(isEqual(path, "algo/order")) || isTrue(isEqual(path, "order"))) || isTrue(isEqual(path, "batch-order"))))))
             {
                 object isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
-                if (!isTrue(isSandboxMode))
+                if (isTrue(!isEqual(isSandboxMode, true)))
                 {
                     object brokerId = this.safeString(this.options, "brokerId", "CCXT");
                     if (isTrue(isEqual(path, "batch-order")))
@@ -3227,7 +4002,7 @@ public partial class woofipro : Exchange
                 parameters = this.keysort(parameters);
             }
             object auth = "";
-            object ts = ((object)this.nonce()).ToString();
+            string ts = ((object)this.nonce()).ToString();
             url = add(url, pathWithParams);
             object apiKey = this.apiKey;
             if (isTrue(isLessThan(getIndexOf(apiKey, "ed25519:"), 0)))
@@ -3247,7 +4022,7 @@ public partial class woofipro : Exchange
                 ((IDictionary<string,object>)headers)["content-type"] = "application/json";
             } else
             {
-                if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys))))
+                if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys)), 0)))
                 {
                     url = add(url, add("?", this.urlencode(parameters)));
                     auth = add(auth, add("?", this.rawencode(parameters)));
@@ -3261,7 +4036,7 @@ public partial class woofipro : Exchange
             object secret = this.secret;
             if (isTrue(isGreaterThanOrEqual(getIndexOf(secret, "ed25519:"), 0)))
             {
-                object parts = ((string)secret).Split(new [] {((string)"ed25519:")}, StringSplitOptions.None).ToList<object>();
+                List<object> parts = ((string)secret).Split(new [] {((string)"ed25519:")}, StringSplitOptions.None).ToList<object>();
                 secret = getValue(parts, 1);
             }
             object signature = eddsa(this.encode(auth), this.base58ToBinary(secret), ed25519);
@@ -3277,7 +4052,7 @@ public partial class woofipro : Exchange
 
     public override object handleErrors(object httpCode, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)
     {
-        if (!isTrue(response))
+        if (isTrue(isEqual(response, null)))
         {
             return null;  // fallback to default error handler
         }
@@ -3287,7 +4062,7 @@ public partial class woofipro : Exchange
         //
         object success = this.safeBool(response, "success");
         object errorCode = this.safeString(response, "code");
-        if (!isTrue(success))
+        if (isTrue(!isEqual(success, true)))
         {
             object feedback = add(add(this.id, " "), this.json(response));
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), body, feedback);

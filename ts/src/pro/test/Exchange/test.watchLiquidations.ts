@@ -3,7 +3,6 @@ import assert from 'assert';
 import { Exchange } from "../../../../ccxt.js";
 import testLiquidation from '../../../test/Exchange/base/test.liquidation.js';
 import { NetworkError } from '../../../base/errors.js';
-import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js';
 import type { Liquidation } from '../../../base/types.js';
 
 
@@ -14,7 +13,7 @@ async function testWatchLiquidations (exchange: Exchange, skippedProperties: obj
     const method = 'watchLiquidations';
 
     // we have to skip some exchanges here due to the frequency of trading
-    const skippedExchanges = [];
+    const skippedExchanges: string[] = [];
 
     if (exchange.inArray (exchange.id, skippedExchanges)) {
         const m1 = (exchange.id + ' ' + method + '() test skipped');
@@ -22,7 +21,7 @@ async function testWatchLiquidations (exchange: Exchange, skippedProperties: obj
         return false;
     }
 
-    if (!exchange.has[method]) {
+    if (exchange.has[method] === undefined || exchange.has[method] === false) {
         const m2 = (exchange.id + ' does not support ' + method + '() method');
         console.log (m2);
         return false;

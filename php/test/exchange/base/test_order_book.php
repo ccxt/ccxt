@@ -25,8 +25,6 @@ function test_order_book($exchange, $skipped_properties, $method, $orderbook, $s
         'nonce' => 134234234,
     );
     $empty_allowed_for = ['nonce'];
-    // turn into copy: https://discord.com/channels/690203284119617602/921046068555313202/1220626834887282728
-    $orderbook = $exchange->deep_extend(array(), $orderbook);
     assert_structure($exchange, $skipped_properties, $method, $orderbook, $format, $empty_allowed_for);
     assert_timestamp_and_datetime($exchange, $skipped_properties, $method, $orderbook);
     assert_symbol($exchange, $skipped_properties, $method, $orderbook, 'symbol', $symbol);
@@ -67,7 +65,7 @@ function test_order_book($exchange, $skipped_properties, $method, $orderbook, $s
         }
     }
     if (!(is_array($skipped_properties) && array_key_exists('spread', $skipped_properties))) {
-        if ($bids_length && $asks_length) {
+        if (($bids_length > 0) && ($asks_length > 0)) {
             $first_bid = $exchange->safe_string($bids[0], 0);
             $first_ask = $exchange->safe_string($asks[0], 0);
             // check bid-ask spread

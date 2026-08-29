@@ -6,8 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bydfi import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, Currency, Int, Leverage, MarginMode, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, Transaction, FundingRateHistory, TransferEntry
-from typing import List
+from ccxt.base.types import Balances, Currency, Int, Leverage, MarginMode, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, PositionModeInfo, Str, Strings, Ticker, Tickers, FundingRate, Trade, Transaction, FundingRateHistory, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -22,7 +21,7 @@ from ccxt.base.precise import Precise
 
 class bydfi(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(bydfi, self).describe(), {
             'id': 'bydfi',
             'name': 'BYDFi',
@@ -140,7 +139,7 @@ class bydfi(Exchange, ImplicitAPI):
                 'fetchOpenInterest': False,
                 'fetchOpenInterestHistory': False,
                 'fetchOpenInterests': False,
-                'fetchOpenOrder': False,
+                'fetchOpenOrder': True,
                 'fetchOpenOrders': True,
                 'fetchOption': False,
                 'fetchOptionChain': False,
@@ -207,57 +206,57 @@ class bydfi(Exchange, ImplicitAPI):
             'api': {
                 'public': {
                     'get': {
-                        'v1/public/api_limits': 1,  # https://developers.bydfi.com/en/public#inquiry-into-api-rate-limit-configuration
-                        'v1/fapi/market/exchange_info': 1,
-                        'v1/fapi/market/depth': 1,
-                        'v1/fapi/market/trades': 1,
-                        'v1/fapi/market/klines': 1,
-                        'v1/fapi/market/ticker/24hr': 1,
-                        'v1/fapi/market/ticker/price': 1,  # https://developers.bydfi.com/en/futures/market#latest-price
-                        'v1/fapi/market/mark_price': 1,  # https://developers.bydfi.com/en/futures/market#mark-price
-                        'v1/fapi/market/funding_rate': 1,
-                        'v1/fapi/market/funding_rate_history': 1,
-                        'v1/fapi/market/risk_limit': 1,  # https://developers.bydfi.com/en/futures/market#risk-limit
+                        'v1/public/api_limits': {'cost': 1},  # https://developers.bydfi.com/en/public#inquiry-into-api-rate-limit-configuration
+                        'v1/fapi/market/exchange_info': {'cost': 1},
+                        'v1/fapi/market/depth': {'cost': 1},
+                        'v1/fapi/market/trades': {'cost': 1},
+                        'v1/fapi/market/klines': {'cost': 1},
+                        'v1/fapi/market/ticker/24hr': {'cost': 1},
+                        'v1/fapi/market/ticker/price': {'cost': 1},  # https://developers.bydfi.com/en/futures/market#latest-price
+                        'v1/fapi/market/mark_price': {'cost': 1},  # https://developers.bydfi.com/en/futures/market#mark-price
+                        'v1/fapi/market/funding_rate': {'cost': 1},
+                        'v1/fapi/market/funding_rate_history': {'cost': 1},
+                        'v1/fapi/market/risk_limit': {'cost': 1},  # https://developers.bydfi.com/en/futures/market#risk-limit
                     },
                 },
                 'private': {
                     'get': {
-                        'v1/account/assets': 1,
-                        'v1/account/transfer_records': 1,
-                        'v1/spot/deposit_records': 1,
-                        'v1/spot/withdraw_records': 1,
-                        'v1/fapi/trade/open_order': 1,
-                        'v1/fapi/trade/plan_order': 1,
-                        'v1/fapi/trade/leverage': 1,
-                        'v1/fapi/trade/history_order': 1,
-                        'v1/fapi/trade/history_trade': 1,
-                        'v1/fapi/trade/position_history': 1,
-                        'v1/fapi/trade/positions': 1,
-                        'v1/fapi/account/balance': 1,
-                        'v1/fapi/user_data/assets_margin': 1,
-                        'v1/fapi/user_data/position_side/dual': 1,
-                        'v1/agent/teams': 1,  # https://developers.bydfi.com/en/agent/#query-kol-subordinate-team-information
-                        'v1/agent/agent_links': 1,  # https://developers.bydfi.com/en/agent/#query-kol-invitation-code-list
-                        'v1/agent/regular_overview': 1,  # https://developers.bydfi.com/en/agent/#query-kol-direct-client-data-list
-                        'v1/agent/agent_sub_overview': 1,  # https://developers.bydfi.com/en/agent/#query-kol-subordinate-affiliate-list
-                        'v1/agent/partener_user_deposit': 1,  # https://developers.bydfi.com/en/agent/#check-the-recharge-amount-of-kol-within-one-year
-                        'v1/agent/partener_users_data': 1,  # https://developers.bydfi.com/en/agent/#query-kol-subordinate-deposit-and-trading-data
-                        'v1/agent/affiliate_uids': 1,  # https://developers.bydfi.com/en/agent/#get-affiliate-uids
-                        'v1/agent/affiliate_commission': 1,  # https://developers.bydfi.com/en/agent/#get-affiliate-commission
-                        'v1/agent/internal_withdrawal_status': 1,  # https://developers.bydfi.com/en/agent/#get-internal-withdrawal-status
+                        'v1/account/assets': {'cost': 1},
+                        'v1/account/transfer_records': {'cost': 1},
+                        'v1/spot/deposit_records': {'cost': 1},
+                        'v1/spot/withdraw_records': {'cost': 1},
+                        'v1/fapi/trade/open_order': {'cost': 1},
+                        'v1/fapi/trade/plan_order': {'cost': 1},
+                        'v1/fapi/trade/leverage': {'cost': 1},
+                        'v1/fapi/trade/history_order': {'cost': 1},
+                        'v1/fapi/trade/history_trade': {'cost': 1},
+                        'v1/fapi/trade/position_history': {'cost': 1},
+                        'v1/fapi/trade/positions': {'cost': 1},
+                        'v1/fapi/account/balance': {'cost': 1},
+                        'v1/fapi/user_data/assets_margin': {'cost': 1},
+                        'v1/fapi/user_data/position_side/dual': {'cost': 1},
+                        'v1/agent/teams': {'cost': 1},  # https://developers.bydfi.com/en/agent/#query-kol-subordinate-team-information
+                        'v1/agent/agent_links': {'cost': 1},  # https://developers.bydfi.com/en/agent/#query-kol-invitation-code-list
+                        'v1/agent/regular_overview': {'cost': 1},  # https://developers.bydfi.com/en/agent/#query-kol-direct-client-data-list
+                        'v1/agent/agent_sub_overview': {'cost': 1},  # https://developers.bydfi.com/en/agent/#query-kol-subordinate-affiliate-list
+                        'v1/agent/partener_user_deposit': {'cost': 1},  # https://developers.bydfi.com/en/agent/#check-the-recharge-amount-of-kol-within-one-year
+                        'v1/agent/partener_users_data': {'cost': 1},  # https://developers.bydfi.com/en/agent/#query-kol-subordinate-deposit-and-trading-data
+                        'v1/agent/affiliate_uids': {'cost': 1},  # https://developers.bydfi.com/en/agent/#get-affiliate-uids
+                        'v1/agent/affiliate_commission': {'cost': 1},  # https://developers.bydfi.com/en/agent/#get-affiliate-commission
+                        'v1/agent/internal_withdrawal_status': {'cost': 1},  # https://developers.bydfi.com/en/agent/#get-internal-withdrawal-status
                     },
                     'post': {
-                        'v1/account/transfer': 1,
-                        'v1/fapi/trade/place_order': 1,
-                        'v1/fapi/trade/batch_place_order': 1,
-                        'v1/fapi/trade/edit_order': 1,
-                        'v1/fapi/trade/batch_edit_order': 1,
-                        'v1/fapi/trade/cancel_all_order': 1,
-                        'v1/fapi/trade/leverage': 1,
-                        'v1/fapi/trade/batch_leverage_margin': 1,  # https://developers.bydfi.com/en/futures/trade#modify-leverage-and-margin-type-with-one-click
-                        'v1/fapi/user_data/margin_type': 1,
-                        'v1/fapi/user_data/position_side/dual': 1,
-                        'v1/agent/internal_withdrawal': 1,  # https://developers.bydfi.com/en/agent/#internal-withdrawal
+                        'v1/account/transfer': {'cost': 1},
+                        'v1/fapi/trade/place_order': {'cost': 1},
+                        'v1/fapi/trade/batch_place_order': {'cost': 1},
+                        'v1/fapi/trade/edit_order': {'cost': 1},
+                        'v1/fapi/trade/batch_edit_order': {'cost': 1},
+                        'v1/fapi/trade/cancel_all_order': {'cost': 1},
+                        'v1/fapi/trade/leverage': {'cost': 1},
+                        'v1/fapi/trade/batch_leverage_margin': {'cost': 1},  # https://developers.bydfi.com/en/futures/trade#modify-leverage-and-margin-type-with-one-click
+                        'v1/fapi/user_data/margin_type': {'cost': 1},
+                        'v1/fapi/user_data/position_side/dual': {'cost': 1},
+                        'v1/agent/internal_withdrawal': {'cost': 1},  # https://developers.bydfi.com/en/agent/#internal-withdrawal
                     },
                 },
             },
@@ -402,7 +401,7 @@ class bydfi(Exchange, ImplicitAPI):
             },
         })
 
-    async def fetch_markets(self, params={}) -> List[Market]:
+    async def fetch_markets(self, params={}) -> list[Market]:
         """
         retrieves data on all markets for bydfi
 
@@ -526,7 +525,7 @@ class bydfi(Exchange, ImplicitAPI):
             'option': False,
             'active': status == 'NORMAL',
             'contract': True,
-            'linear': not inverse,
+            'linear': inverse is not True,
             'inverse': inverse,
             'taker': taker,
             'maker': maker,
@@ -572,7 +571,7 @@ class bydfi(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of order book entries to return, could be 5, 10, 20, 50, 100, 500 or 1000(default 500)
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.loc]: crypto location, default: us
-        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             await self.load_markets()
@@ -619,12 +618,14 @@ class bydfi(Exchange, ImplicitAPI):
         limits = [5, 10, 20, 50, 100, 500, 1000]
         result = 1000
         for i in range(0, len(limits)):
+            if limit is None:
+                raise ArgumentsRequired(self.id + ' getClosestLimit() requires a limit argument')
             if limit <= limits[i]:
                 result = limits[i]
                 break
         return result
 
-    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -666,7 +667,7 @@ class bydfi(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
 
-    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         fetch all trades made by the user
 
@@ -685,7 +686,7 @@ class bydfi(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         paginate = self.safe_bool(params, 'paginate', False)
-        if paginate:
+        if paginate is True:
             maxLimit = 500
             params = self.omit(params, 'paginate')
             params = self.extend(params, {'paginationDirection': 'backward'})
@@ -804,7 +805,7 @@ class bydfi(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -814,7 +815,7 @@ class bydfi(Exchange, ImplicitAPI):
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch(max 500)
-        :param dict [params]: extra parameters specific to the bitteam api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest candle to fetch
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
@@ -832,7 +833,7 @@ class bydfi(Exchange, ImplicitAPI):
             'interval': interval,
         }
         startTime = since
-        numberOfCandles = limit if limit else maxLimit
+        numberOfCandles = limit if (limit is not None and limit is not None and limit != 0) else maxLimit
         until = None
         until, params = self.handle_option_and_params(params, 'fetchOHLCV', 'until')
         now = self.milliseconds()
@@ -842,6 +843,8 @@ class bydfi(Exchange, ImplicitAPI):
             startTime = now - timeDelta
             until = now
         elif until is None:
+            if startTime is None:
+                raise ArgumentsRequired(self.id + ' fetchOHLCV() requires a since or until argument')
             until = startTime + timeDelta
             if until > now:
                 until = now
@@ -874,7 +877,7 @@ class bydfi(Exchange, ImplicitAPI):
         result = self.parse_ohlcvs(data, market, timeframe, since, limit)
         return result
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #
         #     {
         #         "s": "ETH-USDT",
@@ -1025,7 +1028,7 @@ class bydfi(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data')
         return self.parse_funding_rate(data, market)
 
-    def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
         #
         #     {
         #         "symbol": "BTC-USDT",
@@ -1059,7 +1062,7 @@ class bydfi(Exchange, ImplicitAPI):
             'interval': None,
         }
 
-    async def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[FundingRateHistory]:
+    async def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[FundingRateHistory]:
         """
         fetches historical funding rate prices
 
@@ -1107,7 +1110,7 @@ class bydfi(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_funding_rate_histories(data, market, since, limit)
 
-    def parse_funding_rate_history(self, contract, market: Market = None):
+    def parse_funding_rate_history(self, contract: object, market: Market = None):
         #
         #     {
         #         "symbol": "ETH-USDT",
@@ -1193,8 +1196,14 @@ class bydfi(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_order(data, market)
 
-    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}):
+        if type is None:
+            raise ArgumentsRequired(self.id + ' requires a type argument')
+        if side is None:
+            raise ArgumentsRequired(self.id + ' requires a side argument')
         market = self.market(symbol)
+        if side is None:
+            raise ArgumentsRequired(self.id + ' createOrderRequest() requires a side argument')
         request = {
             'symbol': market['id'],
             'side': side.upper(),
@@ -1255,11 +1264,11 @@ class bydfi(Exchange, ImplicitAPI):
         if hedged:
             params = self.omit(params, 'reduceOnly')
             if side == 'buy':
-                request['positionSide'] = 'SHORT' if reduceOnly else 'LONG'
+                request['positionSide'] = 'SHORT' if (reduceOnly is True) else 'LONG'
             elif side == 'sell':
-                request['positionSide'] = 'LONG' if reduceOnly else 'SHORT'
+                request['positionSide'] = 'LONG' if (reduceOnly is True) else 'SHORT'
         closePosition = self.safe_bool(params, 'closePosition', False)
-        if not closePosition:
+        if closePosition is not True:
             params = self.omit(params, 'closePosition')
             request['quantity'] = self.amount_to_precision(symbol, amount)
         elif (type != 'STOP_MARKET') and (type != 'TAKE_PROFIT_MARKET'):
@@ -1288,7 +1297,7 @@ class bydfi(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, workingType, workingType)
 
-    async def create_orders(self, orders: List[OrderRequest], params={}):
+    async def create_orders(self, orders: list[OrderRequest], params={}):
         """
         create a list of trade orders
 
@@ -1352,7 +1361,7 @@ class bydfi(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_order(data)
 
-    async def edit_orders(self, orders: List[OrderRequest], params={}) -> List[Order]:
+    async def edit_orders(self, orders: list[OrderRequest], params={}) -> list[Order]:
         """
         edit a list of trade orders
 
@@ -1389,7 +1398,7 @@ class bydfi(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_orders(data)
 
-    def create_edit_order_request(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
+    def create_edit_order_request(self, id: Str, symbol: Str, type: Str, side: Str, amount: Num = None, price: Num = None, params={}):
         clientOrderId = self.safe_string(params, 'clientOrderId')
         request = {}
         if (id is None) and (clientOrderId is None):
@@ -1406,7 +1415,7 @@ class bydfi(Exchange, ImplicitAPI):
             request['price'] = self.price_to_precision(symbol, price)
         return self.extend(request, params)
 
-    async def cancel_all_orders(self, symbol: Str = None, params={}) -> List[Order]:
+    async def cancel_all_orders(self, symbol: Str = None, params={}) -> list[Order]:
         """
         cancel all open orders in a market
 
@@ -1464,7 +1473,7 @@ class bydfi(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_orders(data, market)
 
-    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -1532,7 +1541,7 @@ class bydfi(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_orders(data, market, since, limit)
 
-    async def fetch_open_order(self, id: str, symbol: Str = None, params={}):
+    async def fetch_open_order(self, id: str, symbol: Str = None, params={}) -> Order:
         """
         fetch an open order by the id
 
@@ -1574,7 +1583,7 @@ class bydfi(Exchange, ImplicitAPI):
         order = self.safe_dict(data, 0, {})
         return self.parse_order(order, market)
 
-    async def fetch_canceled_and_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_canceled_and_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple canceled and closed orders made by the user
 
@@ -1593,7 +1602,7 @@ class bydfi(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         paginate = self.safe_bool(params, 'paginate', False)
-        if paginate:
+        if paginate is True:
             maxLimit = 500
             params = self.omit(params, 'paginate')
             params = self.extend(params, {'paginationDirection': 'backward'})
@@ -1909,7 +1918,7 @@ class bydfi(Exchange, ImplicitAPI):
             'shortLeverage': self.safe_integer(leverage, 'leverage'),
         }
 
-    async def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
+    async def fetch_positions(self, symbols: Strings = None, params={}) -> list[Position]:
         """
         fetch all open positions
 
@@ -1954,7 +1963,7 @@ class bydfi(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_positions(data, symbols)
 
-    async def fetch_positions_for_symbol(self, symbol: str, params={}) -> List[Position]:
+    async def fetch_positions_for_symbol(self, symbol: str, params={}) -> list[Position]:
         """
         fetch open positions for a single market
 
@@ -2087,7 +2096,7 @@ class bydfi(Exchange, ImplicitAPI):
         }
         return self.safe_string(sides, side, side)
 
-    async def fetch_position_history(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Position]:
+    async def fetch_position_history(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Position]:
         """
         fetches historical positions
 
@@ -2096,7 +2105,7 @@ class bydfi(Exchange, ImplicitAPI):
         :param str symbol: a unified market symbol
         :param int [since]: timestamp in ms of the earliest position to fetch , params["until"] - since <= 7 days
         :param int [limit]: the maximum amount of records to fetch(default 500, max 500)
-        :param dict params: extra parameters specific to the exchange api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest position to fetch , params["until"] - since <= 7 days
         :param str [params.contractType]: FUTURE or DELIVERY, default is FUTURE
         :param str [params.wallet]: The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
@@ -2106,7 +2115,7 @@ class bydfi(Exchange, ImplicitAPI):
             await self.load_markets()
         market = self.market(symbol)
         contractType = 'FUTURE'
-        contractType, params = self.handle_option_and_params(params, 'fetchPositionsHistory', 'contractType', contractType)
+        contractType, params = self.handle_option_and_params(params, 'fetchPositionHistory', 'contractType', contractType)
         request = {
             'symbol': market['id'],
             'contractType': contractType,
@@ -2121,7 +2130,7 @@ class bydfi(Exchange, ImplicitAPI):
         positions = self.parse_positions(data)
         return self.filter_by_since_limit(positions, since, limit)
 
-    async def fetch_positions_history(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> List[Position]:
+    async def fetch_positions_history(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> list[Position]:
         """
         fetches historical positions
 
@@ -2130,7 +2139,7 @@ class bydfi(Exchange, ImplicitAPI):
         :param str[] symbols: a list of unified market symbols
         :param int [since]: timestamp in ms of the earliest position to fetch , params["until"] - since <= 7 days
         :param int [limit]: the maximum amount of records to fetch(default 500, max 500)
-        :param dict params: extra parameters specific to the exchange api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest position to fetch , params["until"] - since <= 7 days
         :param str [params.contractType]: FUTURE or DELIVERY, default is FUTURE
         :param str [params.wallet]: The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
@@ -2263,9 +2272,9 @@ class bydfi(Exchange, ImplicitAPI):
             await self.load_markets()
         market = self.market(symbol)
         contractType = 'FUTURE'
-        contractType, params = self.handle_option_and_params(params, 'fetchMarginMode', 'contractType', contractType)
+        contractType, params = self.handle_option_and_params(params, 'setMarginMode', 'contractType', contractType)
         wallet = 'W001'
-        wallet, params = self.handle_option_and_params(params, 'fetchMarginMode', 'wallet', wallet)
+        wallet, params = self.handle_option_and_params(params, 'setMarginMode', 'wallet', wallet)
         request = {
             'contractType': contractType,
             'symbol': market['id'],
@@ -2281,7 +2290,7 @@ class bydfi(Exchange, ImplicitAPI):
         https://developers.bydfi.com/en/futures/user#change-position-mode-dual
 
         :param bool hedged: set to True to use dualSidePosition
-        :param str [symbol]: not used by bydfi setPositionMode()
+        :param str [symbol]: not used by setPositionMode()
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.contractType]: FUTURE or DELIVERY, default is FUTURE
         :param str [params.wallet]: The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
@@ -2314,7 +2323,7 @@ class bydfi(Exchange, ImplicitAPI):
         #
         return await self.privatePostV1FapiUserDataPositionSideDual(self.extend(request, params))
 
-    async def fetch_position_mode(self, symbol: Str = None, params={}):
+    async def fetch_position_mode(self, symbol: Str = None, params={}) -> PositionModeInfo:
         """
         fetchs the position mode, hedged or one way, hedged for bydfi is set identically for all markets with same settle currency
 
@@ -2445,7 +2454,7 @@ class bydfi(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_balance(data)
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: object) -> Balances:
         timestamp = self.milliseconds()
         result = {
             'info': response,
@@ -2459,7 +2468,8 @@ class bydfi(Exchange, ImplicitAPI):
             account = self.account()
             account['total'] = self.safe_string_2(balance, 'total', 'balance')
             account['free'] = self.safe_string_2(balance, 'available', 'availableBalance')
-            result[code] = account
+            if code is not None:
+                result[code] = account
         return self.safe_balance(result)
 
     async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
@@ -2498,7 +2508,7 @@ class bydfi(Exchange, ImplicitAPI):
         transfer = self.parse_transfer(response, currency)
         transferOptions = self.safe_dict(self.options, 'transfer', {})
         fillResponseFromRequest = self.safe_bool(transferOptions, 'fillResponseFromRequest', True)
-        if fillResponseFromRequest:
+        if fillResponseFromRequest is True:
             timestamp = self.milliseconds()
             transfer['timestamp'] = timestamp
             transfer['datetime'] = self.iso8601(timestamp)
@@ -2508,7 +2518,7 @@ class bydfi(Exchange, ImplicitAPI):
             transfer['amount'] = amount
         return transfer
 
-    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[TransferEntry]:
+    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[TransferEntry]:
         """
         fetch a history of internal transfers made on an account
 
@@ -2527,7 +2537,7 @@ class bydfi(Exchange, ImplicitAPI):
             await self.load_markets()
         currency = self.currency(code)
         paginate = self.safe_bool(params, 'paginate', False)
-        if paginate:
+        if paginate is True:
             maxLimit = 50
             params = self.omit(params, 'paginate')
             params = self.extend(params, {'paginationDirection': 'backward'})
@@ -2618,7 +2628,7 @@ class bydfi(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch all deposits made to an account
 
@@ -2632,7 +2642,7 @@ class bydfi(Exchange, ImplicitAPI):
         """
         return await self.fetch_transactions_helper('deposit', code, since, limit, params)
 
-    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch all withdrawals made from an account
 
@@ -2646,7 +2656,7 @@ class bydfi(Exchange, ImplicitAPI):
         """
         return await self.fetch_transactions_helper('withdrawal', code, since, limit, params)
 
-    async def fetch_transactions_helper(self, type, code, since, limit, params):
+    async def fetch_transactions_helper(self, type: object, code: object, since: object, limit: object, params: object) -> list[Transaction]:
         methodName = 'fetchDeposits' if (type == 'deposit') else 'fetchWithdrawals'
         if code is None:
             raise ArgumentsRequired(self.id + ' ' + methodName + '() requires a code argument')
@@ -2654,7 +2664,7 @@ class bydfi(Exchange, ImplicitAPI):
             await self.load_markets()
         currency = self.currency(code)
         paginate = self.safe_bool(params, 'paginate', False)
-        if paginate:
+        if paginate is True:
             maxLimit = 50
             params = self.omit(params, 'paginate')
             params = self.extend(params, {'paginationDirection': 'backward'})
@@ -2781,7 +2791,7 @@ class bydfi(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: Any = None, body: Any = None):
+    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: object = None, body: object = None):
         url = self.urls['api'][api]
         endpoint = '/' + path
         query = ''
@@ -2814,7 +2824,7 @@ class bydfi(Exchange, ImplicitAPI):
         url += endpoint
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:
             return None  # fallback to default error handler
         #

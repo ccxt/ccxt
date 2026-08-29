@@ -193,7 +193,7 @@ pacifica.fetchMarginMode (symbol, params?)
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>pacifica</code>](#pacifica)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-orderbook  
 
@@ -402,14 +402,14 @@ cancel all open orders in a market
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | (optional) unified market symbol of the market to cancel orders in. |
+| symbol | <code>string</code> | No | (optional) unified market symbol of the market to cancel orders in. |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.excludeReduceOnly | <code>boolean</code> | No | whether to exclude reduce-only orders |
 | params.expiryWindow | <code>int</code> | No | time to live in milliseconds |
 
 
 ```javascript
-pacifica.cancelAllOrders (symbol, params?)
+pacifica.cancelAllOrders (symbol?, params?)
 ```
 
 
@@ -1096,7 +1096,7 @@ pacifica.cancelAllOrdersWs (symbol, params?)
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>pacifica</code>](#pacifica)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://docs.pacifica.fi/api-documentation/api/websocket/subscriptions/orderbook  
 

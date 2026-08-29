@@ -74,7 +74,7 @@ export default class blockchaincom extends Exchange {
                 'fetchTransfers': false,
                 'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
-                'fetchWithdrawalWhitelist': true, // fetches exchange specific benficiary-ids needed for withdrawals
+                'fetchWithdrawalWhitelist': true, // fetches exchange specific beneficiary-ids needed for withdrawals
                 'transfer': false,
                 'withdraw': true,
             },
@@ -98,38 +98,38 @@ export default class blockchaincom extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'tickers': 1, // fetchTickers
-                        'tickers/{symbol}': 1, // fetchTicker
-                        'symbols': 1, // fetchMarkets
-                        'symbols/{symbol}': 1, // fetchMarket
-                        'l2/{symbol}': 1, // fetchL2OrderBook
-                        'l3/{symbol}': 1, // fetchL3OrderBook
+                        'tickers': { 'cost': 1 }, // fetchTickers
+                        'tickers/{symbol}': { 'cost': 1 }, // fetchTicker
+                        'symbols': { 'cost': 1 }, // fetchMarkets
+                        'symbols/{symbol}': { 'cost': 1 }, // fetchMarket
+                        'l2/{symbol}': { 'cost': 1 }, // fetchL2OrderBook
+                        'l3/{symbol}': { 'cost': 1 }, // fetchL3OrderBook
                     },
                 },
                 'private': {
                     'get': {
-                        'fees': 1, // fetchFees
-                        'orders': 1, // fetchOpenOrders, fetchClosedOrders
-                        'orders/{orderId}': 1, // fetchOrder(id)
-                        'trades': 1,
-                        'fills': 1, // fetchMyTrades
-                        'deposits': 1, // fetchDeposits
-                        'deposits/{depositId}': 1, // fetchDeposit
-                        'accounts': 1, // fetchBalance
-                        'accounts/{account}/{currency}': 1,
-                        'whitelist': 1, // fetchWithdrawalWhitelist
-                        'whitelist/{currency}': 1, // fetchWithdrawalWhitelistByCurrency
-                        'withdrawals': 1, // fetchWithdrawalWhitelist
-                        'withdrawals/{withdrawalId}': 1, // fetchWithdrawalById
+                        'fees': { 'cost': 1 }, // fetchFees
+                        'orders': { 'cost': 1 }, // fetchOpenOrders, fetchClosedOrders
+                        'orders/{orderId}': { 'cost': 1 }, // fetchOrder(id)
+                        'trades': { 'cost': 1 },
+                        'fills': { 'cost': 1 }, // fetchMyTrades
+                        'deposits': { 'cost': 1 }, // fetchDeposits
+                        'deposits/{depositId}': { 'cost': 1 }, // fetchDeposit
+                        'accounts': { 'cost': 1 }, // fetchBalance
+                        'accounts/{account}/{currency}': { 'cost': 1 },
+                        'whitelist': { 'cost': 1 }, // fetchWithdrawalWhitelist
+                        'whitelist/{currency}': { 'cost': 1 }, // fetchWithdrawalWhitelistByCurrency
+                        'withdrawals': { 'cost': 1 }, // fetchWithdrawalWhitelist
+                        'withdrawals/{withdrawalId}': { 'cost': 1 }, // fetchWithdrawalById
                     },
                     'post': {
-                        'orders': 1, // createOrder
-                        'deposits/{currency}': 1, // fetchDepositAddress by currency (only crypto supported)
-                        'withdrawals': 1, // withdraw
+                        'orders': { 'cost': 1 }, // createOrder
+                        'deposits/{currency}': { 'cost': 1 }, // fetchDepositAddress by currency (only crypto supported)
+                        'withdrawals': { 'cost': 1 }, // withdraw
                     },
                     'delete': {
-                        'orders': 1, // cancelOrders
-                        'orders/{orderId}': 1, // cancelOrder
+                        'orders': { 'cost': 1 }, // cancelOrders
+                        'orders/{orderId}': { 'cost': 1 }, // cancelOrder
                     },
                 },
             },
@@ -431,7 +431,7 @@ export default class blockchaincom extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         return await this.fetchL3OrderBook(symbol, limit, params);
@@ -636,6 +636,9 @@ export default class blockchaincom extends Exchange {
         const uppercaseOrderType = orderType.toUpperCase();
         const clientOrderId = this.safeString2(params, 'clientOrderId', 'clOrdId', this.uuid16());
         params = this.omit(params, ['ordType', 'clientOrderId', 'clOrdId']);
+        if (side === undefined) {
+            throw new ArgumentsRequired(this.id + ' createOrder() requires a side argument');
+        }
         const request = {
             // 'stopPx' : limit price
             // 'timeInForce' : "GTC" for Good Till Cancel, "IOC" for Immediate or Cancel, "FOK" for Fill or Kill, "GTD" Good Till Date
@@ -704,7 +707,7 @@ export default class blockchaincom extends Exchange {
      * @name blockchaincom#cancelAllOrders
      * @description cancel all open orders
      * @see https://api.blockchain.com/v3/#deleteallorders
-     * @param {string} symbol unified market symbol of the market to cancel orders in, all markets are used if undefined, default is undefined
+     * @param {string} [symbol] unified market symbol of the market to cancel orders in, all markets are used if undefined, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -754,8 +757,9 @@ export default class blockchaincom extends Exchange {
         const makerFee = this.safeNumber(response, 'makerRate');
         const takerFee = this.safeNumber(response, 'takerRate');
         const result = {};
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+        const symbols = this.symbols;
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
             result[symbol] = {
                 'info': response,
                 'symbol': symbol,
@@ -1138,7 +1142,7 @@ export default class blockchaincom extends Exchange {
      * @description fetch information on a deposit
      * @see https://api.blockchain.com/v3/#getdepositbyid
      * @param {string} id deposit id
-     * @param {string} code not used by blockchaincom fetchDeposit ()
+     * @param {string} code not used by fetchDeposit ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
@@ -1247,7 +1251,7 @@ export default class blockchaincom extends Exchange {
         let url = this.urls['api'][api] + requestPath;
         const query = this.omit(params, this.extractParams(path));
         if (api === 'public') {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
             }
         }
@@ -1257,7 +1261,7 @@ export default class blockchaincom extends Exchange {
                 'X-API-Token': this.secret,
             };
             if ((method === 'GET')) {
-                if (Object.keys(query).length) {
+                if (Object.keys(query).length > 0) {
                     url += '?' + this.urlencode(query);
                 }
             }

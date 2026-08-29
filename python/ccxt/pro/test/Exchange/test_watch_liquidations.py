@@ -14,7 +14,6 @@ sys.path.append(root)
 
 from ccxt.base.errors import NetworkError  # noqa E402
 from ccxt.test.exchange.base import test_liquidation  # noqa E402
-from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 
 async def test_watch_liquidations(exchange, skipped_properties, symbol):
     # log (symbol.green, 'watching trades...')
@@ -25,7 +24,7 @@ async def test_watch_liquidations(exchange, skipped_properties, symbol):
         m1 = (exchange.id + ' ' + method + '() test skipped')
         print(m1)
         return False
-    if not exchange.has[method]:
+    if exchange.has[method] is None or exchange.has[method] is False:
         m2 = (exchange.id + ' does not support ' + method + '() method')
         print(m2)
         return False

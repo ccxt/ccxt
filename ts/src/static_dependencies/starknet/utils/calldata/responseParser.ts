@@ -168,16 +168,16 @@ function parseResponseValue(
     }, {} as CairoEnumRaw);
     // Option
     if (element.type.startsWith('core::option::Option')) {
-      const content = variantNum === CairoOptionVariant.Some ? rawEnum.Some : undefined;
+      const content = variantNum === CairoOptionVariant.Some ? rawEnum['Some'] : undefined;
       return new CairoOption<Object>(variantNum, content);
     }
     // Result
     if (element.type.startsWith('core::result::Result')) {
       let content: Object;
       if (variantNum === CairoResultVariant.Ok) {
-        content = rawEnum.Ok;
+        content = rawEnum['Ok'];
       } else {
-        content = rawEnum.Err;
+        content = rawEnum['Err'];
       }
       return new CairoResult<Object, Object>(variantNum, content);
     }

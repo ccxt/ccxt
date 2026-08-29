@@ -205,7 +205,7 @@
                 "input": [
                     "ADA/USDT:USDT"
                 ],
-                "output": "{\"symbol\":\"ADAUSDTM\",\"closeOrder\":true,\"clientOid\":\"1702639752693\",\"type\":\"market\"}"
+                "output": { "symbol": "ADAUSDTM", "closeOrder": true, "clientOid": "1702639752693", "type": "market" }
             }
         ],
         "fetchPositionMode": [
@@ -226,7 +226,7 @@
                   "isolated",
                   "BTC/USDT:USDT"
                 ],
-                "output": "{\"symbol\":\"XBTUSDTM\",\"marginMode\":\"ISOLATED\"}"
+                "output": { "symbol": "XBTUSDTM", "marginMode": "ISOLATED" }
             },
             {
                 "description": "linear swap - cross",
@@ -236,7 +236,7 @@
                   "cross",
                   "BTC/USDT:USDT"
                 ],
-                "output": "{\"symbol\":\"XBTUSDTM\",\"marginMode\":\"CROSS\"}"
+                "output": { "symbol": "XBTUSDTM", "marginMode": "CROSS" }
             }
         ],
         "fetchMarginMode": [
@@ -258,7 +258,7 @@
                   "ETH/USDT:USDT",
                   1
                 ],
-                "output": "{\"symbol\":\"ETHUSDTM\",\"margin\":\"1\",\"bizNo\":\"0091c851-35bd-4fbd-8abd-40a7dad05645\"}"
+                "output": { "symbol": "ETHUSDTM", "margin": "1", "bizNo": "0091c851-35bd-4fbd-8abd-40a7dad05645" }
             }
         ],
         "reduceMargin": [
@@ -270,7 +270,7 @@
                   "ETH/USDT:USDT",
                   1
                 ],
-                "output": "{\"symbol\":\"ETHUSDTM\",\"withdrawAmount\":\"1\"}"
+                "output": { "symbol": "ETHUSDTM", "withdrawAmount": "1" }
             }
         ],
         "cancelOrders": [
@@ -287,7 +287,7 @@
                         "uta": true
                     }
                 ],
-                "output": "{\"tradeType\":\"SPOT\",\"cancelOrderList\":[{\"orderId\":\"426334028208119808\",\"symbol\":\"ETH-USDT\"}]}"
+                "output": { "tradeType": "SPOT", "cancelOrderList": [ { "orderId": "426334028208119808", "symbol": "ETH-USDT" } ] }
             },
             {
                 "description": "cancelOrders with id",
@@ -299,7 +299,7 @@
                     "235624167473491968"
                   ]
                 ],
-                "output": "{\"orderIdsList\":[\"235624148146139136\",\"235624167473491968\"]}"
+                "output": { "orderIdsList": [ "235624148146139136", "235624167473491968" ] }
               },
               {
                 "description": "cancel orders with clientOrderId",
@@ -314,7 +314,7 @@
                     ]
                   }
                 ],
-                "output": "{\"clientOidsList\":[{\"symbol\":\"ADAUSDTM\",\"clientOid\":\"adaorder\"}]}"
+                "output": { "clientOidsList": [ { "symbol": "ADAUSDTM", "clientOid": "adaorder" } ] }
             }
         ],
         "fetchPositions": [
@@ -507,7 +507,7 @@
                         "uta": true
                     }
                 ],
-                "output": "{\"tradeType\":\"SPOT\",\"clientOid\":\"210fd5f5-cccb-4772-9e2a-7f565832ac45\",\"symbol\":\"LTC-USDT\",\"side\":\"BUY\",\"orderType\":\"MARKET\",\"sizeUnit\":\"BASECCY\",\"size\":\"0.1\"}"
+                "output": { "tradeType": "SPOT", "clientOid": "210fd5f5-cccb-4772-9e2a-7f565832ac45", "symbol": "LTC-USDT", "side": "BUY", "orderType": "MARKET", "sizeUnit": "BASECCY", "size": "0.1" }
             },
             {
                 "description": "create unified stop loss order",
@@ -524,7 +524,7 @@
                         "stopLossPrice": 0.01
                     }
                 ],
-                "output": "{\"tradeType\":\"FUTURES\",\"clientOid\":\"d36ac20c-f92e-4403-815e-35bde595c62a\",\"symbol\":\"DOGEUSDTM\",\"side\":\"SELL\",\"orderType\":\"MARKET\",\"sizeUnit\":\"UNIT\",\"size\":\"1\",\"triggerDirection\":\"DOWN\",\"triggerPrice\":\"0.01\",\"triggerPriceType\":\"MP\"}"
+                "output": { "tradeType": "FUTURES", "clientOid": "d36ac20c-f92e-4403-815e-35bde595c62a", "symbol": "DOGEUSDTM", "side": "SELL", "orderType": "MARKET", "sizeUnit": "UNIT", "size": "1", "triggerDirection": "DOWN", "triggerPrice": "0.01", "triggerPriceType": "MP" }
             },
             {
                 "description": "create unified swap order with take profit",
@@ -543,7 +543,7 @@
                         }
                     }
                 ],
-                "output": "{\"tradeType\":\"FUTURES\",\"clientOid\":\"4a528160-7b5b-4ae4-8f69-7a91ef3a31c8\",\"symbol\":\"DOGEUSDTM\",\"side\":\"BUY\",\"orderType\":\"MARKET\",\"sizeUnit\":\"UNIT\",\"size\":\"1\",\"tpTriggerPrice\":\"1\",\"tpTriggerPriceType\":\"MP\"}"
+                "output": { "tradeType": "FUTURES", "clientOid": "4a528160-7b5b-4ae4-8f69-7a91ef3a31c8", "symbol": "DOGEUSDTM", "side": "BUY", "orderType": "MARKET", "sizeUnit": "UNIT", "size": "1", "tpTriggerPrice": "1", "tpTriggerPriceType": "MP" }
             },
             {
                 "description": "create market swap order with uta",
@@ -559,7 +559,7 @@
                         "uta": true
                     }
                 ],
-                "output": "{\"tradeType\":\"FUTURES\",\"clientOid\":\"cc3eb487-6870-483a-a86d-f524505e8481\",\"symbol\":\"DOGEUSDTM\",\"side\":\"SELL\",\"orderType\":\"MARKET\",\"sizeUnit\":\"UNIT\",\"size\":\"1\"}"
+                "output": { "tradeType": "FUTURES", "clientOid": "cc3eb487-6870-483a-a86d-f524505e8481", "symbol": "DOGEUSDTM", "side": "SELL", "orderType": "MARKET", "sizeUnit": "UNIT", "size": "1" }
             },
             {
                 "description": "create spot limit unified order with uta",
@@ -575,7 +575,7 @@
                         "uta": true
                     }
                 ],
-                "output": "{\"tradeType\":\"SPOT\",\"clientOid\":\"708987d5-c346-487a-a70c-ea267377b0ca\",\"symbol\":\"ETH-USDT\",\"side\":\"BUY\",\"orderType\":\"LIMIT\",\"sizeUnit\":\"BASECCY\",\"size\":\"0.001\",\"price\":\"1000\"}"
+                "output": { "tradeType": "SPOT", "clientOid": "708987d5-c346-487a-a70c-ea267377b0ca", "symbol": "ETH-USDT", "side": "BUY", "orderType": "LIMIT", "sizeUnit": "BASECCY", "size": "0.001", "price": "1000" }
             },
             {
                 "description": "create hf margin order",
@@ -592,7 +592,7 @@
                         "marginMode": "cross"
                     }
                 ],
-                "output": "{\"clientOid\":\"c1e0cace-812f-47fc-b257-855beafc25d7\",\"side\":\"buy\",\"symbol\":\"DOGE-USDT\",\"type\":\"limit\",\"size\":\"20\",\"price\":\"0.01\"}"
+                "output": { "clientOid": "c1e0cace-812f-47fc-b257-855beafc25d7", "side": "buy", "symbol": "DOGE-USDT", "type": "limit", "size": "20", "price": "0.01" }
             },
             {
                 "description": "create hf margin trigger order",
@@ -610,7 +610,7 @@
                         "triggerPrice": 0.04
                     }
                 ],
-                "output": "{\"clientOid\":\"2d161dad-85be-4ce6-ab7c-e8018f4c9482\",\"side\":\"buy\",\"symbol\":\"DOGE-USDT\",\"type\":\"limit\",\"size\":\"100\",\"price\":\"0.01\",\"stopPrice\":\"0.04\",\"tradeType\":\"MARGIN_TRADE\"}"
+                "output": { "clientOid": "2d161dad-85be-4ce6-ab7c-e8018f4c9482", "side": "buy", "symbol": "DOGE-USDT", "type": "limit", "size": "100", "price": "0.01", "stopPrice": "0.04", "tradeType": "MARGIN_TRADE" }
             },
             {
                 "description": "create hf margin test order",
@@ -628,7 +628,7 @@
                         "test": true
                     }
                 ],
-                "output": "{\"clientOid\":\"839ff88f-bfb2-4548-b029-385125df9c05\",\"side\":\"buy\",\"symbol\":\"DOGE-USDT\",\"type\":\"limit\",\"size\":\"10\",\"price\":\"0.1\"}"
+                "output": { "clientOid": "839ff88f-bfb2-4548-b029-385125df9c05", "side": "buy", "symbol": "DOGE-USDT", "type": "limit", "size": "10", "price": "0.1" }
             },
             {
                 "description": "create isolated order by using the unified syntax",
@@ -644,7 +644,7 @@
                         "marginMode": "isolated"
                     }
                 ],
-                "output": "{\"clientOid\":\"1728bf29-96fd-487c-99b8-61cfe44f309e\",\"side\":\"sell\",\"symbol\":\"LTCUSDTM\",\"type\":\"market\",\"leverage\":1,\"marginMode\":\"ISOLATED\",\"size\":1}"
+                "output": { "clientOid": "1728bf29-96fd-487c-99b8-61cfe44f309e", "side": "sell", "symbol": "LTCUSDTM", "type": "market", "leverage": 1, "marginMode": "ISOLATED", "size": 1 }
             },
             {
                 "description": "create cross order by using the unified syntax",
@@ -660,7 +660,7 @@
                         "marginMode": "cross"
                     }
                 ],
-                "output": "{\"clientOid\":\"ec64526a-cb92-4eca-9fda-1efb64d1fe09\",\"side\":\"sell\",\"symbol\":\"LTCUSDTM\",\"type\":\"market\",\"leverage\":1,\"marginMode\":\"CROSS\",\"size\":1}"
+                "output": { "clientOid": "ec64526a-cb92-4eca-9fda-1efb64d1fe09", "side": "sell", "symbol": "LTCUSDTM", "type": "market", "leverage": 1, "marginMode": "CROSS", "size": 1 }
             },
             {
                 "description": "Swap market buy",
@@ -672,7 +672,7 @@
                     "buy",
                     1
                 ],
-                "output": "{\"clientOid\":\"19f54d44-a498-4d4f-99f2-b3ce202f77db\",\"side\":\"buy\",\"symbol\":\"LTCUSDTM\",\"type\":\"market\",\"size\":1,\"leverage\":1}"
+                "output": { "clientOid": "19f54d44-a498-4d4f-99f2-b3ce202f77db", "side": "buy", "symbol": "LTCUSDTM", "type": "market", "size": 1, "leverage": 1 }
             },
             {
                 "description": "Swap market sell",
@@ -684,7 +684,7 @@
                     "sell",
                     1
                 ],
-                "output": "{\"clientOid\":\"0749b299-7639-49e0-b100-5d55cc166c0a\",\"side\":\"sell\",\"symbol\":\"LTCUSDTM\",\"type\":\"market\",\"size\":1,\"leverage\":1}"
+                "output": { "clientOid": "0749b299-7639-49e0-b100-5d55cc166c0a", "side": "sell", "symbol": "LTCUSDTM", "type": "market", "size": 1, "leverage": 1 }
             },
             {
                 "description": "Swap limit buy",
@@ -697,7 +697,7 @@
                     1,
                     50
                 ],
-                "output": "{\"clientOid\":\"f93da405-f3b7-410b-ae44-542f6821108f\",\"side\":\"buy\",\"symbol\":\"LTCUSDTM\",\"type\":\"limit\",\"size\":1,\"leverage\":1,\"price\":\"50\"}"
+                "output": { "clientOid": "f93da405-f3b7-410b-ae44-542f6821108f", "side": "buy", "symbol": "LTCUSDTM", "type": "limit", "size": 1, "leverage": 1, "price": "50" }
             },
             {
                 "description": "test swap order with triggerPrice",
@@ -714,7 +714,7 @@
                         "test": true
                     }
                 ],
-                "output": "{\"clientOid\":\"4c74b57d-3c63-4bcf-966b-e40aabd2f656\",\"side\":\"buy\",\"symbol\":\"LTCUSDTM\",\"type\":\"market\",\"size\":1,\"leverage\":1,\"stop\":\"up\",\"stopPrice\":\"90\",\"stopPriceType\":\"MP\"}"
+                "output": { "clientOid": "4c74b57d-3c63-4bcf-966b-e40aabd2f656", "side": "buy", "symbol": "LTCUSDTM", "type": "market", "size": 1, "leverage": 1, "stop": "up", "stopPrice": "90", "stopPriceType": "MP" }
             },
             {
                 "description": "Stop loss test order",
@@ -731,7 +731,7 @@
                         "test": true
                     }
                 ],
-                "output": "{\"clientOid\":\"a2c6585b-45b7-42ef-b6b6-51302f83c6f5\",\"side\":\"sell\",\"symbol\":\"LTCUSDTM\",\"type\":\"market\",\"size\":1,\"leverage\":1,\"stop\":\"down\",\"stopPrice\":\"40\",\"reduceOnly\":true,\"stopPriceType\":\"MP\"}"
+                "output": { "clientOid": "a2c6585b-45b7-42ef-b6b6-51302f83c6f5", "side": "sell", "symbol": "LTCUSDTM", "type": "market", "size": 1, "leverage": 1, "stop": "down", "stopPrice": "40", "reduceOnly": true, "stopPriceType": "MP" }
             },
             {
                 "description": "take profit test order",
@@ -748,7 +748,7 @@
                         "test": true
                     }
                 ],
-                "output": "{\"clientOid\":\"ea0dd8f4-476a-485d-8af7-5d615c4859ab\",\"side\":\"sell\",\"symbol\":\"LTCUSDTM\",\"type\":\"market\",\"size\":1,\"leverage\":1,\"stop\":\"up\",\"stopPrice\":\"100\",\"reduceOnly\":true,\"stopPriceType\":\"MP\"}"
+                "output": { "clientOid": "ea0dd8f4-476a-485d-8af7-5d615c4859ab", "side": "sell", "symbol": "LTCUSDTM", "type": "market", "size": 1, "leverage": 1, "stop": "up", "stopPrice": "100", "reduceOnly": true, "stopPriceType": "MP" }
             },
             {
                 "description": "position with tp+sl",
@@ -769,7 +769,7 @@
                     }
                   }
                 ],
-                "output": "{\"clientOid\":\"9424d62f-6389-4005-ac84-d5b3309dbda0\",\"side\":\"buy\",\"symbol\":\"ADAUSDTM\",\"type\":\"market\",\"size\":4,\"leverage\":1,\"triggerStopDownPrice\":\"0.2\",\"triggerStopUpPrice\":\"0.5\",\"stopPriceType\":\"MP\"}"
+                "output": { "clientOid": "9424d62f-6389-4005-ac84-d5b3309dbda0", "side": "buy", "symbol": "ADAUSDTM", "type": "market", "size": 4, "leverage": 1, "triggerStopDownPrice": "0.2", "triggerStopUpPrice": "0.5", "stopPriceType": "MP" }
             },
             {
                 "description": "position with sl",
@@ -787,7 +787,7 @@
                     }
                   }
                 ],
-                "output": "{\"clientOid\":\"be4eeb70-2371-46de-9afa-88fec3070f1f\",\"side\":\"buy\",\"symbol\":\"ADAUSDTM\",\"type\":\"market\",\"size\":4,\"leverage\":1,\"triggerStopDownPrice\":\"0.2\",\"stopPriceType\":\"MP\"}"
+                "output": { "clientOid": "be4eeb70-2371-46de-9afa-88fec3070f1f", "side": "buy", "symbol": "ADAUSDTM", "type": "market", "size": 4, "leverage": 1, "triggerStopDownPrice": "0.2", "stopPriceType": "MP" }
             },
             {
                 "description": "linear swap create order with a cost param",
@@ -803,7 +803,7 @@
                     "cost": "25"
                   }
                 ],
-                "output": "{\"clientOid\":\"dab82652-e3a0-44b7-a118-b37a54233141\",\"side\":\"buy\",\"symbol\":\"XBTUSDTM\",\"type\":\"limit\",\"leverage\":1,\"valueQty\":\"25\",\"price\":\"25000\"}"
+                "output": { "clientOid": "dab82652-e3a0-44b7-a118-b37a54233141", "side": "buy", "symbol": "XBTUSDTM", "type": "limit", "leverage": 1, "valueQty": "25", "price": "25000" }
             },
             {
                 "description": "hedged createOrder with positionSide LONG and leverage param",
@@ -820,7 +820,7 @@
                         "leverage": 50
                     }
                 ],
-                "output": "{\"clientOid\":\"f08f5172-6275-470d-b096-4eab1206d9ff\",\"side\":\"buy\",\"symbol\":\"XBTUSDTM\",\"type\":\"limit\",\"leverage\":50,\"size\":1,\"price\":\"105000\",\"positionSide\":\"LONG\"}"
+                "output": { "clientOid": "f08f5172-6275-470d-b096-4eab1206d9ff", "side": "buy", "symbol": "XBTUSDTM", "type": "limit", "leverage": 50, "size": 1, "price": "105000", "positionSide": "LONG" }
             },
             {
                 "description": "Spot market buy order",
@@ -832,7 +832,7 @@
                     "buy",
                     0.1
                 ],
-                "output": "{\"clientOid\":\"c2a0ba35-2315-4434-a779-eae247832be7\",\"side\":\"buy\",\"symbol\":\"LTC-USDT\",\"type\":\"market\",\"size\":\"0.1\"}"
+                "output": { "clientOid": "c2a0ba35-2315-4434-a779-eae247832be7", "side": "buy", "symbol": "LTC-USDT", "type": "market", "size": "0.1" }
             },
             {
                 "description": "Spot market sell",
@@ -844,7 +844,7 @@
                     "sell",
                     0.1
                 ],
-                "output": "{\"clientOid\":\"8296d75d-4447-4a23-bf7c-a62bee87b081\",\"side\":\"sell\",\"symbol\":\"LTC-USDT\",\"type\":\"market\",\"size\":\"0.1\"}"
+                "output": { "clientOid": "8296d75d-4447-4a23-bf7c-a62bee87b081", "side": "sell", "symbol": "LTC-USDT", "type": "market", "size": "0.1" }
             },
             {
                 "description": "Spot order with trigger price",
@@ -860,7 +860,7 @@
                         "triggerPrice": 60
                     }
                 ],
-                "output": "{\"clientOid\":\"7417761e-9fa9-4030-8863-66fba6487b24\",\"side\":\"buy\",\"symbol\":\"LTC-USDT\",\"type\":\"limit\",\"size\":\"0.1\",\"price\":\"55\",\"stopPrice\":\"60\"}"
+                "output": { "clientOid": "7417761e-9fa9-4030-8863-66fba6487b24", "side": "buy", "symbol": "LTC-USDT", "type": "limit", "size": "0.1", "price": "55", "stopPrice": "60" }
             },
             {
                 "description": "Create hf order",
@@ -876,7 +876,7 @@
                         "hf": true
                     }
                 ],
-                "output": "{\"clientOid\":\"5d7a8110-1ea6-46e7-8d8f-1ba53267f20c\",\"side\":\"buy\",\"symbol\":\"LTC-USDT\",\"type\":\"market\",\"size\":\"0.1\"}"
+                "output": { "clientOid": "5d7a8110-1ea6-46e7-8d8f-1ba53267f20c", "side": "buy", "symbol": "LTC-USDT", "type": "market", "size": "0.1" }
             },
             {
                 "description": "limit order with weird price/amoutn",
@@ -889,7 +889,7 @@
                   0.1323432432423434,
                   65.423423423
                 ],
-                "output": "{\"clientOid\":\"fd193ee6-6822-4e6c-96c3-90e2490a678a\",\"side\":\"buy\",\"symbol\":\"LTC-USDT\",\"type\":\"limit\",\"size\":\"0.13\",\"price\":\"65.423\"}"
+                "output": { "clientOid": "fd193ee6-6822-4e6c-96c3-90e2490a678a", "side": "buy", "symbol": "LTC-USDT", "type": "limit", "size": "0.13", "price": "65.423" }
             },
             {
                 "description": "postOnly hf order",
@@ -906,7 +906,7 @@
                     "hf": true
                   }
                 ],
-                "output": "{\"clientOid\":\"5fd0d866-f3c7-439b-b299-dbe09375ea30\",\"side\":\"buy\",\"symbol\":\"ADA-USDT\",\"type\":\"limit\",\"size\":\"20\",\"price\":\"0.3\",\"postOnly\":true}"
+                "output": { "clientOid": "5fd0d866-f3c7-439b-b299-dbe09375ea30", "side": "buy", "symbol": "ADA-USDT", "type": "limit", "size": "20", "price": "0.3", "postOnly": true }
             },
             {
                 "description": "spot limit with hf:true",
@@ -922,7 +922,7 @@
                     "hf": true
                   }
                 ],
-                "output": "{\"clientOid\":\"80190fba-4fc8-4cf2-ad16-fc48ab2749ae\",\"side\":\"buy\",\"symbol\":\"ETH-USDT\",\"type\":\"limit\",\"size\":\"0.0001\",\"price\":\"1000\"}"
+                "output": { "clientOid": "80190fba-4fc8-4cf2-ad16-fc48ab2749ae", "side": "buy", "symbol": "ETH-USDT", "type": "limit", "size": "0.0001", "price": "1000" }
             },
             {
                 "description": "spot limit with hf:false",
@@ -938,7 +938,7 @@
                     "hf": false
                   }
                 ],
-                "output": "{\"clientOid\":\"22c40605-a6f6-4789-ba01-9bdcfaa048a6\",\"side\":\"buy\",\"symbol\":\"ETH-USDT\",\"type\":\"limit\",\"size\":\"0.0001\",\"price\":\"1000\"}"
+                "output": { "clientOid": "22c40605-a6f6-4789-ba01-9bdcfaa048a6", "side": "buy", "symbol": "ETH-USDT", "type": "limit", "size": "0.0001", "price": "1000" }
             },
             {
                 "description": "order with hf sync endpoint",
@@ -954,7 +954,7 @@
                     "sync": true
                   }
                 ],
-                "output": "{\"clientOid\":\"c7908cb9-5b75-41c4-92e9-30f61bf28d4e\",\"side\":\"buy\",\"symbol\":\"ADA-USDT\",\"type\":\"limit\",\"size\":\"20\",\"price\":\"0.3\"}"
+                "output": { "clientOid": "c7908cb9-5b75-41c4-92e9-30f61bf28d4e", "side": "buy", "symbol": "ADA-USDT", "type": "limit", "size": "20", "price": "0.3" }
             }
         ],
         "createOrders": [
@@ -980,7 +980,7 @@
                         }
                     ]
                 ],
-                "output": "{\"symbol\":\"LTC-USDT\",\"orderList\":[{\"clientOid\":\"fb7b2388-a744-4c4f-a78b-712b24023843\",\"side\":\"buy\",\"symbol\":\"LTC-USDT\",\"type\":\"limit\",\"size\":\"0.1\",\"price\":\"60\"},{\"clientOid\":\"ebc583e1-1c04-45b8-bc9e-fa46f76d1208\",\"side\":\"buy\",\"symbol\":\"LTC-USDT\",\"type\":\"limit\",\"size\":\"0.11\",\"price\":\"61\"}]}"
+                "output": { "symbol": "LTC-USDT", "orderList": [ { "clientOid": "fb7b2388-a744-4c4f-a78b-712b24023843", "side": "buy", "symbol": "LTC-USDT", "type": "limit", "size": "0.1", "price": "60" }, { "clientOid": "ebc583e1-1c04-45b8-bc9e-fa46f76d1208", "side": "buy", "symbol": "LTC-USDT", "type": "limit", "size": "0.11", "price": "61" } ] }
             },
             {
                 "description": "Swap market buy orders",
@@ -1004,7 +1004,7 @@
                         }
                     ]
                 ],
-                "output": "[{\"clientOid\":\"77f3887d-e4e7-4c8f-9502-1c35debab7d3\",\"side\":\"buy\",\"symbol\":\"LTCUSDTM\",\"type\":\"limit\",\"size\":1,\"leverage\":1,\"price\":\"60\"},{\"clientOid\":\"8e9c0d99-96bb-460a-aa61-38c0409657bc\",\"side\":\"buy\",\"symbol\":\"LTCUSDTM\",\"type\":\"limit\",\"size\":1,\"leverage\":1,\"price\":\"61\"}]"
+                "output": [ { "clientOid": "77f3887d-e4e7-4c8f-9502-1c35debab7d3", "side": "buy", "symbol": "LTCUSDTM", "type": "limit", "size": 1, "leverage": 1, "price": "60" }, { "clientOid": "8e9c0d99-96bb-460a-aa61-38c0409657bc", "side": "buy", "symbol": "LTCUSDTM", "type": "limit", "size": 1, "leverage": 1, "price": "61" } ]
             }
         ],
         "createMarketBuyOrderWithCost": [
@@ -1019,7 +1019,7 @@
                         "uta": true
                     }
                 ],
-                "output": "{\"tradeType\":\"SPOT\",\"clientOid\":\"a2a378e4-078f-425b-b0fd-04253671dcf2\",\"symbol\":\"ETH-USDT\",\"side\":\"BUY\",\"orderType\":\"MARKET\",\"sizeUnit\":\"QUOTECCY\",\"size\":\"10\"}"
+                "output": { "tradeType": "SPOT", "clientOid": "a2a378e4-078f-425b-b0fd-04253671dcf2", "symbol": "ETH-USDT", "side": "BUY", "orderType": "MARKET", "sizeUnit": "QUOTECCY", "size": "10" }
             },
             {
                 "method": "market buy with cost",
@@ -1028,7 +1028,7 @@
                     "LTC/USDT",
                     5
                 ],
-                "output": "{\"clientOid\":\"161d6deb-6d83-4f94-a47d-95b4cdf8a239\",\"side\":\"buy\",\"symbol\":\"LTC-USDT\",\"type\":\"market\",\"funds\":\"5\"}"
+                "output": { "clientOid": "161d6deb-6d83-4f94-a47d-95b4cdf8a239", "side": "buy", "symbol": "LTC-USDT", "type": "market", "funds": "5" }
             }
         ],
         "createMarketSellOrderWithCost": [
@@ -1040,7 +1040,7 @@
                     "LTC/USDT",
                     5
                 ],
-                "output": "{\"clientOid\":\"8c981786-2534-4bd8-b3ee-fea9ecaf5b8c\",\"side\":\"sell\",\"symbol\":\"LTC-USDT\",\"type\":\"market\",\"funds\":\"5\"}"
+                "output": { "clientOid": "8c981786-2534-4bd8-b3ee-fea9ecaf5b8c", "side": "sell", "symbol": "LTC-USDT", "type": "market", "funds": "5" }
             }
         ],
         "createMarketOrderWithCost":[
@@ -1053,7 +1053,7 @@
                   "buy",
                   0.8993321164324234
                 ],
-                "output": "{\"clientOid\":\"2f3bad3a-e17e-4546-8584-54985289c2e3\",\"side\":\"buy\",\"symbol\":\"BTC-USDT\",\"type\":\"market\",\"funds\":\"0.899332\"}"
+                "output": { "clientOid": "2f3bad3a-e17e-4546-8584-54985289c2e3", "side": "buy", "symbol": "BTC-USDT", "type": "market", "funds": "0.899332" }
             },
             {
                 "description": "market sell order",
@@ -1064,7 +1064,7 @@
                   "sell",
                   0.8993321164324234
                 ],
-                "output": "{\"clientOid\":\"0e825b40-2d4a-4479-a07f-293979dc279d\",\"side\":\"sell\",\"symbol\":\"BTC-USDT\",\"type\":\"market\",\"funds\":\"0.899332\"}"
+                "output": { "clientOid": "0e825b40-2d4a-4479-a07f-293979dc279d", "side": "sell", "symbol": "BTC-USDT", "type": "market", "funds": "0.899332" }
             }
         ],
         "fetchOpenOrders": [
@@ -1252,7 +1252,7 @@
                         "trigger": true
                     }
                 ],
-                "output": "{\"symbol\":\"DOGEUSDTM\",\"tradeType\":\"FUTURES\",\"orderFilter\":\"ADVANCED\"}"
+                "output": { "symbol": "DOGEUSDTM", "tradeType": "FUTURES", "orderFilter": "ADVANCED" }
             },
             {
                 "description": "cancel all spot unified orders with uta",
@@ -1264,7 +1264,7 @@
                         "uta": true
                     }
                 ],
-                "output": "{\"symbol\":\"ETH-USDT\",\"tradeType\":\"SPOT\",\"orderFilter\":\"NORMAL\"}"
+                "output": { "symbol": "ETH-USDT", "tradeType": "SPOT", "orderFilter": "NORMAL" }
             },
             {
                 "description": "cancel all margin trigger orders",
@@ -1376,7 +1376,7 @@
                         "clientOrderId": "57e82888-b002-40c7-bfad-e176dc260989"
                     }
                 ],
-                "output": "{\"clientOid\":\"57e82888-b002-40c7-bfad-e176dc260989\",\"symbol\":\"ETH-USDT\",\"tradeType\":\"SPOT\"}"
+                "output": { "clientOid": "57e82888-b002-40c7-bfad-e176dc260989", "symbol": "ETH-USDT", "tradeType": "SPOT" }
             },
             {
                 "description": "cancel hf margin order",
@@ -1841,7 +1841,7 @@
                         "uta": true
                     }
                 ],
-                "output": "{\"currency\":\"USDT\",\"amount\":\"1\",\"clientOid\":\"3d90868a-f295-4e45-a9a8-ce5c3baed691\",\"fromAccountType\":\"SPOT\",\"toAccountType\":\"UNIFIED\",\"type\":\"0\"}"
+                "output": { "currency": "USDT", "amount": "1", "clientOid": "3d90868a-f295-4e45-a9a8-ce5c3baed691", "fromAccountType": "SPOT", "toAccountType": "UNIFIED", "type": "0" }
             },
             {
                 "description": "transfer from swap to unified with uta endpoint",
@@ -1856,7 +1856,7 @@
                         "uta": true
                     }
                 ],
-                "output": "{\"currency\":\"USDT\",\"amount\":\"1\",\"clientOid\":\"9432ea27-6462-4fd4-9b42-5d9b9bbd8f30\",\"fromAccountType\":\"FUTURES\",\"toAccountType\":\"UNIFIED\",\"type\":\"0\"}"
+                "output": { "currency": "USDT", "amount": "1", "clientOid": "9432ea27-6462-4fd4-9b42-5d9b9bbd8f30", "fromAccountType": "FUTURES", "toAccountType": "UNIFIED", "type": "0" }
             },
             {
                 "description": "transfer from cross to unified with uta endpoint",
@@ -1871,7 +1871,7 @@
                         "uta": true
                     }
                 ],
-                "output": "{\"currency\":\"USDT\",\"amount\":\"10\",\"clientOid\":\"17317a37-b94b-41d6-9b8b-9fca8c947c81\",\"fromAccountSymbol\":\"ETH-USDT\",\"fromAccountType\":\"ISOLATED\",\"toAccountType\":\"UNIFIED\",\"type\":\"0\"}"
+                "output": { "currency": "USDT", "amount": "10", "clientOid": "17317a37-b94b-41d6-9b8b-9fca8c947c81", "fromAccountSymbol": "ETH-USDT", "fromAccountType": "ISOLATED", "toAccountType": "UNIFIED", "type": "0" }
             },
             {
                 "description": "transfer from main to unified with uta endpoint",
@@ -1886,7 +1886,7 @@
                         "uta": true
                     }
                 ],
-                "output": "{\"currency\":\"USDT\",\"amount\":\"10\",\"clientOid\":\"95c0555d-54cc-4119-adab-cb96d31b5765\",\"fromAccountType\":\"FUNDING\",\"toAccountType\":\"UNIFIED\",\"type\":\"0\"}"
+                "output": { "currency": "USDT", "amount": "10", "clientOid": "95c0555d-54cc-4119-adab-cb96d31b5765", "fromAccountType": "FUNDING", "toAccountType": "UNIFIED", "type": "0" }
             },
             {
                 "description": "Transfer from swap to spot",
@@ -1898,7 +1898,7 @@
                     "swap",
                     "spot"
                 ],
-                "output": "{\"currency\":\"USDT\",\"amount\":\"1\",\"clientOid\":\"d9713a5d-e3c6-4ea0-99cf-47a73559d91c\",\"fromAccountType\":\"CONTRACT\",\"toAccountType\":\"TRADE\",\"type\":\"INTERNAL\"}"
+                "output": { "currency": "USDT", "amount": "1", "clientOid": "d9713a5d-e3c6-4ea0-99cf-47a73559d91c", "fromAccountType": "CONTRACT", "toAccountType": "TRADE", "type": "INTERNAL" }
             },
             {
                 "description": "Transfer from spot to cross",
@@ -1910,7 +1910,7 @@
                     "spot",
                     "cross"
                 ],
-                "output": "{\"currency\":\"USDT\",\"amount\":\"1\",\"clientOid\":\"6ab3492d-49a5-475a-9b42-017f96d456a0\",\"fromAccountType\":\"TRADE\",\"toAccountType\":\"MARGIN\",\"type\":\"INTERNAL\"}"
+                "output": { "currency": "USDT", "amount": "1", "clientOid": "6ab3492d-49a5-475a-9b42-017f96d456a0", "fromAccountType": "TRADE", "toAccountType": "MARGIN", "type": "INTERNAL" }
             },
             {
                 "description": "Transfer from spot to isolated",
@@ -1922,7 +1922,7 @@
                     "spot",
                     "LTC/USDT"
                 ],
-                "output": "{\"currency\":\"USDT\",\"amount\":\"1\",\"clientOid\":\"cf245304-9da9-4309-a1e9-dd9f16748250\",\"fromAccountType\":\"TRADE\",\"toAccountType\":\"ISOLATED\",\"toAccountTag\":\"LTC-USDT\",\"type\":\"INTERNAL\"}"
+                "output": { "currency": "USDT", "amount": "1", "clientOid": "cf245304-9da9-4309-a1e9-dd9f16748250", "fromAccountType": "TRADE", "toAccountType": "ISOLATED", "toAccountTag": "LTC-USDT", "type": "INTERNAL" }
             },
             {
                 "description": "Transfer from spot to swap",
@@ -1934,7 +1934,7 @@
                     "spot",
                     "swap"
                 ],
-                "output": "{\"currency\":\"USDT\",\"amount\":\"1\",\"clientOid\":\"9c6bdb0e-cc97-4ddc-96e2-0a5a59ddad09\",\"fromAccountType\":\"TRADE\",\"toAccountType\":\"CONTRACT\",\"type\":\"INTERNAL\"}"
+                "output": { "currency": "USDT", "amount": "1", "clientOid": "9c6bdb0e-cc97-4ddc-96e2-0a5a59ddad09", "fromAccountType": "TRADE", "toAccountType": "CONTRACT", "type": "INTERNAL" }
             },
             {
                 "description": "Transfer from main to spot",
@@ -1946,7 +1946,7 @@
                     "main",
                     "spot"
                 ],
-                "output": "{\"currency\":\"USDT\",\"amount\":\"5\",\"clientOid\":\"c1bef535-afd2-49f0-a09b-2ab1d7aade85\",\"fromAccountType\":\"MAIN\",\"toAccountType\":\"TRADE\",\"type\":\"INTERNAL\"}"
+                "output": { "currency": "USDT", "amount": "5", "clientOid": "c1bef535-afd2-49f0-a09b-2ab1d7aade85", "fromAccountType": "MAIN", "toAccountType": "TRADE", "type": "INTERNAL" }
             }
         ],
         "withdraw": [
@@ -1963,7 +1963,7 @@
                     "networkCode": "OP"
                   }
                 ],
-                "output": "{\"currency\":\"USDT\",\"toAddress\":\"0x123456789123456789123456789\",\"withdrawType\":\"ADDRESS\",\"chain\":\"optimism\",\"amount\":5.5}"
+                "output": { "currency": "USDT", "toAddress": "0x123456789123456789123456789", "withdrawType": "ADDRESS", "chain": "optimism", "amount": 5.5 }
               }
         ],
         "fetchLedger": [
@@ -2154,7 +2154,7 @@
             {
                 "description": "swap orderbook",
                 "method": "fetchOrderBook",
-                "url": "https://api-futures.kucoin.com/api/v1/level2/depth20?symbol=XBTUSDTM",
+                "url": "https://api-futures.kucoin.com/api/v1/level2/snapshot?symbol=XBTUSDTM",
                 "input": [
                     "BTC/USDT:USDT"
                 ]
@@ -2170,11 +2170,12 @@
                 "output": null
             },
             {
-                "description": "fetch order book for swap",
+                "description": "fetch order book for swap with limit 20",
                 "method": "fetchOrderBook",
                 "url": "https://api-futures.kucoin.com/api/v1/level2/depth20?symbol=XBTUSDTM",
                 "input": [
-                    "BTC/USDT:USDT"
+                    "BTC/USDT:USDT",
+                    20
                 ],
                 "output": null
             },
@@ -2481,7 +2482,7 @@
                     "marginMode": "cross"
                   }
                 ],
-                "output": "{\"symbol\":\"XBTUSDTM\",\"leverage\":\"4\"}"
+                "output": { "symbol": "XBTUSDTM", "leverage": "4" }
             },
             {
                 "description": "spot isolated",
@@ -2494,7 +2495,7 @@
                     "marginMode": "isolated"
                     }
                 ],
-                "output": "{\"symbol\":\"BTC-USDT\",\"leverage\":\"4\",\"isIsolated\":true}"
+                "output": { "symbol": "BTC-USDT", "leverage": "4", "isIsolated": true }
             },
             {
                 "description": "spot cross",
@@ -2507,7 +2508,7 @@
                     "marginMode": "cross"
                   }
                 ],
-                "output": "{\"leverage\":\"4\",\"isIsolated\":false}"
+                "output": { "leverage": "4", "isIsolated": false }
             }
         ],
         "createDepositAddress": [
@@ -2521,7 +2522,7 @@
                     "network": "ERC20"
                   }
                 ],
-                "output": "{\"currency\":\"USDT\",\"chain\":\"eth\"}"
+                "output": { "currency": "USDT", "chain": "eth" }
             }
         ],
         "fetchCurrencies": [

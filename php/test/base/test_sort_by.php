@@ -57,6 +57,50 @@ function test_sort_by_1() {
 )]);
     $empty_array = $exchange->sort_by([], 'x');
     assert_deep_equal($exchange, null, 'sortBy', $empty_array, []);
+    // regression: keys crossing a digit-count boundary must sort numerically, a lexicographic comparison yields 1, 10, 2 .. 9
+    $arr_two_digits = [array(
+    'x' => 10,
+), array(
+    'x' => 1,
+), array(
+    'x' => 3,
+), array(
+    'x' => 7,
+), array(
+    'x' => 2,
+), array(
+    'x' => 9,
+), array(
+    'x' => 5,
+), array(
+    'x' => 8,
+), array(
+    'x' => 4,
+), array(
+    'x' => 6,
+)];
+    $sorted_two_digits = $exchange->sort_by($arr_two_digits, 'x');
+    assert_deep_equal($exchange, null, 'sortBy', $sorted_two_digits, [array(
+    'x' => 1,
+), array(
+    'x' => 2,
+), array(
+    'x' => 3,
+), array(
+    'x' => 4,
+), array(
+    'x' => 5,
+), array(
+    'x' => 6,
+), array(
+    'x' => 7,
+), array(
+    'x' => 8,
+), array(
+    'x' => 9,
+), array(
+    'x' => 10,
+)]);
 }
 
 

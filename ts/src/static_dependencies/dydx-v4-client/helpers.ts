@@ -238,13 +238,6 @@ export function fromTimestamp(t: Timestamp): Date {
     return new Date(millis);
 };
 
-const fromJSON = (object: any): Timestamp => {
-    return {
-        seconds: isSet(object.seconds) ? Long.fromString(object.seconds) : Long.ZERO,
-        nanos: isSet(object.nanos) ? Number(object.nanos) : 0
-    };
-};
-
 const timestampFromJSON = (object: any): Timestamp => {
   return {
     seconds: isSet(object.seconds) ? Long.fromValue(object.seconds) : Long.ZERO,

@@ -12,7 +12,7 @@ import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
 
 export default class phemex extends phemexRest {
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -24,7 +24,7 @@ export default class phemex extends phemexRest {
                 'watchOrderBook': true,
                 'watchOHLCV': true,
                 'watchPositions': undefined, // TODO
-                // mutli-endpoints are not supported: https://github.com/ccxt/ccxt/pull/21490
+                // multi-endpoints are not supported: https://github.com/ccxt/ccxt/pull/21490
                 'watchOrderBookForSymbols': false,
                 'watchTradesForSymbols': false,
                 'watchOHLCVForSymbols': false,
@@ -48,7 +48,7 @@ export default class phemex extends phemexRest {
         });
     }
 
-    fromEn (en, scale) {
+    override fromEn (en: any, scale: any) {
         if (en === undefined) {
             return undefined;
         }
@@ -58,21 +58,21 @@ export default class phemex extends phemexRest {
         return precise.toString ();
     }
 
-    fromEp (ep, market = undefined) {
+    override fromEp (ep: any, market: Market = undefined) {
         if ((ep === undefined) || (market === undefined)) {
             return ep;
         }
         return this.fromEn (ep, this.safeInteger (market, 'priceScale'));
     }
 
-    fromEv (ev, market = undefined) {
+    override fromEv (ev: any, market: Market = undefined) {
         if ((ev === undefined) || (market === undefined)) {
             return ev;
         }
         return this.fromEn (ev, this.safeInteger (market, 'valueScale'));
     }
 
-    fromEr (er, market = undefined) {
+    override fromEr (er: any, market: Market = undefined) {
         if ((er === undefined) || (market === undefined)) {
             return er;
         }
@@ -87,7 +87,7 @@ export default class phemex extends phemexRest {
         return requestId;
     }
 
-    parseSwapTicker (ticker, market = undefined) {
+    parseSwapTicker (ticker: any, market: Market = undefined) {
         //
         //     {
         //         "close": 442800,
@@ -105,8 +105,9 @@ export default class phemex extends phemexRest {
         //     }
         //
         const marketId = this.safeString (ticker, 'symbol');
-        market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved = this.safeMarket (marketId, market);
+        market = marketResolved;
+        const symbol = marketResolved['symbol'];
         const timestamp = this.safeIntegerProduct (ticker, 'timestamp', 0.000001);
         const lastString = this.fromEp (this.safeString (ticker, 'close'), market);
         const last = this.parseNumber (lastString);
@@ -148,7 +149,7 @@ export default class phemex extends phemexRest {
         });
     }
 
-    parsePerpetualTicker (ticker, market = undefined) {
+    parsePerpetualTicker (ticker: any, market: Market = undefined) {
         //
         //    [
         //        "STXUSDT",
@@ -166,8 +167,9 @@ export default class phemex extends phemexRest {
         //    ]
         //
         const marketId = this.safeString (ticker, 0);
-        market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved = this.safeMarket (marketId, market);
+        market = marketResolved;
+        const symbol = marketResolved['symbol'];
         const lastString = this.fromEp (this.safeString (ticker, 4), market);
         const last = this.parseNumber (lastString);
         const quoteVolume = this.parseNumber (this.fromEv (this.safeString (ticker, 6), market));
@@ -206,7 +208,7 @@ export default class phemex extends phemexRest {
         });
     }
 
-    handleTicker (client: Client, message) {
+    handleTicker (client: Client, message: any) {
         //
         //     {
         //         "spot_market24h": {
@@ -318,7 +320,7 @@ export default class phemex extends phemexRest {
      * @param {string} [params.settle] set to USDT to use hedged perpetual api
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    async watchBalance (params = {}): Promise<Balances> {
+    override async watchBalance (params = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -330,7 +332,7 @@ export default class phemex extends phemexRest {
         return await this.subscribePrivate (type, messageHash, params);
     }
 
-    handleBalance (type, client, message) {
+    handleBalance (type: any, client: Client, message: any) {
         // spot
         //    [
         //       {
@@ -398,14 +400,16 @@ export default class phemex extends phemexRest {
             }
             account['used'] = used;
             account['total'] = total;
-            this.balance[code] = account;
+            if (code !== undefined) {
+                this.balance[code] = account;
+            }
             this.balance = this.safeBalance (this.balance);
         }
         const messageHash = type + ':balance';
         client.resolve (this.balance, messageHash);
     }
 
-    handleTrades (client: Client, message) {
+    handleTrades (client: Client, message: any) {
         //
         //     {
         //         "sequence": 1795484727,
@@ -451,7 +455,7 @@ export default class phemex extends phemexRest {
         client.resolve (stored, messageHash);
     }
 
-    handleOHLCV (client: Client, message) {
+    handleOHLCV (client: Client, message: any) {
         //
         //     {
         //         "kline": [
@@ -494,7 +498,7 @@ export default class phemex extends phemexRest {
             const messageHash = 'kline:' + timeframe + ':' + symbol;
             const ohlcvs = this.parseOHLCVs (candles, market);
             this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-            let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+            let stored = this.safeValue (this.safeValue (this.ohlcvs, symbol), timeframe);
             if (stored === undefined) {
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
                 stored = new ArrayCacheByTimestamp (limit);
@@ -519,7 +523,7 @@ export default class phemex extends phemexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -528,7 +532,7 @@ export default class phemex extends phemexRest {
         const isSwap = market['swap'];
         const settleIsUSDT = market['settle'] === 'USDT';
         let name = 'spot_market24h';
-        if (isSwap) {
+        if (isSwap === true) {
             name = settleIsUSDT ? 'perp_market24h_pack_p' : 'market24h';
         }
         const url = this.urls['api']['ws'];
@@ -556,7 +560,7 @@ export default class phemex extends phemexRest {
      * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -566,7 +570,7 @@ export default class phemex extends phemexRest {
         const isSwap = market['swap'];
         const settleIsUSDT = market['settle'] === 'USDT';
         let name = 'spot_market24h';
-        if (isSwap) {
+        if (isSwap === true) {
             name = settleIsUSDT ? 'perp_market24h_pack_p' : 'market24h';
         }
         const url = this.urls['api']['ws'];
@@ -604,7 +608,7 @@ export default class phemex extends phemexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -614,7 +618,8 @@ export default class phemex extends phemexRest {
         const requestId = this.requestId ();
         const isSwap = market['swap'];
         const settleIsUSDT = market['settle'] === 'USDT';
-        const name = (isSwap && settleIsUSDT) ? 'trade_p' : 'trade';
+        const isUsdtSwap = (isSwap === true) && settleIsUSDT;
+        const name = isUsdtSwap ? 'trade_p' : 'trade';
         const messageHash = 'trade:' + symbol;
         const method = name + '.subscribe';
         const subscribe: Dict = {
@@ -643,9 +648,9 @@ export default class phemex extends phemexRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -655,7 +660,8 @@ export default class phemex extends phemexRest {
         const requestId = this.requestId ();
         const isSwap = market['swap'];
         const settleIsUSDT = market['settle'] === 'USDT';
-        const name = (isSwap && settleIsUSDT) ? 'orderbook_p' : 'orderbook';
+        const isUsdtSwap = (isSwap === true) && settleIsUSDT;
+        const name = isUsdtSwap ? 'orderbook_p' : 'orderbook';
         const messageHash = 'orderbook:' + symbol;
         const method = name + '.subscribe';
         const subscribe: Dict = {
@@ -684,7 +690,7 @@ export default class phemex extends phemexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -694,7 +700,8 @@ export default class phemex extends phemexRest {
         const requestId = this.requestId ();
         const isSwap = market['swap'];
         const settleIsUSDT = market['settle'] === 'USDT';
-        const name = (isSwap && settleIsUSDT) ? 'kline_p' : 'kline';
+        const isUsdtSwap = (isSwap === true) && settleIsUSDT;
+        const name = isUsdtSwap ? 'kline_p' : 'kline';
         const messageHash = 'kline:' + timeframe + ':' + symbol;
         const method = name + '.subscribe';
         const subscribe: Dict = {
@@ -713,18 +720,18 @@ export default class phemex extends phemexRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    customHandleDelta (bookside, delta, market = undefined) {
+    customHandleDelta (bookside: any, delta: any, market: Market = undefined) {
         const bidAsk = this.customParseBidAsk (delta, 0, 1, market);
         bookside.storeArray (bidAsk);
     }
 
-    customHandleDeltas (bookside, deltas, market = undefined) {
+    customHandleDeltas (bookside: any, deltas: any, market: Market = undefined) {
         for (let i = 0; i < deltas.length; i++) {
             this.customHandleDelta (bookside, deltas[i], market);
         }
     }
 
-    handleOrderBook (client: Client, message) {
+    handleOrderBook (client: Client, message: any) {
         //
         //     {
         //         "book": {
@@ -811,7 +818,7 @@ export default class phemex extends phemexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -839,7 +846,7 @@ export default class phemex extends phemexRest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    handleMyTrades (client: Client, message) {
+    handleMyTrades (client: Client, message: any) {
         //
         // swap
         //    [
@@ -955,7 +962,9 @@ export default class phemex extends phemexRest {
             if (type === undefined) {
                 type = (market['settle'] === 'USDT') ? 'perpetual' : market['type'];
             }
-            marketIds[symbol] = true;
+            if (symbol !== undefined) {
+                marketIds[symbol] = true;
+            }
         }
         const keys = Object.keys (marketIds);
         for (let i = 0; i < keys.length; i++) {
@@ -978,7 +987,7 @@ export default class phemex extends phemexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1006,7 +1015,7 @@ export default class phemex extends phemexRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleOrders (client: Client, message) {
+    handleOrders (client: Client, message: any) {
         // spot update
         // {
         //        "closed":[
@@ -1226,7 +1235,7 @@ export default class phemex extends phemexRest {
         client.resolve (this.orders, messageHash);
     }
 
-    parseWSSwapOrder (order, market = undefined) {
+    parseWSSwapOrder (order: any, market: Market = undefined) {
         //
         // swap
         //    {
@@ -1355,8 +1364,9 @@ export default class phemex extends phemexRest {
             clientOrderId = undefined;
         }
         const marketId = this.safeString (order, 'symbol');
-        market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved = this.safeMarket (marketId, market);
+        market = marketResolved;
+        const symbol = marketResolved['symbol'];
         const status = this.parseOrderStatus (this.safeString (order, 'ordStatus'));
         const side = this.safeStringLower (order, 'side');
         const type = this.parseOrderType (this.safeString (order, 'ordType'));
@@ -1399,7 +1409,7 @@ export default class phemex extends phemexRest {
         }, market);
     }
 
-    handleMessage (client: Client, message) {
+    override handleMessage (client: Client, message: any) {
         // private spot update
         // {
         //     "orders": { closed: [ ], fills: [ ], open: [] },
@@ -1495,9 +1505,9 @@ export default class phemex extends phemexRest {
         //       }
         //     ]
         // }
-        const id = this.safeString (message, 'id');
+        const id = this.safeString (message, 'id', '');
         if (id in client.subscriptions) {
-            const method = client.subscriptions[id];
+            const method = this.safeValue (client.subscriptions, id);
             delete client.subscriptions[id];
             if (method !== true) {
                 method.call (this, client, message);
@@ -1532,7 +1542,7 @@ export default class phemex extends phemexRest {
         }
     }
 
-    handleAuthenticate (client: Client, message) {
+    handleAuthenticate (client: Client, message: any) {
         //
         // {
         //     "error": null,
@@ -1556,7 +1566,7 @@ export default class phemex extends phemexRest {
         }
     }
 
-    async subscribePrivate (type, messageHash, params = {}) {
+    async subscribePrivate (type: any, messageHash: any, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

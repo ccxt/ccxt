@@ -9,22 +9,22 @@ public partial class testMainClass : BaseTest
 {
     async static public Task<object> testFetchLastPrices(BaseExchange exchange, object skippedProperties, object symbol)
     {
-        object method = "fetchLastprices";
+        string method = "fetchLastprices";
         // log ('fetching all tickers at once...')
         object response = new Dictionary<string, object>() {};
         object checkedSymbol = null;
         try
         {
-            response = await ((dynamic)exchange).fetchLastPrices();
+            response = await invokeExchangeDynamically(exchange, "fetchLastPrices");
         } catch(Exception e)
         {
-            response = await ((dynamic)exchange).fetchLastPrices(new List<object>() {symbol});
+            response = await invokeExchangeDynamically(exchange, "fetchLastPrices", new List<object>() {symbol});
             checkedSymbol = symbol;
         }
-        assert(exchange.isDictionary(response), add(add(add(add(add(add(exchange.id, " "), method), " "), checkedSymbol), " must return a dict. "), exchange.json(response)));
-        object values = new List<object>(((IDictionary<string,object>)response).Values);
+        testSharedMethods.assertDictionaryResponse(exchange, method, response, checkedSymbol);
+        List<object> values = new List<object>(((IDictionary<string,object>)response).Values);
         testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, values, checkedSymbol);
-        object atLeastOnePassed = false;
+        bool atLeastOnePassed = false;
         for (object i = 0; isLessThan(i, getArrayLength(values)); postFixIncrement(ref i))
         {
             // todo: symbol check here

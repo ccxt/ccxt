@@ -24,12 +24,12 @@ func NewWoofipro(userConfig map[string]any) *Woofipro {
 /**
  * @method
  * @name woofipro#watchOrderBook
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/public/orderbook
+ * @see https://orderly.network/docs/build-on-omnichain/websocket-api/public/orderbook
  * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return.
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Woofipro) WatchOrderBook(symbol string, options ...ccxt.WatchOrderBookOptions) (ccxt.OrderBook, error) {
 
@@ -39,15 +39,9 @@ func (this *Woofipro) WatchOrderBook(symbol string, options ...ccxt.WatchOrderBo
 		opt(&opts)
 	}
 
-	var limit any = nil
-	if opts.Limit != nil {
-		limit = *opts.Limit
-	}
+	var limit = opts.Limit
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params = opts.Params
 	res := <-this.Core.WatchOrderBook(symbol, limit, params)
 	if ccxt.IsError(res) {
 		return ccxt.OrderBook{}, ccxt.CreateReturnError(res)
@@ -58,7 +52,7 @@ func (this *Woofipro) WatchOrderBook(symbol string, options ...ccxt.WatchOrderBo
 /**
  * @method
  * @name woofipro#watchTicker
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/public/24-hour-ticker
+ * @see https://orderly.network/docs/build-on-omnichain/websocket-api/public/24-hour-ticker
  * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -72,10 +66,7 @@ func (this *Woofipro) WatchTicker(symbol string, options ...ccxt.WatchTickerOpti
 		opt(&opts)
 	}
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params = opts.Params
 	res := <-this.Core.WatchTicker(symbol, params)
 	if ccxt.IsError(res) {
 		return ccxt.Ticker{}, ccxt.CreateReturnError(res)
@@ -86,7 +77,7 @@ func (this *Woofipro) WatchTicker(symbol string, options ...ccxt.WatchTickerOpti
 /**
  * @method
  * @name woofipro#watchTickers
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/public/24-hour-tickers
+ * @see https://orderly.network/docs/build-on-omnichain/websocket-api/public/24-hour-tickers
  * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
  * @param {string[]} symbols unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -100,15 +91,9 @@ func (this *Woofipro) WatchTickers(options ...ccxt.WatchTickersOptions) (ccxt.Ti
 		opt(&opts)
 	}
 
-	var symbols any = nil
-	if opts.Symbols != nil {
-		symbols = *opts.Symbols
-	}
+	var symbols = opts.Symbols
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params = opts.Params
 	res := <-this.Core.WatchTickers(symbols, params)
 	if ccxt.IsError(res) {
 		return ccxt.Tickers{}, ccxt.CreateReturnError(res)
@@ -119,7 +104,7 @@ func (this *Woofipro) WatchTickers(options ...ccxt.WatchTickersOptions) (ccxt.Ti
 /**
  * @method
  * @name woofipro#watchBidsAsks
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/public/bbos
+ * @see https://orderly.network/docs/build-on-omnichain/websocket-api/public/bbos
  * @description watches best bid & ask for symbols
  * @param {string[]} symbols unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -133,15 +118,9 @@ func (this *Woofipro) WatchBidsAsks(options ...ccxt.WatchBidsAsksOptions) (ccxt.
 		opt(&opts)
 	}
 
-	var symbols any = nil
-	if opts.Symbols != nil {
-		symbols = *opts.Symbols
-	}
+	var symbols = opts.Symbols
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params = opts.Params
 	res := <-this.Core.WatchBidsAsks(symbols, params)
 	if ccxt.IsError(res) {
 		return ccxt.Tickers{}, ccxt.CreateReturnError(res)
@@ -153,7 +132,7 @@ func (this *Woofipro) WatchBidsAsks(options ...ccxt.WatchBidsAsksOptions) (ccxt.
  * @method
  * @name woofipro#watchOHLCV
  * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/public/k-line
+ * @see https://orderly.network/docs/build-on-omnichain/websocket-api/public/k-line
  * @param {string} symbol unified symbol of the market to fetch ccxt.OHLCV data for
  * @param {string} timeframe the length of time each candle represents
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -169,25 +148,13 @@ func (this *Woofipro) WatchOHLCV(symbol string, options ...ccxt.WatchOHLCVOption
 		opt(&opts)
 	}
 
-	var timeframe any = nil
-	if opts.Timeframe != nil {
-		timeframe = *opts.Timeframe
-	}
+	var timeframe = opts.Timeframe
 
-	var since any = nil
-	if opts.Since != nil {
-		since = *opts.Since
-	}
+	var since = opts.Since
 
-	var limit any = nil
-	if opts.Limit != nil {
-		limit = *opts.Limit
-	}
+	var limit = opts.Limit
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params = opts.Params
 	res := <-this.Core.WatchOHLCV(symbol, timeframe, since, limit, params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
@@ -199,7 +166,7 @@ func (this *Woofipro) WatchOHLCV(symbol string, options ...ccxt.WatchOHLCVOption
  * @method
  * @name woofipro#watchTrades
  * @description watches information on multiple trades made in a market
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/public/trade
+ * @see https://orderly.network/docs/build-on-omnichain/websocket-api/public/trade
  * @param {string} symbol unified market symbol of the market trades were made in
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trade structures to retrieve
@@ -214,20 +181,11 @@ func (this *Woofipro) WatchTrades(symbol string, options ...ccxt.WatchTradesOpti
 		opt(&opts)
 	}
 
-	var since any = nil
-	if opts.Since != nil {
-		since = *opts.Since
-	}
+	var since = opts.Since
 
-	var limit any = nil
-	if opts.Limit != nil {
-		limit = *opts.Limit
-	}
+	var limit = opts.Limit
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params = opts.Params
 	res := <-this.Core.WatchTrades(symbol, since, limit, params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
@@ -239,8 +197,8 @@ func (this *Woofipro) WatchTrades(symbol string, options ...ccxt.WatchTradesOpti
  * @method
  * @name woofipro#watchOrders
  * @description watches information on multiple orders made by the user
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/private/execution-report
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/private/algo-execution-report
+ * @see https://orderly.network/docs/build-on-omnichain/websocket-api/private/execution-report
+ * @see https://orderly.network/docs/build-on-omnichain/websocket-api/private/algo-execution-report
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
@@ -256,25 +214,13 @@ func (this *Woofipro) WatchOrders(options ...ccxt.WatchOrdersOptions) ([]ccxt.Or
 		opt(&opts)
 	}
 
-	var symbol any = nil
-	if opts.Symbol != nil {
-		symbol = *opts.Symbol
-	}
+	var symbol = opts.Symbol
 
-	var since any = nil
-	if opts.Since != nil {
-		since = *opts.Since
-	}
+	var since = opts.Since
 
-	var limit any = nil
-	if opts.Limit != nil {
-		limit = *opts.Limit
-	}
+	var limit = opts.Limit
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params = opts.Params
 	res := <-this.Core.WatchOrders(symbol, since, limit, params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
@@ -286,8 +232,8 @@ func (this *Woofipro) WatchOrders(options ...ccxt.WatchOrdersOptions) ([]ccxt.Or
  * @method
  * @name woofipro#watchMyTrades
  * @description watches information on multiple trades made by the user
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/private/execution-report
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/private/algo-execution-report
+ * @see https://orderly.network/docs/build-on-omnichain/websocket-api/private/execution-report
+ * @see https://orderly.network/docs/build-on-omnichain/websocket-api/private/algo-execution-report
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
@@ -303,25 +249,13 @@ func (this *Woofipro) WatchMyTrades(options ...ccxt.WatchMyTradesOptions) ([]ccx
 		opt(&opts)
 	}
 
-	var symbol any = nil
-	if opts.Symbol != nil {
-		symbol = *opts.Symbol
-	}
+	var symbol = opts.Symbol
 
-	var since any = nil
-	if opts.Since != nil {
-		since = *opts.Since
-	}
+	var since = opts.Since
 
-	var limit any = nil
-	if opts.Limit != nil {
-		limit = *opts.Limit
-	}
+	var limit = opts.Limit
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params = opts.Params
 	res := <-this.Core.WatchMyTrades(symbol, since, limit, params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
@@ -332,7 +266,7 @@ func (this *Woofipro) WatchMyTrades(options ...ccxt.WatchMyTradesOptions) ([]ccx
 /**
  * @method
  * @name woofipro#watchPositions
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/private/position-push
+ * @see https://orderly.network/docs/build-on-omnichain/websocket-api/private/position-push
  * @description watch all open positions
  * @param {string[]} [symbols] list of unified market symbols
  * @param {int} [since] timestamp in ms of the earliest position to fetch
@@ -348,25 +282,13 @@ func (this *Woofipro) WatchPositions(options ...ccxt.WatchPositionsOptions) ([]c
 		opt(&opts)
 	}
 
-	var symbols any = nil
-	if opts.Symbols != nil {
-		symbols = *opts.Symbols
-	}
+	var symbols = opts.Symbols
 
-	var since any = nil
-	if opts.Since != nil {
-		since = *opts.Since
-	}
+	var since = opts.Since
 
-	var limit any = nil
-	if opts.Limit != nil {
-		limit = *opts.Limit
-	}
+	var limit = opts.Limit
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params = opts.Params
 	res := <-this.Core.WatchPositions(symbols, since, limit, params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
@@ -378,7 +300,7 @@ func (this *Woofipro) WatchPositions(options ...ccxt.WatchPositionsOptions) ([]c
  * @method
  * @name woofipro#watchBalance
  * @description watch balance and get the amount of funds available for trading or funds locked in orders
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/private/balance
+ * @see https://orderly.network/docs/build-on-omnichain/websocket-api/private/balance
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
@@ -566,10 +488,10 @@ func (this *Woofipro) FetchDeposits(options ...ccxt.FetchDepositsOptions) ([]ccx
 func (this *Woofipro) FetchDepositsWithdrawals(options ...ccxt.FetchDepositsWithdrawalsOptions) ([]ccxt.Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWithdrawals(options...)
 }
-func (this *Woofipro) FetchDepositWithdrawFee(code string, options ...ccxt.FetchDepositWithdrawFeeOptions) (map[string]any, error) {
+func (this *Woofipro) FetchDepositWithdrawFee(code string, options ...ccxt.FetchDepositWithdrawFeeOptions) (ccxt.DepositWithdrawFee, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
 }
-func (this *Woofipro) FetchDepositWithdrawFees(options ...ccxt.FetchDepositWithdrawFeesOptions) (map[string]any, error) {
+func (this *Woofipro) FetchDepositWithdrawFees(options ...ccxt.FetchDepositWithdrawFeesOptions) (ccxt.DepositWithdrawFees, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFees(options...)
 }
 func (this *Woofipro) FetchFreeBalance(params ...any) (ccxt.Balance, error) {
@@ -713,7 +635,7 @@ func (this *Woofipro) FetchPosition(symbol string, options ...ccxt.FetchPosition
 func (this *Woofipro) FetchPositionHistory(symbol string, options ...ccxt.FetchPositionHistoryOptions) ([]ccxt.Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Woofipro) FetchPositionMode(options ...ccxt.FetchPositionModeOptions) (map[string]any, error) {
+func (this *Woofipro) FetchPositionMode(options ...ccxt.FetchPositionModeOptions) (ccxt.PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Woofipro) FetchPositions(options ...ccxt.FetchPositionsOptions) ([]ccxt.Position, error) {
@@ -731,7 +653,7 @@ func (this *Woofipro) FetchPositionsRisk(options ...ccxt.FetchPositionsRiskOptio
 func (this *Woofipro) FetchPremiumIndexOHLCV(symbol string, options ...ccxt.FetchPremiumIndexOHLCVOptions) ([]ccxt.OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Woofipro) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Woofipro) FetchStatus(params ...any) (ccxt.Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Woofipro) FetchTicker(symbol string, options ...ccxt.FetchTickerOptions) (ccxt.Ticker, error) {
@@ -866,7 +788,7 @@ func (this *Woofipro) FetchBalanceWs(params ...any) (ccxt.Balances, error) {
 func (this *Woofipro) FetchClosedOrdersWs(options ...ccxt.FetchClosedOrdersWsOptions) ([]ccxt.Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Woofipro) FetchDepositsWs(options ...ccxt.FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Woofipro) FetchDepositsWs(options ...ccxt.FetchDepositsWsOptions) ([]ccxt.Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Woofipro) FetchMyTradesWs(options ...ccxt.FetchMyTradesWsOptions) ([]ccxt.Trade, error) {
@@ -911,7 +833,7 @@ func (this *Woofipro) FetchTradesWs(symbol string, options ...ccxt.FetchTradesWs
 func (this *Woofipro) FetchTradingFeesWs(params ...any) (ccxt.TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Woofipro) FetchWithdrawalsWs(options ...ccxt.FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Woofipro) FetchWithdrawalsWs(options ...ccxt.FetchWithdrawalsWsOptions) ([]ccxt.Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Woofipro) UnWatchBidsAsks(options ...ccxt.UnWatchBidsAsksOptions) (any, error) {

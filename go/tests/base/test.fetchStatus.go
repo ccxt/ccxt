@@ -6,19 +6,19 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 func TestFetchStatus(exchange ccxt.ICoreExchange, skippedProperties any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		var method any = "fetchStatus"
-
-		status := (<-exchange.FetchStatus())
-		PanicOnError(status)
-		TestStatus(exchange, skippedProperties, method, status, exchange.Milliseconds())
-
-		ch <- true
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go testFetchStatusBody(ch, exchange, skippedProperties)
 	return ch
+}
+func testFetchStatusBody(ch chan any, exchange ccxt.ICoreExchange, skippedProperties any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var method string = "fetchStatus"
+
+	status := (<-exchange.FetchStatus())
+	PanicOnError(status)
+	TestStatus(exchange, skippedProperties, method, status, exchange.Milliseconds())
+
+	ch <- true
+	return nil
 }

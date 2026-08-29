@@ -7,538 +7,667 @@
 
 package ccxt
 
+// V1PubGetHistKline returns a channel that yields a JSON object.
 func (this *WooCore) V1PubGetHistKline(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PubGetHistKline", args...)
 }
 
+// V1PubGetHistTrades returns a channel that yields a JSON object.
 func (this *WooCore) V1PubGetHistTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PubGetHistTrades", args...)
 }
 
+// V1PublicGetInfo returns a channel that yields a JSON object.
 func (this *WooCore) V1PublicGetInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PublicGetInfo", args...)
 }
 
+// V1PublicGetInfoSymbol returns a channel that yields a JSON object.
 func (this *WooCore) V1PublicGetInfoSymbol(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PublicGetInfoSymbol", args...)
 }
 
+// V1PublicGetSystemInfo returns a channel that yields a JSON object.
 func (this *WooCore) V1PublicGetSystemInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PublicGetSystemInfo", args...)
 }
 
+// V1PublicGetMarketTrades returns a channel that yields a JSON object.
 func (this *WooCore) V1PublicGetMarketTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PublicGetMarketTrades", args...)
 }
 
+// V1PublicGetToken returns a channel that yields a JSON object.
 func (this *WooCore) V1PublicGetToken(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PublicGetToken", args...)
 }
 
+// V1PublicGetTokenNetwork returns a channel that yields a JSON object.
 func (this *WooCore) V1PublicGetTokenNetwork(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PublicGetTokenNetwork", args...)
 }
 
+// V1PublicGetFundingRates returns a channel that yields a JSON object.
 func (this *WooCore) V1PublicGetFundingRates(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PublicGetFundingRates", args...)
 }
 
+// V1PublicGetFundingRateSymbol returns a channel that yields a JSON object.
 func (this *WooCore) V1PublicGetFundingRateSymbol(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PublicGetFundingRateSymbol", args...)
 }
 
+// V1PublicGetFundingRateHistory returns a channel that yields a JSON object.
 func (this *WooCore) V1PublicGetFundingRateHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PublicGetFundingRateHistory", args...)
 }
 
+// V1PublicGetFutures returns a channel that yields a JSON object.
 func (this *WooCore) V1PublicGetFutures(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PublicGetFutures", args...)
 }
 
+// V1PublicGetFuturesSymbol returns a channel that yields a JSON object.
 func (this *WooCore) V1PublicGetFuturesSymbol(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PublicGetFuturesSymbol", args...)
 }
 
+// V1PublicGetOrderbookSymbol returns a channel that yields a JSON object.
 func (this *WooCore) V1PublicGetOrderbookSymbol(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PublicGetOrderbookSymbol", args...)
 }
 
+// V1PublicGetKline returns a channel that yields a JSON object.
 func (this *WooCore) V1PublicGetKline(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PublicGetKline", args...)
 }
 
+// V1PrivateGetClientToken returns a channel that yields a JSON object.
 func (this *WooCore) V1PrivateGetClientToken(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetClientToken", args...)
 }
 
+// V1PrivateGetOrderOid returns a channel that yields a JSON object.
 func (this *WooCore) V1PrivateGetOrderOid(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetOrderOid", args...)
 }
 
+// V1PrivateGetClientOrderClientOrderId returns a channel that yields a JSON object.
 func (this *WooCore) V1PrivateGetClientOrderClientOrderId(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetClientOrderClientOrderId", args...)
 }
 
+// V1PrivateGetOrders returns a channel that yields a JSON object.
 func (this *WooCore) V1PrivateGetOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetOrders", args...)
 }
 
+// V1PrivateGetClientTradeTid returns a channel that yields a JSON object.
 func (this *WooCore) V1PrivateGetClientTradeTid(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetClientTradeTid", args...)
 }
 
+// V1PrivateGetOrderOidTrades returns a channel that yields a JSON object.
 func (this *WooCore) V1PrivateGetOrderOidTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetOrderOidTrades", args...)
 }
 
+// V1PrivateGetClientTrades returns a channel that yields a JSON object.
 func (this *WooCore) V1PrivateGetClientTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetClientTrades", args...)
 }
 
+// V1PrivateGetClientHistTrades returns a channel that yields a JSON object.
 func (this *WooCore) V1PrivateGetClientHistTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetClientHistTrades", args...)
 }
 
+// V1PrivateGetStakingYieldHistory returns a channel that yields a JSON object.
 func (this *WooCore) V1PrivateGetStakingYieldHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetStakingYieldHistory", args...)
 }
 
+// V1PrivateGetClientHolding returns a channel that yields a JSON object.
 func (this *WooCore) V1PrivateGetClientHolding(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetClientHolding", args...)
 }
 
+// V1PrivateGetAssetDeposit returns a channel that yields a JSON object.
 func (this *WooCore) V1PrivateGetAssetDeposit(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetAssetDeposit", args...)
 }
 
+// V1PrivateGetAssetHistory returns a channel that yields a JSON object.
 func (this *WooCore) V1PrivateGetAssetHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetAssetHistory", args...)
 }
 
+// V1PrivateGetSubAccountAll returns a channel that yields a JSON object.
 func (this *WooCore) V1PrivateGetSubAccountAll(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetSubAccountAll", args...)
 }
 
+// V1PrivateGetSubAccountAssets returns a channel that yields a JSON object.
 func (this *WooCore) V1PrivateGetSubAccountAssets(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetSubAccountAssets", args...)
 }
 
+// V1PrivateGetSubAccountAssetDetail returns a channel that yields a JSON object.
 func (this *WooCore) V1PrivateGetSubAccountAssetDetail(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetSubAccountAssetDetail", args...)
 }
 
+// V1PrivateGetSubAccountIpRestriction returns a channel that yields a JSON object.
 func (this *WooCore) V1PrivateGetSubAccountIpRestriction(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetSubAccountIpRestriction", args...)
 }
 
+// V1PrivateGetAssetMainSubTransferHistory returns a channel that yields a JSON object.
 func (this *WooCore) V1PrivateGetAssetMainSubTransferHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetAssetMainSubTransferHistory", args...)
 }
 
+// V1PrivateGetTokenInterest returns a channel that yields a JSON object.
 func (this *WooCore) V1PrivateGetTokenInterest(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetTokenInterest", args...)
 }
 
+// V1PrivateGetTokenInterestToken returns a channel that yields a JSON object.
 func (this *WooCore) V1PrivateGetTokenInterestToken(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetTokenInterestToken", args...)
 }
 
+// V1PrivateGetInterestHistory returns a channel that yields a JSON object.
 func (this *WooCore) V1PrivateGetInterestHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetInterestHistory", args...)
 }
 
+// V1PrivateGetInterestRepay returns a channel that yields a JSON object.
 func (this *WooCore) V1PrivateGetInterestRepay(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetInterestRepay", args...)
 }
 
+// V1PrivateGetFundingFeeHistory returns a channel that yields a JSON object.
 func (this *WooCore) V1PrivateGetFundingFeeHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetFundingFeeHistory", args...)
 }
 
+// V1PrivateGetPositions returns a channel that yields a JSON object.
 func (this *WooCore) V1PrivateGetPositions(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetPositions", args...)
 }
 
+// V1PrivateGetPositionSymbol returns a channel that yields a JSON object.
 func (this *WooCore) V1PrivateGetPositionSymbol(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetPositionSymbol", args...)
 }
 
+// V1PrivateGetClientTransactionHistory returns a channel that yields a JSON object.
 func (this *WooCore) V1PrivateGetClientTransactionHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetClientTransactionHistory", args...)
 }
 
+// V1PrivateGetClientFuturesLeverage returns a channel that yields a JSON object.
 func (this *WooCore) V1PrivateGetClientFuturesLeverage(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetClientFuturesLeverage", args...)
 }
 
+// V1PrivatePostOrder returns a channel that yields a JSON object.
 func (this *WooCore) V1PrivatePostOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivatePostOrder", args...)
 }
 
+// V1PrivatePostOrderCancelAllAfter returns a channel that yields a JSON object.
 func (this *WooCore) V1PrivatePostOrderCancelAllAfter(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivatePostOrderCancelAllAfter", args...)
 }
 
+// V1PrivatePostAssetLtv returns a channel that yields a JSON object.
 func (this *WooCore) V1PrivatePostAssetLtv(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivatePostAssetLtv", args...)
 }
 
+// V1PrivatePostAssetInternalWithdraw returns a channel that yields a JSON object.
 func (this *WooCore) V1PrivatePostAssetInternalWithdraw(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivatePostAssetInternalWithdraw", args...)
 }
 
+// V1PrivatePostInterestRepay returns a channel that yields a JSON object.
 func (this *WooCore) V1PrivatePostInterestRepay(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivatePostInterestRepay", args...)
 }
 
+// V1PrivatePostClientAccountMode returns a channel that yields a JSON object.
 func (this *WooCore) V1PrivatePostClientAccountMode(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivatePostClientAccountMode", args...)
 }
 
+// V1PrivatePostClientPositionMode returns a channel that yields a JSON object.
 func (this *WooCore) V1PrivatePostClientPositionMode(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivatePostClientPositionMode", args...)
 }
 
+// V1PrivatePostClientLeverage returns a channel that yields a JSON object.
 func (this *WooCore) V1PrivatePostClientLeverage(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivatePostClientLeverage", args...)
 }
 
+// V1PrivatePostClientFuturesLeverage returns a channel that yields a JSON object.
 func (this *WooCore) V1PrivatePostClientFuturesLeverage(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivatePostClientFuturesLeverage", args...)
 }
 
+// V1PrivatePostClientIsolatedMargin returns a channel that yields a JSON object.
 func (this *WooCore) V1PrivatePostClientIsolatedMargin(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivatePostClientIsolatedMargin", args...)
 }
 
+// V1PrivateDeleteOrder returns a channel that yields a JSON object.
 func (this *WooCore) V1PrivateDeleteOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateDeleteOrder", args...)
 }
 
+// V1PrivateDeleteClientOrder returns a channel that yields a JSON object.
 func (this *WooCore) V1PrivateDeleteClientOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateDeleteClientOrder", args...)
 }
 
+// V1PrivateDeleteOrders returns a channel that yields a JSON array.
 func (this *WooCore) V1PrivateDeleteOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateDeleteOrders", args...)
 }
 
+// V1PrivateDeleteAssetWithdraw returns a channel that yields a JSON object.
 func (this *WooCore) V1PrivateDeleteAssetWithdraw(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateDeleteAssetWithdraw", args...)
 }
 
-func (this *WooCore) V2PrivateGetClientHolding(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivateGetClientHolding", args...)
-}
-
+// V3PublicGetSystemInfo returns a channel that yields a JSON object.
 func (this *WooCore) V3PublicGetSystemInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PublicGetSystemInfo", args...)
 }
 
+// V3PublicGetInstruments returns a channel that yields a JSON object.
 func (this *WooCore) V3PublicGetInstruments(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PublicGetInstruments", args...)
 }
 
+// V3PublicGetToken returns a channel that yields a JSON object.
 func (this *WooCore) V3PublicGetToken(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PublicGetToken", args...)
 }
 
+// V3PublicGetTokenNetwork returns a channel that yields a JSON object.
 func (this *WooCore) V3PublicGetTokenNetwork(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PublicGetTokenNetwork", args...)
 }
 
+// V3PublicGetTokenInfo returns a channel that yields a JSON object.
 func (this *WooCore) V3PublicGetTokenInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PublicGetTokenInfo", args...)
 }
 
+// V3PublicGetMarketTrades returns a channel that yields a JSON object.
 func (this *WooCore) V3PublicGetMarketTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PublicGetMarketTrades", args...)
 }
 
+// V3PublicGetMarketTradesHistory returns a channel that yields a JSON object.
 func (this *WooCore) V3PublicGetMarketTradesHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PublicGetMarketTradesHistory", args...)
 }
 
+// V3PublicGetOrderbook returns a channel that yields a JSON object.
 func (this *WooCore) V3PublicGetOrderbook(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PublicGetOrderbook", args...)
 }
 
+// V3PublicGetKline returns a channel that yields a JSON object.
 func (this *WooCore) V3PublicGetKline(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PublicGetKline", args...)
 }
 
+// V3PublicGetKlineHistory returns a channel that yields a JSON object.
 func (this *WooCore) V3PublicGetKlineHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PublicGetKlineHistory", args...)
 }
 
+// V3PublicGetFutures returns a channel that yields a JSON object.
 func (this *WooCore) V3PublicGetFutures(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PublicGetFutures", args...)
 }
 
+// V3PublicGetFundingRate returns a channel that yields a JSON object.
 func (this *WooCore) V3PublicGetFundingRate(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PublicGetFundingRate", args...)
 }
 
+// V3PublicGetFundingRateHistory returns a channel that yields a JSON object.
 func (this *WooCore) V3PublicGetFundingRateHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PublicGetFundingRateHistory", args...)
 }
 
+// V3PublicGetInsuranceFund returns a channel that yields a JSON object.
 func (this *WooCore) V3PublicGetInsuranceFund(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PublicGetInsuranceFund", args...)
 }
 
+// V3PrivateGetTradeOrder returns a channel that yields a JSON object.
 func (this *WooCore) V3PrivateGetTradeOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PrivateGetTradeOrder", args...)
 }
 
+// V3PrivateGetTradeOrders returns a channel that yields a JSON object.
 func (this *WooCore) V3PrivateGetTradeOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PrivateGetTradeOrders", args...)
 }
 
+// V3PrivateGetTradeAlgoOrder returns a channel that yields a JSON object.
 func (this *WooCore) V3PrivateGetTradeAlgoOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PrivateGetTradeAlgoOrder", args...)
 }
 
+// V3PrivateGetTradeAlgoOrders returns a channel that yields a JSON object.
 func (this *WooCore) V3PrivateGetTradeAlgoOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PrivateGetTradeAlgoOrders", args...)
 }
 
+// V3PrivateGetTradeTransaction returns a channel that yields a JSON object.
 func (this *WooCore) V3PrivateGetTradeTransaction(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PrivateGetTradeTransaction", args...)
 }
 
+// V3PrivateGetTradeTransactionHistory returns a channel that yields a JSON object.
 func (this *WooCore) V3PrivateGetTradeTransactionHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PrivateGetTradeTransactionHistory", args...)
 }
 
+// V3PrivateGetTradeTradingFee returns a channel that yields a JSON object.
 func (this *WooCore) V3PrivateGetTradeTradingFee(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PrivateGetTradeTradingFee", args...)
 }
 
+// V3PrivateGetAccountInfo returns a channel that yields a JSON object.
 func (this *WooCore) V3PrivateGetAccountInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PrivateGetAccountInfo", args...)
 }
 
+// V3PrivateGetAccountTokenConfig returns a channel that yields a JSON object.
 func (this *WooCore) V3PrivateGetAccountTokenConfig(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PrivateGetAccountTokenConfig", args...)
 }
 
+// V3PrivateGetAccountSymbolConfig returns a channel that yields a JSON object.
 func (this *WooCore) V3PrivateGetAccountSymbolConfig(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PrivateGetAccountSymbolConfig", args...)
 }
 
+// V3PrivateGetAccountSubAccountsAll returns a channel that yields a JSON object.
 func (this *WooCore) V3PrivateGetAccountSubAccountsAll(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PrivateGetAccountSubAccountsAll", args...)
 }
 
+// V3PrivateGetAccountReferralSummary returns a channel that yields a JSON object.
 func (this *WooCore) V3PrivateGetAccountReferralSummary(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PrivateGetAccountReferralSummary", args...)
 }
 
+// V3PrivateGetAccountReferralRewardHistory returns a channel that yields a JSON object.
 func (this *WooCore) V3PrivateGetAccountReferralRewardHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PrivateGetAccountReferralRewardHistory", args...)
 }
 
+// V3PrivateGetAccountCredentials returns a channel that yields a JSON object.
 func (this *WooCore) V3PrivateGetAccountCredentials(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PrivateGetAccountCredentials", args...)
 }
 
+// V3PrivateGetAssetBalances returns a channel that yields a JSON object.
 func (this *WooCore) V3PrivateGetAssetBalances(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PrivateGetAssetBalances", args...)
 }
 
+// V3PrivateGetAssetTokenHistory returns a channel that yields a JSON object.
 func (this *WooCore) V3PrivateGetAssetTokenHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PrivateGetAssetTokenHistory", args...)
 }
 
+// V3PrivateGetAssetTransferHistory returns a channel that yields a JSON object.
 func (this *WooCore) V3PrivateGetAssetTransferHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PrivateGetAssetTransferHistory", args...)
 }
 
+// V3PrivateGetAssetWalletHistory returns a channel that yields a JSON object.
 func (this *WooCore) V3PrivateGetAssetWalletHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PrivateGetAssetWalletHistory", args...)
 }
 
+// V3PrivateGetAssetWalletDeposit returns a channel that yields a JSON object.
 func (this *WooCore) V3PrivateGetAssetWalletDeposit(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PrivateGetAssetWalletDeposit", args...)
 }
 
+// V3PrivateGetAssetStakingYieldHistory returns a channel that yields a JSON object.
 func (this *WooCore) V3PrivateGetAssetStakingYieldHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PrivateGetAssetStakingYieldHistory", args...)
 }
 
+// V3PrivateGetFuturesPositions returns a channel that yields a JSON object.
 func (this *WooCore) V3PrivateGetFuturesPositions(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PrivateGetFuturesPositions", args...)
 }
 
+// V3PrivateGetFuturesLeverage returns a channel that yields a JSON object.
 func (this *WooCore) V3PrivateGetFuturesLeverage(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PrivateGetFuturesLeverage", args...)
 }
 
+// V3PrivateGetFuturesDefaultMarginMode returns a channel that yields a JSON object.
 func (this *WooCore) V3PrivateGetFuturesDefaultMarginMode(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PrivateGetFuturesDefaultMarginMode", args...)
 }
 
+// V3PrivateGetFuturesFundingFeeHistory returns a channel that yields a JSON object.
 func (this *WooCore) V3PrivateGetFuturesFundingFeeHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PrivateGetFuturesFundingFeeHistory", args...)
 }
 
+// V3PrivateGetSpotMarginInterestRate returns a channel that yields a JSON object.
 func (this *WooCore) V3PrivateGetSpotMarginInterestRate(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PrivateGetSpotMarginInterestRate", args...)
 }
 
+// V3PrivateGetSpotMarginInterestHistory returns a channel that yields a JSON object.
 func (this *WooCore) V3PrivateGetSpotMarginInterestHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PrivateGetSpotMarginInterestHistory", args...)
 }
 
+// V3PrivateGetSpotMarginMaxMargin returns a channel that yields a JSON object.
 func (this *WooCore) V3PrivateGetSpotMarginMaxMargin(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PrivateGetSpotMarginMaxMargin", args...)
 }
 
+// V3PrivateGetAlgoOrderOid returns a channel that yields a JSON object.
 func (this *WooCore) V3PrivateGetAlgoOrderOid(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PrivateGetAlgoOrderOid", args...)
 }
 
+// V3PrivateGetAlgoOrders returns a channel that yields a JSON object.
 func (this *WooCore) V3PrivateGetAlgoOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PrivateGetAlgoOrders", args...)
 }
 
+// V3PrivateGetPositions returns a channel that yields a JSON object.
 func (this *WooCore) V3PrivateGetPositions(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PrivateGetPositions", args...)
 }
 
+// V3PrivateGetBuypower returns a channel that yields a JSON object.
 func (this *WooCore) V3PrivateGetBuypower(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PrivateGetBuypower", args...)
 }
 
+// V3PrivateGetConvertExchangeInfo returns a channel that yields a JSON object.
 func (this *WooCore) V3PrivateGetConvertExchangeInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PrivateGetConvertExchangeInfo", args...)
 }
 
+// V3PrivateGetConvertAssetInfo returns a channel that yields a JSON object.
 func (this *WooCore) V3PrivateGetConvertAssetInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PrivateGetConvertAssetInfo", args...)
 }
 
+// V3PrivateGetConvertRfq returns a channel that yields a JSON object.
 func (this *WooCore) V3PrivateGetConvertRfq(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PrivateGetConvertRfq", args...)
 }
 
+// V3PrivateGetConvertTrade returns a channel that yields a JSON object.
 func (this *WooCore) V3PrivateGetConvertTrade(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PrivateGetConvertTrade", args...)
 }
 
+// V3PrivateGetConvertTrades returns a channel that yields a JSON object.
 func (this *WooCore) V3PrivateGetConvertTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PrivateGetConvertTrades", args...)
 }
 
+// V3PrivatePostTradeOrder returns a channel that yields a JSON object.
 func (this *WooCore) V3PrivatePostTradeOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PrivatePostTradeOrder", args...)
 }
 
+// V3PrivatePostTradeAlgoOrder returns a channel that yields a JSON object.
 func (this *WooCore) V3PrivatePostTradeAlgoOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PrivatePostTradeAlgoOrder", args...)
 }
 
+// V3PrivatePostTradeCancelAllAfter returns a channel that yields a JSON object.
 func (this *WooCore) V3PrivatePostTradeCancelAllAfter(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PrivatePostTradeCancelAllAfter", args...)
 }
 
+// V3PrivatePostAccountTradingMode returns a channel that yields a JSON object.
 func (this *WooCore) V3PrivatePostAccountTradingMode(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PrivatePostAccountTradingMode", args...)
 }
 
+// V3PrivatePostAccountListenKey returns a channel that yields a JSON object.
 func (this *WooCore) V3PrivatePostAccountListenKey(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PrivatePostAccountListenKey", args...)
 }
 
+// V3PrivatePostAssetTransfer returns a channel that yields a JSON object.
 func (this *WooCore) V3PrivatePostAssetTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PrivatePostAssetTransfer", args...)
 }
 
+// V3PrivatePostAssetWalletWithdraw returns a channel that yields a JSON object.
 func (this *WooCore) V3PrivatePostAssetWalletWithdraw(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PrivatePostAssetWalletWithdraw", args...)
 }
 
+// V3PrivatePostSpotMarginLeverage returns a channel that yields a JSON object.
 func (this *WooCore) V3PrivatePostSpotMarginLeverage(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PrivatePostSpotMarginLeverage", args...)
 }
 
+// V3PrivatePostSpotMarginInterestRepay returns a channel that yields a JSON object.
 func (this *WooCore) V3PrivatePostSpotMarginInterestRepay(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PrivatePostSpotMarginInterestRepay", args...)
 }
 
+// V3PrivatePostAlgoOrder returns a channel that yields a JSON object.
 func (this *WooCore) V3PrivatePostAlgoOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PrivatePostAlgoOrder", args...)
 }
 
+// V3PrivatePostConvertRft returns a channel that yields a JSON object.
 func (this *WooCore) V3PrivatePostConvertRft(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PrivatePostConvertRft", args...)
 }
 
+// V3PrivatePutTradeOrder returns a channel that yields a JSON object.
 func (this *WooCore) V3PrivatePutTradeOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PrivatePutTradeOrder", args...)
 }
 
+// V3PrivatePutTradeAlgoOrder returns a channel that yields a JSON object.
 func (this *WooCore) V3PrivatePutTradeAlgoOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PrivatePutTradeAlgoOrder", args...)
 }
 
+// V3PrivatePutFuturesLeverage returns a channel that yields a JSON object.
 func (this *WooCore) V3PrivatePutFuturesLeverage(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PrivatePutFuturesLeverage", args...)
 }
 
+// V3PrivatePutFuturesPositionMode returns a channel that yields a JSON object.
 func (this *WooCore) V3PrivatePutFuturesPositionMode(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PrivatePutFuturesPositionMode", args...)
 }
 
+// V3PrivatePutOrderOid returns a channel that yields a JSON object.
 func (this *WooCore) V3PrivatePutOrderOid(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PrivatePutOrderOid", args...)
 }
 
+// V3PrivatePutOrderClientClientOrderId returns a channel that yields a JSON object.
 func (this *WooCore) V3PrivatePutOrderClientClientOrderId(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PrivatePutOrderClientClientOrderId", args...)
 }
 
+// V3PrivatePutAlgoOrderOid returns a channel that yields a JSON object.
 func (this *WooCore) V3PrivatePutAlgoOrderOid(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PrivatePutAlgoOrderOid", args...)
 }
 
+// V3PrivatePutAlgoOrderClientClientOrderId returns a channel that yields a JSON object.
 func (this *WooCore) V3PrivatePutAlgoOrderClientClientOrderId(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PrivatePutAlgoOrderClientClientOrderId", args...)
 }
 
+// V3PrivateDeleteTradeOrder returns a channel that yields a JSON object.
 func (this *WooCore) V3PrivateDeleteTradeOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PrivateDeleteTradeOrder", args...)
 }
 
+// V3PrivateDeleteTradeOrders returns a channel that yields a JSON object.
 func (this *WooCore) V3PrivateDeleteTradeOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PrivateDeleteTradeOrders", args...)
 }
 
+// V3PrivateDeleteTradeAlgoOrder returns a channel that yields a JSON object.
 func (this *WooCore) V3PrivateDeleteTradeAlgoOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PrivateDeleteTradeAlgoOrder", args...)
 }
 
+// V3PrivateDeleteTradeAlgoOrders returns a channel that yields a JSON object.
 func (this *WooCore) V3PrivateDeleteTradeAlgoOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PrivateDeleteTradeAlgoOrders", args...)
 }
 
+// V3PrivateDeleteTradeAllOrders returns a channel that yields a JSON object.
 func (this *WooCore) V3PrivateDeleteTradeAllOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PrivateDeleteTradeAllOrders", args...)
 }
 
+// V3PrivateDeleteAlgoOrderOrderId returns a channel that yields a JSON object.
 func (this *WooCore) V3PrivateDeleteAlgoOrderOrderId(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PrivateDeleteAlgoOrderOrderId", args...)
 }
 
+// V3PrivateDeleteAlgoOrdersPending returns a channel that yields a JSON object.
 func (this *WooCore) V3PrivateDeleteAlgoOrdersPending(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PrivateDeleteAlgoOrdersPending", args...)
 }
 
+// V3PrivateDeleteAlgoOrdersPendingSymbol returns a channel that yields a JSON object.
 func (this *WooCore) V3PrivateDeleteAlgoOrdersPendingSymbol(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PrivateDeleteAlgoOrdersPendingSymbol", args...)
 }
 
+// V3PrivateDeleteOrdersPending returns a channel that yields a JSON object.
 func (this *WooCore) V3PrivateDeleteOrdersPending(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PrivateDeleteOrdersPending", args...)
 }

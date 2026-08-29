@@ -1,16 +1,16 @@
 import kucoinRest from '../kucoin.js';
-import type { Balances, Bool, FundingRate, Int, Market, NullableDict, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import type { Balances, Bool, Dict, FundingRate, Int, Market, NullableDict, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class kucoin extends kucoinRest {
     describe(): any;
     negotiate(privateChannel: any, isFuturesMethod?: boolean, params?: {}): Promise<any>;
-    negotiateHelper(privateChannel: any, connectId: any, params?: {}): Promise<string>;
+    negotiateHelper(privateChannel: any, connectId: any, params?: {}): Promise<string | undefined>;
     requestId(): any;
-    subscribe(url: any, messageHash: any, subscriptionHash: any, params?: {}, subscription?: any): Promise<any>;
+    subscribe(url: any, messageHash: any, subscriptionHash: any, params?: {}, subscription?: Dict | undefined): Promise<any>;
     subscribePublicUta(messageHash: any, channel: any, symbol: any, params?: {}, subscription?: NullableDict): Promise<any>;
     subscribePrivateUta(messageHashes: any, subscribeHash: any, channel: any, symbol?: Str, params?: {}, subscription?: NullableDict): Promise<any>;
     getUtaUrl(): Promise<string>;
-    authenticateUta(): Promise<string>;
+    authenticateUta(): Promise<Str>;
     unSubscribe(url: any, messageHash: any, topic: any, subscriptionHash: any, params?: {}, subscription?: NullableDict): Promise<any>;
     subscribeMultiple(url: any, messageHashes: any, topic: any, subscriptionHashes: any, params?: {}, subscription?: NullableDict): Promise<any>;
     unSubscribeMultiple(url: any, messageHashes: any, topic: any, subscriptionHashes: any, params?: {}, subscription?: NullableDict): Promise<any>;
@@ -55,7 +55,7 @@ export default class kucoin extends kucoinRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
-    subscribePublicMultipleUta(messageHashes: any, channel: any, symbols: any, params?: {}, subscription?: any): Promise<any>;
+    subscribePublicMultipleUta(messageHashes: any, channel: any, symbols: any, params?: {}, subscription?: Dict | undefined): Promise<any>;
     watchUtaTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     handleTicker(client: Client, message: any): void;
     handleContractTicker(client: Client, message: any): void;
@@ -178,7 +178,7 @@ export default class kucoin extends kucoinRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), default is false
      * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     /**
@@ -213,7 +213,7 @@ export default class kucoin extends kucoinRest {
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: {}): Promise<OrderBook>;
     /**
@@ -299,7 +299,7 @@ export default class kucoin extends kucoinRest {
      */
     watchBalance(params?: {}): Promise<Balances>;
     setBalanceCache(client: Client, type: any): void;
-    loadBalanceSnapshot(client: any, messageHash: any, type: any): Promise<void>;
+    loadBalanceSnapshot(client: Client, messageHash: any, type: any): Promise<void>;
     handleBalance(client: Client, message: any): void;
     handleUtaBalance(client: Client, message: any): void;
     /**
@@ -327,9 +327,9 @@ export default class kucoin extends kucoinRest {
     watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
     getCurrentPosition(symbol: any): any;
     setPositionsCache(client: Client, uta: any): void;
-    loadPositionsSnapshot(client: any, messageHash: any, uta: any): Promise<void>;
+    loadPositionsSnapshot(client: Client, messageHash: any, uta: any): Promise<void>;
     setPositionCache(client: Client, symbol: string): void;
-    loadPositionSnapshot(client: any, messageHash: any, symbol: any): Promise<void>;
+    loadPositionSnapshot(client: Client, messageHash: any, symbol: any): Promise<void>;
     handlePosition(client: Client, message: any): void;
     handleUtaPosition(client: Client, message: any): void;
     parseWsUtaPosition(position: any, market?: Market): Position;

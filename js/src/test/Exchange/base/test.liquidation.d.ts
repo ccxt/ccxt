@@ -1,2 +1,2 @@
-declare function testLiquidation(exchange: any, skippedProperties: any, method: any, entry: any, symbol: any): void;
+declare function testLiquidation(exchange: any, skippedProperties: any, method: string, entry: object, symbol: string): void;
 export default testLiquidation;

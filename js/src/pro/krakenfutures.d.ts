@@ -1,5 +1,5 @@
 import krakenfuturesRest from '../krakenfutures.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, Position, Balances, Bool } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, Position, Balances, Dict, Bool, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class krakenfutures extends krakenfuturesRest {
     describe(): any;
@@ -19,7 +19,7 @@ export default class krakenfutures extends krakenfuturesRest {
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: {}): Promise<OrderBook>;
     /**
@@ -95,7 +95,7 @@ export default class krakenfutures extends krakenfuturesRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchTradesForSymbols(symbols: Str[], since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     /**
      * @method
      * @name krakenfutures#watchOrderBook
@@ -120,7 +120,7 @@ export default class krakenfutures extends krakenfuturesRest {
      */
     watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
     handlePositions(client: any, message: any): void;
-    parseWsPosition(position: any, market?: any): Position;
+    parseWsPosition(position: any, market?: Market): Position;
     /**
      * @method
      * @name krakenfutures#watchOrders
@@ -157,20 +157,20 @@ export default class krakenfutures extends krakenfuturesRest {
      */
     watchBalance(params?: {}): Promise<Balances>;
     handleTrade(client: Client, message: any): void;
-    parseWsTrade(trade: any, market?: any): Trade;
-    parseWsOrderTrade(trade: any, market?: any): Trade;
+    parseWsTrade(trade: any, market?: Market): Trade;
+    parseWsOrderTrade(trade: Dict, market?: Market): Trade;
     handleOrder(client: Client, message: any): any;
     handleOrderSnapshot(client: Client, message: any): void;
-    parseWsOrder(order: any, market?: any): Order;
+    parseWsOrder(order: any, market?: Market): Order;
     handleTicker(client: Client, message: any): void;
     handleBidAsk(client: Client, message: any): void;
-    parseWsTicker(ticker: any, market?: any): Ticker;
+    parseWsTicker(ticker: Dict, market?: Market): Ticker;
     handleOrderBookSnapshot(client: Client, message: any): void;
     handleOrderBook(client: Client, message: any): void;
     handleBalance(client: Client, message: any): void;
     handleMyTrades(client: Client, message: any): void;
-    parseWsMyTrade(trade: any, market?: any): Trade;
-    watchMultiHelper(unifiedName: string, channelName: string, symbols?: Strings, subscriptionArgs?: any, params?: {}): Promise<any>;
+    parseWsMyTrade(trade: any, market?: Market): Trade;
+    watchMultiHelper(unifiedName: string, channelName: string, symbols?: any, subscriptionArgs?: any, params?: {}): Promise<any>;
     subscriptionExistsForHash(url: string, hash: string): boolean;
     getMessageHash(unifiedElementName: string, subChannelName?: Str, symbol?: Str): string;
     handleErrorMessage(client: Client, message: any): Bool;

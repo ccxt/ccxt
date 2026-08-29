@@ -4,15 +4,15 @@
 import { sha256 } from '@noble/hashes/sha2.js';
 import bithumbRest from '../bithumb.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type{ Int, OrderBook, Ticker, Trade, Strings, Tickers, Dict, NullableDict, Bool, Order, Str, Market } from '../base/types.js';
+import type{ Int, OrderBook, Ticker, Trade, Strings, Tickers, Dict, Bool, Order, Str, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { ExchangeError } from '../base/errors.js';
 import { jwt } from '../base/functions/rsa.js';
-import { Balances } from '../base/types.js';
+import { Balances, FeeString } from '../base/types.js';
 //  ---------------------------------------------------------------------------
 
 export default class bithumb extends bithumbRest {
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -49,7 +49,7 @@ export default class bithumb extends bithumbRest {
      * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
      * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
      */
-    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         const url = this.urls['api']['ws']['public'];
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -73,7 +73,7 @@ export default class bithumb extends bithumbRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -105,7 +105,7 @@ export default class bithumb extends bithumbRest {
         return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
-    handleTicker (client: Client, message) {
+    handleTicker (client: Client, message: any) {
         //
         //    {
         //        "type" : "ticker",
@@ -138,7 +138,7 @@ export default class bithumb extends bithumbRest {
         client.resolve (this.tickers[symbol], messageHash);
     }
 
-    parseWsTicker (ticker, market: Market = undefined) {
+    parseWsTicker (ticker: Dict, market: Market = undefined) {
         //
         //    {
         //        "symbol" : "BTC_KRW",           // 통화코드
@@ -195,9 +195,9 @@ export default class bithumb extends bithumbRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -213,7 +213,7 @@ export default class bithumb extends bithumbRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client: Client, message) {
+    handleOrderBook (client: Client, message: any) {
         //
         //    {
         //        "type" : "orderbookdepth",
@@ -257,7 +257,7 @@ export default class bithumb extends bithumbRest {
         client.resolve (orderbook, messageHash);
     }
 
-    handleDelta (orderbook, delta) {
+    override handleDelta (orderbook: any, delta: any) {
         //
         //    {
         //        symbol: "ETH_BTC",
@@ -274,7 +274,7 @@ export default class bithumb extends bithumbRest {
         orderbookSide.storeArray (bidAsk);
     }
 
-    handleDeltas (orderbook, deltas) {
+    override handleDeltas (orderbook: any, deltas: any) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (orderbook, deltas[i]);
         }
@@ -291,7 +291,7 @@ export default class bithumb extends bithumbRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
      */
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -310,7 +310,7 @@ export default class bithumb extends bithumbRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrades (client, message) {
+    handleTrades (client: any, message: any) {
         //
         //    {
         //        "type" : "transaction",
@@ -348,7 +348,7 @@ export default class bithumb extends bithumbRest {
         }
     }
 
-    parseWsTrade (trade, market: Market = undefined) {
+    override parseWsTrade (trade: any, market: Market = undefined) {
         //
         //    {
         //        "symbol" : "BTC_KRW",
@@ -382,7 +382,7 @@ export default class bithumb extends bithumbRest {
         }, market);
     }
 
-    handleErrorMessage (client: Client, message): Bool {
+    handleErrorMessage (client: Client, message: any): Bool {
         //
         //    {
         //        "status" : "5100",
@@ -413,7 +413,7 @@ export default class bithumb extends bithumbRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    async watchBalance (params = {}): Promise<Balances> {
+    override async watchBalance (params = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -428,7 +428,7 @@ export default class bithumb extends bithumbRest {
         return balance;
     }
 
-    handleBalance (client: Client, message) {
+    handleBalance (client: Client, message: any) {
         //
         //    {
         //        "type": "myAsset",
@@ -456,7 +456,9 @@ export default class bithumb extends bithumbRest {
             const account = this.account ();
             account['free'] = this.safeString (asset, 'balance');
             account['used'] = this.safeString (asset, 'locked');
-            this.balance[code] = account;
+            if (code !== undefined) {
+                this.balance[code] = account;
+            }
         }
         this.balance['info'] = message;
         const timestamp = this.safeInteger (message, 'timestamp');
@@ -468,7 +470,7 @@ export default class bithumb extends bithumbRest {
 
     async authenticate (params = {}) {
         this.checkRequiredCredentials ();
-        const wsOptions: Dict = this.safeDict (this.options, 'ws', {});
+        const wsOptions = this.safeDict (this.options, 'ws', {});
         const authenticated = this.safeString (wsOptions, 'token');
         if (authenticated === undefined) {
             const payload: Dict = {
@@ -502,7 +504,7 @@ export default class bithumb extends bithumbRest {
      * @param {string[]} [params.codes] market codes to filter orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -526,7 +528,7 @@ export default class bithumb extends bithumbRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleOrders (client: Client, message) {
+    handleOrders (client: Client, message: any) {
         //
         //    {
         //        "type": "myOrder",
@@ -566,7 +568,7 @@ export default class bithumb extends bithumbRest {
         client.resolve (cachedOrders, symbolSpecificMessageHash);
     }
 
-    parseWsOrder (order, market: Market = undefined) {
+    override parseWsOrder (order: any, market: Market = undefined) {
         //
         //    {
         //        "type": "myOrder",
@@ -622,7 +624,7 @@ export default class bithumb extends bithumbRest {
         const filled = this.safeString (order, 'executed_volume');
         const cost = this.safeString (order, 'executed_funds');
         const feeCost = this.safeString (order, 'paid_fee');
-        let fee: NullableDict = undefined;
+        let fee: FeeString = undefined;
         if (feeCost !== undefined) {
             const marketForFee = this.safeMarket (marketId, market);
             const feeCurrency = this.safeString (marketForFee, 'quote');
@@ -657,8 +659,8 @@ export default class bithumb extends bithumbRest {
         }, market);
     }
 
-    handleMessage (client: Client, message) {
-        if (!this.handleErrorMessage (client, message)) {
+    override handleMessage (client: Client, message: any) {
+        if (this.handleErrorMessage (client, message) !== true) {
             return;
         }
         const topic = this.safeString (message, 'type');

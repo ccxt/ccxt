@@ -12,6 +12,7 @@ use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\InvalidOrder;
 use ccxt\NotSupported;
+use ccxt\NullResponse;
 use ccxt\Precise;
 use React\Async;
 use React\Promise;
@@ -67,7 +68,7 @@ class weex extends Exchange {
                 'createTakeProfitOrder' => true,
                 'createTrailingAmountOrder' => false,
                 'createTrailingPercentOrder' => false,
-                'createTriggerOrder' => false,
+                'createTriggerOrder' => true,
                 'deposit' => false,
                 'editOrder' => false,
                 'editOrders' => false,
@@ -114,7 +115,7 @@ class weex extends Exchange {
                 'fetchIsolatedPositions' => false,
                 'fetchL2OrderBook' => false,
                 'fetchL3OrderBook' => false,
-                'fetchLastPrices' => false,
+                'fetchLastPrices' => true,
                 'fetchLedger' => true,
                 'fetchLedgerEntry' => false,
                 'fetchLeverage' => true,
@@ -129,7 +130,8 @@ class weex extends Exchange {
                 'fetchMarketLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
-                'fetchMarkPrices' => false,
+                'fetchMarkPrice' => true,
+                'fetchMarkPrices' => true,
                 'fetchMyLiquidations' => false,
                 'fetchMySettlementHistory' => false,
                 'fetchMyTrades' => true,
@@ -183,7 +185,7 @@ class weex extends Exchange {
                 'reduceMargin' => true,
                 'repayCrossMargin' => false,
                 'repayIsolatedMargin' => false,
-                'sandbox' => false,
+                'sandbox' => true,
                 'setLeverage' => true,
                 'setMargin' => false,
                 'setMarginMode' => true,
@@ -200,6 +202,13 @@ class weex extends Exchange {
                     'contract' => 'https://api-contract.weex.com',
                     'contractPrivate' => 'https://api-contract.weex.com',
                 ),
+                'test' => array(
+                    // demo trading lives on the live host, the private contract endpoints are swapped to their capi/v3/sim/ variants when sandbox mode is enabled
+                    'public' => 'https://api-spot.weex.com',
+                    'private' => 'https://api-spot.weex.com',
+                    'contract' => 'https://api-contract.weex.com',
+                    'contractPrivate' => 'https://api-contract.weex.com',
+                ),
                 'www' => 'https://www.weex.com',
                 'doc' => array(
                     'https://www.weex.com/api-doc',
@@ -210,103 +219,107 @@ class weex extends Exchange {
                 'public' => array(
                     // multiply public endpoints weight by 5
                     'get' => array(
-                        'api/v3/time' => 5, // done
-                        'api/v3/coins' => 25, // done
-                        'api/v3/exchangeInfo' => 100, // done
-                        'api/v3/ping' => 5, // done
-                        'api/v3/apiTradingSymbols' => 25, // not unified
-                        'api/v3/market/ticker/price' => 20, // not unified
-                        'api/v3/market/ticker/24hr' => 10, // done
-                        'api/v3/market/trades' => 125, // done
-                        'api/v3/market/klines' => 10, // done
-                        'api/v3/market/depth' => 25, // done
-                        'api/v3/market/ticker/bookTicker' => 20, // done
+                        'api/v3/time' => array( 'cost' => 5 ), // done
+                        'api/v3/coins' => array( 'cost' => 25 ), // done
+                        'api/v3/exchangeInfo' => array( 'cost' => 100 ), // done
+                        'api/v3/ping' => array( 'cost' => 5 ), // done
+                        'api/v3/apiTradingSymbols' => array( 'cost' => 25 ), // not unified
+                        'api/v3/market/ticker/price' => array( 'cost' => 20 ), // done
+                        'api/v3/market/ticker/24hr' => array( 'cost' => 10 ), // done
+                        'api/v3/market/trades' => array( 'cost' => 125 ), // done
+                        'api/v3/market/klines' => array( 'cost' => 10 ), // done
+                        'api/v3/market/depth' => array( 'cost' => 25 ), // done
+                        'api/v3/market/ticker/bookTicker' => array( 'cost' => 20 ), // done
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'api/v3/account/' => 5, // done
-                        'api/v3/account/transferRecords' => 3, // done
-                        'api/v3/order' => 2, // done
-                        'api/v3/openOrders' => 3, // done
-                        'api/v3/allOrders' => 10, // done
-                        'api/v3/myTrades' => 5, // done
-                        'api/v3/rebate/affiliate/getAffiliateUIDs' => 20, // not unified
-                        'api/v3/rebate/affiliate/getChannelUserTradeAndAsset' => 20, // not unified
-                        'api/v3/rebate/affiliate/getAffiliateCommission' => 20, // not unified
-                        'api/v3/rebate/affiliate/getInternalWithdrawalStatus' => 100, // not unified
-                        'api/v3/rebate/affiliate/querySubChannelTransactions' => 10, // not unified
-                        'api/v3/agency/verifyReferrals' => 20, // not unified
-                        'api/v3/agency/getAssert' => 20, // not unified
-                        'api/v3/agency/getDealData' => 20, // not unified
+                        'api/v3/account/' => array( 'cost' => 5 ), // done
+                        'api/v3/account/transferRecords' => array( 'cost' => 3 ), // done
+                        'api/v3/order' => array( 'cost' => 2 ), // done
+                        'api/v3/openOrders' => array( 'cost' => 3 ), // done
+                        'api/v3/allOrders' => array( 'cost' => 10 ), // done
+                        'api/v3/myTrades' => array( 'cost' => 5 ), // done
+                        'api/v3/rebate/affiliate/getAffiliateUIDs' => array( 'cost' => 20 ), // not unified
+                        'api/v3/rebate/affiliate/getChannelUserTradeAndAsset' => array( 'cost' => 20 ), // not unified
+                        'api/v3/rebate/affiliate/getAffiliateCommission' => array( 'cost' => 20 ), // not unified
+                        'api/v3/rebate/affiliate/getInternalWithdrawalStatus' => array( 'cost' => 100 ), // not unified
+                        'api/v3/rebate/affiliate/querySubChannelTransactions' => array( 'cost' => 10 ), // not unified
+                        'api/v3/agency/verifyReferrals' => array( 'cost' => 20 ), // not unified
+                        'api/v3/agency/getAssert' => array( 'cost' => 20 ), // not unified
+                        'api/v3/agency/getDealData' => array( 'cost' => 20 ), // not unified
                     ),
                     'post' => array(
-                        'api/v3/account/bills' => 5, // done
-                        'api/v3/account/fundingBills' => 5, // done
-                        'api/v3/order' => 5, // done
-                        'api/v3/order/batch' => 50, // not supported, returns array("code":-1150,"msg":"Request method 'POST' not supported")
-                        'api/v3/rebate/affiliate/internalWithdrawal' => 100, // not unified
+                        'api/v3/account/bills' => array( 'cost' => 5 ), // done
+                        'api/v3/account/fundingBills' => array( 'cost' => 5 ), // done
+                        'api/v3/order' => array( 'cost' => 5 ), // done
+                        'api/v3/order/batch' => array( 'cost' => 50 ), // not supported, returns array("code":-1150,"msg":"Request method 'POST' not supported")
+                        'api/v3/rebate/affiliate/internalWithdrawal' => array( 'cost' => 100 ), // not unified
                     ),
                     'delete' => array(
-                        'api/v3/order' => 1, // done
-                        'api/v3/openOrders' => 1, // done
-                        'api/v3/order/batch' => 10, // done
+                        'api/v3/order' => array( 'cost' => 1 ), // done
+                        'api/v3/openOrders' => array( 'cost' => 1 ), // done
+                        'api/v3/order/batch' => array( 'cost' => 10 ), // done
                     ),
                 ),
                 'contract' => array(
                     // multiply public endpoints weight by 5
                     'get' => array(
-                        'capi/v3/market/time' => 5, // done
-                        'capi/v3/market/exchangeInfo' => 5, // done
-                        'capi/v3/market/depth' => 5, // done
-                        'capi/v3/market/ticker/24hr' => 200, // done
-                        'capi/v3/market/ticker/bookTicker' => 5, // done
-                        'capi/v3/market/trades' => 25, // done
-                        'capi/v3/market/klines' => 5, // done
-                        'capi/v3/market/indexPriceKlines' => 5, // done
-                        'capi/v3/market/markPriceKlines' => 5, // done
-                        'capi/v3/market/historyKlines' => 25, // done
-                        'capi/v3/market/symbolPrice' => 5, // not unified
-                        'capi/v3/market/openInterest' => 10, // done
-                        'capi/v3/market/premiumIndex' => 5, // done
-                        'capi/v3/market/fundingRate' => 25, // done
-                        'capi/v3/market/apiTradingSymbols' => 25, // not unified
+                        'capi/v3/market/time' => array( 'cost' => 5 ), // done
+                        'capi/v3/market/exchangeInfo' => array( 'cost' => 5 ), // done
+                        'capi/v3/market/depth' => array( 'cost' => 5 ), // done
+                        'capi/v3/market/ticker/24hr' => array( 'cost' => 200 ), // done
+                        'capi/v3/market/ticker/bookTicker' => array( 'cost' => 5 ), // done
+                        'capi/v3/market/trades' => array( 'cost' => 25 ), // done
+                        'capi/v3/market/klines' => array( 'cost' => 5 ), // done
+                        'capi/v3/market/indexPriceKlines' => array( 'cost' => 5 ), // done
+                        'capi/v3/market/markPriceKlines' => array( 'cost' => 5 ), // done
+                        'capi/v3/market/historyKlines' => array( 'cost' => 25 ), // done
+                        'capi/v3/market/symbolPrice' => array( 'cost' => 5 ), // done
+                        'capi/v3/market/openInterest' => array( 'cost' => 10 ), // done
+                        'capi/v3/market/premiumIndex' => array( 'cost' => 5 ), // done
+                        'capi/v3/market/fundingRate' => array( 'cost' => 25 ), // done
+                        'capi/v3/market/apiTradingSymbols' => array( 'cost' => 25 ), // not unified
                     ),
                 ),
                 'contractPrivate' => array(
                     'get' => array(
-                        'capi/v3/account/balance' => 10, // done
-                        'capi/v3/account/commissionRate' => 10, // done
-                        'capi/v3/account/accountConfig' => 10, // not unified
-                        'capi/v3/account/symbolConfig' => 10, // done
-                        'capi/v3/account/position/allPosition' => 15, // done
-                        'capi/v3/account/position/singlePosition' => 3, // done
-                        'capi/v3/order' => 3, // done
-                        'capi/v3/openOrders' => 5, // done
-                        'capi/v3/order/history' => 10, // done
-                        'capi/v3/userTrades' => 5, // done
-                        'capi/v3/openAlgoOrders' => 3, // done
-                        'capi/v3/allAlgoOrders' => 10, // not unified - capi/v3/order/history returns both regular and algo orders
+                        'capi/v3/account/balance' => array( 'cost' => 10 ), // done
+                        'capi/v3/account/commissionRate' => array( 'cost' => 10 ), // done
+                        'capi/v3/account/accountConfig' => array( 'cost' => 10 ), // not unified
+                        'capi/v3/account/symbolConfig' => array( 'cost' => 10 ), // done
+                        'capi/v3/account/position/allPosition' => array( 'cost' => 15 ), // done
+                        'capi/v3/account/position/singlePosition' => array( 'cost' => 3 ), // done
+                        'capi/v3/order' => array( 'cost' => 3 ), // done
+                        'capi/v3/openOrders' => array( 'cost' => 5 ), // done
+                        'capi/v3/order/history' => array( 'cost' => 10 ), // done
+                        'capi/v3/userTrades' => array( 'cost' => 5 ), // done
+                        'capi/v3/openAlgoOrders' => array( 'cost' => 3 ), // done
+                        'capi/v3/allAlgoOrders' => array( 'cost' => 10 ), // not unified - capi/v3/order/history returns both regular and algo orders
+                        'capi/v3/sim/balance' => array( 'cost' => 10 ), // done - demo trading variant of capi/v3/account/balance
+                        'capi/v3/sim/position/allPosition' => array( 'cost' => 15 ), // done - demo trading variant of capi/v3/account/position/allPosition
+                        'capi/v3/sim/order/history' => array( 'cost' => 10 ), // done - demo trading variant of capi/v3/order/history
                     ),
                     'post' => array(
-                        'capi/v3/account/income' => 5, // done
-                        'capi/v3/account/marginType' => 50, // done
-                        'capi/v3/account/leverage' => 20, // done
-                        'capi/v3/account/positionMargin' => 30, // done
-                        'capi/v3/account/modifyAutoAppendMargin' => 30, // not unified
-                        'capi/v3/order' => 5, // done
-                        'capi/v3/batchOrders' => 10, // not supported, returns array("code":-1150,"msg":"Request method 'POST' not supported")
-                        'capi/v3/closePositions' => 50, // done
-                        'capi/v3/algoOrder' => 5, // done
-                        'capi/v3/placeTpSlOrder' => 5, // not unified
-                        'capi/v3/modifyTpSlOrder' => 5, // not unified
+                        'capi/v3/account/income' => array( 'cost' => 5 ), // done
+                        'capi/v3/account/marginType' => array( 'cost' => 50 ), // done
+                        'capi/v3/account/leverage' => array( 'cost' => 20 ), // done
+                        'capi/v3/account/positionMargin' => array( 'cost' => 30 ), // done
+                        'capi/v3/account/modifyAutoAppendMargin' => array( 'cost' => 30 ), // not unified
+                        'capi/v3/order' => array( 'cost' => 5 ), // done
+                        'capi/v3/batchOrders' => array( 'cost' => 10 ), // not supported, returns array("code":-1150,"msg":"Request method 'POST' not supported")
+                        'capi/v3/closePositions' => array( 'cost' => 50 ), // done
+                        'capi/v3/algoOrder' => array( 'cost' => 5 ), // done
+                        'capi/v3/placeTpSlOrder' => array( 'cost' => 5 ), // not unified
+                        'capi/v3/modifyTpSlOrder' => array( 'cost' => 5 ), // not unified
+                        'capi/v3/sim/order' => array( 'cost' => 5 ), // done - demo trading variant of capi/v3/order
                     ),
                     'delete' => array(
-                        'capi/v3/order' => 3, // done
-                        'capi/v3/batchOrders' => 10, // done
-                        'capi/v3/allOpenOrders' => 10, // done
-                        'capi/v3/algoOrder' => 3, // done
-                        'capi/v3/algoOpenOrders' => 10, // done
+                        'capi/v3/order' => array( 'cost' => 3 ), // done
+                        'capi/v3/batchOrders' => array( 'cost' => 10 ), // done
+                        'capi/v3/allOpenOrders' => array( 'cost' => 10 ), // done
+                        'capi/v3/algoOrder' => array( 'cost' => 3 ), // done
+                        'capi/v3/algoOpenOrders' => array( 'cost' => 10 ), // done
                     ),
                 ),
             ),
@@ -483,7 +496,7 @@ class weex extends Exchange {
             ),
             'options' => array(
                 'partner' => 'b-WEEX111125',
-                'timeDifference' => 0, // the difference between system clock and Binance clock
+                'timeDifference' => 0, // the difference between system clock and exchange clock
                 'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
                 'accountsByType' => array(
                     'spot' => 'spot',
@@ -501,7 +514,7 @@ class weex extends Exchange {
                     'ETH' => 'ERC20',
                     'POLYGON' => 'POLYGON(MATIC)',
                     'MATIC' => 'POLYGON(MATIC)',
-                    'ARBONE' => 'ARBITRUM(ARB)',
+                    'ARBITRUM' => 'ARBITRUM(ARB)',
                     'SOL' => 'SOLANA(SOL)',
                     'OP' => 'OPTIMISM(OP)',
                     'OPTIMISM' => 'OPTIMISM(OP)',
@@ -511,7 +524,7 @@ class weex extends Exchange {
                     'BEP20(BSC)' => 'BEP20',
                     'ERC20' => 'ERC20',
                     'POLYGON(MATIC)' => 'MATIC',
-                    'ARBITRUM(ARB)' => 'ARBONE',
+                    'ARBITRUM(ARB)' => 'ARBITRUM',
                     'SOLANA(SOL)' => 'SOL',
                     'OPTIMISM(OP)' => 'OP',
                     'AVALANCHE_C(AVAX_C)' => 'AVAXC',
@@ -609,10 +622,10 @@ class weex extends Exchange {
                     ),
                 ),
                 'forDerivs' => array(
-                    'sandbox' => false,
+                    'sandbox' => true,
                     'createOrder' => array(
                         'marginMode' => true,
-                        'triggerPrice' => false,
+                        'triggerPrice' => true,
                         'triggerPriceType' => null,
                         'triggerDirection' => false,
                         'stopLossPrice' => true,
@@ -691,180 +704,186 @@ class weex extends Exchange {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
 
-    public function fetch_status($params = array()) {
-        return Async\async(function () use ($params) {
-            /**
-             * the latest known information on the availability of the exchange API
-             *
-             * @see https://www.weex.com/api-doc/spot/ConfigAPI/Ping
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=exchange-status-structure status structure~
-             */
-            $response = Async\await($this->publicGetApiV3Ping($params));
-            // reutns an empty $response if the exchange is alive, otherwise will trigger an error
-            return array(
-                'status' => 'ok',
-                'updated' => null,
-                'eta' => null,
-                'url' => null,
-                'info' => $response,
-            );
-        })();
+    public function fetch_status($params = array()): PromiseInterface {
+        return Async\async(self::do_fetch_status(...))($params);
+    }
+
+    private function do_fetch_status($params = array()) {
+        /**
+         * the latest known information on the availability of the exchange API
+         *
+         * @see https://www.weex.com/api-doc/spot/ConfigAPI/Ping
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=exchange-status-structure status structure~
+         */
+        $response = Async\await($this->publicGetApiV3Ping($params));
+        // returns an empty $response if the exchange is alive, otherwise will trigger an error
+        return array(
+            'status' => 'ok',
+            'updated' => null,
+            'eta' => null,
+            'url' => null,
+            'info' => $response,
+        );
     }
 
     public function fetch_time($params = array()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             * fetches the current integer timestamp in milliseconds from the exchange server
-             *
-             * @see https://www.weex.com/api-doc/spot/ConfigAPI/GetServerTime
-             * @see https://www.weex.com/api-doc/contract/Market_API/GetServerTime
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->type] 'spot' or 'swap', default is 'spot'
-             * @return {int} the current integer timestamp in milliseconds from the exchange server
-             */
-            $type = null;
-            list($type, $params) = $this->handle_market_type_and_params('fetchTime', null, $params);
-            $response = null;
-            if ($type !== 'spot') {
-                $response = Async\await($this->contractGetCapiV3MarketTime($params));
-            } else {
-                $response = Async\await($this->publicGetApiV3Time($params));
-            }
-            //
-            //     {
-            //         "serverTime" => 1764505776347
-            //     }
-            //
-            return $this->safe_integer($response, 'serverTime');
-        })();
+        return Async\async(self::do_fetch_time(...))($params);
+    }
+
+    private function do_fetch_time($params = array()) {
+        /**
+         * fetches the current integer timestamp in milliseconds from the exchange server
+         *
+         * @see https://www.weex.com/api-doc/spot/ConfigAPI/GetServerTime
+         * @see https://www.weex.com/api-doc/contract/Market_API/GetServerTime
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->type] 'spot' or 'swap', default is 'spot'
+         * @return {int} the current integer timestamp in milliseconds from the exchange server
+         */
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('fetchTime', null, $params);
+        $response = null;
+        if ($type !== 'spot') {
+            $response = Async\await($this->contractGetCapiV3MarketTime($params));
+        } else {
+            $response = Async\await($this->publicGetApiV3Time($params));
+        }
+        //
+        //     {
+        //         "serverTime" => 1764505776347
+        //     }
+        //
+        return $this->safe_integer($response, 'serverTime');
     }
 
     public function fetch_currencies($params = array()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             * fetches all available currencies on an exchange
-             *
-             * @see https://www.weex.com/api-doc/spot/ConfigAPI/CurrencyInfo
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an associative dictionary of currencies
-             */
-            $response = Async\await($this->publicGetApiV3Coins($params));
-            //
-            //     array(
-            //         {
-            //             "coin" => "BTC",
-            //             "depositAllEnable" => true,
-            //             "withdrawAllEnable" => true,
-            //             "name" => "BTC",
-            //             "networkList" => array(
-            //                 array(
-            //                     "network" => "BTC",
-            //                     "coin" => "BTC",
-            //                     "withdrawIntegerMultiple" => 1E-8,
-            //                     "isDefault" => true,
-            //                     "depositEnable" => true,
-            //                     "withdrawEnable" => true,
-            //                     "depositDesc" => null,
-            //                     "withdrawDesc" => null,
-            //                     "name" => "BTC",
-            //                     "withdrawFee" => "0.00016",
-            //                     "withdrawMin" => "0.002",
-            //                     "depositDust" => "0.00001",
-            //                     "minConfirm" => 3,
-            //                     "withdrawTag" => false,
-            //                     "contractAddressUrl" => "https://www.blockchain.com/explorer/mempool/",
-            //                     "contractAddress" => "btc"
-            //                 ),
-            //                 array(
-            //                     "network" => "BEP20(BSC)",
-            //                     "coin" => "BTC",
-            //                     "withdrawIntegerMultiple" => 1E-8,
-            //                     "isDefault" => false,
-            //                     "depositEnable" => true,
-            //                     "withdrawEnable" => false,
-            //                     "depositDesc" => null,
-            //                     "withdrawDesc" => null,
-            //                     "name" => "BEP20(BSC)",
-            //                     "withdrawFee" => "0.00001",
-            //                     "withdrawMin" => "0.00006",
-            //                     "depositDust" => "0.00003",
-            //                     "minConfirm" => 61,
-            //                     "withdrawTag" => false,
-            //                     "contractAddressUrl" => "",
-            //                     "contractAddress" => ""
-            //                 }
-            //             )
-            //         ),
-            //         {
-            //             "coin" => "USDT",
-            //             "depositAllEnable" => true,
-            //             "withdrawAllEnable" => true,
-            //             "name" => "USDT",
-            //             "networkList" => array(
-            //                 array(
-            //                     "network" => "TRC20",
-            //                     "coin" => "USDT",
-            //                     "withdrawIntegerMultiple" => 1E-8,
-            //                     "isDefault" => true,
-            //                     "depositEnable" => true,
-            //                     "withdrawEnable" => true,
-            //                     "depositDesc" => null,
-            //                     "withdrawDesc" => null,
-            //                     "name" => "TRC20",
-            //                     "withdrawFee" => "1.5",
-            //                     "withdrawMin" => "10",
-            //                     "depositDust" => "0.1",
-            //                     "minConfirm" => 20,
-            //                     "withdrawTag" => false,
-            //                     "contractAddressUrl" => "https://tronscan.org/#/token20/",
-            //                     "contractAddress" => "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
-            //                 ),
-            //                 array(
-            //                     "network" => "ERC20",
-            //                     "coin" => "USDT",
-            //                     "withdrawIntegerMultiple" => 1E-8,
-            //                     "isDefault" => false,
-            //                     "depositEnable" => true,
-            //                     "withdrawEnable" => true,
-            //                     "depositDesc" => null,
-            //                     "withdrawDesc" => null,
-            //                     "name" => "ERC20",
-            //                     "withdrawFee" => "1",
-            //                     "withdrawMin" => "20",
-            //                     "depositDust" => "0.1",
-            //                     "minConfirm" => 12,
-            //                     "withdrawTag" => false,
-            //                     "contractAddressUrl" => "https://etherscan.io/token/",
-            //                     "contractAddress" => "0xdac17f958d2ee523a2206206994597c13d831ec7"
-            //                 ),
-            //                 {
-            //                     "network" => "AVALANCHE_C(AVAX_C)",
-            //                     "coin" => "USDT",
-            //                     "withdrawIntegerMultiple" => 1E-8,
-            //                     "isDefault" => false,
-            //                     "depositEnable" => true,
-            //                     "withdrawEnable" => true,
-            //                     "depositDesc" => null,
-            //                     "withdrawDesc" => null,
-            //                     "name" => "AVALANCHE_C(AVAX_C)",
-            //                     "withdrawFee" => "0.5",
-            //                     "withdrawMin" => "10",
-            //                     "depositDust" => "0.1",
-            //                     "minConfirm" => 35,
-            //                     "withdrawTag" => false,
-            //                     "contractAddressUrl" => "https://avascan.info/blockchain/c/token/",
-            //                     "contractAddress" => "0x9702230A8Ea53601f5cD2dc00fDBc13d4dF4A8c7"
-            //                 }
-            //             )
-            //         }
-            //     )
-            //
-            return $this->parse_currencies($response);
-        })();
+        return Async\async(self::do_fetch_currencies(...))($params);
+    }
+
+    private function do_fetch_currencies($params = array()) {
+        /**
+         * fetches all available currencies on an exchange
+         *
+         * @see https://www.weex.com/api-doc/spot/ConfigAPI/CurrencyInfo
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an associative dictionary of currencies
+         */
+        $response = Async\await($this->publicGetApiV3Coins($params));
+        //
+        //     array(
+        //         {
+        //             "coin" => "BTC",
+        //             "depositAllEnable" => true,
+        //             "withdrawAllEnable" => true,
+        //             "name" => "BTC",
+        //             "networkList" => array(
+        //                 array(
+        //                     "network" => "BTC",
+        //                     "coin" => "BTC",
+        //                     "withdrawIntegerMultiple" => 1E-8,
+        //                     "isDefault" => true,
+        //                     "depositEnable" => true,
+        //                     "withdrawEnable" => true,
+        //                     "depositDesc" => null,
+        //                     "withdrawDesc" => null,
+        //                     "name" => "BTC",
+        //                     "withdrawFee" => "0.00016",
+        //                     "withdrawMin" => "0.002",
+        //                     "depositDust" => "0.00001",
+        //                     "minConfirm" => 3,
+        //                     "withdrawTag" => false,
+        //                     "contractAddressUrl" => "https://www.blockchain.com/explorer/mempool/",
+        //                     "contractAddress" => "btc"
+        //                 ),
+        //                 array(
+        //                     "network" => "BEP20(BSC)",
+        //                     "coin" => "BTC",
+        //                     "withdrawIntegerMultiple" => 1E-8,
+        //                     "isDefault" => false,
+        //                     "depositEnable" => true,
+        //                     "withdrawEnable" => false,
+        //                     "depositDesc" => null,
+        //                     "withdrawDesc" => null,
+        //                     "name" => "BEP20(BSC)",
+        //                     "withdrawFee" => "0.00001",
+        //                     "withdrawMin" => "0.00006",
+        //                     "depositDust" => "0.00003",
+        //                     "minConfirm" => 61,
+        //                     "withdrawTag" => false,
+        //                     "contractAddressUrl" => "",
+        //                     "contractAddress" => ""
+        //                 }
+        //             )
+        //         ),
+        //         {
+        //             "coin" => "USDT",
+        //             "depositAllEnable" => true,
+        //             "withdrawAllEnable" => true,
+        //             "name" => "USDT",
+        //             "networkList" => array(
+        //                 array(
+        //                     "network" => "TRC20",
+        //                     "coin" => "USDT",
+        //                     "withdrawIntegerMultiple" => 1E-8,
+        //                     "isDefault" => true,
+        //                     "depositEnable" => true,
+        //                     "withdrawEnable" => true,
+        //                     "depositDesc" => null,
+        //                     "withdrawDesc" => null,
+        //                     "name" => "TRC20",
+        //                     "withdrawFee" => "1.5",
+        //                     "withdrawMin" => "10",
+        //                     "depositDust" => "0.1",
+        //                     "minConfirm" => 20,
+        //                     "withdrawTag" => false,
+        //                     "contractAddressUrl" => "https://tronscan.org/#/token20/",
+        //                     "contractAddress" => "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
+        //                 ),
+        //                 array(
+        //                     "network" => "ERC20",
+        //                     "coin" => "USDT",
+        //                     "withdrawIntegerMultiple" => 1E-8,
+        //                     "isDefault" => false,
+        //                     "depositEnable" => true,
+        //                     "withdrawEnable" => true,
+        //                     "depositDesc" => null,
+        //                     "withdrawDesc" => null,
+        //                     "name" => "ERC20",
+        //                     "withdrawFee" => "1",
+        //                     "withdrawMin" => "20",
+        //                     "depositDust" => "0.1",
+        //                     "minConfirm" => 12,
+        //                     "withdrawTag" => false,
+        //                     "contractAddressUrl" => "https://etherscan.io/token/",
+        //                     "contractAddress" => "0xdac17f958d2ee523a2206206994597c13d831ec7"
+        //                 ),
+        //                 {
+        //                     "network" => "AVALANCHE_C(AVAX_C)",
+        //                     "coin" => "USDT",
+        //                     "withdrawIntegerMultiple" => 1E-8,
+        //                     "isDefault" => false,
+        //                     "depositEnable" => true,
+        //                     "withdrawEnable" => true,
+        //                     "depositDesc" => null,
+        //                     "withdrawDesc" => null,
+        //                     "name" => "AVALANCHE_C(AVAX_C)",
+        //                     "withdrawFee" => "0.5",
+        //                     "withdrawMin" => "10",
+        //                     "depositDust" => "0.1",
+        //                     "minConfirm" => 35,
+        //                     "withdrawTag" => false,
+        //                     "contractAddressUrl" => "https://avascan.info/blockchain/c/token/",
+        //                     "contractAddress" => "0x9702230A8Ea53601f5cD2dc00fDBc13d4dF4A8c7"
+        //                 }
+        //             )
+        //         }
+        //     )
+        //
+        return $this->parse_currencies($response);
     }
 
     public function parse_currency(array $rawCurrency): array {
@@ -877,27 +896,29 @@ class weex extends Exchange {
             $chain = $this->safe_dict($chains, $j);
             $networkId = $this->safe_string($chain, 'network');
             $networkCode = $this->network_id_to_code($networkId, $code);
-            $networks[$networkCode] = array(
-                'info' => $chain,
-                'id' => $networkId,
-                'network' => $networkCode,
-                'active' => null,
-                'deposit' => $this->safe_bool($chain, 'depositEnable'),
-                'withdraw' => $this->safe_bool($chain, 'withdrawEnable'),
-                'fee' => $this->safe_number($chain, 'withdrawFee'),
-                'precision' => $this->safe_number($chain, 'withdrawIntegerMultiple'),
-                'isDefault' => $this->safe_bool($chain, 'isDefault', false),
-                'limits' => array(
-                    'withdraw' => array(
-                        'min' => $this->safe_number($chain, 'withdrawMin'),
-                        'max' => null,
+            if ($networkCode !== null) {
+                $networks[$networkCode] = array(
+                    'info' => $chain,
+                    'id' => $networkId,
+                    'network' => $networkCode,
+                    'active' => null,
+                    'deposit' => $this->safe_bool($chain, 'depositEnable'),
+                    'withdraw' => $this->safe_bool($chain, 'withdrawEnable'),
+                    'fee' => $this->safe_number($chain, 'withdrawFee'),
+                    'precision' => $this->safe_number($chain, 'withdrawIntegerMultiple'),
+                    'isDefault' => $this->safe_bool($chain, 'isDefault', false),
+                    'limits' => array(
+                        'withdraw' => array(
+                            'min' => $this->safe_number($chain, 'withdrawMin'),
+                            'max' => null,
+                        ),
+                        'deposit' => array(
+                            'min' => $this->safe_number($chain, 'depositDust'),
+                            'max' => null,
+                        ),
                     ),
-                    'deposit' => array(
-                        'min' => $this->safe_number($chain, 'depositDust'),
-                        'max' => null,
-                    ),
-                ),
-            );
+                );
+            }
         }
         $networkKeys = is_array($networks) ? array_keys($networks) : array();
         $networksLength = count($networkKeys);
@@ -933,29 +954,31 @@ class weex extends Exchange {
     }
 
     public function fetch_markets($params = array()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             * retrieves data on all markets for exchagne
-             *
-             * @see https://www.weex.com/api-doc/spot/ConfigAPI/GetProductInfo // spot
-             * @see https://www.weex.com/api-doc/contract/Market_API/GetContractInfo // contract
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} an array of objects representing market data
-             */
-            if ($this->options['adjustForTimeDifference']) {
-                Async\await($this->load_time_difference());
-            }
-            $promises = array(
-                $this->publicGetApiV3ExchangeInfo($params),
-                $this->contractGetCapiV3MarketExchangeInfo($params),
-            );
-            list($spotResponse, $contractResponse) = Async\await(Promise\all($promises));
-            $spotArray = $this->safe_list($spotResponse, 'symbols', array());
-            $contractArray = $this->safe_list($contractResponse, 'symbols', array());
-            $result = $this->array_concat($spotArray, $contractArray);
-            return $this->parse_markets($result);
-        })();
+        return Async\async(self::do_fetch_markets(...))($params);
+    }
+
+    private function do_fetch_markets($params = array()) {
+        /**
+         * retrieves data on all markets for exchagne
+         *
+         * @see https://www.weex.com/api-doc/spot/ConfigAPI/GetProductInfo // spot
+         * @see https://www.weex.com/api-doc/contract/Market_API/GetContractInfo // contract
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} an array of objects representing market data
+         */
+        if ($this->options['adjustForTimeDifference'] === true) {
+            Async\await($this->load_time_difference());
+        }
+        $promises = array(
+            $this->publicGetApiV3ExchangeInfo($params),
+            $this->contractGetCapiV3MarketExchangeInfo($params),
+        );
+        list($spotResponse, $contractResponse) = Async\await(Promise\all($promises));
+        $spotArray = $this->safe_list($spotResponse, 'symbols', array());
+        $contractArray = $this->safe_list($contractResponse, 'symbols', array());
+        $result = $this->array_concat($spotArray, $contractArray);
+        return $this->parse_markets($result);
     }
 
     public function parse_market(array $market): array {
@@ -1038,7 +1061,7 @@ class weex extends Exchange {
                 $isInverse = true;
             }
         } else {
-            $active = $this->safe_bool($market, 'enableTrade');
+            $active = $this->safe_bool($market, 'enableTrade', false);
         }
         $amountPrecision = $this->safe_number($market, 'stepSize');
         $pricePrecision = $this->safe_number($market, 'tickSize');
@@ -1049,6 +1072,9 @@ class weex extends Exchange {
             $pricePrecision = $this->parse_number($pricePrecisionString);
         }
         $fees = $this->safe_dict($this->fees, $isSpot ? 'spot' : 'contract', array());
+        if ($id === null) {
+            throw new ExchangeError($this->id . ' method() missing id');
+        }
         return $this->safe_market_structure(array(
             'id' => $id,
             'lowercaseId' => strtolower($id),
@@ -1109,115 +1135,130 @@ class weex extends Exchange {
     }
 
     public function fetch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
-             *
-             * @see https://www.weex.com/api-doc/spot/MarketDataAPI/GetAllTickerInfo // spot
-             * @see https://www.weex.com/api-doc/contract/Market_API/GetTicker24h // contract
-             *
-             * @param {string} $symbols unified symbol of the $market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->type] 'spot' or 'swap', default is 'spot' (used if $symbols are not provided)
-             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $symbols = $this->market_symbols($symbols, null, true, true);
-            $market = $this->get_market_from_symbols($symbols);
-            $marketType = null;
-            list($marketType, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
-            $symbolsLength = 0;
-            if ($symbols !== null) {
-                $symbolsLength = count($symbols);
-            }
-            $request = array();
-            if ($symbolsLength === 1) {
-                $request['symbol'] = $this->safe_string($market, 'id');
-            }
-            $response = null;
-            if ($marketType === 'spot') {
-                //
-                //     array(
-                //         {
-                //             "symbol" => "ETHUSDT",
-                //             "priceChange" => "-72.98",
-                //             "priceChangePercent" => "-0.033811",
-                //             "lastPrice" => "2085.46",
-                //             "bidPrice" => "2085.44",
-                //             "bidQty" => "1.53848",
-                //             "askPrice" => "2085.47",
-                //             "askQty" => "1.87504",
-                //             "openPrice" => "2158.44",
-                //             "highPrice" => "2168.40",
-                //             "lowPrice" => "2061.12",
-                //             "volume" => "157359.56105",
-                //             "quoteVolume" => "331284305.7193626",
-                //             "openTime" => 1775493000000,
-                //             "closeTime" => 1775579400000,
-                //             "count" => 59727
-                //         }
-                //     )
-                //
-                $response = Async\await($this->publicGetApiV3MarketTicker24hr($this->extend($request, $params)));
-            } else {
-                //
-                //     array(
-                //         {
-                //             "symbol" => "ETHUSDT",
-                //             "priceChange" => "-75.49",
-                //             "priceChangePercent" => "-0.034992",
-                //             "lastPrice" => "2081.80",
-                //             "openPrice" => "2157.29",
-                //             "highPrice" => "2167.51",
-                //             "lowPrice" => "2059.17",
-                //             "volume" => "623160.426",
-                //             "quoteVolume" => "1310647345.19346",
-                //             "openTime" => 1775493000000,
-                //             "closeTime" => 1775579400000,
-                //             "markPrice" => "2081.8",
-                //             "indexPrice" => "2082.75"
-                //         }
-                //     )
-                //
-                $response = Async\await($this->contractGetCapiV3MarketTicker24hr($this->extend($request, $params)));
-            }
-            if ((gettype($response) !== 'array' || array_keys($response) !== array_keys(array_keys($response)))) {
-                $response = array( $response );
-            }
-            return $this->parse_tickers($response, $symbols);
-        })();
+        return Async\async(self::do_fetch_tickers(...))($symbols, $params);
     }
 
-    public function fetch_bids_asks(?array $symbols = null, $params = array()) {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             * fetches the bid and ask price and volume for multiple markets
-             *
-             * @see https://www.weex.com/api-doc/spot/MarketDataAPI/GetBookTicker // spot
-             * @see https://www.weex.com/api-doc/contract/Market_API/GetBookTicker // contract
-             *
-             * @param {string[]|null} $symbols unified $symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->type] 'spot' or 'swap', default is 'spot' (used if $symbols are not provided)
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
-             */
-            $symbols = $this->market_symbols($symbols, null, true, true);
-            $market = $this->get_market_from_symbols($symbols);
-            $marketType = null;
-            list($marketType, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
-            $response = null;
-            if ($marketType === 'spot') {
-                $response = Async\await($this->publicGetApiV3MarketTickerBookTicker($params));
-            } else {
-                $response = Async\await($this->contractGetCapiV3MarketTickerBookTicker($params));
-            }
-            if ((gettype($response) !== 'array' || array_keys($response) !== array_keys(array_keys($response)))) {
-                $response = array( $response );
-            }
-            return $this->parse_tickers($response, $symbols);
-        })();
+    private function do_fetch_tickers(?array $symbols = null, $params = array()) {
+        /**
+         * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         *
+         * @see https://www.weex.com/api-doc/spot/MarketDataAPI/GetAllTickerInfo // spot
+         * @see https://www.weex.com/api-doc/contract/Market_API/GetTicker24h // contract
+         *
+         * @param {string} $symbols unified symbol of the $market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->type] 'spot' or 'swap', default is 'spot' (used if $symbols are not provided)
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbols = $this->market_symbols($symbols, null, true, true);
+        $market = $this->get_market_from_symbols($symbols);
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
+        $symbolsLength = 0;
+        if ($symbols !== null) {
+            $symbolsLength = count($symbols);
+        }
+        $request = array();
+        if ($symbolsLength === 1) {
+            $request['symbol'] = $this->safe_string($market, 'id');
+        }
+        $response = null;
+        if ($marketType === 'spot') {
+            //
+            //     array(
+            //         {
+            //             "symbol" => "ETHUSDT",
+            //             "priceChange" => "-72.98",
+            //             "priceChangePercent" => "-0.033811",
+            //             "lastPrice" => "2085.46",
+            //             "bidPrice" => "2085.44",
+            //             "bidQty" => "1.53848",
+            //             "askPrice" => "2085.47",
+            //             "askQty" => "1.87504",
+            //             "openPrice" => "2158.44",
+            //             "highPrice" => "2168.40",
+            //             "lowPrice" => "2061.12",
+            //             "volume" => "157359.56105",
+            //             "quoteVolume" => "331284305.7193626",
+            //             "openTime" => 1775493000000,
+            //             "closeTime" => 1775579400000,
+            //             "count" => 59727
+            //         }
+            //     )
+            //
+            $response = Async\await($this->publicGetApiV3MarketTicker24hr($this->extend($request, $params)));
+        } else {
+            //
+            //     array(
+            //         {
+            //             "symbol" => "ETHUSDT",
+            //             "priceChange" => "-75.49",
+            //             "priceChangePercent" => "-0.034992",
+            //             "lastPrice" => "2081.80",
+            //             "openPrice" => "2157.29",
+            //             "highPrice" => "2167.51",
+            //             "lowPrice" => "2059.17",
+            //             "volume" => "623160.426",
+            //             "quoteVolume" => "1310647345.19346",
+            //             "openTime" => 1775493000000,
+            //             "closeTime" => 1775579400000,
+            //             "markPrice" => "2081.8",
+            //             "indexPrice" => "2082.75"
+            //         }
+            //     )
+            //
+            $response = Async\await($this->contractGetCapiV3MarketTicker24hr($this->extend($request, $params)));
+        }
+        if ((gettype($response) !== 'array' || array_keys($response) !== array_keys(array_keys($response)))) {
+            $response = array( $response );
+        }
+        return $this->parse_tickers($response, $symbols);
+    }
+
+    public function fetch_bids_asks(?array $symbols = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_fetch_bids_asks(...))($symbols, $params);
+    }
+
+    private function do_fetch_bids_asks(?array $symbols = null, $params = array()) {
+        /**
+         * fetches the bid and ask price and volume for multiple markets
+         *
+         * @see https://www.weex.com/api-doc/spot/MarketDataAPI/GetBookTicker // spot
+         * @see https://www.weex.com/api-doc/contract/Market_API/GetBookTicker // contract
+         *
+         * @param {string[]|null} $symbols unified $symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->type] 'spot' or 'swap', default is 'spot' (used if $symbols are not provided)
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbols = $this->market_symbols($symbols, null, true, true);
+        $market = $this->get_market_from_symbols($symbols);
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchBidsAsks', $market, $params);
+        $response = null;
+        if ($marketType === 'spot') {
+            $response = Async\await($this->publicGetApiV3MarketTickerBookTicker($params));
+        } else {
+            $response = Async\await($this->contractGetCapiV3MarketTickerBookTicker($params));
+        }
+        if ((gettype($response) !== 'array' || array_keys($response) !== array_keys(array_keys($response)))) {
+            $response = array( $response );
+        }
+        $results = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $rawTicker = $response[$i];
+            // book tickers have no markPrice, so resolve the $market from the endpoint type to disambiguate the spot/swap $market id in parseTicker
+            $marketId = $this->safe_string($rawTicker, 'symbol');
+            $tickerMarket = $this->safe_market($marketId, null, null, $marketType);
+            $results[] = $this->parse_ticker($rawTicker, $tickerMarket);
+        }
+        return $this->filter_by_array_tickers($results, 'symbol', $symbols);
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
@@ -1259,10 +1300,32 @@ class weex extends Exchange {
         //         "indexPrice" => "2082.75"
         //     }
         //
+        // fetchMarkPrice ($markPrice or indexPrice is copied from the raw 'price' field by fetchMarkPrice before parsing, depending on the requested priceType)
+        //     {
+        //         "symbol" => "ETHUSDT",
+        //         "price" => "1929.18",
+        //         "markPrice" => "1929.18",
+        //         "time" => 1786347445044
+        //     }
+        //
+        // fetchMarkPrices
+        //     {
+        //         "symbol" => "ETHUSDT",
+        //         "markPrice" => "1929.88",
+        //         "indexPrice" => "1930.15",
+        //         "forecastFundingRate" => "0.00003489",
+        //         "lastFundingRate" => "0.00004879",
+        //         "interestRate" => "0.001",
+        //         "nextFundingTime" => 1786348800000,
+        //         "time" => 1786347284100,
+        //         "collectCycle" => 480
+        //     }
+        //
         $marketId = $this->safe_string($ticker, 'symbol');
         $markPrice = $this->safe_string($ticker, 'markPrice');
         $marketType = 'spot';
-        if ($markPrice !== null) {
+        if (($markPrice !== null) || (($market !== null) && ($market['contract'] === true))) {
+            // 24hr swap tickers carry $markPrice, but book tickers do not, so also honor the $market resolved by the caller
             $marketType = 'swap';
         }
         $market = $this->safe_market($marketId, $market, null, $marketType);
@@ -1294,204 +1357,353 @@ class weex extends Exchange {
         ), $market);
     }
 
+    public function fetch_last_prices(?array $symbols = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_fetch_last_prices(...))($symbols, $params);
+    }
+
+    private function do_fetch_last_prices(?array $symbols = null, $params = array()) {
+        /**
+         * fetches the last price for multiple markets
+         *
+         * @see https://www.weex.com/api-doc/spot/MarketDataAPI/GetTickerInfo
+         *
+         * @param {string[]} [$symbols] unified $symbols of the markets to fetch the last prices for, all spot markets are returned if not assigned
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a dictionary of lastprice structures
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbols = $this->market_symbols($symbols, null, true, true);
+        $market = $this->get_market_from_symbols($symbols);
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('fetchLastPrices', $market, $params);
+        if ($type !== 'spot') {
+            throw new NotSupported($this->id . ' fetchLastPrices() supports spot markets only, use fetchMarkPrices() or fetchTickers() for contract markets');
+        }
+        $response = Async\await($this->publicGetApiV3MarketTickerPrice($params));
+        //
+        //     array(
+        //         {
+        //             "symbol" => "ETHUSDT",
+        //             "price" => "1929.67"
+        //         }
+        //     )
+        //
+        return $this->parse_last_prices($response, $symbols);
+    }
+
+    public function parse_last_price(mixed $entry, ?array $market = null): array {
+        //
+        //     {
+        //         "symbol" => "ETHUSDT",
+        //         "price" => "1929.67"
+        //     }
+        //
+        $marketId = $this->safe_string($entry, 'symbol');
+        $market = $this->safe_market($marketId, $market, null, 'spot');
+        return array(
+            'symbol' => $market['symbol'],
+            'timestamp' => null,
+            'datetime' => null,
+            'price' => $this->safe_number_omit_zero($entry, 'price'),
+            'side' => null,
+            'info' => $entry,
+        );
+    }
+
+    public function fetch_mark_price(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(self::do_fetch_mark_price(...))($symbol, $params);
+    }
+
+    private function do_fetch_mark_price(string $symbol, $params = array()) {
+        /**
+         * fetches mark price for the $market
+         *
+         * @see https://www.weex.com/api-doc/contract/Market_API/GetSymbolPrice
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch the mark price for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->priceType] "MARK" (default) or "INDEX", with "INDEX" the price is returned indexPrice of the $ticker
+         * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        if ($market['contract'] !== true) {
+            throw new NotSupported($this->id . ' fetchMarkPrice() supports contract markets only');
+        }
+        $priceType = null;
+        list($priceType, $params) = $this->handle_option_and_params($params, 'fetchMarkPrice', 'priceType', 'MARK'); // the endpoint defaults to INDEX
+        $request = array(
+            'symbol' => $market['id'],
+            'priceType' => $priceType,
+        );
+        $response = Async\await($this->contractGetCapiV3MarketSymbolPrice($this->extend($request, $params)));
+        //
+        //     {
+        //         "symbol" => "ETHUSDT",
+        //         "price" => "1929.18",
+        //         "time" => 1786347445044
+        //     }
+        //
+        // normalize here instead of falling back to 'price' in parseTicker, so a bare 'price' field in other payloads can never silently become the mark price
+        $ticker = $this->extend(array(), $response);
+        if ($priceType === 'INDEX') {
+            $ticker['indexPrice'] = $this->safe_string($ticker, 'price');
+        } else {
+            $ticker['markPrice'] = $this->safe_string($ticker, 'price');
+        }
+        return $this->parse_ticker($ticker, $market);
+    }
+
+    public function fetch_mark_prices(?array $symbols = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_fetch_mark_prices(...))($symbols, $params);
+    }
+
+    private function do_fetch_mark_prices(?array $symbols = null, $params = array()) {
+        /**
+         * fetches mark prices for multiple markets
+         *
+         * @see https://www.weex.com/api-doc/contract/Market_API/GetCurrentFundingRate
+         *
+         * @param {string[]} [$symbols] unified $symbols of the markets to fetch the mark prices for, all contract markets are returned if not assigned
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbols = $this->market_symbols($symbols, 'swap'); // reject non-contract $symbols instead of silently filtering the result to an empty dict
+        $response = Async\await($this->contractGetCapiV3MarketPremiumIndex($params));
+        //
+        //     array(
+        //         {
+        //             "symbol" => "ETHUSDT",
+        //             "markPrice" => "1929.88",
+        //             "indexPrice" => "1930.15",
+        //             "forecastFundingRate" => "0.00003489",
+        //             "lastFundingRate" => "0.00004879",
+        //             "interestRate" => "0.001",
+        //             "nextFundingTime" => 1786348800000,
+        //             "time" => 1786347284100,
+        //             "collectCycle" => 480
+        //         }
+        //     )
+        //
+        return $this->parse_tickers($response, $symbols);
+    }
+
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $limit, $params) {
-            /**
-             * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-             *
-             * @see https://www.weex.com/api-doc/spot/MarketDataAPI/GetDepthData // spot
-             * @see https://www.weex.com/api-doc/contract/Market_API/GetDepthData // contract
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-             * @param {int} [$limit] the maximum amount of order book entries to return (default 15, max 200)
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $request = array(
-                'symbol' => $market['id'],
-            );
-            if (($limit !== null) && ($limit > 15)) {
-                $request['limit'] = 200; // default is 15, max is 200
-            }
-            $response = null;
-            if ($market['spot']) {
-                $response = Async\await($this->publicGetApiV3MarketDepth($this->extend($request, $params)));
-            } else {
-                $response = Async\await($this->contractGetCapiV3MarketDepth($this->extend($request, $params)));
-            }
-            //
-            //     {
-            //         "asks" => array(
-            //             array(
-            //                 "2096.77",
-            //                 "45.592"
-            //             )
-            //         ),
-            //         "bids" => array(
-            //             array(
-            //                 "2096.76",
-            //                 "49.162"
-            //             )
-            //         ),
-            //         "lastUpdateId" => 14138610208
-            //     }
-            //
-            $orderbook = $this->parse_order_book($response, $symbol);
-            $orderbook['nonce'] = $this->safe_integer($response, 'lastUpdateId');
-            return $orderbook;
-        })();
+        return Async\async(self::do_fetch_order_book(...))($symbol, $limit, $params);
+    }
+
+    private function do_fetch_order_book(string $symbol, ?int $limit = null, $params = array()) {
+        /**
+         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         *
+         * @see https://www.weex.com/api-doc/spot/MarketDataAPI/GetDepthData // spot
+         * @see https://www.weex.com/api-doc/contract/Market_API/GetDepthData // contract
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+         * @param {int} [$limit] the maximum amount of order book entries to return (default 15, max 200)
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        if (($limit !== null) && ($limit > 15)) {
+            $request['limit'] = 200; // default is 15, max is 200
+        }
+        $response = null;
+        if ($market['spot'] === true) {
+            $response = Async\await($this->publicGetApiV3MarketDepth($this->extend($request, $params)));
+        } else {
+            $response = Async\await($this->contractGetCapiV3MarketDepth($this->extend($request, $params)));
+        }
+        //
+        //     {
+        //         "asks" => array(
+        //             array(
+        //                 "2096.77",
+        //                 "45.592"
+        //             )
+        //         ),
+        //         "bids" => array(
+        //             array(
+        //                 "2096.76",
+        //                 "49.162"
+        //             )
+        //         ),
+        //         "lastUpdateId" => 14138610208
+        //     }
+        //
+        $orderbook = $this->parse_order_book($response, $symbol);
+        $orderbook['nonce'] = $this->safe_integer($response, 'lastUpdateId');
+        return $orderbook;
     }
 
     public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
-            /**
-             * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
-             *
-             * @see https://www.weex.com/api-doc/spot/MarketDataAPI/GetKLineData // spot
-             * @see https://www.weex.com/api-doc/contract/Market_API/GetKlines // contract last price
-             * @see https://www.weex.com/api-doc/contract/Market_API/GetIndexPriceKlines // contract index price
-             * @see https://www.weex.com/api-doc/contract/Market_API/GetMarkPriceKlines // contract mark price
-             * @see https://www.weex.com/api-doc/contract/Market_API/GetHistoryKlines // contract historical klines
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
-             * @param {string} $timeframe the length of time each candle represents
-             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
-             * @param {int} [$limit] the maximum amount of candles to fetch (default 100, max 300)
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * Check fetchSpotOHLCV() and fetchContractOHLCV() for more details on the extra parameters that can be used in $params
-             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            if ($market['spot']) {
-                return Async\await($this->fetch_spot_ohlcv($symbol, $timeframe, $since, $limit, $params));
-            } else {
-                return Async\await($this->fetch_contract_ohlcv($symbol, $timeframe, $since, $limit, $params));
-            }
-        })();
+        return Async\async(self::do_fetch_ohlcv(...))($symbol, $timeframe, $since, $limit, $params);
+    }
+
+    private function do_fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+         *
+         * @see https://www.weex.com/api-doc/spot/MarketDataAPI/GetKLineData // spot
+         * @see https://www.weex.com/api-doc/contract/Market_API/GetKlines // contract last price
+         * @see https://www.weex.com/api-doc/contract/Market_API/GetIndexPriceKlines // contract index price
+         * @see https://www.weex.com/api-doc/contract/Market_API/GetMarkPriceKlines // contract mark price
+         * @see https://www.weex.com/api-doc/contract/Market_API/GetHistoryKlines // contract historical klines
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
+         * @param {string} $timeframe the length of time each candle represents
+         * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [$limit] the maximum amount of candles to fetch (default 100, max 300)
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * Check fetchSpotOHLCV() and fetchContractOHLCV() for more details on the extra parameters that can be used in $params
+         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        if ($market['spot'] === true) {
+            return Async\await($this->fetch_spot_ohlcv($symbol, $timeframe, $since, $limit, $params));
+        } else {
+            return Async\await($this->fetch_contract_ohlcv($symbol, $timeframe, $since, $limit, $params));
+        }
     }
 
     public function fetch_spot_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
-            /**
-             * @ignore
-             * helper method for fetchOHLCV
-             *
-             * @see https://www.weex.com/api-doc/spot/MarketDataAPI/GetKLineData
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
-             * @param {string} $timeframe the length of time each candle represents
-             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
-             * @param {int} [$limit] the maximum amount of candles to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $request = array(
-                'symbol' => $market['id'],
-                'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
-            );
-            $response = Async\await($this->publicGetApiV3MarketKlines($this->extend($request, $params)));
-            return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_spot_ohlcv(...))($symbol, $timeframe, $since, $limit, $params);
+    }
+
+    private function do_fetch_spot_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * @ignore
+         * helper method for fetchOHLCV
+         *
+         * @see https://www.weex.com/api-doc/spot/MarketDataAPI/GetKLineData
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
+         * @param {string} $timeframe the length of time each candle represents
+         * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [$limit] the maximum amount of candles to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+            'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
+        );
+        $response = Async\await($this->publicGetApiV3MarketKlines($this->extend($request, $params)));
+        return $this->parse_ohlcvs($this->to_array($response), $market, $timeframe, $since, $limit);
     }
 
     public function fetch_contract_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
-            /**
-             * @ignore
-             * helper method for fetchOHLCV
-             *
-             * @see https://www.weex.com/api-doc/contract/Market_API/GetKlines // contract last price
-             * @see https://www.weex.com/api-doc/contract/Market_API/GetIndexPriceKlines // contract index price
-             * @see https://www.weex.com/api-doc/contract/Market_API/GetMarkPriceKlines // contract mark price
-             * @see https://www.weex.com/api-doc/contract/Market_API/GetHistoryKlines // contract $historical klines
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
-             * @param {string} $timeframe the length of time each candle represents
-             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
-             * @param {int} [$limit] the maximum amount of candles to fetch (default 100, max 100 for $historical klines, max 1000 for other contract klines)
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
-             * @param {boolean} [$params->paginate] whether to automatically $paginate requests $until the required number of candles is returned
-             * @param {boolean} [$params->historical] whether to fetch $historical klines (default is false). If false, will fetch last price klines
-             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $maxHistoricalLimit = 100;
-            $paginate = false;
-            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate');
-            if ($paginate) {
-                $params = $this->extend($params, array( 'historical' => true ));
-                return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, $maxHistoricalLimit));
-            }
-            $until = $this->safe_integer($params, 'until');
-            $historical = false;
-            list($historical, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'historical');
-            $timeframeOption = $this->safe_dict($this->options, 'timeframes', array());
-            $contractTimeframes = $this->safe_dict($timeframeOption, 'contract', array());
-            $market = $this->market($symbol);
-            $request = array(
-                'symbol' => $market['id'],
-                'interval' => $this->safe_string($contractTimeframes, $timeframe, $timeframe),
-            );
-            $priceType = $this->safe_string_upper($params, 'price');
-            $params = $this->omit($params, array( 'historical', 'until', 'price' ));
-            $response = null;
-            if ($limit !== null) {
-                $limit = min($limit, 1000); // hardcap threshold
-            }
-            if ($historical) {
-                if ($priceType !== null) {
-                    $request['priceType'] = $priceType;
-                }
-                $startTime = $since;
-                $endTime = $until;
-                if (($since === null) || ($until === null)) {
-                    $now = $this->milliseconds();
-                    $duration = $this->parse_timeframe($timeframe) * 1000;
-                    $numberOfCandles = $limit ? $limit : $maxHistoricalLimit;
-                    $timeDelta = $numberOfCandles * $duration;
-                    if (($since === null) && ($until === null)) {
-                        $endTime = $now;
-                        $startTime = $now - $timeDelta;
-                    } elseif ($since === null) {
-                        $startTime = $until - $timeDelta;
-                    } else {
-                        $endTime = $since . $timeDelta;
-                    }
-                }
-                $request['startTime'] = $startTime;
-                $request['endTime'] = $endTime;
-                $response = Async\await($this->contractGetCapiV3MarketHistoryKlines($this->extend($request, $params)));
-            } else {
-                if ($limit !== null) {
-                    $request['limit'] = $limit;
-                }
-                if ($priceType === 'MARK') {
-                    $response = Async\await($this->contractGetCapiV3MarketMarkPriceKlines($this->extend($request, $params)));
-                } elseif ($priceType === 'INDEX') {
-                    $response = Async\await($this->contractGetCapiV3MarketIndexPriceKlines($this->extend($request, $params)));
-                } else {
-                    $response = Async\await($this->contractGetCapiV3MarketKlines($this->extend($request, $params)));
-                }
-            }
-            return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_contract_ohlcv(...))($symbol, $timeframe, $since, $limit, $params);
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    private function do_fetch_contract_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * @ignore
+         * helper method for fetchOHLCV
+         *
+         * @see https://www.weex.com/api-doc/contract/Market_API/GetKlines // contract last price
+         * @see https://www.weex.com/api-doc/contract/Market_API/GetIndexPriceKlines // contract index price
+         * @see https://www.weex.com/api-doc/contract/Market_API/GetMarkPriceKlines // contract mark price
+         * @see https://www.weex.com/api-doc/contract/Market_API/GetHistoryKlines // contract $historical klines
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
+         * @param {string} $timeframe the length of time each candle represents
+         * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [$limit] the maximum amount of candles to fetch (default 100, max 100 for $historical klines, max 1000 for other contract klines)
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
+         * @param {boolean} [$params->paginate] whether to automatically $paginate requests $until the required number of candles is returned
+         * @param {boolean} [$params->historical] whether to fetch $historical klines (default is false). If false, will fetch last price klines
+         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $maxHistoricalLimit = 100;
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate');
+        if ($paginate) {
+            $params = $this->extend($params, array( 'historical' => true ));
+            return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, $maxHistoricalLimit));
+        }
+        $until = $this->safe_integer($params, 'until');
+        $historical = false;
+        list($historical, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'historical');
+        $timeframeOption = $this->safe_dict($this->options, 'timeframes', array());
+        $contractTimeframes = $this->safe_dict($timeframeOption, 'contract', array());
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+            'interval' => $this->safe_string($contractTimeframes, $timeframe, $timeframe),
+        );
+        $priceType = $this->safe_string_upper($params, 'price');
+        $params = $this->omit($params, array( 'historical', 'until', 'price' ));
+        $response = null;
+        if ($limit !== null) {
+            $limit = min($limit, 1000); // hardcap threshold
+        }
+        if ($historical) {
+            if ($priceType !== null) {
+                $request['priceType'] = $priceType;
+            }
+            $startTime = $since;
+            $endTime = $until;
+            if (($since === null) || ($until === null)) {
+                $now = $this->milliseconds();
+                $duration = $this->parse_timeframe($timeframe) * 1000;
+                $numberOfCandles = ($limit !== null && $limit !== null && $limit !== 0) ? $limit : $maxHistoricalLimit;
+                $timeDelta = $numberOfCandles * $duration;
+                if (($since === null) && ($until === null)) {
+                    $endTime = $now;
+                    $startTime = $now - $timeDelta;
+                } elseif ($since === null) {
+                    if ($until === null) {
+                        throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a $since or $until argument');
+                    }
+                    $startTime = $until - $timeDelta;
+                } else {
+                    $endTime = $since . $timeDelta;
+                }
+            }
+            $request['startTime'] = $startTime;
+            $request['endTime'] = $endTime;
+            $response = Async\await($this->contractGetCapiV3MarketHistoryKlines($this->extend($request, $params)));
+        } else {
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            if ($priceType === 'MARK') {
+                $response = Async\await($this->contractGetCapiV3MarketMarkPriceKlines($this->extend($request, $params)));
+            } elseif ($priceType === 'INDEX') {
+                $response = Async\await($this->contractGetCapiV3MarketIndexPriceKlines($this->extend($request, $params)));
+            } else {
+                $response = Async\await($this->contractGetCapiV3MarketKlines($this->extend($request, $params)));
+            }
+        }
+        return $this->parse_ohlcvs($this->to_array($response), $market, $timeframe, $since, $limit);
+    }
+
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         return array(
             $this->safe_integer($ohlcv, 0),
             $this->safe_number($ohlcv, 1),
@@ -1503,50 +1715,56 @@ class weex extends Exchange {
     }
 
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * get the list of most recent trades for a particular $symbol
-             *
-             * @see https://www.weex.com/api-doc/spot/MarketDataAPI/GetTradeData // spot
-             * @see https://www.weex.com/api-doc/contract/Market_API/GetRecentTrades // contract
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch trades for
-             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
-             * @param {int} [$limit] the maximum amount of trades to fetch (default 100, max 1000)
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $request = array(
-                'symbol' => $market['id'],
-            );
-            if ($limit !== null) {
-                $request['limit'] = min($limit, 1000);
-            }
-            $response = null;
-            if ($market['spot']) {
-                $response = Async\await($this->publicGetApiV3MarketTrades($this->extend($request, $params)));
-            } else {
-                $response = Async\await($this->contractGetCapiV3MarketTrades($this->extend($request, $params)));
-            }
-            //
-            //     array(
-            //         {
-            //             "id" => "875fba11-f8a1-42ad-915d-012ccb375e8a",
-            //             "price" => "2114.77",
-            //             "qty" => "0.01000",
-            //             "quoteQty" => "21.1477000",
-            //             "time" => 1775594995485,
-            //             "isBuyerMaker" => false,
-            //             "isBestMatch" => true
-            //         }
-            //     )
-            //
-            return $this->parse_trades($response, $market, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_trades(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * get the list of most recent trades for a particular $symbol
+         *
+         * @see https://www.weex.com/api-doc/spot/MarketDataAPI/GetTradeData // spot
+         * @see https://www.weex.com/api-doc/contract/Market_API/GetRecentTrades // contract
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch trades for
+         * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [$limit] the maximum amount of trades to fetch (default 100, max 1000)
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        if ($limit !== null) {
+            $request['limit'] = min($limit, 1000);
+        }
+        $response = null;
+        if ($market['spot'] === true) {
+            $response = Async\await($this->publicGetApiV3MarketTrades($this->extend($request, $params)));
+        } else {
+            $response = Async\await($this->contractGetCapiV3MarketTrades($this->extend($request, $params)));
+        }
+        //
+        //     array(
+        //         {
+        //             "id" => "875fba11-f8a1-42ad-915d-012ccb375e8a",
+        //             "price" => "2114.77",
+        //             "qty" => "0.01000",
+        //             "quoteQty" => "21.1477000",
+        //             "time" => 1775594995485,
+        //             "isBuyerMaker" => false,
+        //             "isBestMatch" => true
+        //         }
+        //     )
+        //
+        $responseList = array();
+        if ($response !== null) {
+            $responseList = $this->to_array($response);
+        }
+        return $this->parse_trades($responseList, $market, $since, $limit);
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
@@ -1617,7 +1835,7 @@ class weex extends Exchange {
         if ($commission !== null) {
             $commissionAsset = $this->safe_string($trade, 'commissionAsset');
             $feeCurrency = $this->safe_currency_code($commissionAsset);
-            if ($isSpot) {
+            if ($isSpot === true) {
                 if ($side === 'buy') {
                     $feeCurrency = $market['base'];
                 } else {
@@ -1654,29 +1872,31 @@ class weex extends Exchange {
     }
 
     public function fetch_open_interest(string $symbol, $params = array()) {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * retrieves the open interest of a contract trading pair
-             *
-             * @see https://www.weex.com/api-doc/contract/Market_API/GetOpenInterest
-             *
-             * @param {string} $symbol unified CCXT $market $symbol
-             * @param {array} [$params] exchange specific parameters
-             * @return {array} an open interest structurearray(@link https://docs.ccxt.com/?id=open-interest-structure)
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $request = array(
-                'symbol' => $market['id'],
-            );
-            $response = Async\await($this->contractGetCapiV3MarketOpenInterest($this->extend($request, $params)));
-            return $this->parse_open_interest($response, $market);
-        })();
+        return Async\async(self::do_fetch_open_interest(...))($symbol, $params);
     }
 
-    public function parse_open_interest($interest, ?array $market = null) {
+    private function do_fetch_open_interest(string $symbol, $params = array()) {
+        /**
+         * retrieves the open interest of a contract trading pair
+         *
+         * @see https://www.weex.com/api-doc/contract/Market_API/GetOpenInterest
+         *
+         * @param {string} $symbol unified CCXT $market $symbol
+         * @param {array} [$params] exchange specific parameters
+         * @return {array} an open interest structurearray(@link https://docs.ccxt.com/?id=open-interest-structure)
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = Async\await($this->contractGetCapiV3MarketOpenInterest($this->extend($request, $params)));
+        return $this->parse_open_interest($response, $market);
+    }
+
+    public function parse_open_interest(mixed $interest, ?array $market = null) {
         //
         //     {
         //         "symbol" => "ETHUSDT",
@@ -1698,51 +1918,53 @@ class weex extends Exchange {
     }
 
     public function fetch_funding_rates(?array $symbols = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             * fetch the funding rate for multiple markets
-             *
-             * @see https://www.weex.com/api-doc/contract/Market_API/GetCurrentFundingRate
-             *
-             * @param {string[]|null} $symbols list of unified $market $symbols
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->subType] "linear" or "inverse"
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rates-structure funding rate structures~, indexed by $market $symbols
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $symbols = $this->market_symbols($symbols);
-            $symbolsLength = 0;
-            if ($symbols !== null) {
-                $symbolsLength = count($symbols);
-            }
-            $request = array();
-            if ($symbolsLength === 1) {
-                $market = $this->get_market_from_symbols($symbols);
-                $request['symbol'] = $this->safe_string($market, 'id');
-            }
-            $response = Async\await($this->contractGetCapiV3MarketPremiumIndex($this->extend($request, $params)));
-            //
-            //     array(
-            //         {
-            //             "symbol" => "ETHUSDT",
-            //             "markPrice" => "2133.71",
-            //             "indexPrice" => "2134.44",
-            //             "forecastFundingRate" => "0.00005618",
-            //             "lastFundingRate" => "0.00001031",
-            //             "interestRate" => "0.001",
-            //             "nextFundingTime" => 1775606400000,
-            //             "time" => 1775597594265,
-            //             "collectCycle" => 480
-            //         }
-            //     )
-            //
-            return $this->parse_funding_rates($response, $symbols);
-        })();
+        return Async\async(self::do_fetch_funding_rates(...))($symbols, $params);
     }
 
-    public function parse_funding_rate($contract, ?array $market = null): array {
+    private function do_fetch_funding_rates(?array $symbols = null, $params = array()) {
+        /**
+         * fetch the funding rate for multiple markets
+         *
+         * @see https://www.weex.com/api-doc/contract/Market_API/GetCurrentFundingRate
+         *
+         * @param {string[]|null} $symbols list of unified $market $symbols
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->subType] "linear" or "inverse"
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rates-structure funding rate structures~, indexed by $market $symbols
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbols = $this->market_symbols($symbols);
+        $symbolsLength = 0;
+        if ($symbols !== null) {
+            $symbolsLength = count($symbols);
+        }
+        $request = array();
+        if ($symbolsLength === 1) {
+            $market = $this->get_market_from_symbols($symbols);
+            $request['symbol'] = $this->safe_string($market, 'id');
+        }
+        $response = Async\await($this->contractGetCapiV3MarketPremiumIndex($this->extend($request, $params)));
+        //
+        //     array(
+        //         {
+        //             "symbol" => "ETHUSDT",
+        //             "markPrice" => "2133.71",
+        //             "indexPrice" => "2134.44",
+        //             "forecastFundingRate" => "0.00005618",
+        //             "lastFundingRate" => "0.00001031",
+        //             "interestRate" => "0.001",
+        //             "nextFundingTime" => 1775606400000,
+        //             "time" => 1775597594265,
+        //             "collectCycle" => 480
+        //         }
+        //     )
+        //
+        return $this->parse_funding_rates($response, $symbols);
+    }
+
+    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
         $marketId = $this->safe_string($contract, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market, null, 'swap');
         $timestamp = $this->safe_integer($contract, 'time');
@@ -1776,42 +1998,44 @@ class weex extends Exchange {
     }
 
     public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * fetches historical funding rate prices
-             *
-             * @see https://www.weex.com/api-doc/contract/Market_API/GetFundingRateHistory
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
-             * @param {int} [$since] timestamp in ms of the earliest funding rate to fetch
-             * @param {int} [$limit] the maximum amount of funding rate records to fetch (default 100, max 1000)
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {int} [$params->until] timestamp in ms of the latest funding rate
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~
-             */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
-            }
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $request = array(
-                'symbol' => $market['id'],
-            );
-            if ($since !== null) {
-                $request['startTime'] = $since;
-            }
-            if ($limit !== null) {
-                $request['limit'] = $limit;
-            }
-            list($request, $params) = $this->handle_until_option('endTime', $request, $params);
-            $response = Async\await($this->contractGetCapiV3MarketFundingRate($this->extend($request, $params)));
-            return $this->parse_funding_rate_histories($response, $market, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_funding_rate_history(...))($symbol, $since, $limit, $params);
     }
 
-    public function parse_funding_rate_history($contract, ?array $market = null) {
+    private function do_fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetches historical funding rate prices
+         *
+         * @see https://www.weex.com/api-doc/contract/Market_API/GetFundingRateHistory
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
+         * @param {int} [$since] timestamp in ms of the earliest funding rate to fetch
+         * @param {int} [$limit] the maximum amount of funding rate records to fetch (default 100, max 1000)
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] timestamp in ms of the latest funding rate
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~
+         */
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
+        }
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        list($request, $params) = $this->handle_until_option('endTime', $request, $params);
+        $response = Async\await($this->contractGetCapiV3MarketFundingRate($this->extend($request, $params)));
+        return $this->parse_funding_rate_histories($response, $market, $since, $limit);
+    }
+
+    public function parse_funding_rate_history(mixed $contract, ?array $market = null) {
         //
         //     {
         //         "symbol" => "ETHUSDT",
@@ -1833,136 +2057,159 @@ class weex extends Exchange {
     }
 
     public function fetch_balance($params = array()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             *
-             * @see https://www.weex.com/api-doc/spot/AccountAPI/GetAccountBalance // spot
-             * @see https://www.weex.com/api-doc/contract/Account_API/GetAccountBalance // contract
-             *
-             * query for balance and get the amount of funds available for trading or funds locked in positions
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->type] 'spot' or 'swap' (default is 'spot')
-             * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
-             */
-            $type = null;
-            list($type, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
-            $response = null;
-            if ($type === 'spot') {
-                //
-                //     {
-                //         "makerCommission" => 0,
-                //         "takerCommission" => 0,
-                //         "commissionRates" => array(
-                //             "maker" => "0.00000000",
-                //             "taker" => "0.00000000"
-                //         ),
-                //         "canTrade" => true,
-                //         "canWithdraw" => true,
-                //         "canDeposit" => true,
-                //         "updateTime" => 1775601317093,
-                //         "accountType" => "SPOT",
-                //         "balances" => array(
-                //             {
-                //                 "asset" => "USDT",
-                //                 "free" => "20.00000000",
-                //                 "locked" => "0"
-                //             }
-                //         ),
-                //         "permissions" => array(
-                //             "SPOT"
-                //         ),
-                //         "uid" => 8886281669
-                //     }
-                //
-                $response = Async\await($this->privateGetApiV3Account($params));
-            } else {
-                //
-                //     array(
-                //         {
-                //             "asset" => "USDT",
-                //             "balance" => "20.00000000",
-                //             "availableBalance" => "20.00000000",
-                //             "frozen" => "0",
-                //             "unrealizePnl" => "0"
-                //         }
-                //     )
-                //
-                $response = Async\await($this->contractPrivateGetCapiV3AccountBalance($params));
-            }
-            return $this->parse_balance($response);
-        })();
+        return Async\async(self::do_fetch_balance(...))($params);
     }
 
-    public function parse_balance($response): array {
+    private function do_fetch_balance($params = array()) {
+        /**
+         *
+         * @see https://www.weex.com/api-doc/spot/AccountAPI/GetAccountBalance // spot
+         * @see https://www.weex.com/api-doc/contract/Account_API/GetAccountBalance // contract
+         * @see https://www.weex.com/api-doc/contract/demo/GetAccountBalance // contract in sandbox mode
+         *
+         * query for balance and get $the amount of funds available for trading or funds locked in positions
+         * @param {array} [$params] extra parameters specific to $the exchange API endpoint
+         * @param {string} [$params->type] 'spot' or 'swap' (default is 'spot', in sandbox mode only 'swap' is available and is used by default)
+         * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
+         */
+        $requestedType = $this->safe_string($params, 'type');
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
+        $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
+        if (($sandboxMode === true) && ($requestedType === null)) {
+            $type = 'swap'; // $the demo trading API only provides $the swap account, don't $the default spot $type break a bare fetchBalance() call
+        }
+        $response = null;
+        if ($type === 'spot') {
+            if ($sandboxMode === true) {
+                throw new NotSupported($this->id . ' fetchBalance() only supports $the swap account in sandbox mode, use $params["type"] = "swap"');
+            }
+            //
+            //     {
+            //         "makerCommission" => 0,
+            //         "takerCommission" => 0,
+            //         "commissionRates" => array(
+            //             "maker" => "0.00000000",
+            //             "taker" => "0.00000000"
+            //         ),
+            //         "canTrade" => true,
+            //         "canWithdraw" => true,
+            //         "canDeposit" => true,
+            //         "updateTime" => 1775601317093,
+            //         "accountType" => "SPOT",
+            //         "balances" => array(
+            //             {
+            //                 "asset" => "USDT",
+            //                 "free" => "20.00000000",
+            //                 "locked" => "0"
+            //             }
+            //         ),
+            //         "permissions" => array(
+            //             "SPOT"
+            //         ),
+            //         "uid" => 8886281669
+            //     }
+            //
+            $response = Async\await($this->privateGetApiV3Account($params));
+        } else {
+            //
+            //     array(
+            //         {
+            //             "asset" => "USDT", // SUSDT in sandbox mode
+            //             "balance" => "20.00000000",
+            //             "availableBalance" => "20.00000000",
+            //             "frozen" => "0",
+            //             "unrealizePnl" => "0"
+            //         }
+            //     )
+            //
+            if ($sandboxMode === true) {
+                $response = Async\await($this->contractPrivateGetCapiV3SimBalance($params));
+            } else {
+                $response = Async\await($this->contractPrivateGetCapiV3AccountBalance($params));
+            }
+        }
+        return $this->parse_balance($response);
+    }
+
+    public function parse_balance(mixed $response): array {
         $result = array(
             'info' => $response,
         );
+        $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
         $balances = $this->safe_list($response, 'balances', $response);
         for ($i = 0; $i < count($balances); $i++) {
             $entry = $this->safe_dict($balances, $i);
-            $id = $this->safe_string($entry, 'asset');
-            $code = $this->safe_currency_code($id);
+            $currencyId = $this->safe_string($entry, 'asset');
+            if (($sandboxMode === true) && ($currencyId === 'SUSDT')) {
+                $currencyId = 'USDT'; // demo trading $balances are denominated in the demo asset SUSDT
+            }
+            $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
             $account['free'] = $this->safe_string_2($entry, 'availableBalance', 'free');
             $account['used'] = $this->safe_string_2($entry, 'frozen', 'locked');
             $account['total'] = $this->safe_string($entry, 'balance');
-            $result[$code] = $account;
+            if ($code !== null) {
+                $result[$code] = $account;
+            }
         }
         return $this->safe_balance($result);
     }
 
     public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($code, $since, $limit, $params) {
-            /**
-             * fetch a history of internal transfers made on an account
-             *
-             * @see https://www.weex.com/api-doc/spot/AccountAPI/TransferRecords
-             *
-             * @param {string} [$code] unified $currency $code of the $currency transferred
-             * @param {int} [$since] the earliest time in ms to fetch transfers for
-             * @param {int} [$limit] the maximum number of transfers structures to retrieve (default 10, max 100)
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transfer-structure transfer structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $request = array();
-            $currency = null;
-            if ($code !== null) {
-                $currency = $this->currency($code);
-            }
-            $maxLimit = 100;
-            $paginate = false;
-            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchTransfers', 'paginate', false);
-            if ($paginate) {
-                return Async\await($this->fetch_paginated_call_dynamic('fetchTransfers', $code, $since, $limit, $params, $maxLimit));
-            }
-            if ($since !== null) {
-                $request['after'] = $since;
-            }
-            if ($limit !== null) {
-                $request['limit'] = $limit;
-            }
-            list($request, $params) = $this->handle_until_option('before', $request, $params);
-            $response = Async\await($this->privateGetApiV3AccountTransferRecords($this->extend($request, $params)));
-            //
-            //     array(
-            //         {
-            //             "coinName" => "USDT",
-            //             "status" => "Successful",
-            //             "toType" => "",
-            //             "toSymbol" => "",
-            //             "fromType" => "",
-            //             "fromSymbol" => "",
-            //             "amount" => "20.00000000",
-            //             "tradeTime" => "1775605824252"
-            //         }
-            //     )
-            //
-            return $this->parse_transfers($response, $currency, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_transfers(...))($code, $since, $limit, $params);
+    }
+
+    private function do_fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetch a history of internal transfers made on an account
+         *
+         * @see https://www.weex.com/api-doc/spot/AccountAPI/TransferRecords
+         *
+         * @param {string} [$code] unified $currency $code of the $currency transferred
+         * @param {int} [$since] the earliest time in ms to fetch transfers for
+         * @param {int} [$limit] the maximum number of transfers structures to retrieve (default 10, max 100)
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transfer-structure transfer structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $request = array();
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+        }
+        $maxLimit = 100;
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchTransfers', 'paginate', false);
+        if ($paginate) {
+            return Async\await($this->fetch_paginated_call_dynamic('fetchTransfers', $code, $since, $limit, $params, $maxLimit));
+        }
+        if ($since !== null) {
+            $request['after'] = $since;
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        list($request, $params) = $this->handle_until_option('before', $request, $params);
+        $response = Async\await($this->privateGetApiV3AccountTransferRecords($this->extend($request, $params)));
+        //
+        //     array(
+        //         {
+        //             "coinName" => "USDT",
+        //             "status" => "Successful",
+        //             "toType" => "",
+        //             "toSymbol" => "",
+        //             "fromType" => "",
+        //             "fromSymbol" => "",
+        //             "amount" => "20.00000000",
+        //             "tradeTime" => "1775605824252"
+        //         }
+        //     )
+        //
+        return $this->parse_transfers($response, $currency, $since, $limit);
     }
 
     public function parse_transfer(array $transfer, ?array $currency = null): array {
@@ -1983,7 +2230,7 @@ class weex extends Exchange {
         );
     }
 
-    public function parse_transfer_status(?string $status): string {
+    public function parse_transfer_status(?string $status): ?string {
         $statuses = array(
             'Successful' => 'ok',
         );
@@ -1991,73 +2238,94 @@ class weex extends Exchange {
     }
 
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
-        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
-            /**
-             * Create an order on the exchange
-             *
-             * @see https://www.weex.com/api-doc/spot/orderApi/PlaceOrder // spot
-             * @see https://www.weex.com/api-doc/contract/Transaction_API/PlaceOrder // contract
-             * @see https://www.weex.com/api-doc/contract/Transaction_API/PlacePendingOrder // contract trigger
-             * @see https://www.weex.com/api-doc/contract/Transaction_API/PlaceTpSlOrder // contract take profit / stop loss
-             *
-             * @param {string} $symbol Unified CCXT $market $symbol
-             * @param {string} $type 'limit' or 'market'
-             * @param {string} $side 'buy' or 'sell'
-             * @param {float} $amount the $amount of currency to trade
-             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
-             * @param {array} [$params]  extra parameters specific to the exchange API endpoint
-             * Check createSpotOrder() and createContractOrder() for more details on the extra parameters that can be used in $params
-             * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
+        return Async\async(self::do_create_order(...))($symbol, $type, $side, $amount, $price, $params);
+    }
+
+    private function do_create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+        /**
+         * Create an order on the exchange
+         *
+         * @see https://www.weex.com/api-doc/spot/orderApi/PlaceOrder // spot
+         * @see https://www.weex.com/api-doc/contract/Transaction_API/PlaceOrder // contract
+         * @see https://www.weex.com/api-doc/contract/Transaction_API/PlacePendingOrder // contract trigger
+         * @see https://www.weex.com/api-doc/contract/Transaction_API/PlaceTpSlOrder // contract take profit / stop loss
+         * @see https://www.weex.com/api-doc/contract/demo/PlaceOrder // contract in sandbox mode
+         *
+         * @param {string} $symbol Unified CCXT $market $symbol
+         * @param {string} $type 'limit' or 'market'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount the $amount of currency to trade
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
+         * @param {array} [$params]  extra parameters specific to the exchange API endpoint
+         * Check createSpotOrder() and createContractOrder() for more details on the extra parameters that can be used in $params
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        if ($market['contract'] === true) {
+            return Async\await($this->create_contract_order($symbol, $type, $side, $amount, $price, $params));
+        } else {
+            $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
+            if ($sandboxMode === true) {
+                throw new NotSupported($this->id . ' createOrder() only supports swap markets in sandbox mode');
             }
-            $market = $this->market($symbol);
-            if ($market['contract']) {
-                return Async\await($this->create_contract_order($symbol, $type, $side, $amount, $price, $params));
-            } else {
-                return Async\await($this->create_spot_order($symbol, $type, $side, $amount, $price, $params));
-            }
-        })();
+            return Async\await($this->create_spot_order($symbol, $type, $side, $amount, $price, $params));
+        }
     }
 
     public function create_spot_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
-        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
-            /**
-             * helper method for creating spot orders
-             *
-             * @see https://www.weex.com/api-doc/spot/orderApi/PlaceOrder
-             *
-             * @param {string} $symbol Unified CCXT $market $symbol
-             * @param {string} $type 'limit' or 'market'
-             * @param {string} $side 'buy' or 'sell'
-             * @param {float} $amount the $amount of currency to trade
-             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
-             * @param {array} [$params]  extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->clientOrderId] client order id
-             * @param {string} [$params->timeInForce] 'GTC', 'IOC', or 'FOK'
-             * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $request = $this->create_spot_order_request($symbol, $type, $side, $amount, $price, $params);
-            $response = Async\await($this->privatePostApiV3Order($request));
-            //
-            //     {
-            //         "symbol" => "DOGEUSDT",
-            //         "orderId" => 736557215397183592,
-            //         "clientOrderId" => "c4551206d34641efbeb64abaa066946d",
-            //         "transactTime" => 1775608924724
-            //     }
-            //
-            return $this->parse_order($response, $market);
-        })();
+        return Async\async(self::do_create_spot_order(...))($symbol, $type, $side, $amount, $price, $params);
     }
 
-    public function create_spot_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
+    private function do_create_spot_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+        /**
+         * helper method for creating spot orders
+         *
+         * @see https://www.weex.com/api-doc/spot/orderApi/PlaceOrder
+         *
+         * @param {string} $symbol Unified CCXT $market $symbol
+         * @param {string} $type 'limit' or 'market'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount the $amount of currency to trade
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
+         * @param {array} [$params]  extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->clientOrderId] client order id
+         * @param {string} [$params->timeInForce] 'GTC', 'IOC', or 'FOK'
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
         $market = $this->market($symbol);
+        $request = $this->create_spot_order_request($symbol, $type, $side, $amount, $price, $params);
+        $response = Async\await($this->privatePostApiV3Order($request));
+        //
+        //     {
+        //         "symbol" => "DOGEUSDT",
+        //         "orderId" => 736557215397183592,
+        //         "clientOrderId" => "c4551206d34641efbeb64abaa066946d",
+        //         "transactTime" => 1775608924724
+        //     }
+        //
+        if ($response === null) {
+            throw new NullResponse($this->id . ' parseOrder() returned empty response');
+        }
+        return $this->parse_order($response, $market);
+    }
+
+    public function create_spot_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
+        if ($type === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+        }
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+        }
+        $market = $this->market($symbol);
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' createSpotOrderRequest() requires a $side argument');
+        }
         $request = array(
             'symbol' => $market['id'],
             'side' => strtoupper($side),
@@ -2079,54 +2347,78 @@ class weex extends Exchange {
     }
 
     public function create_contract_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
-        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
-            /**
-             * helper method for creating contract orders
-             *
-             * @see https://www.weex.com/api-doc/contract/Transaction_API/PlaceOrder
-             * @see https://www.weex.com/api-doc/contract/Transaction_API/PlacePendingOrder
-             *
-             * @param {string} $symbol Unified CCXT $market $symbol
-             * @param {string} $type 'limit' or 'market'
-             * @param {string} $side 'buy' or 'sell'
-             * @param {float} $amount the $amount of currency to trade
-             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->clientOrderId] client order id
-             * @param {array} [$params->takeProfit] *takeProfit object in $params* containing the $triggerPrice at which the attached take profit order will be triggered and the triggerPriceType
-             * @param {float} [$params->takeProfit.triggerPrice] The $price at which the take profit order will be triggered
-             * @param {string} [$params->takeProfit.triggerPriceType] The $type of the trigger $price for the take profit order, either 'last' or 'mark' (default is 'last')
-             * @param {array} [$params->stopLoss] *stopLoss object in $params* containing the $triggerPrice at which the attached stop loss order will be triggered and the triggerPriceType
-             * @param {float} [$params->stopLoss.triggerPrice] The $price at which the stop loss order will be triggered
-             * @param {string} [$params->stopLoss.triggerPriceType] The $type of the trigger $price for the stop loss order, either 'last' or 'mark' (default is 'last')
-             * @param {float} [$params->stopLossPrice] $price to trigger stop-loss orders
-             * @param {string} [$params->stopLossPriceType] The $type of the trigger $price for the stop loss order, either 'last' or 'mark' (default is 'last')
-             * @param {float} [$params->takeProfitPrice] $price to trigger take-profit orders
-             * @param {string} [$params->takeProfitPriceType] The $type of the trigger $price for the take profit order, either 'last' or 'mark' (default is 'last')
-             * @param {bool} [$params->reduceOnly] A mark to reduce the position size only. Set to false by default. Need to set the position size when reduceOnly is true.
-             * @param {string} [$params->timeInForce] GTC, IOC, or FOK (default is GTC for limit orders)
-             * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $request = $this->create_contract_order_request($symbol, $type, $side, $amount, $price, $params);
-            $triggerPrice = $this->safe_string($request, 'triggerPrice');
-            $response = null;
-            if ($triggerPrice !== null) {
-                $response = Async\await($this->contractPrivatePostCapiV3AlgoOrder($request));
-            } else {
-                $response = Async\await($this->contractPrivatePostCapiV3Order($request));
-            }
-            return $this->parse_order($response, $market);
-        })();
+        return Async\async(self::do_create_contract_order(...))($symbol, $type, $side, $amount, $price, $params);
     }
 
-    public function create_contract_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    private function do_create_contract_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+        /**
+         * helper method for creating contract orders
+         *
+         * @see https://www.weex.com/api-doc/contract/Transaction_API/PlaceOrder
+         * @see https://www.weex.com/api-doc/contract/Transaction_API/PlacePendingOrder
+         * @see https://www.weex.com/api-doc/contract/demo/PlaceOrder // sandbox mode
+         *
+         * @param {string} $symbol Unified CCXT $market $symbol
+         * @param {string} $type 'limit' or 'market'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount the $amount of currency to trade
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->clientOrderId] client order id
+         * @param {array} [$params->takeProfit] *takeProfit object in $params* containing the $triggerPrice at which the attached take profit order will be triggered and the triggerPriceType
+         * @param {float} [$params->takeProfit.triggerPrice] The $price at which the take profit order will be triggered, takeProfit.stopPrice is supported alias
+         * @param {string} [$params->takeProfit.triggerPriceType] The $type of the trigger $price for the take profit order, either 'last' or 'mark' (default is 'last')
+         * @param {float} [$params->takeProfit.price] not supported, the attached take profit always executes at $market $price
+         * @param {array} [$params->stopLoss] *stopLoss object in $params* containing the $triggerPrice at which the attached stop loss order will be triggered and the triggerPriceType
+         * @param {float} [$params->stopLoss.triggerPrice] The $price at which the stop loss order will be triggered, stopLoss.stopPrice is supported alias
+         * @param {string} [$params->stopLoss.triggerPriceType] The $type of the trigger $price for the stop loss order, either 'last' or 'mark' (default is 'last')
+         * @param {float} [$params->stopLoss.price] not supported, the attached stop loss always executes at $market $price
+         * @param {float} [$params->stopLossPrice] $price to trigger a standalone stop-loss order on an open position, the $price argument is used execution $price for limit orders
+         * @param {string} [$params->stopLossPriceType] The $type of the trigger $price for the stop loss order, either 'last' or 'mark' (default is 'last')
+         * @param {float} [$params->takeProfitPrice] $price to trigger a standalone take-profit order on an open position, the $price argument is used execution $price for limit orders
+         * @param {string} [$params->takeProfitPriceType] The $type of the trigger $price for the take profit order, either 'last' or 'mark' (default is 'last')
+         * @param {float} [$params->triggerPrice] the $price at which a trigger (entry conditional) order is triggered, cannot be used together with stopLossPrice or takeProfitPrice
+         * @param {bool} [$params->reduceOnly] A mark to reduce the position size only. Set to false by default. Need to set the position size when reduceOnly is true.
+         * @param {string} [$params->timeInForce] GTC, IOC, or FOK (default is GTC for limit orders, not supported for trigger orders)
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
         $market = $this->market($symbol);
+        $request = $this->create_contract_order_request($symbol, $type, $side, $amount, $price, $params);
+        $triggerPrice = $this->safe_string($request, 'triggerPrice');
+        $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
+        $response = null;
+        if ($triggerPrice !== null) {
+            if ($sandboxMode === true) {
+                throw new NotSupported($this->id . ' createOrder() does not support stopLossPrice or takeProfitPrice orders in sandbox mode');
+            }
+            $response = Async\await($this->contractPrivatePostCapiV3AlgoOrder($request));
+        } elseif ($sandboxMode === true) {
+            $response = Async\await($this->contractPrivatePostCapiV3SimOrder($request));
+        } else {
+            $response = Async\await($this->contractPrivatePostCapiV3Order($request));
+        }
+        if ($response === null) {
+            throw new NullResponse($this->id . ' createOrder() returned empty response');
+        }
+        return $this->parse_order($response, $market);
+    }
+
+    public function create_contract_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+        if ($type === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+        }
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+        }
+        $market = $this->market($symbol);
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' createContractOrderRequest() requires a $side argument');
+        }
         $request = array(
-            'symbol' => $market['id'],
+            'symbol' => $this->to_sandbox_market_id($market),
             'side' => strtoupper($side),
             'quantity' => $this->amount_to_precision($symbol, $amount),
             'type' => strtoupper($type),
@@ -2136,11 +2428,12 @@ class weex extends Exchange {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
         list($triggerPrice, $stopLossPrice, $takeProfitPrice, $query) = $this->handle_trigger_prices_and_params($symbol, $params);
-        if ($triggerPrice !== null) {
-            throw new NotSupported($this->id . ' createOrder() does not support the $triggerPrice parameter');
-        }
+        $isTrigger = ($triggerPrice !== null);
         $isStopLoss = ($stopLossPrice !== null);
         $isTakeProfit = ($takeProfitPrice !== null);
+        if ($isTrigger && ($isStopLoss || $isTakeProfit)) {
+            throw new BadRequest($this->id . ' createOrder() cannot use the $triggerPrice parameter together with the $stopLossPrice or $takeProfitPrice parameters');
+        }
         $reduceOnly = $this->safe_bool($query, 'reduceOnly');
         if ($isStopLoss || $isTakeProfit) {
             $reduceOnly = true;
@@ -2159,6 +2452,13 @@ class weex extends Exchange {
         $hasTakeProfit = ($takeProfit !== null);
         $stopLoss = $this->safe_dict($params, 'stopLoss');
         $hasStopLoss = ($stopLoss !== null);
+        // the exchange accepts but silently ignores execution prices for attached take profit / stop loss, they always execute at $market $price
+        if ($hasTakeProfit && ($this->safe_number($takeProfit, 'price') !== null)) {
+            throw new NotSupported($this->id . ' createOrder() does not support the $price field inside the $takeProfit $params, the attached take profit executes at $market price');
+        }
+        if ($hasStopLoss && ($this->safe_number($stopLoss, 'price') !== null)) {
+            throw new NotSupported($this->id . ' createOrder() does not support the $price field inside the $stopLoss $params, the attached stop loss executes at $market price');
+        }
         $timeInForce = $this->safe_string($params, 'timeInForce');
         $clientOrderId = $this->safe_string($params, 'clientOrderId');
         if ($clientOrderId === null) {
@@ -2166,7 +2466,39 @@ class weex extends Exchange {
             $clientOrderId = $partner . '-' . $this->uuid22();
         }
         $callerMethodName = $this->safe_string($params, 'callerMethodName');
-        if ($isStopLoss || $isTakeProfit) {
+        if ($isTrigger) {
+            // entry conditional order, triggers a regular order when the trigger $price is reached
+            if ($callerMethodName === 'createOrders') {
+                throw new NotSupported($this->id . ' createOrders() does not support trigger orders');
+            }
+            if ($timeInForce !== null) {
+                throw new BadRequest($this->id . ' createOrder() cannot use the $timeInForce parameter with trigger orders');
+            }
+            $request['clientAlgoId'] = $clientOrderId;
+            $params['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
+            if ($isMarketOrder) {
+                $params['type'] = 'STOP_MARKET';
+            } else {
+                $params['type'] = 'STOP';
+            }
+            // conditional orders attach take profit / stop loss through the preset* fields instead of tpTriggerPrice/slTriggerPrice
+            if ($hasStopLoss) {
+                $stopLossTriggerPrice = $this->safe_number_2($stopLoss, 'triggerPrice', 'stopPrice');
+                $request['presetStopLossPrice'] = $this->price_to_precision($symbol, $stopLossTriggerPrice);
+                $stopLossPriceType = $this->safe_string($stopLoss, 'triggerPriceType');
+                if ($stopLossPriceType !== null) {
+                    $params['SlWorkingType'] = $this->encode_trigger_price_type($stopLossPriceType);
+                }
+            }
+            if ($hasTakeProfit) {
+                $takeProfitTriggerPrice = $this->safe_number_2($takeProfit, 'triggerPrice', 'stopPrice');
+                $request['presetTakeProfitPrice'] = $this->price_to_precision($symbol, $takeProfitTriggerPrice);
+                $takeProfitPriceType = $this->safe_string($takeProfit, 'triggerPriceType');
+                if ($takeProfitPriceType !== null) {
+                    $params['TpWorkingType'] = $this->encode_trigger_price_type($takeProfitPriceType);
+                }
+            }
+        } elseif ($isStopLoss || $isTakeProfit) {
             if ($callerMethodName === 'createOrders') {
                 throw new NotSupported($this->id . ' createOrders() does not support stop loss and take profit orders');
             }
@@ -2211,7 +2543,7 @@ class weex extends Exchange {
             }
             $request['newClientOrderId'] = $clientOrderId;
             if ($hasStopLoss) {
-                $stopLossTriggerPrice = $this->safe_number($stopLoss, 'triggerPrice');
+                $stopLossTriggerPrice = $this->safe_number_2($stopLoss, 'triggerPrice', 'stopPrice');
                 $request['slTriggerPrice'] = $this->price_to_precision($symbol, $stopLossTriggerPrice);
                 $stopLossPriceType = $this->safe_string($stopLoss, 'triggerPriceType');
                 if ($stopLossPriceType !== null) {
@@ -2219,7 +2551,7 @@ class weex extends Exchange {
                 }
             }
             if ($hasTakeProfit) {
-                $takeProfitTriggerPrice = $this->safe_number($takeProfit, 'triggerPrice');
+                $takeProfitTriggerPrice = $this->safe_number_2($takeProfit, 'triggerPrice', 'stopPrice');
                 $request['tpTriggerPrice'] = $this->price_to_precision($symbol, $takeProfitTriggerPrice);
                 $takeProfitPriceType = $this->safe_string($takeProfit, 'triggerPriceType');
                 if ($takeProfitPriceType !== null) {
@@ -2240,560 +2572,320 @@ class weex extends Exchange {
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
-        return Async\async(function () use ($id, $symbol, $params) {
-            /**
-             * cancels an open $order
-             *
-             * @see https://www.weex.com/api-doc/spot/orderApi/CancelOrder // spot
-             * @see https://www.weex.com/api-doc/contract/Transaction_API/CancelOrder // contract
-             *
-             * @param {string} $id $order $id
-             * @param {string} [$symbol] unified $symbol of the $market the $order was made in
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->type] 'spot' or 'swap' (default is 'spot')
-             * @param {boolean} [$params->trigger] *contract orders only* whether the $order to cancel is a $trigger $order
-             * @param {string} [$params->clientOrderId] *non-$trigger orders only* a unique $id for the $order
-             * @return {array} an ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = null;
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-            }
-            $type = null;
-            list($type, $params) = $this->handle_market_type_and_params('cancelOrder', $market, $params);
-            $trigger = $this->safe_bool($params, 'trigger', false);
-            if ($trigger && $id === null) {
-                throw new ArgumentsRequired($this->id . ' cancelOrder() requires an $id argument for $trigger orders');
-            }
-            $request = array();
-            $clientOrderId = $this->safe_string($params, 'clientOrderId');
-            $params = $this->omit($params, array( 'clientOrderId', 'trigger' ));
-            if ($clientOrderId !== null) {
-                $request['origClientOrderId'] = $clientOrderId;
-            } elseif ($id === null) {
-                throw new ArgumentsRequired($this->id . ' cancelOrder() requires an $id argument or $clientOrderId parameter');
-            } else {
-                $request['orderId'] = $id;
-            }
-            $response = null;
-            if ($type === 'spot') {
-                // by orderId
-                //     {
-                //         "orderId" => 736775987680772200,
-                //         "status" => "CANCELED"
-                //     }
-                //
-                // by $clientOrderId
-                //     {
-                //         "origClientOrderId" => "test_cancel_order",
-                //         "status" => "CANCELED"
-                //     }
-                //
-                $response = Async\await($this->privateDeleteApiV3Order($this->extend($request, $params)));
-            } elseif ($trigger) {
-                $response = Async\await($this->contractPrivateDeleteCapiV3AlgoOrder($this->extend($request, $params)));
-            } else {
-                $response = Async\await($this->contractPrivateDeleteCapiV3Order($this->extend($request, $params)));
-            }
-            $order = $this->parse_order($response, $market);
-            $order['status'] = 'canceled';
-            return $order;
-        })();
+        return Async\async(self::do_cancel_order(...))($id, $symbol, $params);
+    }
+
+    private function do_cancel_order(string $id, ?string $symbol = null, $params = array()) {
+        /**
+         * cancels an open $order
+         *
+         * @see https://www.weex.com/api-doc/spot/orderApi/CancelOrder // spot
+         * @see https://www.weex.com/api-doc/contract/Transaction_API/CancelOrder // contract
+         *
+         * @param {string} $id $order $id
+         * @param {string} [$symbol] unified $symbol of the $market the $order was made in
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->type] 'spot' or 'swap' (default is 'spot')
+         * @param {boolean} [$params->trigger] *contract orders only* whether the $order to cancel is a $trigger $order
+         * @param {string} [$params->clientOrderId] *non-$trigger orders only* a unique $id for the $order
+         * @return {array} an ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('cancelOrder', $market, $params);
+        $trigger = $this->safe_bool($params, 'trigger', false);
+        if (($trigger === true) && $id === null) {
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires an $id argument for $trigger orders');
+        }
+        $request = array();
+        $clientOrderId = $this->safe_string($params, 'clientOrderId');
+        $params = $this->omit($params, array( 'clientOrderId', 'trigger' ));
+        if ($clientOrderId !== null) {
+            $request['origClientOrderId'] = $clientOrderId;
+        } elseif ($id === null) {
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires an $id argument or $clientOrderId parameter');
+        } else {
+            $request['orderId'] = $id;
+        }
+        $response = null;
+        if ($type === 'spot') {
+            // by orderId
+            //     {
+            //         "orderId" => 736775987680772200,
+            //         "status" => "CANCELED"
+            //     }
+            //
+            // by $clientOrderId
+            //     {
+            //         "origClientOrderId" => "test_cancel_order",
+            //         "status" => "CANCELED"
+            //     }
+            //
+            $response = Async\await($this->privateDeleteApiV3Order($this->extend($request, $params)));
+        } elseif ($trigger === true) {
+            $response = Async\await($this->contractPrivateDeleteCapiV3AlgoOrder($this->extend($request, $params)));
+        } else {
+            $response = Async\await($this->contractPrivateDeleteCapiV3Order($this->extend($request, $params)));
+        }
+        if ($response === null) {
+            throw new NullResponse($this->id . ' parseOrder() returned empty response');
+        }
+        $order = $this->parse_order($response, $market);
+        $order['status'] = 'canceled';
+        return $order;
     }
 
     public function cancel_all_orders(?string $symbol = null, $params = array()) {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * cancel all open orders
-             *
-             * @see https://www.weex.com/api-doc/spot/orderApi/Cancel-Symbol-Orders // spot
-             * @see https://www.weex.com/api-doc/contract/Transaction_API/CancelAllOrders // contract
-             * @see https://www.weex.com/api-doc/contract/Transaction_API/CancelAllPendingOrders // contract $trigger
-             *
-             * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->type] 'spot' or 'swap', used if $symbol is not provided (default is 'spot')
-             * @param {boolean} [$params->trigger] *swap only* true for cancelling $trigger orders (default is false)
-             * @return Response from the exchange
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
+        return Async\async(self::do_cancel_all_orders(...))($symbol, $params);
+    }
+
+    private function do_cancel_all_orders(?string $symbol = null, $params = array()) {
+        /**
+         * cancel all open orders
+         *
+         * @see https://www.weex.com/api-doc/spot/orderApi/Cancel-Symbol-Orders // spot
+         * @see https://www.weex.com/api-doc/contract/Transaction_API/CancelAllOrders // contract
+         * @see https://www.weex.com/api-doc/contract/Transaction_API/CancelAllPendingOrders // contract $trigger
+         *
+         * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->type] 'spot' or 'swap', used if $symbol is not provided (default is 'spot')
+         * @param {boolean} [$params->trigger] *swap only* true for cancelling $trigger orders (default is false)
+         * @return Response from the exchange
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $request = array();
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['symbol'] = $market['id'];
+        }
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('cancelAllOrders', $market, $params);
+        $trigger = $this->safe_bool($params, 'trigger', false);
+        $params = $this->omit($params, 'trigger');
+        $response = null;
+        if ($marketType === 'spot') {
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument for spot markets');
             }
-            $request = array();
-            $market = null;
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-                $request['symbol'] = $market['id'];
-            }
-            $marketType = null;
-            list($marketType, $params) = $this->handle_market_type_and_params('cancelAllOrders', $market, $params);
-            $trigger = $this->safe_bool($params, 'trigger', false);
-            $params = $this->omit($params, 'trigger');
-            $response = null;
-            if ($marketType === 'spot') {
-                if ($symbol === null) {
-                    throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument for spot markets');
-                }
-                $response = Async\await($this->privateDeleteApiV3OpenOrders($this->extend($request, $params)));
-            } elseif ($trigger) {
-                $response = Async\await($this->contractPrivateDeleteCapiV3AlgoOpenOrders($this->extend($request, $params)));
-            } else {
-                $response = Async\await($this->contractPrivateDeleteCapiV3AllOpenOrders($this->extend($request, $params)));
-            }
-            $extendedParams = array(
-                'status' => 'canceled',
-            );
-            return $this->parse_orders($response, $market, null, null, $extendedParams);
-        })();
+            $response = Async\await($this->privateDeleteApiV3OpenOrders($this->extend($request, $params)));
+        } elseif ($trigger === true) {
+            $response = Async\await($this->contractPrivateDeleteCapiV3AlgoOpenOrders($this->extend($request, $params)));
+        } else {
+            $response = Async\await($this->contractPrivateDeleteCapiV3AllOpenOrders($this->extend($request, $params)));
+        }
+        $extendedParams = array(
+            'status' => 'canceled',
+        );
+        return $this->parse_orders($response, $market, null, null, $extendedParams);
     }
 
     public function cancel_orders(array $ids, ?string $symbol = null, $params = array()) {
-        return Async\async(function () use ($ids, $symbol, $params) {
-            /**
-             * cancel multiple orders
-             *
-             * @see https://www.weex.com/api-doc/spot/orderApi/BulkCancel // spot
-             * @see https://www.weex.com/api-doc/contract/Transaction_API/CancelOrdersBatch // contract
-             *
-             * @param {string[]} $ids order $ids
-             * @param {string} [$symbol] unified $market $symbol, default is null
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string[]} [$params->clientOrderIds] client order $ids (could be an alternative to $ids)
-             * @param {string} [$params->type] 'spot' or 'swap', used if $symbol is not provided (default is 'spot')
-             * @return {array} an list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $request = array();
-            $market = null;
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-            }
-            $marketType = null;
-            list($marketType, $params) = $this->handle_market_type_and_params('cancelOrders', $market, $params);
-            $isSpot = ($marketType === 'spot');
-            $clientOrderIds = $this->safe_list($params, 'clientOrderIds');
-            $params = $this->omit($params, 'clientOrderIds');
-            if ($clientOrderIds !== null) {
-                if ($isSpot) {
-                    $request['origClientOrderIds'] = $clientOrderIds;
-                } else {
-                    $request['origClientOrderIdList'] = $clientOrderIds;
-                }
-            } elseif ($ids !== null) {
-                if ($isSpot) {
-                    $request['orderIds'] = $ids;
-                } else {
-                    $request['orderIdList'] = $ids;
-                }
-            } else {
-                throw new ArgumentsRequired($this->id . ' cancelOrders() requires an $ids argument or $clientOrderIds parameter');
-            }
-            $response = null;
-            if ($isSpot) {
-                $response = Async\await($this->privateDeleteApiV3OrderBatch($this->extend($request, $params)));
-            } else {
-                $response = Async\await($this->contractPrivateDeleteCapiV3BatchOrders($this->extend($request, $params)));
-            }
-            $ordersResponse = $this->safe_list($response, 'orderList', array());
-            $extendedParams = array(
-                'status' => 'canceled',
-            );
-            return $this->parse_orders($ordersResponse, $market, null, null, $extendedParams);
-        })();
+        return Async\async(self::do_cancel_orders(...))($ids, $symbol, $params);
     }
 
-    public function fetch_order(?string $id, ?string $symbol = null, $params = array()) {
-        return Async\async(function () use ($id, $symbol, $params) {
-            /**
-             * fetches information on an order made by the user
-             *
-             * @see https://www.weex.com/api-doc/spot/orderApi/OrderDetails // spot
-             * @see https://www.weex.com/api-doc/contract/Transaction_API/GetSingleOrderInfo // contract
-             *
-             * @param {string} $id order $id
-             * @param {string} $symbol unified $symbol of the $market the order was made in
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->type] 'spot' or 'swap', used if $symbol is not provided (default is 'spot')
-             * @param {string} [$params->clientOrderId] *spot only* a unique $id for the order, used if $id is not provided
-             * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = null;
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-            }
-            $marketType = null;
-            list($marketType, $params) = $this->handle_market_type_and_params('fetchOrder', $market, $params);
-            $isSpot = ($marketType === 'spot');
-            $request = array();
-            if (($id === null) && !$isSpot) {
-                throw new ArgumentsRequired($this->id . ' fetchOrder() requires an $id argument for non-spot markets');
-            }
-            $clientOrderId = $this->safe_string($params, 'clientOrderId');
-            $params = $this->omit($params, 'clientOrderId');
-            if ($clientOrderId !== null) {
-                $request['origClientOrderId'] = $clientOrderId;
-            } elseif ($id === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOrder() requires an $id argument or $clientOrderId parameter for spot markets');
-            } else {
-                $request['orderId'] = $id;
-            }
-            $response = null;
+    private function do_cancel_orders(array $ids, ?string $symbol = null, $params = array()) {
+        /**
+         * cancel multiple orders
+         *
+         * @see https://www.weex.com/api-doc/spot/orderApi/BulkCancel // spot
+         * @see https://www.weex.com/api-doc/contract/Transaction_API/CancelOrdersBatch // contract
+         *
+         * @param {string[]} $ids order $ids
+         * @param {string} [$symbol] unified $market $symbol, default is null
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string[]} [$params->clientOrderIds] client order $ids (could be an alternative to $ids)
+         * @param {string} [$params->type] 'spot' or 'swap', used if $symbol is not provided (default is 'spot')
+         * @return {array} an list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $request = array();
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('cancelOrders', $market, $params);
+        $isSpot = ($marketType === 'spot');
+        $clientOrderIds = $this->safe_list($params, 'clientOrderIds');
+        $params = $this->omit($params, 'clientOrderIds');
+        if ($clientOrderIds !== null) {
             if ($isSpot) {
-                //
-                //     {
-                //         "symbol" => "DOGEUSDT",
-                //         "orderId" => 736800333186991070,
-                //         "clientOrderId" => "082007092f624a18bb7af2ab42e7c8e8",
-                //         "price" => "0.08500",
-                //         "origQty" => "300.0",
-                //         "executedQty" => "0",
-                //         "cummulativeQuoteQty" => "0",
-                //         "status" => "NEW",
-                //         "timeInForce" => "GTC",
-                //         "type" => "LIMIT",
-                //         "side" => "BUY",
-                //         "time" => 1775666888520,
-                //         "updateTime" => 1775666888536,
-                //         "isWorking" => true
-                //     }
-                //
-                $response = Async\await($this->privateGetApiV3Order($this->extend($request, $params)));
+                $request['origClientOrderIds'] = $clientOrderIds;
             } else {
-                $response = Async\await($this->contractPrivateGetCapiV3Order($this->extend($request, $params)));
+                $request['origClientOrderIdList'] = $clientOrderIds;
             }
-            return $this->parse_order($response, $market);
-        })();
+        } elseif ($ids !== null) {
+            if ($isSpot) {
+                $request['orderIds'] = $ids;
+            } else {
+                $request['orderIdList'] = $ids;
+            }
+        } else {
+            throw new ArgumentsRequired($this->id . ' cancelOrders() requires an $ids argument or $clientOrderIds parameter');
+        }
+        $response = null;
+        if ($isSpot) {
+            $response = Async\await($this->privateDeleteApiV3OrderBatch($this->extend($request, $params)));
+        } else {
+            $response = Async\await($this->contractPrivateDeleteCapiV3BatchOrders($this->extend($request, $params)));
+        }
+        $ordersResponse = $this->safe_list($response, 'orderList', array());
+        $extendedParams = array(
+            'status' => 'canceled',
+        );
+        return $this->parse_orders($ordersResponse, $market, null, null, $extendedParams);
+    }
+
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
+        return Async\async(self::do_fetch_order(...))($id, $symbol, $params);
+    }
+
+    private function do_fetch_order(string $id, ?string $symbol = null, $params = array()) {
+        /**
+         * fetches information on an order made by the user
+         *
+         * @see https://www.weex.com/api-doc/spot/orderApi/OrderDetails // spot
+         * @see https://www.weex.com/api-doc/contract/Transaction_API/GetSingleOrderInfo // contract
+         *
+         * @param {string} $id order $id
+         * @param {string} $symbol unified $symbol of the $market the order was made in
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->type] 'spot' or 'swap', used if $symbol is not provided (default is 'spot')
+         * @param {string} [$params->clientOrderId] *spot only* a unique $id for the order, used if $id is not provided
+         * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchOrder', $market, $params);
+        $isSpot = ($marketType === 'spot');
+        $request = array();
+        if (($id === null) && !$isSpot) {
+            throw new ArgumentsRequired($this->id . ' fetchOrder() requires an $id argument for non-spot markets');
+        }
+        $clientOrderId = $this->safe_string($params, 'clientOrderId');
+        $params = $this->omit($params, 'clientOrderId');
+        if ($clientOrderId !== null) {
+            $request['origClientOrderId'] = $clientOrderId;
+        } elseif ($id === null) {
+            throw new ArgumentsRequired($this->id . ' fetchOrder() requires an $id argument or $clientOrderId parameter for spot markets');
+        } else {
+            $request['orderId'] = $id;
+        }
+        $response = null;
+        if ($isSpot) {
+            //
+            //     {
+            //         "symbol" => "DOGEUSDT",
+            //         "orderId" => 736800333186991070,
+            //         "clientOrderId" => "082007092f624a18bb7af2ab42e7c8e8",
+            //         "price" => "0.08500",
+            //         "origQty" => "300.0",
+            //         "executedQty" => "0",
+            //         "cummulativeQuoteQty" => "0",
+            //         "status" => "NEW",
+            //         "timeInForce" => "GTC",
+            //         "type" => "LIMIT",
+            //         "side" => "BUY",
+            //         "time" => 1775666888520,
+            //         "updateTime" => 1775666888536,
+            //         "isWorking" => true
+            //     }
+            //
+            $response = Async\await($this->privateGetApiV3Order($this->extend($request, $params)));
+        } else {
+            $response = Async\await($this->contractPrivateGetCapiV3Order($this->extend($request, $params)));
+        }
+        if ($response === null) {
+            throw new NullResponse($this->id . ' parseOrder() returned empty response');
+        }
+        return $this->parse_order($response, $market);
     }
 
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             *
-             * @see https://www.weex.com/api-doc/spot/orderApi/UnfinishedOrders // spot
-             * @see https://www.weex.com/api-doc/contract/Transaction_API/GetCurrentOrderStatus // contract
-             * @see https://www.weex.com/api-doc/contract/Transaction_API/GetCurrentPendingOrders // contract $trigger
-             *
-             * fetch all unfilled currently open orders
-             * @param {string} $symbol unified $market $symbol
-             * @param {int} [$since] the earliest time in ms to fetch open orders for
-             * @param {int} [$limit] the maximum number of  open orders structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->type] 'spot' or 'swap', used if $symbol is not provided (default is 'spot')
-             * @param {boolean} [$params->trigger] *swap only* whether to fetch $trigger orders (default is false)
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = null;
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-            }
-            $marketType = null;
-            list($marketType, $params) = $this->handle_market_type_and_params('fetchOpenOrders', $market, $params);
-            $isSpot = ($marketType === 'spot');
-            $paginate = false;
-            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOpenOrders', 'paginate', false);
-            $maxLimit = 100;
-            if ($paginate) {
-                if ($isSpot) {
-                    throw new NotSupported($this->id . ' fetchOpenOrders() pagination is not supported for spot markets');
-                }
-                return Async\await($this->fetch_paginated_call_dynamic('fetchOpenOrders', $symbol, $since, $limit, $params, $maxLimit));
-            }
-            $request = array();
-            if ($symbol !== null) {
-                $request['symbol'] = $this->safe_string($market, 'id');
-            }
-            $response = null;
-            if ($isSpot) {
-                //
-                //     array(
-                //         {
-                //             "symbol" => "DOGEUSDT",
-                //             "orderId" => 736807745679786974,
-                //             "clientOrderId" => "e6dc41082bf342f580a19264d82dab31",
-                //             "price" => "0.12000",
-                //             "origQty" => "299.0",
-                //             "executedQty" => "0",
-                //             "cummulativeQuoteQty" => "0",
-                //             "status" => "NEW",
-                //             "timeInForce" => "GTC",
-                //             "type" => "LIMIT",
-                //             "side" => "SELL",
-                //             "time" => 1775668655796,
-                //             "updateTime" => 1775668655810,
-                //             "isWorking" => true
-                //         }
-                //     )
-                //
-                $response = Async\await($this->privateGetApiV3OpenOrders($this->extend($request, $params)));
-            } else {
-                if ($since !== null) {
-                    $request['startTime'] = $since;
-                }
-                if ($limit !== null) {
-                    $request['limit'] = $limit;
-                }
-                list($request, $params) = $this->handle_until_option('endTime', $request, $params);
-                $trigger = $this->safe_bool($params, 'trigger', false);
-                if ($trigger) {
-                    $params = $this->omit($params, 'trigger');
-                    //
-                    //     array(
-                    //         {
-                    //             "algoId" => 737074389748547944,
-                    //             "clientAlgoId" => "d574f517-cea5-433e-b029-415590d3bb80",
-                    //             "algoType" => "CONDITIONAL",
-                    //             "orderType" => "STOP_MARKET",
-                    //             "symbol" => "DOGEUSDT",
-                    //             "side" => "SELL",
-                    //             "positionSide" => "LONG",
-                    //             "timeInForce" => "IOC",
-                    //             "quantity" => "100",
-                    //             "algoStatus" => "UNTRIGGERED",
-                    //             "actualOrderId" => 737074043320009064,
-                    //             "actualPrice" => "0.00000",
-                    //             "triggerPrice" => "0.02000",
-                    //             "price" => "0.00000",
-                    //             "tpTriggerPrice" => null,
-                    //             "tpPrice" => null,
-                    //             "slTriggerPrice" => null,
-                    //             "slPrice" => null,
-                    //             "tpOrderType" => null,
-                    //             "workingType" => "CONTRACT_PRICE",
-                    //             "closePosition" => false,
-                    //             "reduceOnly" => true,
-                    //             "createTime" => 1775732228695,
-                    //             "updateTime" => 1775732228695,
-                    //             "triggerTime" => 0
-                    //         }
-                    //     )
-                    //
-                    $response = Async\await($this->contractPrivateGetCapiV3OpenAlgoOrders($this->extend($request, $params)));
-                } else {
-                    //
-                    //     array(
-                    //         {
-                    //             "avgPrice" => "0.00000",
-                    //             "clientOrderId" => "857e1482-3225-44ce-bc0a-947714c5cabc",
-                    //             "cumQuote" => "0",
-                    //             "executedQty" => "0",
-                    //             "orderId" => 737185556881998184,
-                    //             "origQty" => "1400",
-                    //             "price" => "0.05000",
-                    //             "reduceOnly" => false,
-                    //             "side" => "BUY",
-                    //             "positionSide" => "LONG",
-                    //             "status" => "NEW",
-                    //             "stopPrice" => "0",
-                    //             "symbol" => "DOGEUSDT",
-                    //             "time" => 1775758733006,
-                    //             "timeInForce" => "GTC",
-                    //             "type" => "LIMIT",
-                    //             "updateTime" => 1775758733006,
-                    //             "workingType" => "UNKNOWN_PRICE_TYPE"
-                    //         }
-                    //     )
-                    //
-                    $response = Async\await($this->contractPrivateGetCapiV3OpenOrders($this->extend($request, $params)));
-                }
-            }
-            $extendedParams = array(
-                'status' => 'open',
-            );
-            return $this->parse_orders($response, $market, $since, $limit, $extendedParams);
-        })();
+        return Async\async(self::do_fetch_open_orders(...))($symbol, $since, $limit, $params);
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * fetches information on multiple closed $orders made by the user
-             *
-             * @see https://www.weex.com/api-doc/spot/orderApi/HistoryOrders // spot
-             * @see https://www.weex.com/api-doc/contract/Transaction_API/GetOrderHistory // contract
-             *
-             * @param {string} $symbol unified $market $symbol of the $market $orders were made in
-             * @param {int} [$since] the earliest time in ms to fetch $orders for
-             * @param {int} [$limit] the maximum number of order structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {int} [$params->until] the latest time in ms to fetch $orders for
-             * @param {string} [$params->type] 'spot' or 'swap', used if $symbol is not provided (default is 'spot')
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = null;
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-            }
-            $marketType = null;
-            list($marketType, $params) = $this->handle_market_type_and_params('fetchClosedOrders', $market, $params);
-            $orders = null;
-            if ($marketType === 'spot') {
-                if ($symbol === null) {
-                    throw new ArgumentsRequired($this->id . ' fetchClosedOrders() requires a $symbol argument for spot markets');
-                }
-                $orders = Async\await($this->fetch_orders($symbol, $since, null, $params));
-            } else {
-                $orders = Async\await($this->fetch_canceled_and_closed_orders($symbol, $since, $limit, $params));
-            }
-            return $this->filter_by($orders, 'status', 'closed');
-        })();
-    }
-
-    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * fetches information on multiple canceled $orders made by the user
-             *
-             * @see https://www.weex.com/api-doc/spot/orderApi/HistoryOrders // spot
-             * @see https://www.weex.com/api-doc/contract/Transaction_API/GetOrderHistory // contract
-             *
-             * @param {string} $symbol unified $market $symbol of the $market $orders were made in
-             * @param {int} [$since] the earliest time in ms to fetch $orders for
-             * @param {int} [$limit] the maximum number of order structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {int} [$params->until] the latest time in ms to fetch $orders for
-             * @param {string} [$params->type] 'spot' or 'swap', used if $symbol is not provided (default is 'spot')
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = null;
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-            }
-            $marketType = null;
-            list($marketType, $params) = $this->handle_market_type_and_params('fetchCanceledOrders', $market, $params);
-            $orders = null;
-            if ($marketType === 'spot') {
-                if ($symbol === null) {
-                    throw new ArgumentsRequired($this->id . ' fetchCanceledOrders() requires a $symbol argument for spot markets');
-                }
-                $orders = Async\await($this->fetch_orders($symbol, $since, null, $params));
-            } else {
-                $orders = Async\await($this->fetch_canceled_and_closed_orders($symbol, $since, $limit, $params));
-            }
-            return $this->filter_by($orders, 'status', 'canceled');
-        })();
-    }
-
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * fetches information on multiple spot orders made by the user
-             *
-             * @see https://www.weex.com/api-doc/spot/orderApi/HistoryOrders // spot
-             *
-             * @param {string} $symbol unified $market $symbol of the $market orders were made in (required for spot orders)
-             * @param {int} [$since] the earliest time in ms to fetch orders for
-             * @param {int} [$limit] the maximum number of order structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {array} [$params->until] end time, ms
-             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument');
-            }
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
+    private function do_fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         *
+         * @see https://www.weex.com/api-doc/spot/orderApi/UnfinishedOrders // spot
+         * @see https://www.weex.com/api-doc/contract/Transaction_API/GetCurrentOrderStatus // contract
+         * @see https://www.weex.com/api-doc/contract/Transaction_API/GetCurrentPendingOrders // contract $trigger
+         *
+         * fetch all unfilled currently open orders
+         * @param {string} $symbol unified $market $symbol
+         * @param {int} [$since] the earliest time in ms to fetch open orders for
+         * @param {int} [$limit] the maximum number of  open orders structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->type] 'spot' or 'swap', used if $symbol is not provided (default is 'spot')
+         * @param {boolean} [$params->trigger] *swap only* whether to fetch $trigger orders (default is false)
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = null;
+        if ($symbol !== null) {
             $market = $this->market($symbol);
-            if (!$market['spot']) {
-                throw new NotSupported($this->id . ' fetchOrders() supports spot markets only');
+        }
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchOpenOrders', $market, $params);
+        $isSpot = ($marketType === 'spot');
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOpenOrders', 'paginate', false);
+        $maxLimit = 100;
+        if ($paginate) {
+            if ($isSpot) {
+                throw new NotSupported($this->id . ' fetchOpenOrders() pagination is not supported for spot markets');
             }
-            $maxLimit = 1000;
-            $paginate = false;
-            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOrders', 'paginate', false);
-            if ($paginate) {
-                return Async\await($this->fetch_paginated_call_dynamic('fetchOrders', $symbol, $since, $limit, $params, $maxLimit));
-            }
-            $request = array(
-                'symbol' => $market['id'],
-            );
-            if ($since !== null) {
-                $request['startTime'] = $since;
-            }
-            if ($limit !== null) {
-                $request['limit'] = min($limit, $maxLimit);
-            }
-            list($request, $params) = $this->handle_until_option('endTime', $request, $params);
-            $response = Async\await($this->privateGetApiV3AllOrders($this->extend($request, $params)));
+            return Async\await($this->fetch_paginated_call_dynamic('fetchOpenOrders', $symbol, $since, $limit, $params, $maxLimit));
+        }
+        $request = array();
+        if ($symbol !== null) {
+            $request['symbol'] = $this->safe_string($market, 'id');
+        }
+        $response = null;
+        if ($isSpot) {
             //
             //     array(
             //         {
             //             "symbol" => "DOGEUSDT",
-            //             "orderId" => 736806838401500126,
-            //             "clientOrderId" => "e93fcb1423fc4b4982fd02eb3bc4955c",
-            //             "price" => "0.09365",
-            //             "origQty" => "300.0",
-            //             "executedQty" => "300.0",
-            //             "cummulativeQuoteQty" => "28.095",
-            //             "status" => "FILLED",
-            //             "timeInForce" => "IOC",
-            //             "type" => "MARKET",
-            //             "side" => "BUY",
-            //             "time" => 1775668439484,
-            //             "updateTime" => 1775668439498,
-            //             "isWorking" => false
+            //             "orderId" => 736807745679786974,
+            //             "clientOrderId" => "e6dc41082bf342f580a19264d82dab31",
+            //             "price" => "0.12000",
+            //             "origQty" => "299.0",
+            //             "executedQty" => "0",
+            //             "cummulativeQuoteQty" => "0",
+            //             "status" => "NEW",
+            //             "timeInForce" => "GTC",
+            //             "type" => "LIMIT",
+            //             "side" => "SELL",
+            //             "time" => 1775668655796,
+            //             "updateTime" => 1775668655810,
+            //             "isWorking" => true
             //         }
             //     )
             //
-            return $this->parse_orders($response, $market, $since, $limit);
-        })();
-    }
-
-    public function fetch_canceled_and_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * fetches information on multiple closed and canceled orders made by the user
-             *
-             * @see https://www.weex.com/api-doc/contract/Transaction_API/GetOrderHistory // contract
-             *
-             * @param {string} [$symbol] unified $market $symbol of the $market orders were made in (required for spot orders)
-             * @param {int} [$since] the earliest time in ms to fetch orders for
-             * @param {int} [$limit] the maximum number of order structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {array} [$params->until] end time, ms
-             * @param {string} [$params->type] 'spot' or 'swap', used if $symbol is not provided (default is 'spot')
-             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = null;
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-            }
-            $marketType = null;
-            list($marketType, $params) = $this->handle_market_type_and_params('fetchOrders', $market, $params);
-            if ($marketType === 'spot') {
-                throw new NotSupported($this->id . ' fetchCanceledAndClosedOrders() does not support spot markets. Use fetchOrders() instead and filter by status "canceled" or "closed"');
-            }
-            $paginate = false;
-            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOrders', 'paginate', false);
-            $maxLimit = 1000;
-            if ($paginate) {
-                return Async\await($this->fetch_paginated_call_dynamic('fetchOrders', $symbol, $since, $limit, $params, $maxLimit));
-            }
-            $request = array();
-            if ($symbol !== null) {
-                $request['symbol'] = $this->safe_string($market, 'id');
-            }
+            $response = Async\await($this->privateGetApiV3OpenOrders($this->extend($request, $params)));
+        } else {
             if ($since !== null) {
                 $request['startTime'] = $since;
             }
@@ -2801,33 +2893,306 @@ class weex extends Exchange {
                 $request['limit'] = $limit;
             }
             list($request, $params) = $this->handle_until_option('endTime', $request, $params);
+            $trigger = $this->safe_bool($params, 'trigger', false);
+            if ($trigger === true) {
+                $params = $this->omit($params, 'trigger');
+                //
+                //     array(
+                //         {
+                //             "algoId" => 737074389748547944,
+                //             "clientAlgoId" => "d574f517-cea5-433e-b029-415590d3bb80",
+                //             "algoType" => "CONDITIONAL",
+                //             "orderType" => "STOP_MARKET",
+                //             "symbol" => "DOGEUSDT",
+                //             "side" => "SELL",
+                //             "positionSide" => "LONG",
+                //             "timeInForce" => "IOC",
+                //             "quantity" => "100",
+                //             "algoStatus" => "UNTRIGGERED",
+                //             "actualOrderId" => 737074043320009064,
+                //             "actualPrice" => "0.00000",
+                //             "triggerPrice" => "0.02000",
+                //             "price" => "0.00000",
+                //             "tpTriggerPrice" => null,
+                //             "tpPrice" => null,
+                //             "slTriggerPrice" => null,
+                //             "slPrice" => null,
+                //             "tpOrderType" => null,
+                //             "workingType" => "CONTRACT_PRICE",
+                //             "closePosition" => false,
+                //             "reduceOnly" => true,
+                //             "createTime" => 1775732228695,
+                //             "updateTime" => 1775732228695,
+                //             "triggerTime" => 0
+                //         }
+                //     )
+                //
+                $response = Async\await($this->contractPrivateGetCapiV3OpenAlgoOrders($this->extend($request, $params)));
+            } else {
+                //
+                //     array(
+                //         {
+                //             "avgPrice" => "0.00000",
+                //             "clientOrderId" => "857e1482-3225-44ce-bc0a-947714c5cabc",
+                //             "cumQuote" => "0",
+                //             "executedQty" => "0",
+                //             "orderId" => 737185556881998184,
+                //             "origQty" => "1400",
+                //             "price" => "0.05000",
+                //             "reduceOnly" => false,
+                //             "side" => "BUY",
+                //             "positionSide" => "LONG",
+                //             "status" => "NEW",
+                //             "stopPrice" => "0",
+                //             "symbol" => "DOGEUSDT",
+                //             "time" => 1775758733006,
+                //             "timeInForce" => "GTC",
+                //             "type" => "LIMIT",
+                //             "updateTime" => 1775758733006,
+                //             "workingType" => "UNKNOWN_PRICE_TYPE"
+                //         }
+                //     )
+                //
+                $response = Async\await($this->contractPrivateGetCapiV3OpenOrders($this->extend($request, $params)));
+            }
+        }
+        $extendedParams = array(
+            'status' => 'open',
+        );
+        return $this->parse_orders($response, $market, $since, $limit, $extendedParams);
+    }
+
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_fetch_closed_orders(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetches information on multiple closed $orders made by the user
+         *
+         * @see https://www.weex.com/api-doc/spot/orderApi/HistoryOrders // spot
+         * @see https://www.weex.com/api-doc/contract/Transaction_API/GetOrderHistory // contract
+         * @see https://www.weex.com/api-doc/contract/demo/GetOrderHistory // contract in sandbox mode
+         *
+         * @param {string} $symbol unified $market $symbol of the $market $orders were made in
+         * @param {int} [$since] the earliest time in ms to fetch $orders for
+         * @param {int} [$limit] the maximum number of order structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] the latest time in ms to fetch $orders for
+         * @param {string} [$params->type] 'spot' or 'swap', used if $symbol is not provided (default is 'spot')
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchClosedOrders', $market, $params);
+        $orders = null;
+        if ($marketType === 'spot') {
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' fetchClosedOrders() requires a $symbol argument for spot markets');
+            }
+            $orders = Async\await($this->fetch_orders($symbol, $since, null, $params));
+        } else {
+            $orders = Async\await($this->fetch_canceled_and_closed_orders($symbol, $since, $limit, $params));
+        }
+        return $this->filter_by($orders, 'status', 'closed');
+    }
+
+    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_fetch_canceled_orders(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetches information on multiple canceled $orders made by the user
+         *
+         * @see https://www.weex.com/api-doc/spot/orderApi/HistoryOrders // spot
+         * @see https://www.weex.com/api-doc/contract/Transaction_API/GetOrderHistory // contract
+         * @see https://www.weex.com/api-doc/contract/demo/GetOrderHistory // contract in sandbox mode
+         *
+         * @param {string} $symbol unified $market $symbol of the $market $orders were made in
+         * @param {int} [$since] the earliest time in ms to fetch $orders for
+         * @param {int} [$limit] the maximum number of order structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] the latest time in ms to fetch $orders for
+         * @param {string} [$params->type] 'spot' or 'swap', used if $symbol is not provided (default is 'spot')
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchCanceledOrders', $market, $params);
+        $orders = null;
+        if ($marketType === 'spot') {
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' fetchCanceledOrders() requires a $symbol argument for spot markets');
+            }
+            $orders = Async\await($this->fetch_orders($symbol, $since, null, $params));
+        } else {
+            $orders = Async\await($this->fetch_canceled_and_closed_orders($symbol, $since, $limit, $params));
+        }
+        return $this->filter_by($orders, 'status', 'canceled');
+    }
+
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_fetch_orders(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetches information on multiple spot orders made by the user
+         *
+         * @see https://www.weex.com/api-doc/spot/orderApi/HistoryOrders // spot
+         *
+         * @param {string} $symbol unified $market $symbol of the $market orders were made in (required for spot orders)
+         * @param {int} [$since] the earliest time in ms to fetch orders for
+         * @param {int} [$limit] the maximum number of order structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {array} [$params->until] end time, ms
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument');
+        }
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        if ($market['spot'] !== true) {
+            throw new NotSupported($this->id . ' fetchOrders() supports spot markets only');
+        }
+        $maxLimit = 1000;
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOrders', 'paginate', false);
+        if ($paginate) {
+            return Async\await($this->fetch_paginated_call_dynamic('fetchOrders', $symbol, $since, $limit, $params, $maxLimit));
+        }
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
+        if ($limit !== null) {
+            $request['limit'] = min($limit, $maxLimit);
+        }
+        list($request, $params) = $this->handle_until_option('endTime', $request, $params);
+        $response = Async\await($this->privateGetApiV3AllOrders($this->extend($request, $params)));
+        //
+        //     array(
+        //         {
+        //             "symbol" => "DOGEUSDT",
+        //             "orderId" => 736806838401500126,
+        //             "clientOrderId" => "e93fcb1423fc4b4982fd02eb3bc4955c",
+        //             "price" => "0.09365",
+        //             "origQty" => "300.0",
+        //             "executedQty" => "300.0",
+        //             "cummulativeQuoteQty" => "28.095",
+        //             "status" => "FILLED",
+        //             "timeInForce" => "IOC",
+        //             "type" => "MARKET",
+        //             "side" => "BUY",
+        //             "time" => 1775668439484,
+        //             "updateTime" => 1775668439498,
+        //             "isWorking" => false
+        //         }
+        //     )
+        //
+        return $this->parse_orders($response, $market, $since, $limit);
+    }
+
+    public function fetch_canceled_and_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_fetch_canceled_and_closed_orders(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_canceled_and_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetches information on multiple closed and canceled orders made by the user
+         *
+         * @see https://www.weex.com/api-doc/contract/Transaction_API/GetOrderHistory // contract
+         * @see https://www.weex.com/api-doc/contract/demo/GetOrderHistory // contract in sandbox mode
+         *
+         * @param {string} [$symbol] unified $market $symbol of the $market orders were made in (required for spot orders)
+         * @param {int} [$since] the earliest time in ms to fetch orders for
+         * @param {int} [$limit] the maximum number of order structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {array} [$params->until] end time, ms
+         * @param {string} [$params->type] 'spot' or 'swap', used if $symbol is not provided (default is 'spot')
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchCanceledAndClosedOrders', $market, $params);
+        if ($marketType === 'spot') {
+            throw new NotSupported($this->id . ' fetchCanceledAndClosedOrders() does not support spot markets. Use fetchOrders() instead and filter by status "canceled" or "closed"');
+        }
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchCanceledAndClosedOrders', 'paginate', false);
+        $maxLimit = 1000;
+        if ($paginate) {
+            return Async\await($this->fetch_paginated_call_dynamic('fetchCanceledAndClosedOrders', $symbol, $since, $limit, $params, $maxLimit));
+        }
+        $request = array();
+        if ($symbol !== null) {
+            $request['symbol'] = $this->to_sandbox_market_id($market);
+        }
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        list($request, $params) = $this->handle_until_option('endTime', $request, $params);
+        $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
+        $response = null;
+        if ($sandboxMode === true) {
+            $response = Async\await($this->contractPrivateGetCapiV3SimOrderHistory($this->extend($request, $params)));
+        } else {
             $response = Async\await($this->contractPrivateGetCapiV3OrderHistory($this->extend($request, $params)));
-            //
-            //     array(
-            //         {
-            //             "avgPrice" => "0.00000",
-            //             "clientOrderId" => "7bd80776-0c3f-4ed9-ab9c-a616d66fac5e",
-            //             "cumQuote" => "0",
-            //             "executedQty" => "0",
-            //             "orderId" => 737074389744353640,
-            //             "origQty" => "100",
-            //             "price" => "0.00000",
-            //             "reduceOnly" => true,
-            //             "side" => "SELL",
-            //             "positionSide" => "LONG",
-            //             "status" => "CANCELED",
-            //             "stopPrice" => "1.00000",
-            //             "symbol" => "DOGEUSDT",
-            //             "time" => 1775732228695,
-            //             "timeInForce" => "IOC",
-            //             "type" => "TAKE_PROFIT_MARKET",
-            //             "updateTime" => 1775732228695,
-            //             "workingType" => "CONTRACT_PRICE"
-            //         }
-            //     )
-            //
-            return $this->parse_orders($response, $market, $since, $limit);
-        })();
+        }
+        //
+        //     array(
+        //         {
+        //             "avgPrice" => "0.00000",
+        //             "clientOrderId" => "7bd80776-0c3f-4ed9-ab9c-a616d66fac5e",
+        //             "cumQuote" => "0",
+        //             "executedQty" => "0",
+        //             "orderId" => 737074389744353640,
+        //             "origQty" => "100",
+        //             "price" => "0.00000",
+        //             "reduceOnly" => true,
+        //             "side" => "SELL",
+        //             "positionSide" => "LONG",
+        //             "status" => "CANCELED",
+        //             "stopPrice" => "1.00000",
+        //             "symbol" => "DOGEUSDT",
+        //             "time" => 1775732228695,
+        //             "timeInForce" => "IOC",
+        //             "type" => "TAKE_PROFIT_MARKET",
+        //             "updateTime" => 1775732228695,
+        //             "workingType" => "CONTRACT_PRICE"
+        //         }
+        //     )
+        //
+        return $this->parse_orders($response, $market, $since, $limit);
     }
 
     public function parse_order(array $order, ?array $market = null): array {
@@ -2937,21 +3302,33 @@ class weex extends Exchange {
             $this->handle_order_or_position_error($errorCode, $errorMessage, $order);
         }
         if ($market === null) {
-            $marketId = $this->safe_string($order, 'symbol');
+            $marketId = $this->from_sandbox_market_id($this->safe_string($order, 'symbol'));
             $positionSide = $this->safe_string($order, 'positionSide');
             $marketType = ($positionSide === null) ? 'spot' : 'swap';
             $market = $this->safe_market($marketId, null, null, $marketType);
         }
         $timestamp = $this->safe_integer_n($order, array( 'transactTime', 'time', 'createTime' ));
-        $rawStatus = $this->safe_string_lower($order, 'status');
+        $rawStatus = $this->safe_string_lower_2($order, 'status', 'algoStatus'); // algo (trigger) $order payloads carry algoStatus instead of status
         $triggerPrice = $this->omit_zero($this->safe_string_2($order, 'triggerPrice', 'stopPrice'));
         $rawType = $this->safe_string_upper_2($order, 'type', 'orderType');
+        $isReduceOnly = $this->safe_bool($order, 'reduceOnly');
+        // entry conditional orders reuse the STOP/TAKE_PROFIT types with reduceOnly set to false, their trigger price is not a stop loss / take profit price
+        // a missing reduceOnly counts-only to keep the legacy mapping for responses that omit the field
+        $isEntryTrigger = !$this->safe_bool($order, 'reduceOnly', true);
         $takeProfitPrice = null;
         $stopLossPrice = null;
-        if ($rawType === 'TAKE_PROFIT_MARKET' || $rawType === 'TAKE_PROFIT') {
-            $takeProfitPrice = $triggerPrice;
-        } elseif ($rawType === 'STOP_LOSS' || $rawType === 'STOP' || $rawType === 'STOP_MARKET') {
-            $stopLossPrice = $triggerPrice;
+        if (!$isEntryTrigger) {
+            if ($rawType === 'TAKE_PROFIT_MARKET' || $rawType === 'TAKE_PROFIT') {
+                $takeProfitPrice = $triggerPrice;
+            } elseif ($rawType === 'STOP_LOSS' || $rawType === 'STOP' || $rawType === 'STOP_MARKET') {
+                $stopLossPrice = $triggerPrice;
+            }
+        }
+        if ($takeProfitPrice === null) {
+            $takeProfitPrice = $this->omit_zero($this->safe_string($order, 'tpTriggerPrice')); // attached take profit of a regular or conditional $order
+        }
+        if ($stopLossPrice === null) {
+            $stopLossPrice = $this->omit_zero($this->safe_string($order, 'slTriggerPrice')); // attached stop loss of a regular or conditional $order
         }
         return $this->safe_order(array(
             'id' => $this->safe_string_n($order, array( 'orderId', 'algoId', 'successOrderId' )),
@@ -2960,7 +3337,7 @@ class weex extends Exchange {
             'type' => $this->parse_order_type($rawType),
             'timeInForce' => $this->safe_string($order, 'timeInForce'),
             'postOnly' => null,
-            'reduceOnly' => $this->safe_bool($order, 'reduceOnly'),
+            'reduceOnly' => $isReduceOnly,
             'side' => $this->safe_string_lower($order, 'side'),
             'amount' => $this->safe_string_2($order, 'origQty', 'quantity'),
             'price' => $this->safe_string($order, 'price'),
@@ -3029,68 +3406,175 @@ class weex extends Exchange {
     }
 
     public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
-        return Async\async(function () use ($id, $symbol, $since, $limit, $params) {
-            /**
-             * fetch all the trades made from a single order
-             *
-             * @see https://www.weex.com/api-doc/spot/orderApi/TransactionDetails // spot
-             * @see https://www.weex.com/api-doc/contract/Transaction_API/GetTradeDetails // contract
-             *
-             * @param {string} $id order $id
-             * @param {string} [$symbol] unified market $symbol
-             * @param {int} [$since] the earliest time in ms to fetch trades for
-             * @param {int} [$limit] the maximum number of trades to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?$id=trade-structure trade structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $request = array(
-                'orderId' => $id,
-            );
-            return Async\await($this->fetch_my_trades($symbol, $since, $limit, $this->extend($request, $params)));
-        })();
+        return Async\async(self::do_fetch_order_trades(...))($id, $symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetch all the trades made from a single order
+         *
+         * @see https://www.weex.com/api-doc/spot/orderApi/TransactionDetails // spot
+         * @see https://www.weex.com/api-doc/contract/Transaction_API/GetTradeDetails // contract
+         *
+         * @param {string} $id order $id
+         * @param {string} [$symbol] unified market $symbol
+         * @param {int} [$since] the earliest time in ms to fetch trades for
+         * @param {int} [$limit] the maximum number of trades to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?$id=trade-structure trade structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $request = array(
+            'orderId' => $id,
+        );
+        return Async\await($this->fetch_my_trades($symbol, $since, $limit, $this->extend($request, $params)));
     }
 
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             *
-             * @see https://www.weex.com/api-doc/spot/orderApi/TransactionDetails // spot
-             * @see https://www.weex.com/api-doc/contract/Transaction_API/GetTradeDetails // contract
-             *
-             * fetch all trades made by the user
-             * @param {string} $symbol unified $market $symbol
-             * @param {int} [$since] the earliest time in ms to fetch trades for
-             * @param {int} [$limit] the maximum number of trades structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-             * @param {string} [$params->type] 'spot' or 'swap', used if $symbol is not provided (default is 'spot')
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
+        return Async\async(self::do_fetch_my_trades(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         *
+         * @see https://www.weex.com/api-doc/spot/orderApi/TransactionDetails // spot
+         * @see https://www.weex.com/api-doc/contract/Transaction_API/GetTradeDetails // contract
+         *
+         * fetch all trades made by the user
+         * @param {string} $symbol unified $market $symbol
+         * @param {int} [$since] the earliest time in ms to fetch trades for
+         * @param {int} [$limit] the maximum number of trades structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @param {string} [$params->type] 'spot' or 'swap', used if $symbol is not provided (default is 'spot')
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchMyTrades', $market, $params);
+        $isSpot = ($marketType === 'spot');
+        if ($isSpot && ($symbol === null)) {
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument for spot markets');
+        }
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate', false);
+        $maxLimit = 100;
+        if ($paginate) {
+            return Async\await($this->fetch_paginated_call_dynamic('fetchMyTrades', $symbol, $since, $limit, $params, $maxLimit));
+        }
+        $request = array();
+        if ($symbol !== null) {
+            $request['symbol'] = $this->safe_string($market, 'id');
+        }
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        list($request, $params) = $this->handle_until_option('endTime', $request, $params);
+        $response = null;
+        if ($isSpot) {
+            //
+            //     array(
+            //         {
+            //             "symbol" => "DOGEUSDT",
+            //             "id" => 736825748291060702,
+            //             "orderId" => 736825748215563230,
+            //             "price" => "0.09349",
+            //             "qty" => "250.0",
+            //             "quoteQty" => "23.3725",
+            //             "commission" => "0.0233725",
+            //             "time" => 1775672947953,
+            //             "isBuyer" => false
+            //         }
+            //     )
+            //
+            $response = Async\await($this->privateGetApiV3MyTrades($this->extend($request, $params)));
+        } else {
+            //
+            //     array(
+            //         {
+            //             "id" => 737074389731770728,
+            //             "orderId" => 737074043320009064,
+            //             "symbol" => "DOGEUSDT",
+            //             "buyer" => true,
+            //             "commission" => "0.00183500",
+            //             "commissionAsset" => "USDT",
+            //             "maker" => true,
+            //             "price" => "0.09175",
+            //             "qty" => "100",
+            //             "quoteQty" => "9.17500",
+            //             "realizedPnl" => "0",
+            //             "side" => "BUY",
+            //             "positionSide" => "LONG",
+            //             "time" => 1775732228692
+            //         }
+            //     )
+            //
+            $response = Async\await($this->contractPrivateGetCapiV3UserTrades($this->extend($request, $params)));
+        }
+        $responseList = array();
+        if ($response !== null) {
+            $responseList = $this->to_array($response);
+        }
+        return $this->parse_trades($responseList, $market, $since, $limit);
+    }
+
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_fetch_ledger(...))($code, $since, $limit, $params);
+    }
+
+    private function do_fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetch the history of changes, actions done by the user or operations that altered the balance of the user
+         *
+         * @see https://www.weex.com/api-doc/spot/AccountAPI/GetBillRecords // spot
+         * @see https://www.weex.com/api-doc/spot/AccountAPI/GetFundBillRecords // funding
+         * @see https://www.weex.com/api-doc/contract/Account_API/GetContractBills // contract
+         *
+         * @param {string} [$code] unified $currency $code, default is null
+         * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
+         * @param {int} [$limit] max number of ledger entries to return, default is null, max is 100
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] timestamp in ms of the latest ledger entry
+         * @param {string} [$params->type] 'spot', 'funding' or 'swap' (default is 'spot')
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ledger-entry-structure ledger structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchLedger', 'paginate', false);
+        $maxLimit = 100;
+        if ($paginate) {
+            return Async\await($this->fetch_paginated_call_dynamic('fetchLedger', $code, $since, $limit, $params, $maxLimit));
+        }
+        $accountType = null;
+        list($accountType, $params) = $this->handle_market_type_and_params('fetchLedger', null, $params);
+        $accountsByType = $this->safe_dict($this->options, 'accountsByType', array());
+        $accountType = $this->safe_string($accountsByType, $accountType, $accountType);
+        $request = array();
+        $items = null;
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+        }
+        if ($accountType === 'contract') {
+            if ($currency === null) {
+                throw new ExchangeError($this->id . ' fetchLedger() could not resolve currency');
             }
-            $market = null;
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-            }
-            $marketType = null;
-            list($marketType, $params) = $this->handle_market_type_and_params('fetchMyTrades', $market, $params);
-            $isSpot = ($marketType === 'spot');
-            if ($isSpot && ($symbol === null)) {
-                throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument for spot markets');
-            }
-            $paginate = false;
-            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate', false);
-            $maxLimit = 100;
-            if ($paginate) {
-                return Async\await($this->fetch_paginated_call_dynamic('fetchMyTrades', $symbol, $since, $limit, $params, $maxLimit));
-            }
-            $request = array();
-            if ($symbol !== null) {
-                $request['symbol'] = $this->safe_string($market, 'id');
+            if ($code !== null) {
+                $request['currency'] = $currency['id'];
             }
             if ($since !== null) {
                 $request['startTime'] = $since;
@@ -3099,123 +3583,30 @@ class weex extends Exchange {
                 $request['limit'] = $limit;
             }
             list($request, $params) = $this->handle_until_option('endTime', $request, $params);
-            $response = null;
-            if ($isSpot) {
-                //
-                //     array(
-                //         {
-                //             "symbol" => "DOGEUSDT",
-                //             "id" => 736825748291060702,
-                //             "orderId" => 736825748215563230,
-                //             "price" => "0.09349",
-                //             "qty" => "250.0",
-                //             "quoteQty" => "23.3725",
-                //             "commission" => "0.0233725",
-                //             "time" => 1775672947953,
-                //             "isBuyer" => false
-                //         }
-                //     )
-                //
-                $response = Async\await($this->privateGetApiV3MyTrades($this->extend($request, $params)));
-            } else {
-                //
-                //     array(
-                //         {
-                //             "id" => 737074389731770728,
-                //             "orderId" => 737074043320009064,
-                //             "symbol" => "DOGEUSDT",
-                //             "buyer" => true,
-                //             "commission" => "0.00183500",
-                //             "commissionAsset" => "USDT",
-                //             "maker" => true,
-                //             "price" => "0.09175",
-                //             "qty" => "100",
-                //             "quoteQty" => "9.17500",
-                //             "realizedPnl" => "0",
-                //             "side" => "BUY",
-                //             "positionSide" => "LONG",
-                //             "time" => 1775732228692
-                //         }
-                //     )
-                //
-                $response = Async\await($this->contractPrivateGetCapiV3UserTrades($this->extend($request, $params)));
+            $contractResponse = Async\await($this->contractPrivatePostCapiV3AccountIncome($this->extend($request, $params)));
+            $items = $this->safe_list($contractResponse, 'items', array());
+        } elseif ($accountType === 'funding') {
+            if ($since !== null) {
+                $request['startTime'] = $since;
             }
-            return $this->parse_trades($response, $market, $since, $limit);
-        })();
-    }
-
-    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($code, $since, $limit, $params) {
-            /**
-             * fetch the history of changes, actions done by the user or operations that altered the balance of the user
-             *
-             * @see https://www.weex.com/api-doc/spot/AccountAPI/GetBillRecords // spot
-             * @see https://www.weex.com/api-doc/spot/AccountAPI/GetFundBillRecords // funding
-             * @see https://www.weex.com/api-doc/contract/Account_API/GetContractBills // contract
-             *
-             * @param {string} [$code] unified $currency $code, default is null
-             * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
-             * @param {int} [$limit] max number of ledger entries to return, default is null, max is 100
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {int} [$params->until] timestamp in ms of the latest ledger entry
-             * @param {string} [$params->type] 'spot', 'funding' or 'swap' (default is 'spot')
-             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-             * @return {array} a ~@link https://docs.ccxt.com/?id=ledger-entry-structure ledger structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
+            if ($limit !== null) {
+                $request['pageSize'] = $limit;
             }
-            $paginate = false;
-            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchLedger', 'paginate', false);
-            $maxLimit = 100;
-            if ($paginate) {
-                return Async\await($this->fetch_paginated_call_dynamic('fetchLedger', $code, $since, $limit, $params, $maxLimit));
+            list($request, $params) = $this->handle_until_option('endTime', $request, $params);
+            $fundingResponse = Async\await($this->privatePostApiV3AccountFundingBills($this->extend($request, $params)));
+            $items = $this->safe_list($fundingResponse, 'items', array());
+        } else {
+            if ($since !== null) {
+                $request['after'] = $since;
             }
-            $accountType = null;
-            list($accountType, $params) = $this->handle_market_type_and_params('fetchLedger', null, $params);
-            $accountsByType = $this->safe_dict($this->options, 'accountsByType', array());
-            $accountType = $this->safe_string($accountsByType, $accountType, $accountType);
-            $request = array();
-            $items = null;
-            $currency = null;
-            if ($code !== null) {
-                $currency = $this->currency($code);
+            if ($limit !== null) {
+                $request['limit'] = $limit;
             }
-            if ($accountType === 'contract') {
-                if ($code !== null) {
-                    $request['currency'] = $currency['id'];
-                }
-                if ($since !== null) {
-                    $request['startTime'] = $since;
-                }
-                if ($limit !== null) {
-                    $request['limit'] = $limit;
-                }
-                list($request, $params) = $this->handle_until_option('endTime', $request, $params);
-                $contractResponse = Async\await($this->contractPrivatePostCapiV3AccountIncome($this->extend($request, $params)));
-                $items = $this->safe_list($contractResponse, 'items', array());
-            } elseif ($accountType === 'funding') {
-                if ($since !== null) {
-                    $request['startTime'] = $since;
-                }
-                if ($limit !== null) {
-                    $request['pageSize'] = $limit;
-                }
-                list($request, $params) = $this->handle_until_option('endTime', $request, $params);
-                $fundingResponse = Async\await($this->privatePostApiV3AccountFundingBills($this->extend($request, $params)));
-                $items = $this->safe_list($fundingResponse, 'items', array());
-            } else {
-                if ($since !== null) {
-                    $request['after'] = $since;
-                }
-                if ($limit !== null) {
-                    $request['limit'] = $limit;
-                }
-                list($request, $params) = $this->handle_until_option('before', $request, $params);
-                $items = Async\await($this->privatePostApiV3AccountBills($this->extend($request, $params)));
-            }
-            return $this->parse_ledger($items, $currency, $since, $limit);
-        })();
+            list($request, $params) = $this->handle_until_option('before', $request, $params);
+            $billsResponse = Async\await($this->privatePostApiV3AccountBills($this->extend($request, $params)));
+            $items = $this->to_array($billsResponse);
+        }
+        return $this->parse_ledger($items, $currency, $since, $limit);
     }
 
     public function parse_ledger_entry(array $item, ?array $currency = null): array {
@@ -3270,6 +3661,9 @@ class weex extends Exchange {
         $before = Precise::string_sub($after, $amountRaw);
         $amount = $this->parse_number(Precise::string_abs($amountRaw));
         $direction = 'in';
+        if ($amountRaw === null) {
+            throw new ExchangeError($this->id . ' parseLedgerEntry() missing amountRaw');
+        }
         if (mb_strpos($amountRaw, '-') !== false) {
             $direction = 'out';
         }
@@ -3320,63 +3714,81 @@ class weex extends Exchange {
     }
 
     public function fetch_positions(?array $symbols = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             * fetch all open positions
-             *
-             * @see https://www.weex.com/api-doc/contract/Account_API/GetAllPositions
-             *
-             * @param {string[]} [$symbols] list of unified market $symbols
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $symbols = $this->market_symbols($symbols);
+        return Async\async(self::do_fetch_positions(...))($symbols, $params);
+    }
+
+    private function do_fetch_positions(?array $symbols = null, $params = array()) {
+        /**
+         * fetch all open positions
+         *
+         * @see https://www.weex.com/api-doc/contract/Account_API/GetAllPositions
+         * @see https://www.weex.com/api-doc/contract/demo/GetAllPositions // sandbox mode
+         *
+         * @param {string[]} [$symbols] list of unified market $symbols
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbols = $this->market_symbols($symbols);
+        $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
+        $response = null;
+        if ($sandboxMode === true) {
+            $response = Async\await($this->contractPrivateGetCapiV3SimPositionAllPosition($params));
+        } else {
             $response = Async\await($this->contractPrivateGetCapiV3AccountPositionAllPosition($params));
-            return $this->parse_positions($response, $symbols);
-        })();
+        }
+        return $this->parse_positions($response, $symbols);
     }
 
     public function fetch_position(string $symbol, $params = array()) {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * fetch data on an open position
-             *
-             * @see https://www.weex.com/api-doc/contract/Account_API/GetSinglePosition
-             *
-             * @param {string} $symbol unified market $symbol of the market the position is held in
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=position-structure position structure~
-             */
-            $positions = Async\await($this->fetch_positions_for_symbol($symbol, $params));
-            return $this->safe_dict($positions, 0);
-        })();
+        return Async\async(self::do_fetch_position(...))($symbol, $params);
+    }
+
+    private function do_fetch_position(string $symbol, $params = array()) {
+        /**
+         * fetch data on an open position
+         *
+         * @see https://www.weex.com/api-doc/contract/Account_API/GetSinglePosition
+         *
+         * @param {string} $symbol unified market $symbol of the market the position is held in
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=position-structure position structure~
+         */
+        $positions = Async\await($this->fetch_positions_for_symbol($symbol, $params));
+        return $this->safe_dict($positions, 0);
     }
 
     public function fetch_positions_for_symbol(string $symbol, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * fetch open positions for a single $market
-             *
-             * @see https://www.weex.com/api-doc/contract/Account_API/GetSinglePosition
-             *
-             * fetch all open positions for specific $symbol
-             * @param {string} $symbol unified $market $symbol
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $request = array(
-                'symbol' => $market['id'],
-            );
-            $response = Async\await($this->contractPrivateGetCapiV3AccountPositionSinglePosition($this->extend($request, $params)));
-            return $this->parse_positions($response, array( $market['symbol'] ));
-        })();
+        return Async\async(self::do_fetch_positions_for_symbol(...))($symbol, $params);
+    }
+
+    private function do_fetch_positions_for_symbol(string $symbol, $params = array()) {
+        /**
+         * fetch open positions for a single $market
+         *
+         * @see https://www.weex.com/api-doc/contract/Account_API/GetSinglePosition
+         *
+         * fetch all open positions for specific $symbol
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
+        if ($sandboxMode === true) {
+            // the demo trading API does not provide a single-position endpoint
+            return Async\await($this->fetch_positions(array( $market['symbol'] ), $params));
+        }
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = Async\await($this->contractPrivateGetCapiV3AccountPositionSinglePosition($this->extend($request, $params)));
+        return $this->parse_positions($response, array( $market['symbol'] ));
     }
 
     public function parse_position(array $position, ?array $market = null) {
@@ -3448,7 +3860,7 @@ class weex extends Exchange {
         if ($errorMessage !== null) {
             $this->handle_order_or_position_error($errorCode, $errorMessage, $position);
         }
-        $marketId = $this->safe_string_2($position, 'symbol', 'coinId'); // coinId might be used in testnet => https://github.com/ccxt/ccxt/issues/28576#issuecomment-4439400273
+        $marketId = $this->from_sandbox_market_id($this->safe_string_2($position, 'symbol', 'coinId')); // coinId might be used in testnet => https://github.com/ccxt/ccxt/issues/28576#issuecomment-4439400273
         $market = $this->safe_market($marketId, $market, null, 'contract');
         $timestamp = $this->safe_integer($position, 'createdTime');
         $marginType = $this->safe_string_2($position, 'marginType', 'marginMode');
@@ -3499,90 +3911,96 @@ class weex extends Exchange {
     }
 
     public function close_all_positions($params = array()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             * closes all open positions for a market type
-             *
-             * @see https://www.weex.com/api-doc/contract/Transaction_API/ClosePositions
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} A list of ~@link https://docs.ccxt.com/?id=position-structure position structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $response = Async\await($this->contractPrivatePostCapiV3ClosePositions($params));
-            //
-            //     array(
-            //         {
-            //             "positionId" => 737191855967437160,
-            //             "successOrderId" => 737215340433375592,
-            //             "errorMessage" => "",
-            //             "success" => true
-            //         }
-            //     )
-            //
-            return $this->parse_positions($response);
-        })();
+        return Async\async(self::do_close_all_positions(...))($params);
+    }
+
+    private function do_close_all_positions($params = array()) {
+        /**
+         * closes all open positions for a market type
+         *
+         * @see https://www.weex.com/api-doc/contract/Transaction_API/ClosePositions
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} A list of ~@link https://docs.ccxt.com/?id=position-structure position structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $response = Async\await($this->contractPrivatePostCapiV3ClosePositions($params));
+        //
+        //     array(
+        //         {
+        //             "positionId" => 737191855967437160,
+        //             "successOrderId" => 737215340433375592,
+        //             "errorMessage" => "",
+        //             "success" => true
+        //         }
+        //     )
+        //
+        return $this->parse_positions($response);
     }
 
     public function close_position(string $symbol, ?string $side = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $side, $params) {
-            /**
-             * closes open positions for a $market
-             *
-             * @see https://www.weex.com/api-doc/contract/Transaction_API/ClosePositions
-             *
-             * @param {string} $symbol Unified CCXT $market $symbol
-             * @param {string} [$side] not used by current exchange
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $request = array(
-                'symbol' => $market['id'],
-            );
-            $response = Async\await($this->contractPrivatePostCapiV3ClosePositions($this->extend($request, $params)));
-            $orders = $this->parse_orders($response, $market);
-            return $this->safe_dict($orders, 0);
-        })();
+        return Async\async(self::do_close_position(...))($symbol, $side, $params);
+    }
+
+    private function do_close_position(string $symbol, ?string $side = null, $params = array()) {
+        /**
+         * closes open positions for a $market
+         *
+         * @see https://www.weex.com/api-doc/contract/Transaction_API/ClosePositions
+         *
+         * @param {string} $symbol Unified CCXT $market $symbol
+         * @param {string} [$side] not used by current exchange
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = Async\await($this->contractPrivatePostCapiV3ClosePositions($this->extend($request, $params)));
+        $orders = $this->parse_orders($response, $market);
+        return $this->safe_dict($orders, 0);
     }
 
     public function fetch_trading_fee(string $symbol, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             *
-             * @see https://www.weex.com/api-doc/contract/Account_API/GetCommissionRate // contract
-             *
-             * fetch the trading fees for a contract $market
-             * @param {string} $symbol unified $market $symbol
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=fee-structure fee structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            if ($market['spot']) {
-                // spot markets return 0 for fees
-                throw new NotSupported($this->id . ' fetchTradingFee() is not supported for spot markets');
-            }
-            $request = array(
-                'symbol' => $market['id'],
-            );
-            $response = Async\await($this->contractPrivateGetCapiV3AccountCommissionRate($this->extend($request, $params)));
-            //
-            //     {
-            //         "symbol" => "DOGEUSDT",
-            //         "makerCommissionRate" => "0.0002",
-            //         "takerCommissionRate" => "0.0008"
-            //     }
-            //
-            return $this->parse_trading_fee($response, $market);
-        })();
+        return Async\async(self::do_fetch_trading_fee(...))($symbol, $params);
+    }
+
+    private function do_fetch_trading_fee(string $symbol, $params = array()) {
+        /**
+         *
+         * @see https://www.weex.com/api-doc/contract/Account_API/GetCommissionRate // contract
+         *
+         * fetch the trading fees for a contract $market
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=fee-structure fee structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        if ($market['spot'] === true) {
+            // spot markets return 0 for fees
+            throw new NotSupported($this->id . ' fetchTradingFee() is not supported for spot markets');
+        }
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = Async\await($this->contractPrivateGetCapiV3AccountCommissionRate($this->extend($request, $params)));
+        //
+        //     {
+        //         "symbol" => "DOGEUSDT",
+        //         "makerCommissionRate" => "0.0002",
+        //         "takerCommissionRate" => "0.0008"
+        //     }
+        //
+        return $this->parse_trading_fee($response, $market);
     }
 
     public function parse_trading_fee(array $fee, ?array $market = null): array {
@@ -3606,62 +4024,66 @@ class weex extends Exchange {
     }
 
     public function fetch_margin_mode(string $symbol, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * fetches the margin mode of a specific $symbol
-             *
-             * @see https://www.weex.com/api-doc/contract/Account_API/GetSymbolConfig
-             *
-             * @param {string} $symbol unified $symbol of the $market the order was made in
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=margin-mode-structure margin mode structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $request = array(
-                'symbol' => $market['id'],
-            );
-            $response = Async\await($this->contractPrivateGetCapiV3AccountSymbolConfig($this->extend($request, $params)));
-            //
-            //     array(
-            //         {
-            //             "symbol" => "DOGEUSDT",
-            //             "marginType" => "CROSSED",
-            //             "separatedType" => "COMBINED",
-            //             "crossLeverage" => "20.00",
-            //             "isolatedLongLeverage" => "20.00",
-            //             "isolatedShortLeverage" => "20.00"
-            //         }
-            //     )
-            //
-            $marginMode = $this->safe_dict($response, 0, array());
-            return $this->parse_margin_mode($marginMode, $market);
-        })();
+        return Async\async(self::do_fetch_margin_mode(...))($symbol, $params);
+    }
+
+    private function do_fetch_margin_mode(string $symbol, $params = array()) {
+        /**
+         * fetches the margin mode of a specific $symbol
+         *
+         * @see https://www.weex.com/api-doc/contract/Account_API/GetSymbolConfig
+         *
+         * @param {string} $symbol unified $symbol of the $market the order was made in
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=margin-mode-structure margin mode structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = Async\await($this->contractPrivateGetCapiV3AccountSymbolConfig($this->extend($request, $params)));
+        //
+        //     array(
+        //         {
+        //             "symbol" => "DOGEUSDT",
+        //             "marginType" => "CROSSED",
+        //             "separatedType" => "COMBINED",
+        //             "crossLeverage" => "20.00",
+        //             "isolatedLongLeverage" => "20.00",
+        //             "isolatedShortLeverage" => "20.00"
+        //         }
+        //     )
+        //
+        $marginMode = $this->safe_dict($response, 0, array());
+        return $this->parse_margin_mode($marginMode, $market);
     }
 
     public function fetch_margin_modes(?array $symbols = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             * fetches margin modes the $symbols, with $symbols=null all markets are returned
-             *
-             * @see https://www.weex.com/api-doc/contract/Account_API/GetSymbolConfig
-             *
-             * @param {string[]} $symbols unified market $symbols
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a list of ~@link https://docs.ccxt.com/?id=margin-mode-structure margin mode structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $symbols = $this->market_symbols($symbols);
-            $response = Async\await($this->contractPrivateGetCapiV3AccountSymbolConfig($params));
-            return $this->parse_margin_modes($response, $symbols, 'symbol', 'swap');
-        })();
+        return Async\async(self::do_fetch_margin_modes(...))($symbols, $params);
     }
 
-    public function parse_margin_mode(array $marginMode, $market = null): array {
+    private function do_fetch_margin_modes(?array $symbols = null, $params = array()) {
+        /**
+         * fetches margin modes the $symbols, with $symbols=null all markets are returned
+         *
+         * @see https://www.weex.com/api-doc/contract/Account_API/GetSymbolConfig
+         *
+         * @param {string[]} $symbols unified market $symbols
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a list of ~@link https://docs.ccxt.com/?id=margin-mode-structure margin mode structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbols = $this->market_symbols($symbols);
+        $response = Async\await($this->contractPrivateGetCapiV3AccountSymbolConfig($params));
+        return $this->parse_margin_modes($this->to_array($response), $symbols, 'symbol', 'swap');
+    }
+
+    public function parse_margin_mode(array $marginMode, ?array $market = null): array {
         $marketId = $this->safe_string($marginMode, 'symbol');
         $marginType = $this->safe_string($marginMode, 'marginType');
         return array(
@@ -3680,30 +4102,32 @@ class weex extends Exchange {
     }
 
     public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array()) {
-        return Async\async(function () use ($marginMode, $symbol, $params) {
-            /**
-             * set margin mode to 'cross' or 'isolated'
-             *
-             * @see https://www.weex.com/api-doc/contract/Account_API/ChangeMarginModeTRADE
-             *
-             * @param {string} $marginMode 'cross' or 'isolated'
-             * @param {string} $symbol unified $market $symbol
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} response from the exchange
-             */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $symbol argument');
-            }
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $request = array(
-                'symbol' => $market['id'],
-                'marginType' => $this->encode_margin_mode($marginMode),
-            );
-            return Async\await($this->contractPrivatePostCapiV3AccountMarginType($this->extend($request, $params)));
-        })();
+        return Async\async(self::do_set_margin_mode(...))($marginMode, $symbol, $params);
+    }
+
+    private function do_set_margin_mode(string $marginMode, ?string $symbol = null, $params = array()) {
+        /**
+         * set margin mode to 'cross' or 'isolated'
+         *
+         * @see https://www.weex.com/api-doc/contract/Account_API/ChangeMarginModeTRADE
+         *
+         * @param {string} $marginMode 'cross' or 'isolated'
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} response from the exchange
+         */
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $symbol argument');
+        }
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+            'marginType' => $this->encode_margin_mode($marginMode),
+        );
+        return Async\await($this->contractPrivatePostCapiV3AccountMarginType($this->extend($request, $params)));
     }
 
     public function encode_margin_mode(?string $marginMode) {
@@ -3719,47 +4143,51 @@ class weex extends Exchange {
     }
 
     public function fetch_leverage(string $symbol, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * fetch the set leverage for a $market
-             *
-             * @see https://www.weex.com/api-doc/contract/Account_API/GetSymbolConfig
-             *
-             * @param {string} $symbol unified $market $symbol
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=leverage-structure leverage structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $request = array(
-                'symbol' => $market['id'],
-            );
-            $response = Async\await($this->contractPrivateGetCapiV3AccountSymbolConfig($this->extend($request, $params)));
-            $marginMode = $this->safe_dict($response, 0, array());
-            return $this->parse_leverage($marginMode, $market);
-        })();
+        return Async\async(self::do_fetch_leverage(...))($symbol, $params);
+    }
+
+    private function do_fetch_leverage(string $symbol, $params = array()) {
+        /**
+         * fetch the set leverage for a $market
+         *
+         * @see https://www.weex.com/api-doc/contract/Account_API/GetSymbolConfig
+         *
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=leverage-structure leverage structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = Async\await($this->contractPrivateGetCapiV3AccountSymbolConfig($this->extend($request, $params)));
+        $marginMode = $this->safe_dict($response, 0, array());
+        return $this->parse_leverage($marginMode, $market);
     }
 
     public function fetch_leverages(?array $symbols = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             * fetch the set leverage for all markets
-             *
-             * @see https://www.weex.com/api-doc/contract/Account_API/GetSymbolConfig
-             *
-             * @param {string[]} [$symbols] a list of unified market $symbols
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a list of ~@link https://docs.ccxt.com/?id=leverage-structure leverage structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $symbols = $this->market_symbols($symbols);
-            $response = Async\await($this->contractPrivateGetCapiV3AccountSymbolConfig($params));
-            return $this->parse_leverages($response, $symbols, 'symbol', 'swap');
-        })();
+        return Async\async(self::do_fetch_leverages(...))($symbols, $params);
+    }
+
+    private function do_fetch_leverages(?array $symbols = null, $params = array()) {
+        /**
+         * fetch the set leverage for all markets
+         *
+         * @see https://www.weex.com/api-doc/contract/Account_API/GetSymbolConfig
+         *
+         * @param {string[]} [$symbols] a list of unified market $symbols
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a list of ~@link https://docs.ccxt.com/?id=leverage-structure leverage structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbols = $this->market_symbols($symbols);
+        $response = Async\await($this->contractPrivateGetCapiV3AccountSymbolConfig($params));
+        return $this->parse_leverages($this->to_array($response), $symbols, 'symbol', 'swap');
     }
 
     public function parse_leverage(array $leverage, ?array $market = null): array {
@@ -3783,142 +4211,150 @@ class weex extends Exchange {
     }
 
     public function set_leverage(int $leverage, ?string $symbol = null, $params = array()) {
-        return Async\async(function () use ($leverage, $symbol, $params) {
-            /**
-             * set the level of $leverage for a $market
-             *
-             * @see https://www.weex.com/api-doc/contract/Account_API/UpdateLeverageTRADE
-             *
-             * @param {float} $leverage the rate of $leverage
-             * @param {string} $symbol unified $market $symbol
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->marginMode] 'cross' or 'isolated' (default is 'cross' if specific $leverage parameters are not provided)
-             * @param {number} [$params->crossLeverage] *cross margin mode only* $leverage for cross margin mode when $marginMode is 'cross'
-             * @param {number} [$params->isolatedLongLeverage] *isolated margin mode only* $leverage for long positions when $marginMode is 'isolated'
-             * @param {number} [$params->isolatedShortLeverage] *isolated margin mode only* $leverage for short positions when $marginMode is 'isolated'
-             * If specific $leverage parameters are not provided
-             * the $leverage value will be applied to both long and short positions if $marginMode is 'isolated'
-             * or to cross margin mode if $marginMode is 'cross'
-             * If $marginMode is not provided and specific $leverage parameters are not provided too
-             * the $leverage value will be applied to cross $leverage
-             * @return {array} response from the exchange
-             */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
-            }
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $request = array(
-                'symbol' => $market['id'],
-            );
-            $marginMode = null;
-            list($marginMode, $params) = $this->handle_margin_mode_and_params('setLeverage', $params);
-            if ($marginMode !== null) {
-                $request['marginType'] = $this->encode_margin_mode($marginMode);
-            }
-            $isolatedLongLeverage = $this->safe_number($params, 'isolatedLongLeverage');
-            $isolatedShortLeverage = $this->safe_number($params, 'isolatedShortLeverage');
-            $crossLeverage = $this->safe_number($params, 'crossLeverage');
-            if (($isolatedLongLeverage === null) && ($isolatedShortLeverage === null) && ($crossLeverage === null)) {
-                if ($marginMode === 'isolated') {
-                    $request['isolatedLongLeverage'] = $leverage;
-                    $request['isolatedShortLeverage'] = $leverage;
-                } else {
-                    $request['crossLeverage'] = $leverage;
-                }
-            }
-            return Async\await($this->contractPrivatePostCapiV3AccountLeverage($this->extend($request, $params)));
-        })();
+        return Async\async(self::do_set_leverage(...))($leverage, $symbol, $params);
     }
 
-    public function fetch_position_mode(?string $symbol = null, $params = array()) {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * fetchs the position mode, hedged or one way
-             *
-             * @see https://www.weex.com/api-doc/contract/Account_API/GetSymbolConfig
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an object detailing whether the $market is in hedged or one-way mode
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
+    private function do_set_leverage(int $leverage, ?string $symbol = null, $params = array()) {
+        /**
+         * set the level of $leverage for a $market
+         *
+         * @see https://www.weex.com/api-doc/contract/Account_API/UpdateLeverageTRADE
+         *
+         * @param {float} $leverage the rate of $leverage
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->marginMode] 'cross' or 'isolated' (default is 'cross' if specific $leverage parameters are not provided)
+         * @param {number} [$params->crossLeverage] *cross margin mode only* $leverage for cross margin mode when $marginMode is 'cross'
+         * @param {number} [$params->isolatedLongLeverage] *isolated margin mode only* $leverage for long positions when $marginMode is 'isolated'
+         * @param {number} [$params->isolatedShortLeverage] *isolated margin mode only* $leverage for short positions when $marginMode is 'isolated'
+         * If specific $leverage parameters are not provided
+         * the $leverage value will be applied to both long and short positions if $marginMode is 'isolated'
+         * or to cross margin mode if $marginMode is 'cross'
+         * If $marginMode is not provided and specific $leverage parameters are not provided too
+         * the $leverage value will be applied to cross $leverage
+         * @return {array} response from the exchange
+         */
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
+        }
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $marginMode = null;
+        list($marginMode, $params) = $this->handle_margin_mode_and_params('setLeverage', $params);
+        if ($marginMode !== null) {
+            $request['marginType'] = $this->encode_margin_mode($marginMode);
+        }
+        $isolatedLongLeverage = $this->safe_number($params, 'isolatedLongLeverage');
+        $isolatedShortLeverage = $this->safe_number($params, 'isolatedShortLeverage');
+        $crossLeverage = $this->safe_number($params, 'crossLeverage');
+        if (($isolatedLongLeverage === null) && ($isolatedShortLeverage === null) && ($crossLeverage === null)) {
+            if ($marginMode === 'isolated') {
+                $request['isolatedLongLeverage'] = $leverage;
+                $request['isolatedShortLeverage'] = $leverage;
+            } else {
+                $request['crossLeverage'] = $leverage;
             }
-            $market = $this->market($symbol);
-            $request = array(
-                'symbol' => $market['id'],
-            );
-            $response = Async\await($this->contractPrivateGetCapiV3AccountSymbolConfig($this->extend($request, $params)));
-            $entry = $this->safe_dict($response, 0, array());
-            $separatedType = $this->safe_string($entry, 'separatedType');
-            return array(
-                'info' => $response,
-                'hedged' => ($separatedType === 'SEPARATED'),
-            );
-        })();
+        }
+        return Async\await($this->contractPrivatePostCapiV3AccountLeverage($this->extend($request, $params)));
+    }
+
+    public function fetch_position_mode(?string $symbol = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_fetch_position_mode(...))($symbol, $params);
+    }
+
+    private function do_fetch_position_mode(?string $symbol = null, $params = array()) {
+        /**
+         * fetchs the position mode, hedged or one way
+         *
+         * @see https://www.weex.com/api-doc/contract/Account_API/GetSymbolConfig
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an object detailing whether the $market is in hedged or one-way mode
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = Async\await($this->contractPrivateGetCapiV3AccountSymbolConfig($this->extend($request, $params)));
+        $entry = $this->safe_dict($response, 0, array());
+        $separatedType = $this->safe_string($entry, 'separatedType');
+        return array(
+            'info' => $response,
+            'hedged' => ($separatedType === 'SEPARATED'),
+        );
     }
 
     public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array()) {
-        return Async\async(function () use ($hedged, $symbol, $params) {
-            /**
-             * set $hedged to true or false for a $market
-             *
-             * @see https://www.weex.com/api-doc/contract/Account_API/ChangeMarginModeTRADE
-             *
-             * @param {bool} $hedged set to true to use dualSidePosition
-             * @param {string} $symbol unified $market $symbol
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} $params->marginMode 'cross' or 'isolated' (default is 'cross')
-             * @return {array} response from the exchange
-             */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' setPositionMode() requires a $symbol argument');
-            }
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $marginMode = null;
-            list($marginMode, $params) = $this->handle_margin_mode_and_params('setPositionMode', $params);
-            if ($marginMode === null) {
-                throw new ArgumentsRequired($this->id . ' setPositionMode() also sets $marginMode, so a $marginMode parameter is required');
-            }
-            $separatedType = $hedged ? 'SEPARATED' : 'COMBINED';
-            $request = array(
-                'symbol' => $market['id'],
-                'marginType' => $this->encode_margin_mode($marginMode),
-                'separatedType' => $separatedType,
-            );
-            return Async\await($this->contractPrivatePostCapiV3AccountMarginType($this->extend($request, $params)));
-        })();
+        return Async\async(self::do_set_position_mode(...))($hedged, $symbol, $params);
     }
 
-    public function modify_margin_helper(string $symbol, $amount, $type, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $amount, $type, $params) {
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $isolatedPositionId = $this->safe_string_n($params, array( 'positionId', 'id', 'isolatedPositionId' ));
-            if ($isolatedPositionId === null) {
-                throw new ArgumentsRequired($this->id . ' modifyMarginHelper() requires a positionId parameter');
-            }
-            $params = $this->omit($params, array( 'positionId', 'id' ));
-            $market = $this->market($symbol);
-            $request = array(
-                'isolatedPositionId' => $isolatedPositionId,
-                'amount' => $this->cost_to_precision($symbol, $amount),
-                'type' => $type,
-            );
-            $parsedType = ($type === 1) ? 'add' : 'reduce';
-            $response = Async\await($this->contractPrivatePostCapiV3AccountPositionMargin($this->extend($request, $params)));
-            return $this->extend($this->parse_margin_modification($response, $market), array(
-                'amount' => $this->parse_number($amount),
-                'type' => $parsedType,
-            ));
-        })();
+    private function do_set_position_mode(bool $hedged, ?string $symbol = null, $params = array()) {
+        /**
+         * set $hedged to true or false for a $market
+         *
+         * @see https://www.weex.com/api-doc/contract/Account_API/ChangeMarginModeTRADE
+         *
+         * @param {bool} $hedged set to true to use dualSidePosition
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} $params->marginMode 'cross' or 'isolated' (default is 'cross')
+         * @return {array} response from the exchange
+         */
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' setPositionMode() requires a $symbol argument');
+        }
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $marginMode = null;
+        list($marginMode, $params) = $this->handle_margin_mode_and_params('setPositionMode', $params);
+        if ($marginMode === null) {
+            throw new ArgumentsRequired($this->id . ' setPositionMode() also sets $marginMode, so a $marginMode parameter is required');
+        }
+        $separatedType = $hedged ? 'SEPARATED' : 'COMBINED';
+        $request = array(
+            'symbol' => $market['id'],
+            'marginType' => $this->encode_margin_mode($marginMode),
+            'separatedType' => $separatedType,
+        );
+        return Async\await($this->contractPrivatePostCapiV3AccountMarginType($this->extend($request, $params)));
+    }
+
+    public function modify_margin_helper(string $symbol, mixed $amount, mixed $type, $params = array()): PromiseInterface {
+        return Async\async(self::do_modify_margin_helper(...))($symbol, $amount, $type, $params);
+    }
+
+    private function do_modify_margin_helper(string $symbol, mixed $amount, mixed $type, $params = array()) {
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $isolatedPositionId = $this->safe_string_n($params, array( 'positionId', 'id', 'isolatedPositionId' ));
+        if ($isolatedPositionId === null) {
+            throw new ArgumentsRequired($this->id . ' modifyMarginHelper() requires a positionId parameter');
+        }
+        $params = $this->omit($params, array( 'positionId', 'id' ));
+        $market = $this->market($symbol);
+        $request = array(
+            'isolatedPositionId' => $isolatedPositionId,
+            'amount' => $this->cost_to_precision($symbol, $amount),
+            'type' => $type,
+        );
+        $parsedType = ($type === 1) ? 'add' : 'reduce';
+        $response = Async\await($this->contractPrivatePostCapiV3AccountPositionMargin($this->extend($request, $params)));
+        return $this->extend($this->parse_margin_modification($response, $market), array(
+            'amount' => $this->parse_number($amount),
+            'type' => $parsedType,
+        ));
     }
 
     public function parse_margin_modification(array $data, ?array $market = null): array {
@@ -3947,49 +4383,100 @@ class weex extends Exchange {
     }
 
     public function reduce_margin(string $symbol, float $amount, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $amount, $params) {
-            /**
-             * remove margin from a position
-             *
-             * @see https://www.weex.com/api-doc/contract/Account_API/AdjustPositionMarginTRADE
-             *
-             * @param {string} $symbol unified market $symbol
-             * @param {float} $amount the $amount of margin to remove
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} $params->positionId the id of the position to reduce margin from, required
-             * @return {array} a ~@link https://docs.ccxt.com/?id=margin-structure margin structure~
-             */
-            return Async\await($this->modify_margin_helper($symbol, $amount, 2, $params));
-        })();
+        return Async\async(self::do_reduce_margin(...))($symbol, $amount, $params);
+    }
+
+    private function do_reduce_margin(string $symbol, float $amount, $params = array()) {
+        /**
+         * remove margin from a position
+         *
+         * @see https://www.weex.com/api-doc/contract/Account_API/AdjustPositionMarginTRADE
+         *
+         * @param {string} $symbol unified market $symbol
+         * @param {float} $amount the $amount of margin to remove
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} $params->positionId the id of the position to reduce margin from, required
+         * @return {array} a ~@link https://docs.ccxt.com/?id=margin-structure margin structure~
+         */
+        return Async\await($this->modify_margin_helper($symbol, $amount, 2, $params));
     }
 
     public function add_margin(string $symbol, float $amount, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $amount, $params) {
-            /**
-             * add margin
-             *
-             * @see https://www.weex.com/api-doc/contract/Account_API/AdjustPositionMarginTRADE
-             *
-             * @param {string} $symbol unified market $symbol
-             * @param {float} $amount amount of margin to add
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} $params->positionId the id of the position to add margin to, required
-             * @return {array} a ~@link https://docs.ccxt.com/?id=margin-structure margin structure~
-             */
-            return Async\await($this->modify_margin_helper($symbol, $amount, 1, $params));
-        })();
+        return Async\async(self::do_add_margin(...))($symbol, $amount, $params);
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    private function do_add_margin(string $symbol, float $amount, $params = array()) {
+        /**
+         * add margin
+         *
+         * @see https://www.weex.com/api-doc/contract/Account_API/AdjustPositionMarginTRADE
+         *
+         * @param {string} $symbol unified market $symbol
+         * @param {float} $amount amount of margin to add
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} $params->positionId the id of the position to add margin to, required
+         * @return {array} a ~@link https://docs.ccxt.com/?id=margin-structure margin structure~
+         */
+        return Async\await($this->modify_margin_helper($symbol, $amount, 1, $params));
+    }
+
+    public function to_sandbox_market_id(array $market): ?string {
+        /**
+         * @ignore
+         * get the $market id to send in a request, converting to the demo-trading $market id (e.g. BTCSUSDT) when sandbox mode is enabled, only valid for USDT-margined linear markets which is all the demo environment provides
+         * @param {array} $market a unified $market structure
+         * @return {string} the $market id for the request
+         */
+        $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
+        $baseId = $this->safe_string($market, 'baseId');
+        if (($sandboxMode === true) && ($baseId !== null)) {
+            // demo trading only has USDT-margined linear markets quoted in the demo asset SUSDT (e.g. BTCSUSDT), revisit if weex ever adds a non-USDT settle
+            return $baseId . 'SUSDT';
+        }
+        return $this->safe_string($market, 'id');
+    }
+
+    public function from_sandbox_market_id(?string $marketId): ?string {
+        /**
+         * @ignore
+         * convert a demo-trading market id (e.g. BTCSUSDT) from a response back into the live market id (e.g. BTCUSDT) when sandbox mode is enabled
+         * @param {string} [$marketId] a market id from an exchange response
+         * @return {string} the live market id
+         */
+        $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
+        if (($sandboxMode !== true) || ($marketId === null)) {
+            return $marketId;
+        }
+        if (($this->markets_by_id !== null) && (is_array($this->markets_by_id) && array_key_exists($marketId ?? '', $this->markets_by_id))) {
+            return $marketId; // a live market id, not a demo one
+        }
+        if (str_ends_with($marketId, 'SUSDT')) {
+            $baseLength = strlen($marketId) - 5;
+            return mb_substr($marketId, 0, $baseLength - 0) . 'USDT';
+        }
+        return $marketId;
+    }
+
+    public function set_sandbox_mode(bool $enable) {
+        parent::set_sandbox_mode($enable);
+        $this->options['sandboxMode'] = $enable;
+    }
+
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $endpoint = $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         $isBatch = (mb_strpos($path, 'batch') !== false);
         if (!$isBatch && (($method === 'GET') || ($method === 'DELETE'))) {
-            if ($query) {
+            if (count($query) > 0) {
                 $endpoint .= '?' . $this->urlencode($query);
             }
         }
         if (($api === 'private') || ($api === 'contractPrivate')) {
+            $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
+            if (($sandboxMode === true) && (mb_strpos($path, 'capi/v3/sim/') !== 0)) {
+                // guard against accidental live private calls with sandbox mode enabled, the demo trading API only provides the capi/v3/sim/ endpoints
+                throw new NotSupported($this->id . ' ' . $path . ' is not available in sandbox mode, demo trading only supports fetchBalance, createOrder, fetchPositions, fetchClosedOrders and fetchCanceledOrders for swap markets');
+            }
             $this->check_required_credentials();
             $timestamp = $this->number_to_string($this->nonce());
             $payload = $timestamp . $method . '/' . $endpoint;
@@ -4016,7 +4503,7 @@ class weex extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         //
         //     {
         //         "code" => -1140,

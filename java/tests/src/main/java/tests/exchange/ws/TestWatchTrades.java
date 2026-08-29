@@ -11,7 +11,7 @@ import tests.exchange.*;
 
 
 public class TestWatchTrades extends BaseTest {
-    public java.util.concurrent.CompletableFuture<Void> testWatchTrades(Exchange exchange, Object skippedProperties, Object symbol)
+    public java.util.concurrent.CompletableFuture<Object> testWatchTrades(Exchange exchange, Object skippedProperties, Object symbol)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -19,10 +19,13 @@ public class TestWatchTrades extends BaseTest {
         Object method = "watchTrades";
         Object now = exchange.milliseconds();
         Object ends = Helpers.add(now, 15000);
-        while (Helpers.isLessThan(now, ends))
+        Object maxIdleTime = 5000;
+        Object idle = false;
+        while (Helpers.isTrue((Helpers.isLessThan(now, ends))) && !Helpers.isTrue(idle))
         {
             Object response = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object success = true;
+            Object startTime = exchange.milliseconds();
             try
             {
                 response = (exchange.watchTrades(symbol)).join();
@@ -30,23 +33,25 @@ public class TestWatchTrades extends BaseTest {
             {
                 if (!Helpers.isTrue(TestSharedMethods.isTemporaryFailure(e)))
                 {
-                    throw new RuntimeException(e);
+                    throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                 }
-                now = exchange.milliseconds();
-                // continue;
                 success = false;
             }
+            now = exchange.milliseconds();
             if (Helpers.isTrue(Helpers.isEqual(success, true)))
             {
                 TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, response);
-                now = exchange.milliseconds();
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
                 {
                     TestTrade.testTrade(exchange, skippedProperties, method, Helpers.GetValue(response, i), symbol, now);
                 }
+                if (Helpers.isTrue(Helpers.isGreaterThan((Helpers.subtract(now, startTime)), maxIdleTime)))
+                {
+                    idle = true;
+                }
             }
         }
-            return null;
+        return true;
         });
 
     }

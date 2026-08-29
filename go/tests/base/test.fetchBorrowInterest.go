@@ -6,22 +6,22 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 func TestFetchBorrowInterest(exchange ccxt.ICoreExchange, skippedProperties any, code any, symbol any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		var method any = "fetchBorrowInterest"
-
-		borrowInterest := (<-exchange.FetchBorrowInterest(code, symbol))
-		PanicOnError(borrowInterest)
-		AssertNonEmtpyArray(exchange, skippedProperties, method, borrowInterest, code)
-		for i := 0; IsLessThan(i, GetArrayLength(borrowInterest)); i++ {
-			TestBorrowInterest(exchange, skippedProperties, method, GetValue(borrowInterest, i), code, symbol)
-		}
-
-		ch <- true
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go testFetchBorrowInterestBody(ch, exchange, skippedProperties, code, symbol)
 	return ch
+}
+func testFetchBorrowInterestBody(ch chan any, exchange ccxt.ICoreExchange, skippedProperties any, code any, symbol any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var method string = "fetchBorrowInterest"
+
+	borrowInterest := (<-exchange.FetchBorrowInterest(code, symbol))
+	PanicOnError(borrowInterest)
+	AssertNonEmtpyArray(exchange, skippedProperties, method, borrowInterest, code)
+	for i := 0; IsLessThan(i, GetArrayLength(borrowInterest)); i++ {
+		TestBorrowInterest(exchange, skippedProperties, method, GetValue(borrowInterest, i), code, symbol)
+	}
+
+	ch <- true
+	return nil
 }

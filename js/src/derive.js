@@ -30,11 +30,11 @@ export default class derive extends Exchange {
             'dex': true,
             'has': {
                 'CORS': undefined,
-                'spot': false,
+                'spot': true,
                 'margin': false,
-                'swap': false,
+                'swap': true,
                 'future': false,
-                'option': false,
+                'option': true,
                 'addMargin': false,
                 'borrowCrossMargin': false,
                 'borrowIsolatedMargin': false,
@@ -154,127 +154,127 @@ export default class derive extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'get_all_currencies',
-                    ],
-                    'post': [
-                        'build_register_session_key_tx',
-                        'register_session_key',
-                        'deregister_session_key',
-                        'login',
-                        'statistics',
-                        'get_all_currencies',
-                        'get_currency',
-                        'get_instrument',
-                        'get_all_instruments',
-                        'get_instruments',
-                        'get_ticker',
-                        'get_latest_signed_feeds',
-                        'get_option_settlement_prices',
-                        'get_spot_feed_history',
-                        'get_spot_feed_history_candles',
-                        'get_funding_rate_history',
-                        'get_trade_history',
-                        'get_option_settlement_history',
-                        'get_liquidation_history',
-                        'get_interest_rate_history',
-                        'get_transaction',
-                        'get_margin',
-                        'margin_watch',
-                        'validate_invite_code',
-                        'get_points',
-                        'get_all_points',
-                        'get_points_leaderboard',
-                        'get_descendant_tree',
-                        'get_tree_roots',
-                        'get_swell_percent_points',
-                        'get_vault_assets',
-                        'get_etherfi_effective_balances',
-                        'get_kelp_effective_balances',
-                        'get_bridge_balances',
-                        'get_ethena_participants',
-                        'get_vault_share',
-                        'get_vault_statistics',
-                        'get_vault_balances',
-                        'estimate_integrator_points',
-                        'create_subaccount_debug',
-                        'deposit_debug',
-                        'withdraw_debug',
-                        'send_quote_debug',
-                        'execute_quote_debug',
-                        'get_invite_code',
-                        'register_invite',
-                        'get_time',
-                        'get_live_incidents',
-                        'get_maker_programs',
-                        'get_maker_program_scores',
-                    ],
+                    'get': {
+                        'get_all_currencies': { 'cost': 1 },
+                    },
+                    'post': {
+                        'build_register_session_key_tx': { 'cost': 1 },
+                        'register_session_key': { 'cost': 1 },
+                        'deregister_session_key': { 'cost': 1 },
+                        'login': { 'cost': 1 },
+                        'statistics': { 'cost': 1 },
+                        'get_all_currencies': { 'cost': 1 },
+                        'get_currency': { 'cost': 1 },
+                        'get_instrument': { 'cost': 1 },
+                        'get_all_instruments': { 'cost': 1 },
+                        'get_instruments': { 'cost': 1 },
+                        'get_ticker': { 'cost': 1 },
+                        'get_latest_signed_feeds': { 'cost': 1 },
+                        'get_option_settlement_prices': { 'cost': 1 },
+                        'get_spot_feed_history': { 'cost': 1 },
+                        'get_spot_feed_history_candles': { 'cost': 1 },
+                        'get_funding_rate_history': { 'cost': 1 },
+                        'get_trade_history': { 'cost': 1 },
+                        'get_option_settlement_history': { 'cost': 1 },
+                        'get_liquidation_history': { 'cost': 1 },
+                        'get_interest_rate_history': { 'cost': 1 },
+                        'get_transaction': { 'cost': 1 },
+                        'get_margin': { 'cost': 1 },
+                        'margin_watch': { 'cost': 1 },
+                        'validate_invite_code': { 'cost': 1 },
+                        'get_points': { 'cost': 1 },
+                        'get_all_points': { 'cost': 1 },
+                        'get_points_leaderboard': { 'cost': 1 },
+                        'get_descendant_tree': { 'cost': 1 },
+                        'get_tree_roots': { 'cost': 1 },
+                        'get_swell_percent_points': { 'cost': 1 },
+                        'get_vault_assets': { 'cost': 1 },
+                        'get_etherfi_effective_balances': { 'cost': 1 },
+                        'get_kelp_effective_balances': { 'cost': 1 },
+                        'get_bridge_balances': { 'cost': 1 },
+                        'get_ethena_participants': { 'cost': 1 },
+                        'get_vault_share': { 'cost': 1 },
+                        'get_vault_statistics': { 'cost': 1 },
+                        'get_vault_balances': { 'cost': 1 },
+                        'estimate_integrator_points': { 'cost': 1 },
+                        'create_subaccount_debug': { 'cost': 1 },
+                        'deposit_debug': { 'cost': 1 },
+                        'withdraw_debug': { 'cost': 1 },
+                        'send_quote_debug': { 'cost': 1 },
+                        'execute_quote_debug': { 'cost': 1 },
+                        'get_invite_code': { 'cost': 1 },
+                        'register_invite': { 'cost': 1 },
+                        'get_time': { 'cost': 1 },
+                        'get_live_incidents': { 'cost': 1 },
+                        'get_maker_programs': { 'cost': 1 },
+                        'get_maker_program_scores': { 'cost': 1 },
+                    },
                 },
                 'private': {
-                    'post': [
-                        'get_account',
-                        'create_subaccount',
-                        'get_subaccount',
-                        'get_subaccounts',
-                        'get_all_portfolios',
-                        'change_subaccount_label',
-                        'get_notificationsv',
-                        'update_notifications',
-                        'deposit',
-                        'withdraw',
-                        'transfer_erc20',
-                        'transfer_position',
-                        'transfer_positions',
-                        'order',
-                        'replace',
-                        'order_debug',
-                        'get_order',
-                        'get_orders',
-                        'get_open_orders',
-                        'cancel',
-                        'cancel_by_label',
-                        'cancel_by_nonce',
-                        'cancel_by_instrument',
-                        'cancel_all',
-                        'cancel_trigger_order',
-                        'get_order_history',
-                        'get_trade_history',
-                        'get_deposit_history',
-                        'get_withdrawal_history',
-                        'send_rfq',
-                        'cancel_rfq',
-                        'cancel_batch_rfqs',
-                        'get_rfqs',
-                        'poll_rfqs',
-                        'send_quote',
-                        'cancel_quote',
-                        'cancel_batch_quotes',
-                        'get_quotes',
-                        'poll_quotes',
-                        'execute_quote',
-                        'rfq_get_best_quote',
-                        'get_margin',
-                        'get_collaterals',
-                        'get_positions',
-                        'get_option_settlement_history',
-                        'get_subaccount_value_history',
-                        'expired_and_cancelled_history',
-                        'get_funding_history',
-                        'get_interest_history',
-                        'get_erc20_transfer_history',
-                        'get_liquidation_history',
-                        'liquidate',
-                        'get_liquidator_history',
-                        'session_keys',
-                        'edit_session_key',
-                        'register_scoped_session_key',
-                        'get_mmp_config',
-                        'set_mmp_config',
-                        'reset_mmp',
-                        'set_cancel_on_disconnect',
-                        'get_invite_code',
-                        'register_invite',
-                    ],
+                    'post': {
+                        'get_account': { 'cost': 1 },
+                        'create_subaccount': { 'cost': 1 },
+                        'get_subaccount': { 'cost': 1 },
+                        'get_subaccounts': { 'cost': 1 },
+                        'get_all_portfolios': { 'cost': 1 },
+                        'change_subaccount_label': { 'cost': 1 },
+                        'get_notificationsv': { 'cost': 1 },
+                        'update_notifications': { 'cost': 1 },
+                        'deposit': { 'cost': 1 },
+                        'withdraw': { 'cost': 1 },
+                        'transfer_erc20': { 'cost': 1 },
+                        'transfer_position': { 'cost': 1 },
+                        'transfer_positions': { 'cost': 1 },
+                        'order': { 'cost': 1 },
+                        'replace': { 'cost': 1 },
+                        'order_debug': { 'cost': 1 },
+                        'get_order': { 'cost': 1 },
+                        'get_orders': { 'cost': 1 },
+                        'get_open_orders': { 'cost': 1 },
+                        'cancel': { 'cost': 1 },
+                        'cancel_by_label': { 'cost': 1 },
+                        'cancel_by_nonce': { 'cost': 1 },
+                        'cancel_by_instrument': { 'cost': 1 },
+                        'cancel_all': { 'cost': 1 },
+                        'cancel_trigger_order': { 'cost': 1 },
+                        'get_order_history': { 'cost': 1 },
+                        'get_trade_history': { 'cost': 1 },
+                        'get_deposit_history': { 'cost': 1 },
+                        'get_withdrawal_history': { 'cost': 1 },
+                        'send_rfq': { 'cost': 1 },
+                        'cancel_rfq': { 'cost': 1 },
+                        'cancel_batch_rfqs': { 'cost': 1 },
+                        'get_rfqs': { 'cost': 1 },
+                        'poll_rfqs': { 'cost': 1 },
+                        'send_quote': { 'cost': 1 },
+                        'cancel_quote': { 'cost': 1 },
+                        'cancel_batch_quotes': { 'cost': 1 },
+                        'get_quotes': { 'cost': 1 },
+                        'poll_quotes': { 'cost': 1 },
+                        'execute_quote': { 'cost': 1 },
+                        'rfq_get_best_quote': { 'cost': 1 },
+                        'get_margin': { 'cost': 1 },
+                        'get_collaterals': { 'cost': 1 },
+                        'get_positions': { 'cost': 1 },
+                        'get_option_settlement_history': { 'cost': 1 },
+                        'get_subaccount_value_history': { 'cost': 1 },
+                        'expired_and_cancelled_history': { 'cost': 1 },
+                        'get_funding_history': { 'cost': 1 },
+                        'get_interest_history': { 'cost': 1 },
+                        'get_erc20_transfer_history': { 'cost': 1 },
+                        'get_liquidation_history': { 'cost': 1 },
+                        'liquidate': { 'cost': 1 },
+                        'get_liquidator_history': { 'cost': 1 },
+                        'session_keys': { 'cost': 1 },
+                        'edit_session_key': { 'cost': 1 },
+                        'register_scoped_session_key': { 'cost': 1 },
+                        'get_mmp_config': { 'cost': 1 },
+                        'set_mmp_config': { 'cost': 1 },
+                        'reset_mmp': { 'cost': 1 },
+                        'set_cancel_on_disconnect': { 'cost': 1 },
+                        'get_invite_code': { 'cost': 1 },
+                        'register_invite': { 'cost': 1 },
+                    },
                 },
             },
             'fees': {},
@@ -969,14 +969,33 @@ export default class derive extends Exchange {
         const data = this.safeList(result, 'trades', []);
         return this.parseTrades(data, market, since, limit);
     }
+    parseTrades(trades, market = undefined, since = undefined, limit = undefined, params = {}) {
+        const tradesArray = this.toArray(trades);
+        let result = [];
+        for (let i = 0; i < tradesArray.length; i++) {
+            const rawTrade = tradesArray[i];
+            const isFetchTrades = !('order_id' in rawTrade);
+            const liquidityRole = this.safeString(rawTrade, 'liquidity_role');
+            if (isFetchTrades && (liquidityRole === 'maker')) {
+                // skip maker trades
+                continue;
+            }
+            const parsed = this.parseTrade(rawTrade, market);
+            const trade = this.extend(parsed, params);
+            result.push(trade);
+        }
+        result = this.sortBy2(result, 'timestamp', 'id');
+        const symbol = this.safeString(market, 'symbol');
+        return this.filterBySymbolSinceLimit(result, symbol, since, limit);
+    }
     parseTrade(trade, market = undefined) {
+        //
+        // fetchTrades & fetchMyTrades
         //
         // {
         //     "subaccount_id": 130837,
-        //     "order_id": "30c48194-8d48-43ac-ad00-0d5ba29eddc9",
         //     "instrument_name": "BTC-PERP",
         //     "direction": "sell",
-        //     "label": "test1234",
         //     "quote_id": null,
         //     "trade_id": "f8a30740-488c-4c2d-905d-e17057bafde1",
         //     "timestamp": 1738065303708,
@@ -987,11 +1006,17 @@ export default class derive extends Exchange {
         //     "liquidity_role": "taker",
         //     "realized_pnl": "0",
         //     "realized_pnl_excl_fees": "0",
-        //     "is_transfer": false,
         //     "tx_status": "settled",
         //     "trade_fee": "1.127415534092999815",
         //     "tx_hash": "0xc55df1f07330faf86579bd8a6385391fbe9e73089301149d8550e9d29c9ead74",
-        //     "transaction_id": "e18b9426-3fa5-41bb-99d3-8b54fb4d51bb"
+        //     "label": "test1234",                                      // only fetchMyTrades
+        //     "order_id": "30c48194-8d48-43ac-ad00-0d5ba29eddc9",       // only fetchMyTrades
+        //     "is_transfer": false,                                     // only fetchMyTrades
+        //     "transaction_id": "e18b9426-3fa5-41bb-99d3-8b54fb4d11bb", // only fetchMyTrades
+        //     "rfq_id": null,                                           // only fetchTrades
+        //     "wallet": "0x353Bf69715DdbF7A2b0C6Deba8EAC1F1D160c123",   // only fetchTrades
+        //     "expected_rebate": "0",                                   // only fetchTrades
+        //     "extra_fee": "0",                                         // only fetchTrades
         // }
         //
         const marketId = this.safeString(trade, 'instrument_name');
@@ -1132,7 +1157,7 @@ export default class derive extends Exchange {
             'bytes32', 'uint256', 'uint256', 'address', 'bytes32', 'uint256', 'address', 'address',
         ], order), keccak, 'binary');
         const sandboxMode = this.safeBool(this.options, 'sandboxMode', false);
-        const DOMAIN_SEPARATOR = (sandboxMode) ? '9bcf4dc06df5d8bf23af818d5716491b995020f377d3b7b64c29ed14e3dd1105' : 'd96e5f90797da7ec8dc4e276260c7f3f87fedf68775fbe1ef116e996fc60441b';
+        const DOMAIN_SEPARATOR = (sandboxMode === true) ? '9bcf4dc06df5d8bf23af818d5716491b995020f377d3b7b64c29ed14e3dd1105' : 'd96e5f90797da7ec8dc4e276260c7f3f87fedf68775fbe1ef116e996fc60441b';
         const binaryDomainSeparator = this.base16ToBinary(DOMAIN_SEPARATOR);
         const prefix = this.base16ToBinary('1901');
         return this.hash(this.binaryConcat(prefix, binaryDomainSeparator, accountHash), keccak, 'hex');
@@ -1204,7 +1229,7 @@ export default class derive extends Exchange {
         const signatureExpiry = this.safeInteger(params, 'signature_expiry_sec', this.seconds() + 7776000);
         const ACTION_TYPEHASH = this.base16ToBinary('4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17');
         const sandboxMode = this.safeBool(this.options, 'sandboxMode', false);
-        const TRADE_MODULE_ADDRESS = (sandboxMode) ? '0x87F2863866D85E3192a35A73b388BD625D83f2be' : '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b';
+        const TRADE_MODULE_ADDRESS = (sandboxMode === true) ? '0x87F2863866D85E3192a35A73b388BD625D83f2be' : '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b';
         const priceString = this.numberToString(price);
         let maxFee = undefined;
         [maxFee, params] = this.handleOptionAndParams(params, 'createOrder', 'max_fee');
@@ -1251,7 +1276,7 @@ export default class derive extends Exchange {
         };
         if (reduceOnly !== undefined) {
             request['reduce_only'] = reduceOnly;
-            if (reduceOnly && postOnly) {
+            if (reduceOnly && (postOnly === true)) {
                 throw new InvalidOrder(this.id + ' cannot use reduce only with post only time in force');
             }
         }
@@ -1283,7 +1308,7 @@ export default class derive extends Exchange {
         request['signature'] = signature;
         params = this.omit(params, ['reduceOnly', 'reduce_only', 'timeInForce', 'time_in_force', 'postOnly', 'test', 'clientOrderId', 'stopPrice', 'triggerPrice', 'trigger_price', 'stopLoss', 'takeProfit', 'trigger_price_type']);
         let response;
-        if (test) {
+        if (test === true) {
             response = await this.privatePostOrderDebug(this.extend(request, params));
         }
         else {
@@ -1397,7 +1422,7 @@ export default class derive extends Exchange {
         // TODO: subaccount id / trade module address
         const ACTION_TYPEHASH = this.base16ToBinary('4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17');
         const sandboxMode = this.safeBool(this.options, 'sandboxMode', false);
-        const TRADE_MODULE_ADDRESS = (sandboxMode) ? '0x87F2863866D85E3192a35A73b388BD625D83f2be' : '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b';
+        const TRADE_MODULE_ADDRESS = (sandboxMode === true) ? '0x87F2863866D85E3192a35A73b388BD625D83f2be' : '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b';
         const priceString = this.numberToString(price);
         const maxFeeString = this.safeString(params, 'max_fee', '0');
         const amountString = this.numberToString(amount);
@@ -1439,7 +1464,7 @@ export default class derive extends Exchange {
         };
         if (reduceOnly !== undefined) {
             request['reduce_only'] = reduceOnly;
-            if (reduceOnly && postOnly) {
+            if (reduceOnly && (postOnly === true)) {
                 throw new InvalidOrder(this.id + ' cannot use reduce only with post only time in force');
             }
         }
@@ -1574,7 +1599,7 @@ export default class derive extends Exchange {
         }
         else {
             request['order_id'] = id;
-            if (isTrigger) {
+            if (isTrigger === true) {
                 response = await this.privatePostCancelTriggerOrder(this.extend(request, params));
             }
             else {
@@ -1637,7 +1662,7 @@ export default class derive extends Exchange {
      * @see https://docs.derive.xyz/reference/post_private-cancel-by-instrument
      * @see https://docs.derive.xyz/reference/post_private-cancel-all
      * @description cancel all open orders in a market
-     * @param {string} symbol unified market symbol
+     * @param {string} [symbol] unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subaccount_id] *required* the subaccount id
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
@@ -1719,7 +1744,7 @@ export default class derive extends Exchange {
         else {
             request['page_size'] = 500;
         }
-        if (isTrigger) {
+        if (isTrigger === true) {
             request['status'] = 'untriggered';
         }
         const response = await this.privatePostGetOrders(this.extend(request, params));
@@ -1931,7 +1956,7 @@ export default class derive extends Exchange {
         const isBid = this.safeBool(order, 'is_bid');
         let side = this.safeString(order, 'direction');
         if (side === undefined) {
-            if (isBid) {
+            if (isBid === true) {
                 side = 'buy';
             }
             else {
@@ -2152,7 +2177,7 @@ export default class derive extends Exchange {
      * @name derive#fetchPositions
      * @description fetch all open positions
      * @see https://docs.derive.xyz/reference/post_private-get-positions
-     * @param {string[]} [symbols] not used by kraken fetchPositions ()
+     * @param {string[]} [symbols] not used by fetchPositions ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subaccount_id] *required* the subaccount id
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
@@ -2264,9 +2289,9 @@ export default class derive extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'lastUpdateTimestamp': undefined,
-            'initialMargin': this.safeString(position, 'initial_margin'),
+            'initialMargin': this.safeNumber(position, 'initial_margin'),
             'initialMarginPercentage': undefined,
-            'maintenanceMargin': this.safeString(position, 'maintenance_margin'),
+            'maintenanceMargin': this.safeNumber(position, 'maintenance_margin'),
             'maintenanceMarginPercentage': undefined,
             'entryPrice': undefined,
             'notional': this.parseNumber(notional),
@@ -2481,7 +2506,9 @@ export default class derive extends Exchange {
                     const amount = this.safeString(balance, 'amount');
                     account['total'] = Precise.stringAdd(account['total'], amount);
                 }
-                result[code] = account;
+                if (code !== undefined) {
+                    result[code] = account;
+                }
             }
         }
         return this.safeBalance(result);
@@ -2657,7 +2684,7 @@ export default class derive extends Exchange {
         throw new ArgumentsRequired(this.id + ' ' + methodName + '() requires a deriveWalletAddress parameter inside \'params\' or exchange.options[\'deriveWalletAddress\'] = ADDRESS, the address can find in HOME => Developers tab.');
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-        if (!response) {
+        if (response === undefined) {
             return undefined; // fallback to default error handler
         }
         const error = this.safeDict(response, 'error');

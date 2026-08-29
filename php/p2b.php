@@ -153,28 +153,28 @@ class p2b extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'markets' => 1,
-                        'market' => 1,
-                        'tickers' => 1,
-                        'ticker' => 1,
-                        'book' => 1,
-                        'history' => 1,
-                        'depth/result' => 1,
-                        'market/kline' => 1,
+                        'markets' => array( 'cost' => 1 ),
+                        'market' => array( 'cost' => 1 ),
+                        'tickers' => array( 'cost' => 1 ),
+                        'ticker' => array( 'cost' => 1 ),
+                        'book' => array( 'cost' => 1 ),
+                        'history' => array( 'cost' => 1 ),
+                        'depth/result' => array( 'cost' => 1 ),
+                        'market/kline' => array( 'cost' => 1 ),
                     ),
                 ),
                 'private' => array(
                     'post' => array(
-                        'account/balances' => 1,
-                        'account/balance' => 1,
-                        'order/new' => 1,
-                        'order/cancel' => 1,
-                        'orders' => 1,
-                        'account/market_order_history' => 1,
-                        'account/market_deal_history' => 1,
-                        'account/order' => 1,
-                        'account/order_history' => 1,
-                        'account/executed_history' => 1,
+                        'account/balances' => array( 'cost' => 1 ),
+                        'account/balance' => array( 'cost' => 1 ),
+                        'order/new' => array( 'cost' => 1 ),
+                        'order/cancel' => array( 'cost' => 1 ),
+                        'orders' => array( 'cost' => 1 ),
+                        'account/market_order_history' => array( 'cost' => 1 ),
+                        'account/market_deal_history' => array( 'cost' => 1 ),
+                        'account/order' => array( 'cost' => 1 ),
+                        'account/order_history' => array( 'cost' => 1 ),
+                        'account/executed_history' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -279,47 +279,49 @@ class p2b extends Exchange {
             ),
             'precisionMode' => TICK_SIZE,
             'exceptions' => array(
-                '1001' => '\\ccxt\\AuthenticationError',    // Key not provided. X-TXC-APIKEY header is missing in the request or empty.
-                '1002' => '\\ccxt\\AuthenticationError',    // Payload not provided. X-TXC-PAYLOAD header is missing in the request or empty.
-                '1003' => '\\ccxt\\AuthenticationError',    // Signature not provided. X-TXC-SIGNATURE header is missing in the request or empty.
-                '1004' => '\\ccxt\\AuthenticationError',    // Nonce and url not provided. Request body is empty. Missing required parameters "request", "nonce".
-                '1005' => '\\ccxt\\AuthenticationError',    // Invalid body data. Invalid request body
-                '1006' => '\\ccxt\\AuthenticationError',    // Nonce not provided. Request body missing required parameter "nonce".
-                '1007' => '\\ccxt\\AuthenticationError',    // Request not provided. Request body missing required parameter "request".
-                '1008' => '\\ccxt\\AuthenticationError',    // Invalid request in body. The passed request parameter does not match the URL of this request.
-                '1009' => '\\ccxt\\AuthenticationError',    // Invalid payload. The transmitted payload value (X-TXC-PAYLOAD header) does not match the request body.
-                '1010' => '\\ccxt\\AuthenticationError',    // This action is unauthorized. - API key passed in the X-TXC-APIKEY header does not exist. - Access to API is not activated. Go to profile and activate access.
-                '1011' => '\\ccxt\\AuthenticationError',    // This action is unauthorized. Please, enable two-factor authentication. Two-factor authentication is not activated for the user.
-                '1012' => '\\ccxt\\AuthenticationError',    // Invalid nonce. Parameter "nonce" is not a number.
-                '1013' => '\\ccxt\\AuthenticationError',    // Too many requests. - A request came with a repeated value of nonce. - Received more than the limited value of requests (10) within one second.
-                '1014' => '\\ccxt\\AuthenticationError',    // Unauthorized request. Signature value passed (in the X-TXC-SIGNATURE header) does not match the request body.
-                '1015' => '\\ccxt\\AuthenticationError',    // Temporary block. Temporary blocking. There is a cancellation of orders.
-                '1016' => '\\ccxt\\AuthenticationError',    // Not unique nonce. The request was sent with a repeated parameter "nonce" within 10 seconds.
-                '2010' => '\\ccxt\\BadRequest',             // Currency not found. Currency not found.
-                '2020' => '\\ccxt\\BadRequest',             // Market is not available. Market is not available.
-                '2021' => '\\ccxt\\BadRequest',             // Unknown market. Unknown market.
-                '2030' => '\\ccxt\\BadRequest',             // Order not found. Order not found.
-                '2040' => '\\ccxt\\InsufficientFunds',      // Balance not enough. Insufficient balance.
-                '2050' => '\\ccxt\\BadRequest',             // Amount less than the permitted minimum. Amount less than the permitted minimum.
-                '2051' => '\\ccxt\\BadRequest',             // Amount is greater than the maximum allowed. Amount exceeds the allowed maximum.
-                '2052' => '\\ccxt\\BadRequest',             // Amount step size error. Amount step size error.
-                '2060' => '\\ccxt\\BadRequest',             // Price less than the permitted minimum. Price is less than the permitted minimum.
-                '2061' => '\\ccxt\\BadRequest',             // Price is greater than the maximum allowed. Price exceeds the allowed maximum.
-                '2062' => '\\ccxt\\BadRequest',             // Price pick size error. Price pick size error.
-                '2070' => '\\ccxt\\BadRequest',             // Total less than the permitted minimum. Total less than the permitted minimum.
-                '3001' => '\\ccxt\\BadRequest',             // Validation exception. The given data was invalid.
-                '3020' => '\\ccxt\\BadRequest',             // Invalid currency value. Incorrect parameter, check your request.
-                '3030' => '\\ccxt\\BadRequest',             // Invalid market value. Incorrect "market" parameter, check your request.
-                '3040' => '\\ccxt\\BadRequest',             // Invalid amount value. Incorrect "amount" parameter, check your request.
-                '3050' => '\\ccxt\\BadRequest',             // Invalid price value. Incorrect "price" parameter, check your request.
-                '3060' => '\\ccxt\\BadRequest',             // Invalid limit value. Incorrect "limit" parameter, check your request.
-                '3070' => '\\ccxt\\BadRequest',             // Invalid offset value. Incorrect "offset" parameter, check your request.
-                '3080' => '\\ccxt\\BadRequest',             // Invalid orderId value. Incorrect "orderId" parameter, check your request.
-                '3090' => '\\ccxt\\BadRequest',             // Invalid lastId value. Incorrect "lastId" parameter, check your request.
-                '3100' => '\\ccxt\\BadRequest',             // Invalid side value. Incorrect "side" parameter, check your request.
-                '3110' => '\\ccxt\\BadRequest',             // Invalid interval value. Incorrect "interval" parameter, check your request.
-                '4001' => '\\ccxt\\ExchangeNotAvailable',   // Service temporary unavailable. An unexpected system error has occurred. Try again after a while. If the error persists, please contact support.
-                '6010' => '\\ccxt\\InsufficientFunds',      // Balance not enough. Insufficient balance.
+                'exact' => array(
+                    '1001' => '\\ccxt\\AuthenticationError',    // Key not provided. X-TXC-APIKEY header is missing in the request or empty.
+                    '1002' => '\\ccxt\\AuthenticationError',    // Payload not provided. X-TXC-PAYLOAD header is missing in the request or empty.
+                    '1003' => '\\ccxt\\AuthenticationError',    // Signature not provided. X-TXC-SIGNATURE header is missing in the request or empty.
+                    '1004' => '\\ccxt\\AuthenticationError',    // Nonce and url not provided. Request body is empty. Missing required parameters "request", "nonce".
+                    '1005' => '\\ccxt\\AuthenticationError',    // Invalid body data. Invalid request body
+                    '1006' => '\\ccxt\\AuthenticationError',    // Nonce not provided. Request body missing required parameter "nonce".
+                    '1007' => '\\ccxt\\AuthenticationError',    // Request not provided. Request body missing required parameter "request".
+                    '1008' => '\\ccxt\\AuthenticationError',    // Invalid request in body. The passed request parameter does not match the URL of this request.
+                    '1009' => '\\ccxt\\AuthenticationError',    // Invalid payload. The transmitted payload value (X-TXC-PAYLOAD header) does not match the request body.
+                    '1010' => '\\ccxt\\AuthenticationError',    // This action is unauthorized. - API key passed in the X-TXC-APIKEY header does not exist. - Access to API is not activated. Go to profile and activate access.
+                    '1011' => '\\ccxt\\AuthenticationError',    // This action is unauthorized. Please, enable two-factor authentication. Two-factor authentication is not activated for the user.
+                    '1012' => '\\ccxt\\AuthenticationError',    // Invalid nonce. Parameter "nonce" is not a number.
+                    '1013' => '\\ccxt\\RateLimitExceeded',      // Too many requests. - A request came with a repeated value of nonce. - Received more than the limited value of requests (10) within one second.
+                    '1014' => '\\ccxt\\AuthenticationError',    // Unauthorized request. Signature value passed (in the X-TXC-SIGNATURE header) does not match the request body.
+                    '1015' => '\\ccxt\\ExchangeNotAvailable',   // Temporary block. Temporary blocking. There is a cancellation of orders.
+                    '1016' => '\\ccxt\\AuthenticationError',    // Not unique nonce. The request was sent with a repeated parameter "nonce" within 10 seconds.
+                    '2010' => '\\ccxt\\BadRequest',             // Currency not found. Currency not found.
+                    '2020' => '\\ccxt\\BadRequest',             // Market is not available. Market is not available.
+                    '2021' => '\\ccxt\\BadRequest',             // Unknown market. Unknown market.
+                    '2030' => '\\ccxt\\BadRequest',             // Order not found. Order not found.
+                    '2040' => '\\ccxt\\InsufficientFunds',      // Balance not enough. Insufficient balance.
+                    '2050' => '\\ccxt\\BadRequest',             // Amount less than the permitted minimum. Amount less than the permitted minimum.
+                    '2051' => '\\ccxt\\BadRequest',             // Amount is greater than the maximum allowed. Amount exceeds the allowed maximum.
+                    '2052' => '\\ccxt\\BadRequest',             // Amount step size error. Amount step size error.
+                    '2060' => '\\ccxt\\BadRequest',             // Price less than the permitted minimum. Price is less than the permitted minimum.
+                    '2061' => '\\ccxt\\BadRequest',             // Price is greater than the maximum allowed. Price exceeds the allowed maximum.
+                    '2062' => '\\ccxt\\BadRequest',             // Price pick size error. Price pick size error.
+                    '2070' => '\\ccxt\\BadRequest',             // Total less than the permitted minimum. Total less than the permitted minimum.
+                    '3001' => '\\ccxt\\BadRequest',             // Validation exception. The given data was invalid.
+                    '3020' => '\\ccxt\\BadRequest',             // Invalid currency value. Incorrect parameter, check your request.
+                    '3030' => '\\ccxt\\BadRequest',             // Invalid market value. Incorrect "market" parameter, check your request.
+                    '3040' => '\\ccxt\\BadRequest',             // Invalid amount value. Incorrect "amount" parameter, check your request.
+                    '3050' => '\\ccxt\\BadRequest',             // Invalid price value. Incorrect "price" parameter, check your request.
+                    '3060' => '\\ccxt\\BadRequest',             // Invalid limit value. Incorrect "limit" parameter, check your request.
+                    '3070' => '\\ccxt\\BadRequest',             // Invalid offset value. Incorrect "offset" parameter, check your request.
+                    '3080' => '\\ccxt\\BadRequest',             // Invalid orderId value. Incorrect "orderId" parameter, check your request.
+                    '3090' => '\\ccxt\\BadRequest',             // Invalid lastId value. Incorrect "lastId" parameter, check your request.
+                    '3100' => '\\ccxt\\BadRequest',             // Invalid side value. Incorrect "side" parameter, check your request.
+                    '3110' => '\\ccxt\\BadRequest',             // Invalid interval value. Incorrect "interval" parameter, check your request.
+                    '4001' => '\\ccxt\\ExchangeNotAvailable',   // Service temporary unavailable. An unexpected system error has occurred. Try again after a while. If the error persists, please contact support.
+                    '6010' => '\\ccxt\\InsufficientFunds',      // Balance not enough. Insufficient balance.
+                ),
             ),
             'options' => array(
             ),
@@ -347,12 +349,12 @@ class p2b extends Exchange {
         //                "stock" => "ETH",
         //                "money" => "BTC",
         //                "precision" => array(
-        //                    "money" => "6",
+        //                    "money" => "5",
         //                    "stock" => "4",
         //                    "fee" => "4"
         //                ),
         //                "limits" => array(
-        //                    "min_amount" => "0.001",
+        //                    "min_amount" => "0.0001",
         //                    "max_amount" => "100000",
         //                    "step_size" => "0.0001",
         //                    "min_price" => "0.00001",
@@ -365,7 +367,7 @@ class p2b extends Exchange {
         //        )
         //    }
         //
-        $markets = $this->safe_value($response, 'result', array());
+        $markets = $this->safe_list($response, 'result', array());
         return $this->parse_markets($markets);
     }
 
@@ -375,7 +377,7 @@ class p2b extends Exchange {
         $quoteId = $this->safe_string($market, 'money');
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
-        $limits = $this->safe_value($market, 'limits');
+        $limits = $this->safe_dict($market, 'limits');
         $maxAmount = $this->safe_string($limits, 'max_amount');
         $maxPrice = $this->safe_string($limits, 'max_price');
         return array(
@@ -420,7 +422,7 @@ class p2b extends Exchange {
                     'max' => $this->parse_number($this->omit_zero($maxPrice)),
                 ),
                 'cost' => array(
-                    'min' => null,
+                    'min' => $this->safe_number($limits, 'min_total'),
                     'max' => null,
                 ),
             ),
@@ -518,7 +520,7 @@ class p2b extends Exchange {
         );
     }
 
-    public function parse_ticker($ticker, ?array $market = null) {
+    public function parse_ticker(mixed $ticker, ?array $market = null) {
         //
         // parseTickers
         //
@@ -551,7 +553,7 @@ class p2b extends Exchange {
         //    }
         //
         $timestamp = $this->safe_integer_product($ticker, 'at', 1000);
-        if (is_array($ticker) && array_key_exists('ticker', $ticker)) {
+        if (is_array($ticker) && array_key_exists('ticker' ?? '', $ticker)) {
             $ticker = $this->safe_value($ticker, 'ticker');
         }
         $last = $this->safe_string($ticker, 'last');
@@ -591,7 +593,7 @@ class p2b extends Exchange {
          *
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {string} [$params->interval] 0 (default), 0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -806,7 +808,7 @@ class p2b extends Exchange {
         return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //    array(
         //        1699253400,       // Kline open time
@@ -863,7 +865,7 @@ class p2b extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function parse_balance($response) {
+    public function parse_balance(mixed $response) {
         //
         //    {
         //        "USDT" => array(
@@ -1349,11 +1351,11 @@ class p2b extends Exchange {
         ), $market);
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $url = $this->urls['api'][$api] . '/' . $this->implode_params($path, $params);
         $params = $this->omit($params, $this->extract_params($path));
         if ($method === 'GET') {
-            if ($params) {
+            if (count($params) > 0) {
                 $url .= '?' . $this->urlencode($params);
             }
         }
@@ -1372,16 +1374,24 @@ class p2b extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null;
         }
-        if ($code === 400) {
-            $error = $this->safe_value($response, 'error');
-            $errorCode = $this->safe_string($error, 'code');
-            $feedback = $this->id . ' ' . $this->json($response);
-            $this->throw_exactly_matched_exception($this->exceptions, $errorCode, $feedback);
-            // fallback to default $error handler
+        //
+        //     array("success":false,"errorCode":2021,"message":"Unknown market.","result":array())
+        //     array("success":false,"errorCode":1010,"message":"This action is unauthorized.","result":array())
+        //     array("success":true,"errorCode":"","message":"","result":array(...),"cache_time":1787611797.535462,"current_time":1787611797.535973)
+        //
+        $success = $this->safe_bool($response, 'success', true);
+        if ($success !== true) {
+            $errorCode = $this->safe_string($response, 'errorCode');
+            $feedback = $this->id . ' ' . $body;
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
+            if ($code < 400) {
+                throw new ExchangeError($feedback);
+            }
+            // unmapped codes on error statuses fall through to the default http-status handler
         }
         return null;
     }

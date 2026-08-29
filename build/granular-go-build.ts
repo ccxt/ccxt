@@ -20,7 +20,11 @@ const filesToDelete =[
 ]
 
 const whiteListFolders = [
-    `go${dirSep}v4${dirSep}protoc`
+    `go${dirSep}v4${dirSep}protoc`,
+    // keep all prediction exchange files: the Transpile prediction to Go workflow step
+    // force-regenerates every prediction core from ts and would resurrect cores whose
+    // deleted implicit api files nothing regenerates, see https://github.com/ccxt/ccxt/pull/29696
+    `go${dirSep}v4${dirSep}prediction`
 ]
 
 

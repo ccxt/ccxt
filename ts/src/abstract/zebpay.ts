@@ -5,52 +5,52 @@
 
 // -------------------------------------------------------------------------------
 
-import { implicitReturnType } from '../base/types.js';
+import { Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
-    publicSpotGetV2SystemTime (params?: {}): Promise<implicitReturnType>;
-    publicSpotGetV2SystemStatus (params?: {}): Promise<implicitReturnType>;
-    publicSpotGetV2MarketOrderbook (params?: {}): Promise<implicitReturnType>;
-    publicSpotGetV2MarketTrades (params?: {}): Promise<implicitReturnType>;
-    publicSpotGetV2MarketTicker (params?: {}): Promise<implicitReturnType>;
-    publicSpotGetV2MarketAllTickers (params?: {}): Promise<implicitReturnType>;
-    publicSpotGetV2ExExchangeInfo (params?: {}): Promise<implicitReturnType>;
-    publicSpotGetV2ExCurrencies (params?: {}): Promise<implicitReturnType>;
-    publicSpotGetV2MarketKlines (params?: {}): Promise<implicitReturnType>;
-    publicSpotGetV2ExTradefees (params?: {}): Promise<implicitReturnType>;
-    publicSwapGetV1SystemTime (params?: {}): Promise<implicitReturnType>;
-    publicSwapGetV1SystemStatus (params?: {}): Promise<implicitReturnType>;
-    publicSwapGetV1ExchangeTradefee (params?: {}): Promise<implicitReturnType>;
-    publicSwapGetV1ExchangeTradefees (params?: {}): Promise<implicitReturnType>;
-    publicSwapGetV1MarketOrderBook (params?: {}): Promise<implicitReturnType>;
-    publicSwapGetV1MarketTicker24Hr (params?: {}): Promise<implicitReturnType>;
-    publicSwapGetV1MarketMarkets (params?: {}): Promise<implicitReturnType>;
-    publicSwapGetV1MarketAggTrade (params?: {}): Promise<implicitReturnType>;
-    publicSwapPostV1MarketKlines (params?: {}): Promise<implicitReturnType>;
-    privateSpotPostV2ExOrders (params?: {}): Promise<implicitReturnType>;
-    privateSpotGetV2ExOrders (params?: {}): Promise<implicitReturnType>;
-    privateSpotGetV2AccountBalance (params?: {}): Promise<implicitReturnType>;
-    privateSpotGetV2ExTradefee (params?: {}): Promise<implicitReturnType>;
-    privateSpotGetV2ExOrder (params?: {}): Promise<implicitReturnType>;
-    privateSpotGetV2ExOrderFills (params?: {}): Promise<implicitReturnType>;
-    privateSpotDeleteV2ExOrder (params?: {}): Promise<implicitReturnType>;
-    privateSpotDeleteV2ExOrders (params?: {}): Promise<implicitReturnType>;
-    privateSpotDeleteV2ExOrdersCancelAll (params?: {}): Promise<implicitReturnType>;
-    privateSwapGetV1WalletBalance (params?: {}): Promise<implicitReturnType>;
-    privateSwapGetV1TradeOrder (params?: {}): Promise<implicitReturnType>;
-    privateSwapGetV1TradeOrderOpenOrders (params?: {}): Promise<implicitReturnType>;
-    privateSwapGetV1TradeUserLeverages (params?: {}): Promise<implicitReturnType>;
-    privateSwapGetV1TradeUserLeverage (params?: {}): Promise<implicitReturnType>;
-    privateSwapGetV1TradePositions (params?: {}): Promise<implicitReturnType>;
-    privateSwapGetV1TradeHistory (params?: {}): Promise<implicitReturnType>;
-    privateSwapPostV1TradeOrder (params?: {}): Promise<implicitReturnType>;
-    privateSwapPostV1TradeOrderAddTPSL (params?: {}): Promise<implicitReturnType>;
-    privateSwapPostV1TradeAddMargin (params?: {}): Promise<implicitReturnType>;
-    privateSwapPostV1TradeReduceMargin (params?: {}): Promise<implicitReturnType>;
-    privateSwapPostV1TradePositionClose (params?: {}): Promise<implicitReturnType>;
-    privateSwapPostV1TradeUpdateUserLeverage (params?: {}): Promise<implicitReturnType>;
-    privateSwapDeleteV1TradeOrder (params?: {}): Promise<implicitReturnType>;
+    publicSpotGetV2SystemTime (params?: {}): Promise<Dict>;
+    publicSpotGetV2SystemStatus (params?: {}): Promise<Dict>;
+    publicSpotGetV2MarketOrderbook (params?: {}): Promise<Dict>;
+    publicSpotGetV2MarketTrades (params?: {}): Promise<Dict>;
+    publicSpotGetV2MarketTicker (params?: {}): Promise<Dict>;
+    publicSpotGetV2MarketAllTickers (params?: {}): Promise<Dict>;
+    publicSpotGetV2ExExchangeInfo (params?: {}): Promise<Dict>;
+    publicSpotGetV2ExCurrencies (params?: {}): Promise<Dict>;
+    publicSpotGetV2MarketKlines (params?: {}): Promise<Dict>;
+    publicSpotGetV2ExTradefees (params?: {}): Promise<Dict>;
+    publicSwapGetV1SystemTime (params?: {}): Promise<Dict>;
+    publicSwapGetV1SystemStatus (params?: {}): Promise<Dict>;
+    publicSwapGetV1ExchangeTradefee (params?: {}): Promise<Dict>;
+    publicSwapGetV1ExchangeTradefees (params?: {}): Promise<Dict>;
+    publicSwapGetV1MarketOrderBook (params?: {}): Promise<Dict>;
+    publicSwapGetV1MarketTicker24Hr (params?: {}): Promise<Dict>;
+    publicSwapGetV1MarketMarkets (params?: {}): Promise<Dict>;
+    publicSwapGetV1MarketAggTrade (params?: {}): Promise<Dict>;
+    publicSwapPostV1MarketKlines (params?: {}): Promise<Dict>;
+    privateSpotPostV2ExOrders (params?: {}): Promise<Dict>;
+    privateSpotGetV2ExOrders (params?: {}): Promise<Dict>;
+    privateSpotGetV2AccountBalance (params?: {}): Promise<Dict>;
+    privateSpotGetV2ExTradefee (params?: {}): Promise<Dict>;
+    privateSpotGetV2ExOrder (params?: {}): Promise<Dict>;
+    privateSpotGetV2ExOrderFills (params?: {}): Promise<Dict>;
+    privateSpotDeleteV2ExOrder (params?: {}): Promise<Dict>;
+    privateSpotDeleteV2ExOrders (params?: {}): Promise<Dict>;
+    privateSpotDeleteV2ExOrdersCancelAll (params?: {}): Promise<Dict>;
+    privateSwapGetV1WalletBalance (params?: {}): Promise<Dict>;
+    privateSwapGetV1TradeOrder (params?: {}): Promise<Dict>;
+    privateSwapGetV1TradeOrderOpenOrders (params?: {}): Promise<Dict>;
+    privateSwapGetV1TradeUserLeverages (params?: {}): Promise<Dict>;
+    privateSwapGetV1TradeUserLeverage (params?: {}): Promise<Dict>;
+    privateSwapGetV1TradePositions (params?: {}): Promise<Dict>;
+    privateSwapGetV1TradeHistory (params?: {}): Promise<Dict>;
+    privateSwapPostV1TradeOrder (params?: {}): Promise<Dict>;
+    privateSwapPostV1TradeOrderAddTPSL (params?: {}): Promise<Dict>;
+    privateSwapPostV1TradeAddMargin (params?: {}): Promise<Dict>;
+    privateSwapPostV1TradeReduceMargin (params?: {}): Promise<Dict>;
+    privateSwapPostV1TradePositionClose (params?: {}): Promise<Dict>;
+    privateSwapPostV1TradeUpdateUserLeverage (params?: {}): Promise<Dict>;
+    privateSwapDeleteV1TradeOrder (params?: {}): Promise<Dict>;
 }
 abstract class Exchange extends _Exchange {}
 

@@ -1,5 +1,5 @@
 import Exchange from './abstract/nado.js';
-import type { Balances, Currencies, Currency, Dict, FundingHistory, FundingRate, FundingRates, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, FundingHistory, FundingRate, FundingRates, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, Status } from './base/types.js';
 /**
  * @class nado
  * @augments Exchange
@@ -312,13 +312,7 @@ export default class nado extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    fetchStatus(params?: {}): Promise<{
-        status: string;
-        updated: any;
-        eta: any;
-        url: any;
-        info: any;
-    }>;
+    fetchStatus(params?: {}): Promise<Status>;
     /**
      * @method
      * @name nado#fetchMarkets
@@ -424,7 +418,7 @@ export default class nado extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     /**
@@ -460,11 +454,11 @@ export default class nado extends Exchange {
     parseFundingHistory(funding: Dict, market?: Market): {
         info: Dict;
         symbol: string;
-        code: string;
-        timestamp: number;
-        datetime: string;
-        id: string;
-        amount: number;
+        code: Str;
+        timestamp: Int;
+        datetime: string | undefined;
+        id: Str;
+        amount: number | undefined;
     };
     parseOpenInterest(interest: any, market?: Market): import("./base/types.js").OpenInterest;
     parseTicker(ticker: Dict, market?: Market): Ticker;
@@ -474,12 +468,12 @@ export default class nado extends Exchange {
     parsePosition(position: Dict, market?: Market): Position;
     isArchiveOrderClosed(order: Dict): boolean;
     parseOrder(order: Dict, market?: Market): Order;
-    parseOrderTimeInForce(timeInForce: Str): string;
-    convertToX18(value: string): string;
-    parseX18(value: any): number;
-    createOrderNonce(recvWindow: any): string;
-    createOrderAppendix(isTriggerOrder: any, params?: {}): string;
-    createSubaccount(walletAddress: string, subaccount?: string): string;
+    parseOrderTimeInForce(timeInForce: Str): Str;
+    convertToX18(value: Str): string | undefined;
+    parseX18(value: any): number | undefined;
+    createOrderNonce(recvWindow: any): string | undefined;
+    createOrderAppendix(isTriggerOrder: any, params?: {}): Str;
+    createSubaccount(walletAddress: Str, subaccount?: Str): string;
     queryContracts(params?: {}): Promise<import("./base/types.js").Dictionary<any>>;
     orderVerifyingContract(productId: Int): string;
     padHex(value: string, length: Int, left?: boolean): string;
@@ -487,13 +481,13 @@ export default class nado extends Exchange {
     signCancellation(cancellation: any, chainId: any, endpointAddress: string): string;
     signCancellationProducts(cancellation: any, chainId: any, endpointAddress: string): string;
     signFetchTriggerOrders(tx: any, chainId: any, endpointAddress: any): string;
-    signHash(hash: any, privateKey: any): string;
-    removeMarketSuffix(marketId: any): any;
-    sign(path: any, api?: any[], method?: string, params?: {}, headers?: any, body?: any): {
+    signHash(hash: string, privateKey: Str): string;
+    removeMarketSuffix(marketId: Str): string | undefined;
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {
         url: any;
         method: string;
         body: any;
         headers: any;
     };
-    handleErrors(httpCode: Int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(httpCode: Int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

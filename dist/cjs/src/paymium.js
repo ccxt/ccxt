@@ -67,40 +67,40 @@ class paymium extends paymium$1["default"] {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'countries',
-                        'currencies',
-                        'data/{currency}/ticker',
-                        'data/{currency}/trades',
-                        'data/{currency}/depth',
-                        'bitcoin_charts/{id}/trades',
-                        'bitcoin_charts/{id}/depth',
-                    ],
+                    'get': {
+                        'countries': { 'cost': 1 },
+                        'currencies': { 'cost': 1 },
+                        'data/{currency}/ticker': { 'cost': 1 },
+                        'data/{currency}/trades': { 'cost': 1 },
+                        'data/{currency}/depth': { 'cost': 1 },
+                        'bitcoin_charts/{id}/trades': { 'cost': 1 },
+                        'bitcoin_charts/{id}/depth': { 'cost': 1 },
+                    },
                 },
                 'private': {
-                    'get': [
-                        'user',
-                        'user/addresses',
-                        'user/addresses/{address}',
-                        'user/orders',
-                        'user/orders/{uuid}',
-                        'user/price_alerts',
-                        'merchant/get_payment/{uuid}',
-                    ],
-                    'post': [
-                        'user/addresses',
-                        'user/orders',
-                        'user/withdrawals',
-                        'user/email_transfers',
-                        'user/payment_requests',
-                        'user/price_alerts',
-                        'merchant/create_payment',
-                    ],
-                    'delete': [
-                        'user/orders/{uuid}',
-                        'user/orders/{uuid}/cancel',
-                        'user/price_alerts/{id}',
-                    ],
+                    'get': {
+                        'user': { 'cost': 1 },
+                        'user/addresses': { 'cost': 1 },
+                        'user/addresses/{address}': { 'cost': 1 },
+                        'user/orders': { 'cost': 1 },
+                        'user/orders/{uuid}': { 'cost': 1 },
+                        'user/price_alerts': { 'cost': 1 },
+                        'merchant/get_payment/{uuid}': { 'cost': 1 },
+                    },
+                    'post': {
+                        'user/addresses': { 'cost': 1 },
+                        'user/orders': { 'cost': 1 },
+                        'user/withdrawals': { 'cost': 1 },
+                        'user/email_transfers': { 'cost': 1 },
+                        'user/payment_requests': { 'cost': 1 },
+                        'user/price_alerts': { 'cost': 1 },
+                        'merchant/create_payment': { 'cost': 1 },
+                    },
+                    'delete': {
+                        'user/orders/{uuid}': { 'cost': 1 },
+                        'user/orders/{uuid}/cancel': { 'cost': 1 },
+                        'user/price_alerts/{id}': { 'cost': 1 },
+                    },
                 },
             },
             'markets': {
@@ -198,7 +198,7 @@ class paymium extends paymium$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -469,7 +469,7 @@ class paymium extends paymium$1["default"] {
         const response = await this.privatePostUserOrders(this.extend(request, params));
         return this.safeOrder({
             'info': response,
-            'id': response['uuid'],
+            'id': this.safeString(response, 'uuid'),
         }, market);
     }
     /**
@@ -478,7 +478,7 @@ class paymium extends paymium$1["default"] {
      * @description cancels an open order
      * @see https://paymium.github.io/api-documentation/#tag/Order/operation/cancel-order
      * @param {string} id order id
-     * @param {string} symbol not used by paymium cancelOrder ()
+     * @param {string} symbol not used by cancelOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -617,7 +617,7 @@ class paymium extends paymium$1["default"] {
         let url = this.urls['api']['rest'] + '/' + this.version + '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
         if (api === 'public') {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
             }
         }
@@ -630,14 +630,14 @@ class paymium extends paymium$1["default"] {
                 'Api-Nonce': nonce,
             };
             if (method === 'POST') {
-                if (Object.keys(query).length) {
+                if (Object.keys(query).length > 0) {
                     body = this.json(query);
                     auth += body;
                     headers['Content-Type'] = 'application/json';
                 }
             }
             else {
-                if (Object.keys(query).length) {
+                if (Object.keys(query).length > 0) {
                     const queryString = this.urlencode(query);
                     auth += queryString;
                     url += '?' + queryString;

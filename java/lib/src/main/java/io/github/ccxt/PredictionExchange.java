@@ -271,10 +271,18 @@ public Object describe()
             for (var qi = 0; Helpers.isLessThan(qi, Helpers.getArrayLength(queries)); qi++)
             {
                 Object q = ((String)Helpers.GetValue(queries, qi)).toLowerCase();
+                if (Helpers.isTrue(Helpers.isEqual(title, null)))
+                {
+                    throw new ExchangeError((String)Helpers.add(this.id, " filterEventsBySearchIn() missing title")) ;
+                }
                 if (Helpers.isTrue(Helpers.isTrue(checkTitle) && Helpers.isTrue((Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(title, q), 0)))))
                 {
                     matched = true;
                     break;
+                }
+                if (Helpers.isTrue(Helpers.isEqual(description, null)))
+                {
+                    throw new ExchangeError((String)Helpers.add(this.id, " filterEventsBySearchIn() missing description")) ;
                 }
                 if (Helpers.isTrue(Helpers.isTrue(checkDescription) && Helpers.isTrue((Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(description, q), 0)))))
                 {
@@ -326,12 +334,7 @@ public Object describe()
         // keep events carrying one of the requested tags; tolerant to string tags and to
         // object tags ({ slug, title, ... }) since venues differ. no-op when no tags requested
         Object tags = Helpers.getArg(optionalArgs, 0, null);
-        Object tagsLength = 0;
-        if (Helpers.isTrue(!Helpers.isEqual(tags, null)))
-        {
-            tagsLength = Helpers.getArrayLength(tags);
-        }
-        if (Helpers.isTrue(Helpers.isEqual(tagsLength, 0)))
+        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(tags, null))) || Helpers.isTrue((Helpers.isEqual(Helpers.getArrayLength(tags), 0)))))
         {
             return events;
         }
@@ -478,7 +481,7 @@ public Object describe()
             // markets), so prefer fetchEvents (params) directly when you need a specific scope
             Object reload = Helpers.getArg(optionalArgs, 0, false);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(!Helpers.isTrue(reload) && Helpers.isTrue(this.events)))
+            if (Helpers.isTrue(!Helpers.isTrue(reload) && Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(this.events, null)) && Helpers.isTrue(!Helpers.isEqual(this.events, null))))))
             {
                 return this.events;
             }
@@ -520,6 +523,10 @@ public Object describe()
 
     public Object outcome(Object outcomeSymbol)
     {
+        if (Helpers.isTrue(Helpers.isEqual(outcomeSymbol, null)))
+        {
+            throw new ArgumentsRequired((String)Helpers.add(this.id, " outcome() requires an outcomeSymbol argument")) ;
+        }
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(this.outcomes, null))) || Helpers.isTrue(this.isEmpty(this.outcomes))))
         {
             throw new ExchangeError((String)Helpers.add(this.id, " outcomes not loaded - call loadOutcomes () or an outcome-addressed method first")) ;
@@ -540,6 +547,10 @@ public Object describe()
         // sync cache-only membership probe — never throws and never fetches. this is the predicate
         // behind loadOutcome's fast path and loadOutcomes' miss filter; safeOutcome (stub on miss)
         // and outcome (throws on miss) are the accessors
+        if (Helpers.isTrue(Helpers.isEqual(outcomeIdOrSymbol, null)))
+        {
+            return false;
+        }
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(this.outcomes, null))) && Helpers.isTrue((Helpers.inOp(this.outcomes, outcomeIdOrSymbol)))))
         {
             return true;
@@ -640,7 +651,10 @@ public Object describe()
         {
             Object replacementKey = Helpers.GetValue(replacementKeys, i);
             Object replacementValue = this.safeString(replacements, replacementKey);
-            s = Helpers.replaceAll((String)s, (String)replacementKey, (String)replacementValue);
+            if (Helpers.isTrue(!Helpers.isEqual(replacementValue, null)))
+            {
+                s = Helpers.replaceAll((String)s, (String)replacementKey, (String)replacementValue);
+            }
         }
         Object rawParts = Helpers.split(s, "-");
         Object parts = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -684,6 +698,10 @@ public Object describe()
         // removal so labels like "UP OR DOWN" survive intact) — venue labels with spaces or
         // currency symbols ("JD Vance", a dollar-sign price) yield clean handles (JD_VANCE, 120)
         // instead of leaking raw text into the outcome handle
+        if (Helpers.isTrue(Helpers.isEqual(outcome, null)))
+        {
+            outcome = "";
+        }
         Object upper = ((String)outcome).toUpperCase();
         Object allowed = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
         Object chars = this.stringToCharsArray(upper);
@@ -728,18 +746,18 @@ public Object describe()
             Helpers.addElementToObject(copy, "symbol", this.safeString2(row, "market", "symbol"));
             ((java.util.List<Object>)aliased).add(copy);
         }
-        super.setMarkets(aliased, currencies);
+        Object stored = super.setMarkets(aliased, currencies);
         // strip the alias back off the stored rows — venues assemble user-visible event
         // structures from this.markets (hyperliquid groups its outcome markets that way),
         // so a leftover 'symbol' key would leak the deprecated field back to the caller
-        Object marketKeys = Helpers.objectKeys(this.markets);
+        Object marketKeys = Helpers.objectKeys(stored);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketKeys)); i++)
         {
             Object key = Helpers.GetValue(marketKeys, i);
-            Helpers.addElementToObject(this.markets, key, this.omit(Helpers.GetValue(this.markets, key), "symbol"));
+            Helpers.addElementToObject(stored, key, this.omit(Helpers.GetValue(stored, key), "symbol"));
         }
         this.populateOutcomes();
-        return this.markets;
+        return stored;
     }
 
     public void indexMarketOutcomes(Object market)
@@ -879,7 +897,7 @@ public Object describe()
                 Object missingLength = Helpers.getArrayLength(missing);
                 Object wasWarm = Helpers.isTrue((!Helpers.isEqual(this.outcomes, null))) && !Helpers.isTrue(this.isEmpty(this.outcomes));
                 Object loadAll = this.safeBool(this.options, "loadAllOutcomes", false);
-                if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isGreaterThan(missingLength, 0))) && Helpers.isTrue(loadAll)) && !Helpers.isTrue(wasWarm)) && !Helpers.isTrue(reload)))
+                if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isGreaterThan(missingLength, 0))) && Helpers.isTrue((Helpers.isEqual(loadAll, true)))) && !Helpers.isTrue(wasWarm)) && !Helpers.isTrue(reload)))
                 {
                     (this.loadOutcomes()).join();
                     Object stillMissing = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -932,11 +950,11 @@ public Object describe()
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> loadOutcome(Object outcomeSymbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> loadOutcome(Object outcomeSymbol2, Object... optionalArgs)
     {
-
+        final Object outcomeSymbol3 = outcomeSymbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-
+            Object outcomeSymbol = outcomeSymbol3;
             // resolve a single outcome — the per-outcome analogue of loadMarkets()+market(). a cache hit
             // returns at once (pass reload=true to skip the cache and refetch the outcome's metadata).
             // on a miss, fetchOutcome resolves just the requested outcome on demand — a by-id fetch on
@@ -944,14 +962,11 @@ public Object describe()
             // options.loadAllOutcomes (default false) opts back into the legacy bulk warm-up: the first
             // miss loads the whole (capped) listing once so later lookups are 0-network hits — only
             // sane on venues whose full universe is one cheap request (hyperliquid)
-            // if markets are already loaded (offline-injected, or loaded by loadMarkets/fetchEvents)
-            // but the outcome cache is cold, index them for free before hitting the network — this
-            // makes cold-cache resolution consistent across languages regardless of loadAllOutcomes
-            // a miss on a cold cache: bulk-load once so later lookups are 0-network hits.
-            // a miss on an already-warm cache is authoritative — the outcome genuinely isn't
-            // listed, so fall through to fetchOutcome (a real BadSymbol) rather than refetching
-            // the whole listing (which would mask typos and clobber offline-injected markets)
             Object reload = Helpers.getArg(optionalArgs, 0, false);
+            if (Helpers.isTrue(Helpers.isEqual(outcomeSymbol, null)))
+            {
+                throw new ArgumentsRequired((String)Helpers.add(this.id, " loadOutcome() requires an outcomeSymbol argument")) ;
+            }
             if (!Helpers.isTrue(reload))
             {
                 if (Helpers.isTrue(this.hasOutcome(outcomeSymbol)))
@@ -959,6 +974,9 @@ public Object describe()
                     return this.safeOutcome(outcomeSymbol);
                 }
                 Object wasWarm = Helpers.isTrue((!Helpers.isEqual(this.outcomes, null))) && !Helpers.isTrue(this.isEmpty(this.outcomes));
+                // if markets are already loaded (offline-injected, or loaded by loadMarkets/fetchEvents)
+                // but the outcome cache is cold, index them for free before hitting the network — this
+                // makes cold-cache resolution consistent across languages regardless of loadAllOutcomes
                 if (Helpers.isTrue(Helpers.isTrue(!Helpers.isTrue(wasWarm) && Helpers.isTrue((!Helpers.isEqual(this.markets, null)))) && !Helpers.isTrue(this.isEmpty(this.markets))))
                 {
                     this.populateOutcomes();
@@ -968,8 +986,12 @@ public Object describe()
                     }
                 }
                 Object loadAll = this.safeBool(this.options, "loadAllOutcomes", false);
-                if (Helpers.isTrue(Helpers.isTrue(loadAll) && !Helpers.isTrue(wasWarm)))
+                if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(loadAll, true))) && !Helpers.isTrue(wasWarm)))
                 {
+                    // a miss on a cold cache: bulk-load once so later lookups are 0-network hits.
+                    // a miss on an already-warm cache is authoritative — the outcome genuinely isn't
+                    // listed, so fall through to fetchOutcome (a real BadSymbol) rather than refetching
+                    // the whole listing (which would mask typos and clobber offline-injected markets)
                     (this.loadOutcomes()).join();
                     if (Helpers.isTrue(this.hasOutcome(outcomeSymbol)))
                     {
@@ -1069,7 +1091,7 @@ public Object describe()
                     // plain miss (the guidance-rich throw below); let real transport errors propagate
                     if (!Helpers.isTrue((Helpers.isInstance(e, BadSymbol.class))))
                     {
-                        throw e;
+                        throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                     }
                 }
                 if (Helpers.isTrue(this.hasOutcome(outcomeSymbol)))
@@ -1817,7 +1839,7 @@ public Object describe()
             {
                 timeInForce = "IOC";
             }
-            if (Helpers.isTrue(postOnly))
+            if (Helpers.isTrue(Helpers.isEqual(postOnly, true)))
             {
                 timeInForce = "PO";
             }
@@ -2208,6 +2230,10 @@ public Object describe()
     // sendEvmTransaction dispatches to the exchange's signEvmTransaction override
     public Object padHexToEven(Object hex)
     {
+        if (Helpers.isTrue(Helpers.isEqual(hex, null)))
+        {
+            return "";
+        }
         // prepend a nibble so the hex has an even number of characters (whole bytes)
         Object hexLength = ((String)hex).length();
         if (Helpers.isTrue(!Helpers.isEqual((Helpers.mod(hexLength, 2)), 0)))
@@ -2219,6 +2245,10 @@ public Object describe()
 
     public Object padHexAddress(Object address)
     {
+        if (Helpers.isTrue(Helpers.isEqual(address, null)))
+        {
+            return "";
+        }
         // left-pads a 20-byte address to a 32-byte ABI word (24 leading zero bytes)
         Object stripped = this.remove0xPrefix(address);
         return Helpers.add("000000000000000000000000", stripped);
@@ -2226,6 +2256,10 @@ public Object describe()
 
     public Object rlpEncodeBytes(Object hex)
     {
+        if (Helpers.isTrue(Helpers.isEqual(hex, null)))
+        {
+            return "";
+        }
         // RLP-encodes a single byte string (hex without 0x) per the Ethereum RLP spec
         Object byteLength = this.parseToInt(Helpers.divide(((String)hex).length(), 2));
         if (Helpers.isTrue(Helpers.isEqual(byteLength, 0)))
@@ -2266,6 +2300,10 @@ public Object describe()
 
     public Object intToRlpHex(Object value)
     {
+        if (Helpers.isTrue(Helpers.isEqual(value, null)))
+        {
+            throw new ArgumentsRequired((String)Helpers.add(this.id, " intToRlpHex() requires a value argument")) ;
+        }
         // an integer as its minimal big-endian byte hex; 0 is the empty byte string
         if (Helpers.isTrue(Helpers.isEqual(value, 0)))
         {
@@ -2280,6 +2318,10 @@ public Object describe()
     {
         // a hex value (e.g. an RPC result) as minimal big-endian byte hex; leading zero bytes
         // are stripped and 0 becomes the empty byte string (RLP integer encoding)
+        if (Helpers.isTrue(Helpers.isEqual(hexValue, null)))
+        {
+            return "";
+        }
         Object h = this.remove0xPrefix(hexValue);
         Object start = 0;
         Object total = Helpers.getArrayLength(h);
@@ -2362,7 +2404,7 @@ public Object describe()
             while (Helpers.isLessThan((Helpers.subtract(this.milliseconds(), start)), timeout))
             {
                 Object receipt = (this.ethRpc(rpcUrl, "eth_getTransactionReceipt", new java.util.ArrayList<Object>(java.util.Arrays.asList(txHash)))).join();
-                if (Helpers.isTrue(receipt))
+                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(receipt, null))) && Helpers.isTrue((!Helpers.isEqual(receipt, null)))))
                 {
                     return receipt;
                 }
@@ -2423,6 +2465,30 @@ public java.util.concurrent.CompletableFuture<Object> editOrder(Object id, Objec
 
 
 
+    public java.util.concurrent.CompletableFuture<Object> createMarketOrderWithCost(Object symbol, Object side, Object cost, Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            /**
+            * @method
+            * @name createMarketOrderWithCost
+            * @description create a market order by providing the symbol, side and cost
+            * @param {string} symbol unified symbol of the market to create an order in
+            * @param {string} side 'buy' or 'sell'
+            * @param {float} cost how much you want to trade in units of the quote currency
+            * @param {object} [params] extra parameters specific to the exchange API endpoint
+            * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+            */
+            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createMarketOrderWithCost"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createMarketOrderWithCost"), false)))) || Helpers.isTrue((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createMarketBuyOrderWithCost"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createMarketBuyOrderWithCost"), false)))) && Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createMarketSellOrderWithCost"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createMarketSellOrderWithCost"), false))))))))
+            {
+                return (this.createOrder(symbol, "market", side, cost, 1, parameters)).join();
+            }
+            throw new NotSupported((String)Helpers.add(this.id, " createMarketOrderWithCost() is not supported yet")) ;
+        });
+
+    }
 
 
 

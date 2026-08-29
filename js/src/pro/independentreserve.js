@@ -131,7 +131,7 @@ export default class independentreserve extends independentreserveRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -176,6 +176,9 @@ export default class independentreserve extends independentreserveRest {
         //
         const event = this.safeString(message, 'Event');
         const channel = this.safeString(message, 'Channel');
+        if (channel === undefined) {
+            return;
+        }
         const parts = channel.split('/');
         const depth = this.safeString(parts, 1);
         const baseId = this.safeString(parts, 2);
@@ -207,7 +210,7 @@ export default class independentreserve extends independentreserveRest {
             orderbook['datetime'] = this.iso8601(timestamp);
         }
         const checksum = this.handleOption('watchOrderBook', 'checksum', true);
-        if (checksum && receivedSnapshot) {
+        if ((checksum === true) && (receivedSnapshot === true)) {
             const storedAsks = orderbook['asks'];
             const storedBids = orderbook['bids'];
             const asksLength = storedAsks.length;
@@ -233,7 +236,7 @@ export default class independentreserve extends independentreserveRest {
                 return;
             }
         }
-        if (receivedSnapshot) {
+        if (receivedSnapshot === true) {
             client.resolve(orderbook, messageHash);
         }
     }

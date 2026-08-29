@@ -155,116 +155,324 @@ public partial class ndax : Exchange
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "Activate2FA", 1 },
-                        { "Authenticate2FA", 1 },
-                        { "AuthenticateUser", 1 },
-                        { "EnableXP2FA", 1 },
-                        { "GetL2Snapshot", 1 },
-                        { "GetLevel1", 1 },
-                        { "GetValidate2FARequiredEndpoints", 1 },
-                        { "LogOut", 1 },
-                        { "GetTickerHistory", 1 },
-                        { "GetProduct", 1 },
-                        { "GetProducts", 1 },
-                        { "GetInstrument", 1 },
-                        { "GetInstruments", 1 },
-                        { "GetEarliestTickTime", 1 },
-                        { "Ping", 1 },
-                        { "assets", 1 },
-                        { "orderbook", 1 },
-                        { "ticker", 1 },
-                        { "summary", 1 },
-                        { "trades", 1 },
-                        { "GetLastTrades", 1 },
-                        { "ConfirmWithdraw", 1 },
-                        { "SubscribeLevel1", 1 },
-                        { "SubscribeLevel2", 1 },
-                        { "SubscribeTicker", 1 },
-                        { "SubscribeTrades", 1 },
-                        { "SubscribeBlockTrades", 1 },
-                        { "UnsubscribeBlockTrades", 1 },
-                        { "UnsubscribeLevel1", 1 },
-                        { "UnsubscribeLevel2", 1 },
-                        { "UnsubscribeTicker", 1 },
-                        { "UnsubscribeTrades", 1 },
-                        { "Authenticate", 1 },
+                        { "Activate2FA", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "Authenticate2FA", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "AuthenticateUser", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "EnableXP2FA", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetL2Snapshot", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetLevel1", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetValidate2FARequiredEndpoints", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "LogOut", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetTickerHistory", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetProduct", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetProducts", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetInstrument", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetInstruments", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetEarliestTickTime", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "Ping", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "assets", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orderbook", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ticker", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "summary", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetLastTrades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ConfirmWithdraw", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "SubscribeLevel1", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "SubscribeLevel2", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "SubscribeTicker", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "SubscribeTrades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "SubscribeBlockTrades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "UnsubscribeBlockTrades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "UnsubscribeLevel1", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "UnsubscribeLevel2", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "UnsubscribeTicker", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "UnsubscribeTrades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "Authenticate", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "GetUserAccountInfos", 1 },
-                        { "GetUserAccounts", 1 },
-                        { "GetUserAffiliateCount", 1 },
-                        { "GetUserAffiliateTag", 1 },
-                        { "GetUserConfig", 1 },
-                        { "GetAllUnredactedUserConfigsForUser", 1 },
-                        { "GetUnredactedUserConfigByKey", 1 },
-                        { "GetUserDevices", 1 },
-                        { "GetUserReportTickets", 1 },
-                        { "GetUserReportWriterResultRecords", 1 },
-                        { "GetAccountInfo", 1 },
-                        { "GetAccountPositions", 1 },
-                        { "GetAllAccountConfigs", 1 },
-                        { "GetTreasuryProductsForAccount", 1 },
-                        { "GetAccountTrades", 1 },
-                        { "GetAccountTransactions", 1 },
-                        { "GetOpenTradeReports", 1 },
-                        { "GetAllOpenTradeReports", 1 },
-                        { "GetTradesHistory", 1 },
-                        { "GetOpenOrders", 1 },
-                        { "GetOpenQuotes", 1 },
-                        { "GetOrderFee", 1 },
-                        { "GetOrderHistory", 1 },
-                        { "GetOrdersHistory", 1 },
-                        { "GetOrderStatus", 1 },
-                        { "GetOmsFeeTiers", 1 },
-                        { "GetAccountDepositTransactions", 1 },
-                        { "GetAccountWithdrawTransactions", 1 },
-                        { "GetAllDepositRequestInfoTemplates", 1 },
-                        { "GetDepositInfo", 1 },
-                        { "GetDepositRequestInfoTemplate", 1 },
-                        { "GetDeposits", 1 },
-                        { "GetDepositTicket", 1 },
-                        { "GetDepositTickets", 1 },
-                        { "GetOMSWithdrawFees", 1 },
-                        { "GetWithdrawFee", 1 },
-                        { "GetWithdraws", 1 },
-                        { "GetWithdrawTemplate", 1 },
-                        { "GetWithdrawTemplateTypes", 1 },
-                        { "GetWithdrawTicket", 1 },
-                        { "GetWithdrawTicketAttachment", 1 },
-                        { "GetWithdrawTickets", 1 },
-                        { "GetDepositTicketAttachment", 1 },
+                        { "GetUserAccountInfos", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetUserAccounts", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetUserAffiliateCount", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetUserAffiliateTag", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetUserConfig", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetAllUnredactedUserConfigsForUser", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetUnredactedUserConfigByKey", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetUserDevices", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetUserReportTickets", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetUserReportWriterResultRecords", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetAccountInfo", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetAccountPositions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetAllAccountConfigs", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetTreasuryProductsForAccount", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetAccountTrades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetAccountTransactions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetOpenTradeReports", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetAllOpenTradeReports", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetTradesHistory", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetOpenOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetOpenQuotes", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetOrderFee", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetOrderHistory", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetOrdersHistory", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetOrderStatus", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetOmsFeeTiers", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetAccountDepositTransactions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetAccountWithdrawTransactions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetAllDepositRequestInfoTemplates", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetDepositInfo", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetDepositRequestInfoTemplate", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetDeposits", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetDepositTicket", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetDepositTickets", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetOMSWithdrawFees", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetWithdrawFee", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetWithdraws", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetWithdrawTemplate", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetWithdrawTemplateTypes", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetWithdrawTicket", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetWithdrawTicketAttachment", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetWithdrawTickets", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetDepositTicketAttachment", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "post", new Dictionary<string, object>() {
-                        { "AddUserAffiliateTag", 1 },
-                        { "AddDepositTicketAttachment", 1 },
-                        { "AddWithdrawTicketAttachment", 1 },
-                        { "CancelUserReport", 1 },
-                        { "RegisterNewDevice", 1 },
-                        { "SubscribeAccountEvents", 1 },
-                        { "UpdateUserAffiliateTag", 1 },
-                        { "GenerateTradeActivityReport", 1 },
-                        { "GenerateTransactionActivityReport", 1 },
-                        { "GenerateTreasuryActivityReport", 1 },
-                        { "ScheduleTradeActivityReport", 1 },
-                        { "ScheduleTransactionActivityReport", 1 },
-                        { "ScheduleTreasuryActivityReport", 1 },
-                        { "CancelAllOrders", 1 },
-                        { "CancelOrder", 1 },
-                        { "CancelQuote", 1 },
-                        { "CancelReplaceOrder", 1 },
-                        { "CreateQuote", 1 },
-                        { "ModifyOrder", 1 },
-                        { "SendOrder", 1 },
-                        { "SubmitBlockTrade", 1 },
-                        { "UpdateQuote", 1 },
-                        { "CancelWithdraw", 1 },
-                        { "CreateDepositTicket", 1 },
-                        { "CreateWithdrawTicket", 1 },
-                        { "SubmitDepositTicketComment", 1 },
-                        { "SubmitWithdrawTicketComment", 1 },
-                        { "GetOrderHistoryByOrderId", 1 },
+                        { "AddUserAffiliateTag", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "AddDepositTicketAttachment", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "AddWithdrawTicketAttachment", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "CancelUserReport", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "RegisterNewDevice", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "SubscribeAccountEvents", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "UpdateUserAffiliateTag", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GenerateTradeActivityReport", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GenerateTransactionActivityReport", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GenerateTreasuryActivityReport", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ScheduleTradeActivityReport", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ScheduleTransactionActivityReport", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ScheduleTreasuryActivityReport", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "CancelAllOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "CancelOrder", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "CancelQuote", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "CancelReplaceOrder", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "CreateQuote", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ModifyOrder", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "SendOrder", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "SubmitBlockTrade", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "UpdateQuote", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "CancelWithdraw", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "CreateDepositTicket", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "CreateWithdrawTicket", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "SubmitDepositTicketComment", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "SubmitWithdrawTicketComment", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetOrderHistoryByOrderId", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
             } },
@@ -398,7 +606,7 @@ public partial class ndax : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    public async override Task<object> fetchStatus(object parameters = null)
+    public async override Task<ccxt.Status> FetchStatus(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetPing(parameters);
@@ -408,13 +616,7 @@ public partial class ndax : Exchange
         //     }
         //
         object message = this.safeString(response, "msg");
-        return new Dictionary<string, object>() {
-            { "status", ((bool) isTrue((isEqual(message, "PONG")))) ? "ok" : "error" },
-            { "updated", null },
-            { "eta", null },
-            { "url", null },
-            { "info", response },
-        };
+        return ccxt.BaseExchange.ToStatus(new Dictionary<string, object>() {             { "status", ((bool) isTrue((isEqual(message, "PONG")))) ? "ok" : "error" },             { "updated", null },             { "eta", null },             { "url", null },             { "info", response },         });
     }
 
     /**
@@ -460,9 +662,9 @@ public partial class ndax : Exchange
                 throw new AuthenticationError ((string)add(this.id, " signIn() requires exchange.twofa credentials")) ;
             }
             ((IDictionary<string,object>)this.options)["pending2faToken"] = pending2faToken;
-            request = ((object)new Dictionary<string, object>() {
+            request = new Dictionary<string, object>() {
                 { "Code", totp(this.twofa) },
-            });
+            };
             object responseInner = await this.publicGetAuthenticate2FA(this.extend(request, parameters));
             //
             //     {
@@ -534,7 +736,7 @@ public partial class ndax : Exchange
             { "type", type },
             { "precision", this.safeNumber(rawCurrency, "TickSize") },
             { "info", rawCurrency },
-            { "active", !isTrue(this.safeBool(rawCurrency, "IsDisabled")) },
+            { "active", (!isEqual(this.safeBool(rawCurrency, "IsDisabled"), true)) },
             { "deposit", this.safeBool(rawCurrency, "DepositEnabled") },
             { "withdraw", this.safeBool(rawCurrency, "WithdrawEnabled") },
             { "fee", null },
@@ -628,8 +830,8 @@ public partial class ndax : Exchange
         object quote = this.safeCurrencyCode(this.safeString(market, "Product2Symbol"));
         object sessionStatus = this.safeString(market, "SessionStatus");
         object isDisable = this.safeValue(market, "IsDisable");
-        object sessionRunning = (isEqual(sessionStatus, "Running"));
-        return new Dictionary<string, object>() {
+        bool sessionRunning = (isEqual(sessionStatus, "Running"));
+        return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },
             { "symbol", add(add(bs, "/"), quote) },
             { "base", bs },
@@ -644,7 +846,7 @@ public partial class ndax : Exchange
             { "swap", false },
             { "future", false },
             { "option", false },
-            { "active", (isTrue(sessionRunning) && !isTrue(isDisable)) },
+            { "active", (isTrue(sessionRunning) && isTrue((!isEqual(isDisable, true)))) },
             { "contract", false },
             { "linear", null },
             { "inverse", null },
@@ -677,7 +879,7 @@ public partial class ndax : Exchange
             } },
             { "created", null },
             { "info", market },
-        };
+        });
     }
 
     public override object parseOrderBook(object orderbook, object symbol, object timestamp = null, object bidsKey = null, object asksKey = null, object priceKey = null, object amountKey = null, object countOrIdKey = null)
@@ -723,7 +925,7 @@ public partial class ndax : Exchange
             }
             object bidask = this.parseOrderBookBidAsk(level, priceKey, amountKey);
             object levelSide = this.safeInteger(level, 9);
-            object side = ((bool) isTrue(levelSide)) ? asksKey : bidsKey;
+            object side = ((bool) isTrue((isTrue(isTrue(!isEqual(levelSide, null)) && isTrue(!isEqual(levelSide, null))) && isTrue(!isEqual(levelSide, 0))))) ? asksKey : bidsKey;
             ((IList<object>)getValue(result, side)).Add(bidask);
         }
         ((IDictionary<string,object>)result)["bids"] = this.sortBy(getValue(result, "bids"), 0, true);
@@ -742,10 +944,11 @@ public partial class ndax : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
+    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         object omsId = this.safeInteger(this.options, "omsId", 1);
         if (isTrue(isEqual(this.markets, null)))
@@ -753,11 +956,11 @@ public partial class ndax : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        limit = ((bool) isTrue((isEqual(limit, null)))) ? 100 : limit; // default 100
+        limitVar = ((bool) isTrue((isEqual(limitVar, null)))) ? 100 : limitVar; // default 100
         object request = new Dictionary<string, object>() {
             { "omsId", omsId },
             { "InstrumentId", getValue(market, "id") },
-            { "Depth", limit },
+            { "Depth", limitVar },
         };
         object response = await this.publicGetGetL2Snapshot(this.extend(request, parameters));
         //
@@ -917,7 +1120,7 @@ public partial class ndax : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> fetchTicker(object symbol, object parameters = null)
+    public async override Task<ccxt.Ticker> FetchTicker(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object omsId = this.safeInteger(this.options, "omsId", 1);
@@ -961,7 +1164,7 @@ public partial class ndax : Exchange
         //         "Rolling24HrPxChangePercent":0,
         //     }
         //
-        return this.parseTicker(response, market);
+        return ccxt.BaseExchange.ToTicker(this.parseTicker(response, market));
     }
 
     public override object parseOHLCV(object ohlcv, object market = null)
@@ -994,9 +1197,10 @@ public partial class ndax : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        timeframe ??= "1m";
+        object timeframeVar = timeframe;
+        timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         object omsId = this.safeInteger(this.options, "omsId", 1);
         if (isTrue(isEqual(this.markets, null)))
@@ -1007,10 +1211,10 @@ public partial class ndax : Exchange
         object request = new Dictionary<string, object>() {
             { "omsId", omsId },
             { "InstrumentId", getValue(market, "id") },
-            { "Interval", this.safeString(this.timeframes, timeframe, timeframe) },
+            { "Interval", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
-        object duration = this.parseTimeframe(timeframe);
-        object now = this.milliseconds();
+        object duration = this.parseTimeframe(timeframeVar);
+        Int64 now = this.milliseconds();
         if (isTrue(isEqual(since, null)))
         {
             if (isTrue(!isEqual(limit, null)))
@@ -1037,7 +1241,12 @@ public partial class ndax : Exchange
         //         [1607299380000,19069.32,19069.32,19069.32,19069.32,0,19069.31,19069.32,8,1607299320000],
         //     ]
         //
-        return this.parseOHLCVs(response, market, timeframe, since, limit);
+        object candles = new List<object>() {};
+        if (isTrue(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        {
+            candles = response;
+        }
+        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(candles, market, timeframeVar, since, limit));
     }
 
     public override object parseTrade(object trade, object market = null)
@@ -1169,7 +1378,7 @@ public partial class ndax : Exchange
             id = this.safeString(trade, 0);
             marketId = this.safeString(trade, 1);
             object takerSide = this.safeValue(trade, 8);
-            side = ((bool) isTrue(takerSide)) ? "sell" : "buy";
+            side = ((bool) isTrue((isEqual(takerSide, true)))) ? "sell" : "buy";
             orderId = this.safeString(trade, 4);
         } else
         {
@@ -1222,7 +1431,7 @@ public partial class ndax : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> FetchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object omsId = this.safeInteger(this.options, "omsId", 1);
@@ -1247,7 +1456,7 @@ public partial class ndax : Exchange
         //         [6913255,8,0.000006,19107.81,2543430495,2543430793,1606935933881,2,0,0,0],
         //     ]
         //
-        return this.parseTrades(response, market, since, limit);
+        return ccxt.BaseExchange.ToTradeList(this.parseTrades(response, market, since, limit));
     }
 
     /**
@@ -1258,10 +1467,10 @@ public partial class ndax : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
      */
-    public async override Task<object> fetchAccounts(object parameters = null)
+    public async override Task<List<ccxt.Account>> FetchAccounts(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (!isTrue(this.login))
+        if (isTrue(isTrue((isEqual(this.login, null))) || isTrue((isEqual(this.login, "")))))
         {
             throw new AuthenticationError ((string)add(this.id, " fetchAccounts() requires exchange.login email credential")) ;
         }
@@ -1287,7 +1496,7 @@ public partial class ndax : Exchange
                 { "info", accountId },
             });
         }
-        return result;
+        return ccxt.BaseExchange.ToAccountList(result);
     }
 
     public override object parseBalance(object response)
@@ -1301,13 +1510,16 @@ public partial class ndax : Exchange
         {
             object balance = getValue(response, i);
             object currencyId = this.safeString(balance, "ProductId");
-            if (isTrue(isTrue((!isEqual(currencyId, null))) && isTrue((inOp(this.currencies_by_id, currencyId)))))
+            if (isTrue(isTrue(isTrue((!isEqual(currencyId, null))) && isTrue((!isEqual(this.currencies_by_id, null)))) && isTrue((inOp(this.currencies_by_id, currencyId)))))
             {
                 object code = this.safeCurrencyCode(currencyId);
                 object account = this.account();
                 ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "Amount");
                 ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "Hold");
-                ((IDictionary<string,object>)result)[(string)code] = account;
+                if (isTrue(!isEqual(code, null)))
+                {
+                    ((IDictionary<string,object>)result)[(string)code] = account;
+                }
             }
         }
         return this.safeBalance(result);
@@ -1393,7 +1605,7 @@ public partial class ndax : Exchange
             { "MarginRelinquish", "trade" },
             { "MarginQuoteHold", "trade" },
         };
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((string)type), type);
     }
 
     public override object parseLedgerEntry(object item, object currency = null)
@@ -1469,7 +1681,7 @@ public partial class ndax : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
-    public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.LedgerEntry>> FetchLedger(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object omsId = this.safeInteger(this.options, "omsId", 1);
@@ -1513,7 +1725,7 @@ public partial class ndax : Exchange
         {
             currency = this.currency(code);
         }
-        return this.parseLedger(response, currency, since, limit);
+        return ccxt.BaseExchange.ToLedgerEntryList(this.parseLedger(response, currency, since, limit));
     }
 
     public virtual object parseOrderStatus(object status)
@@ -1644,7 +1856,7 @@ public partial class ndax : Exchange
      * @param {string} [params.clientOrderId] a unique id for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object omsId = this.safeInteger(this.options, "omsId", 1);
@@ -1684,7 +1896,12 @@ public partial class ndax : Exchange
         // If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
         if (isTrue(!isEqual(price, null)))
         {
-            ((IDictionary<string,object>)request)["LimitPrice"] = parseFloat(this.priceToPrecision(symbol, price));
+            object limitPriceString = this.priceToPrecision(symbol, price);
+            if (isTrue(isEqual(limitPriceString, null)))
+            {
+                limitPriceString = "0";
+            }
+            ((IDictionary<string,object>)request)["LimitPrice"] = parseFloat(limitPriceString);
         }
         if (isTrue(!isEqual(clientOrderId, null)))
         {
@@ -1702,7 +1919,7 @@ public partial class ndax : Exchange
         //         "OrderId": 2543565231
         //     }
         //
-        return this.parseOrder(response, market);
+        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
     }
 
     /**
@@ -1719,7 +1936,7 @@ public partial class ndax : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
+    public async override Task<ccxt.Order> EditOrder(string id, string symbol, string type, string side, double? amount = null, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object omsId = this.safeInteger(this.options, "omsId", 1);
@@ -1748,7 +1965,12 @@ public partial class ndax : Exchange
         // If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
         if (isTrue(!isEqual(price, null)))
         {
-            ((IDictionary<string,object>)request)["LimitPrice"] = parseFloat(this.priceToPrecision(symbol, price));
+            object limitPriceString = this.priceToPrecision(symbol, price);
+            if (isTrue(isEqual(limitPriceString, null)))
+            {
+                limitPriceString = "0";
+            }
+            ((IDictionary<string,object>)request)["LimitPrice"] = parseFloat(limitPriceString);
         }
         if (isTrue(!isEqual(clientOrderId, null)))
         {
@@ -1763,7 +1985,7 @@ public partial class ndax : Exchange
         //         "origClOrdId": 91011,
         //     }
         //
-        return this.parseOrder(response, market);
+        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
     }
 
     /**
@@ -1777,7 +1999,7 @@ public partial class ndax : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> FetchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object omsId = this.safeInteger(this.options, "omsId", 1);
@@ -1851,7 +2073,7 @@ public partial class ndax : Exchange
         //         }
         //     ]
         //
-        return this.parseTrades(response, market, since, limit);
+        return ccxt.BaseExchange.ToTradeList(this.parseTrades(response, market, since, limit));
     }
 
     /**
@@ -1859,11 +2081,11 @@ public partial class ndax : Exchange
      * @name ndax#cancelAllOrders
      * @description cancel all open orders
      * @see https://apidoc.ndax.io/#cancelallorders
-     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> CancelAllOrders(string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object omsId = this.safeInteger(this.options, "omsId", 1);
@@ -1893,9 +2115,7 @@ public partial class ndax : Exchange
         //         "detail":null
         //     }
         //
-        return new List<object> {this.safeOrder(new Dictionary<string, object>() {
-    { "info", response },
-})};
+        return ccxt.BaseExchange.ToOrderList(new List<object> {this.safeOrder(new Dictionary<string, object>() {     { "info", response }, })});
     }
 
     /**
@@ -1909,7 +2129,7 @@ public partial class ndax : Exchange
      * @param {string} [params.clientOrderId] a unique id for the order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> CancelOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object omsId = this.safeInteger(this.options, "omsId", 1);
@@ -1940,10 +2160,7 @@ public partial class ndax : Exchange
         parameters = this.omit(parameters, new List<object>() {"clientOrderId", "ClOrderId"});
         object response = await this.privatePostCancelOrder(this.extend(request, parameters));
         object order = this.parseOrder(response, market);
-        return this.extend(order, new Dictionary<string, object>() {
-            { "id", id },
-            { "clientOrderId", clientOrderId },
-        });
+        return ccxt.BaseExchange.ToOrder(this.extend(order, new Dictionary<string, object>() {             { "id", id },             { "clientOrderId", clientOrderId },         }));
     }
 
     /**
@@ -1957,7 +2174,7 @@ public partial class ndax : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> FetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object omsId = this.safeInteger(this.options, "omsId", 1);
@@ -2029,7 +2246,7 @@ public partial class ndax : Exchange
         //         }
         //     ]
         //
-        return this.parseOrders(response, market, since, limit);
+        return ccxt.BaseExchange.ToOrderList(this.parseOrders(response, market, since, limit));
     }
 
     /**
@@ -2043,7 +2260,7 @@ public partial class ndax : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> FetchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object omsId = this.safeInteger(this.options, "omsId", 1);
@@ -2124,7 +2341,7 @@ public partial class ndax : Exchange
         //         },
         //     ]
         //
-        return this.parseOrders(response, market, since, limit);
+        return ccxt.BaseExchange.ToOrderList(this.parseOrders(response, market, since, limit));
     }
 
     /**
@@ -2137,7 +2354,7 @@ public partial class ndax : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> FetchOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object omsId = this.safeInteger(this.options, "omsId", 1);
@@ -2208,7 +2425,7 @@ public partial class ndax : Exchange
         //         "OMSId":1
         //     }
         //
-        return this.parseOrder(response, market);
+        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
     }
 
     /**
@@ -2223,7 +2440,7 @@ public partial class ndax : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<object> fetchOrderTrades(object id, object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> FetchOrderTrades(string id, string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object omsId = this.safeInteger(this.options, "omsId", 1);
@@ -2295,9 +2512,9 @@ public partial class ndax : Exchange
         //         },
         //     ]
         //
-        object grouped = this.groupBy(response, "ChangeReason");
+        Dictionary<string, object> grouped = this.groupBy(response, "ChangeReason");
         object trades = this.safeList(grouped, "Trade", new List<object>() {});
-        return this.parseTrades(trades, market, since, limit);
+        return ccxt.BaseExchange.ToTradeList(this.parseTrades(trades, market, since, limit));
     }
 
     /**
@@ -2308,7 +2525,7 @@ public partial class ndax : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public async override Task<object> fetchDepositAddress(object code, object parameters = null)
+    public async override Task<ccxt.DepositAddress> FetchDepositAddress(string code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object omsId = this.safeInteger(this.options, "omsId", 1);
@@ -2340,7 +2557,7 @@ public partial class ndax : Exchange
         //         "DepositInfo":"[\"0x8A27564b5c30b91C93B1591821642420F323a210\"]"
         //     }
         //
-        return this.parseDepositAddress(response, currency);
+        return ccxt.BaseExchange.ToDepositAddress(this.parseDepositAddress(response, currency));
     }
 
     public override object parseDepositAddress(object depositAddress, object currency = null)
@@ -2361,9 +2578,9 @@ public partial class ndax : Exchange
         //
         object depositInfoString = this.safeString(depositAddress, "DepositInfo", "[]");
         object depositInfo = parseJson(depositInfoString);
-        object depositInfoLength = getArrayLength(depositInfo);
+        int depositInfoLength = getArrayLength(depositInfo);
         object lastString = this.safeString(depositInfo, subtract(depositInfoLength, 1), "");
-        object parts = ((string)lastString).Split(new [] {((string)"?memo=")}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = ((string)lastString).Split(new [] {((string)"?memo=")}, StringSplitOptions.None).ToList<object>();
         object address = this.safeString(parts, 0);
         object tag = this.safeString(parts, 1);
         object code = null;
@@ -2389,13 +2606,13 @@ public partial class ndax : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public async override Task<object> createDepositAddress(object code, object parameters = null)
+    public async override Task<ccxt.DepositAddress> CreateDepositAddress(string code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object request = new Dictionary<string, object>() {
             { "GenerateNewKey", true },
         };
-        return await this.fetchDepositAddress(code, this.extend(request, parameters));
+        return await this.FetchDepositAddress(((string)code), this.extend(request, parameters));
     }
 
     /**
@@ -2409,7 +2626,7 @@ public partial class ndax : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Transaction>> FetchDeposits(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object omsId = this.safeInteger(this.options, "omsId", 1);
@@ -2461,9 +2678,9 @@ public partial class ndax : Exchange
         //
         if (isTrue((response is string)))
         {
-            return this.parseTransactions(parseJson(response), currency, since, limit);
+            return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(parseJson(response), currency, since, limit));
         }
-        return this.parseTransactions(response, currency, since, limit);
+        return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(response, currency, since, limit));
     }
 
     /**
@@ -2477,7 +2694,7 @@ public partial class ndax : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Transaction>> FetchWithdrawals(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object omsId = this.safeInteger(this.options, "omsId", 1);
@@ -2523,7 +2740,7 @@ public partial class ndax : Exchange
         //         },
         //     ]
         //
-        return this.parseTransactions(response, currency, since, limit);
+        return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(response, currency, since, limit));
     }
 
     public virtual object parseTransactionStatusByType(object status = null, object type = null)
@@ -2698,11 +2915,12 @@ public partial class ndax : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
+    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
     {
+        object tagVar = tag;
         parameters ??= new Dictionary<string, object>();
-        var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
-        tag = ((IList<object>)tagparametersVariable)[0];
+        var tagparametersVariable = this.handleWithdrawTagAndParams(tagVar, parameters);
+        tagVar = ((IList<object>)tagparametersVariable)[0];
         parameters = ((IList<object>)tagparametersVariable)[1];
         // this method required login, password and twofa key
         object sessionToken = this.safeString(this.options, "sessionToken");
@@ -2773,11 +2991,11 @@ public partial class ndax : Exchange
         }
         object withdrawTemplate = parseJson(template);
         ((IDictionary<string,object>)withdrawTemplate)["ExternalAddress"] = address;
-        if (isTrue(!isEqual(tag, null)))
+        if (isTrue(!isEqual(tagVar, null)))
         {
             if (isTrue(inOp(withdrawTemplate, "Memo")))
             {
-                ((IDictionary<string,object>)withdrawTemplate)["Memo"] = tag;
+                ((IDictionary<string,object>)withdrawTemplate)["Memo"] = tagVar;
             }
         }
         object withdrawPayload = new Dictionary<string, object>() {
@@ -2793,7 +3011,7 @@ public partial class ndax : Exchange
             { "Payload", this.json(withdrawPayload) },
         };
         object response = await this.privatePostCreateWithdrawTicket(this.deepExtend(withdrawRequest, parameters));
-        return this.parseTransaction(response, currency);
+        return ccxt.BaseExchange.ToTransaction(this.parseTransaction(response, currency));
     }
 
     public override object nonce()
@@ -2828,7 +3046,7 @@ public partial class ndax : Exchange
                     query = this.omit(query, "pending2faToken");
                 }
             }
-            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+            if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
             {
                 url = add(url, add("?", this.urlencode(query)));
             }
@@ -2838,9 +3056,9 @@ public partial class ndax : Exchange
             object sessionToken = this.safeString(this.options, "sessionToken");
             if (isTrue(isEqual(sessionToken, null)))
             {
-                object nonce = ((object)this.nonce()).ToString();
+                string nonce = ((object)this.nonce()).ToString();
                 object auth = add(add(nonce, this.uid), this.apiKey);
-                object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
+                string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
                 headers = new Dictionary<string, object>() {
                     { "Nonce", nonce },
                     { "APIKey", this.apiKey },
@@ -2859,7 +3077,7 @@ public partial class ndax : Exchange
                 body = this.json(query);
             } else
             {
-                if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+                if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
                 {
                     url = add(url, add("?", this.urlencode(query)));
                 }

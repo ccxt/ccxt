@@ -29,7 +29,7 @@
         "strike": null,
         "optionType": null,
         "precision": {
-            "amount": 1e-8,
+            "amount": 1e-08,
             "price": 0.1
         },
         "limits": {
@@ -38,8 +38,8 @@
                 "max": 10
             },
             "amount": {
-                "min": 0.00001,
-                "max": null
+                "min": 1e-05,
+                "max": 9999999999
             },
             "price": {
                 "min": null,
@@ -143,7 +143,7 @@
         "strike": null,
         "optionType": null,
         "precision": {
-            "amount": 0.000001,
+            "amount": 1e-06,
             "price": 0.01
         },
         "limits": {
@@ -153,7 +153,7 @@
             },
             "amount": {
                 "min": 0.0001,
-                "max": null
+                "max": 999999999999
             },
             "price": {
                 "min": null,
@@ -267,7 +267,7 @@
             },
             "amount": {
                 "min": 10,
-                "max": null
+                "max": 99999999999999
             },
             "price": {
                 "min": null,
@@ -371,7 +371,7 @@
         "strike": null,
         "optionType": null,
         "precision": {
-            "amount": 0.000001,
+            "amount": 1e-06,
             "price": 0.01
         },
         "limits": {
@@ -381,7 +381,7 @@
             },
             "amount": {
                 "min": 0.01,
-                "max": null
+                "max": 999999999999
             },
             "price": {
                 "min": null,
@@ -485,7 +485,7 @@
         "strike": null,
         "optionType": null,
         "precision": {
-            "amount": 0.000001,
+            "amount": 1e-06,
             "price": 0.0001
         },
         "limits": {
@@ -495,7 +495,7 @@
             },
             "amount": {
                 "min": 1,
-                "max": null
+                "max": 999999999999
             },
             "price": {
                 "min": null,
@@ -599,8 +599,8 @@
         "strike": null,
         "optionType": null,
         "precision": {
-            "amount": 0.000001,
-            "price": 0.00001
+            "amount": 1e-06,
+            "price": 1e-05
         },
         "limits": {
             "leverage": {
@@ -609,7 +609,7 @@
             },
             "amount": {
                 "min": 10,
-                "max": null
+                "max": 999999999999
             },
             "price": {
                 "min": null,
@@ -713,8 +713,8 @@
         "strike": null,
         "optionType": null,
         "precision": {
-            "amount": 0.000001,
-            "price": 0.00001
+            "amount": 1e-06,
+            "price": 1e-05
         },
         "limits": {
             "leverage": {
@@ -723,7 +723,7 @@
             },
             "amount": {
                 "min": 1,
-                "max": null
+                "max": 999999999999
             },
             "price": {
                 "min": null,
@@ -837,7 +837,7 @@
             },
             "amount": {
                 "min": 0.01,
-                "max": null
+                "max": 100000000
             },
             "price": {
                 "min": null,
@@ -949,7 +949,7 @@
             },
             "amount": {
                 "min": 0.1,
-                "max": null
+                "max": 100000000
             },
             "price": {
                 "min": null,
@@ -1061,7 +1061,7 @@
             },
             "amount": {
                 "min": 0.01,
-                "max": null
+                "max": 100000000
             },
             "price": {
                 "min": null,
@@ -1173,7 +1173,7 @@
             },
             "amount": {
                 "min": 0.1,
-                "max": null
+                "max": 100000000
             },
             "price": {
                 "min": null,
@@ -1285,7 +1285,7 @@
             },
             "amount": {
                 "min": 0.1,
-                "max": null
+                "max": 100000000
             },
             "price": {
                 "min": null,
@@ -1397,7 +1397,7 @@
             },
             "amount": {
                 "min": 0.01,
-                "max": null
+                "max": 100000000
             },
             "price": {
                 "min": null,
@@ -1500,7 +1500,7 @@
         "optionType": null,
         "precision": {
             "amount": 0.01,
-            "price": 0.00001
+            "price": 1e-05
         },
         "limits": {
             "leverage": {
@@ -1509,7 +1509,7 @@
             },
             "amount": {
                 "min": 0.01,
-                "max": null
+                "max": 100000000
             },
             "price": {
                 "min": null,
@@ -1612,7 +1612,7 @@
         "optionType": null,
         "precision": {
             "amount": 0.01,
-            "price": 0.00001
+            "price": 1e-05
         },
         "limits": {
             "leverage": {
@@ -1621,7 +1621,7 @@
             },
             "amount": {
                 "min": 0.01,
-                "max": null
+                "max": 1000000
             },
             "price": {
                 "min": null,
@@ -1733,7 +1733,7 @@
             },
             "amount": {
                 "min": 1,
-                "max": null
+                "max": 100000000
             },
             "price": {
                 "min": null,
@@ -1842,7 +1842,8 @@
                 "max": 1
             },
             "amount": {
-                "min": 1
+                "min": 1,
+                "max": 1000000
             },
             "price": {},
             "cost": {}
@@ -1920,7 +1921,8 @@
                 "max": 50
             },
             "amount": {
-                "min": 1
+                "min": 1,
+                "max": 100000000
             },
             "price": {},
             "cost": {}

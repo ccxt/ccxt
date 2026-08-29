@@ -30,8 +30,6 @@ def test_order_book(exchange, skipped_properties, method, orderbook, symbol):
         'nonce': 134234234,
     }
     empty_allowed_for = ['nonce']
-    # turn into copy: https://discord.com/channels/690203284119617602/921046068555313202/1220626834887282728
-    orderbook = exchange.deep_extend({}, orderbook)
     test_shared_methods.assert_structure(exchange, skipped_properties, method, orderbook, format, empty_allowed_for)
     test_shared_methods.assert_timestamp_and_datetime(exchange, skipped_properties, method, orderbook)
     test_shared_methods.assert_symbol(exchange, skipped_properties, method, orderbook, 'symbol', symbol)
@@ -64,7 +62,7 @@ def test_order_book(exchange, skipped_properties, method, orderbook, symbol):
             test_shared_methods.assert_greater(exchange, skipped_properties, method, asks[i], 0, '0')
             test_shared_methods.assert_greater(exchange, skipped_properties, method, asks[i], 1, '0')
     if not ('spread' in skipped_properties):
-        if bids_length and asks_length:
+        if (bids_length > 0) and (asks_length > 0):
             first_bid = exchange.safe_string(bids[0], 0)
             first_ask = exchange.safe_string(asks[0], 0)
             # check bid-ask spread

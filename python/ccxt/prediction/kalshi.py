@@ -5,8 +5,8 @@
 
 from ccxt.async_support.base.prediction_exchange import PredictionExchange
 from ccxt.abstract.prediction.kalshi import ImplicitAPI
-from ccxt.base.types import Any, Balances, Int, Market, Num, Str, Strings, PredictionEvent, fetchEventsParams, PredictionTicker, PredictionTickers, PredictionOrder, PredictionOrderBook, PredictionTrade, PredictionPosition, PredictionOpenInterest, PredictionSettlement
-from typing import List
+from ccxt.base.types import Balances, Int, Market, Num, Str, Strings, PredictionEvent, fetchEventsParams, PredictionTicker, PredictionTickers, PredictionOrder, PredictionOrderBook, PredictionTrade, PredictionPosition, PredictionOpenInterest, PredictionSettlement
+from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
@@ -17,7 +17,7 @@ from ccxt.base.precise import Precise
 
 class kalshi(PredictionExchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(kalshi, self).describe(), {
             'id': 'kalshi',
             'name': 'Kalshi',
@@ -84,96 +84,96 @@ class kalshi(PredictionExchange, ImplicitAPI):
                 'kalshi': {
                     'public': {
                         'get': {
-                            'events': 1,
-                            'events/multivariate': 1,
-                            'events/fee_changes': 1,
-                            'events/{event_ticker}': 1,
-                            'events/{event_ticker}/metadata': 1,
-                            'series': 1,
-                            'series/fee_changes': 1,
-                            'series/{series_ticker}': 1,
-                            'series/{series_ticker}/markets/{ticker}/candlesticks': 1,
-                            'series/{series_ticker}/events/{ticker}/candlesticks': 1,
-                            'series/{series_ticker}/events/{ticker}/forecast_percentile_history': 1,
-                            'markets': 1,
-                            'markets/trades': 1,
-                            'markets/orderbooks': 1,
-                            'markets/candlesticks': 1,
-                            'markets/{ticker}': 1,
-                            'markets/{ticker}/orderbook': 1,
-                            'exchange/status': 1,
-                            'exchange/schedule': 1,
-                            'exchange/announcements': 1,
-                            'exchange/user_data_timestamp': 1,
-                            'milestones': 1,
-                            'milestones/{milestone_id}': 1,
-                            'structured_targets': 1,
-                            'structured_targets/{structured_target_id}': 1,
-                            'search/filters_by_sport': 1,
-                            'search/tags_by_categories': 1,
-                            'live_data/batch': 1,
-                            'live_data/milestone/{milestone_id}': 1,
-                            'historical/markets': 1,
-                            'historical/markets/{ticker}/candlesticks': 1,
-                            'historical/trades': 1,
-                            'historical/cutoff_timestamps': 1,
-                            'multivariate_event_collections': 1,
-                            'multivariate_event_collections/{collection_ticker}': 1,
-                            'multivariate_event_collections/{collection_ticker}/lookup': 1,
-                            'incentive_programs': 1,
+                            'events': {'cost': 1},
+                            'events/multivariate': {'cost': 1},
+                            'events/fee_changes': {'cost': 1},
+                            'events/{event_ticker}': {'cost': 1},
+                            'events/{event_ticker}/metadata': {'cost': 1},
+                            'series': {'cost': 1},
+                            'series/fee_changes': {'cost': 1},
+                            'series/{series_ticker}': {'cost': 1},
+                            'series/{series_ticker}/markets/{ticker}/candlesticks': {'cost': 1},
+                            'series/{series_ticker}/events/{ticker}/candlesticks': {'cost': 1},
+                            'series/{series_ticker}/events/{ticker}/forecast_percentile_history': {'cost': 1},
+                            'markets': {'cost': 1},
+                            'markets/trades': {'cost': 1},
+                            'markets/orderbooks': {'cost': 1},
+                            'markets/candlesticks': {'cost': 1},
+                            'markets/{ticker}': {'cost': 1},
+                            'markets/{ticker}/orderbook': {'cost': 1},
+                            'exchange/status': {'cost': 1},
+                            'exchange/schedule': {'cost': 1},
+                            'exchange/announcements': {'cost': 1},
+                            'exchange/user_data_timestamp': {'cost': 1},
+                            'milestones': {'cost': 1},
+                            'milestones/{milestone_id}': {'cost': 1},
+                            'structured_targets': {'cost': 1},
+                            'structured_targets/{structured_target_id}': {'cost': 1},
+                            'search/filters_by_sport': {'cost': 1},
+                            'search/tags_by_categories': {'cost': 1},
+                            'live_data/batch': {'cost': 1},
+                            'live_data/milestone/{milestone_id}': {'cost': 1},
+                            'historical/markets': {'cost': 1},
+                            'historical/markets/{ticker}/candlesticks': {'cost': 1},
+                            'historical/trades': {'cost': 1},
+                            'historical/cutoff_timestamps': {'cost': 1},
+                            'multivariate_event_collections': {'cost': 1},
+                            'multivariate_event_collections/{collection_ticker}': {'cost': 1},
+                            'multivariate_event_collections/{collection_ticker}/lookup': {'cost': 1},
+                            'incentive_programs': {'cost': 1},
                         },
                     },
                     'private': {
                         'get': {
-                            'portfolio/balance': 1,
-                            'portfolio/orders': 1,
-                            'portfolio/orders/{order_id}': 1,
-                            'portfolio/orders/{order_id}/queue_position': 1,
-                            'portfolio/orders/queue_positions': 1,
-                            'portfolio/positions': 1,
-                            'portfolio/fills': 1,
-                            'portfolio/settlements': 1,
-                            'portfolio/deposits': 1,
-                            'portfolio/withdrawals': 1,
-                            'portfolio/order_groups': 1,
-                            'portfolio/order_groups/{order_group_id}': 1,
-                            'portfolio/summary/total_resting_order_value': 1,
-                            'portfolio/subaccounts/balances': 1,
-                            'portfolio/subaccounts/netting': 1,
-                            'portfolio/subaccounts/transfers': 1,
-                            'historical/fills': 1,
-                            'historical/orders': 1,
+                            'portfolio/balance': {'cost': 1},
+                            'portfolio/orders': {'cost': 1},
+                            'portfolio/orders/{order_id}': {'cost': 1},
+                            'portfolio/orders/{order_id}/queue_position': {'cost': 1},
+                            'portfolio/orders/queue_positions': {'cost': 1},
+                            'portfolio/positions': {'cost': 1},
+                            'portfolio/fills': {'cost': 1},
+                            'portfolio/settlements': {'cost': 1},
+                            'portfolio/deposits': {'cost': 1},
+                            'portfolio/withdrawals': {'cost': 1},
+                            'portfolio/order_groups': {'cost': 1},
+                            'portfolio/order_groups/{order_group_id}': {'cost': 1},
+                            'portfolio/summary/total_resting_order_value': {'cost': 1},
+                            'portfolio/subaccounts/balances': {'cost': 1},
+                            'portfolio/subaccounts/netting': {'cost': 1},
+                            'portfolio/subaccounts/transfers': {'cost': 1},
+                            'historical/fills': {'cost': 1},
+                            'historical/orders': {'cost': 1},
                         },
                         'post': {
-                            'portfolio/orders': 1,
-                            'portfolio/events/orders': 1,
-                            'portfolio/orders/batched': 1,
-                            'portfolio/orders/{order_id}/amend': 1,
-                            'portfolio/orders/{order_id}/decrease': 1,
-                            'portfolio/order_groups/create': 1,
-                            'portfolio/subaccounts': 1,
-                            'portfolio/subaccounts/transfer': 1,
-                            'multivariate_event_collections/{collection_ticker}': 1,
+                            'portfolio/orders': {'cost': 1},
+                            'portfolio/events/orders': {'cost': 1},
+                            'portfolio/orders/batched': {'cost': 1},
+                            'portfolio/orders/{order_id}/amend': {'cost': 1},
+                            'portfolio/orders/{order_id}/decrease': {'cost': 1},
+                            'portfolio/order_groups/create': {'cost': 1},
+                            'portfolio/subaccounts': {'cost': 1},
+                            'portfolio/subaccounts/transfer': {'cost': 1},
+                            'multivariate_event_collections/{collection_ticker}': {'cost': 1},
                         },
                         'put': {
-                            'portfolio/order_groups/{order_group_id}/reset': 1,
-                            'portfolio/order_groups/{order_group_id}/trigger': 1,
-                            'portfolio/order_groups/{order_group_id}/limit': 1,
-                            'portfolio/subaccounts/netting': 1,
-                            'multivariate_event_collections/{collection_ticker}/lookup': 1,
+                            'portfolio/order_groups/{order_group_id}/reset': {'cost': 1},
+                            'portfolio/order_groups/{order_group_id}/trigger': {'cost': 1},
+                            'portfolio/order_groups/{order_group_id}/limit': {'cost': 1},
+                            'portfolio/subaccounts/netting': {'cost': 1},
+                            'multivariate_event_collections/{collection_ticker}/lookup': {'cost': 1},
                         },
                         'delete': {
-                            'portfolio/orders/{order_id}': 1,
-                            'portfolio/orders/batched': 1,
-                            'portfolio/events/orders/{order_id}': 1,  # v2 cancel(the non-v2 paths above are 410 Gone)
-                            'portfolio/order_groups/{order_group_id}': 1,
+                            'portfolio/orders/{order_id}': {'cost': 1},
+                            'portfolio/orders/batched': {'cost': 1},
+                            'portfolio/events/orders/{order_id}': {'cost': 1},  # v2 cancel(the non-v2 paths above are 410 Gone)
+                            'portfolio/order_groups/{order_group_id}': {'cost': 1},
                         },
                     },
                 },
                 'elections': {
                     'public': {
                         'get': {
-                            'search/series': 1,   # free-text series/event search — elections web host only
+                            'search/series': {'cost': 1},   # free-text series/event search — elections web host only
                         },
                     },
                 },
@@ -212,7 +212,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
             },
         })
 
-    async def fetch_markets(self, params={}) -> List[Market]:
+    async def fetch_markets(self, params={}) -> list[Market]:
         """
         fetches kalshi markets; with a query it resolves the query via the events endpoint and returns the matched events' markets, otherwise it pages the markets listing
 
@@ -268,11 +268,11 @@ class kalshi(PredictionExchange, ImplicitAPI):
                 parsed = self.parse_binary_market_to_outcomes(raw)
                 eventTicker = self.safe_string(raw, 'event_ticker')
                 eventTitle = self.safe_string(raw, 'title', eventTicker)
-                eventKey = self.shorten_slug(eventTitle) if eventTitle else None
+                eventKey = self.shorten_slug(eventTitle) if (eventTitle is not None and eventTitle != '') else None
                 for j in range(0, len(parsed)):
                     m = parsed[j]
                     flatMarkets.append(m)
-                    if eventKey:
+                    if (eventKey is not None) and (eventKey != ''):
                         if not (eventKey in eventsDict):
                             eventsDict[eventKey] = {
                                 'id': eventTicker,
@@ -290,7 +290,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
                         eventEntry['markets'] = entryMarkets
             cursor = self.safe_string(response, 'cursor')
             collectedLength = len(flatMarkets)
-            if not cursor or rawMarketsLength < limit or collectedLength >= maxMarkets:
+            if (cursor is None or cursor == '') or rawMarketsLength < limit or collectedLength >= maxMarkets:
                 break
         self.events = eventsDict
         flatMarketsLength = len(flatMarkets)
@@ -298,10 +298,10 @@ class kalshi(PredictionExchange, ImplicitAPI):
             return self.array_slice(flatMarkets, 0, maxMarkets)
         return flatMarkets
 
-    def parse_binary_market_to_outcomes(self, raw: dict) -> List[Market]:
+    def parse_binary_market_to_outcomes(self, raw: dict) -> list[Market]:
         return [self.parse_market(raw)]
 
-    async def fetch_outcome(self, outcomeSymbol: str) -> Any:
+    async def fetch_outcome(self, outcomeSymbol: str) -> object:
         """
  @ignore
         resolves a single outcome on demand instead of bulk-loading. kalshi has tens of
@@ -314,7 +314,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         # a kalshi ticker never contains ':', so only id-form inputs can be fetched by ticker —
         # sending a unified handle(EVENT_MARKET:LABEL) ticker is a guaranteed 404.
         # the indexOf comparison must stay INLINE and `< 0` — the php transpiler only rewrites the
-        # inline form to mb_strpos's `== False`; assigned to a variable first, absence(False)
+        # inline form to mb_strpos's `is False`; assigned to a variable first, absence(False)
         # never satisfies `< 0` and id-form inputs take the wrong branch
         if outcomeSymbol.find(':') < 0:
             # parseToInt-wrapped .length: the bare `n = len(str);` statement is the php
@@ -338,6 +338,8 @@ class kalshi(PredictionExchange, ImplicitAPI):
                 parsed = self.parse_market(rawMarket)
                 if self.markets is None:
                     self.markets = self.create_safe_dictionary()
+                if parsed is None:
+                    raise ExchangeError(self.id + ' fetchOutcome() could not resolve parsed')
                 self.markets[parsed['market']] = parsed
                 # index only the market just fetched, not a full O(markets x outcomes) rebuild of the
                 # whole cache — on-demand fetchOutcome(loadAllOutcomes False) is the hot path here
@@ -367,7 +369,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         # on a genuine miss
         return await super(kalshi, self).fetch_outcome(outcomeSymbol)
 
-    async def fetch_outcomes(self, outcomeSymbols: List[str]) -> Any:
+    async def fetch_outcomes(self, outcomeSymbols: list[str]) -> object:
         """
  @ignore
         resolves several uncached outcomes at once — ticker-shaped ids are batched through the markets listing's tickers filter(100 per request); anything left unresolved(handle-shaped symbols, unknown tickers) falls back to the single fetch and its guidance-rich BadSymbol
@@ -410,6 +412,8 @@ class kalshi(PredictionExchange, ImplicitAPI):
             rawMarkets = self.safe_list(response, 'markets', [])
             for i in range(0, len(rawMarkets)):
                 parsed = self.parse_market(rawMarkets[i])
+                if parsed is None:
+                    raise ExchangeError(self.id + ' fetchOutcomes() could not resolve parsed')
                 self.markets[parsed['market']] = parsed
                 self.index_market_outcomes(parsed)
             startIndex = self.sum(startIndex, chunkSize)
@@ -418,12 +422,12 @@ class kalshi(PredictionExchange, ImplicitAPI):
                 await self.fetch_outcome(outcomeSymbols[i])
         return self.outcomes
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         # kalshi returns {"error": {"code": "...", ...}} with a 4xx; map known codes to ccxt
         # errors(e.g. not_found -> BadSymbol) so callers can distinguish them from a transport
         # outage(the base otherwise maps a bare 404 to the exchange-not-available error). unmapped codes fall
         # through to the base http-status handling.
-        if not response:
+        if (response is None) or (response is None):
             return None
         error = self.safe_dict(response, 'error')
         if error is not None:
@@ -521,7 +525,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         openInt = self.safe_number_2(raw, 'open_interest_fp', 'open_interest')
         # Derive series ticker: drop last hyphen-segment from event_ticker
         eventParts = []
-        if eventTicker:
+        if (eventTicker is not None) and (eventTicker != ''):
             eventParts = eventTicker.split('-')
         seriesTicker = eventTicker
         eventPartsLength = len(eventParts)
@@ -611,7 +615,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
             'linear': None,
             'inverse': None,
             'contractSize': None,
-            'expiry': self.parse8601(endDate) if endDate else None,
+            'expiry': self.parse8601(endDate) if (endDate is not None and endDate != '') else None,
             'expiryDatetime': endDate,
             'strike': None,
             'optionType': None,
@@ -715,7 +719,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         raw = self.safe_value(response, 'market', response)
         return self.parse_prediction_ticker(raw, outcomeObj)
 
-    async def fetch_status(self, params={}) -> Any:
+    async def fetch_status(self, params={}) -> object:
         """
         fetches the kalshi exchange status
 
@@ -730,7 +734,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         #
         tradingActive = self.safe_bool(response, 'trading_active', False)
         return {
-            'status': 'ok' if tradingActive else 'maintenance',
+            'status': 'ok' if (tradingActive is True) else 'maintenance',
             'updated': None,
             'eta': None,
             'url': None,
@@ -755,7 +759,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         raw = self.safe_dict(response, 'market', response)
         return self.parse_prediction_open_interest(raw, outcomeObj)
 
-    def parse_prediction_open_interest(self, interest, market: Market = None) -> PredictionOpenInterest:
+    def parse_prediction_open_interest(self, interest: dict, market: Market = None) -> PredictionOpenInterest:
         #
         #     {"ticker": "...", "open_interest_fp": "60802.01", ...}   # open interest in contracts
         #
@@ -840,7 +844,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         #
         marketAny = market
         outcomeObj = self.safe_outcome(self.safe_string(marketAny, 'outcome'), marketAny)
-        outcomeLabel = self.safe_string(market, 'label', self.safe_string(market['info'], 'outcomeLabel', 'YES')) if market else 'YES'
+        outcomeLabel = self.safe_string(market, 'label', self.safe_string(market['info'], 'outcomeLabel', 'YES')) if (market is not None and market is not None) else 'YES'
         isNo = outcomeLabel.upper() == 'NO'
         now = self.milliseconds()
         outcome = self.safe_string(outcomeObj, 'outcome')
@@ -1022,7 +1026,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
                 asks.append([price, self.safe_number(rawNo[ai], 1)])
         return self.safe_prediction_order_book(self.sorted_orders(self.safe_string(outcomeObj, 'outcome', outcome), timestamp, bids, asks), outcomeObj)
 
-    def sorted_orders(self, outcome: Str, timestamp: Int, bids: List[Any], asks: List[Any]) -> PredictionOrderBook:
+    def sorted_orders(self, outcome: Str, timestamp: Int, bids: list[object], asks: list[object]) -> PredictionOrderBook:
         """
  @ignore
         sorts bids descending and asks ascending, then returns a CCXT-shaped order book object
@@ -1044,7 +1048,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
             'nonce': None,
         }
 
-    async def fetch_ohlcv(self, outcome: Str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, outcome: Str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
         """
         fetches OHLCV candlesticks for a single kalshi outcome from the candlesticks endpoint
 
@@ -1140,7 +1144,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         self.options['ohlcvCandleDurationSeconds'] = tf
         return self.parse_ohlcvs(usableCandles, outcomeObj, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         """
  @ignore
         parses a single kalshi candlestick object into a CCXT OHLCV tuple, converting cent prices to decimals
@@ -1196,7 +1200,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
             self.safe_number(ohlcv, 'volume_fp', 0),
         ]
 
-    async def fetch_trades(self, outcome: Str, since: Int = None, limit: Int = None, params={}) -> List[PredictionTrade]:
+    async def fetch_trades(self, outcome: Str, since: Int = None, limit: Int = None, params={}) -> list[PredictionTrade]:
         """
         fetches public trade history for a single kalshi market ticker
 
@@ -1278,7 +1282,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
             'fee': None,
         }, market)
 
-    async def fetch_my_trades(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> List[PredictionTrade]:
+    async def fetch_my_trades(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> list[PredictionTrade]:
         """
         fetch the fills(executed trades) of the authenticated kalshi user
 
@@ -1298,6 +1302,8 @@ class kalshi(PredictionExchange, ImplicitAPI):
             # the ticker filter narrows to the market; a market has both legs, so the
             # wanted-leg filter below still drops the opposite-leg fills
             outcomeObj = self.outcome(outcome)
+            if outcomeObj is None:
+                raise ArgumentsRequired(self.id + ' requires a valid outcome')
             request['ticker'] = self.safe_string(outcomeObj['info'], 'ticker')
         if limit is not None:
             request['limit'] = limit
@@ -1357,7 +1363,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         if (price is not None) and (amount is not None):
             cost = price * amount
         isTaker = self.safe_bool(fill, 'is_taker', True)
-        takerOrMaker = 'taker' if (isTaker) else 'maker'
+        takerOrMaker = 'taker' if (isTaker is True) else 'maker'
         feeCost = self.safe_number(fill, 'fee_cost')
         fee = None
         if feeCost is not None:
@@ -1396,7 +1402,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         response = await self.kalshiPrivateGetPortfolioBalance(params)
         return self.parse_balance(response)
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: object) -> Balances:
         """
  @ignore
         parses a kalshi balance response(cents) into a unified balances object with a USD entry
@@ -1412,7 +1418,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         result['USD'] = {'free': total, 'used': 0, 'total': total}
         return self.safe_balance(result)
 
-    async def fetch_positions(self, outcomes: Strings = None, params={}) -> List[PredictionPosition]:
+    async def fetch_positions(self, outcomes: Strings = None, params={}) -> list[PredictionPosition]:
         """
         fetches open market positions for the authenticated kalshi user
 
@@ -1437,6 +1443,8 @@ class kalshi(PredictionExchange, ImplicitAPI):
         if outcomesLength == 0:
             return parsed
         wantedTickers = {}
+        if outcomes is None:
+            raise ExchangeError(self.id + ' fetchPositions() missing outcomes')
         for i in range(0, len(outcomes)):
             outcomeObj = self.outcome(outcomes[i])
             outcomeInfo = self.safe_dict(outcomeObj, 'info', {})
@@ -1452,7 +1460,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
                 result.append(position)
         return result
 
-    async def fetch_settlements(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> List[PredictionSettlement]:
+    async def fetch_settlements(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> list[PredictionSettlement]:
         """
         fetches the user's settled(resolved) positions, with the collateral paid out and realized pnl
 
@@ -1485,7 +1493,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
                 result.append(settlement)
         return self.filter_by_since_limit(result, since, limit, 'timestamp')
 
-    def parse_settlement(self, settlement: dict, market: Market = None) -> Any:
+    def parse_settlement(self, settlement: dict, market: Market = None) -> object:
         """
  @ignore
         parses one raw kalshi settlement into the unified prediction settlement shape
@@ -1588,7 +1596,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
             'info': position,
         })
 
-    async def fetch_open_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> List[PredictionOrder]:
+    async def fetch_open_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> list[PredictionOrder]:
         """
         fetches resting(open) orders for the authenticated kalshi user, optionally filtered by ticker
 
@@ -1606,12 +1614,14 @@ class kalshi(PredictionExchange, ImplicitAPI):
         outcomeObj = None
         if outcome is not None:
             outcomeObj = self.outcome(outcome)
+            if outcomeObj is None:
+                raise ArgumentsRequired(self.id + ' requires a valid outcome')
             request['ticker'] = self.safe_string(outcomeObj['info'], 'ticker')
         response = await self.kalshiPrivateGetPortfolioOrders(self.extend(request, params))
         orders = self.safe_list(response, 'orders', [])
         return self.parse_prediction_orders(orders, outcomeObj, since, limit)
 
-    async def fetch_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> List[PredictionOrder]:
+    async def fetch_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> list[PredictionOrder]:
         """
         fetches all orders(resting, executed and canceled) for the authenticated kalshi user
 
@@ -1630,12 +1640,14 @@ class kalshi(PredictionExchange, ImplicitAPI):
         outcomeObj = None
         if outcome is not None:
             outcomeObj = self.outcome(outcome)
+            if outcomeObj is None:
+                raise ArgumentsRequired(self.id + ' requires a valid outcome')
             request['ticker'] = self.safe_string(outcomeObj['info'], 'ticker')
         response = await self.kalshiPrivateGetPortfolioOrders(self.extend(request, params))
         orders = self.safe_list(response, 'orders', [])
         return self.parse_prediction_orders(orders, outcomeObj, since, limit)
 
-    async def fetch_closed_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> List[PredictionOrder]:
+    async def fetch_closed_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> list[PredictionOrder]:
         """
         fetches the closed(executed or canceled) orders for the authenticated kalshi user
 
@@ -1898,7 +1910,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
             order['status'] = 'canceled'
         return order
 
-    async def cancel_all_orders(self, outcome: Str = None, params={}) -> List[PredictionOrder]:
+    async def cancel_all_orders(self, outcome: Str = None, params={}) -> list[PredictionOrder]:
         """
         cancels all open orders on kalshi, optionally scoped to one outcome ticker
 
@@ -1933,7 +1945,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
                 canceledOrders.append(parsed)
         return canceledOrders
 
-    async def fetch_events(self, params: fetchEventsParams = {}) -> List[PredictionEvent]:
+    async def fetch_events(self, params: fetchEventsParams = {}) -> list[PredictionEvent]:
         """
         fetches kalshi events scoped by a search query, tag, category or series ticker — always live from the API, never from the local cache(it POPULATES the cache for later event()/outcome lookups). the scope decides the endpoint: a free-text `query` hits kalshi's ranked search endpoint and the top `limit` matches are fetched canonically; `tags`/`category` resolve to series via the /series listing then fetch their events; `series_ticker` is used verbatim. `limit` bounds how many events are actually fetched(broad scopes stop early), and any other param is forwarded straight to the /events endpoint.
 
@@ -1950,6 +1962,8 @@ class kalshi(PredictionExchange, ImplicitAPI):
         :returns dict[]: an array of event structures
         """
         queries = self.parse_search_queries(params)
+        if queries is None:
+            raise ExchangeError(self.id + ' fetchEvents() missing queries')
         queriesLength = len(queries)
         params = self.omit(params, ['query', 'queries'])
         userLimit = self.safe_integer(params, 'limit')
@@ -1971,7 +1985,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
             status = 'settled'
         # anything beyond the unified keys is forwarded verbatim to the events endpoint(kalshi filters)
         rest = self.omit(params, ['status', 'limit', 'maxPages', 'sort', 'searchIn', 'eventId', 'slug', 'tags', 'category', 'series_ticker'])
-        if not self.markets:
+        if self.markets is None:
             self.markets = self.create_safe_dictionary()
         eventId = self.safe_string_2(params, 'eventId', 'slug')
         rawEvents = []
@@ -2008,7 +2022,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         postParams = self.omit(params, ['tags', 'category', 'series_ticker'])
         return self.apply_event_fetch_params(result, postParams, [])
 
-    async def fetch_events_by_query(self, queries: List[str], limit: Int, rest={}) -> List[Any]:
+    async def fetch_events_by_query(self, queries: list[str], limit: Int, rest={}) -> list[object]:
         """
  @ignore
         resolves free-text queries to ranked event tickers via kalshi's search endpoint, then fetches the top `limit` events canonically(with nested markets)
@@ -2053,7 +2067,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
                     raise e
         return rawEvents
 
-    async def fetch_raw_event_by_ticker(self, ticker: str, params={}) -> Any:
+    async def fetch_raw_event_by_ticker(self, ticker: str, params={}) -> object:
         """
  @ignore
         fetches a single raw kalshi event object(with nested markets) by its event ticker
@@ -2069,7 +2083,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
             fullEvent['markets'] = self.safe_list(response, 'markets', [])
         return fullEvent
 
-    async def resolve_event_series_tickers(self, params={}) -> List[str]:
+    async def resolve_event_series_tickers(self, params={}) -> list[str]:
         """
  @ignore
         resolves a fetchEvents scope(tags, category or series_ticker) to a deduplicated list of kalshi series tickers, preserving discovery order
@@ -2116,7 +2130,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
                 ordered.append(st)
         return ordered
 
-    async def fetch_series_events(self, seriesTickers: List[str], status: Str, limit: Int, rest={}) -> List[Any]:
+    async def fetch_series_events(self, seriesTickers: list[str], status: Str, limit: Int, rest={}) -> list[object]:
         """
  @ignore
         fetches the canonical events(with nested markets) of the given kalshi series, cursor-paginated per series and stopping once `limit` events are gathered
@@ -2179,7 +2193,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         self.index_event_outcomes(event)
         return event
 
-    def parse_event(self, rawEvent: dict) -> Any:
+    def parse_event(self, rawEvent: dict) -> object:
         """
  @ignore
         parses a raw kalshi event object(with nested markets) into the unified CCXT event shape
@@ -2293,13 +2307,15 @@ class kalshi(PredictionExchange, ImplicitAPI):
             end = latestClose
         ticker = self.safe_string(rawEvent, 'event_ticker')
         title = self.safe_string(rawEvent, 'title')
+        hasTitle = (title is not None) and (title != '')
+        eventSlug = self.shorten_slug(title) if hasTitle else None
         created = self.parse8601(self.safe_string(rawEvent, 'created_date_iso'))
         if created is None:
             created = earliestCreated
         return self.extend({
             'id': ticker,
             'slug': ticker,
-            'event': self.shorten_slug(title) if title else None,
+            'event': eventSlug,
             'title': title,
             'markets': marketsList,
             'volume': totalVolume,
@@ -2319,7 +2335,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
             'info': rawEvent,
         })
 
-    def sign(self, path: Any, api: Any = 'kalshi', method='GET', params={}, headers: Any = None, body: Any = None):
+    def sign(self, path: object, api: object = 'kalshi', method='GET', params={}, headers: object = None, body: object = None):
         """
  @ignore
         builds the request URL and attaches RSA-PSS SHA-256 authentication headers for private endpoints
@@ -2339,7 +2355,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         url = baseUrl + '/' + implodedPath
         query = self.omit(params, self.extract_params(path))
         querystring = self.urlencode(query)
-        if method == 'GET' and querystring:
+        if method == 'GET' and (querystring != ''):
             url += '?' + querystring
         existingHeaders = headers if (headers is not None) else {}
         headers = self.extend({
@@ -2365,7 +2381,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
                 'KALSHI-ACCESS-SIGNATURE': signature,
                 'KALSHI-ACCESS-TIMESTAMP': timestamp,
             })
-            if method != 'GET' and querystring:
+            if method != 'GET' and (querystring != ''):
                 # kalshi expects a JSON body; the signature covers only timestamp+method+path
                 body = self.json(query)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

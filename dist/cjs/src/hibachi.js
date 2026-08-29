@@ -94,6 +94,7 @@ class hibachi extends hibachi$1["default"] {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': false,
+                'fetchOrdersByStatus': true,
                 'fetchOrderTrades': false,
                 'fetchPosition': false,
                 'fetchPositionMode': false,
@@ -140,44 +141,44 @@ class hibachi extends hibachi$1["default"] {
             'api': {
                 'public': {
                     'get': {
-                        'market/exchange-info': 1,
-                        'market/inventory': 1,
-                        'market/data/prices': 1,
-                        'market/data/stats': 1,
-                        'market/data/trades': 1,
-                        'market/data/klines': 1,
-                        'market/data/open-interest': 1,
-                        'market/data/orderbook': 1,
-                        'market/data/funding-rates': 1,
-                        'exchange/utc-timestamp': 1,
+                        'market/exchange-info': { 'cost': 1 },
+                        'market/inventory': { 'cost': 1 },
+                        'market/data/prices': { 'cost': 1 },
+                        'market/data/stats': { 'cost': 1 },
+                        'market/data/trades': { 'cost': 1 },
+                        'market/data/klines': { 'cost': 1 },
+                        'market/data/open-interest': { 'cost': 1 },
+                        'market/data/orderbook': { 'cost': 1 },
+                        'market/data/funding-rates': { 'cost': 1 },
+                        'exchange/utc-timestamp': { 'cost': 1 },
                     },
                 },
                 'private': {
                     'get': {
-                        'capital/balance': 1,
-                        'capital/history': 1,
-                        'capital/deposit-info': 1,
-                        'trade/account/info': 1,
-                        'trade/account/trades': 1,
-                        'trade/account/trading_history': 1, // not in current docs, used by fetchLedger
-                        'trade/account/settlements_history': 1,
-                        'trade/orders': 1,
-                        'trade/order': 1,
-                        'trade/orders/history': 1,
+                        'capital/balance': { 'cost': 1 },
+                        'capital/history': { 'cost': 1 },
+                        'capital/deposit-info': { 'cost': 1 },
+                        'trade/account/info': { 'cost': 1 },
+                        'trade/account/trades': { 'cost': 1 },
+                        'trade/account/trading_history': { 'cost': 1 }, // not in current docs, used by fetchLedger
+                        'trade/account/settlements_history': { 'cost': 1 },
+                        'trade/orders': { 'cost': 1 },
+                        'trade/order': { 'cost': 1 },
+                        'trade/orders/history': { 'cost': 1 },
                     },
                     'put': {
-                        'trade/order': 1,
+                        'trade/order': { 'cost': 1 },
                     },
                     'delete': {
-                        'trade/order': 1,
-                        'trade/orders': 1,
+                        'trade/order': { 'cost': 1 },
+                        'trade/orders': { 'cost': 1 },
                     },
                     'post': {
-                        'trade/order': 1,
-                        'trade/orders': 1,
-                        'capital/withdraw': 1,
-                        'capital/transfer': 1,
-                        'trade/account/leverage': 1,
+                        'trade/order': { 'cost': 1 },
+                        'trade/orders': { 'cost': 1 },
+                        'capital/withdraw': { 'cost': 1 },
+                        'capital/transfer': { 'cost': 1 },
+                        'trade/account/leverage': { 'cost': 1 },
                     },
                 },
             },
@@ -291,7 +292,7 @@ class hibachi extends hibachi$1["default"] {
         const settle = this.safeCurrencyCode(settleId);
         const symbol = base + '/' + quote + ':' + settle;
         const created = this.safeIntegerProduct(market, 'marketCreationTimestamp', 1000);
-        return {
+        return this.safeMarketStructure({
             'id': marketId,
             'numericId': numericId,
             'symbol': symbol,
@@ -340,7 +341,7 @@ class hibachi extends hibachi$1["default"] {
             },
             'created': created,
             'info': market,
-        };
+        });
     }
     /**
      * @method
@@ -405,29 +406,31 @@ class hibachi extends hibachi$1["default"] {
             'info': {},
         };
         const code = this.safeCurrencyCode('USDT');
-        result[code] = this.safeCurrencyStructure({
-            'id': 'USDT',
-            'name': 'USDT',
-            'type': 'fiat',
-            'code': code,
-            'precision': this.parseNumber('0.000001'),
-            'active': true,
-            'fee': undefined,
-            'networks': networks,
-            'deposit': true,
-            'withdraw': true,
-            'limits': {
-                'deposit': {
-                    'min': undefined,
-                    'max': undefined,
+        if (code !== undefined) {
+            result[code] = this.safeCurrencyStructure({
+                'id': 'USDT',
+                'name': 'USDT',
+                'type': 'fiat',
+                'code': code,
+                'precision': this.parseNumber('0.000001'),
+                'active': true,
+                'fee': undefined,
+                'networks': networks,
+                'deposit': true,
+                'withdraw': true,
+                'limits': {
+                    'deposit': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                 },
-                'withdraw': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-            },
-            'info': {},
-        });
+                'info': {},
+            });
+        }
         return result;
     }
     parseBalance(response) {
@@ -439,7 +442,9 @@ class hibachi extends hibachi$1["default"] {
         const account = this.account();
         account['total'] = this.safeString(response, 'balance');
         account['free'] = this.safeString(response, 'maximalWithdraw');
-        result[code] = account;
+        if (code !== undefined) {
+            result[code] = account;
+        }
         return this.safeBalance(result);
     }
     /**
@@ -584,7 +589,7 @@ class hibachi extends hibachi$1["default"] {
      * @param {string} symbol unified market symbol
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch (maximum value is 100)
-     * @param {object} [params] extra parameters specific to the hibachi api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of recent [trade structures]
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
@@ -609,7 +614,11 @@ class hibachi extends hibachi$1["default"] {
         // }
         //
         const trades = this.safeList(response, 'trades', []);
-        return this.parseTrades(trades, market);
+        let tradesList = [];
+        if (trades !== undefined) {
+            tradesList = trades;
+        }
+        return this.parseTrades(tradesList, market);
     }
     /**
      * @method
@@ -618,7 +627,7 @@ class hibachi extends hibachi$1["default"] {
      * @see https://api-doc.hibachi.xyz/#0064ca53-a2d0-41b9-8ade-6b2abf4ccb12
      * @description fetches a price ticker and the related information for the past 24h
      * @param {string} symbol unified symbol of the market
-     * @param {object} [params] extra parameters specific to the hibachi api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
@@ -794,8 +803,9 @@ class hibachi extends hibachi$1["default"] {
         const makerFeeRate = this.safeNumber(response, 'tradeMakerFeeRate');
         const takerFeeRate = this.safeNumber(response, 'tradeTakerFeeRate');
         const result = {};
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+        const symbols = this.symbols;
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
             result[symbol] = {
                 'info': response,
                 'symbol': symbol,
@@ -807,6 +817,12 @@ class hibachi extends hibachi$1["default"] {
         return result;
     }
     orderMessage(market, nonce, feeRate, type, side, amount, price = undefined) {
+        if (type === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a side argument');
+        }
         let sideInternal = 0;
         if (side === 'sell') {
             sideInternal = 0;
@@ -857,8 +873,18 @@ class hibachi extends hibachi$1["default"] {
         return message;
     }
     createOrderRequest(nonce, symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a side argument');
+        }
         const market = this.market(symbol);
-        const feeRate = Math.max(this.safeNumber(market, 'taker', this.safeNumber(this.options, 'defaultTakerFee', 0.00045)), this.safeNumber(market, 'maker', this.safeNumber(this.options, 'defaultMakerFee', 0.00015)));
+        const takerFee = this.safeNumber(market, 'taker', this.safeNumber(this.options, 'defaultTakerFee', 0.00045));
+        const makerFee = this.safeNumber(market, 'maker', this.safeNumber(this.options, 'defaultMakerFee', 0.00015));
+        const takerFeeValue = (takerFee === undefined) ? 0 : takerFee;
+        const makerFeeValue = (makerFee === undefined) ? 0 : makerFee;
+        const feeRate = Math.max(takerFeeValue, makerFeeValue);
         let sideInternal = '';
         if (side === 'sell') {
             sideInternal = 'ASK';
@@ -867,7 +893,7 @@ class hibachi extends hibachi$1["default"] {
             sideInternal = 'BID';
         }
         let priceInternal = '';
-        if (price) {
+        if ((price !== undefined) && (price !== 0)) {
             priceInternal = this.priceToPrecision(symbol, price);
         }
         const message = this.orderMessage(market, nonce, feeRate, type, side, amount, price);
@@ -892,7 +918,7 @@ class hibachi extends hibachi$1["default"] {
         else if (timeInForce === 'ioc') {
             request['orderFlags'] = 'IOC';
         }
-        else if (reduceOnly) {
+        else if (reduceOnly === true) {
             request['orderFlags'] = 'REDUCE_ONLY';
         }
         if (triggerPrice !== undefined) {
@@ -980,8 +1006,18 @@ class hibachi extends hibachi$1["default"] {
         return ret;
     }
     editOrderRequest(nonce, id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+        if (type === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a side argument');
+        }
         const market = this.market(symbol);
-        const feeRate = Math.max(this.safeNumber(market, 'taker'), this.safeNumber(market, 'maker'));
+        const takerFee = this.safeNumber(market, 'taker', 0);
+        const makerFee = this.safeNumber(market, 'maker', 0);
+        const takerFeeValue = (takerFee === undefined) ? 0 : takerFee;
+        const makerFeeValue = (makerFee === undefined) ? 0 : makerFee;
+        const feeRate = Math.max(takerFeeValue, makerFeeValue);
         const message = this.orderMessage(market, nonce, feeRate, type, side, amount, price);
         const signature = this.signMessage(message, this.privateKey);
         const request = {
@@ -1150,7 +1186,7 @@ class hibachi extends hibachi$1["default"] {
      * @name hibachi#cancelAllOrders
      * @see https://api-doc.hibachi.xyz/#8ed24695-016e-49b2-a72d-7511ca921fee
      * @description cancel all open orders in a market
-     * @param {string} symbol unified market symbol
+     * @param {string} [symbol] unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -1303,7 +1339,7 @@ class hibachi extends hibachi$1["default"] {
      * @param {string} symbol unified symbol of the market
      * @param {int} [limit] currently unused
      * @param {object} [params] extra parameters to be passed -- see documentation link above
-     * @returns {object} A dictionary containg [orderbook information]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -1400,7 +1436,11 @@ class hibachi extends hibachi$1["default"] {
         // }
         //
         const trades = this.safeList(response, 'trades');
-        return this.parseTrades(trades, market, since, limit, params);
+        let tradesList = [];
+        if (trades !== undefined) {
+            tradesList = trades;
+        }
+        return this.parseTrades(tradesList, market, since, limit, params);
     }
     parseOHLCV(ohlcv, market = undefined) {
         //
@@ -1934,7 +1974,7 @@ class hibachi extends hibachi$1["default"] {
         //     ]
         // }
         //
-        const rowsCapitalHistory = this.safeList(responseCapitalHistory, 'transactions');
+        const rowsCapitalHistory = this.safeList(responseCapitalHistory, 'transactions', []);
         const responseTradingHistory = promises[1];
         //
         // {
@@ -1962,7 +2002,7 @@ class hibachi extends hibachi$1["default"] {
         //     ]
         // }
         //
-        const rowsTradingHistory = this.safeList(responseTradingHistory, 'tradingHistory');
+        const rowsTradingHistory = this.safeList(responseTradingHistory, 'tradingHistory', []);
         const rows = this.arrayConcat(rowsCapitalHistory, rowsTradingHistory);
         return this.parseLedger(rows, currency, since, limit, params);
     }

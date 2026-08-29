@@ -147,7 +147,7 @@ export default class hyperliquid extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
      */
-    fetchOrderBook(outcome: string, limit?: Int, params?: {}): Promise<PredictionOrderBook>;
+    fetchOrderBook(outcome: Str, limit?: Int, params?: {}): Promise<PredictionOrderBook>;
     /**
      * @method
      * @name hyperliquid#fetchOHLCV
@@ -358,8 +358,8 @@ export default class hyperliquid extends Exchange {
      * @returns {object} an event structure
      */
     parseEvent(raw: Dict): any;
-    amountToPrecision(outcome: string, amount: any): string;
-    priceToPrecision(outcome: string, price: any): string;
+    amountToPrecision(outcome: Str, amount: any): string;
+    priceToPrecision(outcome: Str, price: any): string;
     hashMessage(message: any): string;
     signHash(hash: string, privateKey: string): Dict;
     signMessage(message: any, privateKey: string): Dict;
@@ -387,6 +387,6 @@ export default class hyperliquid extends Exchange {
         body: any;
         headers: any;
     };
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
     calculateRateLimiterCost(api: any, method: any, path: any, params: any, config?: {}): any;
 }

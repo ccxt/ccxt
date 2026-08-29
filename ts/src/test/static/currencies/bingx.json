@@ -1114,7 +1114,7 @@
                     }
                 }
             },
-            "ARB": {
+            "ARBITRUM": {
                 "info": {
                     "name": "ETH",
                     "network": "ARBITRUM",
@@ -1133,7 +1133,7 @@
                     "displayName": "ETHARBITRUM"
                 },
                 "id": "ARBITRUM",
-                "network": "ARB",
+                "network": "ARBITRUM",
                 "fee": 0.0001,
                 "active": true,
                 "deposit": true,
@@ -2108,7 +2108,7 @@
                     }
                 }
             },
-            "ARB": {
+            "ARBITRUM": {
                 "info": {
                     "name": "USDC",
                     "network": "ARBITRUM",
@@ -2127,7 +2127,7 @@
                     "displayName": "USDC.C"
                 },
                 "id": "ARBITRUM",
-                "network": "ARB",
+                "network": "ARBITRUM",
                 "fee": 0.5,
                 "active": true,
                 "deposit": true,

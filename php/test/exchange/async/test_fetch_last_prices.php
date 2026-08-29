@@ -23,7 +23,7 @@ function test_fetch_last_prices($exchange, $skipped_properties, $symbol) {
             $response = \React\Async\await($exchange->fetch_last_prices([$symbol]));
             $checked_symbol = $symbol;
         }
-        assert($exchange->is_dictionary($response), $exchange->id . ' ' . $method . ' ' . $checked_symbol . ' must return a dict. ' . $exchange->json($response));
+        assert_dictionary_response($exchange, $method, $response, $checked_symbol);
         $values = is_array($response) ? array_values($response) : array();
         assert_non_emtpy_array($exchange, $skipped_properties, $method, $values, $checked_symbol);
         $at_least_one_passed = false;

@@ -89,49 +89,49 @@ class bitflyer extends bitflyer$1["default"] {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'getmarkets/usa', // new (wip)
-                        'getmarkets/eu', // new (wip)
-                        'getmarkets', // or 'markets'
-                        'getboard', // ...
-                        'getticker',
-                        'getexecutions',
-                        'gethealth',
-                        'getboardstate',
-                        'getchats',
-                        'getfundingrate',
-                    ],
+                    'get': {
+                        'getmarkets/usa': { 'cost': 1 },
+                        'getmarkets/eu': { 'cost': 1 },
+                        'getmarkets': { 'cost': 1 },
+                        'getboard': { 'cost': 1 },
+                        'getticker': { 'cost': 1 },
+                        'getexecutions': { 'cost': 1 },
+                        'gethealth': { 'cost': 1 },
+                        'getboardstate': { 'cost': 1 },
+                        'getchats': { 'cost': 1 },
+                        'getfundingrate': { 'cost': 1 },
+                    },
                 },
                 'private': {
-                    'get': [
-                        'getpermissions',
-                        'getbalance',
-                        'getbalancehistory',
-                        'getcollateral',
-                        'getcollateralhistory',
-                        'getcollateralaccounts',
-                        'getaddresses',
-                        'getcoinins',
-                        'getcoinouts',
-                        'getbankaccounts',
-                        'getdeposits',
-                        'getwithdrawals',
-                        'getchildorders',
-                        'getparentorders',
-                        'getparentorder',
-                        'getexecutions',
-                        'getpositions',
-                        'gettradingcommission',
-                    ],
-                    'post': [
-                        'sendcoin',
-                        'withdraw',
-                        'sendchildorder',
-                        'cancelchildorder',
-                        'sendparentorder',
-                        'cancelparentorder',
-                        'cancelallchildorders',
-                    ],
+                    'get': {
+                        'getpermissions': { 'cost': 1 },
+                        'getbalance': { 'cost': 1 },
+                        'getbalancehistory': { 'cost': 1 },
+                        'getcollateral': { 'cost': 1 },
+                        'getcollateralhistory': { 'cost': 1 },
+                        'getcollateralaccounts': { 'cost': 1 },
+                        'getaddresses': { 'cost': 1 },
+                        'getcoinins': { 'cost': 1 },
+                        'getcoinouts': { 'cost': 1 },
+                        'getbankaccounts': { 'cost': 1 },
+                        'getdeposits': { 'cost': 1 },
+                        'getwithdrawals': { 'cost': 1 },
+                        'getchildorders': { 'cost': 1 },
+                        'getparentorders': { 'cost': 1 },
+                        'getparentorder': { 'cost': 1 },
+                        'getexecutions': { 'cost': 1 },
+                        'getpositions': { 'cost': 1 },
+                        'gettradingcommission': { 'cost': 1 },
+                    },
+                    'post': {
+                        'sendcoin': { 'cost': 1 },
+                        'withdraw': { 'cost': 1 },
+                        'sendchildorder': { 'cost': 1 },
+                        'cancelchildorder': { 'cost': 1 },
+                        'sendparentorder': { 'cost': 1 },
+                        'cancelparentorder': { 'cost': 1 },
+                        'cancelallchildorders': { 'cost': 1 },
+                    },
                 },
             },
             'fees': {
@@ -291,8 +291,8 @@ class bitflyer extends bitflyer$1["default"] {
         //         { "product_code": "BTC_JPY", "market_type": "Spot" },
         //     ];
         //
-        let markets = this.arrayConcat(jp_markets, us_markets);
-        markets = this.arrayConcat(markets, eu_markets);
+        let markets = this.arrayConcat(this.toArray(jp_markets), this.toArray(us_markets));
+        markets = this.arrayConcat(markets, this.toArray(eu_markets));
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
@@ -417,7 +417,9 @@ class bitflyer extends bitflyer$1["default"] {
             const account = this.account();
             account['total'] = this.safeString(balance, 'amount');
             account['free'] = this.safeString(balance, 'available');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -463,7 +465,7 @@ class bitflyer extends bitflyer$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -1215,7 +1217,7 @@ class bitflyer extends bitflyer$1["default"] {
         }
         request += path;
         if (method === 'GET') {
-            if (Object.keys(params).length) {
+            if (Object.keys(params).length > 0) {
                 request += '?' + this.urlencode(params);
             }
         }
@@ -1226,7 +1228,7 @@ class bitflyer extends bitflyer$1["default"] {
             const nonce = this.nonce().toString();
             const content = [nonce, method, request];
             let auth = content.join('');
-            if (Object.keys(params).length) {
+            if (Object.keys(params).length > 0) {
                 if (method !== 'GET') {
                     body = this.json(params);
                     auth += body;

@@ -27,7 +27,6 @@ var bitfinex = require('./src/bitfinex.js');
 var bitflyer = require('./src/bitflyer.js');
 var bitget = require('./src/bitget.js');
 var bithumb = require('./src/bithumb.js');
-var bitmart = require('./src/bitmart.js');
 var bitmex = require('./src/bitmex.js');
 var bitopro = require('./src/bitopro.js');
 var bitrue = require('./src/bitrue.js');
@@ -41,6 +40,7 @@ var blofin = require('./src/blofin.js');
 var btcbox = require('./src/btcbox.js');
 var btcmarkets = require('./src/btcmarkets.js');
 var btcturk = require('./src/btcturk.js');
+var btse = require('./src/btse.js');
 var bullish = require('./src/bullish.js');
 var bybit = require('./src/bybit.js');
 var bybiteu = require('./src/bybiteu.js');
@@ -63,7 +63,6 @@ var deribit = require('./src/deribit.js');
 var derive = require('./src/derive.js');
 var digifinex = require('./src/digifinex.js');
 var dydx = require('./src/dydx.js');
-var exmo = require('./src/exmo.js');
 var extended = require('./src/extended.js');
 var fmfwio = require('./src/fmfwio.js');
 var foxbit = require('./src/foxbit.js');
@@ -82,7 +81,6 @@ var indodax = require('./src/indodax.js');
 var kraken = require('./src/kraken.js');
 var krakenfutures = require('./src/krakenfutures.js');
 var kucoin = require('./src/kucoin.js');
-var kucoineu = require('./src/kucoineu.js');
 var kucoinfutures = require('./src/kucoinfutures.js');
 var latoken = require('./src/latoken.js');
 var lbank = require('./src/lbank.js');
@@ -127,7 +125,6 @@ var bingx$1 = require('./src/pro/bingx.js');
 var bitfinex$1 = require('./src/pro/bitfinex.js');
 var bitget$1 = require('./src/pro/bitget.js');
 var bithumb$1 = require('./src/pro/bithumb.js');
-var bitmart$1 = require('./src/pro/bitmart.js');
 var bitmex$1 = require('./src/pro/bitmex.js');
 var bitopro$1 = require('./src/pro/bitopro.js');
 var bitrue$1 = require('./src/pro/bitrue.js');
@@ -152,7 +149,6 @@ var deepcoin$1 = require('./src/pro/deepcoin.js');
 var deribit$1 = require('./src/pro/deribit.js');
 var derive$1 = require('./src/pro/derive.js');
 var dydx$1 = require('./src/pro/dydx.js');
-var exmo$1 = require('./src/pro/exmo.js');
 var extended$1 = require('./src/pro/extended.js');
 var gate$1 = require('./src/pro/gate.js');
 var gateeu$1 = require('./src/pro/gateeu.js');
@@ -167,7 +163,6 @@ var independentreserve$1 = require('./src/pro/independentreserve.js');
 var kraken$1 = require('./src/pro/kraken.js');
 var krakenfutures$1 = require('./src/pro/krakenfutures.js');
 var kucoin$1 = require('./src/pro/kucoin.js');
-var kucoineu$1 = require('./src/pro/kucoineu.js');
 var kucoinfutures$1 = require('./src/pro/kucoinfutures.js');
 var lbank$1 = require('./src/pro/lbank.js');
 var lighter$1 = require('./src/pro/lighter.js');
@@ -193,15 +188,17 @@ var whitebit$1 = require('./src/pro/whitebit.js');
 var woo$1 = require('./src/pro/woo.js');
 var woofipro$1 = require('./src/pro/woofipro.js');
 var xt$1 = require('./src/pro/xt.js');
+var binance$2 = require('./src/prediction/binance.js');
 var hyperliquid$2 = require('./src/prediction/hyperliquid.js');
 var kalshi = require('./src/prediction/kalshi.js');
 var limitless = require('./src/prediction/limitless.js');
 var myriad = require('./src/prediction/myriad.js');
+var opinion = require('./src/prediction/opinion.js');
 var polymarket = require('./src/prediction/polymarket.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.5.70';
+const version = '4.5.76';
 const exchanges = {
     'alpaca': alpaca["default"],
     'apex': apex["default"],
@@ -221,7 +218,6 @@ const exchanges = {
     'bitflyer': bitflyer["default"],
     'bitget': bitget["default"],
     'bithumb': bithumb["default"],
-    'bitmart': bitmart["default"],
     'bitmex': bitmex["default"],
     'bitopro': bitopro["default"],
     'bitrue': bitrue["default"],
@@ -235,6 +231,7 @@ const exchanges = {
     'btcbox': btcbox["default"],
     'btcmarkets': btcmarkets["default"],
     'btcturk': btcturk["default"],
+    'btse': btse["default"],
     'bullish': bullish["default"],
     'bybit': bybit["default"],
     'bybiteu': bybiteu["default"],
@@ -257,7 +254,6 @@ const exchanges = {
     'derive': derive["default"],
     'digifinex': digifinex["default"],
     'dydx': dydx["default"],
-    'exmo': exmo["default"],
     'extended': extended["default"],
     'fmfwio': fmfwio["default"],
     'foxbit': foxbit["default"],
@@ -276,7 +272,6 @@ const exchanges = {
     'kraken': kraken["default"],
     'krakenfutures': krakenfutures["default"],
     'kucoin': kucoin["default"],
-    'kucoineu': kucoineu["default"],
     'kucoinfutures': kucoinfutures["default"],
     'latoken': latoken["default"],
     'lbank': lbank["default"],
@@ -323,7 +318,6 @@ const pro = {
     'bitfinex': bitfinex$1["default"],
     'bitget': bitget$1["default"],
     'bithumb': bithumb$1["default"],
-    'bitmart': bitmart$1["default"],
     'bitmex': bitmex$1["default"],
     'bitopro': bitopro$1["default"],
     'bitrue': bitrue$1["default"],
@@ -348,7 +342,6 @@ const pro = {
     'deribit': deribit$1["default"],
     'derive': derive$1["default"],
     'dydx': dydx$1["default"],
-    'exmo': exmo$1["default"],
     'extended': extended$1["default"],
     'gate': gate$1["default"],
     'gateeu': gateeu$1["default"],
@@ -363,7 +356,6 @@ const pro = {
     'kraken': kraken$1["default"],
     'krakenfutures': krakenfutures$1["default"],
     'kucoin': kucoin$1["default"],
-    'kucoineu': kucoineu$1["default"],
     'kucoinfutures': kucoinfutures$1["default"],
     'lbank': lbank$1["default"],
     'lighter': lighter$1["default"],
@@ -394,10 +386,12 @@ pro.exchanges = Object.keys(pro);
 pro['Exchange'] = Exchange["default"]; // now the same for rest and ts
 //-----------------------------------------------------------------------------
 const prediction = {
+    'binance': binance$2["default"],
     'hyperliquid': hyperliquid$2["default"],
     'kalshi': kalshi["default"],
     'limitless': limitless["default"],
     'myriad': myriad["default"],
+    'opinion': opinion["default"],
     'polymarket': polymarket["default"],
 };
 prediction.exchanges = Object.keys(prediction);
@@ -473,7 +467,6 @@ exports.bitfinex = bitfinex["default"];
 exports.bitflyer = bitflyer["default"];
 exports.bitget = bitget["default"];
 exports.bithumb = bithumb["default"];
-exports.bitmart = bitmart["default"];
 exports.bitmex = bitmex["default"];
 exports.bitopro = bitopro["default"];
 exports.bitrue = bitrue["default"];
@@ -487,6 +480,7 @@ exports.blofin = blofin["default"];
 exports.btcbox = btcbox["default"];
 exports.btcmarkets = btcmarkets["default"];
 exports.btcturk = btcturk["default"];
+exports.btse = btse["default"];
 exports.bullish = bullish["default"];
 exports.bybit = bybit["default"];
 exports.bybiteu = bybiteu["default"];
@@ -509,7 +503,6 @@ exports.deribit = deribit["default"];
 exports.derive = derive["default"];
 exports.digifinex = digifinex["default"];
 exports.dydx = dydx["default"];
-exports.exmo = exmo["default"];
 exports.extended = extended["default"];
 exports.fmfwio = fmfwio["default"];
 exports.foxbit = foxbit["default"];
@@ -528,7 +521,6 @@ exports.indodax = indodax["default"];
 exports.kraken = kraken["default"];
 exports.krakenfutures = krakenfutures["default"];
 exports.kucoin = kucoin["default"];
-exports.kucoineu = kucoineu["default"];
 exports.kucoinfutures = kucoinfutures["default"];
 exports.latoken = latoken["default"];
 exports.lbank = lbank["default"];

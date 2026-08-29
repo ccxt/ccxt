@@ -175,7 +175,7 @@ mexc.fetchMarkets (params?)
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>mexc</code>](#mexc)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 
@@ -643,12 +643,12 @@ cancel all open orders
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined |
+| symbol | <code>string</code> | No | unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-mexc.cancelAllOrders (symbol, params?)
+mexc.cancelAllOrders (symbol?, params?)
 ```
 
 
@@ -1141,7 +1141,7 @@ fetches a transfer
 | --- | --- | --- | --- |
 | id | <code>string</code> | Yes | transfer id |
 | code | <code>string</code> | No | not used by mexc fetchTransfer |
-| params | <code>object</code> | Yes | extra parameters specific to the exchange api endpoint |
+| params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
@@ -1246,7 +1246,7 @@ set hedged to true or false for a market
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | hedged | <code>bool</code> | Yes | set to true to use dualSidePosition |
-| symbol | <code>string</code> | Yes | not used by mexc setPositionMode () |
+| symbol | <code>string</code> | Yes | not used by setPositionMode () |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
@@ -1354,7 +1354,7 @@ fetches historical positions
 | symbols | <code>Array&lt;string&gt;</code> | No | unified contract symbols |
 | since | <code>int</code> | No | not used by mexc fetchPositionsHistory |
 | limit | <code>int</code> | No | the maximum amount of candles to fetch, default=1000 |
-| params | <code>object</code> | No | extra parameters specific to the exchange api endpoint EXCHANGE SPECIFIC PARAMETERS |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint EXCHANGE SPECIFIC PARAMETERS |
 | params.type | <code>int</code> | No | position type，1: long, 2: short |
 | params.page_num | <code>int</code> | No | current page number, default is 1 |
 
@@ -1489,7 +1489,7 @@ mexc.watchOHLCV (symbol, timeframe, since?, limit?, params?)
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>mexc</code>](#mexc)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 

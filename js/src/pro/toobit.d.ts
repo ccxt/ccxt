@@ -48,7 +48,7 @@ export default class toobit extends toobitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
     /**
      * @method
      * @name toobit#watchOHLCVForSymbols
@@ -63,7 +63,7 @@ export default class toobit extends toobitRest {
      */
     watchOHLCVForSymbols(symbolsAndTimeframes: string[][], since?: Int, limit?: Int, params?: {}): Promise<import("../base/types.js").Dictionary<import("../base/types.js").Dictionary<OHLCV[]>>>;
     handleOHLCV(client: Client, message: any): void;
-    parseWsOHLCV(ohlcv: any, market?: any): OHLCV;
+    parseWsOHLCV(ohlcv: any, market?: Market): OHLCV;
     /**
      * @method
      * @name toobit#watchTicker
@@ -87,7 +87,7 @@ export default class toobit extends toobitRest {
      */
     watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     handleTickers(client: Client, message: any): void;
-    parseWsTicker(ticker: any, market?: any): Ticker;
+    parseWsTicker(ticker: Dict, market?: Market): Ticker;
     /**
      * @method
      * @name toobit#watchOrderBook
@@ -113,7 +113,7 @@ export default class toobit extends toobitRest {
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: {}): Promise<OrderBook>;
     handleOrderBook(client: Client, message: any): void;
@@ -132,7 +132,7 @@ export default class toobit extends toobitRest {
     watchBalance(params?: {}): Promise<Balances>;
     setBalanceCache(client: Client, marketType: any, subscriptionHash?: Str, params?: {}): void;
     handleBalance(client: Client, message: any): void;
-    loadBalanceSnapshot(client: any, messageHash: any, marketType: any): Promise<void>;
+    loadBalanceSnapshot(client: Client, messageHash: any, marketType: any): Promise<void>;
     /**
      * @method
      * @name toobit#watchOrders
@@ -147,7 +147,7 @@ export default class toobit extends toobitRest {
      */
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     handleOrder(client: Client, message: any): void;
-    parseWsOrder(order: any, market?: any): Order;
+    parseWsOrder(order: any, market?: Market): Order;
     /**
      * @method
      * @name toobit#watchMyTrades
@@ -163,7 +163,7 @@ export default class toobit extends toobitRest {
      */
     watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     handleMyTrade(client: Client, message: any): void;
-    parseMyTrade(trade: any, market?: any): Trade;
+    parseMyTrade(trade: any, market?: Market): Trade;
     /**
      * @method
      * @name toobit#watchPositions
@@ -177,9 +177,9 @@ export default class toobit extends toobitRest {
      */
     watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
     setPositionsCache(client: Client, type: any, symbols?: Strings, isPortfolioMargin?: boolean): void;
-    loadPositionsSnapshot(client: any, messageHash: any, type: any): Promise<void>;
+    loadPositionsSnapshot(client: Client, messageHash: any, type: any): Promise<void>;
     handlePositions(client: any, message: any): void;
-    parseWsPosition(position: any, market?: any): Position;
+    parseWsPosition(position: any, market?: Market): Position;
     authenticate(params?: {}): Promise<any>;
     keepAliveListenKey(params?: {}): Promise<void>;
     getUserStreamUrl(): string;

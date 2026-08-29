@@ -8,23 +8,27 @@ async function testWatchTicker (exchange: Exchange, skippedProperties: object, s
     const method = 'watchTicker';
     let now = exchange.milliseconds ();
     const ends = now + 15000;
-    while (now < ends) {
-        let response = undefined;
+    const maxIdleTime = 5000;
+    let idle = false;
+    while ((now < ends) && !idle) {
+        let response: any = undefined;
         let success = true;
+        const startTime = exchange.milliseconds ();
         try {
             response = await exchange.watchTicker (symbol);
         } catch (e) {
             if (!testSharedMethods.isTemporaryFailure (e)) {
                 throw e;
             }
-            now = exchange.milliseconds ();
-            // continue;
             success = false;
         }
-        if (success === true) {
+        now = exchange.milliseconds ();
+        if ((success === true) && (response !== undefined)) {
             assert (exchange.isDictionary (response), exchange.id + ' ' + method + ' ' + symbol + ' must return a dictionary. ' + exchange.json (response));
-            now = exchange.milliseconds ();
             testTicker (exchange, skippedProperties, method, response, symbol);
+            if ((now - startTime) > maxIdleTime) {
+                idle = true;
+            }
         }
     }
     return true;
