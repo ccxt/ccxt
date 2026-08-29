@@ -482,7 +482,9 @@ class BaseExchange {
         $val = $object[$key] ?? null;
         if ($val !== null) {
             if (is_string($val)) {
-                return ($val !== '') ? $val : $default_value;
+                if ($val !== '') {
+                    return $val;
+                }
             } else if (is_numeric($val)) {
                 return (string)$val;
             }
@@ -497,7 +499,9 @@ class BaseExchange {
         $val = $object[$key] ?? null;
         if ($val !== null) {
             if (is_string($val)) {
-                return ($val !== '') ? strtolower($val) : $default_value;
+                if ($val !== '') {
+                    return strtolower($val);
+                }
             } else if (is_numeric($val)) {
                 return strtolower((string)$val);
             }
@@ -512,7 +516,9 @@ class BaseExchange {
         $val = $object[$key] ?? null;
         if ($val !== null) {
             if (is_string($val)) {
-                return ($val !== '') ? strtoupper($val) : $default_value;
+                if ($val !== '') {
+                    return strtoupper($val);
+                }
             } else if (is_numeric($val)) {
                 return strtoupper((string)$val);
             }
