@@ -2341,7 +2341,7 @@ func (this *BybitCore) ParseWsLiquidation(liquidation any, optionalArgs ...any) 
 		"contracts":    this.SafeNumber2(liquidation, "size", "v"),
 		"contractSize": this.SafeNumber(market, "contractSize"),
 		"price":        this.SafeNumber2(liquidation, "price", "p"),
-		"side":         this.SafeStringLower(liquidation, "side", "S"),
+		"side":         this.SafeStringLower2(liquidation, "side", "S"),
 		"baseValue":    nil,
 		"quoteValue":   nil,
 		"timestamp":    timestamp,
