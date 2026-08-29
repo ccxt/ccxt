@@ -605,7 +605,7 @@ export default class bitso extends Exchange {
         //                     {
         //                         "code": "brl",
         //                         "full_name": "Brazilian Reais",
-        //                         "color": "02A630",
+        //                         "color": "02A636",
         //                         "precision": 2,
         //                         "display_ticker": "BRL",
         //                         "type": "fiat"
