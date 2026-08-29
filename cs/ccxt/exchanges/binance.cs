@@ -2894,7 +2894,7 @@ public partial class binance : Exchange
                 { "sandboxMode", false },
                 { "fetchMargins", true },
                 { "fetchMarkets", new Dictionary<string, object>() {
-                    { "types", new List<object>() {"spot", "linear", "inverse", "stock"} },
+                    { "types", new List<object>() {"spot", "linear", "inverse"} },
                     { "loadAllOptions", false },
                 } },
                 { "fetchCurrencies", true },

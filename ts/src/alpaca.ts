@@ -760,6 +760,8 @@ export default class alpaca extends Exchange {
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @param {int} [params.paginationCalls] the maximum number of requests while following next_page_token, default 10 — when the cap is reached the result is silently truncated to the pages already fetched, so raise it for long ranges, 10 requests cover roughly 30 days of 1h candles
      * @param {string} [params.loc] crypto location, default: us
      * @param {string} [params.method] method, default: marketPublicGetV1beta3CryptoLocBars
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
@@ -772,6 +774,10 @@ export default class alpaca extends Exchange {
         const marketId = market['id'];
         const loc = this.safeString (params, 'loc', 'us');
         const method = this.safeString (params, 'method', 'marketPublicGetV1beta3CryptoLocBars');
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', false);
+        let paginationCalls = 10;
+        [ paginationCalls, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginationCalls', 10);
         const request: Dict = {
             'symbols': marketId,
             'loc': loc,
@@ -791,7 +797,7 @@ export default class alpaca extends Exchange {
                 request['end'] = this.iso8601 (until);
             }
             request['timeframe'] = this.safeString (this.timeframes, timeframe, timeframe);
-            const response = await this.marketPublicGetV1beta3CryptoLocBars (this.extend (request, params));
+            let response = await this.marketPublicGetV1beta3CryptoLocBars (this.extend (request, params));
             //
             //    {
             //        "bars": {
@@ -821,8 +827,28 @@ export default class alpaca extends Exchange {
             //        "next_page_token": "QlRDL1VTRHxNfDIwMjItMDctMjFUMDU6MDE6MDAuMDAwMDAwMDAwWg=="
             //     }
             //
-            const bars = this.safeDict (response, 'bars', {});
+            let bars = this.safeDict (response, 'bars', {});
             ohlcvs = this.safeList (bars, marketId, []);
+            if (paginate) {
+                // the endpoint answers with a server-sized page plus a next_page_token regardless of the requested limit
+                let pageToken = this.safeString (response, 'next_page_token');
+                for (let i = 1; i < paginationCalls; i++) {
+                    const ohlcvsLength = ohlcvs.length;
+                    if ((pageToken === undefined) || ((limit !== undefined) && (ohlcvsLength >= limit))) {
+                        break;
+                    }
+                    request['page_token'] = pageToken;
+                    response = await this.marketPublicGetV1beta3CryptoLocBars (this.extend (request, params));
+                    bars = this.safeDict (response, 'bars', {});
+                    const page = this.safeList (bars, marketId, []);
+                    const pageLength = page.length;
+                    if (pageLength === 0) {
+                        break;
+                    }
+                    ohlcvs = this.arrayConcat (ohlcvs, page);
+                    pageToken = this.safeString (response, 'next_page_token');
+                }
+            }
         } else if (method === 'marketPublicGetV1beta3CryptoLocLatestBars') {
             const response = await this.marketPublicGetV1beta3CryptoLocLatestBars (this.extend (request, params));
             //

@@ -2906,7 +2906,7 @@ public class BinanceCore extends BinanceApi
                 put( "sandboxMode", false );
                 put( "fetchMargins", true );
                 put( "fetchMarkets", new java.util.HashMap<String, Object>() {{
-                    put( "types", new java.util.ArrayList<Object>(java.util.Arrays.asList("spot", "linear", "inverse", "stock")) );
+                    put( "types", new java.util.ArrayList<Object>(java.util.Arrays.asList("spot", "linear", "inverse")) );
                     put( "loadAllOptions", false );
                 }} );
                 put( "fetchCurrencies", true );
