@@ -187,7 +187,7 @@ function safeIntegerN (o: safeInputType, k: (NullableIndexType)[], $default?: nu
         return $default;
     }
     if (isNumber (found)) {
-        return Math.trunc (found);
+        return Math.trunc (found as number);
     }
     if (isString (found)) {
         const num = Math.trunc (Number (found));
