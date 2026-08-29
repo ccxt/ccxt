@@ -6135,6 +6135,73 @@
                     "fee": null
                 }
             }
+        ],
+        "createOrder": [
+            {
+                "description": "createOrder response status is OPEN, not BOOKED (docs.onetrading.com/rest/trading/create-order + WS Order Booked example)",
+                "method": "createOrder",
+                "input": [
+                    "BTC/USDT",
+                    "limit",
+                    "buy",
+                    0.01,
+                    42000
+                ],
+                "httpResponse": {
+                    "order_id": "fe144eaf-9f17-4a13-8048-c25cf8d16982",
+                    "client_id": "4bea7a19-9619-4ed7-b373-ac1ec6cd2033",
+                    "account_id": "2df26734-003c-4700-927c-5dd780fc511c",
+                    "instrument_code": "BTC_USDT",
+                    "time": "2026-08-29T21:00:00.000Z",
+                    "side": "BUY",
+                    "price": "42000",
+                    "amount": "0.01",
+                    "type": "LIMIT",
+                    "time_in_force": "GOOD_TILL_CANCELLED",
+                    "status": "OPEN"
+                },
+                "parsedResponse": {
+                    "id": "fe144eaf-9f17-4a13-8048-c25cf8d16982",
+                    "clientOrderId": "4bea7a19-9619-4ed7-b373-ac1ec6cd2033",
+                    "info": {
+                        "order_id": "fe144eaf-9f17-4a13-8048-c25cf8d16982",
+                        "client_id": "4bea7a19-9619-4ed7-b373-ac1ec6cd2033",
+                        "account_id": "2df26734-003c-4700-927c-5dd780fc511c",
+                        "instrument_code": "BTC_USDT",
+                        "time": "2026-08-29T21:00:00.000Z",
+                        "side": "BUY",
+                        "price": "42000",
+                        "amount": "0.01",
+                        "type": "LIMIT",
+                        "time_in_force": "GOOD_TILL_CANCELLED",
+                        "status": "OPEN"
+                    },
+                    "timestamp": 1788037200000,
+                    "datetime": "2026-08-29T21:00:00.000Z",
+                    "lastTradeTimestamp": null,
+                    "symbol": "BTC/USDT",
+                    "type": "limit",
+                    "timeInForce": "GTC",
+                    "postOnly": false,
+                    "side": "buy",
+                    "price": 42000,
+                    "triggerPrice": null,
+                    "amount": 0.01,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": "open",
+                    "trades": [],
+                    "fees": [],
+                    "lastUpdateTimestamp": null,
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "fee": null
+                }
+            }
         ]
   }
 }

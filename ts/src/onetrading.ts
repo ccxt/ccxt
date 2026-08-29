@@ -1244,6 +1244,7 @@ export default class onetrading extends Exchange {
 
     parseOrderStatus (status: Str) {
         const statuses: Dict = {
+            'OPEN': 'open',
             'BOOKED': 'open',
             'FILL': 'open',
             'MOVED': 'open',
@@ -1253,6 +1254,7 @@ export default class onetrading extends Exchange {
             'CANCELLED': 'canceled',
             'INSUFFICIENT_FUNDS': 'rejected',
             'INSUFFICIENT_LIQUIDITY': 'rejected',
+            'RISK_FAILED_OVER_MAX_POSITION': 'rejected',
         };
         return this.safeString (statuses, status, status);
     }
