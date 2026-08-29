@@ -2283,7 +2283,7 @@ class bybit extends Exchange {
                         'max' => $this->safe_number($priceFilter, 'maxPrice'),
                     ),
                     'cost' => array(
-                        'min' => null,
+                        'min' => $linear ? $this->safe_number($lotSizeFilter, 'minNotionalValue') : null, // https://bybit-exchange.github.io/docs/v5/market/instrument
                         'max' => null,
                     ),
                 ),
@@ -9176,7 +9176,7 @@ class bybit extends Exchange {
             }
             $symbol = $market['symbol'];
         }
-        $data = Async\await($this->get_leverage_tiers_paginated($symbol, $this->extend(array( 'paginate' => true, 'paginationCalls' => 50 ), $params)));
+        $data = Async\await($this->get_leverage_tiers_paginated($symbol, $this->extend(array( 'paginate' => true, 'paginationCalls' => 200 ), $params)));
         $symbols = $this->market_symbols($symbols);
         return $this->parse_leverage_tiers($data, $symbols, 'symbol');
     }

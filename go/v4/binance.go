@@ -2901,7 +2901,7 @@ func (this *BinanceCore) Describe() any {
 			"sandboxMode":  false,
 			"fetchMargins": true,
 			"fetchMarkets": map[string]any{
-				"types":          []any{"spot", "linear", "inverse", "stock"},
+				"types":          []any{"spot", "linear", "inverse"},
 				"loadAllOptions": false,
 			},
 			"fetchCurrencies": true,

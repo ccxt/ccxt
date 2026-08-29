@@ -4188,8 +4188,8 @@ public class CryptocomCore extends CryptocomApi
             put( "timestamp", timestamp );
             put( "datetime", CryptocomCore.this.iso8601(timestamp) );
             put( "hedged", null );
-            put( "side", ((Helpers.isTrue(Precise.stringGt(amount, "0")))) ? "buy" : "sell" );
-            put( "contracts", Precise.stringAbs(amount) );
+            put( "side", ((Helpers.isTrue(Precise.stringGt(amount, "0")))) ? "long" : "short" );
+            put( "contracts", CryptocomCore.this.parseNumber(Precise.stringAbs(amount)) );
             put( "contractSize", Helpers.GetValue(finalMarket, "contractSize") );
             put( "entryPrice", null );
             put( "markPrice", null );

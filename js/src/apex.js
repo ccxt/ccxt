@@ -1950,7 +1950,7 @@ export default class apex extends Exchange {
             'info': position,
             'id': this.safeString(position, 'id'),
             'symbol': symbol,
-            'entryPrice': this.safeString(position, 'entryPrice'),
+            'entryPrice': this.safeNumber(position, 'entryPrice'),
             'markPrice': undefined,
             'notional': undefined,
             'collateral': undefined,

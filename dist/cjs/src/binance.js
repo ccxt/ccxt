@@ -1347,7 +1347,7 @@ class binance extends binance$1["default"] {
                         'spot', // allows CORS in browsers
                         'linear', // allows CORS in browsers
                         'inverse', // allows CORS in browsers
-                        'stock',
+                        // 'stock', // tokenized stocks share the spot symbol namespace, enable explicitly
                         // 'option', // does not allow CORS, enable outside of the browser only
                     ],
                     'loadAllOptions': false,

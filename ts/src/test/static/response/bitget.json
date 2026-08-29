@@ -51,6 +51,247 @@
                     "internal": null,
                     "fee": null
                 }
+            },
+            {
+                "description": "uta withdraw",
+                "method": "withdraw",
+                "input": [
+                    "USDT",
+                    11.123456789,
+                    "EBz7xtobD2Rm8aAXH2VHmE2rnePATevbHcWQ3RRo4nqA",
+                    null,
+                    {
+                        "network": "SOL",
+                        "uta": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": "1748252642931",
+                    "data": {
+                        "orderId": "1310832081358508033",
+                        "clientOid": "8fbd12e1c44340a5a3a02ab7c4a527b1"
+                    }
+                },
+                "parsedResponse": {
+                    "id": "1310832081358508033",
+                    "info": {
+                        "orderId": "1310832081358508033",
+                        "clientOid": "8fbd12e1c44340a5a3a02ab7c4a527b1"
+                    },
+                    "txid": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "network": "SOL",
+                    "addressFrom": null,
+                    "address": "EBz7xtobD2Rm8aAXH2VHmE2rnePATevbHcWQ3RRo4nqA",
+                    "addressTo": "EBz7xtobD2Rm8aAXH2VHmE2rnePATevbHcWQ3RRo4nqA",
+                    "amount": 11.123456789,
+                    "type": "withdrawal",
+                    "currency": "USDT",
+                    "status": null,
+                    "updated": null,
+                    "tagFrom": null,
+                    "tag": null,
+                    "tagTo": null,
+                    "comment": null,
+                    "internal": null,
+                    "fee": null
+                }
+            }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "uta fetch USDT deposits",
+                "method": "fetchDeposits",
+                "input": [
+                    "USDT",
+                    1700000000000,
+                    null,
+                    {
+                        "uta": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": 1787918939871,
+                    "data": [
+                        {
+                            "orderId": "1477183242218870001",
+                            "recordId": "0999e9fc8dfa7d65e5a9e3d7b9c9c9cf7c283621442dd0be6feb502b89545e95",
+                            "coin": "USDT",
+                            "type": "deposit",
+                            "size": "30",
+                            "status": "success",
+                            "toAddress": "TKtjsywjRu4HechtABGJBVhkDJtwYcMVfc",
+                            "dest": "on_chain",
+                            "chain": "TRC20",
+                            "createdTime": "1787913850359",
+                            "updatedTime": "1787913880178",
+                            "fromAddress": "TFcWfiw5p5DDZ6vi6Bktf7yK1asRYLpN33",
+                            "clientOid": null
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "1477183242218870001",
+                        "info": {
+                            "orderId": "1477183242218870001",
+                            "recordId": "0999e9fc8dfa7d65e5a9e3d7b9c9c9cf7c283621442dd0be6feb502b89545e95",
+                            "coin": "USDT",
+                            "type": "deposit",
+                            "size": "30",
+                            "status": "success",
+                            "toAddress": "TKtjsywjRu4HechtABGJBVhkDJtwYcMVfc",
+                            "dest": "on_chain",
+                            "chain": "TRC20",
+                            "createdTime": "1787913850359",
+                            "updatedTime": "1787913880178",
+                            "fromAddress": "TFcWfiw5p5DDZ6vi6Bktf7yK1asRYLpN33",
+                            "clientOid": null
+                        },
+                        "txid": "0999e9fc8dfa7d65e5a9e3d7b9c9c9cf7c283621442dd0be6feb502b89545e95",
+                        "timestamp": 1787913850359,
+                        "datetime": "2026-08-28T10:44:10.359Z",
+                        "network": "TRC20",
+                        "addressFrom": "TFcWfiw5p5DDZ6vi6Bktf7yK1asRYLpN33",
+                        "address": "TKtjsywjRu4HechtABGJBVhkDJtwYcMVfc",
+                        "addressTo": "TKtjsywjRu4HechtABGJBVhkDJtwYcMVfc",
+                        "amount": 30,
+                        "type": "deposit",
+                        "currency": "USDT",
+                        "status": "ok",
+                        "updated": 1787913880178,
+                        "tagFrom": null,
+                        "tag": null,
+                        "tagTo": null,
+                        "comment": null,
+                        "internal": null,
+                        "fee": null
+                    }
+                ]
+            }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "uta fetch USDT withdrawals",
+                "method": "fetchWithdrawals",
+                "input": [
+                    "USDT",
+                    1700000000000,
+                    null,
+                    {
+                        "uta": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": 1787918941219,
+                    "data": [
+                        {
+                            "orderId": "1477203433330230002",
+                            "recordId": "855182adcdbf968e6c0854de1d9ef04f9542ae27337f87ccbe2f6d1e995ec01b",
+                            "coin": "USDT",
+                            "type": "withdraw",
+                            "size": "30",
+                            "status": "success",
+                            "toAddress": "TFcWfiw5p5DDZ6vi6Bktf7yK1asRYLpN33",
+                            "dest": "on_chain",
+                            "chain": "TRC20",
+                            "createdTime": "1787918664295",
+                            "updatedTime": "1787918826202",
+                            "fromAddress": "TU8P3KLsV7YhkUvF9nWxjigMqv2c2mqNC9",
+                            "fee": "-1.5",
+                            "confirm": "5",
+                            "clientOid": null
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "1477203433330230002",
+                        "info": {
+                            "orderId": "1477203433330230002",
+                            "recordId": "855182adcdbf968e6c0854de1d9ef04f9542ae27337f87ccbe2f6d1e995ec01b",
+                            "coin": "USDT",
+                            "type": "withdraw",
+                            "size": "30",
+                            "status": "success",
+                            "toAddress": "TFcWfiw5p5DDZ6vi6Bktf7yK1asRYLpN33",
+                            "dest": "on_chain",
+                            "chain": "TRC20",
+                            "createdTime": "1787918664295",
+                            "updatedTime": "1787918826202",
+                            "fromAddress": "TU8P3KLsV7YhkUvF9nWxjigMqv2c2mqNC9",
+                            "fee": "-1.5",
+                            "confirm": "5",
+                            "clientOid": null
+                        },
+                        "txid": "855182adcdbf968e6c0854de1d9ef04f9542ae27337f87ccbe2f6d1e995ec01b",
+                        "timestamp": 1787918664295,
+                        "datetime": "2026-08-28T12:04:24.295Z",
+                        "network": "TRC20",
+                        "addressFrom": "TU8P3KLsV7YhkUvF9nWxjigMqv2c2mqNC9",
+                        "address": "TFcWfiw5p5DDZ6vi6Bktf7yK1asRYLpN33",
+                        "addressTo": "TFcWfiw5p5DDZ6vi6Bktf7yK1asRYLpN33",
+                        "amount": 28.5,
+                        "type": "withdraw",
+                        "currency": "USDT",
+                        "status": "ok",
+                        "updated": 1787918826202,
+                        "tagFrom": null,
+                        "tag": null,
+                        "tagTo": null,
+                        "comment": null,
+                        "internal": null,
+                        "fee": {
+                            "currency": "USDT",
+                            "cost": 1.5
+                        }
+                    }
+                ]
+            }
+        ],
+        "fetchDepositAddress": [
+            {
+                "description": "uta fetchDepositAddress with network TRC20",
+                "method": "fetchDepositAddress",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "TRC20",
+                        "uta": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": 1740481864545,
+                    "data": {
+                        "coin": "USDT",
+                        "address": "TVzHfTQV1vcDLW9jFANpFmwoBGeGDgnf9L",
+                        "chain": "TRC20",
+                        "tag": null,
+                        "url": "https://tronscan.org/#/transaction/"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "coin": "USDT",
+                        "address": "TVzHfTQV1vcDLW9jFANpFmwoBGeGDgnf9L",
+                        "chain": "TRC20",
+                        "tag": null,
+                        "url": "https://tronscan.org/#/transaction/"
+                    },
+                    "currency": "USDT",
+                    "network": "TRC20",
+                    "address": "TVzHfTQV1vcDLW9jFANpFmwoBGeGDgnf9L",
+                    "tag": null
+                }
             }
         ],
         "fetchCurrencies": [

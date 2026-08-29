@@ -3258,7 +3258,7 @@ public class DeepcoinCore extends DeepcoinApi
             put( "id", DeepcoinCore.this.safeString(position, "posId") );
             put( "timestamp", timestamp );
             put( "datetime", DeepcoinCore.this.iso8601(timestamp) );
-            put( "contracts", DeepcoinCore.this.safeString(position, "pos") );
+            put( "contracts", DeepcoinCore.this.safeNumber(position, "pos") );
             put( "contractSize", null );
             put( "side", DeepcoinCore.this.safeString(position, "posSide") );
             put( "notional", null );
@@ -3266,7 +3266,7 @@ public class DeepcoinCore extends DeepcoinApi
             put( "unrealizedPnl", null );
             put( "realizedPnl", null );
             put( "collateral", null );
-            put( "entryPrice", DeepcoinCore.this.safeString(position, "avgPx") );
+            put( "entryPrice", DeepcoinCore.this.safeNumber(position, "avgPx") );
             put( "markPrice", null );
             put( "liquidationPrice", DeepcoinCore.this.safeString(position, "liqPx") );
             put( "marginMode", DeepcoinCore.this.safeString(position, "mgnMode") );

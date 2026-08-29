@@ -2206,7 +2206,7 @@ class bybit(Exchange, ImplicitAPI):
                         'max': self.safe_number(priceFilter, 'maxPrice'),
                     },
                     'cost': {
-                        'min': None,
+                        'min': self.safe_number(lotSizeFilter, 'minNotionalValue') if linear else None,  # https://bybit-exchange.github.io/docs/v5/market/instrument
                         'max': None,
                     },
                 },
@@ -8359,7 +8359,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
             if market['spot'] is True:
                 raise NotSupported(self.id + ' fetchLeverageTiers() is not supported for spot market')
             symbol = market['symbol']
-        data = await self.get_leverage_tiers_paginated(symbol, self.extend({'paginate': True, 'paginationCalls': 50}, params))
+        data = await self.get_leverage_tiers_paginated(symbol, self.extend({'paginate': True, 'paginationCalls': 200}, params))
         symbols = self.market_symbols(symbols)
         return self.parse_leverage_tiers(data, symbols, 'symbol')
 

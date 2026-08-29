@@ -3508,6 +3508,8 @@ class NewTranspiler {
         // runMain started transpileWS with ~84 test files still in flight — three root sets
         // then alternated against the worker sticky-Program LRU (MAX_CACHED_BATCHES = 3)
         await this.transpileBaseTestsToJava(force);
+        const baseTestsOnly = process.argv.includes('--baseTests')
+        if (baseTestsOnly) return;
         await this.transpileExchangeTests(force);
         await this.transpileWsExchangeTests(force);
     }
@@ -3520,7 +3522,7 @@ async function runMain() {
     const cliExchanges = process.argv.slice(2).filter(x => !x.startsWith('--'))
     const allArePredictionOnly = cliExchanges.length > 0 && cliExchanges.every(x => (exchanges.prediction || []).includes(x) && !exchangeIds.includes(x))
     const prediction = process.argv.includes('--prediction') || allArePredictionOnly
-    const baseOnly = process.argv.includes('--baseTests')
+    const baseTestsOnly = process.argv.includes('--baseTests')
     const test = process.argv.includes('--test') || process.argv.includes('--tests')
     const examples = process.argv.includes('--examples');
     const force = process.argv.includes('--force')
@@ -3536,16 +3538,16 @@ async function runMain() {
         transpiler.transpileBaseMethods('./ts/src/base/Exchange.ts');
         transpiler.transpilePredictionBaseMethods();
     } else if (restAndWs) {
-        await transpiler.transpileEverything(force, baseOnly, examples)
+        await transpiler.transpileEverything(force, false, examples)
         await transpiler.transpileWS(force)
     } else if (prediction) {
         await transpiler.transpilePrediction(force)
     } else if (ws) {
         await transpiler.transpileWS(force)
-    } else if (test) {
+    } else if (test || baseTestsOnly) {
         await transpiler.transpileTests()
     } else {
-        await transpiler.transpileEverything(force, baseOnly, examples)
+        await transpiler.transpileEverything(force, false, examples)
     }
 }
 

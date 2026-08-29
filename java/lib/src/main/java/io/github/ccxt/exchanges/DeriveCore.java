@@ -2856,9 +2856,9 @@ public class DeriveCore extends DeriveApi
             put( "timestamp", timestamp );
             put( "datetime", DeriveCore.this.iso8601(timestamp) );
             put( "lastUpdateTimestamp", null );
-            put( "initialMargin", DeriveCore.this.safeString(position, "initial_margin") );
+            put( "initialMargin", DeriveCore.this.safeNumber(position, "initial_margin") );
             put( "initialMarginPercentage", null );
-            put( "maintenanceMargin", DeriveCore.this.safeString(position, "maintenance_margin") );
+            put( "maintenanceMargin", DeriveCore.this.safeNumber(position, "maintenance_margin") );
             put( "maintenanceMarginPercentage", null );
             put( "entryPrice", null );
             put( "notional", DeriveCore.this.parseNumber(notional) );
