@@ -5,27 +5,26 @@
     "methods": {
         "editOrder": [
             {
-                "disabled": true,
                 "description": "trigger order with stoploss & takeprofit",
                 "method": "editOrder",
                 "input": [
-                    "2077750176533553152",
+                    "2077817338468081664",
                     "SOL/USDT:USDT",
                     "market",
                     "buy",
                     0.6,
                     0,
                     {
-                        "triggerPrice": 79,
+                        "triggerPrice": 81,
                         "stopLoss": {
-                            "triggerPrice": 75
+                            "triggerPrice": 71
                         },
                         "takeProfit": {
-                            "triggerPrice": 87
+                            "triggerPrice": 91
                         }
                     }
                 ],
-                "httpResponse": null,
+                "httpResponse": {"code":0,"msg":"","data":{"cancelResult":"true","cancelMsg":"","cancelResponse":{"cancelClientOrderId":"","cancelOrderId":2077817338468081664,"symbol":"SOL-USDT","orderId":2077817338468081664,"side":"BUY","positionSide":"LONG","type":"TRIGGER_MARKET","origQty":"0.60","price":"0","executedQty":"0.00","avgPrice":"0.000","cumQuote":"","stopPrice":"80.000","profit":"","commission":"","status":"NEW","time":1784225232000,"updateTime":1784225232000,"clientOrderId":"","leverage":"20X","workingType":"MARK_PRICE","onlyOnePosition":true,"reduceOnly":false},"replaceResult":"true","replaceMsg":"","newOrderResponse":{"orderId":2077820346320920576,"orderID":"","symbol":"SOL-USDT","positionSide":"BOTH","side":"BUY","type":"TRIGGER_MARKET","price":0,"quantity":0.6,"quoteOrderQty":0,"stopPrice":81,"workingType":"MARK_PRICE","clientOrderID":"","clientOrderId":"","timeInForce":"GTC","priceRate":0,"stopLoss":"{\"stopPrice\":71,\"workingType\":\"MARK_PRICE\",\"type\":\"STOP_MARKET\",\"quantity\":0.6}","takeProfit":"{\"stopPrice\":91,\"workingType\":\"MARK_PRICE\",\"type\":\"TAKE_PROFIT_MARKET\",\"quantity\":0.6}","reduceOnly":false,"activationPrice":0,"closePosition":"false","stopGuaranteed":"","status":"NEW","avgPrice":"0.000","executedQty":"0.00"}}},
                 "parsedResponse": {
                     "info": null,
                     "id": null,
