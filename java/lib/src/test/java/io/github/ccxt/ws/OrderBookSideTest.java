@@ -9,6 +9,67 @@ import java.util.List;
 
 class OrderBookSideTest {
 
+    @org.junit.jupiter.api.Test
+    void testConcurrentReadNeverObservesNulls() throws Exception {
+        // regression for the binance watchOrderBookForSymbols null<null failure:
+        // a writer thread hammers store/remove under the monitor while reader
+        // threads walk the side the same way the transpiled tests do - with the
+        // read-side synchronization in place no read may ever observe a null row
+        final OrderBookSide.Asks asks = new OrderBookSide.Asks();
+        final java.util.concurrent.atomic.AtomicBoolean stop = new java.util.concurrent.atomic.AtomicBoolean(false);
+        final java.util.concurrent.atomic.AtomicReference<String> failure = new java.util.concurrent.atomic.AtomicReference<>(null);
+        Thread writer = new Thread(() -> {
+            java.util.Random rnd = new java.util.Random(42);
+            while (!stop.get()) {
+                double price = 100.0 + rnd.nextInt(500) / 10.0;
+                double amount = rnd.nextInt(10) == 0 ? 0.0 : 1.0; // 10% removals
+                asks.store(price, amount);
+            }
+        });
+        Runnable reading = () -> {
+            while (!stop.get() && failure.get() == null) {
+                int n = asks.size();
+                for (int i = 0; i < n; i++) {
+                    Object row;
+                    try {
+                        row = asks.get(i);
+                    } catch (IndexOutOfBoundsException e) {
+                        // the side shrank between size() and get(i) - a distinct,
+                        // documented residual; this test targets null observations
+                        break;
+                    }
+                    if (row == null) {
+                        failure.compareAndSet(null, "observed a null row at index " + i);
+                        break;
+                    }
+                }
+                for (Object row : asks) { // snapshot iterator path
+                    if (row == null) {
+                        failure.compareAndSet(null, "iterator observed a null row");
+                        break;
+                    }
+                }
+            }
+        };
+        Thread r1 = new Thread(reading);
+        Thread r2 = new Thread(reading);
+        writer.start();
+        r1.start();
+        r2.start();
+        Thread.sleep(2000);
+        stop.set(true);
+        writer.join(5000);
+        r1.join(5000);
+        r2.join(5000);
+        // join(timeout) returning does not mean the thread stopped - a deadlocked
+        // reader must fail the test rather than time out green
+        org.junit.jupiter.api.Assertions.assertFalse(writer.isAlive(), "writer thread did not stop");
+        org.junit.jupiter.api.Assertions.assertFalse(r1.isAlive(), "reader 1 did not stop");
+        org.junit.jupiter.api.Assertions.assertFalse(r2.isAlive(), "reader 2 did not stop");
+        org.junit.jupiter.api.Assertions.assertNull(failure.get(), failure.get());
+    }
+
+
     @Test
     void testAsksAscendingOrder() {
         var asks = new OrderBookSide.Asks();
