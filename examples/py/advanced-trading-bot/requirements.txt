@@ -1,0 +1,2 @@
+# Core crypto library
+ccxt>=4.0.0
