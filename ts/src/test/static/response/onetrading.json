@@ -5444,6 +5444,697 @@
                     }
                 }
             }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "order history: BOOKED and FILLED_FULLY statuses (docs.onetrading.com example)",
+                "method": "fetchOpenOrders",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "with_cancelled_and_rejected": true
+                    }
+                ],
+                "httpResponse": {
+                    "order_history": [
+                        {
+                            "order": {
+                                "account_id": "726288e6-a463-4f88-9068-024ae8f97a34",
+                                "order_id": "74eaf796-869b-4d49-ab39-2bc4fe10daeb",
+                                "client_id": "b8854ae6-4077-404b-ae0c-52a1fe318440",
+                                "amount": "1",
+                                "side": "SELL",
+                                "instrument_code": "SOL_EUR",
+                                "price": "140",
+                                "time": "2024-11-13T17:34:55.514Z",
+                                "sequence": "58894260661",
+                                "total_fee": "0.29",
+                                "fee_currency": "EUR",
+                                "time_last_updated": "2024-11-13T17:34:55.514Z",
+                                "order_book_sequence": "58894260661",
+                                "filled_amount": "1",
+                                "status": "FILLED_FULLY",
+                                "average_price": "145.00"
+                            },
+                            "trades": [
+                                {
+                                    "fee": {
+                                        "fee_amount": "0.29",
+                                        "fee_currency": "EUR"
+                                    },
+                                    "trade": {
+                                        "trade_id": "f99a7e64-5478-44f3-b404-19aac53f2062",
+                                        "order_id": "74eaf796-869b-4d49-ab39-2bc4fe10daeb",
+                                        "account_id": "726288e6-a463-4f88-9068-024ae8f97a34",
+                                        "amount": "1",
+                                        "side": "SELL",
+                                        "instrument_code": "SOL_EUR",
+                                        "price": "145",
+                                        "time": "2024-11-13T17:34:55.514Z",
+                                        "sequence": "58894260661",
+                                        "matched_as": "MAKER"
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "order": {
+                                "account_id": "726288e6-a463-4f88-9068-024ae8f97a34",
+                                "order_id": "d8e8e090-a142-4574-a875-36ef769eafe3",
+                                "client_id": "89e6b540-2497-4d08-b777-9cf363940cab",
+                                "amount": "3.3333",
+                                "side": "BUY",
+                                "instrument_code": "SOL_EUR",
+                                "price": "150",
+                                "time": "2024-11-13T15:40:04.430Z",
+                                "sequence": "58894259835",
+                                "total_fee": "0.0067",
+                                "fee_currency": "SOL",
+                                "time_last_updated": "2024-11-13T15:40:04.430Z",
+                                "order_book_sequence": "58894259835",
+                                "filled_amount": "0",
+                                "status": "BOOKED"
+                            },
+                            "trades": []
+                        }
+                    ],
+                    "max_page_size": 2
+                },
+                "parsedResponse": [
+                    {
+                        "id": "d8e8e090-a142-4574-a875-36ef769eafe3",
+                        "clientOrderId": "89e6b540-2497-4d08-b777-9cf363940cab",
+                        "info": {
+                            "order": {
+                                "account_id": "726288e6-a463-4f88-9068-024ae8f97a34",
+                                "order_id": "d8e8e090-a142-4574-a875-36ef769eafe3",
+                                "client_id": "89e6b540-2497-4d08-b777-9cf363940cab",
+                                "amount": "3.3333",
+                                "side": "BUY",
+                                "instrument_code": "SOL_EUR",
+                                "price": "150",
+                                "time": "2024-11-13T15:40:04.430Z",
+                                "sequence": "58894259835",
+                                "total_fee": "0.0067",
+                                "fee_currency": "SOL",
+                                "time_last_updated": "2024-11-13T15:40:04.430Z",
+                                "order_book_sequence": "58894259835",
+                                "filled_amount": "0",
+                                "status": "BOOKED"
+                            },
+                            "trades": []
+                        },
+                        "timestamp": 1731512404430,
+                        "datetime": "2024-11-13T15:40:04.430Z",
+                        "lastTradeTimestamp": null,
+                        "symbol": "SOL/EUR",
+                        "type": null,
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "side": "buy",
+                        "price": 150,
+                        "triggerPrice": null,
+                        "amount": 3.3333,
+                        "cost": 0,
+                        "average": null,
+                        "filled": 0,
+                        "remaining": 3.3333,
+                        "status": "open",
+                        "trades": [],
+                        "fees": [],
+                        "lastUpdateTimestamp": null,
+                        "reduceOnly": null,
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "fee": null
+                    },
+                    {
+                        "id": "74eaf796-869b-4d49-ab39-2bc4fe10daeb",
+                        "clientOrderId": "b8854ae6-4077-404b-ae0c-52a1fe318440",
+                        "info": {
+                            "order": {
+                                "account_id": "726288e6-a463-4f88-9068-024ae8f97a34",
+                                "order_id": "74eaf796-869b-4d49-ab39-2bc4fe10daeb",
+                                "client_id": "b8854ae6-4077-404b-ae0c-52a1fe318440",
+                                "amount": "1",
+                                "side": "SELL",
+                                "instrument_code": "SOL_EUR",
+                                "price": "140",
+                                "time": "2024-11-13T17:34:55.514Z",
+                                "sequence": "58894260661",
+                                "total_fee": "0.29",
+                                "fee_currency": "EUR",
+                                "time_last_updated": "2024-11-13T17:34:55.514Z",
+                                "order_book_sequence": "58894260661",
+                                "filled_amount": "1",
+                                "status": "FILLED_FULLY",
+                                "average_price": "145.00"
+                            },
+                            "trades": [
+                                {
+                                    "fee": {
+                                        "fee_amount": "0.29",
+                                        "fee_currency": "EUR"
+                                    },
+                                    "trade": {
+                                        "trade_id": "f99a7e64-5478-44f3-b404-19aac53f2062",
+                                        "order_id": "74eaf796-869b-4d49-ab39-2bc4fe10daeb",
+                                        "account_id": "726288e6-a463-4f88-9068-024ae8f97a34",
+                                        "amount": "1",
+                                        "side": "SELL",
+                                        "instrument_code": "SOL_EUR",
+                                        "price": "145",
+                                        "time": "2024-11-13T17:34:55.514Z",
+                                        "sequence": "58894260661",
+                                        "matched_as": "MAKER"
+                                    }
+                                }
+                            ]
+                        },
+                        "timestamp": 1731519295514,
+                        "datetime": "2024-11-13T17:34:55.514Z",
+                        "lastTradeTimestamp": 1731519295514,
+                        "symbol": "SOL/EUR",
+                        "type": null,
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "side": "sell",
+                        "price": 140,
+                        "triggerPrice": null,
+                        "amount": 1,
+                        "cost": 145,
+                        "average": 145,
+                        "filled": 1,
+                        "remaining": 0,
+                        "status": "closed",
+                        "trades": [
+                            {
+                                "id": "f99a7e64-5478-44f3-b404-19aac53f2062",
+                                "order": "74eaf796-869b-4d49-ab39-2bc4fe10daeb",
+                                "timestamp": 1731519295514,
+                                "datetime": "2024-11-13T17:34:55.514Z",
+                                "symbol": "SOL/EUR",
+                                "type": null,
+                                "side": "sell",
+                                "price": 145,
+                                "amount": 1,
+                                "cost": 145,
+                                "takerOrMaker": null,
+                                "fee": {
+                                    "currency": "EUR",
+                                    "cost": 0.29
+                                },
+                                "info": {
+                                    "trade_id": "f99a7e64-5478-44f3-b404-19aac53f2062",
+                                    "order_id": "74eaf796-869b-4d49-ab39-2bc4fe10daeb",
+                                    "account_id": "726288e6-a463-4f88-9068-024ae8f97a34",
+                                    "amount": "1",
+                                    "side": "SELL",
+                                    "instrument_code": "SOL_EUR",
+                                    "price": "145",
+                                    "time": "2024-11-13T17:34:55.514Z",
+                                    "sequence": "58894260661",
+                                    "matched_as": "MAKER"
+                                },
+                                "fees": [
+                                    {
+                                        "currency": "EUR",
+                                        "cost": 0.29
+                                    }
+                                ]
+                            }
+                        ],
+                        "fees": [
+                            {
+                                "currency": "EUR",
+                                "cost": 0.29
+                            }
+                        ],
+                        "fee": {
+                            "currency": "EUR",
+                            "cost": 0.29
+                        },
+                        "lastUpdateTimestamp": null,
+                        "reduceOnly": null,
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            },
+            {
+                "description": "order history batch covering FILL, MOVED, FILLED_CLOSED, FILLED_REJECTED, INSUFFICIENT_FUNDS, INSUFFICIENT_LIQUIDITY statuses",
+                "method": "fetchOpenOrders",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "with_cancelled_and_rejected": true
+                    }
+                ],
+                "httpResponse": {
+                    "order_history": [
+                        {
+                            "order": {
+                                "account_id": "9777af6d-858e-4793-b185-50f26b2fee2e",
+                                "order_id": "cbefcfa2-ef09-4074-820f-d9a1d06fe848",
+                                "instrument_code": "BTC_EUR",
+                                "amount": "0.1",
+                                "side": "BUY",
+                                "price": "42000",
+                                "filled_amount": "0.04",
+                                "type": "LIMIT",
+                                "status": "FILL",
+                                "time": "2026-08-20T10:00:00.000Z",
+                                "time_in_force": "GOOD_TILL_CANCELLED"
+                            },
+                            "trades": []
+                        },
+                        {
+                            "order": {
+                                "account_id": "9777af6d-858e-4793-b185-50f26b2fee2e",
+                                "order_id": "01bb2602-fa88-47e4-a652-856f102aae1c",
+                                "instrument_code": "BTC_EUR",
+                                "amount": "0.2",
+                                "side": "SELL",
+                                "price": "43500",
+                                "filled_amount": "0",
+                                "type": "LIMIT",
+                                "status": "MOVED",
+                                "time": "2026-08-20T10:05:00.000Z",
+                                "time_in_force": "GOOD_TILL_CANCELLED"
+                            },
+                            "trades": []
+                        },
+                        {
+                            "order": {
+                                "account_id": "9777af6d-858e-4793-b185-50f26b2fee2e",
+                                "order_id": "3aff3a57-9146-485c-9347-11d1f0dfa394",
+                                "instrument_code": "BTC_EUR",
+                                "amount": "0.05",
+                                "side": "BUY",
+                                "price": "41000",
+                                "filled_amount": "0.02",
+                                "type": "LIMIT",
+                                "status": "FILLED_CLOSED",
+                                "time": "2026-08-20T10:10:00.000Z",
+                                "time_in_force": "GOOD_TILL_CANCELLED"
+                            },
+                            "trades": []
+                        },
+                        {
+                            "order": {
+                                "account_id": "9777af6d-858e-4793-b185-50f26b2fee2e",
+                                "order_id": "b5906530-d837-47a0-9e32-e0e48117682e",
+                                "instrument_code": "BTC_EUR",
+                                "amount": "0.03",
+                                "side": "SELL",
+                                "price": "44000",
+                                "filled_amount": "0",
+                                "type": "LIMIT",
+                                "status": "FILLED_REJECTED",
+                                "time": "2026-08-20T10:15:00.000Z",
+                                "time_in_force": "GOOD_TILL_CANCELLED"
+                            },
+                            "trades": []
+                        },
+                        {
+                            "order": {
+                                "account_id": "9777af6d-858e-4793-b185-50f26b2fee2e",
+                                "order_id": "304b34be-2297-4933-a0c8-0f078320adb2",
+                                "instrument_code": "BTC_EUR",
+                                "amount": "0.5",
+                                "side": "BUY",
+                                "price": "40000",
+                                "filled_amount": "0",
+                                "type": "LIMIT",
+                                "status": "INSUFFICIENT_FUNDS",
+                                "time": "2026-08-20T10:20:00.000Z",
+                                "time_in_force": "GOOD_TILL_CANCELLED"
+                            },
+                            "trades": []
+                        },
+                        {
+                            "order": {
+                                "account_id": "9777af6d-858e-4793-b185-50f26b2fee2e",
+                                "order_id": "d3f3fd92-6752-46ed-8191-5273d30acee1",
+                                "instrument_code": "BTC_EUR",
+                                "amount": "0.01",
+                                "side": "SELL",
+                                "price": "39000",
+                                "filled_amount": "0",
+                                "type": "MARKET",
+                                "status": "INSUFFICIENT_LIQUIDITY",
+                                "time": "2026-08-20T10:25:00.000Z",
+                                "time_in_force": "GOOD_TILL_CANCELLED"
+                            },
+                            "trades": []
+                        }
+                    ],
+                    "max_page_size": 6
+                },
+                "parsedResponse": [
+                    {
+                        "id": "cbefcfa2-ef09-4074-820f-d9a1d06fe848",
+                        "clientOrderId": null,
+                        "info": {
+                            "order": {
+                                "account_id": "9777af6d-858e-4793-b185-50f26b2fee2e",
+                                "order_id": "cbefcfa2-ef09-4074-820f-d9a1d06fe848",
+                                "instrument_code": "BTC_EUR",
+                                "amount": "0.1",
+                                "side": "BUY",
+                                "price": "42000",
+                                "filled_amount": "0.04",
+                                "type": "LIMIT",
+                                "status": "FILL",
+                                "time": "2026-08-20T10:00:00.000Z",
+                                "time_in_force": "GOOD_TILL_CANCELLED"
+                            },
+                            "trades": []
+                        },
+                        "timestamp": 1787220000000,
+                        "datetime": "2026-08-20T10:00:00.000Z",
+                        "lastTradeTimestamp": null,
+                        "symbol": "BTC/EUR",
+                        "type": "limit",
+                        "timeInForce": "GTC",
+                        "postOnly": false,
+                        "side": "buy",
+                        "price": 42000,
+                        "triggerPrice": null,
+                        "amount": 0.1,
+                        "cost": 1680,
+                        "average": null,
+                        "filled": 0.04,
+                        "remaining": 0.06,
+                        "status": "open",
+                        "trades": [],
+                        "fees": [],
+                        "lastUpdateTimestamp": null,
+                        "reduceOnly": null,
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "fee": null
+                    },
+                    {
+                        "id": "01bb2602-fa88-47e4-a652-856f102aae1c",
+                        "clientOrderId": null,
+                        "info": {
+                            "order": {
+                                "account_id": "9777af6d-858e-4793-b185-50f26b2fee2e",
+                                "order_id": "01bb2602-fa88-47e4-a652-856f102aae1c",
+                                "instrument_code": "BTC_EUR",
+                                "amount": "0.2",
+                                "side": "SELL",
+                                "price": "43500",
+                                "filled_amount": "0",
+                                "type": "LIMIT",
+                                "status": "MOVED",
+                                "time": "2026-08-20T10:05:00.000Z",
+                                "time_in_force": "GOOD_TILL_CANCELLED"
+                            },
+                            "trades": []
+                        },
+                        "timestamp": 1787220300000,
+                        "datetime": "2026-08-20T10:05:00.000Z",
+                        "lastTradeTimestamp": null,
+                        "symbol": "BTC/EUR",
+                        "type": "limit",
+                        "timeInForce": "GTC",
+                        "postOnly": false,
+                        "side": "sell",
+                        "price": 43500,
+                        "triggerPrice": null,
+                        "amount": 0.2,
+                        "cost": 0,
+                        "average": null,
+                        "filled": 0,
+                        "remaining": 0.2,
+                        "status": "open",
+                        "trades": [],
+                        "fees": [],
+                        "lastUpdateTimestamp": null,
+                        "reduceOnly": null,
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "fee": null
+                    },
+                    {
+                        "id": "3aff3a57-9146-485c-9347-11d1f0dfa394",
+                        "clientOrderId": null,
+                        "info": {
+                            "order": {
+                                "account_id": "9777af6d-858e-4793-b185-50f26b2fee2e",
+                                "order_id": "3aff3a57-9146-485c-9347-11d1f0dfa394",
+                                "instrument_code": "BTC_EUR",
+                                "amount": "0.05",
+                                "side": "BUY",
+                                "price": "41000",
+                                "filled_amount": "0.02",
+                                "type": "LIMIT",
+                                "status": "FILLED_CLOSED",
+                                "time": "2026-08-20T10:10:00.000Z",
+                                "time_in_force": "GOOD_TILL_CANCELLED"
+                            },
+                            "trades": []
+                        },
+                        "timestamp": 1787220600000,
+                        "datetime": "2026-08-20T10:10:00.000Z",
+                        "lastTradeTimestamp": null,
+                        "symbol": "BTC/EUR",
+                        "type": "limit",
+                        "timeInForce": "GTC",
+                        "postOnly": false,
+                        "side": "buy",
+                        "price": 41000,
+                        "triggerPrice": null,
+                        "amount": 0.05,
+                        "cost": 820,
+                        "average": null,
+                        "filled": 0.02,
+                        "remaining": 0.03,
+                        "status": "canceled",
+                        "trades": [],
+                        "fees": [],
+                        "lastUpdateTimestamp": null,
+                        "reduceOnly": null,
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "fee": null
+                    },
+                    {
+                        "id": "b5906530-d837-47a0-9e32-e0e48117682e",
+                        "clientOrderId": null,
+                        "info": {
+                            "order": {
+                                "account_id": "9777af6d-858e-4793-b185-50f26b2fee2e",
+                                "order_id": "b5906530-d837-47a0-9e32-e0e48117682e",
+                                "instrument_code": "BTC_EUR",
+                                "amount": "0.03",
+                                "side": "SELL",
+                                "price": "44000",
+                                "filled_amount": "0",
+                                "type": "LIMIT",
+                                "status": "FILLED_REJECTED",
+                                "time": "2026-08-20T10:15:00.000Z",
+                                "time_in_force": "GOOD_TILL_CANCELLED"
+                            },
+                            "trades": []
+                        },
+                        "timestamp": 1787220900000,
+                        "datetime": "2026-08-20T10:15:00.000Z",
+                        "lastTradeTimestamp": null,
+                        "symbol": "BTC/EUR",
+                        "type": "limit",
+                        "timeInForce": "GTC",
+                        "postOnly": false,
+                        "side": "sell",
+                        "price": 44000,
+                        "triggerPrice": null,
+                        "amount": 0.03,
+                        "cost": 0,
+                        "average": null,
+                        "filled": 0,
+                        "remaining": 0.03,
+                        "status": "rejected",
+                        "trades": [],
+                        "fees": [],
+                        "lastUpdateTimestamp": null,
+                        "reduceOnly": null,
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "fee": null
+                    },
+                    {
+                        "id": "304b34be-2297-4933-a0c8-0f078320adb2",
+                        "clientOrderId": null,
+                        "info": {
+                            "order": {
+                                "account_id": "9777af6d-858e-4793-b185-50f26b2fee2e",
+                                "order_id": "304b34be-2297-4933-a0c8-0f078320adb2",
+                                "instrument_code": "BTC_EUR",
+                                "amount": "0.5",
+                                "side": "BUY",
+                                "price": "40000",
+                                "filled_amount": "0",
+                                "type": "LIMIT",
+                                "status": "INSUFFICIENT_FUNDS",
+                                "time": "2026-08-20T10:20:00.000Z",
+                                "time_in_force": "GOOD_TILL_CANCELLED"
+                            },
+                            "trades": []
+                        },
+                        "timestamp": 1787221200000,
+                        "datetime": "2026-08-20T10:20:00.000Z",
+                        "lastTradeTimestamp": null,
+                        "symbol": "BTC/EUR",
+                        "type": "limit",
+                        "timeInForce": "GTC",
+                        "postOnly": false,
+                        "side": "buy",
+                        "price": 40000,
+                        "triggerPrice": null,
+                        "amount": 0.5,
+                        "cost": 0,
+                        "average": null,
+                        "filled": 0,
+                        "remaining": 0.5,
+                        "status": "rejected",
+                        "trades": [],
+                        "fees": [],
+                        "lastUpdateTimestamp": null,
+                        "reduceOnly": null,
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "fee": null
+                    },
+                    {
+                        "id": "d3f3fd92-6752-46ed-8191-5273d30acee1",
+                        "clientOrderId": null,
+                        "info": {
+                            "order": {
+                                "account_id": "9777af6d-858e-4793-b185-50f26b2fee2e",
+                                "order_id": "d3f3fd92-6752-46ed-8191-5273d30acee1",
+                                "instrument_code": "BTC_EUR",
+                                "amount": "0.01",
+                                "side": "SELL",
+                                "price": "39000",
+                                "filled_amount": "0",
+                                "type": "MARKET",
+                                "status": "INSUFFICIENT_LIQUIDITY",
+                                "time": "2026-08-20T10:25:00.000Z",
+                                "time_in_force": "GOOD_TILL_CANCELLED"
+                            },
+                            "trades": []
+                        },
+                        "timestamp": 1787221500000,
+                        "datetime": "2026-08-20T10:25:00.000Z",
+                        "lastTradeTimestamp": null,
+                        "symbol": "BTC/EUR",
+                        "type": "market",
+                        "timeInForce": "GTC",
+                        "postOnly": false,
+                        "side": "sell",
+                        "price": 39000,
+                        "triggerPrice": null,
+                        "amount": 0.01,
+                        "cost": 0,
+                        "average": null,
+                        "filled": 0,
+                        "remaining": 0.01,
+                        "status": "rejected",
+                        "trades": [],
+                        "fees": [],
+                        "lastUpdateTimestamp": null,
+                        "reduceOnly": null,
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "fee": null
+                    }
+                ]
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "cancelled order with POST_ONLY time_in_force",
+                "method": "fetchOrder",
+                "input": [
+                    "5a3a0ccb-df1f-4f52-b339-764c93343082"
+                ],
+                "httpResponse": {
+                    "order": {
+                        "order_id": "5a3a0ccb-df1f-4f52-b339-764c93343082",
+                        "account_id": "52ec4dd3-e1aa-490b-9aa7-52c248437dbb",
+                        "instrument_code": "BTC_EUR",
+                        "amount": "0.05",
+                        "side": "BUY",
+                        "price": "42000",
+                        "filled_amount": "0",
+                        "type": "LIMIT",
+                        "status": "CANCELLED",
+                        "time": "2026-08-20T10:15:00.000Z",
+                        "time_in_force": "POST_ONLY",
+                        "is_post_only": true
+                    },
+                    "trades": []
+                },
+                "parsedResponse": {
+                    "id": "5a3a0ccb-df1f-4f52-b339-764c93343082",
+                    "clientOrderId": null,
+                    "info": {
+                        "order": {
+                            "order_id": "5a3a0ccb-df1f-4f52-b339-764c93343082",
+                            "account_id": "52ec4dd3-e1aa-490b-9aa7-52c248437dbb",
+                            "instrument_code": "BTC_EUR",
+                            "amount": "0.05",
+                            "side": "BUY",
+                            "price": "42000",
+                            "filled_amount": "0",
+                            "type": "LIMIT",
+                            "status": "CANCELLED",
+                            "time": "2026-08-20T10:15:00.000Z",
+                            "time_in_force": "POST_ONLY",
+                            "is_post_only": true
+                        },
+                        "trades": []
+                    },
+                    "timestamp": 1787220900000,
+                    "datetime": "2026-08-20T10:15:00.000Z",
+                    "lastTradeTimestamp": null,
+                    "symbol": "BTC/EUR",
+                    "type": "limit",
+                    "timeInForce": "PO",
+                    "postOnly": true,
+                    "side": "buy",
+                    "price": 42000,
+                    "triggerPrice": null,
+                    "amount": 0.05,
+                    "cost": 0,
+                    "average": null,
+                    "filled": 0,
+                    "remaining": 0.05,
+                    "status": "canceled",
+                    "trades": [],
+                    "fees": [],
+                    "lastUpdateTimestamp": null,
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "fee": null
+                }
+            }
         ]
   }
 }
