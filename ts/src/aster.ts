@@ -1629,6 +1629,22 @@ export default class aster extends Exchange {
         return this.parseTicker (response, market);
     }
 
+    async requestTickersSafely (marketType: string, params = {}) {
+        // one request of the unbounded fetchTickers gather, a failing surface
+        // returns an empty list instead of failing the whole merged call
+        let response: any = [];
+        try {
+            if (marketType === 'spot') {
+                response = await this.sapiPublicGetV3Ticker24hr (params);
+            } else {
+                response = await this.fapiPublicGetV3Ticker24hr (params);
+            }
+        } catch (e) {
+            response = [];
+        }
+        return response;
+    }
+
     /**
      * @method
      * @name aster#fetchTickers
@@ -1638,7 +1654,7 @@ export default class aster extends Exchange {
      * @param {string[]} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subType] "linear" or "inverse"
-     * @param {string} [params.type] 'spot', 'option', use params["subType"] for swap and future markets
+     * @param {string} [params.type] 'spot' or 'swap', scopes the call to a single market type, without it the unbounded call fetches tickers for both market types
      * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     override async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
@@ -1647,8 +1663,29 @@ export default class aster extends Exchange {
         }
         symbols = this.marketSymbols (symbols, undefined, true, true, true);
         const market = this.getMarketFromSymbols (symbols);
+        const requestedType = this.safeString2 (params, 'type', 'defaultType');
         let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
+        if ((symbols === undefined) && (requestedType === undefined)) {
+            // the unbounded call covers both loaded market types, the hard
+            // spot default silently dropped every swap ticker before
+            const responses = await Promise.all ([
+                this.requestTickersSafely ('spot', params),
+                this.requestTickersSafely ('swap', params),
+            ]);
+            const merged = this.arrayConcat (responses[0], responses[1]);
+            // the spot endpoint also dumps thousands of short lived prediction
+            // market rows that are not listed markets, keep known ids only
+            const rows = [];
+            for (let i = 0; i < merged.length; i++) {
+                const row = merged[i];
+                const rowMarketId = this.safeString (row, 'symbol');
+                if ((rowMarketId !== undefined) && (this.markets_by_id !== undefined) && (rowMarketId in this.markets_by_id)) {
+                    rows.push (row);
+                }
+            }
+            return this.parseTickers (rows, symbols);
+        }
         let response: NullableDict = undefined;
         if (marketType === 'swap') {
             response = await this.fapiPublicGetV3Ticker24hr (params);
