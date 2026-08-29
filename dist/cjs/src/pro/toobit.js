@@ -113,7 +113,7 @@ class toobit extends toobit$1["default"] {
         //     ]
         //
         const topic = this.safeString(message, 'topic');
-        if (this.handleErrorMessage(client, message)) {
+        if (this.handleErrorMessage(client, message) === true) {
             return;
         }
         //
@@ -356,11 +356,14 @@ class toobit extends toobit$1["default"] {
         if (!(symbol in this.ohlcvs)) {
             this.ohlcvs[symbol] = {};
         }
-        if (!(timeframe in this.ohlcvs[symbol])) {
+        let stored = this.safeValue(this.ohlcvs[symbol], timeframe);
+        if (stored === undefined) {
             const limit = this.safeInteger(this.options['ws'], 'OHLCVLimit', 1000);
-            this.ohlcvs[symbol][timeframe] = new Cache.ArrayCacheByTimestamp(limit);
+            stored = new Cache.ArrayCacheByTimestamp(limit);
+            if (timeframe !== undefined) {
+                this.ohlcvs[symbol][timeframe] = stored;
+            }
         }
-        const stored = this.ohlcvs[symbol][timeframe];
         const data = this.safeList(message, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const parsed = this.parseWsOHLCV(data[i], market);
@@ -479,13 +482,20 @@ class toobit extends toobit$1["default"] {
         //    }
         //
         const data = this.safeList(message, 'data');
+        if (data === undefined) {
+            return;
+        }
         const newTickers = {};
         for (let i = 0; i < data.length; i++) {
             const ticker = data[i];
             const parsed = this.parseWsTicker(ticker);
             const symbol = parsed['symbol'];
-            this.tickers[symbol] = parsed;
-            newTickers[symbol] = parsed;
+            if (symbol !== undefined) {
+                this.tickers[symbol] = parsed;
+            }
+            if (symbol !== undefined) {
+                newTickers[symbol] = parsed;
+            }
             const messageHash = 'ticker::' + symbol;
             client.resolve(parsed, messageHash);
         }
@@ -521,7 +531,7 @@ class toobit extends toobit$1["default"] {
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -570,7 +580,7 @@ class toobit extends toobit$1["default"] {
         //     }
         //
         const isSnapshot = this.safeBool(message, 'f', false);
-        if (isSnapshot) {
+        if (isSnapshot === true) {
             this.setOrderBookSnapshot(client, message, 'diffDepth');
             return;
         }
@@ -671,6 +681,9 @@ class toobit extends toobit$1["default"] {
         const swapMessageHash = 'contract:balance';
         const messageHash = isSpot ? spotMessageHash : swapMessageHash;
         const subscriptionHash = isSpot ? spotSubHash : swapSubHash;
+        if (subscriptionHash === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' watchBalance() requires a subscription hash');
+        }
         const url = this.getUserStreamUrl();
         const client = this.client(url);
         this.setBalanceCache(client, marketType, subscriptionHash, params);
@@ -678,7 +691,7 @@ class toobit extends toobit$1["default"] {
         return await this.watch(url, messageHash, params, subscriptionHash);
     }
     setBalanceCache(client, marketType, subscriptionHash = undefined, params = {}) {
-        if (subscriptionHash in client.subscriptions) {
+        if ((subscriptionHash === undefined) || (subscriptionHash in client.subscriptions)) {
             return;
         }
         const type = (marketType === 'spot') ? 'spot' : 'contract';
@@ -740,7 +753,9 @@ class toobit extends toobit$1["default"] {
             account['info'] = balance;
             account['used'] = this.safeString(balance, 'l');
             account['free'] = this.safeString(balance, 'f');
-            this.balance[type][code] = account;
+            if ((type !== undefined) && (code !== undefined)) {
+                this.balance[type][code] = account;
+            }
         }
         this.balance[type] = this.safeBalance(this.balance[type]);
         client.resolve(this.balance[type], type + ':balance');
@@ -940,6 +955,8 @@ class toobit extends toobit$1["default"] {
     parseMyTrade(trade, market = undefined) {
         const marketId = this.safeString(trade, 's');
         const ts = this.safeString(trade, 't');
+        const isMaker = (this.safeBool(trade, 'm') === true);
+        const takerOrMaker = isMaker ? 'maker' : 'taker';
         return this.safeTrade({
             'info': trade,
             'id': this.safeString(trade, 'T'),
@@ -949,7 +966,7 @@ class toobit extends toobit$1["default"] {
             'order': this.safeString(trade, 'o'),
             'type': undefined,
             'side': this.safeStringLower(trade, 'S'),
-            'takerOrMaker': this.safeBool(trade, 'm') ? 'maker' : 'taker',
+            'takerOrMaker': takerOrMaker,
             'price': this.safeString(trade, 'p'),
             'amount': this.safeString(trade, 'q'),
             'cost': undefined,
@@ -975,6 +992,9 @@ class toobit extends toobit$1["default"] {
         let messageHash = '';
         if (!this.isEmpty(symbols)) {
             symbols = this.marketSymbols(symbols);
+            if (symbols === undefined) {
+                throw new errors.ArgumentsRequired(this.id + ' watchPositions() symbols is required');
+            }
             messageHash = '::' + symbols.join(',');
         }
         const url = this.getUserStreamUrl();
@@ -1000,7 +1020,7 @@ class toobit extends toobit$1["default"] {
             return;
         }
         const fetchPositionsSnapshot = this.handleOption('watchPositions', 'fetchPositionsSnapshot', false);
-        if (fetchPositionsSnapshot) {
+        if (fetchPositionsSnapshot === true) {
             const messageHash = type + ':fetchPositionsSnapshot';
             if (!(messageHash in client.futures)) {
                 client.future(messageHash);
@@ -1091,7 +1111,7 @@ class toobit extends toobit$1["default"] {
         return this.safePosition({
             'info': position,
             'id': undefined,
-            'symbol': this.safeSymbol(marketId, undefined),
+            'symbol': this.safeSymbol(marketId),
             'notional': this.omitZero(this.safeString(position, 'pv')),
             'marginMode': this.safeStringLower(position, 'mt'),
             'liquidationPrice': this.safeString(position, 'f'),

@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import onetradingRest from '../onetrading.js';
-import { NotSupported, ExchangeError } from '../base/errors.js';
+import { ArgumentsRequired, NotSupported, ExchangeError } from '../base/errors.js';
 import { ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
 //  ---------------------------------------------------------------------------
@@ -314,7 +314,7 @@ export default class onetrading extends onetradingRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -1039,7 +1039,9 @@ export default class onetrading extends onetradingRest {
         const account = this.account();
         account['free'] = this.safeString(balance, 'new_available');
         account['used'] = this.safeString(balance, 'new_locked');
-        this.balance[code] = account;
+        if (code !== undefined) {
+            this.balance[code] = account;
+        }
         this.balance = this.safeBalance(this.balance);
     }
     /**
@@ -1077,7 +1079,7 @@ export default class onetrading extends onetradingRest {
             if (subscription !== undefined) {
                 const ohlcvMarket = this.safeValue(subscription, marketId, {});
                 const marketSubscribed = this.safeBool(ohlcvMarket, timeframe, false);
-                if (!marketSubscribed) {
+                if (marketSubscribed !== true) {
                     type = 'UPDATE_SUBSCRIPTION';
                     client.subscriptions[subscriptionHash] = undefined;
                 }
@@ -1088,9 +1090,13 @@ export default class onetrading extends onetradingRest {
         }
         const subscriptionMarketId = this.safeValue(subscription, marketId);
         if (subscriptionMarketId === undefined) {
-            subscription[marketId] = {};
+            if (marketId !== undefined) {
+                subscription[marketId] = {};
+            }
         }
-        subscription[marketId][timeframe] = true;
+        if ((marketId !== undefined) && (timeframe !== undefined)) {
+            subscription[marketId][timeframe] = true;
+        }
         const properties = [];
         const marketIds = Object.keys(subscription);
         for (let i = 0; i < marketIds.length; i++) {
@@ -1170,17 +1176,24 @@ export default class onetrading extends onetradingRest {
             this.safeNumber(message, 'volume'),
         ];
         this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
-        let stored = this.safeValue(this.ohlcvs[symbol], timeframe);
+        let stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
             stored = new ArrayCacheByTimestamp(limit);
         }
         stored.append(parsed);
-        this.ohlcvs[symbol][timeframe] = stored;
+        if (symbol !== undefined && timeframe !== undefined) {
+            this.ohlcvs[symbol][timeframe] = stored;
+        }
         client.resolve(stored, channel);
     }
     findTimeframe(timeframe, timeframes = undefined) {
-        timeframes = timeframes || this.timeframes;
+        if (timeframes === undefined) {
+            timeframes = this.timeframes;
+        }
+        if (timeframes === undefined) {
+            throw new ArgumentsRequired(this.id + ' findTimeframe() timeframes is required');
+        }
         const keys = Object.keys(timeframes);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
@@ -1303,7 +1316,11 @@ export default class onetrading extends onetradingRest {
         let marketIds = [];
         const numSymbols = symbols.length;
         if (numSymbols === 0) {
-            marketIds = Object.keys(this.markets_by_id);
+            const marketsById = this.markets_by_id;
+            if (marketsById === undefined) {
+                return [];
+            }
+            marketIds = Object.keys(marketsById);
         }
         else {
             marketIds = this.marketIds(symbols);
@@ -1318,7 +1335,7 @@ export default class onetrading extends onetradingRest {
                 for (let i = 0; i < marketIds.length; i++) {
                     const marketId = marketIds[i];
                     const marketSubscribed = this.safeBool(subscription, marketId, false);
-                    if (!marketSubscribed) {
+                    if (marketSubscribed !== true) {
                         type = 'UPDATE_SUBSCRIPTION';
                         client.subscriptions[subscriptionHash] = undefined;
                     }

@@ -71,6 +71,7 @@ func (this *BtcboxCore) Describe() any {
 			"fetchMarginMode":                        false,
 			"fetchMarginModes":                       false,
 			"fetchMarketLeverageTiers":               false,
+			"fetchMarkets":                           true,
 			"fetchMarkOHLCV":                         false,
 			"fetchMarkPrices":                        false,
 			"fetchMyLiquidations":                    false,
@@ -124,13 +125,49 @@ func (this *BtcboxCore) Describe() any {
 		},
 		"api": map[string]any{
 			"public": map[string]any{
-				"get": []any{"depth", "orders", "ticker", "tickers"},
+				"get": map[string]any{
+					"depth": map[string]any{
+						"cost": 1,
+					},
+					"orders": map[string]any{
+						"cost": 1,
+					},
+					"ticker": map[string]any{
+						"cost": 1,
+					},
+					"tickers": map[string]any{
+						"cost": 1,
+					},
+				},
 			},
 			"private": map[string]any{
-				"post": []any{"balance", "trade_add", "trade_cancel", "trade_list", "trade_view", "wallet"},
+				"post": map[string]any{
+					"balance": map[string]any{
+						"cost": 1,
+					},
+					"trade_add": map[string]any{
+						"cost": 1,
+					},
+					"trade_cancel": map[string]any{
+						"cost": 1,
+					},
+					"trade_list": map[string]any{
+						"cost": 1,
+					},
+					"trade_view": map[string]any{
+						"cost": 1,
+					},
+					"wallet": map[string]any{
+						"cost": 1,
+					},
+				},
 			},
 			"webApi": map[string]any{
-				"get": []any{"ajax/coin/coinInfo"},
+				"get": map[string]any{
+					"ajax/coin/coinInfo": map[string]any{
+						"cost": 1,
+					},
+				},
 			},
 		},
 		"options": map[string]any{
@@ -224,92 +261,92 @@ func (this *BtcboxCore) Describe() any {
  * @returns {object[]} an array of objects representing market data
  */
 func (this *BtcboxCore) FetchMarkets(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		var promise1 any = this.PublicGetTickers()
-		var promise2 any = this.FetchWebEndpoint("fetchMarkets", "webApiGetAjaxCoinCoinInfo", true)
-		response1response2Variable := (<-promiseAll([]any{promise1, promise2}))
-		response1 := GetValue(response1response2Variable, 0)
-		response2 := GetValue(response1response2Variable, 1)
-		//
-		var result2Data any = this.SafeDict(response2, "data", map[string]any{})
-		var marketIds any = ObjectKeys(response1)
-		var markets any = []any{}
-		for i := 0; IsLessThan(i, GetArrayLength(marketIds)); i++ {
-			var marketId any = GetValue(marketIds, i)
-			var symbolParts any = Split(marketId, "_")
-			var baseCurr any = this.SafeString(symbolParts, 0, "")
-			var quote any = this.SafeString(symbolParts, 1, "")
-			var quoteId any = ToLower(quote)
-			var id any = ToLower(baseCurr)
-			var res any = GetValue(response1, marketId)
-			var symbol any = Add(Add(baseCurr, "/"), quote)
-			var fee any = Ternary(IsTrue((IsEqual(id, "BTC"))), this.ParseNumber("0.0005"), this.ParseNumber("0.0010"))
-			var details any = this.SafeDict(result2Data, id, map[string]any{})
-			var tradeDetails any = this.SafeDict(details, "trade", map[string]any{})
-			AppendToArray(&markets, this.SafeMarketStructure(map[string]any{
-				"id":             id,
-				"uppercaseId":    nil,
-				"symbol":         symbol,
-				"base":           baseCurr,
-				"baseId":         id,
-				"quote":          quote,
-				"quoteId":        quoteId,
-				"settle":         nil,
-				"settleId":       nil,
-				"type":           "spot",
-				"spot":           true,
-				"margin":         false,
-				"swap":           false,
-				"future":         false,
-				"option":         false,
-				"taker":          fee,
-				"maker":          fee,
-				"contract":       false,
-				"linear":         nil,
-				"inverse":        nil,
-				"contractSize":   nil,
-				"expiry":         nil,
-				"expiryDatetime": nil,
-				"strike":         nil,
-				"optionType":     nil,
-				"limits": map[string]any{
-					"amount": map[string]any{
-						"min": nil,
-						"max": nil,
-					},
-					"price": map[string]any{
-						"min": nil,
-						"max": nil,
-					},
-					"cost": map[string]any{
-						"min": nil,
-						"max": nil,
-					},
-					"leverage": map[string]any{
-						"min": nil,
-						"max": nil,
-					},
-				},
-				"precision": map[string]any{
-					"price":  this.ParseNumber(this.ParsePrecision(this.SafeString(tradeDetails, "pricedecimal"))),
-					"amount": nil,
-				},
-				"active":  IsEqual(this.SafeString(tradeDetails, "enable"), "1"),
-				"created": nil,
-				"info":    res,
-			}))
-		}
-
-		ch <- markets
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchMarketsBody(ch, optionalArgs...)
 	return ch
+}
+func (this *BtcboxCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	var promise1 any = this.PublicGetTickers()
+	var promise2 any = this.FetchWebEndpoint("fetchMarkets", "webApiGetAjaxCoinCoinInfo", true)
+	response1response2Variable := (<-promiseAll([]any{promise1, promise2}))
+	response1 := GetValue(response1response2Variable, 0)
+	response2 := GetValue(response1response2Variable, 1)
+	//
+	var result2Data any = this.SafeDict(response2, "data", map[string]any{})
+	var marketIds []string = ObjectKeys(response1)
+	var markets any = []any{}
+	for i := 0; IsLessThan(i, GetArrayLength(marketIds)); i++ {
+		var marketId any = GetValue(marketIds, i)
+		var symbolParts []string = Split(marketId, "_")
+		var baseCurr any = this.SafeString(symbolParts, 0, "")
+		var quote any = this.SafeString(symbolParts, 1, "")
+		var quoteId string = ToLower(quote)
+		var id string = ToLower(baseCurr)
+		var res any = this.SafeDict(response1, marketId, map[string]any{})
+		var symbol any = Add(Add(baseCurr, "/"), quote)
+		var fee any = Ternary(IsTrue((IsEqual(id, "BTC"))), this.ParseNumber("0.0005"), this.ParseNumber("0.0010"))
+		var details any = this.SafeDict(result2Data, id, map[string]any{})
+		var tradeDetails any = this.SafeDict(details, "trade", map[string]any{})
+		AppendToArray(&markets, this.SafeMarketStructure(map[string]any{
+			"id":             id,
+			"uppercaseId":    nil,
+			"symbol":         symbol,
+			"base":           baseCurr,
+			"baseId":         id,
+			"quote":          quote,
+			"quoteId":        quoteId,
+			"settle":         nil,
+			"settleId":       nil,
+			"type":           "spot",
+			"spot":           true,
+			"margin":         false,
+			"swap":           false,
+			"future":         false,
+			"option":         false,
+			"taker":          fee,
+			"maker":          fee,
+			"contract":       false,
+			"linear":         nil,
+			"inverse":        nil,
+			"contractSize":   nil,
+			"expiry":         nil,
+			"expiryDatetime": nil,
+			"strike":         nil,
+			"optionType":     nil,
+			"limits": map[string]any{
+				"amount": map[string]any{
+					"min": nil,
+					"max": nil,
+				},
+				"price": map[string]any{
+					"min": nil,
+					"max": nil,
+				},
+				"cost": map[string]any{
+					"min": nil,
+					"max": nil,
+				},
+				"leverage": map[string]any{
+					"min": nil,
+					"max": nil,
+				},
+			},
+			"precision": map[string]any{
+				"price":  this.ParseNumber(this.ParsePrecision(this.SafeString(tradeDetails, "pricedecimal"))),
+				"amount": nil,
+			},
+			"active":  IsEqual(this.SafeString(tradeDetails, "enable"), "1"),
+			"created": nil,
+			"info":    res,
+		}))
+	}
+
+	ch <- markets
+	return nil
 }
 func (this *BtcboxCore) ParseMarket(market any) any {
 	var baseId any = this.SafeString(market, "base")
@@ -317,7 +354,7 @@ func (this *BtcboxCore) ParseMarket(market any) any {
 	var quoteId any = this.SafeString(market, "quote")
 	var quote any = this.SafeCurrencyCode(quoteId)
 	var symbol any = Add(Add(base, "/"), quote)
-	return map[string]any{
+	return this.SafeMarketStructure(map[string]any{
 		"id":             this.SafeString(market, "symbol"),
 		"uppercaseId":    nil,
 		"symbol":         symbol,
@@ -366,13 +403,13 @@ func (this *BtcboxCore) ParseMarket(market any) any {
 		"active":  nil,
 		"created": nil,
 		"info":    market,
-	}
+	})
 }
 func (this *BtcboxCore) ParseBalance(response any) any {
-	var result any = map[string]any{
+	var result map[string]any = map[string]any{
 		"info": response,
 	}
-	var codes any = ObjectKeys(this.Currencies)
+	var codes []string = ObjectKeys(this.Currencies)
 	for i := 0; IsLessThan(i, GetArrayLength(codes)); i++ {
 		var code any = GetValue(codes, i)
 		var currency any = this.Currency(code)
@@ -398,26 +435,26 @@ func (this *BtcboxCore) ParseBalance(response any) any {
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *BtcboxCore) FetchBalance(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes40512 := (<-this.LoadMarkets())
-			PanicOnError(retRes40512)
-		}
-
-		response := (<-this.PrivatePostBalance(params))
-		PanicOnError(response)
-
-		ch <- this.ParseBalance(response)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchBalanceBody(ch, optionalArgs...)
 	return ch
+}
+func (this *BtcboxCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes40612 := (<-this.LoadMarkets())
+		PanicOnError(retRes40612)
+	}
+
+	response := (<-this.PrivatePostBalance(params))
+	PanicOnError(response)
+
+	ch <- this.ParseBalance(response)
+	return nil
 }
 
 /**
@@ -428,37 +465,37 @@ func (this *BtcboxCore) FetchBalance(optionalArgs ...any) <-chan any {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *BtcboxCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		limit := GetArg(optionalArgs, 0, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes42312 := (<-this.LoadMarkets())
-			PanicOnError(retRes42312)
-		}
-		var market any = this.Market(symbol)
-		var request any = map[string]any{}
-		var numSymbols any = Ternary(IsTrue((IsEqual(this.Symbols, nil))), 0, GetArrayLength(this.Symbols))
-		if IsTrue(IsGreaterThan(numSymbols, 1)) {
-			AddElementToObject(request, "coin", GetValue(market, "baseId"))
-		}
-
-		response := (<-this.PublicGetDepth(this.Extend(request, params)))
-		PanicOnError(response)
-
-		ch <- this.ParseOrderBook(response, GetValue(market, "symbol"))
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *BtcboxCore) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	limit := GetArg(optionalArgs, 0, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes42412 := (<-this.LoadMarkets())
+		PanicOnError(retRes42412)
+	}
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{}
+	var numSymbols int = GetArrayLength(this.Symbols)
+	if IsTrue(IsGreaterThan(numSymbols, 1)) {
+		AddElementToObject(request, "coin", GetValue(market, "baseId"))
+	}
+
+	response := (<-this.PublicGetDepth(this.Extend(request, params)))
+	PanicOnError(response)
+
+	ch <- this.ParseOrderBook(response, GetValue(market, "symbol"))
+	return nil
 }
 func (this *BtcboxCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
@@ -499,32 +536,32 @@ func (this *BtcboxCore) ParseTicker(ticker any, optionalArgs ...any) any {
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *BtcboxCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes47312 := (<-this.LoadMarkets())
-			PanicOnError(retRes47312)
-		}
-		var market any = this.Market(symbol)
-		var request any = map[string]any{}
-		var numSymbols any = Ternary(IsTrue((IsEqual(this.Symbols, nil))), 0, GetArrayLength(this.Symbols))
-		if IsTrue(IsGreaterThan(numSymbols, 1)) {
-			AddElementToObject(request, "coin", GetValue(market, "baseId"))
-		}
-
-		response := (<-this.PublicGetTicker(this.Extend(request, params)))
-		PanicOnError(response)
-
-		ch <- this.ParseTicker(response, market)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchTickerBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *BtcboxCore) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes47412 := (<-this.LoadMarkets())
+		PanicOnError(retRes47412)
+	}
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{}
+	var numSymbols int = GetArrayLength(this.Symbols)
+	if IsTrue(IsGreaterThan(numSymbols, 1)) {
+		AddElementToObject(request, "coin", GetValue(market, "baseId"))
+	}
+
+	response := (<-this.PublicGetTicker(this.Extend(request, params)))
+	PanicOnError(response)
+
+	ch <- this.ParseTicker(response, market)
+	return nil
 }
 
 /**
@@ -536,28 +573,28 @@ func (this *BtcboxCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any 
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *BtcboxCore) FetchTickers(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbols := GetArg(optionalArgs, 0, nil)
-		_ = symbols
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes49512 := (<-this.LoadMarkets())
-			PanicOnError(retRes49512)
-		}
-
-		response := (<-this.PublicGetTickers(params))
-		PanicOnError(response)
-
-		ch <- this.ParseTickers(response, symbols)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchTickersBody(ch, optionalArgs...)
 	return ch
+}
+func (this *BtcboxCore) fetchTickersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbols := GetArg(optionalArgs, 0, nil)
+	_ = symbols
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes49612 := (<-this.LoadMarkets())
+		PanicOnError(retRes49612)
+	}
+
+	response := (<-this.PublicGetTickers(params))
+	PanicOnError(response)
+
+	ch <- this.ParseTickers(response, symbols)
+	return nil
 }
 func (this *BtcboxCore) ParseTrade(trade any, optionalArgs ...any) any {
 	//
@@ -609,47 +646,47 @@ func (this *BtcboxCore) ParseTrade(trade any, optionalArgs ...any) any {
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *BtcboxCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		since := GetArg(optionalArgs, 0, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 1, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 2, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes55012 := (<-this.LoadMarkets())
-			PanicOnError(retRes55012)
-		}
-		var market any = this.Market(symbol)
-		var request any = map[string]any{}
-		var numSymbols any = Ternary(IsTrue((IsEqual(this.Symbols, nil))), 0, GetArrayLength(this.Symbols))
-		if IsTrue(IsGreaterThan(numSymbols, 1)) {
-			AddElementToObject(request, "coin", GetValue(market, "baseId"))
-		}
-
-		response := (<-this.PublicGetOrders(this.Extend(request, params)))
-		PanicOnError(response)
-
-		//
-		//     [
-		//          {
-		//              "date":"0",
-		//              "price":3,
-		//              "amount":0.1,
-		//              "tid":"1",
-		//              "type":"buy"
-		//          },
-		//     ]
-		//
-		ch <- this.ParseTrades(response, market, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *BtcboxCore) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	since := GetArg(optionalArgs, 0, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 1, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 2, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes55112 := (<-this.LoadMarkets())
+		PanicOnError(retRes55112)
+	}
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{}
+	var numSymbols int = GetArrayLength(this.Symbols)
+	if IsTrue(IsGreaterThan(numSymbols, 1)) {
+		AddElementToObject(request, "coin", GetValue(market, "baseId"))
+	}
+
+	response := (<-this.PublicGetOrders(this.Extend(request, params)))
+	PanicOnError(response)
+
+	//
+	//     [
+	//          {
+	//              "date":"0",
+	//              "price":3,
+	//              "amount":0.1,
+	//              "tid":"1",
+	//              "type":"buy"
+	//          },
+	//     ]
+	//
+	ch <- this.ParseTrades(response, market, since, limit)
+	return nil
 }
 
 /**
@@ -666,41 +703,41 @@ func (this *BtcboxCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any 
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BtcboxCore) CreateOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		price := GetArg(optionalArgs, 0, nil)
-		_ = price
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes58812 := (<-this.LoadMarkets())
-			PanicOnError(retRes58812)
-		}
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"amount": amount,
-			"price":  price,
-			"type":   side,
-			"coin":   GetValue(market, "baseId"),
-		}
-
-		response := (<-this.PrivatePostTradeAdd(this.Extend(request, params)))
-		PanicOnError(response)
-
-		//
-		//     {
-		//         "result":true,
-		//         "id":"12"
-		//     }
-		//
-		ch <- this.ParseOrder(response, market)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
+}
+func (this *BtcboxCore) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	price := GetArg(optionalArgs, 0, nil)
+	_ = price
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes58912 := (<-this.LoadMarkets())
+		PanicOnError(retRes58912)
+	}
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"amount": amount,
+		"price":  price,
+		"type":   side,
+		"coin":   GetValue(market, "baseId"),
+	}
+
+	response := (<-this.PrivatePostTradeAdd(this.Extend(request, params)))
+	PanicOnError(response)
+
+	//
+	//     {
+	//         "result":true,
+	//         "id":"12"
+	//     }
+	//
+	ch <- this.ParseOrder(response, market)
+	return nil
 }
 
 /**
@@ -714,43 +751,43 @@ func (this *BtcboxCore) CreateOrder(symbol any, typeVar any, side any, amount an
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BtcboxCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes61912 := (<-this.LoadMarkets())
-			PanicOnError(retRes61912)
-		}
-		// a special case for btcbox – default symbol is BTC/JPY
-		if IsTrue(IsEqual(symbol, nil)) {
-			symbol = "BTC/JPY"
-		}
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"id":   id,
-			"coin": GetValue(market, "baseId"),
-		}
-
-		response := (<-this.PrivatePostTradeCancel(this.Extend(request, params)))
-		PanicOnError(response)
-
-		//
-		//     {"result":true, "id":"11"}
-		//
-		ch <- this.ParseOrder(response, market)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
+func (this *BtcboxCore) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes62012 := (<-this.LoadMarkets())
+		PanicOnError(retRes62012)
+	}
+	// a special case for btcbox – default symbol is BTC/JPY
+	if IsTrue(IsEqual(symbol, nil)) {
+		symbol = "BTC/JPY"
+	}
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"id":   id,
+		"coin": GetValue(market, "baseId"),
+	}
+
+	response := (<-this.PrivatePostTradeCancel(this.Extend(request, params)))
+	PanicOnError(response)
+
+	//
+	//     {"result":true, "id":"11"}
+	//
+	ch <- this.ParseOrder(response, market)
+	return nil
+}
 func (this *BtcboxCore) ParseOrderStatus(status any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"part":      "open",
 		"all":       "closed",
 		"cancelled": "canceled",
@@ -833,106 +870,106 @@ func (this *BtcboxCore) ParseOrder(order any, optionalArgs ...any) any {
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BtcboxCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes72212 := (<-this.LoadMarkets())
-			PanicOnError(retRes72212)
-		}
-		// a special case for btcbox – default symbol is BTC/JPY
-		if IsTrue(IsEqual(symbol, nil)) {
-			symbol = "BTC/JPY"
-		}
-		var market any = this.Market(symbol)
-		var request any = this.Extend(map[string]any{
-			"id":   id,
-			"coin": GetValue(market, "baseId"),
-		}, params)
-
-		response := (<-this.PrivatePostTradeView(this.Extend(request, params)))
-		PanicOnError(response)
-
-		//
-		//      {
-		//          "id":11,
-		//          "datetime":"2014-10-21 10:47:21",
-		//          "type":"sell",
-		//          "price":42000,
-		//          "amount_original":1.2,
-		//          "amount_outstanding":1.2,
-		//          "status":"closed",
-		//          "trades":[]
-		//      }
-		//
-		ch <- this.ParseOrder(response, market)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOrderBody(ch, id, optionalArgs...)
 	return ch
 }
+func (this *BtcboxCore) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes72312 := (<-this.LoadMarkets())
+		PanicOnError(retRes72312)
+	}
+	// a special case for btcbox – default symbol is BTC/JPY
+	if IsTrue(IsEqual(symbol, nil)) {
+		symbol = "BTC/JPY"
+	}
+	var market any = this.Market(symbol)
+	var request map[string]any = this.Extend(map[string]any{
+		"id":   id,
+		"coin": GetValue(market, "baseId"),
+	}, params)
+
+	response := (<-this.PrivatePostTradeView(this.Extend(request, params)))
+	PanicOnError(response)
+
+	//
+	//      {
+	//          "id":11,
+	//          "datetime":"2014-10-21 10:47:21",
+	//          "type":"sell",
+	//          "price":42000,
+	//          "amount_original":1.2,
+	//          "amount_outstanding":1.2,
+	//          "status":"closed",
+	//          "trades":[]
+	//      }
+	//
+	ch <- this.ParseOrder(response, market)
+	return nil
+}
 func (this *BtcboxCore) FetchOrdersByType(typeVar any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes75112 := (<-this.LoadMarkets())
-			PanicOnError(retRes75112)
-		}
-		// a special case for btcbox – default symbol is BTC/JPY
-		if IsTrue(IsEqual(symbol, nil)) {
-			symbol = "BTC/JPY"
-		}
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"type": typeVar,
-			"coin": GetValue(market, "baseId"),
-		}
-
-		response := (<-this.PrivatePostTradeList(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		// [
-		//      {
-		//          "id":"7",
-		//          "datetime":"2014-10-20 13:27:38",
-		//          "type":"buy",
-		//          "price":42750,
-		//          "amount_original":0.235,
-		//          "amount_outstanding":0.235
-		//      },
-		// ]
-		//
-		var orders any = this.ParseOrders(response, market, since, limit)
-		// status (open/closed/canceled) is undefined
-		// btcbox does not return status, but we know it's 'open' as we queried for open orders
-		if IsTrue(IsEqual(typeVar, "open")) {
-			for i := 0; IsLessThan(i, GetArrayLength(orders)); i++ {
-				AddElementToObject(GetValue(orders, i), "status", "open")
-			}
-		}
-
-		ch <- orders
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOrdersByTypeBody(ch, typeVar, optionalArgs...)
 	return ch
+}
+func (this *BtcboxCore) fetchOrdersByTypeBody(ch chan any, typeVar any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes75212 := (<-this.LoadMarkets())
+		PanicOnError(retRes75212)
+	}
+	// a special case for btcbox – default symbol is BTC/JPY
+	if IsTrue(IsEqual(symbol, nil)) {
+		symbol = "BTC/JPY"
+	}
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"type": typeVar,
+		"coin": GetValue(market, "baseId"),
+	}
+
+	response := (<-this.PrivatePostTradeList(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	// [
+	//      {
+	//          "id":"7",
+	//          "datetime":"2014-10-20 13:27:38",
+	//          "type":"buy",
+	//          "price":42750,
+	//          "amount_original":0.235,
+	//          "amount_outstanding":0.235
+	//      },
+	// ]
+	//
+	var orders any = this.ParseOrders(response, market, since, limit)
+	// status (open/closed/canceled) is undefined
+	// btcbox does not return status, but we know it's 'open' as we queried for open orders
+	if IsTrue(IsEqual(typeVar, "open")) {
+		for i := 0; IsLessThan(i, GetArrayLength(orders)); i++ {
+			AddElementToObject(GetValue(orders, i), "status", "open")
+		}
+	}
+
+	ch <- orders
+	return nil
 }
 
 /**
@@ -947,26 +984,26 @@ func (this *BtcboxCore) FetchOrdersByType(typeVar any, optionalArgs ...any) <-ch
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BtcboxCore) FetchOrders(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-
-		retRes79815 := (<-this.FetchOrdersByType("all", symbol, since, limit, params))
-		PanicOnError(retRes79815)
-		ch <- retRes79815
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOrdersBody(ch, optionalArgs...)
 	return ch
+}
+func (this *BtcboxCore) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+
+	retRes79915 := (<-this.FetchOrdersByType("all", symbol, since, limit, params))
+	PanicOnError(retRes79915)
+	ch <- retRes79915
+	return nil
 }
 
 /**
@@ -981,26 +1018,26 @@ func (this *BtcboxCore) FetchOrders(optionalArgs ...any) <-chan any {
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BtcboxCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-
-		retRes81315 := (<-this.FetchOrdersByType("open", symbol, since, limit, params))
-		PanicOnError(retRes81315)
-		ch <- retRes81315
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOpenOrdersBody(ch, optionalArgs...)
 	return ch
+}
+func (this *BtcboxCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+
+	retRes81415 := (<-this.FetchOrdersByType("open", symbol, since, limit, params))
+	PanicOnError(retRes81415)
+	ch <- retRes81415
+	return nil
 }
 func (this *BtcboxCore) Nonce() any {
 	return this.Milliseconds()
@@ -1018,15 +1055,15 @@ func (this *BtcboxCore) Sign(path any, optionalArgs ...any) any {
 	_ = body
 	var url any = Add(Add(Add(Add(GetValue(GetValue(this.Urls, "api"), "rest"), "/"), this.Version), "/"), path)
 	if IsTrue(IsEqual(api, "public")) {
-		if IsTrue(GetArrayLength(ObjectKeys(params))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(params)), 0)) {
 			url = Add(url, Add("?", this.Urlencode(params)))
 		}
 	} else if IsTrue(IsEqual(api, "webApi")) {
 		url = Add(Add(GetValue(this.Urls, "www"), "/"), path)
 	} else {
 		this.CheckRequiredCredentials()
-		var nonce any = ToString(this.Nonce())
-		var query any = this.Extend(map[string]any{
+		var nonce string = ToString(this.Nonce())
+		var query map[string]any = this.Extend(map[string]any{
 			"key":   this.ApiKey,
 			"nonce": nonce,
 		}, params)
@@ -1063,39 +1100,39 @@ func (this *BtcboxCore) HandleErrors(httpCode any, reason any, url any, method a
 	panic(ExchangeError(feedback))
 }
 func (this *BtcboxCore) Request(path any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		api := GetArg(optionalArgs, 0, "public")
-		_ = api
-		method := GetArg(optionalArgs, 1, "GET")
-		_ = method
-		params := GetArg(optionalArgs, 2, map[string]any{})
-		_ = params
-		headers := GetArg(optionalArgs, 3, nil)
-		_ = headers
-		body := GetArg(optionalArgs, 4, nil)
-		_ = body
-		config := GetArg(optionalArgs, 5, map[string]any{})
-		_ = config
-
-		response := (<-this.Fetch2(path, api, method, params, headers, body, config))
-		PanicOnError(response)
-		if IsTrue(IsString(response)) {
-			// sometimes the exchange returns whitespace prepended to json
-			response = this.Strip(response)
-			if !IsTrue(this.IsJsonEncodedObject(response)) {
-				panic(ExchangeError(Add(Add(this.Id, " "), response)))
-			}
-			response = JsonParse(response)
-		}
-
-		ch <- response
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.requestBody(ch, path, optionalArgs...)
 	return ch
+}
+func (this *BtcboxCore) requestBody(ch chan any, path any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	api := GetArg(optionalArgs, 0, "public")
+	_ = api
+	method := GetArg(optionalArgs, 1, "GET")
+	_ = method
+	params := GetArg(optionalArgs, 2, map[string]any{})
+	_ = params
+	headers := GetArg(optionalArgs, 3, nil)
+	_ = headers
+	body := GetArg(optionalArgs, 4, nil)
+	_ = body
+	config := GetArg(optionalArgs, 5, map[string]any{})
+	_ = config
+
+	response := (<-this.Fetch2(path, api, method, params, headers, body, config))
+	PanicOnError(response)
+	if IsTrue(IsString(response)) {
+		// sometimes the exchange returns whitespace prepended to json
+		response = this.Strip(response)
+		if !IsTrue(this.IsJsonEncodedObject(response)) {
+			panic(ExchangeError(Add(Add(this.Id, " "), response)))
+		}
+		response = JsonParse(response)
+	}
+
+	ch <- response
+	return nil
 }
 
 func (this *BtcboxCore) Init(userConfig map[string]any) {

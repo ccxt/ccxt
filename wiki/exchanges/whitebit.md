@@ -54,7 +54,6 @@
 * [fetchPositionHistory](#fetchpositionhistory)
 * [fetchPositions](#fetchpositions)
 * [fetchPosition](#fetchposition)
-* [fetchCrossBorrowRate](#fetchcrossborrowrate)
 * [fetchFundingRateHistory](#fetchfundingratehistory)
 * [watchOHLCV](#watchohlcv)
 * [watchOrderBook](#watchorderbook)
@@ -293,7 +292,7 @@ whitebit.fetchTickers (symbols?, params?)
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>whitebit</code>](#whitebit)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://docs.whitebit.com/public/http-v4/#orderbook  
 
@@ -490,6 +489,7 @@ create a trade order
 | params.cost | <code>float</code> | No | *market orders only* the cost of the order in units of the base currency |
 | params.triggerPrice | <code>float</code> | No | The price at which a trigger order is triggered at |
 | params.postOnly | <code>bool</code> | No | If true, the order will only be posted to the order book and not executed immediately |
+| params.timeInForce | <code>string</code> | No | "GTC", "IOC" or "PO"; IOC and PO are limit-order only, not supported for stop orders |
 | params.clientOrderId | <code>string</code> | No | a unique id for the order |
 | params.marginMode | <code>string</code> | No | 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null |
 
@@ -559,14 +559,14 @@ cancel all open orders
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined |
+| symbol | <code>string</code> | No | unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.type | <code>string</code> | No | market type, ['swap', 'spot'] |
 | params.isMargin | <code>boolean</code> | No | cancel all margin orders |
 
 
 ```javascript
-whitebit.cancelAllOrders (symbol, params?)
+whitebit.cancelAllOrders (symbol?, params?)
 ```
 
 
@@ -913,7 +913,7 @@ fetch information on a deposit
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | id | <code>string</code> | Yes | deposit id |
-| code | <code>string</code> | Yes | not used by whitebit fetchDeposit () |
+| code | <code>string</code> | Yes | not used by fetchDeposit () |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
@@ -1153,7 +1153,7 @@ fetches historical positions
 | symbol | <code>string</code> | Yes | unified contract symbol |
 | since | <code>int</code> | No | the earliest time in ms to fetch positions for |
 | limit | <code>int</code> | No | the maximum amount of records to fetch |
-| params | <code>object</code> | No | extra parameters specific to the exchange api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.positionId | <code>int</code> | No | the id of the requested position |
 
 
@@ -1201,27 +1201,6 @@ fetch data on a single open contract trade position
 
 ```javascript
 whitebit.fetchPosition (symbol, params?)
-```
-
-
-<a name="fetchCrossBorrowRate" id="fetchcrossborrowrate"></a>
-
-### fetchCrossBorrowRate{docsify-ignore}
-fetch the rate of interest to borrow a currency for margin trading
-
-**Kind**: instance method of [<code>whitebit</code>](#whitebit)  
-**Returns**: <code>object</code> - a [borrow rate structure](https://docs.ccxt.com/?id=borrow-rate-structure)
-
-**See**: https://docs.whitebit.com/private/http-main-v4/#get-plans  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| code | <code>string</code> | Yes | unified currency code |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-whitebit.fetchCrossBorrowRate (code, params?)
 ```
 
 
@@ -1279,7 +1258,7 @@ whitebit.watchOHLCV (symbol, timeframe, since?, limit?, params?)
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>whitebit</code>](#whitebit)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://docs.whitebit.com/public/websocket/#market-depth  
 
@@ -1424,6 +1403,8 @@ watch balance and get the amount of funds available for trading or funds locked 
 | --- | --- | --- | --- |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.type | <code>str</code> | No | spot or contract if not provided this.options['defaultType'] is used |
+| params.fetchBalanceSnapshot | <code>bool</code> | No | whether to fetch the initial balance snapshot over REST, default is true |
+| params.awaitBalanceSnapshot | <code>bool</code> | No | whether to wait for the balance snapshot before providing updates, default is true |
 
 
 ```javascript

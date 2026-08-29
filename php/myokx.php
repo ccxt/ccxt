@@ -36,7 +36,7 @@ class myokx extends okx {
                 'CORS' => null,
                 'spot' => true,
                 'margin' => null,
-                'swap' => false,
+                'swap' => true,
                 'future' => false,
                 'option' => false,
             ),
@@ -52,6 +52,9 @@ class myokx extends okx {
             ),
             'options' => array(
                 'mica' => true,
+                'fetchMarkets' => array(
+                    'types' => array( 'spot', 'swap' ),
+                ),
             ),
         ));
     }

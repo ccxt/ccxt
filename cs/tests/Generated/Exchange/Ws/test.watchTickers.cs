@@ -17,14 +17,17 @@ public partial class testMainClass : BaseTest
     async static public Task<object> testWatchTickersHelper(Exchange exchange, object skippedProperties, object argSymbols, object argParams = null)
     {
         argParams ??= new Dictionary<string, object>();
-        object method = "watchTickers";
+        string method = "watchTickers";
         object now = exchange.milliseconds();
         object ends = add(now, 15000);
-        while (isLessThan(now, ends))
+        object maxIdleTime = 5000;
+        bool idle = false;
+        while (isTrue((isLessThan(now, ends))) && !isTrue(idle))
         {
             object response = new Dictionary<string, object>() {};
-            object success = true;
-            object shouldReturn = false;
+            bool success = true;
+            bool shouldReturn = false;
+            object startTime = exchange.milliseconds();
             try
             {
                 response = await exchange.watchTickers(argSymbols, argParams);
@@ -44,10 +47,9 @@ public partial class testMainClass : BaseTest
                 {
                     throw e;
                 }
-                now = exchange.milliseconds();
-                // continue;
                 success = false;
             }
+            now = exchange.milliseconds();
             if (isTrue(shouldReturn))
             {
                 return false;
@@ -55,7 +57,7 @@ public partial class testMainClass : BaseTest
             if (isTrue(isEqual(success, true)))
             {
                 assert(exchange.isDictionary(response), add(add(add(add(add(add(exchange.id, " "), method), " "), exchange.json(argSymbols)), " must return a dictionary. "), exchange.json(response)));
-                object values = new List<object>(((IDictionary<string,object>)response).Values);
+                List<object> values = new List<object>(((IDictionary<string,object>)response).Values);
                 object checkedSymbol = null;
                 if (isTrue(isTrue(!isEqual(argSymbols, null)) && isTrue(isEqual(getArrayLength(argSymbols), 1))))
                 {
@@ -70,10 +72,19 @@ public partial class testMainClass : BaseTest
                         testTicker(exchange, skippedProperties, method, ticker, checkedSymbol);
                     } catch(Exception ex)
                     {
-                        await testSharedMethods.validateTickerExceptionForPercentage(ex, exchange, ticker);
+                        object ohlcv = null;
+                        object tickerSymbol = getValue(ticker, "symbol");
+                        if (isTrue(isTrue((!isEqual(tickerSymbol, null))) && isTrue(testSharedMethods.tickerExceptionNeedsOhlcv(ex, exchange, ticker))))
+                        {
+                            ohlcv = detypeForComparison(await exchange.FetchOHLCV(((string)tickerSymbol), "1d",ccxt.BaseExchange.ToInt64Arg(null),ccxt.BaseExchange.ToInt64Arg(5)));
+                        }
+                        testSharedMethods.validateTickerExceptionForPercentage(ex, exchange, ticker, ohlcv);
                     }
                 }
-                now = exchange.milliseconds();
+                if (isTrue(isGreaterThan((subtract(now, startTime)), maxIdleTime)))
+                {
+                    idle = true;
+                }
             }
         }
         return true;

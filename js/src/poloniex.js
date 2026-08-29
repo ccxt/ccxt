@@ -7,7 +7,7 @@
 //  ---------------------------------------------------------------------------
 import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/poloniex.js';
-import { ArgumentsRequired, ExchangeError, ExchangeNotAvailable, NotSupported, RequestTimeout, AuthenticationError, PermissionDenied, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, OnMaintenance, BadSymbol, BadRequest } from './base/errors.js';
+import { ArgumentsRequired, ExchangeError, ExchangeNotAvailable, NotSupported, RequestTimeout, AuthenticationError, PermissionDenied, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, OnMaintenance, BadSymbol, BadRequest, RateLimitExceeded, MarketClosed, OperationRejected, DuplicateOrderId } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 //  ---------------------------------------------------------------------------
@@ -104,18 +104,18 @@ export default class poloniex extends Exchange {
             'timeframes': {
                 '1m': 'MINUTE_1',
                 '5m': 'MINUTE_5',
-                '10m': 'MINUTE_10', // not in swap
+                '10m': 'MINUTE_10',
                 '15m': 'MINUTE_15',
                 '30m': 'MINUTE_30',
                 '1h': 'HOUR_1',
                 '2h': 'HOUR_2',
                 '4h': 'HOUR_4',
-                '6h': 'HOUR_6', // not in swap
+                '6h': 'HOUR_6',
                 '12h': 'HOUR_12',
                 '1d': 'DAY_1',
                 '3d': 'DAY_3',
                 '1w': 'WEEK_1',
-                '1M': 'MONTH_1', // not in swap
+                '1M': 'MONTH_1',
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg',
@@ -134,130 +134,130 @@ export default class poloniex extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'markets': 20,
-                        'markets/{symbol}': 1,
-                        'currencies': 20,
-                        'currencies/{currency}': 20,
-                        'v2/currencies': 20,
-                        'v2/currencies/{currency}': 20,
-                        'timestamp': 1,
-                        'markets/price': 1,
-                        'markets/{symbol}/price': 1,
-                        'markets/markPrice': 1,
-                        'markets/{symbol}/markPrice': 1,
-                        'markets/{symbol}/markPriceComponents': 1,
-                        'markets/{symbol}/orderBook': 1,
-                        'markets/{symbol}/candles': 1,
-                        'markets/{symbol}/trades': 20,
-                        'markets/ticker24h': 20,
-                        'markets/{symbol}/ticker24h': 20,
-                        'markets/collateralInfo': 1,
-                        'markets/{currency}/collateralInfo': 1,
-                        'markets/borrowRatesInfo': 1,
+                        'markets': { 'cost': 20 },
+                        'markets/{symbol}': { 'cost': 1 },
+                        'currencies': { 'cost': 20 },
+                        'currencies/{currency}': { 'cost': 20 },
+                        'v2/currencies': { 'cost': 20 },
+                        'v2/currencies/{currency}': { 'cost': 20 },
+                        'timestamp': { 'cost': 1 },
+                        'markets/price': { 'cost': 1 },
+                        'markets/{symbol}/price': { 'cost': 1 },
+                        'markets/markPrice': { 'cost': 1 },
+                        'markets/{symbol}/markPrice': { 'cost': 1 },
+                        'markets/{symbol}/markPriceComponents': { 'cost': 1 },
+                        'markets/{symbol}/orderBook': { 'cost': 1 },
+                        'markets/{symbol}/candles': { 'cost': 1 },
+                        'markets/{symbol}/trades': { 'cost': 20 },
+                        'markets/ticker24h': { 'cost': 20 },
+                        'markets/{symbol}/ticker24h': { 'cost': 20 },
+                        'markets/collateralInfo': { 'cost': 1 },
+                        'markets/{currency}/collateralInfo': { 'cost': 1 },
+                        'markets/borrowRatesInfo': { 'cost': 1 },
                     },
                 },
                 'private': {
                     'get': {
-                        'accounts': 4,
-                        'accounts/balances': 4,
-                        'accounts/{id}/balances': 4,
-                        'accounts/activity': 20,
-                        'accounts/transfer': 20,
-                        'accounts/transfer/{id}': 4,
-                        'feeinfo': 20,
-                        'accounts/interest/history': 1,
-                        'subaccounts': 4,
-                        'subaccounts/balances': 20,
-                        'subaccounts/{id}/balances': 4,
-                        'subaccounts/transfer': 20,
-                        'subaccounts/transfer/{id}': 4,
-                        'wallets/addresses': 20,
-                        'wallets/addresses/{currency}': 20,
-                        'wallets/activity': 20,
-                        'margin/accountMargin': 4,
-                        'margin/borrowStatus': 4,
-                        'margin/maxSize': 4,
-                        'orders': 20,
-                        'orders/{id}': 4,
-                        'orders/killSwitchStatus': 4,
-                        'smartorders': 20,
-                        'smartorders/{id}': 4,
-                        'orders/history': 20,
-                        'smartorders/history': 20,
-                        'trades': 20,
-                        'orders/{id}/trades': 4,
+                        'accounts': { 'cost': 4 },
+                        'accounts/balances': { 'cost': 4 },
+                        'accounts/{id}/balances': { 'cost': 4 },
+                        'accounts/activity': { 'cost': 20 },
+                        'accounts/transfer': { 'cost': 20 },
+                        'accounts/transfer/{id}': { 'cost': 4 },
+                        'feeinfo': { 'cost': 20 },
+                        'accounts/interest/history': { 'cost': 1 },
+                        'subaccounts': { 'cost': 4 },
+                        'subaccounts/balances': { 'cost': 20 },
+                        'subaccounts/{id}/balances': { 'cost': 4 },
+                        'subaccounts/transfer': { 'cost': 20 },
+                        'subaccounts/transfer/{id}': { 'cost': 4 },
+                        'wallets/addresses': { 'cost': 20 },
+                        'wallets/addresses/{currency}': { 'cost': 20 },
+                        'wallets/activity': { 'cost': 20 },
+                        'margin/accountMargin': { 'cost': 4 },
+                        'margin/borrowStatus': { 'cost': 4 },
+                        'margin/maxSize': { 'cost': 4 },
+                        'orders': { 'cost': 20 },
+                        'orders/{id}': { 'cost': 4 },
+                        'orders/killSwitchStatus': { 'cost': 4 },
+                        'smartorders': { 'cost': 20 },
+                        'smartorders/{id}': { 'cost': 4 },
+                        'orders/history': { 'cost': 20 },
+                        'smartorders/history': { 'cost': 20 },
+                        'trades': { 'cost': 20 },
+                        'orders/{id}/trades': { 'cost': 4 },
                     },
                     'post': {
-                        'accounts/transfer': 4,
-                        'subaccounts/transfer': 20,
-                        'wallets/address': 20,
-                        'wallets/withdraw': 20,
-                        'v2/wallets/withdraw': 20,
-                        'orders': 4,
-                        'orders/batch': 20,
-                        'orders/killSwitch': 4,
-                        'smartorders': 4,
+                        'accounts/transfer': { 'cost': 4 },
+                        'subaccounts/transfer': { 'cost': 20 },
+                        'wallets/address': { 'cost': 20 },
+                        'wallets/withdraw': { 'cost': 20 },
+                        'v2/wallets/withdraw': { 'cost': 20 },
+                        'orders': { 'cost': 4 },
+                        'orders/batch': { 'cost': 20 },
+                        'orders/killSwitch': { 'cost': 4 },
+                        'smartorders': { 'cost': 4 },
                     },
                     'delete': {
-                        'orders/{id}': 4,
-                        'orders/cancelByIds': 20,
-                        'orders': 20,
-                        'smartorders/{id}': 4,
-                        'smartorders/cancelByIds': 20,
-                        'smartorders': 20,
+                        'orders/{id}': { 'cost': 4 },
+                        'orders/cancelByIds': { 'cost': 20 },
+                        'orders': { 'cost': 20 },
+                        'smartorders/{id}': { 'cost': 4 },
+                        'smartorders/cancelByIds': { 'cost': 20 },
+                        'smartorders': { 'cost': 20 },
                     },
                     'put': {
-                        'orders/{id}': 20,
-                        'smartorders/{id}': 20,
+                        'orders/{id}': { 'cost': 20 },
+                        'smartorders/{id}': { 'cost': 20 },
                     },
                 },
                 'swapPublic': {
                     'get': {
                         // 300 calls / second
-                        'v3/market/allInstruments': 2 / 3,
-                        'v3/market/instruments': 2 / 3,
-                        'v3/market/orderBook': 2 / 3,
-                        'v3/market/candles': 10, // candles have differnt RL
-                        'v3/market/indexPriceCandlesticks': 10,
-                        'v3/market/premiumIndexCandlesticks': 10,
-                        'v3/market/markPriceCandlesticks': 10,
-                        'v3/market/trades': 2 / 3,
-                        'v3/market/liquidationOrder': 2 / 3,
-                        'v3/market/tickers': 2 / 3,
-                        'v3/market/markPrice': 2 / 3,
-                        'v3/market/indexPrice': 2 / 3,
-                        'v3/market/indexPriceComponents': 2 / 3,
-                        'v3/market/fundingRate': 2 / 3,
-                        'v3/market/openInterest': 2 / 3,
-                        'v3/market/insurance': 2 / 3,
-                        'v3/market/riskLimit': 2 / 3,
+                        'v3/market/allInstruments': { 'cost': 2 / 3 },
+                        'v3/market/instruments': { 'cost': 2 / 3 },
+                        'v3/market/orderBook': { 'cost': 2 / 3 },
+                        'v3/market/candles': { 'cost': 10 }, // candles have different RL
+                        'v3/market/indexPriceCandlesticks': { 'cost': 10 },
+                        'v3/market/premiumIndexCandlesticks': { 'cost': 10 },
+                        'v3/market/markPriceCandlesticks': { 'cost': 10 },
+                        'v3/market/trades': { 'cost': 2 / 3 },
+                        'v3/market/liquidationOrder': { 'cost': 2 / 3 },
+                        'v3/market/tickers': { 'cost': 2 / 3 },
+                        'v3/market/markPrice': { 'cost': 2 / 3 },
+                        'v3/market/indexPrice': { 'cost': 2 / 3 },
+                        'v3/market/indexPriceComponents': { 'cost': 2 / 3 },
+                        'v3/market/fundingRate': { 'cost': 2 / 3 },
+                        'v3/market/openInterest': { 'cost': 2 / 3 },
+                        'v3/market/insurance': { 'cost': 2 / 3 },
+                        'v3/market/riskLimit': { 'cost': 2 / 3 },
                     },
                 },
                 'swapPrivate': {
                     'get': {
-                        'v3/account/balance': 4,
-                        'v3/account/bills': 20,
-                        'v3/trade/order/opens': 20,
-                        'v3/trade/order/trades': 20,
-                        'v3/trade/order/history': 20,
-                        'v3/trade/position/opens': 20,
-                        'v3/trade/position/history': 20, // todo: method for this
-                        'v3/position/leverages': 20,
-                        'v3/position/mode': 20,
+                        'v3/account/balance': { 'cost': 4 },
+                        'v3/account/bills': { 'cost': 20 },
+                        'v3/trade/order/opens': { 'cost': 20 },
+                        'v3/trade/order/trades': { 'cost': 20 },
+                        'v3/trade/order/history': { 'cost': 20 },
+                        'v3/trade/position/opens': { 'cost': 20 },
+                        'v3/trade/position/history': { 'cost': 20 }, // todo: method for this
+                        'v3/position/leverages': { 'cost': 20 },
+                        'v3/position/mode': { 'cost': 20 },
                     },
                     'post': {
-                        'v3/trade/order': 4,
-                        'v3/trade/orders': 40,
-                        'v3/trade/position': 20,
-                        'v3/trade/positionAll': 100,
-                        'v3/position/leverage': 20,
-                        'v3/position/mode': 20,
-                        'v3/trade/position/margin': 20,
+                        'v3/trade/order': { 'cost': 4 },
+                        'v3/trade/orders': { 'cost': 40 },
+                        'v3/trade/position': { 'cost': 20 },
+                        'v3/trade/positionAll': { 'cost': 100 },
+                        'v3/position/leverage': { 'cost': 20 },
+                        'v3/position/mode': { 'cost': 20 },
+                        'v3/trade/position/margin': { 'cost': 20 },
                     },
                     'delete': {
-                        'v3/trade/order': 2,
-                        'v3/trade/batchOrders': 20,
-                        'v3/trade/allOrders': 20,
+                        'v3/trade/order': { 'cost': 2 },
+                        'v3/trade/batchOrders': { 'cost': 20 },
+                        'v3/trade/allOrders': { 'cost': 20 },
                     },
                 },
             },
@@ -313,8 +313,9 @@ export default class poloniex extends Exchange {
                 'networks': {
                     'BEP20': 'BSC',
                     'ERC20': 'ETH',
-                    'TRC20': 'TRON',
-                    'TRX': 'TRON',
+                    // v2 withdraw accepts only the blockchain id: 'TRX' passes validation, 'TRON' is rejected with 830111 (live-verified)
+                    'TRC20': 'TRX',
+                    'TRX': 'TRX',
                 },
                 'networksById': {
                     'TRX': 'TRC20',
@@ -534,10 +535,10 @@ export default class poloniex extends Exchange {
                     '21356': BadRequest, // Order size would cause too much price movement. Reduce order size.
                     '21721': InsufficientFunds,
                     '24101': BadSymbol, // Invalid symbol
-                    '24102': InvalidOrder, // Invalid K-line type
-                    '24103': InvalidOrder, // Invalid endTime
-                    '24104': InvalidOrder, // Invalid amount
-                    '24105': InvalidOrder, // Invalid startTime
+                    '24102': BadRequest, // Invalid K-line type
+                    '24103': BadRequest, // Invalid endTime
+                    '24104': BadRequest, // Invalid limit
+                    '24105': BadRequest, // Invalid startTime
                     '25020': InvalidOrder, // No active kill switch
                     // Smartorders
                     '25000': InvalidOrder, // Invalid userId
@@ -560,6 +561,46 @@ export default class poloniex extends Exchange {
                     '25017': ExchangeError, // No orders were canceled
                     '25018': BadRequest, // Invalid accountType
                     '25019': BadSymbol, // Invalid symbol
+                    // Wallets v2 (undocumented codes, live-verified via validation probes)
+                    '820181': BadRequest, // {"code":820181,"message":"amount must be greater than the transaction fee."}
+                    '820201': BadRequest, // {"code":820201,"message":"blockchain param check error"} — network param missing
+                    '830111': BadRequest, // {"code":830111,"message":"Currency or Network does not exist"}
+                    // Futures v3 (https://api-docs.poloniex.com/v3/futures/error)
+                    '250': DuplicateOrderId, // {"code":250,"msg":"Client order id already exists"} — live-verified on v3/trade/order
+                    '400': BadRequest, // ILLEGAL_PARAM
+                    '403': PermissionDenied, // ACCESS_DENY
+                    '404': BadRequest, // NOT_FOUND
+                    '429': RateLimitExceeded, // TOO_MANY_REQUEST
+                    '503': ExchangeNotAvailable, // DEGRADE_ERROR
+                    '1000': AuthenticationError, // USER_NOT_EXITS
+                    '1001': ExchangeError, // SYSTEM_CONFIG_ERROR
+                    '1002': OnMaintenance, // SYSTEM_MAINTENANCE
+                    '1003': AccountSuspended, // USER_IS_FROZEN
+                    '10000': MarketClosed, // SYMBOL_NOT_IN_TRADING_STATUS
+                    '10001': BadSymbol, // SYMBOL_NOT_EXISTS
+                    '10002': InvalidOrder, // PRICE_LIMIT
+                    '10003': InvalidOrder, // NO_BID
+                    '10004': InvalidOrder, // NO_ASK
+                    '10005': MarketClosed, // SYMBOL_STATUS_PAUSED
+                    '10006': OperationRejected, // SYMBOL_STATUS_CANCEL_ONLY
+                    '10007': OperationRejected, // SYMBOL_STATUS_NOT_ALLOWED
+                    '10008': AccountSuspended, // USER_STATUS_ABNORMAL
+                    '10009': OperationRejected, // ALREADY_EXISTS_GRID_STRATEGY
+                    '10010': InvalidOrder, // PRICE_HIGHER_THAN_BANKRUPT_PRICE
+                    '10011': InvalidOrder, // PRICE_LOWER_THAN_BANKRUPT_PRICE
+                    '10012': InvalidOrder, // PRICE_HIGHER_THAN_LIQUIDATION_PRICE
+                    '10013': InvalidOrder, // PRICE_LOWER_THAN_LIQUIDATION_PRICE
+                    '10014': BadRequest, // PRICE_LIMIT_PARAM
+                    '10015': OperationRejected, // SYMBOL_STATUS_CLOSE_POSITION_ONLY
+                    '10016': BadRequest, // BATCH_PLACE_ORDER_SIZE_OVER_LIMIT
+                    '10017': BadRequest, // BATCH_CANCEL_ORDER_SIZE_OVER_LIMIT
+                    '10018': OperationRejected, // NO_POSITION_TO_CLOSE_ORDER
+                    '10019': OperationRejected, // ACCOUNT_STATE_OPEN_LIMIT
+                    '11003': BadRequest, // UNKNOWN_SOURCE
+                    '11004': OperationRejected, // ORDER_NOT_CANCELABLE
+                    '11008': OrderNotFound, // ORDER_NOT_EXISTS
+                    '12004': PermissionDenied, // NOT_KYC_VERIFIED
+                    '21001': OperationRejected, // POSITION_NOT_EXIST
                 },
                 'broad': {},
             },
@@ -650,8 +691,8 @@ export default class poloniex extends Exchange {
             'symbol': market['id'],
             'interval': this.safeString(this.timeframes, timeframe, timeframe),
         };
-        const keyStart = market['spot'] ? 'startTime' : 'sTime';
-        const keyEnd = market['spot'] ? 'endTime' : 'eTime';
+        const keyStart = (market['spot'] === true) ? 'startTime' : 'sTime';
+        const keyEnd = (market['spot'] === true) ? 'endTime' : 'eTime';
         if (since !== undefined) {
             request[keyStart] = since;
         }
@@ -660,10 +701,7 @@ export default class poloniex extends Exchange {
             request['limit'] = limit;
         }
         [request, params] = this.handleUntilOption(keyEnd, request, params);
-        if (market['contract']) {
-            if (this.inArray(timeframe, ['10m', '1M'])) {
-                throw new NotSupported(this.id + ' ' + timeframe + ' ' + market['type'] + ' fetchOHLCV is not supported');
-            }
+        if (market['contract'] === true) {
             const responseRaw = await this.swapPublicGetV3MarketCandles(this.extend(request, params));
             //
             //     {
@@ -706,7 +744,11 @@ export default class poloniex extends Exchange {
         //         ]
         //     ]
         //
-        return this.parseOHLCVs(response, market, timeframe, since, limit);
+        let candles = [];
+        if (Array.isArray(response)) {
+            candles = response;
+        }
+        return this.parseOHLCVs(candles, market, timeframe, since, limit);
     }
     async loadMarkets(reload = false, params = {}) {
         const markets = await super.loadMarkets(reload, params);
@@ -819,7 +861,7 @@ export default class poloniex extends Exchange {
         const active = state === 'NORMAL';
         const symbolTradeLimit = this.safeValue(market, 'symbolTradeLimit');
         // these are known defaults
-        return {
+        return this.safeMarketStructure({
             'id': id,
             'symbol': base + '/' + quote,
             'base': base,
@@ -863,7 +905,7 @@ export default class poloniex extends Exchange {
             },
             'created': this.safeInteger(market, 'tradableStartTime'),
             'info': market,
-        };
+        });
     }
     parseSwapMarket(market) {
         //
@@ -924,7 +966,7 @@ export default class poloniex extends Exchange {
             type = 'future';
         }
         const marketType = (type === 'future') ? 'future' : 'swap';
-        return {
+        return this.safeMarketStructure({
             'id': id,
             'symbol': symbol,
             'base': base,
@@ -974,7 +1016,7 @@ export default class poloniex extends Exchange {
             },
             'created': this.safeInteger(market, 'oDate'),
             'info': market,
-        };
+        });
     }
     /**
      * @method
@@ -1039,6 +1081,11 @@ export default class poloniex extends Exchange {
         const timestamp = this.safeInteger2(ticker, 'ts', 'cT');
         const marketId = this.safeString2(ticker, 'symbol', 's');
         market = this.safeMarket(marketId);
+        let baseVolume = this.safeString2(ticker, 'quantity', 'qty');
+        if ((market['contract'] === true) && (market['contractSize'] !== undefined)) {
+            // 'quantity' counts contracts, and a ticker reports base volume
+            baseVolume = Precise.stringMul(baseVolume, this.numberToString(market['contractSize']));
+        }
         const relativeChange = this.safeString2(ticker, 'dailyChange', 'dc');
         const percentage = Precise.stringMul(relativeChange, '100');
         return this.safeTicker({
@@ -1059,7 +1106,7 @@ export default class poloniex extends Exchange {
             'change': undefined,
             'percentage': percentage,
             'average': undefined,
-            'baseVolume': this.safeString2(ticker, 'quantity', 'qty'),
+            'baseVolume': baseVolume,
             'quoteVolume': this.safeString2(ticker, 'amount', 'amt'),
             'markPrice': this.safeString2(ticker, 'markPrice', 'mPx'),
             'indexPrice': this.safeString(ticker, 'iPx'),
@@ -1202,27 +1249,29 @@ export default class poloniex extends Exchange {
             const chain = chains[j];
             const chainId = this.safeString(chain, 'blockchain');
             const networkCode = this.networkIdToCode(chainId, code);
-            networks[networkCode] = {
-                'info': chain,
-                'id': chainId,
-                'name': undefined,
-                'code': networkCode,
-                'active': undefined,
-                'fee': this.safeNumber(chain, 'withdrawFee'),
-                'deposit': this.safeBool(chain, 'depositEnable'),
-                'withdraw': this.safeBool(chain, 'withdrawalEnable'),
-                'precision': this.parseNumber(this.parsePrecision(this.safeString(chain, 'decimals'))),
-                'limits': {
-                    'withdraw': {
-                        'min': this.safeNumber(chain, 'withdrawMin'),
-                        'max': undefined,
+            if (networkCode !== undefined) {
+                networks[networkCode] = {
+                    'info': chain,
+                    'id': chainId,
+                    'name': undefined,
+                    'code': networkCode,
+                    'active': undefined,
+                    'fee': this.safeNumber(chain, 'withdrawFee'),
+                    'deposit': this.safeBool(chain, 'depositEnable'),
+                    'withdraw': this.safeBool(chain, 'withdrawalEnable'),
+                    'precision': this.parseNumber(this.parsePrecision(this.safeString(chain, 'decimals'))),
+                    'limits': {
+                        'withdraw': {
+                            'min': this.safeNumber(chain, 'withdrawMin'),
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                     },
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-            };
+                };
+            }
         }
         return this.safeCurrencyStructure({
             'id': id,
@@ -1256,7 +1305,7 @@ export default class poloniex extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        if (market['contract']) {
+        if (market['contract'] === true) {
             const tickers = await this.fetchTickers([market['symbol']], params);
             return this.safeDict(tickers, symbol);
         }
@@ -1439,7 +1488,7 @@ export default class poloniex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // max 1000, for spot & swap
         }
-        if (market['contract']) {
+        if (market['contract'] === true) {
             const response = await this.swapPublicGetV3MarketTrades(this.extend(request, params));
             //
             //     {
@@ -1455,7 +1504,7 @@ export default class poloniex extends Exchange {
             //             cT: "1740777074704",
             //         },
             //
-            const tradesList = this.safeList(response, 'data');
+            const tradesList = this.safeList(response, 'data', []);
             return this.parseTrades(tradesList, market, since, limit);
         }
         const trades = await this.publicGetMarketsSymbolTrades(this.extend(request, params));
@@ -1551,7 +1600,7 @@ export default class poloniex extends Exchange {
             //                "actType": "TRADING"
             //            },
             //
-            const data = this.safeList(raw, 'data');
+            const data = this.safeList(raw, 'data', []);
             return this.parseTrades(data, market, since, limit);
         }
         const response = await this.privateGetTrades(this.extend(request, params));
@@ -1861,7 +1910,7 @@ export default class poloniex extends Exchange {
             //
             response = this.safeList(raw, 'data', []);
         }
-        else if (isTrigger) {
+        else if (isTrigger === true) {
             response = await this.privateGetSmartorders(this.extend(request, params));
         }
         else {
@@ -1983,6 +2032,7 @@ export default class poloniex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
      * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
+     * @param {string} [params.clientOrderId] a unique identifier for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
@@ -1998,7 +2048,7 @@ export default class poloniex extends Exchange {
         const triggerPrice = this.safeNumber2(params, 'stopPrice', 'triggerPrice');
         [request, params] = this.orderRequest(symbol, type, side, amount, request, price, params);
         let response = {};
-        if (market['swap'] || market['future']) {
+        if ((market['swap'] === true) || (market['future'] === true)) {
             const responseInitial = await this.swapPrivatePostV3TradeOrder(this.extend(request, params));
             //
             // {"code":200,"msg":"Success","data":{"ordId":"418876147745775616","clOrdId":"polo418876147745775616"}}
@@ -2022,7 +2072,7 @@ export default class poloniex extends Exchange {
     orderRequest(symbol, type, side, amount, request, price = undefined, params = {}) {
         const triggerPrice = this.safeNumber2(params, 'stopPrice', 'triggerPrice');
         const market = this.market(symbol);
-        if (market['contract']) {
+        if (market['contract'] === true) {
             let marginMode = undefined;
             [marginMode, params] = this.handleParamString(params, 'marginMode');
             if (marginMode !== undefined) {
@@ -2031,7 +2081,7 @@ export default class poloniex extends Exchange {
             }
             let hedged = undefined;
             [hedged, params] = this.handleParamString(params, 'hedged');
-            if (hedged) {
+            if ((hedged !== undefined) && (hedged !== '')) {
                 if (marginMode === undefined) {
                     throw new ArgumentsRequired(this.id + ' createOrder() requires a marginMode parameter "cross" or "isolated" for hedged orders');
                 }
@@ -2045,7 +2095,7 @@ export default class poloniex extends Exchange {
         const isPostOnly = this.isPostOnly(isMarket, upperCaseType === 'LIMIT_MAKER', params);
         params = this.omit(params, ['postOnly', 'triggerPrice', 'stopPrice']);
         if (triggerPrice !== undefined) {
-            if (!market['spot']) {
+            if (market['spot'] !== true) {
                 throw new InvalidOrder(this.id + ' createOrder() does not support trigger orders for ' + market['type'] + ' markets');
             }
             upperCaseType = (price === undefined) ? 'STOP' : 'STOP_LIMIT';
@@ -2065,7 +2115,7 @@ export default class poloniex extends Exchange {
                 if (cost !== undefined) {
                     quoteAmount = this.costToPrecision(symbol, cost);
                 }
-                else if (createMarketBuyOrderRequiresPrice && market['spot']) {
+                else if (createMarketBuyOrderRequiresPrice && (market['spot'] === true)) {
                     if (price === undefined) {
                         throw new InvalidOrder(this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument');
                     }
@@ -2079,24 +2129,26 @@ export default class poloniex extends Exchange {
                 else {
                     quoteAmount = this.costToPrecision(symbol, amount);
                 }
-                const amountKey = market['spot'] ? 'amount' : 'sz';
+                const amountKey = (market['spot'] === true) ? 'amount' : 'sz';
                 request[amountKey] = quoteAmount;
             }
             else {
-                const amountKey = market['spot'] ? 'quantity' : 'sz';
+                const amountKey = (market['spot'] === true) ? 'quantity' : 'sz';
                 request[amountKey] = this.amountToPrecision(symbol, amount);
             }
         }
         else {
-            const amountKey = market['spot'] ? 'quantity' : 'sz';
+            const amountKey = (market['spot'] === true) ? 'quantity' : 'sz';
             request[amountKey] = this.amountToPrecision(symbol, amount);
-            const priceKey = market['spot'] ? 'price' : 'px';
+            const priceKey = (market['spot'] === true) ? 'price' : 'px';
             request[priceKey] = this.priceToPrecision(symbol, price);
         }
-        const clientOrderId = this.safeString(params, 'clientOrderId');
+        const clientOrderId = this.safeString2(params, 'clientOrderId', 'clOrdId');
         if (clientOrderId !== undefined) {
-            request['clientOrderId'] = clientOrderId;
-            params = this.omit(params, 'clientOrderId');
+            // the futures v3 api silently ignores the spot key and generates its own id
+            const clientOrderIdKey = (market['spot'] === true) ? 'clientOrderId' : 'clOrdId';
+            request[clientOrderIdKey] = clientOrderId;
+            params = this.omit(params, ['clientOrderId', 'clOrdId']);
         }
         // remember the timestamp before issuing the request
         return [request, params];
@@ -2115,12 +2167,13 @@ export default class poloniex extends Exchange {
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+     * @param {string} [params.clientOrderId] a unique identifier for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
-        if (!market['spot']) {
+        if (market['spot'] !== true) {
             throw new NotSupported(this.id + ' editOrder() does not support ' + market['type'] + ' orders, only spot orders are accepted');
         }
         let request = {
@@ -2167,7 +2220,7 @@ export default class poloniex extends Exchange {
         }
         const market = this.market(symbol);
         const request = {};
-        if (!market['spot']) {
+        if (market['spot'] !== true) {
             request['symbol'] = market['id'];
             request['ordId'] = id;
             const raw = await this.swapPrivateDeleteV3TradeOrder(this.extend(request, params));
@@ -2191,7 +2244,7 @@ export default class poloniex extends Exchange {
         const isTrigger = this.safeValue2(params, 'trigger', 'stop');
         params = this.omit(params, ['clientOrderId', 'trigger', 'stop']);
         let response = {};
-        if (isTrigger) {
+        if (isTrigger === true) {
             response = await this.privateDeleteSmartordersId(this.extend(request, params));
         }
         else {
@@ -2215,7 +2268,7 @@ export default class poloniex extends Exchange {
      * @see https://api-docs.poloniex.com/spot/api/private/order#cancel-all-orders
      * @see https://api-docs.poloniex.com/spot/api/private/smart-order#cancel-all-orders  // trigger orders
      * @see https://api-docs.poloniex.com/v3/futures/api/trade/cancel-all-orders - contract markets
-     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] true if canceling trigger orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
@@ -2257,7 +2310,7 @@ export default class poloniex extends Exchange {
         }
         const isTrigger = this.safeValue2(params, 'trigger', 'stop');
         params = this.omit(params, ['trigger', 'stop']);
-        if (isTrigger) {
+        if (isTrigger === true) {
             response = await this.privateDeleteSmartorders(this.extend(request, params));
         }
         else {
@@ -2313,7 +2366,7 @@ export default class poloniex extends Exchange {
         const isTrigger = this.safeValue2(params, 'trigger', 'stop');
         params = this.omit(params, ['trigger', 'stop']);
         let response = {};
-        if (isTrigger) {
+        if (isTrigger === true) {
             response = await this.privateGetSmartordersId(this.extend(request, params));
             response = this.safeValue(response, 0);
         }
@@ -2411,7 +2464,9 @@ export default class poloniex extends Exchange {
                 const account = this.account();
                 account['total'] = this.safeString(balance, 'avail');
                 account['used'] = this.safeString(balance, 'im');
-                result[code] = account;
+                if (code !== undefined) {
+                    result[code] = account;
+                }
             }
             return this.safeBalance(result);
         }
@@ -2426,7 +2481,9 @@ export default class poloniex extends Exchange {
                 const newAccount = this.account();
                 newAccount['free'] = this.safeString(balance, 'available');
                 newAccount['used'] = this.safeString(balance, 'hold');
-                result[code] = newAccount;
+                if (code !== undefined) {
+                    result[code] = newAccount;
+                }
             }
         }
         return this.safeBalance(result);
@@ -2528,8 +2585,9 @@ export default class poloniex extends Exchange {
         //     }
         //
         const result = {};
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+        const symbols = this.symbols;
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
             result[symbol] = {
                 'info': response,
                 'symbol': symbol,
@@ -2550,7 +2608,7 @@ export default class poloniex extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -2560,11 +2618,11 @@ export default class poloniex extends Exchange {
         };
         if (limit !== undefined) {
             request['limit'] = limit; // The default value of limit is 10. Valid limit values are: 5, 10, 20, 50, 100, 150.
-            if (market['contract']) {
+            if (market['contract'] === true) {
                 request['limit'] = this.findNearestCeiling([5, 10, 20, 100, 150], limit);
             }
         }
-        if (market['contract']) {
+        if (market['contract'] === true) {
             const responseRaw = await this.swapPublicGetV3MarketOrderBook(this.extend(request, params));
             //
             //    {
@@ -2680,7 +2738,7 @@ export default class poloniex extends Exchange {
         }
         let exchangeNetworkId = undefined;
         networkCode = this.networkIdToCode(networkCode, code);
-        const networkEntry = this.safeDict(currency['networks'], networkCode);
+        const networkEntry = (networkCode === undefined) ? undefined : this.safeDict(currency['networks'], networkCode);
         if (networkEntry !== undefined) {
             exchangeNetworkId = networkEntry['id'];
         }
@@ -2970,8 +3028,12 @@ export default class poloniex extends Exchange {
         //     ]
         //
         const data = {};
-        for (let i = 0; i < response.length; i++) {
-            const entry = response[i];
+        let entries = [];
+        if (Array.isArray(response)) {
+            entries = response;
+        }
+        for (let i = 0; i < entries.length; i++) {
+            const entry = entries[i];
             const currencies = Object.keys(entry);
             const currencyId = this.safeString(currencies, 0);
             data[currencyId] = entry[currencyId];
@@ -3007,7 +3069,7 @@ export default class poloniex extends Exchange {
             const currencyId = responseKeys[i];
             const code = this.safeCurrencyCode(currencyId);
             const feeInfo = response[currencyId];
-            if ((codes === undefined) || (this.inArray(code, codes))) {
+            if ((code !== undefined) && ((codes === undefined) || (this.inArray(code, codes)))) {
                 const currency = this.currency(code);
                 depositWithdrawFees[code] = this.parseDepositWithdrawFee(feeInfo, currency);
                 const childChains = this.safeValue(feeInfo, 'childChains');
@@ -3020,16 +3082,18 @@ export default class poloniex extends Exchange {
                         const networkInfo = this.safeValue(response, networkId);
                         const networkObject = {};
                         const withdrawFee = this.safeNumber(networkInfo, 'withdrawalFee');
-                        networkObject[networkCode] = {
-                            'withdraw': {
-                                'fee': withdrawFee,
-                                'percentage': (withdrawFee !== undefined) ? false : undefined,
-                            },
-                            'deposit': {
-                                'fee': undefined,
-                                'percentage': undefined,
-                            },
-                        };
+                        if (networkCode !== undefined) {
+                            networkObject[networkCode] = {
+                                'withdraw': {
+                                    'fee': withdrawFee,
+                                    'percentage': (withdrawFee !== undefined) ? false : undefined,
+                                },
+                                'deposit': {
+                                    'fee': undefined,
+                                    'percentage': undefined,
+                                },
+                            };
+                        }
                         depositWithdrawFees[code]['networks'] = this.extend(depositWithdrawFees[code]['networks'], networkObject);
                     }
                 }
@@ -3054,10 +3118,12 @@ export default class poloniex extends Exchange {
         depositWithdrawFee['withdraw'] = withdrawResult;
         depositWithdrawFee['deposit'] = depositResult;
         const networkCode = this.networkIdToCode(networkId, this.safeString(currency, 'code'));
-        depositWithdrawFee['networks'][networkCode] = {
-            'withdraw': withdrawResult,
-            'deposit': depositResult,
-        };
+        if (networkCode !== undefined) {
+            depositWithdrawFee['networks'][networkCode] = {
+                'withdraw': withdrawResult,
+                'deposit': depositResult,
+            };
+        }
         return depositWithdrawFee;
     }
     /**
@@ -3200,7 +3266,7 @@ export default class poloniex extends Exchange {
         }
         let hedged = undefined;
         [hedged, params] = this.handleParamBool(params, 'hedged', false);
-        if (hedged) {
+        if (hedged === true) {
             if (!('posSide' in params)) {
                 throw new ArgumentsRequired(this.id + ' setLeverage() requires a posSide parameter for hedged mode: "LONG" or "SHORT"');
             }
@@ -3308,9 +3374,9 @@ export default class poloniex extends Exchange {
     /**
      * @method
      * @name poloniex#fetchPositionMode
-     * @description fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+     * @description fetches the position mode, hedged or one way, hedged is set identically for all linear markets or all inverse markets
      * @see https://api-docs.poloniex.com/v3/futures/api/positions/position-mode-switch
-     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {string} [symbol] unified symbol of the market to fetch the position mode for (not used by fetchPositionMode)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an object detailing whether the market is in hedged or one-way mode
      */
@@ -3338,8 +3404,8 @@ export default class poloniex extends Exchange {
      * @name poloniex#setPositionMode
      * @description set hedged to true or false for a market
      * @see https://api-docs.poloniex.com/v3/futures/api/positions/position-mode-switch
-     * @param {bool} hedged set to true to use dualSidePosition
-     * @param {string} symbol not used by binance setPositionMode ()
+     * @param {bool} hedged set to true to use the hedged position mode
+     * @param {string} symbol not used by setPositionMode ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
@@ -3571,7 +3637,7 @@ export default class poloniex extends Exchange {
         const implodedPath = this.implodeParams(path, params);
         if (api === 'public' || api === 'swapPublic') {
             url += '/' + implodedPath;
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
             }
         }
@@ -3583,7 +3649,7 @@ export default class poloniex extends Exchange {
             auth += '/' + implodedPath;
             if ((method === 'POST') || (method === 'PUT') || (method === 'DELETE')) {
                 auth += "\n"; // eslint-disable-line quotes
-                if (Object.keys(query).length) {
+                if (Object.keys(query).length > 0) {
                     body = this.json(query);
                     auth += 'requestBody=' + body + '&';
                 }
@@ -3593,7 +3659,7 @@ export default class poloniex extends Exchange {
                 let sortedQuery = this.extend({ 'signTimestamp': timestamp }, query);
                 sortedQuery = this.keysort(sortedQuery);
                 auth += "\n" + this.urlencode(sortedQuery); // eslint-disable-line quotes
-                if (Object.keys(query).length) {
+                if (Object.keys(query).length > 0) {
                     url += '?' + this.urlencode(query);
                 }
             }
@@ -3619,10 +3685,9 @@ export default class poloniex extends Exchange {
         //
         const responseCode = this.safeString(response, 'code');
         if ((responseCode !== undefined) && (responseCode !== '200')) {
-            const codeInner = response['code'];
-            const message = this.safeString(response, 'message');
+            const message = this.safeString2(response, 'message', 'msg');
             const feedback = this.id + ' ' + body;
-            this.throwExactlyMatchedException(this.exceptions['exact'], codeInner, feedback);
+            this.throwExactlyMatchedException(this.exceptions['exact'], responseCode, feedback);
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
             throw new ExchangeError(feedback); // unknown message
         }

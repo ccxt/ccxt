@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import bitrueRest from '../bitrue.js';
-import { NotSupported } from '../base/errors.js';
+import { AuthenticationError, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 //  ---------------------------------------------------------------------------
 export default class bitrue extends bitrueRest {
@@ -38,13 +38,13 @@ export default class bitrue extends bitrueRest {
                     'v1': {
                         'private': {
                             'post': {
-                                'poseidon/api/v1/listenKey': 1,
+                                'poseidon/api/v1/listenKey': { 'cost': 1 },
                             },
                             'put': {
-                                'poseidon/api/v1/listenKey/{listenKey}': 1,
+                                'poseidon/api/v1/listenKey/{listenKey}': { 'cost': 1 },
                             },
                             'delete': {
-                                'poseidon/api/v1/listenKey/{listenKey}': 1,
+                                'poseidon/api/v1/listenKey/{listenKey}': { 'cost': 1 },
                             },
                         },
                     },
@@ -176,7 +176,9 @@ export default class bitrue extends bitrueRest {
                 if (updateUsed) {
                     account['used'] = used;
                 }
-                this.balance[code] = account;
+                if (code !== undefined) {
+                    this.balance[code] = account;
+                }
             }
         }
         this.balance = this.safeBalance(this.balance);
@@ -318,7 +320,7 @@ export default class bitrue extends bitrueRest {
         let url = undefined;
         let channel = undefined;
         let cbId = undefined;
-        if (market['swap']) {
+        if (market['swap'] === true) {
             const baseIdLower = this.safeStringLower(market, 'baseId');
             const quoteIdLower = this.safeStringLower(market, 'quoteId');
             const wsId = 'e_' + baseIdLower + quoteIdLower;
@@ -410,10 +412,14 @@ export default class bitrue extends bitrueRest {
         client.resolve(orderbook, messageHash);
     }
     findSwapMarketByWsBaseQuote(wsBaseQuote) {
-        const symbols = Object.keys(this.markets);
+        const markets = this.markets;
+        if (markets === undefined) {
+            return undefined;
+        }
+        const symbols = Object.keys(markets);
         for (let i = 0; i < symbols.length; i++) {
-            const candidate = this.markets[symbols[i]];
-            if (!candidate['swap']) {
+            const candidate = markets[symbols[i]];
+            if (candidate['swap'] !== true) {
                 continue;
             }
             const baseId = this.safeStringLower(candidate, 'baseId', '');
@@ -440,7 +446,7 @@ export default class bitrue extends bitrueRest {
             return undefined;
         }
         const market = this.market(symbol);
-        if (!market['contract']) {
+        if (market['contract'] !== true) {
             return rawQuantity;
         }
         const contractSize = this.safeNumber(market, 'contractSize', 1);
@@ -463,7 +469,7 @@ export default class bitrue extends bitrueRest {
         }
         const market = this.market(symbol);
         symbol = market['symbol'];
-        if (!market['swap']) {
+        if (market['swap'] !== true) {
             throw new NotSupported(this.id + ' watchTrades is only supported for swap markets');
         }
         const baseIdLower = this.safeStringLower(market, 'baseId');
@@ -575,7 +581,7 @@ export default class bitrue extends bitrueRest {
         }
         const market = this.market(symbol);
         symbol = market['symbol'];
-        if (!market['swap']) {
+        if (market['swap'] !== true) {
             throw new NotSupported(this.id + ' watchOHLCV is only supported for swap markets');
         }
         const futuresTimeframes = this.safeDict(this.options, 'futuresTimeframes', {});
@@ -677,7 +683,7 @@ export default class bitrue extends bitrueRest {
         }
         const market = this.market(symbol);
         symbol = market['symbol'];
-        if (!market['swap']) {
+        if (market['swap'] !== true) {
             throw new NotSupported(this.id + ' watchTicker is only supported for swap markets');
         }
         const baseIdLower = this.safeStringLower(market, 'baseId');
@@ -831,20 +837,63 @@ export default class bitrue extends bitrueRest {
     async authenticate(params = {}) {
         const listenKey = this.safeValue(this.options, 'listenKey');
         if (listenKey === undefined) {
-            const response = await this.openV1PrivatePostPoseidonApiV1ListenKey(params);
-            //
-            //     {
-            //         "msg": "succ",
-            //         "code": 200,
-            //         "data": {
-            //             "listenKey": "7d1ec51340f499d85bb33b00a96ef680bda28869d5c3374a444c5ca4847d1bf0"
-            //         }
-            //     }
-            //
-            const data = this.safeValue(response, 'data', {});
-            const key = this.safeString(data, 'listenKey');
-            this.options['listenKey'] = key;
-            this.options['listenKeyUrl'] = this.urls['api']['ws']['private'] + '/stream?listenKey=' + key;
+            // single-flight leader election on a never-dialed client, see
+            // https://github.com/ccxt/ccxt/issues/29393: the key rides the
+            // stream url, so racing fetches mint several listenKeys and the
+            // losers dial '/stream?listenKey=' + an orphaned key whose
+            // subscriptions never deliver. the flight is registered in
+            // client.futures and settled through client.resolve/client.reject,
+            // so every mutation of that map happens under the ws client's own
+            // lock rather than through an unsynchronized map write
+            const messageHash = 'authenticateFlight';
+            const client = this.client('authenticationFlights');
+            if (messageHash in client.futures) {
+                // a flight is already in progress - wake when the leader
+                // settles it: the listenKey url is then in the options
+                await client.future(messageHash);
+                return this.options['listenKeyUrl'];
+            }
+            // register before the first await, so a concurrent caller entering
+            // authenticate () while this one is inside the fetch sees the flight
+            const future = client.reusableFuture(messageHash);
+            try {
+                const response = await this.openV1PrivatePostPoseidonApiV1ListenKey(params);
+                //
+                //     {
+                //         "msg": "succ",
+                //         "code": 200,
+                //         "data": {
+                //             "listenKey": "7d1ec51340f499d85bb33b00a96ef680bda28869d5c3374a444c5ca4847d1bf0"
+                //         }
+                //     }
+                //
+                const data = this.safeValue(response, 'data', {});
+                const key = this.safeString(data, 'listenKey');
+                if (key === undefined) {
+                    // reject instead of caching an empty credential, so
+                    // waiters retry rather than dial a hollow stream url
+                    throw new AuthenticationError(this.id + ' authenticate() received an empty listenKey');
+                }
+                this.options['listenKey'] = key;
+                this.options['listenKeyUrl'] = this.urls['api']['ws']['private'] + '/stream?listenKey=' + key;
+                client.resolve(key, messageHash);
+            }
+            catch (e) {
+                // reject the flight - all waiters throw and the next caller
+                // re-leads instead of deadlocking on a dead flight
+                client.reject(e, messageHash);
+            }
+            // rethrows to the leader on failure and attaches the handler that
+            // keeps an alone leader's rejection from crashing the process
+            await future;
+            // only the leader schedules the keepalive, so a burst of watchers
+            // no longer stacks one refresh timer per racing caller. waiters
+            // early-return above, so this runs once per successful flight.
+            // it also has to stay the LAST statement of the block: master's
+            // build/csharpTranspiler.ts:154 rewrites this.delay with a greedy
+            // /this\.delay\(([^,]+),([^,]+),(.+)\)/ whose [^,] spans newlines,
+            // so any following statement carrying a comma gets swallowed into
+            // a bogus `new object[] {...}` argument
             const refreshTimeout = this.safeInteger(this.options, 'listenKeyRefreshRate', 1800000);
             this.delay(refreshTimeout, this.keepAliveListenKey);
         }

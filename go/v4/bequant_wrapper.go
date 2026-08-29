@@ -202,10 +202,10 @@ func (this *Bequant) FetchDeposits(options ...FetchDepositsOptions) ([]Transacti
 func (this *Bequant) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWithdrawals(options...)
 }
-func (this *Bequant) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]any, error) {
+func (this *Bequant) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (DepositWithdrawFee, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
 }
-func (this *Bequant) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]any, error) {
+func (this *Bequant) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (DepositWithdrawFees, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFees(options...)
 }
 func (this *Bequant) FetchFreeBalance(params ...any) (Balance, error) {
@@ -349,7 +349,7 @@ func (this *Bequant) FetchPosition(symbol string, options ...FetchPositionOption
 func (this *Bequant) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Bequant) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Bequant) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Bequant) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
@@ -367,7 +367,7 @@ func (this *Bequant) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([
 func (this *Bequant) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Bequant) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Bequant) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Bequant) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error) {
@@ -502,7 +502,7 @@ func (this *Bequant) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Bequant) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Bequant) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Bequant) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Bequant) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -547,7 +547,7 @@ func (this *Bequant) FetchTradesWs(symbol string, options ...FetchTradesWsOption
 func (this *Bequant) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Bequant) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Bequant) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Bequant) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

@@ -99,7 +99,7 @@ export default class modetrade extends modetradeRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -440,7 +440,7 @@ export default class modetrade extends modetradeRest {
             this.safeNumber(data, 'volume'),
         ];
         this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
-        let stored = this.safeValue(this.ohlcvs[symbol], timeframe);
+        let stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
             stored = new ArrayCacheByTimestamp(limit);
@@ -593,7 +593,7 @@ export default class modetrade extends modetradeRest {
         //
         const messageHash = 'authenticated';
         const success = this.safeValue(message, 'success');
-        if (success) {
+        if (success === true) {
             // client.resolve (message, messageHash);
             const future = this.safeValue(client.futures, 'authenticated');
             future.resolve(true);
@@ -675,7 +675,7 @@ export default class modetrade extends modetradeRest {
             await this.loadMarkets();
         }
         const trigger = this.safeBool2(params, 'stop', 'trigger', false);
-        const topic = (trigger) ? 'algoexecutionreport' : 'executionreport';
+        const topic = (trigger === true) ? 'algoexecutionreport' : 'executionreport';
         params = this.omit(params, ['stop', 'trigger']);
         let messageHash = topic;
         if (symbol !== undefined) {
@@ -712,7 +712,7 @@ export default class modetrade extends modetradeRest {
             await this.loadMarkets();
         }
         const trigger = this.safeBool2(params, 'stop', 'trigger', false);
-        const topic = (trigger) ? 'algoexecutionreport' : 'executionreport';
+        const topic = (trigger === true) ? 'algoexecutionreport' : 'executionreport';
         params = this.omit(params, 'stop');
         let messageHash = 'myTrades';
         if (symbol !== undefined) {
@@ -1011,7 +1011,7 @@ export default class modetrade extends modetradeRest {
         this.setPositionsCache(client, symbols);
         const fetchPositionsSnapshot = this.handleOption('watchPositions', 'fetchPositionsSnapshot', true);
         const awaitPositionsSnapshot = this.handleOption('watchPositions', 'awaitPositionsSnapshot', true);
-        if (fetchPositionsSnapshot && awaitPositionsSnapshot && this.positions === undefined) {
+        if ((fetchPositionsSnapshot === true) && (awaitPositionsSnapshot === true) && (this.positions === undefined)) {
             const snapshot = await client.future('fetchPositionsSnapshot');
             return this.filterBySymbolsSinceLimit(snapshot, symbols, since, limit, true);
         }
@@ -1027,7 +1027,7 @@ export default class modetrade extends modetradeRest {
     }
     setPositionsCache(client, type, symbols = undefined) {
         const fetchPositionsSnapshot = this.handleOption('watchPositions', 'fetchPositionsSnapshot', false);
-        if (fetchPositionsSnapshot) {
+        if (fetchPositionsSnapshot === true) {
             const messageHash = 'fetchPositionsSnapshot';
             if (!(messageHash in client.futures)) {
                 client.future(messageHash);
@@ -1241,13 +1241,18 @@ export default class modetrade extends modetradeRest {
             const key = keys[i];
             const value = balances[key];
             const code = this.safeCurrencyCode(key);
-            const account = (code in this.balance) ? this.balance[code] : this.account();
+            let account = this.account();
+            if ((code !== undefined) && (code in this.balance)) {
+                account = this.balance[code];
+            }
             const total = this.safeString(value, 'holding');
             const used = this.safeString(value, 'frozen');
             account['total'] = total;
             account['used'] = used;
             account['free'] = Precise.stringSub(total, used);
-            this.balance[code] = account;
+            if (code !== undefined) {
+                this.balance[code] = account;
+            }
         }
         this.balance = this.safeBalance(this.balance);
         client.resolve(this.balance, 'balance');
@@ -1260,7 +1265,7 @@ export default class modetrade extends modetradeRest {
             return false;
         }
         const success = this.safeBool(message, 'success');
-        if (success) {
+        if (success === true) {
             return false;
         }
         const errorMessage = this.safeString(message, 'errorMsg');
@@ -1286,7 +1291,7 @@ export default class modetrade extends modetradeRest {
         }
     }
     handleMessage(client, message) {
-        if (this.handleErrorMessage(client, message)) {
+        if (this.handleErrorMessage(client, message) === true) {
             return;
         }
         const methods = {

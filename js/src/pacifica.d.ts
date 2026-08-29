@@ -1,5 +1,5 @@
 import Exchange from './abstract/pacifica.js';
-import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, NullableDict, Num, int, Transaction, Currency, TradingFeeInterface, LedgerEntry, FundingRates, FundingRate, OpenInterests, Leverage, MarginMode, Tickers, Ticker, FundingHistory } from './base/types.js';
+import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, NullableDict, Num, int, Transaction, Currency, TradingFeeInterface, LedgerEntry, FundingRates, FundingRate, OpenInterests, Leverage, MarginMode, Tickers, Ticker, FundingHistory, List } from './base/types.js';
 /**
  * @class pacifica
  * @augments Exchange
@@ -25,7 +25,7 @@ export default class pacifica extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    fetchSwapMarkets(params?: {}): Promise<Market[]>;
+    fetchSwapMarkets(params?: any): Promise<Market[]>;
     parseMarket(market: Dict): Market;
     /**
      * @method
@@ -83,7 +83,7 @@ export default class pacifica extends Exchange {
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.aggLevel] aggregation level for price grouping. Defaults to 1. Can be 1, 10, 100, 1000, 10000
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     /**
@@ -124,7 +124,7 @@ export default class pacifica extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    fetchTrades(symbol: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     /**
      * @method
      * @name pacifica#fetchMyTrades
@@ -166,7 +166,7 @@ export default class pacifica extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
-    createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): [Dict, Str];
+    createOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: {}): [Dict, Str];
     batchOrdersRequest(actions: any[]): {
         actions: any[];
     };
@@ -204,7 +204,7 @@ export default class pacifica extends Exchange {
      * @name pacifica#cancelAllOrders
      * @description cancel all open orders in a market
      * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/cancel-all-orders
-     * @param {string} symbol (optional) unified market symbol of the market to cancel orders in.
+     * @param {string} [symbol] (optional) unified market symbol of the market to cancel orders in.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.excludeReduceOnly] whether to exclude reduce-only orders
      * @param {int} [params.expiryWindow] time to live in milliseconds
@@ -245,7 +245,7 @@ export default class pacifica extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
-    editOrderRequest(id: string, symbol: string, type: string, side: string, amount: Num, price: Num, market: Market, params?: {}): Dict;
+    editOrderRequest(id: string, symbol: Str, type: string, side: Str, amount: Num, price: Num, market: Market, params?: {}): Dict;
     /**
      * @method
      * @name pacifica#fetchFundingRateHistory
@@ -350,10 +350,10 @@ export default class pacifica extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
-    parseOrderStatus(status: Str): string;
-    mapTimeInForce(tifRaw: Str): string;
-    mapSide(sideRaw: string): string;
-    parseOrderType(status: string): string;
+    parseOrderStatus(status: Str): Str;
+    mapTimeInForce(tifRaw: Str): Str;
+    mapSide(sideRaw: Str): Str;
+    parseOrderType(status: Str): Str;
     parseOrder(order: Dict, market?: Market): Order;
     /**
      * @method
@@ -389,7 +389,7 @@ export default class pacifica extends Exchange {
      * @param {int} [params.expiryWindow] time to live in milliseconds
      * @returns {object} response from the exchange
      */
-    setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<any>;
+    setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name pacifica#setLeverage
@@ -401,7 +401,7 @@ export default class pacifica extends Exchange {
      * @param {int} [params.expiryWindow] time to live in milliseconds
      * @returns {object} response from the exchange
      */
-    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<any>;
+    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name pacifica#withdraw
@@ -484,12 +484,12 @@ export default class pacifica extends Exchange {
     parseIncome(income: any, market?: Market): {
         info: any;
         symbol: string;
-        code: string;
-        timestamp: number;
-        datetime: string;
-        id: string;
+        code: Str;
+        timestamp: Int;
+        datetime: string | undefined;
+        id: Str;
         amount: number;
-        rate: number;
+        rate: Num;
     };
     /**
      * @method
@@ -518,20 +518,20 @@ export default class pacifica extends Exchange {
      * @param {string} [params.subAccountPrivateKey] - The private key of the sub-account to use for creation
      * @returns {object} a response object
      */
-    createSubAccount(name: string, params?: {}): Promise<any>;
-    bindAgentWallet(agentAddress: string, params?: {}): Promise<any>;
-    createApiKey(params?: {}): Promise<any>;
-    revokeApiKey(apiKey: string, params?: {}): Promise<any>;
-    fetchApiKeys(params?: {}): Promise<any>;
-    approveBuilderCode(builderCode: string, maxFeeRate: string, params?: {}): Promise<any>;
-    fetchBuilderApprovals(address: string): Promise<any>;
-    revokeBuilderCode(builderCode: string, params?: {}): Promise<any>;
+    createSubAccount(name: string, params?: {}): Promise<Dict>;
+    bindAgentWallet(agentAddress: string, params?: {}): Promise<Dict>;
+    createApiKey(params?: {}): Promise<Dict>;
+    revokeApiKey(apiKey: string, params?: {}): Promise<Dict>;
+    fetchApiKeys(params?: {}): Promise<Dict>;
+    approveBuilderCode(builderCode: string, maxFeeRate: string, params?: {}): Promise<Dict>;
+    fetchBuilderApprovals(address: string): Promise<List>;
+    revokeBuilderCode(builderCode: string, params?: {}): Promise<Dict>;
     handleOriginAndSingleAddress(methodName: string, params: Dict): [Str, Dict];
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
     sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
         url: string;
         method: string;
-        body: string;
+        body: Str;
         headers: Dict;
     };
     calculateRateLimiterCost(api: any, method: any, path: any, params: any, config?: {}): any;

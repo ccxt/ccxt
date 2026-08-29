@@ -189,7 +189,7 @@ class bithumb extends bithumb$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -442,7 +442,9 @@ class bithumb extends bithumb$1["default"] {
             const account = this.account();
             account['free'] = this.safeString(asset, 'balance');
             account['used'] = this.safeString(asset, 'locked');
-            this.balance[code] = account;
+            if (code !== undefined) {
+                this.balance[code] = account;
+            }
         }
         this.balance['info'] = message;
         const timestamp = this.safeInteger(message, 'timestamp');
@@ -644,7 +646,7 @@ class bithumb extends bithumb$1["default"] {
         }, market);
     }
     handleMessage(client, message) {
-        if (!this.handleErrorMessage(client, message)) {
+        if (this.handleErrorMessage(client, message) !== true) {
             return;
         }
         const topic = this.safeString(message, 'type');

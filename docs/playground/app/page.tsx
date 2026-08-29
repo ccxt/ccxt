@@ -27,7 +27,7 @@ function initialCode(): Record<RunnableLanguageId, string> {
 }
 
 export default function Page() {
-  const [language, setLanguage] = useState<LanguageId>("js");
+  const [language, setLanguage] = useState<LanguageId>("ts");
   const [codeByLang, setCodeByLang] = useState<Record<RunnableLanguageId, string>>(initialCode);
   const [run, setRun] = useState<RunState>({ status: "idle" });
   const [aiOpen, setAiOpen] = useState(true);
@@ -38,6 +38,8 @@ export default function Page() {
     const initial = (document.documentElement.dataset.theme as Theme) || "dark";
     setTheme(initial);
     setMounted(true);
+    // Assistant is a full-screen overlay below the globals.css 900px breakpoint — start closed there.
+    if (!window.matchMedia("(min-width: 900px)").matches) setAiOpen(false);
   }, []);
 
   const toggleTheme = useCallback(() => {
@@ -65,15 +67,32 @@ export default function Page() {
     [language],
   );
 
-  const loadExample = useCallback(
-    (id: string) => {
-      if (!isRunnable(language)) return;
-      const ex = examples.find((e) => e.id === id);
-      if (!ex) return;
-      setCodeByLang((prev) => ({ ...prev, [language]: codeFor(ex, language) }));
+  // The assistant answers in every language at once, so a block can be filed
+  // under a tab that isn't the active one — it's there when the user switches.
+  // Disabled languages have no editor buffer, so they're dropped.
+  const insertCode = useCallback(
+    (value: string, target?: LanguageId) => {
+      const id = target ?? language;
+      if (!isRunnable(id)) return;
+      setCodeByLang((prev) => ({ ...prev, [id]: value }));
     },
     [language],
   );
+
+  const loadExample = useCallback((id: string) => {
+    const ex = examples.find((e) => e.id === id);
+    if (!ex) return;
+    // Fill every runnable tab at once, so switching languages shows the same
+    // example instead of whatever was there before. (Same shape as the
+    // assistant's multi-language fill.)
+    setCodeByLang((prev) => {
+      const next = { ...prev };
+      for (const l of languages) {
+        if (l.available) next[l.id as RunnableLanguageId] = codeFor(ex, l.id as RunnableLanguageId);
+      }
+      return next;
+    });
+  }, []);
 
   const onRun = useCallback(async () => {
     if (!isRunnable(language)) return;
@@ -174,7 +193,7 @@ export default function Page() {
             <UnavailablePanel language={lang} />
           )}
         </div>
-        {aiOpen && <AssistantPanel language={language} code={code} onInsert={setCode} />}
+        {aiOpen && <AssistantPanel language={language} code={code} onInsert={insertCode} />}
       </div>
     </div>
   );

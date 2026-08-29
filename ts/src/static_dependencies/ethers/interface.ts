@@ -25,7 +25,7 @@ import {
 } from "./fragments.js";
 import { Typed } from "./typed.js";
 
-import type { BigNumberish, BytesLike, CallExceptionError, CallExceptionTransaction } from "./utils/index.js";
+import type { BigNumberish, BytesLike } from "./utils/index.js";
 
 import type { JsonFragment } from "./fragments.js";
 

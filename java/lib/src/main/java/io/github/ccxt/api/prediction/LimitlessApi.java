@@ -19,292 +19,640 @@ public class LimitlessApi extends PredictionExchange
         super(options);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  limitlessPublicGetMarketsActive (Object... optionalArgs)
+    /**
+     * Calls the limitlessPublicGetMarketsActive endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPublicGetMarketsActive (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPublicGetMarketsActive", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  limitlessPublicGetMarketsActiveCategoryId (Object... optionalArgs)
+    /**
+     * Calls the limitlessPublicGetMarketsActiveCategoryId endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPublicGetMarketsActiveCategoryId (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPublicGetMarketsActiveCategoryId", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  limitlessPublicGetCategories (Object... optionalArgs)
+    /**
+     * Calls the limitlessPublicGetCategories endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  limitlessPublicGetCategories (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPublicGetCategories", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  limitlessPublicGetMarketsAddressOrSlug (Object... optionalArgs)
+    /**
+     * Calls the limitlessPublicGetMarketsAddressOrSlug endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPublicGetMarketsAddressOrSlug (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPublicGetMarketsAddressOrSlug", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  limitlessPublicGetMarketsCategoriesCount (Object... optionalArgs)
+    /**
+     * Calls the limitlessPublicGetMarketsCategoriesCount endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPublicGetMarketsCategoriesCount (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPublicGetMarketsCategoriesCount", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  limitlessPublicGetMarketsActiveSlugs (Object... optionalArgs)
+    /**
+     * Calls the limitlessPublicGetMarketsActiveSlugs endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  limitlessPublicGetMarketsActiveSlugs (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPublicGetMarketsActiveSlugs", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  limitlessPublicGetMarketsSearch (Object... optionalArgs)
+    /**
+     * Calls the limitlessPublicGetMarketsSearch endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPublicGetMarketsSearch (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPublicGetMarketsSearch", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  limitlessPublicGetMarketsSlugOrderbook (Object... optionalArgs)
+    /**
+     * Calls the limitlessPublicGetMarketsSlugOrderbook endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPublicGetMarketsSlugOrderbook (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPublicGetMarketsSlugOrderbook", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  limitlessPublicGetMarketsSlugHistoricalPrice (Object... optionalArgs)
+    /**
+     * Calls the limitlessPublicGetMarketsSlugHistoricalPrice endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPublicGetMarketsSlugHistoricalPrice (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPublicGetMarketsSlugHistoricalPrice", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  limitlessPublicGetAuthSigningMessage (Object... optionalArgs)
+    /**
+     * Calls the limitlessPublicGetAuthSigningMessage endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON scalar
+     */
+    public java.util.concurrent.CompletableFuture<String>  limitlessPublicGetAuthSigningMessage (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPublicGetAuthSigningMessage", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  limitlessPublicGetMarketsAddressOrSlugOracleCandles (Object... optionalArgs)
+    /**
+     * Calls the limitlessPublicGetMarketsAddressOrSlugOracleCandles endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPublicGetMarketsAddressOrSlugOracleCandles (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPublicGetMarketsAddressOrSlugOracleCandles", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  limitlessPublicGetMarketsSlugGetFeedEvents (Object... optionalArgs)
+    /**
+     * Calls the limitlessPublicGetMarketsSlugGetFeedEvents endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPublicGetMarketsSlugGetFeedEvents (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPublicGetMarketsSlugGetFeedEvents", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  limitlessPublicGetMarketsSlugEvents (Object... optionalArgs)
+    /**
+     * Calls the limitlessPublicGetMarketsSlugEvents endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPublicGetMarketsSlugEvents (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPublicGetMarketsSlugEvents", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  limitlessPublicGetMarketsTimeline (Object... optionalArgs)
+    /**
+     * Calls the limitlessPublicGetMarketsTimeline endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPublicGetMarketsTimeline (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPublicGetMarketsTimeline", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  limitlessPublicGetMarketsSlugTimeline (Object... optionalArgs)
+    /**
+     * Calls the limitlessPublicGetMarketsSlugTimeline endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPublicGetMarketsSlugTimeline (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPublicGetMarketsSlugTimeline", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  limitlessPublicGetNavigation (Object... optionalArgs)
+    /**
+     * Calls the limitlessPublicGetNavigation endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  limitlessPublicGetNavigation (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPublicGetNavigation", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  limitlessPublicGetMarketPagesByPath (Object... optionalArgs)
+    /**
+     * Calls the limitlessPublicGetMarketPagesByPath endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPublicGetMarketPagesByPath (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPublicGetMarketPagesByPath", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  limitlessPublicGetMarketPagesIdMarkets (Object... optionalArgs)
+    /**
+     * Calls the limitlessPublicGetMarketPagesIdMarkets endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPublicGetMarketPagesIdMarkets (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPublicGetMarketPagesIdMarkets", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  limitlessPublicGetPropertyKeys (Object... optionalArgs)
+    /**
+     * Calls the limitlessPublicGetPropertyKeys endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  limitlessPublicGetPropertyKeys (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPublicGetPropertyKeys", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  limitlessPublicGetPropertyKeysId (Object... optionalArgs)
+    /**
+     * Calls the limitlessPublicGetPropertyKeysId endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPublicGetPropertyKeysId (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPublicGetPropertyKeysId", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  limitlessPublicGetPropertyKeysIdOptions (Object... optionalArgs)
+    /**
+     * Calls the limitlessPublicGetPropertyKeysIdOptions endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  limitlessPublicGetPropertyKeysIdOptions (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPublicGetPropertyKeysIdOptions", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  limitlessPublicGetPortfolioAccountTradedVolume (Object... optionalArgs)
+    /**
+     * Calls the limitlessPublicGetPortfolioAccountTradedVolume endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPublicGetPortfolioAccountTradedVolume (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPublicGetPortfolioAccountTradedVolume", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  limitlessPublicGetPortfolioAccountPositions (Object... optionalArgs)
+    /**
+     * Calls the limitlessPublicGetPortfolioAccountPositions endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPublicGetPortfolioAccountPositions (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPublicGetPortfolioAccountPositions", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  limitlessPublicGetPortfolioAccountPnlChart (Object... optionalArgs)
+    /**
+     * Calls the limitlessPublicGetPortfolioAccountPnlChart endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPublicGetPortfolioAccountPnlChart (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPublicGetPortfolioAccountPnlChart", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  limitlessPrivateGetAuthApiKeys (Object... optionalArgs)
+    /**
+     * Calls the limitlessPrivateGetAuthApiKeys endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPrivateGetAuthApiKeys (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPrivateGetAuthApiKeys", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  limitlessPrivateGetProfilesPartnerAccounts (Object... optionalArgs)
+    /**
+     * Calls the limitlessPrivateGetProfilesPartnerAccounts endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPrivateGetProfilesPartnerAccounts (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPrivateGetProfilesPartnerAccounts", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  limitlessPrivateGetMarketsSlugUserOrders (Object... optionalArgs)
+    /**
+     * Calls the limitlessPrivateGetMarketsSlugUserOrders endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  limitlessPrivateGetMarketsSlugUserOrders (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPrivateGetMarketsSlugUserOrders", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  limitlessPrivateGetPortfolioPositions (Object... optionalArgs)
+    /**
+     * Calls the limitlessPrivateGetPortfolioPositions endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPrivateGetPortfolioPositions (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPrivateGetPortfolioPositions", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  limitlessPrivateGetPortfolioTrades (Object... optionalArgs)
+    /**
+     * Calls the limitlessPrivateGetPortfolioTrades endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPrivateGetPortfolioTrades (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPrivateGetPortfolioTrades", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  limitlessPrivateGetMarketsSlugLockedBalance (Object... optionalArgs)
+    /**
+     * Calls the limitlessPrivateGetMarketsSlugLockedBalance endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPrivateGetMarketsSlugLockedBalance (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPrivateGetMarketsSlugLockedBalance", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  limitlessPrivateGetProfilesMe (Object... optionalArgs)
+    /**
+     * Calls the limitlessPrivateGetProfilesMe endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPrivateGetProfilesMe (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPrivateGetProfilesMe", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  limitlessPrivateGetProfilesAccount (Object... optionalArgs)
+    /**
+     * Calls the limitlessPrivateGetProfilesAccount endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPrivateGetProfilesAccount (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPrivateGetProfilesAccount", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  limitlessPrivateGetPortfolioPnlChart (Object... optionalArgs)
+    /**
+     * Calls the limitlessPrivateGetPortfolioPnlChart endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPrivateGetPortfolioPnlChart (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPrivateGetPortfolioPnlChart", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  limitlessPrivateGetPortfolioHistory (Object... optionalArgs)
+    /**
+     * Calls the limitlessPrivateGetPortfolioHistory endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPrivateGetPortfolioHistory (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPrivateGetPortfolioHistory", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  limitlessPrivateGetPortfolioPoints (Object... optionalArgs)
+    /**
+     * Calls the limitlessPrivateGetPortfolioPoints endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPrivateGetPortfolioPoints (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPrivateGetPortfolioPoints", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  limitlessPrivateGetPortfolioTradingAllowance (Object... optionalArgs)
+    /**
+     * Calls the limitlessPrivateGetPortfolioTradingAllowance endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPrivateGetPortfolioTradingAllowance (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPrivateGetPortfolioTradingAllowance", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  limitlessPrivateGetAuthApiTokensCapabilities (Object... optionalArgs)
+    /**
+     * Calls the limitlessPrivateGetAuthApiTokensCapabilities endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPrivateGetAuthApiTokensCapabilities (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPrivateGetAuthApiTokensCapabilities", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  limitlessPrivateGetAuthApiTokens (Object... optionalArgs)
+    /**
+     * Calls the limitlessPrivateGetAuthApiTokens endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  limitlessPrivateGetAuthApiTokens (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPrivateGetAuthApiTokens", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  limitlessPrivateGetProfilesPartnerAccountsProfileIdAllowances (Object... optionalArgs)
+    /**
+     * Calls the limitlessPrivateGetProfilesPartnerAccountsProfileIdAllowances endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPrivateGetProfilesPartnerAccountsProfileIdAllowances (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPrivateGetProfilesPartnerAccountsProfileIdAllowances", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  limitlessPrivatePostAuthLogout (Object... optionalArgs)
+    /**
+     * Calls the limitlessPrivatePostAuthLogout endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPrivatePostAuthLogout (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPrivatePostAuthLogout", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  limitlessPrivatePostAuthApiKeys (Object... optionalArgs)
+    /**
+     * Calls the limitlessPrivatePostAuthApiKeys endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPrivatePostAuthApiKeys (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPrivatePostAuthApiKeys", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  limitlessPrivatePostAuthLogin (Object... optionalArgs)
+    /**
+     * Calls the limitlessPrivatePostAuthLogin endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPrivatePostAuthLogin (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPrivatePostAuthLogin", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  limitlessPrivatePostOrders (Object... optionalArgs)
+    /**
+     * Calls the limitlessPrivatePostOrders endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPrivatePostOrders (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPrivatePostOrders", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  limitlessPrivatePostOrdersCancel (Object... optionalArgs)
+    /**
+     * Calls the limitlessPrivatePostOrdersCancel endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPrivatePostOrdersCancel (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPrivatePostOrdersCancel", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  limitlessPrivatePostOrdersCancelBatch (Object... optionalArgs)
+    /**
+     * Calls the limitlessPrivatePostOrdersCancelBatch endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPrivatePostOrdersCancelBatch (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPrivatePostOrdersCancelBatch", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  limitlessPrivatePostOrdersBatchCancel (Object... optionalArgs)
+    /**
+     * Calls the limitlessPrivatePostOrdersBatchCancel endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPrivatePostOrdersBatchCancel (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPrivatePostOrdersBatchCancel", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  limitlessPrivatePostOrdersStatusBatch (Object... optionalArgs)
+    /**
+     * Calls the limitlessPrivatePostOrdersStatusBatch endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPrivatePostOrdersStatusBatch (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPrivatePostOrdersStatusBatch", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  limitlessPrivatePostPortfolioRedeem (Object... optionalArgs)
+    /**
+     * Calls the limitlessPrivatePostPortfolioRedeem endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPrivatePostPortfolioRedeem (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPrivatePostPortfolioRedeem", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  limitlessPrivatePostPortfolioWithdraw (Object... optionalArgs)
+    /**
+     * Calls the limitlessPrivatePostPortfolioWithdraw endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPrivatePostPortfolioWithdraw (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPrivatePostPortfolioWithdraw", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  limitlessPrivatePostPortfolioWithdrawalAddresses (Object... optionalArgs)
+    /**
+     * Calls the limitlessPrivatePostPortfolioWithdrawalAddresses endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPrivatePostPortfolioWithdrawalAddresses (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPrivatePostPortfolioWithdrawalAddresses", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  limitlessPrivatePostAuthApiTokensDerive (Object... optionalArgs)
+    /**
+     * Calls the limitlessPrivatePostAuthApiTokensDerive endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPrivatePostAuthApiTokensDerive (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPrivatePostAuthApiTokensDerive", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  limitlessPrivatePostProfilesPartnerAccounts (Object... optionalArgs)
+    /**
+     * Calls the limitlessPrivatePostProfilesPartnerAccounts endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPrivatePostProfilesPartnerAccounts (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPrivatePostProfilesPartnerAccounts", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  limitlessPrivatePostProfilesPartnerAccountsProfileIdAllowancesRetry (Object... optionalArgs)
+    /**
+     * Calls the limitlessPrivatePostProfilesPartnerAccountsProfileIdAllowancesRetry endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPrivatePostProfilesPartnerAccountsProfileIdAllowancesRetry (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPrivatePostProfilesPartnerAccountsProfileIdAllowancesRetry", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  limitlessPrivateDeleteAuthApiKeys (Object... optionalArgs)
+    /**
+     * Calls the limitlessPrivateDeleteAuthApiKeys endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPrivateDeleteAuthApiKeys (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPrivateDeleteAuthApiKeys", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  limitlessPrivateDeleteOrdersOrderId (Object... optionalArgs)
+    /**
+     * Calls the limitlessPrivateDeleteOrdersOrderId endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPrivateDeleteOrdersOrderId (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPrivateDeleteOrdersOrderId", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  limitlessPrivateDeleteOrdersAllSlug (Object... optionalArgs)
+    /**
+     * Calls the limitlessPrivateDeleteOrdersAllSlug endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPrivateDeleteOrdersAllSlug (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPrivateDeleteOrdersAllSlug", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  limitlessPrivateDeleteAuthApiTokensTokenId (Object... optionalArgs)
+    /**
+     * Calls the limitlessPrivateDeleteAuthApiTokensTokenId endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPrivateDeleteAuthApiTokensTokenId (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPrivateDeleteAuthApiTokensTokenId", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  limitlessPrivateDeletePortfolioWithdrawalAddressesAddress (Object... optionalArgs)
+    /**
+     * Calls the limitlessPrivateDeletePortfolioWithdrawalAddressesAddress endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPrivateDeletePortfolioWithdrawalAddressesAddress (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPrivateDeletePortfolioWithdrawalAddressesAddress", optionalArgs);
     }

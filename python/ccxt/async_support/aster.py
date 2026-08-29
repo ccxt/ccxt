@@ -6,8 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.aster import ImplicitAPI
 import asyncio
-from ccxt.base.types import Any, Balances, Currencies, Currency, Int, LedgerEntry, Leverage, Leverages, MarginMode, MarginModes, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, Transaction, TransferEntry
-from typing import List
+from ccxt.base.types import Balances, Currencies, Currency, CurrencyInterface, Int, LedgerEntry, Leverage, Leverages, MarginMode, MarginModes, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, PositionModeInfo, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, Transaction, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -33,6 +32,7 @@ from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import RequestTimeout
 from ccxt.base.errors import BadResponse
+from ccxt.base.errors import NullResponse
 from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
@@ -40,7 +40,7 @@ from ccxt.base.precise import Precise
 
 class aster(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(aster, self).describe(), {
             'id': 'aster',
             'name': 'Aster',
@@ -93,7 +93,7 @@ class aster(Exchange, ImplicitAPI):
                 'createMarketSellOrder': False,
                 'createMarketSellOrderWithCost': False,
                 'createOrder': True,
-                'createOrders': False,
+                'createOrders': True,
                 'createOrderWithTakeProfitAndStopLoss': False,
                 'createPostOnlyOrder': False,
                 'createReduceOnlyOrder': False,
@@ -108,7 +108,7 @@ class aster(Exchange, ImplicitAPI):
                 'editOrders': False,
                 'fetchAccounts': None,
                 'fetchBalance': True,
-                'fetchBidsAsks': False,
+                'fetchBidsAsks': True,
                 'fetchBorrowInterest': False,
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
@@ -142,7 +142,7 @@ class aster(Exchange, ImplicitAPI):
                 'fetchIsolatedBorrowRate': 'emulated',
                 'fetchIsolatedBorrowRates': False,
                 'fetchL3OrderBook': False,
-                'fetchLastPrices': False,
+                'fetchLastPrices': True,
                 'fetchLedger': True,
                 'fetchLedgerEntry': False,
                 'fetchLeverage': 'emulated',
@@ -216,209 +216,209 @@ class aster(Exchange, ImplicitAPI):
             'api': {
                 'fapiPublic': {
                     'get': {
-                        'v1/ping': 1,
-                        'v3/ping': 1,
-                        'v1/time': 1,
-                        'v3/time': 1,
-                        'v1/exchangeInfo': 1,
-                        'v3/exchangeInfo': 1,
-                        'v1/depth': 1,
-                        'v3/depth': 2,  # dynamic: 5, 10, 20, 50->2, 100->5, 500->10, 1000->20
-                        'v1/trades': 1,
-                        'v3/trades': 1,
-                        'v1/historicalTrades': 1,
-                        'v3/historicalTrades': 20,
-                        'v1/aggTrades': 1,
-                        'v3/aggTrades': 20,
-                        'v1/klines': 1,
-                        'v3/klines': 1,  # dynamic [1,100) ->1,  [100, 500)->2, [500, 1000]->5, [1000 -> 10
-                        'v1/indexPriceKlines': 1,
-                        'v3/indexPriceKlines': 1,  # same
-                        'v1/markPriceKlines': 1,
-                        'v3/markPriceKlines': 1,  # same
-                        'v1/premiumIndex': 1,
-                        'v3/premiumIndex': 1,
-                        'v1/fundingRate': 1,
-                        'v3/fundingRate': 1,
-                        'v1/fundingInfo': 1,
-                        'v3/fundingInfo': 1,
-                        'v1/ticker/24hr': 1,
-                        'v3/ticker/24hr': 1,  # 1 single-symbol, otherwise 40
-                        'v1/ticker/price': 1,
-                        'v3/ticker/price': 1,  # 1 single-symbol, otherwise 2
-                        'v1/ticker/bookTicker': 1,
-                        'v3/ticker/bookTicker': 1,  # 1 single-symbol, otherwise 2
+                        'v1/ping': {'cost': 1},
+                        'v3/ping': {'cost': 1},
+                        'v1/time': {'cost': 1},
+                        'v3/time': {'cost': 1},
+                        'v1/exchangeInfo': {'cost': 1},
+                        'v3/exchangeInfo': {'cost': 1},
+                        'v1/depth': {'cost': 1},
+                        'v3/depth': {'cost': 2},  # dynamic: 5, 10, 20, 50->2, 100->5, 500->10, 1000->20
+                        'v1/trades': {'cost': 1},
+                        'v3/trades': {'cost': 1},
+                        'v1/historicalTrades': {'cost': 1},
+                        'v3/historicalTrades': {'cost': 20},
+                        'v1/aggTrades': {'cost': 1},
+                        'v3/aggTrades': {'cost': 20},
+                        'v1/klines': {'cost': 1},
+                        'v3/klines': {'cost': 1},  # dynamic [1,100) ->1,  [100, 500)->2, [500, 1000]->5, [1000 -> 10
+                        'v1/indexPriceKlines': {'cost': 1},
+                        'v3/indexPriceKlines': {'cost': 1},  # same
+                        'v1/markPriceKlines': {'cost': 1},
+                        'v3/markPriceKlines': {'cost': 1},  # same
+                        'v1/premiumIndex': {'cost': 1},
+                        'v3/premiumIndex': {'cost': 1},
+                        'v1/fundingRate': {'cost': 1},
+                        'v3/fundingRate': {'cost': 1},
+                        'v1/fundingInfo': {'cost': 1},
+                        'v3/fundingInfo': {'cost': 1},
+                        'v1/ticker/24hr': {'cost': 1},
+                        'v3/ticker/24hr': {'cost': 1},  # 1 single-symbol, otherwise 40
+                        'v1/ticker/price': {'cost': 1},
+                        'v3/ticker/price': {'cost': 1},  # 1 single-symbol, otherwise 2
+                        'v1/ticker/bookTicker': {'cost': 1},
+                        'v3/ticker/bookTicker': {'cost': 1},  # 1 single-symbol, otherwise 2
                         # different endpoints
-                        'v1/adlQuantile': 1,
-                        'v1/forceOrders': 1,
-                        'v3/indexreferences': 1,
+                        'v1/adlQuantile': {'cost': 1},
+                        'v1/forceOrders': {'cost': 1},
+                        'v3/indexreferences': {'cost': 1},
                     },
                 },
                 'fapiPrivate': {
                     'get': {
-                        'v1/positionSide/dual': 1,
-                        'v3/positionSide/dual': 30,
-                        'v1/multiAssetsMargin': 1,
-                        'v3/multiAssetsMargin': 1,
-                        'v1/order': 1,
-                        'v3/order': 1,
-                        'v1/openOrder': 1,
-                        'v3/openOrder': 1,
-                        'v1/openOrders': 1,
-                        'v3/openOrders': 1,
-                        'v1/allOrders': 1,
-                        'v3/allOrders': 1,
-                        'v2/balance': 1,
-                        'v3/balance': 1,
-                        'v3/account': 1,
-                        'v1/positionMargin/history': 1,
-                        'v3/positionMargin/history': 1,
-                        'v2/positionRisk': 1,
-                        'v3/positionRisk': 1,
-                        'v1/userTrades': 1,
-                        'v3/userTrades': 5,
-                        'v1/income': 1,
-                        'v3/income': 1,
-                        'v1/leverageBracket': 1,
-                        'v3/leverageBracket': 1,
-                        'v1/commissionRate': 1,
-                        'v3/commissionRate': 1,
+                        'v1/positionSide/dual': {'cost': 1},
+                        'v3/positionSide/dual': {'cost': 30},
+                        'v1/multiAssetsMargin': {'cost': 1},
+                        'v3/multiAssetsMargin': {'cost': 1},
+                        'v1/order': {'cost': 1},
+                        'v3/order': {'cost': 1},
+                        'v1/openOrder': {'cost': 1},
+                        'v3/openOrder': {'cost': 1},
+                        'v1/openOrders': {'cost': 1},
+                        'v3/openOrders': {'cost': 1},
+                        'v1/allOrders': {'cost': 1},
+                        'v3/allOrders': {'cost': 1},
+                        'v2/balance': {'cost': 1},
+                        'v3/balance': {'cost': 1},
+                        'v3/account': {'cost': 1},
+                        'v1/positionMargin/history': {'cost': 1},
+                        'v3/positionMargin/history': {'cost': 1},
+                        'v2/positionRisk': {'cost': 1},
+                        'v3/positionRisk': {'cost': 1},
+                        'v1/userTrades': {'cost': 1},
+                        'v3/userTrades': {'cost': 5},
+                        'v1/income': {'cost': 1},
+                        'v3/income': {'cost': 1},
+                        'v1/leverageBracket': {'cost': 1},
+                        'v3/leverageBracket': {'cost': 1},
+                        'v1/commissionRate': {'cost': 1},
+                        'v3/commissionRate': {'cost': 1},
                         # others
-                        'v3/adlQuantile': 1,
-                        'v3/forceOrders': 1,
-                        'v3/mmp': 1,
-                        'v3/accountWithJoinMargin': 1,
-                        'v4/account': 1,
+                        'v3/adlQuantile': {'cost': 1},
+                        'v3/forceOrders': {'cost': 1},
+                        'v3/mmp': {'cost': 1},
+                        'v3/accountWithJoinMargin': {'cost': 1},
+                        'v4/account': {'cost': 1},
                         # builder
-                        'v3/agent': 1,
-                        'v3/builder': 1,
+                        'v3/agent': {'cost': 1},
+                        'v3/builder': {'cost': 1},
                     },
                     'post': {
-                        'v1/positionSide/dual': 1,
-                        'v3/positionSide/dual': 1,
-                        'v1/multiAssetsMargin': 1,
-                        'v3/multiAssetsMargin': 1,
-                        'v1/order': 1,
-                        'v3/order': 1,
-                        'v1/order/test': 1,
-                        'v3/order/test': 1,
-                        'v1/batchOrders': 1,
-                        'v3/batchOrders': 1,
-                        'v1/asset/wallet/transfer': 1,
-                        'v3/asset/wallet/transfer': 1,
-                        'v1/countdownCancelAll': 1,
-                        'v3/countdownCancelAll': 1,
-                        'v1/leverage': 1,
-                        'v3/leverage': 1,
-                        'v1/marginType': 1,
-                        'v3/marginType': 1,
-                        'v1/positionMargin': 1,
-                        'v3/positionMargin': 1,
-                        'v1/listenKey': 1,
-                        'v3/listenKey': 1,
+                        'v1/positionSide/dual': {'cost': 1},
+                        'v3/positionSide/dual': {'cost': 1},
+                        'v1/multiAssetsMargin': {'cost': 1},
+                        'v3/multiAssetsMargin': {'cost': 1},
+                        'v1/order': {'cost': 1},
+                        'v3/order': {'cost': 1},
+                        'v1/order/test': {'cost': 1},
+                        'v3/order/test': {'cost': 1},
+                        'v1/batchOrders': {'cost': 1},
+                        'v3/batchOrders': {'cost': 1},
+                        'v1/asset/wallet/transfer': {'cost': 1},
+                        'v3/asset/wallet/transfer': {'cost': 1},
+                        'v1/countdownCancelAll': {'cost': 1},
+                        'v3/countdownCancelAll': {'cost': 1},
+                        'v1/leverage': {'cost': 1},
+                        'v3/leverage': {'cost': 1},
+                        'v1/marginType': {'cost': 1},
+                        'v3/marginType': {'cost': 1},
+                        'v1/positionMargin': {'cost': 1},
+                        'v3/positionMargin': {'cost': 1},
+                        'v1/listenKey': {'cost': 1},
+                        'v3/listenKey': {'cost': 1},
                         # others
-                        'v3/mmp': 1,
-                        'v3/mmpReset': 1,
-                        'v3/noop': 1,
+                        'v3/mmp': {'cost': 1},
+                        'v3/mmpReset': {'cost': 1},
+                        'v3/noop': {'cost': 1},
                         # builder
-                        'v3/approveAgent': 1,
-                        'v3/updateAgent': 1,
-                        'v3/approveBuilder': 1,
-                        'v3/updateBuilder': 1,
+                        'v3/approveAgent': {'cost': 1},
+                        'v3/updateAgent': {'cost': 1},
+                        'v3/approveBuilder': {'cost': 1},
+                        'v3/updateBuilder': {'cost': 1},
                     },
                     'put': {
-                        'v1/listenKey': 1,
-                        'v3/listenKey': 1,
+                        'v1/listenKey': {'cost': 1},
+                        'v3/listenKey': {'cost': 1},
                     },
                     'delete': {
-                        'v1/order': 1,
-                        'v3/order': 1,
-                        'v1/allOpenOrders': 1,
-                        'v3/allOpenOrders': 1,
-                        'v1/batchOrders': 1,
-                        'v3/batchOrders': 1,
-                        'v3/mmp': 1,
-                        'v1/listenKey': 1,
-                        'v3/listenKey': 1,
+                        'v1/order': {'cost': 1},
+                        'v3/order': {'cost': 1},
+                        'v1/allOpenOrders': {'cost': 1},
+                        'v3/allOpenOrders': {'cost': 1},
+                        'v1/batchOrders': {'cost': 1},
+                        'v3/batchOrders': {'cost': 1},
+                        'v3/mmp': {'cost': 1},
+                        'v1/listenKey': {'cost': 1},
+                        'v3/listenKey': {'cost': 1},
                         # builder
-                        'v3/agent': 1,
-                        'v3/builder': 1,
+                        'v3/agent': {'cost': 1},
+                        'v3/builder': {'cost': 1},
                     },
                 },
                 'sapiPublic': {
                     'get': {
                         # v1
-                        'v1/ping': 1,
-                        'v1/time': 1,
-                        'v1/exchangeInfo': 1,
-                        'v1/depth': 1,
-                        'v1/trades': 1,
-                        'v1/historicalTrades': 1,
-                        'v1/aggTrades': 1,
-                        'v1/klines': 1,
-                        'v1/ticker/24hr': 1,
-                        'v1/ticker/price': 1,
-                        'v1/ticker/bookTicker': 1,
-                        'v1/aster/withdraw/estimateFee': 1,
+                        'v1/ping': {'cost': 1},
+                        'v1/time': {'cost': 1},
+                        'v1/exchangeInfo': {'cost': 1},
+                        'v1/depth': {'cost': 1},
+                        'v1/trades': {'cost': 1},
+                        'v1/historicalTrades': {'cost': 1},
+                        'v1/aggTrades': {'cost': 1},
+                        'v1/klines': {'cost': 1},
+                        'v1/ticker/24hr': {'cost': 1},
+                        'v1/ticker/price': {'cost': 1},
+                        'v1/ticker/bookTicker': {'cost': 1},
+                        'v1/aster/withdraw/estimateFee': {'cost': 1},
                         # v3
-                        'v3/ping': 1,
-                        'v3/time': 1,
-                        'v3/exchangeInfo': 1,
+                        'v3/ping': {'cost': 1},
+                        'v3/time': {'cost': 1},
+                        'v3/exchangeInfo': {'cost': 1},
                         'v3/depth': {'cost': 2, 'byLimit': [[50, 2], [100, 5], [500, 10], [1000, 20]]},
-                        'v3/trades': 1,
-                        'v3/historicalTrades': 20,
-                        'v3/aggTrades': 20,
+                        'v3/trades': {'cost': 1},
+                        'v3/historicalTrades': {'cost': 20},
+                        'v3/aggTrades': {'cost': 20},
                         'v3/klines': {'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]]},  # todo: not specified in docs
                         'v3/ticker/24hr': {'cost': 1, 'noSymbol': 40},
                         'v3/ticker/price': {'cost': 1, 'noSymbol': 2},
                         'v3/ticker/bookTicker': {'cost': 1, 'noSymbol': 2},
-                        'v3/aster/withdraw/estimateFee': 1,
+                        'v3/aster/withdraw/estimateFee': {'cost': 1},
                     },
                 },
                 'sapiPrivate': {
                     'get': {
                         # v1
-                        'v1/commissionRate': 1,
-                        'v1/order': 1,
-                        'v1/openOrders': 1,
-                        'v1/allOrders': 1,
-                        'v1/transactionHistory': 1,
-                        'v1/account': 1,
-                        'v1/userTrades': 1,
+                        'v1/commissionRate': {'cost': 1},
+                        'v1/order': {'cost': 1},
+                        'v1/openOrders': {'cost': 1},
+                        'v1/allOrders': {'cost': 1},
+                        'v1/transactionHistory': {'cost': 1},
+                        'v1/account': {'cost': 1},
+                        'v1/userTrades': {'cost': 1},
                         # v3
                         'v3/commissionRate': {'cost': 1, 'noSymbol': 2},
-                        'v3/order': 1,
-                        'v3/openOrders': 1,  # with symbol 1, otherwise 40
-                        'v3/allOrders': 5,
-                        'v3/account': 5,
-                        'v3/userTrades': 5,
-                        'v3/openOrder': 1,
+                        'v3/order': {'cost': 1},
+                        'v3/openOrders': {'cost': 1},  # with symbol 1, otherwise 40
+                        'v3/allOrders': {'cost': 5},
+                        'v3/account': {'cost': 5},
+                        'v3/userTrades': {'cost': 5},
+                        'v3/openOrder': {'cost': 1},
                     },
                     'post': {
                         # v1
-                        'v1/order': 1,
-                        'v1/asset/wallet/transfer': 5,
-                        'v1/asset/sendToAddress': 1,  # inexistent in v3
-                        'v1/listenKey': 1,
+                        'v1/order': {'cost': 1},
+                        'v1/asset/wallet/transfer': {'cost': 5},
+                        'v1/asset/sendToAddress': {'cost': 1},  # inexistent in v3
+                        'v1/listenKey': {'cost': 1},
                         # v3
-                        'v3/order': 1,
-                        'v3/asset/wallet/transfer': 5,
-                        'v3/aster/user-withdraw': 1,
-                        'v3/listenKey': 1,
+                        'v3/order': {'cost': 1},
+                        'v3/asset/wallet/transfer': {'cost': 5},
+                        'v3/aster/user-withdraw': {'cost': 1},
+                        'v3/listenKey': {'cost': 1},
                     },
-                    'put': [
-                        'v1/listenKey',
-                        'v3/listenKey',
-                    ],
+                    'put': {
+                        'v1/listenKey': {'cost': 1},
+                        'v3/listenKey': {'cost': 1},
+                    },
                     'delete': {
                         # v1
-                        'v1/order': 1,
-                        'v1/allOpenOrders': 1,
-                        'v1/listenKey': 1,
+                        'v1/order': {'cost': 1},
+                        'v1/allOpenOrders': {'cost': 1},
+                        'v1/listenKey': {'cost': 1},
                         # v3
-                        'v3/allOpenOrders': 1,
-                        'v3/order': 1,
-                        'v3/listenKey': 1,
+                        'v3/allOpenOrders': {'cost': 1},
+                        'v3/order': {'cost': 1},
+                        'v3/listenKey': {'cost': 1},
                     },
                 },
             },
@@ -453,6 +453,136 @@ class aster(Exchange, ImplicitAPI):
                     'taker': self.parse_number('0.00035'),
                 },
             },
+            'features': {
+                'spot': {
+                    'sandbox': False,
+                    'createOrder': {
+                        'marginMode': False,
+                        'triggerPrice': True,
+                        'triggerPriceType': None,
+                        'triggerDirection': None,
+                        'stopLossPrice': True,
+                        'takeProfitPrice': True,
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': True,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'trailing': False,
+                        'leverage': False,
+                        'marketBuyByCost': True,
+                        'marketBuyRequiresPrice': False,
+                        'selfTradePrevention': False,
+                        'iceberg': False,
+                    },
+                    'createOrders': None,
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 1000,
+                        'daysBack': None,
+                        'untilDays': None,
+                        'symbolRequired': True,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': True,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': None,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOrders': {
+                        'marginMode': False,
+                        'limit': 1000,
+                        'daysBack': None,
+                        'untilDays': None,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': True,
+                    },
+                    'fetchClosedOrders': None,
+                    'fetchOHLCV': {
+                        'limit': 1500,
+                    },
+                },
+                'forDerivs': {
+                    'sandbox': False,
+                    'createOrder': {
+                        'marginMode': False,
+                        'triggerPrice': True,
+                        'triggerPriceType': {
+                            'last': True,
+                            'mark': True,
+                            'index': False,
+                        },
+                        'triggerDirection': False,
+                        'stopLossPrice': True,
+                        'takeProfitPrice': True,
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': True,
+                            'GTD': False,
+                        },
+                        'hedged': True,
+                        'trailing': True,
+                        'leverage': False,
+                        'marketBuyByCost': False,
+                        'marketBuyRequiresPrice': False,
+                        'selfTradePrevention': False,
+                        'iceberg': False,
+                    },
+                    'createOrders': None,
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 1000,
+                        'daysBack': None,
+                        'untilDays': None,
+                        'symbolRequired': True,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': True,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': None,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOrders': {
+                        'marginMode': False,
+                        'limit': 1000,
+                        'daysBack': None,
+                        'untilDays': None,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': True,
+                    },
+                    'fetchClosedOrders': None,
+                    'fetchOHLCV': {
+                        'limit': 1500,
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forDerivs',
+                    },
+                    'inverse': None,
+                },
+            },
             'options': {
                 'defaultType': 'spot',
                 'recvWindow': 10 * 1000,  # 10 sec
@@ -471,7 +601,7 @@ class aster(Exchange, ImplicitAPI):
                 'networks': {
                     'ERC20': 'ETH',
                     'BEP20': 'BSC',
-                    'ARBONE': 'Arbitrum',
+                    'ARBITRUM': 'Arbitrum',
                 },
                 'networksToChainId': {
                     'ETH': 1,
@@ -694,7 +824,7 @@ class aster(Exchange, ImplicitAPI):
         #
         return self.parse_currencies(sapiRows)
 
-    def parse_currency(self, rawCurrency: dict) -> Currency:
+    def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
         currencyId = self.safe_string(rawCurrency, 'asset')
         code = self.safe_currency_code(currencyId)
         return self.safe_currency_structure({
@@ -726,7 +856,7 @@ class aster(Exchange, ImplicitAPI):
             'type': 'crypto',  # atm exchange api provides only cryptos
         })
 
-    async def fetch_markets(self, params={}) -> List[Market]:
+    async def fetch_markets(self, params={}) -> list[Market]:
         """
         retrieves data on all markets for bigone
 
@@ -844,7 +974,7 @@ class aster(Exchange, ImplicitAPI):
         for i in range(0, len(fapiRows)):
             market = fapiRows[i]
             # tmp skip some markets with base = None
-            if self.safe_string(market, 'baseAsset'):
+            if self.safe_string(market, 'baseAsset') is not None:
                 fapiRowsFiltered.append(market)
         rows = self.array_concat(sapiRows, fapiRowsFiltered)
         return self.parse_markets(rows)
@@ -975,7 +1105,7 @@ class aster(Exchange, ImplicitAPI):
         #
         return self.safe_integer(response, 'serverTime')
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #
         # spot:
         #
@@ -1003,7 +1133,7 @@ class aster(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 5),
         ]
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -1035,7 +1165,7 @@ class aster(Exchange, ImplicitAPI):
         isMark = (price == 'mark')
         isIndex = (price == 'index')
         params = self.omit(params, 'price')
-        response: List
+        response: dict | List
         if isMark:
             request['symbol'] = market['id']
             response = await self.fapiPublicGetV3MarkPriceKlines(self.extend(request, params))
@@ -1044,7 +1174,7 @@ class aster(Exchange, ImplicitAPI):
             response = await self.fapiPublicGetV3IndexPriceKlines(self.extend(request, params))
         else:
             request['symbol'] = market['id']
-            if market['linear']:
+            if market['linear'] is True:
                 response = await self.fapiPublicGetV3Klines(self.extend(request, params))
             else:
                 response = await self.sapiPublicGetV3Klines(self.extend(request, params))
@@ -1068,7 +1198,7 @@ class aster(Exchange, ImplicitAPI):
             #     ]
             #  ]
             #
-        return self.parse_ohlcvs(response, market, timeframe, since, limit)
+        return self.parse_ohlcvs(self.to_array(response), market, timeframe, since, limit)
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
@@ -1161,7 +1291,7 @@ class aster(Exchange, ImplicitAPI):
             },
         }, market)
 
-    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -1193,7 +1323,7 @@ class aster(Exchange, ImplicitAPI):
             request = self.handle_until_option('endTime', request, params)
         # use historical endpoint for targeted requests
         if 'startTime' in request:
-            if market['swap']:
+            if market['swap'] is True:
                 response = await self.fapiPublicGetV3AggTrades(self.extend(request, params))
             else:
                 response = await self.sapiPublicGetV3AggTrades(self.extend(request, params))
@@ -1213,7 +1343,7 @@ class aster(Exchange, ImplicitAPI):
             # ]
             #
         else:
-            if market['swap']:
+            if market['swap'] is True:
                 response = await self.fapiPublicGetV3Trades(self.extend(request, params))
             else:
                 response = await self.sapiPublicGetV3Trades(self.extend(request, params))
@@ -1254,7 +1384,7 @@ class aster(Exchange, ImplicitAPI):
             market = self.market(symbol)
             request['symbol'] = market['id']
         marketType = None
-        marketType, params = self.handle_market_type_and_params('fetchTickers', market, params)
+        marketType, params = self.handle_market_type_and_params('fetchMyTrades', market, params)
         if since is not None:
             request['startTime'] = since
         if limit is not None:
@@ -1300,7 +1430,7 @@ class aster(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             await self.load_markets()
@@ -1311,7 +1441,7 @@ class aster(Exchange, ImplicitAPI):
         response: dict
         if limit is not None:
             request['limit'] = self.find_nearest_ceiling([5, 10, 20, 50, 100, 500, 1000], limit)
-        if market['swap']:
+        if market['swap'] is True:
             response = await self.fapiPublicGetV3Depth(self.extend(request, params))
         else:
             response = await self.sapiPublicGetV3Depth(self.extend(request, params))
@@ -1441,7 +1571,7 @@ class aster(Exchange, ImplicitAPI):
             'symbol': market['id'],
         }
         response: dict
-        if market['swap']:
+        if market['swap'] is True:
             response = await self.fapiPublicGetV3Ticker24hr(self.extend(request, params))
         else:
             response = await self.sapiPublicGetV3Ticker24hr(self.extend(request, params))
@@ -1564,16 +1694,19 @@ class aster(Exchange, ImplicitAPI):
         #         ...
         #     ]
         #
+        if response is None:
+            raise NullResponse(self.id + ' fetchLastPrices() returned empty response')
+        rows = self.to_array(response)
         results = []
-        for i in range(0, len(response)):
-            marketId = self.safe_string(response[i], 'symbol')
+        for i in range(0, len(rows)):
+            marketId = self.safe_string(rows[i], 'symbol')
             safeMarket = self.safe_market(marketId, None, None, marketType)
-            priceData = self.extend(self.parse_last_price(response[i], safeMarket), params)
+            priceData = self.extend(self.parse_last_price(rows[i], safeMarket), params)
             results.append(priceData)
         symbols = self.market_symbols(symbols)
         return self.filter_by_array(results, 'symbol', symbols)
 
-    def parse_last_price(self, entry, market: Market = None):
+    def parse_last_price(self, entry: object, market: Market = None):
         #
         # spot & swap
         #
@@ -1632,7 +1765,7 @@ class aster(Exchange, ImplicitAPI):
         #
         return self.parse_tickers(response, symbols)
 
-    def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
         #
         # fundingRate
         #
@@ -1815,7 +1948,7 @@ class aster(Exchange, ImplicitAPI):
         #
         return self.parse_funding_rate_histories(response, market)
 
-    def parse_funding_rate_history(self, contract, market: Market = None):
+    def parse_funding_rate_history(self, contract: object, market: Market = None):
         #
         #     {
         #         "symbol": "BTCUSDT",
@@ -1879,7 +2012,7 @@ class aster(Exchange, ImplicitAPI):
             #
         return self.parse_balance(data)
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: object) -> Balances:
         result = {'info': response}
         for i in range(0, len(response)):
             balance = response[i]
@@ -1889,7 +2022,8 @@ class aster(Exchange, ImplicitAPI):
             account['free'] = self.safe_string_2(balance, 'free', 'availableBalance')
             account['used'] = self.safe_string(balance, 'locked')
             account['total'] = self.safe_string(balance, 'balance')
-            result[code] = account
+            if code is not None:
+                result[code] = account
         return self.safe_balance(result)
 
     async def set_margin_mode(self, marginMode: str, symbol: Str = None, params={}):
@@ -1922,7 +2056,7 @@ class aster(Exchange, ImplicitAPI):
         #
         return response
 
-    async def fetch_position_mode(self, symbol: Str = None, params={}):
+    async def fetch_position_mode(self, symbol: Str = None, params={}) -> PositionModeInfo:
         """
         fetchs the position mode, hedged or one way, hedged for aster is set identically for all linear markets or all inverse markets
 
@@ -1950,7 +2084,7 @@ class aster(Exchange, ImplicitAPI):
         https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#change-position-modetrade
 
         :param bool hedged: set to True to use dualSidePosition
-        :param str symbol: not used by bingx setPositionMode()
+        :param str symbol: not used by setPositionMode()
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: response from the exchange
         """
@@ -1996,7 +2130,7 @@ class aster(Exchange, ImplicitAPI):
             'symbol': market['id'],
         }
         response: dict
-        if market['swap']:
+        if market['swap'] is True:
             response = await self.fapiPrivateGetV3CommissionRate(self.extend(request, params))
         else:
             response = await self.sapiPrivateGetV3CommissionRate(self.extend(request, params))
@@ -2151,7 +2285,7 @@ class aster(Exchange, ImplicitAPI):
         else:
             request['orderId'] = id
         response: dict
-        if market['swap']:
+        if market['swap'] is True:
             response = await self.fapiPrivateGetV3Order(self.extend(request, params))
         else:
             response = await self.sapiPrivateGetV3Order(self.extend(request, params))
@@ -2186,7 +2320,7 @@ class aster(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    async def fetch_open_order(self, id: str, symbol: Str = None, params={}):
+    async def fetch_open_order(self, id: str, symbol: Str = None, params={}) -> Order:
         """
         fetch an open order by the id
 
@@ -2212,7 +2346,7 @@ class aster(Exchange, ImplicitAPI):
         else:
             request['orderId'] = id
         response: dict
-        if market['spot']:
+        if market['spot'] is True:
             response = await self.sapiPrivateGetV3OpenOrder(self.extend(request, params))
         else:
             response = await self.fapiPrivateGetV3OpenOrder(self.extend(request, params))
@@ -2247,7 +2381,7 @@ class aster(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
 
@@ -2274,7 +2408,7 @@ class aster(Exchange, ImplicitAPI):
             request['startTime'] = since
         request, params = self.handle_until_option('endTime', request, params)
         response: dict
-        if market['swap']:
+        if market['swap'] is True:
             response = await self.fapiPrivateGetV3AllOrders(self.extend(request, params))
         else:
             response = await self.sapiPrivateGetV3AllOrders(self.extend(request, params))
@@ -2310,7 +2444,7 @@ class aster(Exchange, ImplicitAPI):
         #
         return self.parse_orders(response, market, since, limit)
 
-    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -2333,7 +2467,7 @@ class aster(Exchange, ImplicitAPI):
             market = self.market(symbol)
             request['symbol'] = market['id']
         if symbol is None:
-            if self.options['fetchOpenOrders']['warnIfNoSymbol']:
+            if self.options['fetchOpenOrders']['warnIfNoSymbol'] is True:
                 raise ExchangeError(self.id + ' fetchOpenOrders(): WARNING - self method without providing "symbol" argument uses 40 times more rate-limit quota. If you acknowledge self warning, set ' + self.id + '.options["fetchOpenOrders"]["warnIfNoSymbol"] = False to suppress self warning message.')
         else:
             market = self.market(symbol)
@@ -2406,7 +2540,7 @@ class aster(Exchange, ImplicitAPI):
         market = self.market(symbol)
         request = self.create_order_request(symbol, type, side, amount, price, params)
         response: dict
-        if market['swap']:
+        if market['swap'] is True:
             response = await self.fapiPrivatePostV3Order(request)
         else:
             response = await self.sapiPrivatePostV3Order(request)
@@ -2442,7 +2576,7 @@ class aster(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    async def create_orders(self, orders: List[OrderRequest], params={}):
+    async def create_orders(self, orders: list[OrderRequest], params={}):
         """
         create a list of trade orders
 
@@ -2471,7 +2605,7 @@ class aster(Exchange, ImplicitAPI):
             ordersRequests.append(orderRequest)
         orderSymbols = self.market_symbols(orderSymbols, None, False, True, True)
         market = self.market(orderSymbols[0])
-        if market['spot']:
+        if market['spot'] is True:
             raise NotSupported(self.id + ' createOrders() does not support ' + market['type'] + ' orders')
         request = {
             'batchOrders': ordersRequests,
@@ -2509,7 +2643,11 @@ class aster(Exchange, ImplicitAPI):
         #
         return self.parse_orders(response)
 
-    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}):
+        if type is None:
+            raise ArgumentsRequired(self.id + ' requires a type argument')
+        if side is None:
+            raise ArgumentsRequired(self.id + ' requires a side argument')
         """
  @ignore
         helper function to build the request
@@ -2544,7 +2682,7 @@ class aster(Exchange, ImplicitAPI):
         uppercaseType = initialUppercaseType
         stopPrice = None
         if isTrailingPercentOrder:
-            if market['swap']:
+            if market['swap'] is True:
                 uppercaseType = 'TRAILING_STOP_MARKET'
                 request['callbackRate'] = trailingPercent
                 if trailingTriggerPrice is not None:
@@ -2585,9 +2723,9 @@ class aster(Exchange, ImplicitAPI):
         quantityIsRequired = False
         request['type'] = uppercaseType
         if uppercaseType == 'MARKET':
-            if market['spot']:
+            if market['spot'] is True:
                 quoteOrderQty = self.handle_option('createOrder', 'quoteOrderQty', True)
-                if quoteOrderQty:
+                if quoteOrderQty is True:
                     quoteOrderQtyNew = self.safe_string_2(params, 'quoteOrderQty', 'cost')
                     precision = market['precision']['price']
                     if quoteOrderQtyNew is not None:
@@ -2612,7 +2750,7 @@ class aster(Exchange, ImplicitAPI):
             priceIsRequired = True
             triggerPriceIsRequired = True
         elif (uppercaseType == 'STOP_MARKET') or (uppercaseType == 'TAKE_PROFIT_MARKET'):
-            if not closePosition:
+            if closePosition is not True:
                 quantityIsRequired = True
             triggerPriceIsRequired = True
         elif uppercaseType == 'TRAILING_STOP_MARKET':
@@ -2645,7 +2783,7 @@ class aster(Exchange, ImplicitAPI):
             tif, params = self.handle_option_and_params(params, 'createOrder', 'timeInForce')
             request['timeInForce'] = tif
         requestParams = self.omit(params, ['newClientOrderId', 'clientOrderId', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent', 'trailingDelta', 'stopPrice', 'stopLossPrice', 'takeProfitPrice'])
-        if self.safe_bool(self.options, 'builderFee') and market['swap']:
+        if (self.safe_bool(self.options, 'builderFee') is True) and (market['swap'] is True):
             request['builder'] = self.safe_string(self.options, 'builder')
             request['feeRate'] = self.safe_string(self.options, 'builderRate')
         return self.extend(request, requestParams)
@@ -2669,7 +2807,7 @@ class aster(Exchange, ImplicitAPI):
             'symbol': market['id'],
         }
         response: dict
-        if market['swap']:
+        if market['swap'] is True:
             response = await self.fapiPrivateDeleteV3AllOpenOrders(self.extend(request, params))
         else:
             response = await self.sapiPrivateDeleteV3AllOpenOrders(self.extend(request, params))
@@ -2713,13 +2851,13 @@ class aster(Exchange, ImplicitAPI):
             request['orderId'] = id
         params = self.omit(params, ['origClientOrderId', 'clientOrderId'])
         response: dict
-        if market['swap']:
+        if market['swap'] is True:
             response = await self.fapiPrivateDeleteV3Order(self.extend(request, params))
         else:
             response = await self.sapiPrivateDeleteV3Order(self.extend(request, params))
         return self.parse_order(response, market)
 
-    async def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
+    async def cancel_orders(self, ids: list[str], symbol: Str = None, params={}):
         """
         cancel multiple orders
 
@@ -2748,7 +2886,7 @@ class aster(Exchange, ImplicitAPI):
         else:
             request['orderIdList'] = ids
         response: dict
-        if market['swap']:
+        if market['swap'] is True:
             response = await self.fapiPrivateDeleteV3BatchOrders(self.extend(request, params))
             #
             #    [
@@ -2853,7 +2991,7 @@ class aster(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        return self.parse_leverages(response, symbols, 'symbol')
+        return self.parse_leverages(self.to_array(response), symbols, 'symbol')
 
     def parse_leverage(self, leverage: dict, market: Market = None) -> Leverage:
         #
@@ -2931,9 +3069,9 @@ class aster(Exchange, ImplicitAPI):
         #     ]
         #
         #
-        return self.parse_margin_modes(response, symbols, 'symbol', 'swap')
+        return self.parse_margin_modes(self.to_array(response), symbols, 'symbol', 'swap')
 
-    def parse_margin_mode(self, marginMode: dict, market=None) -> MarginMode:
+    def parse_margin_mode(self, marginMode: dict, market: Market = None) -> MarginMode:
         #
         #     {
         #         "symbol": "INJUSDT",
@@ -2961,7 +3099,7 @@ class aster(Exchange, ImplicitAPI):
             'marginMode': self.safe_string_lower(marginMode, 'marginType'),
         }
 
-    async def fetch_margin_adjustment_history(self, symbol: Str = None, type: Str = None, since: Num = None, limit: Num = None, params={}) -> List[MarginModification]:
+    async def fetch_margin_adjustment_history(self, symbol: Str = None, type: Str = None, since: Num = None, limit: Num = None, params={}) -> list[MarginModification]:
         """
         fetches the history of margin added or reduced from contract isolated positions
 
@@ -2971,7 +3109,7 @@ class aster(Exchange, ImplicitAPI):
         :param str [type]: "add" or "reduce"
         :param int [since]: timestamp in ms of the earliest change to fetch
         :param int [limit]: the maximum amount of changes to fetch
-        :param dict params: extra parameters specific to the exchange api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest change to fetch
         :returns dict[]: a list of `margin structures <https://docs.ccxt.com/?id=margin-loan-structure>`
         """
@@ -3005,7 +3143,7 @@ class aster(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        modifications = self.parse_margin_modifications(response)
+        modifications = self.parse_margin_modifications(self.to_array(response))
         return self.filter_by_symbol_since_limit(modifications, symbol, since, limit)
 
     def parse_margin_modification(self, data: dict, market: Market = None) -> MarginModification:
@@ -3046,7 +3184,7 @@ class aster(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         }
 
-    async def modify_margin_helper(self, symbol: str, amount, addOrReduce, params={}):
+    async def modify_margin_helper(self, symbol: str, amount: object, addOrReduce: object, params={}):
         await self.load_markets_and_sign_in()
         market = self.market(symbol)
         amount = self.amount_to_precision(symbol, amount)
@@ -3093,7 +3231,7 @@ class aster(Exchange, ImplicitAPI):
         """
         return await self.modify_margin_helper(symbol, amount, 1, params)
 
-    def parse_income(self, income, market: Market = None):
+    def parse_income(self, income: object, market: Market = None):
         #
         #     {
         #       "symbol": "ETHUSDT",
@@ -3193,7 +3331,7 @@ class aster(Exchange, ImplicitAPI):
             'fee': None,
         }, currency)
 
-    def parse_ledger_entry_type(self, type):
+    def parse_ledger_entry_type(self, type: object):
         ledgerType = {
             'TRANSFER': 'transfer',
             'WELCOME_BONUS': 'cashback',
@@ -3205,7 +3343,7 @@ class aster(Exchange, ImplicitAPI):
         }
         return self.safe_string(ledgerType, type, type)
 
-    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LedgerEntry]:
+    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[LedgerEntry]:
         """
         fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
@@ -3248,7 +3386,7 @@ class aster(Exchange, ImplicitAPI):
         #
         return self.parse_ledger(response, currency, since, limit)
 
-    def parse_position_risk(self, position, market: Market = None):
+    def parse_position_risk(self, position: object, market: Market = None):
         #
         #     {
         #         "entryPrice": "6563.66500",
@@ -3285,7 +3423,7 @@ class aster(Exchange, ImplicitAPI):
         contracts = self.parse_number(contractsAbs)
         unrealizedPnlString = self.safe_string(position, 'unRealizedProfit')
         unrealizedPnl = self.parse_number(unrealizedPnlString)
-        liquidationPriceString = self.omit_zero((self.safe_string(position, 'liquidationPrice')))
+        liquidationPriceString = self.omit_zero(self.safe_string(position, 'liquidationPrice'))
         liquidationPrice = self.parse_number(liquidationPriceString)
         collateralString = None
         marginMode = self.safe_string(position, 'marginType')
@@ -3320,7 +3458,7 @@ class aster(Exchange, ImplicitAPI):
                         onePlusMaintenanceMarginPercentageString = Precise.string_add('-1', maintenanceMarginPercentageString)
                     inner = Precise.string_mul(liquidationPriceString, onePlusMaintenanceMarginPercentageString)
                     leftSide = Precise.string_add(inner, entryPriceSignString)
-                    quotePrecision = self.precision_from_string((self.safe_string_2(precision, 'quote', 'price')))
+                    quotePrecision = self.precision_from_string(self.safe_string_2(precision, 'quote', 'price'))
                     if quotePrecision is not None:
                         collateralString = Precise.string_div(Precise.string_mul(leftSide, contractsAbs), '1', quotePrecision)
                 else:
@@ -3334,14 +3472,14 @@ class aster(Exchange, ImplicitAPI):
                         entryPriceSignString = Precise.string_mul('-1', entryPriceSignString)
                     leftSide = Precise.string_mul(contractsAbs, contractSizeString)
                     rightSide = Precise.string_sub(Precise.string_div('1', entryPriceSignString), Precise.string_div(onePlusMaintenanceMarginPercentageString, liquidationPriceString))
-                    basePrecision = self.precision_from_string((self.safe_string(precision, 'base')))
+                    basePrecision = self.precision_from_string(self.safe_string(precision, 'base'))
                     if basePrecision is not None:
                         collateralString = Precise.string_div(Precise.string_mul(leftSide, rightSide), '1', basePrecision)
         else:
             collateralString = self.safe_string(position, 'isolatedMargin')
         collateralString = '0' if (collateralString is None) else collateralString
         collateral = self.parse_number(collateralString)
-        markPrice = self.parse_number(self.omit_zero((self.safe_string(position, 'markPrice'))))
+        markPrice = self.parse_number(self.omit_zero(self.safe_string(position, 'markPrice')))
         timestamp = self.safe_integer(position, 'updateTime')
         if timestamp == 0:
             timestamp = None
@@ -3437,16 +3575,17 @@ class aster(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
+        rawPositions = self.to_array(response)
         result = []
-        for i in range(0, len(response)):
-            rawPosition = response[i]
+        for i in range(0, len(rawPositions)):
+            rawPosition = rawPositions[i]
             entryPriceString = self.safe_string(rawPosition, 'entryPrice')
             if Precise.string_gt(entryPriceString, '0'):
-                result.append(self.parse_position_risk(response[i]))
+                result.append(self.parse_position_risk(rawPosition))
         symbols = self.market_symbols(symbols)
         return self.filter_by_array_positions(result, 'symbol', symbols, False)
 
-    async def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
+    async def fetch_positions(self, symbols: Strings = None, params={}) -> list[Position]:
         """
         fetch all open positions
 
@@ -3472,7 +3611,7 @@ class aster(Exchange, ImplicitAPI):
         else:
             raise NotSupported(self.id + '.options["fetchPositions"]["method"] or params["method"] = "' + defaultMethod + '" is invalid, please choose between "account" and "positionRisk"')
 
-    def parse_account_positions(self, account, filterClosed=False):
+    def parse_account_positions(self, account: object, filterClosed=False):
         positions = self.safe_list(account, 'positions', [])
         assets = self.safe_list(account, 'assets', [])
         balances = {}
@@ -3482,16 +3621,17 @@ class aster(Exchange, ImplicitAPI):
             code = self.safe_currency_code(currencyId)
             crossWalletBalance = self.safe_string(entry, 'crossWalletBalance')
             crossUnPnl = self.safe_string(entry, 'crossUnPnl')
-            balances[code] = {
-                'crossMargin': Precise.string_add(crossWalletBalance, crossUnPnl),
-                'crossWalletBalance': crossWalletBalance,
-            }
+            if code is not None:
+                balances[code] = {
+                    'crossMargin': Precise.string_add(crossWalletBalance, crossUnPnl),
+                    'crossWalletBalance': crossWalletBalance,
+                }
         result = []
         for i in range(0, len(positions)):
             position = positions[i]
             marketId = self.safe_string(position, 'symbol')
             market = self.safe_market(marketId, None, None, 'contract')
-            code = market['quote'] if market['linear'] else market['base']
+            code = market['quote'] if (market['linear'] is True) else market['base']
             maintenanceMargin = self.safe_string(position, 'maintMargin')
             # check for maintenance margin so empty positions are not returned
             isPositionOpen = (maintenanceMargin != '0') and (maintenanceMargin != '0.00000000')
@@ -3505,7 +3645,7 @@ class aster(Exchange, ImplicitAPI):
                     result.append(parsed)
         return result
 
-    def parse_account_position(self, position, market: Market = None):
+    def parse_account_position(self, position: object, market: Market = None):
         marketId = self.safe_string(position, 'symbol')
         market = self.safe_market(marketId, market, None, 'contract')
         symbol = self.safe_string(market, 'symbol')
@@ -3516,6 +3656,8 @@ class aster(Exchange, ImplicitAPI):
         initialMarginPercentageString = None
         if leverageString is not None:
             initialMarginPercentageString = Precise.string_div('1', leverageString, 8)
+            if leverage is None:
+                raise ExchangeError(self.id + ' parseAccountPosition() missing leverage')
             rational = self.is_round_number(1000 % leverage)
             if not rational:
                 initialMarginPercentageString = Precise.string_div(Precise.string_add(initialMarginPercentageString, '1e-8'), '1', 8)
@@ -3613,7 +3755,7 @@ class aster(Exchange, ImplicitAPI):
                 leftSide = Precise.string_mul(size, onePlusMaintenanceMarginPercentageString)
                 rightSide = Precise.string_sub(Precise.string_mul(Precise.string_div('1', entryPriceSignString), size), walletBalance)
                 liquidationPriceStringRaw = Precise.string_div(leftSide, rightSide)
-            pricePrecision = self.precision_from_string((self.safe_string(market['precision'], 'price')))
+            pricePrecision = self.precision_from_string(self.safe_string(market['precision'], 'price'))
             pricePrecisionPlusOne = pricePrecision + 1
             pricePrecisionPlusOneString = str(pricePrecisionPlusOne)
             # round half up
@@ -3621,6 +3763,8 @@ class aster(Exchange, ImplicitAPI):
             rounderString = str(rounder)
             liquidationPriceRoundedString = Precise.string_add(rounderString, liquidationPriceStringRaw)
             truncatedLiquidationPrice = Precise.string_div(liquidationPriceRoundedString, '1', pricePrecision)
+            if truncatedLiquidationPrice is None:
+                raise ExchangeError(self.id + ' method() missing truncatedLiquidationPrice')
             if truncatedLiquidationPrice[0] == '-':
                 # user cannot be liquidated
                 # since he has more collateral than the size of the position
@@ -3706,8 +3850,9 @@ class aster(Exchange, ImplicitAPI):
             #                ...
             #
             self.options['leverageBrackets'] = self.create_safe_dictionary()
-            for i in range(0, len(response)):
-                entry = response[i]
+            entries = self.to_array(response)
+            for i in range(0, len(entries)):
+                entry = entries[i]
                 marketId = self.safe_string(entry, 'symbol')
                 symbol = self.safe_symbol(marketId, None, None, 'contract')
                 brackets = self.safe_list(entry, 'brackets', [])
@@ -3720,13 +3865,13 @@ class aster(Exchange, ImplicitAPI):
                 self.options['leverageBrackets'][symbol] = result
         return self.options['leverageBrackets']
 
-    def keccak_message(self, message):
+    def keccak_message(self, message: object):
         return '0x' + self.hash(message, 'keccak', 'hex')
 
-    def sign_message(self, message, privateKey):
+    def sign_message(self, message: object, privateKey: object):
         return self.sign_hash(self.keccak_message(message), privateKey[-64:])
 
-    def sign_withdraw_payload(self, withdrawPayload, network) -> str:
+    def sign_withdraw_payload(self, withdrawPayload: object, network: object) -> str:
         chainId = self.safe_integer(withdrawPayload, 'chainId')
         domain = {
             'chainId': chainId,
@@ -3812,7 +3957,7 @@ class aster(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(response, currency)
 
-    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
+    def parse_transaction(self, transaction: object, currency: Currency = None) -> Transaction:
         return {
             'info': transaction,
             'id': self.safe_string(transaction, 'withdrawId'),
@@ -3896,15 +4041,15 @@ class aster(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def hash_message(self, binaryMessage):
+    def hash_message(self, binaryMessage: object):
         # binaryMessage = self.encode(message)
         binaryMessageLength = self.binary_length(binaryMessage)
         x19 = self.base16_to_binary('19')
         newline = self.base16_to_binary('0a')
-        prefix = self.binary_concat(x19, self.encode('Ethereum Signed Message:'), newline, self.encode((self.number_to_string(binaryMessageLength))))
+        prefix = self.binary_concat(x19, self.encode('Ethereum Signed Message:'), newline, self.encode(self.number_to_string(binaryMessageLength)))
         return '0x' + self.hash(self.binary_concat(prefix, binaryMessage), 'keccak', 'hex')
 
-    def sign_hash(self, hash, privateKey):
+    def sign_hash(self, hash: object, privateKey: object):
         self.check_required_credentials()
         signature = self.ecdsa(hash[-64:], privateKey[-64:], 'secp256k1', None)
         r = signature['r']
@@ -3912,10 +4057,10 @@ class aster(Exchange, ImplicitAPI):
         v = self.int_to_base16(self.sum(27, signature['v']))
         return '0x' + r.rjust(64, '0') + s.rjust(64, '0') + v
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Any = None):
+    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: object = None):
         url = self.urls['api'][api] + '/' + path
         if api == 'fapiPublic' or api == 'sapiPublic':
-            if params:
+            if len(params) > 0:
                 url += '?' + self.rawencode(params)
         elif api == 'fapiPrivate' or api == 'sapiPrivate':
             self.check_required_credentials()
@@ -3944,7 +4089,7 @@ class aster(Exchange, ImplicitAPI):
                     {'name': 'msg', 'type': 'string'},
                 ],
             }
-            # Build v3 params: original endpoint params + nonce(macroseconds) + user + signer
+            # Build v3 params: original endpoint params + nonce(microseconds) + user + signer
             # Note: timestamp and recvWindow are not used for v3; nonce replaces timestamp
             finalParams = self.extend({
                 'nonce': str(nonce),
@@ -4028,10 +4173,10 @@ class aster(Exchange, ImplicitAPI):
 
     async def initialize_client(self, params={}):
         builderFee = self.safe_bool(params, 'builderFee', self.safe_bool(self.options, 'builderFee', True))  # we shouldn't omit here
-        if not builderFee:
+        if builderFee is not True:
             return False  # skip if builder fee is not enabled
         approvedBuilderFee = self.safe_bool(self.options, 'approvedBuilderFee', False)
-        if approvedBuilderFee:
+        if approvedBuilderFee is True:
             return True  # skip if builder fee is already approved
         result = await self.fapiPrivateGetV3Builder()
         #
@@ -4075,7 +4220,7 @@ class aster(Exchange, ImplicitAPI):
                 self.options['builderFee'] = False  # disable if err
         return None  # just c#
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:
             return None  # fallback to default error handler
         #

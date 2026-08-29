@@ -1,13 +1,13 @@
 import Exchange from './abstract/hyperliquid.js';
-import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, NullableDict, Num, Bool, MarginModification, Currencies, CancellationRequest, int, Transaction, Currency, TradingFeeInterface, Ticker, Tickers, LedgerEntry, FundingRates, FundingRate, OpenInterests, MarketInterface } from './base/types.js';
+import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, NullableDict, Num, Bool, MarginModification, Currencies, CancellationRequest, int, Transaction, Currency, CurrencyInterface, TradingFeeInterface, Ticker, Tickers, LedgerEntry, FundingRates, FundingRate, OpenInterests, MarketInterface, Status } from './base/types.js';
 /**
  * @class hyperliquid
  * @augments Exchange
  */
 export default class hyperliquid extends Exchange {
     describe(): any;
-    setSandboxMode(enabled: any): void;
-    market(symbol: string): MarketInterface;
+    setSandboxMode(enabled: boolean): void;
+    market(symbol: Str): MarketInterface;
     /**
      * @method
      * @name hyperliquid#fetchStatus
@@ -15,13 +15,7 @@ export default class hyperliquid extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    fetchStatus(params?: {}): Promise<{
-        status: string;
-        updated: number;
-        eta: any;
-        url: any;
-        info: any;
-    }>;
+    fetchStatus(params?: {}): Promise<Status>;
     /**
      * @method
      * @name hyperliquid#fetchTime
@@ -29,7 +23,7 @@ export default class hyperliquid extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    fetchTime(params?: {}): Promise<number>;
+    fetchTime(params?: {}): Promise<Int>;
     /**
      * @method
      * @name hyperliquid#fetchCurrencies
@@ -39,7 +33,7 @@ export default class hyperliquid extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     fetchCurrencies(params?: {}): Promise<Currencies>;
-    parseCurrency(rawCurrency: Dict): Currency;
+    parseCurrency(rawCurrency: Dict): CurrencyInterface;
     /**
      * @method
      * @name hyperliquid#fetchMarkets
@@ -68,7 +62,7 @@ export default class hyperliquid extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    fetchSwapMarkets(params?: {}): Promise<Market[]>;
+    fetchSwapMarkets(params?: any): Promise<Market[]>;
     /**
      * @method
      * @name hyperliquid#calculatePricePrecision
@@ -87,9 +81,9 @@ export default class hyperliquid extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    fetchSpotMarkets(params?: {}): Promise<Market[]>;
+    fetchSpotMarkets(params?: any): Promise<Market[]>;
     parseMarket(market: Dict): Market;
-    updateSpotCurrencyCode(code: string): string;
+    updateSpotCurrencyCode(code: Str): Str;
     /**
      * @method
      * @name hyperliquid#fetchBalance
@@ -114,7 +108,7 @@ export default class hyperliquid extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     /**
@@ -130,6 +124,16 @@ export default class hyperliquid extends Exchange {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
+    /**
+     * @method
+     * @name hyperliquid#fetchFundingRate
+     * @description fetch the current funding rate for a symbol - hyperliquid only offers a bulk endpoint, so this filters the result of fetchFundingRates
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     */
+    fetchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
     /**
      * @method
      * @name hyperliquid#fetchFundingRates
@@ -173,9 +177,9 @@ export default class hyperliquid extends Exchange {
      * @param {string} [params.subAccountAddress] sub account user address
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    fetchTrades(symbol: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    amountToPrecision(symbol: any, amount: any): string;
-    priceToPrecision(symbol: string, price: any): string;
+    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    amountToPrecision(symbol: Str, amount: any): string;
+    priceToPrecision(symbol: Str, price: any): Str;
     hashMessage(message: any): string;
     signHash(hash: any, privateKey: any): {
         r: string;
@@ -228,8 +232,8 @@ export default class hyperliquid extends Exchange {
         s: string;
         v: any;
     };
-    setRef(): Promise<true | Dict>;
-    approveBuilderFee(builder: string, maxFeeRate: string): Promise<any>;
+    setRef(): Promise<true | Dict | undefined>;
+    approveBuilderFee(builder: string, maxFeeRate: string): Promise<Dict>;
     initializeClient(): Promise<boolean>;
     handleBuilderFeeApproval(): Promise<boolean>;
     /**
@@ -254,7 +258,7 @@ export default class hyperliquid extends Exchange {
      * @param {string} [params.type] 'userSetAbstraction' or 'agentSetAbstraction' default is 'userSetAbstraction'
      * @returns dictionary response from the exchange
      */
-    setUserAbstraction(abstraction: string, params?: {}): Promise<any>;
+    setUserAbstraction(abstraction: string, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name hyperliquid#enableUserDexAbstraction
@@ -264,7 +268,7 @@ export default class hyperliquid extends Exchange {
      * @param {string} [params.type] 'userDexAbstraction' or 'agentEnableDexAbstraction' default is 'userDexAbstraction'
      * @returns dictionary response from the exchange
      */
-    enableUserDexAbstraction(enabled: boolean, params?: {}): Promise<any>;
+    enableUserDexAbstraction(enabled: boolean, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name hyperliquid#setAgentAbstraction
@@ -273,7 +277,7 @@ export default class hyperliquid extends Exchange {
      * @param {object} [params]
      * @returns dictionary response from the exchange
      */
-    setAgentAbstraction(abstraction: string, params?: {}): Promise<any>;
+    setAgentAbstraction(abstraction: string, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name hyperliquid#createOrder
@@ -322,7 +326,7 @@ export default class hyperliquid extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
-    createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: string, price?: Str, params?: {}): Dict;
+    createOrderRequest(symbol: Str, type: Str, side: Str, amount: string, price?: Str, params?: {}): Dict;
     createOrdersRequest(orders: any, params?: {}): Dict;
     /**
      * @method
@@ -392,7 +396,7 @@ export default class hyperliquid extends Exchange {
      * @param {string} [params.subAccountAddress] sub account user address
      * @returns {object} the api result
      */
-    cancelAllOrdersAfter(timeout: Int, params?: {}): Promise<any>;
+    cancelAllOrdersAfter(timeout: Int, params?: {}): Promise<Dict>;
     editOrdersRequest(orders: any, params?: {}): Dict;
     /**
      * @method
@@ -436,7 +440,7 @@ export default class hyperliquid extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the api result
      */
-    createVault(name: string, description: string, initialUsd: int, params?: {}): Promise<any>;
+    createVault(name: string, description: string, initialUsd: int, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name hyperliquid#fetchFundingRateHistory
@@ -450,7 +454,7 @@ export default class hyperliquid extends Exchange {
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
     fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingRateHistory[]>;
-    getDexFromHip3Symbol(market: any): string;
+    getDexFromHip3Symbol(market: any): Str;
     /**
      * @method
      * @name hyperliquid#fetchOpenOrders
@@ -532,7 +536,7 @@ export default class hyperliquid extends Exchange {
      */
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     parseOrder(order: Dict, market?: Market): Order;
-    parseOrderStatus(status: Str): string;
+    parseOrderStatus(status: Str): string | undefined;
     parseOrderType(status: any): string;
     /**
      * @method
@@ -561,7 +565,7 @@ export default class hyperliquid extends Exchange {
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     fetchPosition(symbol: string, params?: {}): Promise<Position>;
-    getDexFromSymbols(methodName: string, symbols?: Strings): string;
+    getDexFromSymbols(methodName: string, symbols?: Strings): Str;
     /**
      * @method
      * @name hyperliquid#fetchPositions
@@ -588,7 +592,7 @@ export default class hyperliquid extends Exchange {
      * @param {string} [params.subAccountAddress] sub account user address
      * @returns {object} response from the exchange
      */
-    setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<any>;
+    setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name hyperliquid#setLeverage
@@ -599,7 +603,7 @@ export default class hyperliquid extends Exchange {
      * @param {string} [params.marginMode] margin mode must be either [isolated, cross], default is cross
      * @returns {object} response from the exchange
      */
-    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<any>;
+    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name hyperliquid#addMargin
@@ -749,11 +753,11 @@ export default class hyperliquid extends Exchange {
         info: any;
         symbol: string;
         code: string;
-        timestamp: number;
-        datetime: string;
-        id: string;
+        timestamp: Int;
+        datetime: string | undefined;
+        id: Str;
         amount: number;
-        rate: number;
+        rate: Num;
     };
     /**
      * @method
@@ -773,18 +777,18 @@ export default class hyperliquid extends Exchange {
      * @param {int} [params.expiresAfter] time in ms after which the sub-account will expire
      * @returns {object} a response object
      */
-    createSubAccount(name: string, params?: {}): Promise<any>;
-    extractTypeFromDelta(data?: any[]): any[];
-    formatVaultAddress(address?: Str): string;
+    createSubAccount(name: string, params?: {}): Promise<Dict>;
+    extractTypeFromDelta(data?: Dict[]): Dict[];
+    formatVaultAddress(address?: Str): string | undefined;
     handlePublicAddress(methodName: string, params: Dict): [Str, Dict];
-    coinToMarketId(coin: Str): string;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
+    coinToMarketId(coin: Str): string | undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
     sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
         url: string;
         method: string;
-        body: string;
-        headers: Dict;
+        body: Str;
+        headers: NullableDict;
     };
     calculateRateLimiterCost(api: any, method: any, path: any, params: any, config?: {}): any;
-    parseCreateEditOrderArgs(id: Str, symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): {}[];
+    parseCreateEditOrderArgs(id: Str, symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Dict[];
 }

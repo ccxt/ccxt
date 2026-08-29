@@ -54,6 +54,7 @@ class alpaca extends Exchange {
                 'createMarketBuyOrder' => true,
                 'createMarketBuyOrderWithCost' => true,
                 'createMarketOrderWithCost' => true,
+                'createMarketSellOrderWithCost' => true,
                 'createOrder' => true,
                 'createOrderWithTakeProfitAndStopLoss' => false,
                 'createOrderWithTakeProfitAndStopLossWs' => false,
@@ -155,94 +156,94 @@ class alpaca extends Exchange {
                 'trader' => array(
                     'private' => array(
                         'get' => array(
-                            'v2/account',
-                            'v2/orders',
-                            'v2/orders/{order_id}',
-                            'v2/positions',
-                            'v2/positions/{symbol_or_asset_id}',
-                            'v2/account/portfolio/history',
-                            'v2/watchlists',
-                            'v2/watchlists/{watchlist_id}',
-                            'v2/watchlists:by_name',
-                            'v2/account/configurations',
-                            'v2/account/activities',
-                            'v2/account/activities/{activity_type}',
-                            'v2/calendar',
-                            'v2/clock',
-                            'v2/assets',
-                            'v2/assets/{symbol_or_asset_id}',
-                            'v2/corporate_actions/announcements/{id}',
-                            'v2/corporate_actions/announcements',
-                            'v2/wallets',
-                            'v2/wallets/transfers',
+                            'v2/account' => array( 'cost' => 1 ),
+                            'v2/orders' => array( 'cost' => 1 ),
+                            'v2/orders/{order_id}' => array( 'cost' => 1 ),
+                            'v2/positions' => array( 'cost' => 1 ),
+                            'v2/positions/{symbol_or_asset_id}' => array( 'cost' => 1 ),
+                            'v2/account/portfolio/history' => array( 'cost' => 1 ),
+                            'v2/watchlists' => array( 'cost' => 1 ),
+                            'v2/watchlists/{watchlist_id}' => array( 'cost' => 1 ),
+                            'v2/watchlists:by_name' => array( 'cost' => 1 ),
+                            'v2/account/configurations' => array( 'cost' => 1 ),
+                            'v2/account/activities' => array( 'cost' => 1 ),
+                            'v2/account/activities/{activity_type}' => array( 'cost' => 1 ),
+                            'v2/calendar' => array( 'cost' => 1 ),
+                            'v2/clock' => array( 'cost' => 1 ),
+                            'v2/assets' => array( 'cost' => 1 ),
+                            'v2/assets/{symbol_or_asset_id}' => array( 'cost' => 1 ),
+                            'v2/corporate_actions/announcements/{id}' => array( 'cost' => 1 ),
+                            'v2/corporate_actions/announcements' => array( 'cost' => 1 ),
+                            'v2/wallets' => array( 'cost' => 1 ),
+                            'v2/wallets/transfers' => array( 'cost' => 1 ),
                         ),
                         'post' => array(
-                            'v2/orders',
-                            'v2/watchlists',
-                            'v2/watchlists/{watchlist_id}',
-                            'v2/watchlists:by_name',
-                            'v2/wallets/transfers',
+                            'v2/orders' => array( 'cost' => 1 ),
+                            'v2/watchlists' => array( 'cost' => 1 ),
+                            'v2/watchlists/{watchlist_id}' => array( 'cost' => 1 ),
+                            'v2/watchlists:by_name' => array( 'cost' => 1 ),
+                            'v2/wallets/transfers' => array( 'cost' => 1 ),
                         ),
                         'put' => array(
-                            'v2/orders/{order_id}',
-                            'v2/watchlists/{watchlist_id}',
-                            'v2/watchlists:by_name',
+                            'v2/orders/{order_id}' => array( 'cost' => 1 ),
+                            'v2/watchlists/{watchlist_id}' => array( 'cost' => 1 ),
+                            'v2/watchlists:by_name' => array( 'cost' => 1 ),
                         ),
                         'patch' => array(
-                            'v2/orders/{order_id}',
-                            'v2/account/configurations',
+                            'v2/orders/{order_id}' => array( 'cost' => 1 ),
+                            'v2/account/configurations' => array( 'cost' => 1 ),
                         ),
                         'delete' => array(
-                            'v2/orders',
-                            'v2/orders/{order_id}',
-                            'v2/positions',
-                            'v2/positions/{symbol_or_asset_id}',
-                            'v2/watchlists/{watchlist_id}',
-                            'v2/watchlists:by_name',
-                            'v2/watchlists/{watchlist_id}/{symbol}',
+                            'v2/orders' => array( 'cost' => 1 ),
+                            'v2/orders/{order_id}' => array( 'cost' => 1 ),
+                            'v2/positions' => array( 'cost' => 1 ),
+                            'v2/positions/{symbol_or_asset_id}' => array( 'cost' => 1 ),
+                            'v2/watchlists/{watchlist_id}' => array( 'cost' => 1 ),
+                            'v2/watchlists:by_name' => array( 'cost' => 1 ),
+                            'v2/watchlists/{watchlist_id}/{symbol}' => array( 'cost' => 1 ),
                         ),
                     ),
                 ),
                 'market' => array(
                     'public' => array(
                         'get' => array(
-                            'v1beta3/crypto/{loc}/bars',
-                            'v1beta3/crypto/{loc}/latest/bars',
-                            'v1beta3/crypto/{loc}/latest/orderbooks',
-                            'v1beta3/crypto/{loc}/latest/quotes',
-                            'v1beta3/crypto/{loc}/latest/trades',
-                            'v1beta3/crypto/{loc}/quotes',
-                            'v1beta3/crypto/{loc}/snapshots',
-                            'v1beta3/crypto/{loc}/trades',
+                            'v1beta3/crypto/{loc}/bars' => array( 'cost' => 1 ),
+                            'v1beta3/crypto/{loc}/latest/bars' => array( 'cost' => 1 ),
+                            'v1beta3/crypto/{loc}/latest/orderbooks' => array( 'cost' => 1 ),
+                            'v1beta3/crypto/{loc}/latest/quotes' => array( 'cost' => 1 ),
+                            'v1beta3/crypto/{loc}/latest/trades' => array( 'cost' => 1 ),
+                            'v1beta3/crypto/{loc}/quotes' => array( 'cost' => 1 ),
+                            'v1beta3/crypto/{loc}/snapshots' => array( 'cost' => 1 ),
+                            'v1beta3/crypto/{loc}/trades' => array( 'cost' => 1 ),
                         ),
                     ),
                     'private' => array(
                         'get' => array(
-                            'v1beta1/corporate-actions',
-                            'v1beta1/forex/latest/rates',
-                            'v1beta1/forex/rates',
-                            'v1beta1/logos/{symbol}',
-                            'v1beta1/news',
-                            'v1beta1/screener/stocks/most-actives',
-                            'v1beta1/screener/{market_type}/movers',
-                            'v2/stocks/auctions',
-                            'v2/stocks/bars',
-                            'v2/stocks/bars/latest',
-                            'v2/stocks/meta/conditions/{ticktype}',
-                            'v2/stocks/meta/exchanges',
-                            'v2/stocks/quotes',
-                            'v2/stocks/quotes/latest',
-                            'v2/stocks/snapshots',
-                            'v2/stocks/trades',
-                            'v2/stocks/trades/latest',
-                            'v2/stocks/{symbol}/auctions',
-                            'v2/stocks/{symbol}/bars',
-                            'v2/stocks/{symbol}/bars/latest',
-                            'v2/stocks/{symbol}/quotes',
-                            'v2/stocks/{symbol}/quotes/latest',
-                            'v2/stocks/{symbol}/snapshot',
-                            'v2/stocks/{symbol}/trades',
-                            'v2/stocks/{symbol}/trades/latest',
+                            'v1beta1/corporate-actions' => array( 'cost' => 1 ),
+                            'v1beta1/forex/latest/rates' => array( 'cost' => 1 ),
+                            'v1beta1/forex/rates' => array( 'cost' => 1 ),
+                            'v1beta1/logos/{symbol}' => array( 'cost' => 1 ),
+                            'v1beta1/news' => array( 'cost' => 1 ),
+                            'v1beta1/screener/stocks/most-actives' => array( 'cost' => 1 ),
+                            'v1beta1/screener/{market_type}/movers' => array( 'cost' => 1 ),
+                            'v2/stocks/auctions' => array( 'cost' => 1 ),
+                            'v2/stocks/bars' => array( 'cost' => 1 ),
+                            'v2/stocks/bars/latest' => array( 'cost' => 1 ),
+                            'v2/stocks/meta/conditions/{ticktype}' => array( 'cost' => 1 ),
+                            'v2/stocks/meta/exchanges' => array( 'cost' => 1 ),
+                            'v2/stocks/quotes' => array( 'cost' => 1 ),
+                            'v2/stocks/quotes/latest' => array( 'cost' => 1 ),
+                            'v2/stocks/snapshots' => array( 'cost' => 1 ),
+                            'v2/stocks/trades' => array( 'cost' => 1 ),
+                            'v2/stocks/trades/latest' => array( 'cost' => 1 ),
+                            'v2/stocks/{symbol}/auctions' => array( 'cost' => 1 ),
+                            'v2/stocks/{symbol}/bars' => array( 'cost' => 1 ),
+                            'v2/stocks/{symbol}/bars/latest' => array( 'cost' => 1 ),
+                            'v2/stocks/{symbol}/quotes' => array( 'cost' => 1 ),
+                            'v2/stocks/{symbol}/quotes/latest' => array( 'cost' => 1 ),
+                            'v2/stocks/{symbol}/snapshot' => array( 'cost' => 1 ),
+                            'v2/stocks/{symbol}/trades' => array( 'cost' => 1 ),
+                            'v2/stocks/{symbol}/trades/latest' => array( 'cost' => 1 ),
                         ),
                     ),
                 ),
@@ -303,6 +304,7 @@ class alpaca extends Exchange {
                 'APCA-PARTNER-ID' => 'ccxt',
             ),
             'options' => array(
+                'minCostUSD' => 10, // alpaca floors USD-quoted crypto buy orders at 10 USD notional, a venue parameter that has changed before
                 'defaultExchange' => 'CBSE',
                 'exchanges' => array(
                     'CBSE', // Coinbase
@@ -406,12 +408,14 @@ class alpaca extends Exchange {
                     '40410000' => '\\ccxt\\InvalidOrder', // array( "code" => 40410000, "message" => "order is not found.")
                     '40010001' => '\\ccxt\\BadRequest', // array("code":40010001,"message":"invalid order type for crypto order")
                     '40110000' => '\\ccxt\\PermissionDenied', // array( "code" => 40110000, "message" => "request is not authorized")
-                    '40310000' => '\\ccxt\\InsufficientFunds', // array("available":"0","balance":"0","code":40310000,"message":"insufficient balance for USDT (requested => 221.63, available => 0)","symbol":"USDT")
                     '42910000' => '\\ccxt\\RateLimitExceeded', // array("code":42910000,"message":"rate limit exceeded")
                 ),
                 'broad' => array(
                     'Invalid format for parameter' => '\\ccxt\\BadRequest', // array("message":"Invalid format for parameter start => error parsing '0' or 2006-01-02 time => parsing time \"0\" as \"2006-01-02\" => cannot parse \"0\" as \"2006\"")
                     'Invalid symbol' => '\\ccxt\\BadSymbol', // array("message":"Invalid symbol(s) => BTC/USDdsda does not match ^[A-Z]+/[A-Z]+$")
+                    'cost basis must be' => '\\ccxt\\InvalidOrder', // array("code":40310000,"message":"cost basis must be >= minimal amount of order 10")
+                    'insufficient balance for' => '\\ccxt\\InsufficientFunds', // array("available":"0","balance":"0","code":40310000,"message":"insufficient balance for USDT (requested => 221.63, available => 0)","symbol":"USDT")
+                    'orders are rejected by user request' => '\\ccxt\\PermissionDenied', // array("code":40310000,"message":"new orders are rejected by user request") — the account has suspend_trade enabled
                 ),
             ),
         ));
@@ -433,9 +437,21 @@ class alpaca extends Exchange {
         //     }
         //
         $timestamp = $this->safe_string($response, 'timestamp');
+        if ($timestamp === null) {
+            throw new ExchangeError($this->id . ' fetchTime() missing timestamp');
+        }
         $localTime = mb_substr($timestamp, 0, 23 - 0);
+        if ($timestamp === null) {
+            throw new ExchangeError($this->id . ' fetchTime() missing timestamp');
+        }
         $jetlagStrStart = strlen($timestamp) - 6;
+        if ($timestamp === null) {
+            throw new ExchangeError($this->id . ' fetchTime() missing timestamp');
+        }
         $jetlagStrEnd = strlen($timestamp) - 3;
+        if ($timestamp === null) {
+            throw new ExchangeError($this->id . ' fetchTime() missing timestamp');
+        }
         $jetlag = mb_substr($timestamp, $jetlagStrStart, $jetlagStrEnd - $jetlagStrStart);
         $iso = $this->parse_to_int($this->parse8601($localTime)) - $this->parse_to_numeric($jetlag) * 3600 * 1000;
         return $iso;
@@ -447,7 +463,7 @@ class alpaca extends Exchange {
          *
          * @see https://docs.alpaca.markets/reference/get-v2-$assets
          *
-         * @param {array} [$params] extra parameters specific to the exchange api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
          */
         $request = array(
@@ -480,7 +496,7 @@ class alpaca extends Exchange {
         return $this->parse_markets($assets);
     }
 
-    public function parse_market($asset): array {
+    public function parse_market(array $asset): array {
         //
         //     {
         //         "id" => "c150e086-1e75-44e6-9c2c-093bb1e93139",
@@ -502,6 +518,9 @@ class alpaca extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($asset, 'symbol');
+        if ($marketId === null) {
+            throw new ExchangeError($this->id . ' parseMarket() missing marketId');
+        }
         $parts = explode('/', $marketId);
         $assetClass = $this->safe_string($asset, 'class');
         $baseId = $this->safe_string($parts, 0);
@@ -519,7 +538,13 @@ class alpaca extends Exchange {
         $minAmount = $this->safe_number($asset, 'min_order_size');
         $amount = $this->safe_number($asset, 'min_trade_increment');
         $price = $this->safe_number($asset, 'price_increment');
-        return array(
+        $minCost = null;
+        if (($assetClass === 'crypto') && ($quote === 'USD')) {
+            // alpaca rejects USD-quoted crypto buy orders below 10 USD notional => array("code":40310000,"message":"cost basis must be >= minimal $amount of order 10")
+            // USDT-, USDC- and BTC-quoted pairs accept smaller orders, and sell orders are not floored — verified live 2026-08-25
+            $minCost = $this->safe_number($this->options, 'minCostUSD', $this->parse_number('10'));
+        }
+        return $this->safe_market_structure(array(
             'id' => $marketId,
             'symbol' => $symbol,
             'base' => $base,
@@ -561,13 +586,13 @@ class alpaca extends Exchange {
                     'max' => null,
                 ),
                 'cost' => array(
-                    'min' => null,
+                    'min' => $minCost,
                     'max' => null,
                 ),
             ),
             'created' => null,
             'info' => $asset,
-        );
+        ));
     }
 
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -640,12 +665,16 @@ class alpaca extends Exchange {
             //    }
             //
             $trades = $this->safe_dict($response, 'trades', array());
-            $symbolTrades = $this->safe_dict($trades, $marketId, array());
-            $symbolTrades = array( $symbolTrades );
+            $symbolTrade = $this->safe_dict($trades, $marketId, array());
+            $symbolTrades = array( $symbolTrade );
         } else {
             throw new NotSupported($this->id . ' fetchTrades() does not support ' . $method . ', marketPublicGetV1beta3CryptoLocTrades and marketPublicGetV1beta3CryptoLocLatestTrades are supported');
         }
-        return $this->parse_trades($symbolTrades, $market, $since, $limit);
+        $symbolTradesList = array();
+        if ($symbolTrades !== null) {
+            $symbolTradesList = $symbolTrades;
+        }
+        return $this->parse_trades($symbolTradesList, $market, $since, $limit);
     }
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): array {
@@ -658,7 +687,7 @@ class alpaca extends Exchange {
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->loc] crypto location, default => us
-         * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
+         * @return {array} an ~@link https://docs.ccxt.com/?$id=order-book-structure order book structure~
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -725,7 +754,10 @@ class alpaca extends Exchange {
          * @param {string} $timeframe the length of time each candle represents
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
-         * @param {array} [$params] extra parameters specific to the alpha api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @param {int} [$params->paginationCalls] the maximum number of requests while following next_page_token, default 10 — when the cap is reached the result is silently truncated to the pages already fetched, so raise it for long ranges, 10 requests cover roughly 30 days of 1h candles
          * @param {string} [$params->loc] crypto location, default => us
          * @param {string} [$params->method] $method, default => marketPublicGetV1beta3CryptoLocBars
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume
@@ -737,6 +769,10 @@ class alpaca extends Exchange {
         $marketId = $market['id'];
         $loc = $this->safe_string($params, 'loc', 'us');
         $method = $this->safe_string($params, 'method', 'marketPublicGetV1beta3CryptoLocBars');
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate', false);
+        $paginationCalls = 10;
+        list($paginationCalls, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginationCalls', 10);
         $request = array(
             'symbols' => $marketId,
             'loc' => $loc,
@@ -748,7 +784,12 @@ class alpaca extends Exchange {
                 $request['limit'] = $limit;
             }
             if ($since !== null) {
-                $request['start'] = $this->yyyymmdd($since);
+                $request['start'] = $this->iso8601($since);
+            }
+            $until = $this->safe_integer($params, 'until');
+            if ($until !== null) {
+                $params = $this->omit($params, 'until');
+                $request['end'] = $this->iso8601($until);
             }
             $request['timeframe'] = $this->safe_string($this->timeframes, $timeframe, $timeframe);
             $response = $this->marketPublicGetV1beta3CryptoLocBars($this->extend($request, $params));
@@ -783,6 +824,26 @@ class alpaca extends Exchange {
             //
             $bars = $this->safe_dict($response, 'bars', array());
             $ohlcvs = $this->safe_list($bars, $marketId, array());
+            if ($paginate) {
+                // the endpoint answers with a server-sized $page plus a next_page_token regardless of the requested $limit
+                $pageToken = $this->safe_string($response, 'next_page_token');
+                for ($i = 1; $i < $paginationCalls; $i++) {
+                    $ohlcvsLength = count($ohlcvs);
+                    if (($pageToken === null) || (($limit !== null) && ($ohlcvsLength >= $limit))) {
+                        break;
+                    }
+                    $request['page_token'] = $pageToken;
+                    $response = $this->marketPublicGetV1beta3CryptoLocBars($this->extend($request, $params));
+                    $bars = $this->safe_dict($response, 'bars', array());
+                    $page = $this->safe_list($bars, $marketId, array());
+                    $pageLength = count($page);
+                    if ($pageLength === 0) {
+                        break;
+                    }
+                    $ohlcvs = $this->array_concat($ohlcvs, $page);
+                    $pageToken = $this->safe_string($response, 'next_page_token');
+                }
+            }
         } elseif ($method === 'marketPublicGetV1beta3CryptoLocLatestBars') {
             $response = $this->marketPublicGetV1beta3CryptoLocLatestBars($this->extend($request, $params));
             //
@@ -802,15 +863,15 @@ class alpaca extends Exchange {
             //     }
             //
             $bars = $this->safe_dict($response, 'bars', array());
-            $ohlcvs = $this->safe_dict($bars, $marketId, array());
-            $ohlcvs = array( $ohlcvs );
+            $bar = $this->safe_dict($bars, $marketId, array());
+            $ohlcvs = array( $bar );
         } else {
             throw new NotSupported($this->id . ' fetchOHLCV() does not support ' . $method . ', marketPublicGetV1beta3CryptoLocBars and marketPublicGetV1beta3CryptoLocLatestBars are supported');
         }
         return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //     {
         //        "c":22895,
@@ -860,16 +921,18 @@ class alpaca extends Exchange {
          *
          * @see https://docs.alpaca.markets/reference/cryptosnapshots-1
          *
-         * @param {string[]} $symbols unified $symbols of the markets to fetch tickers for
+         * @param {string[]} [$symbols] unified $symbols of the markets to fetch tickers for, defaults to all markets
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->loc] crypto location, default => us
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structures~
          */
-        if ($symbols === null) {
-            throw new ArgumentsRequired($this->id . ' fetchTickers() requires a $symbols argument');
-        }
         if ($this->markets === null) {
             $this->load_markets();
+        }
+        if ($symbols === null) {
+            // every listed $market is a crypto $market because fetchMarkets requests asset_class=crypto, so default to all of them
+            $allSymbols = $this->sort($this->symbols); // symbol iteration order differs per language
+            $symbols = $allSymbols;
         }
         $symbols = $this->market_symbols($symbols);
         $loc = $this->safe_string($params, 'loc', 'us');
@@ -964,14 +1027,15 @@ class alpaca extends Exchange {
                 'percentage' => null,
                 'average' => null,
                 'baseVolume' => $this->safe_string($dailyBar, 'v'),
-                'quoteVolume' => $this->safe_string($dailyBar, 'n'),
+                // 'n' is the trade count; the quote volume is the daily volume at the daily vwap
+                'quoteVolume' => Precise::string_mul($this->safe_string($dailyBar, 'v'), $this->safe_string($dailyBar, 'vw')),
             ), $market);
             $results[] = $ticker;
         }
         return $this->filter_by_array($results, 'symbol', $symbols);
     }
 
-    public function generate_client_order_id($params) {
+    public function generate_client_order_id(mixed $params) {
         $clientOrderIdprefix = $this->safe_string($this->options, 'clientOrderId');
         $uuid = $this->uuid();
         $parts = explode('-', $uuid);
@@ -1164,7 +1228,7 @@ class alpaca extends Exchange {
          *
          * @see https://docs.alpaca.markets/reference/deleteallorders
          *
-         * @param {string} $symbol alpaca cancelAllOrders cannot setting $symbol, it will cancel all open orders
+         * @param {string} [$symbol] alpaca cancelAllOrders cannot setting $symbol, it will cancel all open orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
@@ -1626,7 +1690,7 @@ class alpaca extends Exchange {
         return $this->parse_deposit_address($response, $currency);
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
+    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
         //
         //     {
         //         "asset_id" => "4fa30c85-77b7-4cbc-92dd-7b7513640aad",
@@ -1666,7 +1730,7 @@ class alpaca extends Exchange {
             $this->load_markets();
         }
         $currency = $this->currency($code);
-        if ($tag) {
+        if (($tag !== null) && ($tag !== '')) {
             $address = $address . ':' . $tag;
         }
         $request = array(
@@ -1695,13 +1759,55 @@ class alpaca extends Exchange {
         return $this->parse_transaction($response, $currency);
     }
 
-    public function fetch_transactions_helper($type, $code, $since, $limit, $params) {
+    public function set_sandbox_mode(bool $enable) {
+        parent::set_sandbox_mode($enable);
+        $this->options['sandboxMode'] = $enable;
+    }
+
+    public function fetch_transactions_helper(mixed $type, mixed $code, mixed $since, mixed $limit, mixed $params): array {
         if ($this->markets === null) {
             $this->load_markets();
         }
         $currency = null;
         if ($code !== null) {
             $currency = $this->currency($code);
+        }
+        $sandboxMode = $this->isSandboxModeEnabled || $this->safe_bool($this->options, 'sandboxMode', false);
+        if ($sandboxMode === true) {
+            // paper-trading hosts do not serve the crypto wallets api at all, so route
+            // through the account $activities $ledger instead, $filtered to transfer-like
+            // entries, see https://github.com/ccxt/ccxt/issues/24847
+            $request = array(
+                'activity_types' => 'CSD,CSW,TRANS',
+            );
+            $activities = $this->traderPrivateGetV2AccountActivities($this->extend($request, $params));
+            //
+            //     array(
+            //         {
+            //             "id" => "20250110000000000::7f6cba2b-4c72-46b9-8e34-8e5b0b8d8e10",
+            //             "activity_type" => "CSD",
+            //             "date" => "2025-01-10",
+            //             "net_amount" => "1000",
+            //             "status" => "executed"
+            //         }
+            //     )
+            //
+            $filtered = array();
+            $ledger = array();
+            if ((gettype($activities) === 'array' && array_keys($activities) === array_keys(array_keys($activities)))) {
+                $ledger = $activities;
+            }
+            for ($i = 0; $i < count($ledger); $i++) {
+                $entry = $ledger[$i];
+                $activityType = $this->safe_string($entry, 'activity_type');
+                $amount = $this->safe_string($entry, 'net_amount');
+                $isIncoming = ($activityType === 'CSD') || (($activityType === 'TRANS') && !Precise::string_lt($amount, '0'));
+                $entryDirection = $isIncoming ? 'INCOMING' : 'OUTGOING';
+                if (($type === 'BOTH') || ($entryDirection === $type)) {
+                    $filtered[] = $entry;
+                }
+            }
+            return $this->parse_transactions($filtered, $currency, $since, $limit, $params);
         }
         $response = $this->traderPrivateGetV2WalletsTransfers($params);
         //
@@ -1722,8 +1828,12 @@ class alpaca extends Exchange {
         //     }
         //
         $results = array();
-        for ($i = 0; $i < count($response); $i++) {
-            $entry = $response[$i];
+        $transfers = array();
+        if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
+            $transfers = $response;
+        }
+        for ($i = 0; $i < count($transfers); $i++) {
+            $entry = $transfers[$i];
             $direction = $this->safe_string($entry, 'direction');
             if ($direction === $type) {
                 $results[] = $entry;
@@ -1781,6 +1891,18 @@ class alpaca extends Exchange {
 
     public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
+        // account activities ledger entry (paper-trading path), see https://github.com/ccxt/ccxt/issues/24847
+        //
+        //     {
+        //         "id" => "20250110000000000::7f6cba2b-4c72-46b9-8e34-8e5b0b8d8e10",
+        //         "activity_type" => "CSD",
+        //         "date" => "2025-01-10",
+        //         "net_amount" => "1000",
+        //         "status" => "executed"
+        //     }
+        //
+        // crypto wallets api entry
+        //
         //     {
         //         "id" => "e27b70a6-5610-40d7-8468-a516a284b776",
         //         "tx_hash" => null,
@@ -1797,50 +1919,102 @@ class alpaca extends Exchange {
         //         "fees" => "0.1"
         //     }
         //
-        $datetime = $this->safe_string($transaction, 'created_at');
-        $currencyId = $this->safe_string($transaction, 'asset');
-        $code = $this->safe_currency_code($currencyId, $currency);
-        $fees = $this->safe_string($transaction, 'fees');
-        $networkFee = $this->safe_string($transaction, 'network_fee');
-        $totalFee = Precise::string_add($fees, $networkFee);
-        $fee = array(
-            'cost' => $this->parse_number($totalFee),
-            'currency' => $code,
-        );
+        $activityType = $this->safe_string($transaction, 'activity_type');
+        $txid = null;
+        $timestamp = null;
+        $datetime = null;
+        $network = null;
+        $address = null;
+        $addressTo = null;
+        $addressFrom = null;
+        $type = null;
+        $amount = null;
+        $code = null;
+        $status = null;
+        $comment = null;
+        $internal = null;
+        $fee = null;
+        if ($activityType !== null) {
+            $netAmount = $this->safe_string($transaction, 'net_amount');
+            $isIncoming = ($activityType === 'CSD') || (($activityType === 'TRANS') && !Precise::string_lt($netAmount, '0'));
+            $timestamp = $this->parse8601($this->safe_string($transaction, 'date') . 'T00:00:00Z');
+            $datetime = $this->iso8601($timestamp);
+            $type = $isIncoming ? 'deposit' : 'withdrawal';
+            $amount = $this->parse_number(Precise::string_abs($netAmount));
+            // cash ledger rows carry no per-entry asset field and are USD, while crypto
+            // TRANS entries may carry symbol/asset - never blindly adopt the caller's
+            // $currency filter, see the review on https://github.com/ccxt/ccxt/pull/29580
+            $activityCurrencyId = $this->safe_string_2($transaction, 'symbol', 'asset');
+            if ($activityCurrencyId !== null) {
+                $code = $this->safe_currency_code($activityCurrencyId);
+            } elseif (($activityType === 'CSD') || ($activityType === 'CSW')) {
+                $code = 'USD';
+            } else {
+                $code = $this->safe_currency_code(null, $currency);
+            }
+            $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
+            $comment = $activityType;
+            $internal = ($activityType !== 'TRANS');
+        } else {
+            $txid = $this->safe_string($transaction, 'tx_hash');
+            $datetime = $this->safe_string($transaction, 'created_at');
+            $timestamp = $this->parse8601($datetime);
+            $network = $this->safe_string($transaction, 'chain');
+            $address = $this->safe_string($transaction, 'to_address');
+            $addressTo = $this->safe_string($transaction, 'to_address');
+            $addressFrom = $this->safe_string($transaction, 'from_address');
+            $type = $this->parse_transaction_type($this->safe_string($transaction, 'direction'));
+            $amount = $this->safe_number($transaction, 'amount');
+            $currencyId = $this->safe_string($transaction, 'asset');
+            $code = $this->safe_currency_code($currencyId, $currency);
+            $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
+            $fees = $this->safe_string($transaction, 'fees');
+            $networkFee = $this->safe_string($transaction, 'network_fee');
+            $totalFee = Precise::string_add($fees, $networkFee);
+            $fee = array(
+                'cost' => $this->parse_number($totalFee),
+                'currency' => $code,
+            );
+        }
         return array(
             'info' => $transaction,
             'id' => $this->safe_string($transaction, 'id'),
-            'txid' => $this->safe_string($transaction, 'tx_hash'),
-            'timestamp' => $this->parse8601($datetime),
+            'txid' => $txid,
+            'timestamp' => $timestamp,
             'datetime' => $datetime,
-            'network' => $this->safe_string($transaction, 'chain'),
-            'address' => $this->safe_string($transaction, 'to_address'),
-            'addressTo' => $this->safe_string($transaction, 'to_address'),
-            'addressFrom' => $this->safe_string($transaction, 'from_address'),
+            'network' => $network,
+            'address' => $address,
+            'addressTo' => $addressTo,
+            'addressFrom' => $addressFrom,
             'tag' => null,
             'tagTo' => null,
             'tagFrom' => null,
-            'type' => $this->parse_transaction_type($this->safe_string($transaction, 'direction')),
-            'amount' => $this->safe_number($transaction, 'amount'),
+            'type' => $type,
+            'amount' => $amount,
             'currency' => $code,
-            'status' => $this->parse_transaction_status($this->safe_string($transaction, 'status')),
+            'status' => $status,
             'updated' => null,
+            'comment' => $comment,
+            'internal' => $internal,
             'fee' => $fee,
-            'comment' => null,
-            'internal' => null,
         );
     }
 
     public function parse_transaction_status(?string $status) {
         $statuses = array(
+            // crypto wallets api
             'PROCESSING' => 'pending',
             'FAILED' => 'failed',
             'COMPLETE' => 'ok',
+            // account activities ledger, see https://github.com/ccxt/ccxt/issues/24847
+            'executed' => 'ok',
+            'canceled' => 'canceled',
+            'pending' => 'pending',
         );
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction_type($type) {
+    public function parse_transaction_type(mixed $type) {
         $types = array(
             'INCOMING' => 'deposit',
             'OUTGOING' => 'withdrawal',
@@ -1912,18 +2086,20 @@ class alpaca extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         $result = array( 'info' => $response );
         $account = $this->account();
         $currencyId = $this->safe_string($response, 'currency');
         $code = $this->safe_currency_code($currencyId);
         $account['free'] = $this->safe_string($response, 'cash');
         $account['total'] = $this->safe_string($response, 'equity');
-        $result[$code] = $account;
+        if ($code !== null) {
+            $result[$code] = $account;
+        }
         return $this->safe_balance($result);
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $endpoint = '/' . $this->implode_params($path, $params);
         $url = $this->implode_hostname($this->urls['api'][$api[0]]);
         $headers = ($headers !== null) ? $headers : array();
@@ -1933,7 +2109,7 @@ class alpaca extends Exchange {
             $headers['APCA-API-SECRET-KEY'] = $this->secret;
         }
         $query = $this->omit($params, $this->extract_params($path));
-        if ($query) {
+        if (count($query) > 0) {
             if (($method === 'GET') || ($method === 'DELETE')) {
                 $endpoint .= '?' . $this->urlencode($query);
             } else {
@@ -1945,7 +2121,7 @@ class alpaca extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null; // default error handler
         }
@@ -1958,11 +2134,16 @@ class alpaca extends Exchange {
         if ($code !== null) {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
         }
-        $message = $this->safe_value($response, 'message');
+        $message = $this->safe_string($response, 'message');
         if ($message !== null) {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
-            throw new ExchangeError($feedback);
+            $codeAsString = (string) $code;
+            if (($code < 400) || !(is_array($this->httpExceptions) && array_key_exists($codeAsString ?? '', $this->httpExceptions))) {
+                // an error envelope must always throw — also for statuses the http-status handler has no entry for
+                throw new ExchangeError($feedback);
+            }
+            // unmapped messages on the remaining error statuses fall through to the default http-status handler
         }
         return null;
     }

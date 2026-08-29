@@ -6,18 +6,19 @@ import ccxt "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 func TestSetMarketsFromExchange() <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		emptyExchange := ccxt.NewExchange().(*ccxt.Exchange)
-		emptyExchange.DerivedExchange = emptyExchange
-		emptyExchange.InitParent(map[string]any{
-			"id": "sample0",
-		}, map[string]any{}, emptyExchange)
-		//
-		emptyExchange.Describe() // avoid unused var
-		return nil
-	}()
+	ch := make(chan any, 1)
+	go testSetMarketsFromExchangeBody(ch)
 	return ch
+}
+func testSetMarketsFromExchangeBody(ch chan any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	emptyExchange := ccxt.NewExchange().(*ccxt.Exchange)
+	emptyExchange.DerivedExchange = emptyExchange
+	emptyExchange.InitParent(map[string]any{
+		"id": "sample0",
+	}, map[string]any{}, emptyExchange)
+	//
+	emptyExchange.Describe() // avoid unused var
+	return nil
 }

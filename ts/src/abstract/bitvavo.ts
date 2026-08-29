@@ -5,51 +5,51 @@
 
 // -------------------------------------------------------------------------------
 
-import { implicitReturnType } from '../base/types.js';
+import { Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
-    publicGetMarketBook (params?: {}): Promise<implicitReturnType>;
-    publicGetReportMarketBook (params?: {}): Promise<implicitReturnType>;
-    publicGetMarketTrades (params?: {}): Promise<implicitReturnType>;
-    publicGetReportMarketTrades (params?: {}): Promise<implicitReturnType>;
-    publicGetTickerPrice (params?: {}): Promise<implicitReturnType>;
-    publicGetTickerBook (params?: {}): Promise<implicitReturnType>;
-    publicGetMarketCandles (params?: {}): Promise<implicitReturnType>;
-    publicGetTicker24h (params?: {}): Promise<implicitReturnType>;
-    publicGetTime (params?: {}): Promise<implicitReturnType>;
-    publicGetMarkets (params?: {}): Promise<implicitReturnType>;
-    publicGetAssets (params?: {}): Promise<implicitReturnType>;
-    privateGetOrder (params?: {}): Promise<implicitReturnType>;
-    privateGetOrdersOpen (params?: {}): Promise<implicitReturnType>;
-    privateGetTrades (params?: {}): Promise<implicitReturnType>;
-    privateGetOrders (params?: {}): Promise<implicitReturnType>;
-    privateGetDeposit (params?: {}): Promise<implicitReturnType>;
-    privateGetDepositHistory (params?: {}): Promise<implicitReturnType>;
-    privateGetWithdrawalHistory (params?: {}): Promise<implicitReturnType>;
-    privateGetAccount (params?: {}): Promise<implicitReturnType>;
-    privateGetBalance (params?: {}): Promise<implicitReturnType>;
-    privateGetStakingBalance (params?: {}): Promise<implicitReturnType>;
-    privateGetAccountFees (params?: {}): Promise<implicitReturnType>;
-    privateGetAccountHistory (params?: {}): Promise<implicitReturnType>;
-    privateGetSubaccounts (params?: {}): Promise<implicitReturnType>;
-    privateGetSubaccountsTransfers (params?: {}): Promise<implicitReturnType>;
-    privateGetSubaccountsTransfersTransferId (params?: {}): Promise<implicitReturnType>;
-    privateGetInstitutionalSubaccountsBalance (params?: {}): Promise<implicitReturnType>;
-    privateGetInstitutionalSubaccountsHistory (params?: {}): Promise<implicitReturnType>;
-    privateGetInstitutionalSubaccountsOrdersOpen (params?: {}): Promise<implicitReturnType>;
-    privatePostOrder (params?: {}): Promise<implicitReturnType>;
-    privatePostCancelOrdersAfter (params?: {}): Promise<implicitReturnType>;
-    privatePostWithdrawal (params?: {}): Promise<implicitReturnType>;
-    privatePostCryptoWithdrawal (params?: {}): Promise<implicitReturnType>;
-    privatePostSubaccounts (params?: {}): Promise<implicitReturnType>;
-    privatePostSubaccountsTransfers (params?: {}): Promise<implicitReturnType>;
-    privatePutOrder (params?: {}): Promise<implicitReturnType>;
-    privateDeleteOrder (params?: {}): Promise<implicitReturnType>;
-    privateDeleteOrders (params?: {}): Promise<implicitReturnType>;
-    privateDeleteAtomicOrders (params?: {}): Promise<implicitReturnType>;
-    privateDeleteInstitutionalSubaccountsOrder (params?: {}): Promise<implicitReturnType>;
-    privateDeleteInstitutionalSubaccountsOrders (params?: {}): Promise<implicitReturnType>;
+    publicGetMarketBook (params?: {}): Promise<Dict>;
+    publicGetReportMarketBook (params?: {}): Promise<Dict>;
+    publicGetMarketTrades (params?: {}): Promise<List>;
+    publicGetReportMarketTrades (params?: {}): Promise<List>;
+    publicGetTickerPrice (params?: {}): Promise<List>;
+    publicGetTickerBook (params?: {}): Promise<List>;
+    publicGetMarketCandles (params?: {}): Promise<List>;
+    publicGetTicker24h (params?: {}): Promise<Dict | List>;
+    publicGetTime (params?: {}): Promise<Dict>;
+    publicGetMarkets (params?: {}): Promise<List>;
+    publicGetAssets (params?: {}): Promise<List>;
+    privateGetOrder (params?: {}): Promise<Dict>;
+    privateGetOrdersOpen (params?: {}): Promise<List>;
+    privateGetTrades (params?: {}): Promise<List>;
+    privateGetOrders (params?: {}): Promise<List>;
+    privateGetDeposit (params?: {}): Promise<Dict>;
+    privateGetDepositHistory (params?: {}): Promise<List>;
+    privateGetWithdrawalHistory (params?: {}): Promise<List>;
+    privateGetAccount (params?: {}): Promise<List>;
+    privateGetBalance (params?: {}): Promise<List>;
+    privateGetStakingBalance (params?: {}): Promise<List>;
+    privateGetAccountFees (params?: {}): Promise<Dict>;
+    privateGetAccountHistory (params?: {}): Promise<Dict>;
+    privateGetSubaccounts (params?: {}): Promise<Dict>;
+    privateGetSubaccountsTransfers (params?: {}): Promise<Dict>;
+    privateGetSubaccountsTransfersTransferId (params?: {}): Promise<Dict>;
+    privateGetInstitutionalSubaccountsBalance (params?: {}): Promise<Dict>;
+    privateGetInstitutionalSubaccountsHistory (params?: {}): Promise<Dict>;
+    privateGetInstitutionalSubaccountsOrdersOpen (params?: {}): Promise<List>;
+    privatePostOrder (params?: {}): Promise<Dict>;
+    privatePostCancelOrdersAfter (params?: {}): Promise<Dict>;
+    privatePostWithdrawal (params?: {}): Promise<Dict>;
+    privatePostCryptoWithdrawal (params?: {}): Promise<Dict>;
+    privatePostSubaccounts (params?: {}): Promise<Dict>;
+    privatePostSubaccountsTransfers (params?: {}): Promise<Dict>;
+    privatePutOrder (params?: {}): Promise<Dict>;
+    privateDeleteOrder (params?: {}): Promise<Dict>;
+    privateDeleteOrders (params?: {}): Promise<List>;
+    privateDeleteAtomicOrders (params?: {}): Promise<List>;
+    privateDeleteInstitutionalSubaccountsOrder (params?: {}): Promise<Dict>;
+    privateDeleteInstitutionalSubaccountsOrders (params?: {}): Promise<Dict>;
 }
 abstract class Exchange extends _Exchange {}
 

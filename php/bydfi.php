@@ -127,7 +127,7 @@ class bydfi extends Exchange {
                 'fetchOpenInterest' => false,
                 'fetchOpenInterestHistory' => false,
                 'fetchOpenInterests' => false,
-                'fetchOpenOrder' => false,
+                'fetchOpenOrder' => true,
                 'fetchOpenOrders' => true,
                 'fetchOption' => false,
                 'fetchOptionChain' => false,
@@ -194,57 +194,57 @@ class bydfi extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'v1/public/api_limits' => 1, // https://developers.bydfi.com/en/public#inquiry-into-api-rate-limit-configuration
-                        'v1/fapi/market/exchange_info' => 1,
-                        'v1/fapi/market/depth' => 1,
-                        'v1/fapi/market/trades' => 1,
-                        'v1/fapi/market/klines' => 1,
-                        'v1/fapi/market/ticker/24hr' => 1,
-                        'v1/fapi/market/ticker/price' => 1, // https://developers.bydfi.com/en/futures/market#latest-price
-                        'v1/fapi/market/mark_price' => 1, // https://developers.bydfi.com/en/futures/market#mark-price
-                        'v1/fapi/market/funding_rate' => 1,
-                        'v1/fapi/market/funding_rate_history' => 1,
-                        'v1/fapi/market/risk_limit' => 1, // https://developers.bydfi.com/en/futures/market#risk-limit
+                        'v1/public/api_limits' => array( 'cost' => 1 ), // https://developers.bydfi.com/en/public#inquiry-into-api-rate-limit-configuration
+                        'v1/fapi/market/exchange_info' => array( 'cost' => 1 ),
+                        'v1/fapi/market/depth' => array( 'cost' => 1 ),
+                        'v1/fapi/market/trades' => array( 'cost' => 1 ),
+                        'v1/fapi/market/klines' => array( 'cost' => 1 ),
+                        'v1/fapi/market/ticker/24hr' => array( 'cost' => 1 ),
+                        'v1/fapi/market/ticker/price' => array( 'cost' => 1 ), // https://developers.bydfi.com/en/futures/market#latest-price
+                        'v1/fapi/market/mark_price' => array( 'cost' => 1 ), // https://developers.bydfi.com/en/futures/market#mark-price
+                        'v1/fapi/market/funding_rate' => array( 'cost' => 1 ),
+                        'v1/fapi/market/funding_rate_history' => array( 'cost' => 1 ),
+                        'v1/fapi/market/risk_limit' => array( 'cost' => 1 ), // https://developers.bydfi.com/en/futures/market#risk-limit
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'v1/account/assets' => 1,
-                        'v1/account/transfer_records' => 1,
-                        'v1/spot/deposit_records' => 1,
-                        'v1/spot/withdraw_records' => 1,
-                        'v1/fapi/trade/open_order' => 1,
-                        'v1/fapi/trade/plan_order' => 1,
-                        'v1/fapi/trade/leverage' => 1,
-                        'v1/fapi/trade/history_order' => 1,
-                        'v1/fapi/trade/history_trade' => 1,
-                        'v1/fapi/trade/position_history' => 1,
-                        'v1/fapi/trade/positions' => 1,
-                        'v1/fapi/account/balance' => 1,
-                        'v1/fapi/user_data/assets_margin' => 1,
-                        'v1/fapi/user_data/position_side/dual' => 1,
-                        'v1/agent/teams' => 1, // https://developers.bydfi.com/en/agent/#query-kol-subordinate-team-information
-                        'v1/agent/agent_links' => 1, // https://developers.bydfi.com/en/agent/#query-kol-invitation-code-list
-                        'v1/agent/regular_overview' => 1, // https://developers.bydfi.com/en/agent/#query-kol-direct-client-data-list
-                        'v1/agent/agent_sub_overview' => 1, // https://developers.bydfi.com/en/agent/#query-kol-subordinate-affiliate-list
-                        'v1/agent/partener_user_deposit' => 1, // https://developers.bydfi.com/en/agent/#check-the-recharge-amount-of-kol-within-one-year
-                        'v1/agent/partener_users_data' => 1, // https://developers.bydfi.com/en/agent/#query-kol-subordinate-deposit-and-trading-data
-                        'v1/agent/affiliate_uids' => 1, // https://developers.bydfi.com/en/agent/#get-affiliate-uids
-                        'v1/agent/affiliate_commission' => 1, // https://developers.bydfi.com/en/agent/#get-affiliate-commission
-                        'v1/agent/internal_withdrawal_status' => 1, // https://developers.bydfi.com/en/agent/#get-internal-withdrawal-status
+                        'v1/account/assets' => array( 'cost' => 1 ),
+                        'v1/account/transfer_records' => array( 'cost' => 1 ),
+                        'v1/spot/deposit_records' => array( 'cost' => 1 ),
+                        'v1/spot/withdraw_records' => array( 'cost' => 1 ),
+                        'v1/fapi/trade/open_order' => array( 'cost' => 1 ),
+                        'v1/fapi/trade/plan_order' => array( 'cost' => 1 ),
+                        'v1/fapi/trade/leverage' => array( 'cost' => 1 ),
+                        'v1/fapi/trade/history_order' => array( 'cost' => 1 ),
+                        'v1/fapi/trade/history_trade' => array( 'cost' => 1 ),
+                        'v1/fapi/trade/position_history' => array( 'cost' => 1 ),
+                        'v1/fapi/trade/positions' => array( 'cost' => 1 ),
+                        'v1/fapi/account/balance' => array( 'cost' => 1 ),
+                        'v1/fapi/user_data/assets_margin' => array( 'cost' => 1 ),
+                        'v1/fapi/user_data/position_side/dual' => array( 'cost' => 1 ),
+                        'v1/agent/teams' => array( 'cost' => 1 ), // https://developers.bydfi.com/en/agent/#query-kol-subordinate-team-information
+                        'v1/agent/agent_links' => array( 'cost' => 1 ), // https://developers.bydfi.com/en/agent/#query-kol-invitation-code-list
+                        'v1/agent/regular_overview' => array( 'cost' => 1 ), // https://developers.bydfi.com/en/agent/#query-kol-direct-client-data-list
+                        'v1/agent/agent_sub_overview' => array( 'cost' => 1 ), // https://developers.bydfi.com/en/agent/#query-kol-subordinate-affiliate-list
+                        'v1/agent/partener_user_deposit' => array( 'cost' => 1 ), // https://developers.bydfi.com/en/agent/#check-the-recharge-amount-of-kol-within-one-year
+                        'v1/agent/partener_users_data' => array( 'cost' => 1 ), // https://developers.bydfi.com/en/agent/#query-kol-subordinate-deposit-and-trading-data
+                        'v1/agent/affiliate_uids' => array( 'cost' => 1 ), // https://developers.bydfi.com/en/agent/#get-affiliate-uids
+                        'v1/agent/affiliate_commission' => array( 'cost' => 1 ), // https://developers.bydfi.com/en/agent/#get-affiliate-commission
+                        'v1/agent/internal_withdrawal_status' => array( 'cost' => 1 ), // https://developers.bydfi.com/en/agent/#get-internal-withdrawal-status
                     ),
                     'post' => array(
-                        'v1/account/transfer' => 1,
-                        'v1/fapi/trade/place_order' => 1,
-                        'v1/fapi/trade/batch_place_order' => 1,
-                        'v1/fapi/trade/edit_order' => 1,
-                        'v1/fapi/trade/batch_edit_order' => 1,
-                        'v1/fapi/trade/cancel_all_order' => 1,
-                        'v1/fapi/trade/leverage' => 1,
-                        'v1/fapi/trade/batch_leverage_margin' => 1, // https://developers.bydfi.com/en/futures/trade#modify-leverage-and-margin-type-with-one-click
-                        'v1/fapi/user_data/margin_type' => 1,
-                        'v1/fapi/user_data/position_side/dual' => 1,
-                        'v1/agent/internal_withdrawal' => 1, // https://developers.bydfi.com/en/agent/#internal-withdrawal
+                        'v1/account/transfer' => array( 'cost' => 1 ),
+                        'v1/fapi/trade/place_order' => array( 'cost' => 1 ),
+                        'v1/fapi/trade/batch_place_order' => array( 'cost' => 1 ),
+                        'v1/fapi/trade/edit_order' => array( 'cost' => 1 ),
+                        'v1/fapi/trade/batch_edit_order' => array( 'cost' => 1 ),
+                        'v1/fapi/trade/cancel_all_order' => array( 'cost' => 1 ),
+                        'v1/fapi/trade/leverage' => array( 'cost' => 1 ),
+                        'v1/fapi/trade/batch_leverage_margin' => array( 'cost' => 1 ), // https://developers.bydfi.com/en/futures/trade#modify-leverage-and-margin-type-with-one-click
+                        'v1/fapi/user_data/margin_type' => array( 'cost' => 1 ),
+                        'v1/fapi/user_data/position_side/dual' => array( 'cost' => 1 ),
+                        'v1/agent/internal_withdrawal' => array( 'cost' => 1 ), // https://developers.bydfi.com/en/agent/#internal-withdrawal
                     ),
                 ),
             ),
@@ -515,7 +515,7 @@ class bydfi extends Exchange {
             'option' => false,
             'active' => $status === 'NORMAL',
             'contract' => true,
-            'linear' => !$inverse,
+            'linear' => $inverse !== true,
             'inverse' => $inverse,
             'taker' => $taker,
             'maker' => $maker,
@@ -562,7 +562,7 @@ class bydfi extends Exchange {
          * @param {int} [$limit] the maximum amount of order book entries to return, could be 5, 10, 20, 50, 100, 500 or 1000 (default 500)
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->loc] crypto location, default => us
-         * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -612,6 +612,9 @@ class bydfi extends Exchange {
         $limits = array( 5, 10, 20, 50, 100, 500, 1000 );
         $result = 1000;
         for ($i = 0; $i < count($limits); $i++) {
+            if ($limit === null) {
+                throw new ArgumentsRequired($this->id . ' getClosestLimit() requires a $limit argument');
+            }
             if ($limit <= $limits[$i]) {
                 $result = $limits[$i];
                 break;
@@ -685,7 +688,7 @@ class bydfi extends Exchange {
             $this->load_markets();
         }
         $paginate = $this->safe_bool($params, 'paginate', false);
-        if ($paginate) {
+        if ($paginate === true) {
             $maxLimit = 500;
             $params = $this->omit($params, 'paginate');
             $params = $this->extend($params, array( 'paginationDirection' => 'backward' ));
@@ -822,7 +825,7 @@ class bydfi extends Exchange {
          * @param {string} $timeframe the length of time each candle represents
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch (max 500)
-         * @param {array} [$params] extra parameters specific to the bitteam api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
@@ -842,7 +845,7 @@ class bydfi extends Exchange {
             'interval' => $interval,
         );
         $startTime = $since;
-        $numberOfCandles = $limit ? $limit : $maxLimit;
+        $numberOfCandles = ($limit !== null && $limit !== null && $limit !== 0) ? $limit : $maxLimit;
         $until = null;
         list($until, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'until');
         $now = $this->milliseconds();
@@ -852,6 +855,9 @@ class bydfi extends Exchange {
             $startTime = $now - $timeDelta;
             $until = $now;
         } elseif ($until === null) {
+            if ($startTime === null) {
+                throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a $since or $until argument');
+            }
             $until = $startTime . $timeDelta;
             if ($until > $now) {
                 $until = $now;
@@ -888,7 +894,7 @@ class bydfi extends Exchange {
         return $result;
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //     {
         //         "s" => "ETH-USDT",
@@ -1047,7 +1053,7 @@ class bydfi extends Exchange {
         return $this->parse_funding_rate($data, $market);
     }
 
-    public function parse_funding_rate($contract, ?array $market = null): array {
+    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
         //
         //     {
         //         "symbol" => "BTC-USDT",
@@ -1136,7 +1142,7 @@ class bydfi extends Exchange {
         return $this->parse_funding_rate_histories($data, $market, $since, $limit);
     }
 
-    public function parse_funding_rate_history($contract, ?array $market = null) {
+    public function parse_funding_rate_history(mixed $contract, ?array $market = null) {
         //
         //     {
         //         "symbol" => "ETH-USDT",
@@ -1225,8 +1231,17 @@ class bydfi extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+        if ($type === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+        }
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+        }
         $market = $this->market($symbol);
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' createOrderRequest() requires a $side argument');
+        }
         $request = array(
             'symbol' => $market['id'],
             'side' => strtoupper($side),
@@ -1294,13 +1309,13 @@ class bydfi extends Exchange {
         if ($hedged) {
             $params = $this->omit($params, 'reduceOnly');
             if ($side === 'buy') {
-                $request['positionSide'] = $reduceOnly ? 'SHORT' : 'LONG';
+                $request['positionSide'] = ($reduceOnly === true) ? 'SHORT' : 'LONG';
             } elseif ($side === 'sell') {
-                $request['positionSide'] = $reduceOnly ? 'LONG' : 'SHORT';
+                $request['positionSide'] = ($reduceOnly === true) ? 'LONG' : 'SHORT';
             }
         }
         $closePosition = $this->safe_bool($params, 'closePosition', false);
-        if (!$closePosition) {
+        if ($closePosition !== true) {
             $params = $this->omit($params, 'closePosition');
             $request['quantity'] = $this->amount_to_precision($symbol, $amount);
         } elseif (($type !== 'STOP_MARKET') && ($type !== 'TAKE_PROFIT_MARKET')) {
@@ -1446,7 +1461,7 @@ class bydfi extends Exchange {
         return $this->parse_orders($data);
     }
 
-    public function create_edit_order_request(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
+    public function create_edit_order_request(?string $id, ?string $symbol, ?string $type, ?string $side, ?float $amount = null, ?float $price = null, $params = array()) {
         $clientOrderId = $this->safe_string($params, 'clientOrderId');
         $request = array();
         if (($id === null) && ($clientOrderId === null)) {
@@ -1600,7 +1615,7 @@ class bydfi extends Exchange {
         return $this->parse_orders($data, $market, $since, $limit);
     }
 
-    public function fetch_open_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_open_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * fetch an open $order by the $id
          *
@@ -1666,7 +1681,7 @@ class bydfi extends Exchange {
             $this->load_markets();
         }
         $paginate = $this->safe_bool($params, 'paginate', false);
-        if ($paginate) {
+        if ($paginate === true) {
             $maxLimit = 500;
             $params = $this->omit($params, 'paginate');
             $params = $this->extend($params, array( 'paginationDirection' => 'backward' ));
@@ -2199,7 +2214,7 @@ class bydfi extends Exchange {
          * @param {string} $symbol a unified $market $symbol
          * @param {int} [$since] timestamp in ms of the earliest position to fetch , $params["until"] - $since <= 7 days
          * @param {int} [$limit] the maximum amount of records to fetch (default 500, max 500)
-         * @param {array} $params extra parameters specific to the exchange api endpoint
+         * @param {array} $params extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest position to fetch , $params["until"] - $since <= 7 days
          * @param {string} [$params->contractType] FUTURE or DELIVERY, default is FUTURE
          * @param {string} [$params->wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
@@ -2210,7 +2225,7 @@ class bydfi extends Exchange {
         }
         $market = $this->market($symbol);
         $contractType = 'FUTURE';
-        list($contractType, $params) = $this->handle_option_and_params($params, 'fetchPositionsHistory', 'contractType', $contractType);
+        list($contractType, $params) = $this->handle_option_and_params($params, 'fetchPositionHistory', 'contractType', $contractType);
         $request = array(
             'symbol' => $market['id'],
             'contractType' => $contractType,
@@ -2236,7 +2251,7 @@ class bydfi extends Exchange {
          * @param {string[]} $symbols a list of unified market $symbols
          * @param {int} [$since] timestamp in ms of the earliest position to fetch , $params["until"] - $since <= 7 days
          * @param {int} [$limit] the maximum amount of records to fetch (default 500, max 500)
-         * @param {array} $params extra parameters specific to the exchange api endpoint
+         * @param {array} $params extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest position to fetch , $params["until"] - $since <= 7 days
          * @param {string} [$params->contractType] FUTURE or DELIVERY, default is FUTURE
          * @param {string} [$params->wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
@@ -2378,9 +2393,9 @@ class bydfi extends Exchange {
         }
         $market = $this->market($symbol);
         $contractType = 'FUTURE';
-        list($contractType, $params) = $this->handle_option_and_params($params, 'fetchMarginMode', 'contractType', $contractType);
+        list($contractType, $params) = $this->handle_option_and_params($params, 'setMarginMode', 'contractType', $contractType);
         $wallet = 'W001';
-        list($wallet, $params) = $this->handle_option_and_params($params, 'fetchMarginMode', 'wallet', $wallet);
+        list($wallet, $params) = $this->handle_option_and_params($params, 'setMarginMode', 'wallet', $wallet);
         $request = array(
             'contractType' => $contractType,
             'symbol' => $market['id'],
@@ -2397,7 +2412,7 @@ class bydfi extends Exchange {
          * @see https://developers.bydfi.com/en/futures/user#change-position-mode-dual
          *
          * @param {bool} $hedged set to true to use dualSidePosition
-         * @param {string} [$symbol] not used by bydfi setPositionMode ()
+         * @param {string} [$symbol] not used by setPositionMode ()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->contractType] FUTURE or DELIVERY, default is FUTURE
          * @param {string} [$params->wallet] The unique code of a sub-$wallet-> W001 is the default $wallet and the main $wallet code of the contract
@@ -2433,7 +2448,7 @@ class bydfi extends Exchange {
         return $this->privatePostV1FapiUserDataPositionSideDual($this->extend($request, $params));
     }
 
-    public function fetch_position_mode(?string $symbol = null, $params = array()) {
+    public function fetch_position_mode(?string $symbol = null, $params = array()): array {
         /**
          * fetchs the position mode, $hedged or one way, $hedged for bydfi is set identically for all markets with same settle currency
          *
@@ -2569,7 +2584,7 @@ class bydfi extends Exchange {
         return $this->parse_balance($data);
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         $timestamp = $this->milliseconds();
         $result = array(
             'info' => $response,
@@ -2583,7 +2598,9 @@ class bydfi extends Exchange {
             $account = $this->account();
             $account['total'] = $this->safe_string_2($balance, 'total', 'balance');
             $account['free'] = $this->safe_string_2($balance, 'available', 'availableBalance');
-            $result[$code] = $account;
+            if ($code !== null) {
+                $result[$code] = $account;
+            }
         }
         return $this->safe_balance($result);
     }
@@ -2625,7 +2642,7 @@ class bydfi extends Exchange {
         $transfer = $this->parse_transfer($response, $currency);
         $transferOptions = $this->safe_dict($this->options, 'transfer', array());
         $fillResponseFromRequest = $this->safe_bool($transferOptions, 'fillResponseFromRequest', true);
-        if ($fillResponseFromRequest) {
+        if ($fillResponseFromRequest === true) {
             $timestamp = $this->milliseconds();
             $transfer['timestamp'] = $timestamp;
             $transfer['datetime'] = $this->iso8601($timestamp);
@@ -2658,7 +2675,7 @@ class bydfi extends Exchange {
         }
         $currency = $this->currency($code);
         $paginate = $this->safe_bool($params, 'paginate', false);
-        if ($paginate) {
+        if ($paginate === true) {
             $maxLimit = 50;
             $params = $this->omit($params, 'paginate');
             $params = $this->extend($params, array( 'paginationDirection' => 'backward' ));
@@ -2786,7 +2803,7 @@ class bydfi extends Exchange {
         return $this->fetch_transactions_helper('withdrawal', $code, $since, $limit, $params);
     }
 
-    public function fetch_transactions_helper($type, $code, $since, $limit, $params) {
+    public function fetch_transactions_helper(mixed $type, mixed $code, mixed $since, mixed $limit, mixed $params): array {
         $methodName = ($type === 'deposit') ? 'fetchDeposits' : 'fetchWithdrawals';
         if ($code === null) {
             throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a $code argument');
@@ -2796,7 +2813,7 @@ class bydfi extends Exchange {
         }
         $currency = $this->currency($code);
         $paginate = $this->safe_bool($params, 'paginate', false);
-        if ($paginate) {
+        if ($paginate === true) {
             $maxLimit = 50;
             $params = $this->omit($params, 'paginate');
             $params = $this->extend($params, array( 'paginationDirection' => 'backward' ));
@@ -2932,7 +2949,7 @@ class bydfi extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null) {
         $url = $this->urls['api'][$api];
         $endpoint = '/' . $path;
         $query = '';
@@ -2970,7 +2987,7 @@ class bydfi extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null; // fallback to default error handler
         }

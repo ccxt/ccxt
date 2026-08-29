@@ -21,11 +21,11 @@ class derive extends Exchange {
             'dex' => true,
             'has' => array(
                 'CORS' => null,
-                'spot' => false,
+                'spot' => true,
                 'margin' => false,
-                'swap' => false,
+                'swap' => true,
                 'future' => false,
-                'option' => false,
+                'option' => true,
                 'addMargin' => false,
                 'borrowCrossMargin' => false,
                 'borrowIsolatedMargin' => false,
@@ -146,125 +146,125 @@ class derive extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'get_all_currencies',
+                        'get_all_currencies' => array( 'cost' => 1 ),
                     ),
                     'post' => array(
-                        'build_register_session_key_tx',
-                        'register_session_key',
-                        'deregister_session_key',
-                        'login',
-                        'statistics',
-                        'get_all_currencies',
-                        'get_currency',
-                        'get_instrument',
-                        'get_all_instruments',
-                        'get_instruments',
-                        'get_ticker',
-                        'get_latest_signed_feeds',
-                        'get_option_settlement_prices',
-                        'get_spot_feed_history',
-                        'get_spot_feed_history_candles',
-                        'get_funding_rate_history',
-                        'get_trade_history',
-                        'get_option_settlement_history',
-                        'get_liquidation_history',
-                        'get_interest_rate_history',
-                        'get_transaction',
-                        'get_margin',
-                        'margin_watch',
-                        'validate_invite_code',
-                        'get_points',
-                        'get_all_points',
-                        'get_points_leaderboard',
-                        'get_descendant_tree',
-                        'get_tree_roots',
-                        'get_swell_percent_points',
-                        'get_vault_assets',
-                        'get_etherfi_effective_balances',
-                        'get_kelp_effective_balances',
-                        'get_bridge_balances',
-                        'get_ethena_participants',
-                        'get_vault_share',
-                        'get_vault_statistics',
-                        'get_vault_balances',
-                        'estimate_integrator_points',
-                        'create_subaccount_debug',
-                        'deposit_debug',
-                        'withdraw_debug',
-                        'send_quote_debug',
-                        'execute_quote_debug',
-                        'get_invite_code',
-                        'register_invite',
-                        'get_time',
-                        'get_live_incidents',
-                        'get_maker_programs',
-                        'get_maker_program_scores',
+                        'build_register_session_key_tx' => array( 'cost' => 1 ),
+                        'register_session_key' => array( 'cost' => 1 ),
+                        'deregister_session_key' => array( 'cost' => 1 ),
+                        'login' => array( 'cost' => 1 ),
+                        'statistics' => array( 'cost' => 1 ),
+                        'get_all_currencies' => array( 'cost' => 1 ),
+                        'get_currency' => array( 'cost' => 1 ),
+                        'get_instrument' => array( 'cost' => 1 ),
+                        'get_all_instruments' => array( 'cost' => 1 ),
+                        'get_instruments' => array( 'cost' => 1 ),
+                        'get_ticker' => array( 'cost' => 1 ),
+                        'get_latest_signed_feeds' => array( 'cost' => 1 ),
+                        'get_option_settlement_prices' => array( 'cost' => 1 ),
+                        'get_spot_feed_history' => array( 'cost' => 1 ),
+                        'get_spot_feed_history_candles' => array( 'cost' => 1 ),
+                        'get_funding_rate_history' => array( 'cost' => 1 ),
+                        'get_trade_history' => array( 'cost' => 1 ),
+                        'get_option_settlement_history' => array( 'cost' => 1 ),
+                        'get_liquidation_history' => array( 'cost' => 1 ),
+                        'get_interest_rate_history' => array( 'cost' => 1 ),
+                        'get_transaction' => array( 'cost' => 1 ),
+                        'get_margin' => array( 'cost' => 1 ),
+                        'margin_watch' => array( 'cost' => 1 ),
+                        'validate_invite_code' => array( 'cost' => 1 ),
+                        'get_points' => array( 'cost' => 1 ),
+                        'get_all_points' => array( 'cost' => 1 ),
+                        'get_points_leaderboard' => array( 'cost' => 1 ),
+                        'get_descendant_tree' => array( 'cost' => 1 ),
+                        'get_tree_roots' => array( 'cost' => 1 ),
+                        'get_swell_percent_points' => array( 'cost' => 1 ),
+                        'get_vault_assets' => array( 'cost' => 1 ),
+                        'get_etherfi_effective_balances' => array( 'cost' => 1 ),
+                        'get_kelp_effective_balances' => array( 'cost' => 1 ),
+                        'get_bridge_balances' => array( 'cost' => 1 ),
+                        'get_ethena_participants' => array( 'cost' => 1 ),
+                        'get_vault_share' => array( 'cost' => 1 ),
+                        'get_vault_statistics' => array( 'cost' => 1 ),
+                        'get_vault_balances' => array( 'cost' => 1 ),
+                        'estimate_integrator_points' => array( 'cost' => 1 ),
+                        'create_subaccount_debug' => array( 'cost' => 1 ),
+                        'deposit_debug' => array( 'cost' => 1 ),
+                        'withdraw_debug' => array( 'cost' => 1 ),
+                        'send_quote_debug' => array( 'cost' => 1 ),
+                        'execute_quote_debug' => array( 'cost' => 1 ),
+                        'get_invite_code' => array( 'cost' => 1 ),
+                        'register_invite' => array( 'cost' => 1 ),
+                        'get_time' => array( 'cost' => 1 ),
+                        'get_live_incidents' => array( 'cost' => 1 ),
+                        'get_maker_programs' => array( 'cost' => 1 ),
+                        'get_maker_program_scores' => array( 'cost' => 1 ),
                     ),
                 ),
                 'private' => array(
                     'post' => array(
-                        'get_account',
-                        'create_subaccount',
-                        'get_subaccount',
-                        'get_subaccounts',
-                        'get_all_portfolios',
-                        'change_subaccount_label',
-                        'get_notificationsv',
-                        'update_notifications',
-                        'deposit',
-                        'withdraw',
-                        'transfer_erc20',
-                        'transfer_position',
-                        'transfer_positions',
-                        'order',
-                        'replace',
-                        'order_debug',
-                        'get_order',
-                        'get_orders',
-                        'get_open_orders',
-                        'cancel',
-                        'cancel_by_label',
-                        'cancel_by_nonce',
-                        'cancel_by_instrument',
-                        'cancel_all',
-                        'cancel_trigger_order',
-                        'get_order_history',
-                        'get_trade_history',
-                        'get_deposit_history',
-                        'get_withdrawal_history',
-                        'send_rfq',
-                        'cancel_rfq',
-                        'cancel_batch_rfqs',
-                        'get_rfqs',
-                        'poll_rfqs',
-                        'send_quote',
-                        'cancel_quote',
-                        'cancel_batch_quotes',
-                        'get_quotes',
-                        'poll_quotes',
-                        'execute_quote',
-                        'rfq_get_best_quote',
-                        'get_margin',
-                        'get_collaterals',
-                        'get_positions',
-                        'get_option_settlement_history',
-                        'get_subaccount_value_history',
-                        'expired_and_cancelled_history',
-                        'get_funding_history',
-                        'get_interest_history',
-                        'get_erc20_transfer_history',
-                        'get_liquidation_history',
-                        'liquidate',
-                        'get_liquidator_history',
-                        'session_keys',
-                        'edit_session_key',
-                        'register_scoped_session_key',
-                        'get_mmp_config',
-                        'set_mmp_config',
-                        'reset_mmp',
-                        'set_cancel_on_disconnect',
-                        'get_invite_code',
-                        'register_invite',
+                        'get_account' => array( 'cost' => 1 ),
+                        'create_subaccount' => array( 'cost' => 1 ),
+                        'get_subaccount' => array( 'cost' => 1 ),
+                        'get_subaccounts' => array( 'cost' => 1 ),
+                        'get_all_portfolios' => array( 'cost' => 1 ),
+                        'change_subaccount_label' => array( 'cost' => 1 ),
+                        'get_notificationsv' => array( 'cost' => 1 ),
+                        'update_notifications' => array( 'cost' => 1 ),
+                        'deposit' => array( 'cost' => 1 ),
+                        'withdraw' => array( 'cost' => 1 ),
+                        'transfer_erc20' => array( 'cost' => 1 ),
+                        'transfer_position' => array( 'cost' => 1 ),
+                        'transfer_positions' => array( 'cost' => 1 ),
+                        'order' => array( 'cost' => 1 ),
+                        'replace' => array( 'cost' => 1 ),
+                        'order_debug' => array( 'cost' => 1 ),
+                        'get_order' => array( 'cost' => 1 ),
+                        'get_orders' => array( 'cost' => 1 ),
+                        'get_open_orders' => array( 'cost' => 1 ),
+                        'cancel' => array( 'cost' => 1 ),
+                        'cancel_by_label' => array( 'cost' => 1 ),
+                        'cancel_by_nonce' => array( 'cost' => 1 ),
+                        'cancel_by_instrument' => array( 'cost' => 1 ),
+                        'cancel_all' => array( 'cost' => 1 ),
+                        'cancel_trigger_order' => array( 'cost' => 1 ),
+                        'get_order_history' => array( 'cost' => 1 ),
+                        'get_trade_history' => array( 'cost' => 1 ),
+                        'get_deposit_history' => array( 'cost' => 1 ),
+                        'get_withdrawal_history' => array( 'cost' => 1 ),
+                        'send_rfq' => array( 'cost' => 1 ),
+                        'cancel_rfq' => array( 'cost' => 1 ),
+                        'cancel_batch_rfqs' => array( 'cost' => 1 ),
+                        'get_rfqs' => array( 'cost' => 1 ),
+                        'poll_rfqs' => array( 'cost' => 1 ),
+                        'send_quote' => array( 'cost' => 1 ),
+                        'cancel_quote' => array( 'cost' => 1 ),
+                        'cancel_batch_quotes' => array( 'cost' => 1 ),
+                        'get_quotes' => array( 'cost' => 1 ),
+                        'poll_quotes' => array( 'cost' => 1 ),
+                        'execute_quote' => array( 'cost' => 1 ),
+                        'rfq_get_best_quote' => array( 'cost' => 1 ),
+                        'get_margin' => array( 'cost' => 1 ),
+                        'get_collaterals' => array( 'cost' => 1 ),
+                        'get_positions' => array( 'cost' => 1 ),
+                        'get_option_settlement_history' => array( 'cost' => 1 ),
+                        'get_subaccount_value_history' => array( 'cost' => 1 ),
+                        'expired_and_cancelled_history' => array( 'cost' => 1 ),
+                        'get_funding_history' => array( 'cost' => 1 ),
+                        'get_interest_history' => array( 'cost' => 1 ),
+                        'get_erc20_transfer_history' => array( 'cost' => 1 ),
+                        'get_liquidation_history' => array( 'cost' => 1 ),
+                        'liquidate' => array( 'cost' => 1 ),
+                        'get_liquidator_history' => array( 'cost' => 1 ),
+                        'session_keys' => array( 'cost' => 1 ),
+                        'edit_session_key' => array( 'cost' => 1 ),
+                        'register_scoped_session_key' => array( 'cost' => 1 ),
+                        'get_mmp_config' => array( 'cost' => 1 ),
+                        'set_mmp_config' => array( 'cost' => 1 ),
+                        'reset_mmp' => array( 'cost' => 1 ),
+                        'set_cancel_on_disconnect' => array( 'cost' => 1 ),
+                        'get_invite_code' => array( 'cost' => 1 ),
+                        'register_invite' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -370,7 +370,7 @@ class derive extends Exchange {
                     '14020' => '\\ccxt\\BadRequest', // The X-LyraWallet header does not match the requested subaccount_id or wallet
                     '14021' => '\\ccxt\\BadRequest', // The X-LyraWallet header not provided
                     '14022' => '\\ccxt\\AuthenticationError', // Subscription to a private channel failed
-                    '14023' => '\\ccxt\\InvalidOrder', // array(is_array(on-chain related request is not wallet owner or registered session key","data":"Session key does not belong to wallet") && array_key_exists("code":"14023","message":"Signer, on-chain related request is not wallet owner or registered session key","data":"Session key does not belong to wallet"))
+                    '14023' => '\\ccxt\\InvalidOrder', // array(is_array(on-chain related request is not wallet owner or registered session key","data":"Session key does not belong to wallet") && array_key_exists("code":"14023","message":"Signer ?? '', on-chain related request is not wallet owner or registered session key","data":"Session key does not belong to wallet"))
                     '14024' => '\\ccxt\\BadRequest', // Chain ID must match the current roll up chain id
                     '14025' => '\\ccxt\\BadRequest', // The private request is missing a wallet or subaccount_id param
                     '14026' => '\\ccxt\\BadRequest', // Session key not found
@@ -973,14 +973,34 @@ class derive extends Exchange {
         return $this->parse_trades($data, $market, $since, $limit);
     }
 
+    public function parse_trades(array $trades, ?array $market = null, ?int $since = null, ?int $limit = null, $params = array()): array {
+        $tradesArray = $this->to_array($trades);
+        $result = array();
+        for ($i = 0; $i < count($tradesArray); $i++) {
+            $rawTrade = $tradesArray[$i];
+            $isFetchTrades = !(is_array($rawTrade) && array_key_exists('order_id' ?? '', $rawTrade));
+            $liquidityRole = $this->safe_string($rawTrade, 'liquidity_role');
+            if ($isFetchTrades && ($liquidityRole === 'maker')) {
+                // skip maker $trades
+                continue;
+            }
+            $parsed = $this->parse_trade($rawTrade, $market);
+            $trade = $this->extend($parsed, $params);
+            $result[] = $trade;
+        }
+        $result = $this->sort_by_2($result, 'timestamp', 'id');
+        $symbol = $this->safe_string($market, 'symbol');
+        return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit);
+    }
+
     public function parse_trade(array $trade, ?array $market = null): array {
+        //
+        // fetchTrades & fetchMyTrades
         //
         // {
         //     "subaccount_id" => 130837,
-        //     "order_id" => "30c48194-8d48-43ac-ad00-0d5ba29eddc9",
         //     "instrument_name" => "BTC-PERP",
         //     "direction" => "sell",
-        //     "label" => "test1234",
         //     "quote_id" => null,
         //     "trade_id" => "f8a30740-488c-4c2d-905d-e17057bafde1",
         //     "timestamp" => 1738065303708,
@@ -991,11 +1011,17 @@ class derive extends Exchange {
         //     "liquidity_role" => "taker",
         //     "realized_pnl" => "0",
         //     "realized_pnl_excl_fees" => "0",
-        //     "is_transfer" => false,
         //     "tx_status" => "settled",
         //     "trade_fee" => "1.127415534092999815",
         //     "tx_hash" => "0xc55df1f07330faf86579bd8a6385391fbe9e73089301149d8550e9d29c9ead74",
-        //     "transaction_id" => "e18b9426-3fa5-41bb-99d3-8b54fb4d51bb"
+        //     "label" => "test1234",                                      // only fetchMyTrades
+        //     "order_id" => "30c48194-8d48-43ac-ad00-0d5ba29eddc9",       // only fetchMyTrades
+        //     "is_transfer" => false,                                     // only fetchMyTrades
+        //     "transaction_id" => "e18b9426-3fa5-41bb-99d3-8b54fb4d11bb", // only fetchMyTrades
+        //     "rfq_id" => null,                                           // only fetchTrades
+        //     "wallet" => "0x353Bf69715DdbF7A2b0C6Deba8EAC1F1D160c123",   // only fetchTrades
+        //     "expected_rebate" => "0",                                   // only fetchTrades
+        //     "extra_fee" => "0",                                         // only fetchTrades
         // }
         //
         $marketId = $this->safe_string($trade, 'instrument_name');
@@ -1110,7 +1136,7 @@ class derive extends Exchange {
         return $this->parse_funding_rate($data);
     }
 
-    public function parse_funding_rate($contract, ?array $market = null): array {
+    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
         $symbol = $this->safe_string($contract, 'symbol');
         $fundingTimestamp = $this->safe_integer($contract, 'timestamp');
         return array(
@@ -1135,32 +1161,32 @@ class derive extends Exchange {
         );
     }
 
-    public function hash_order_message($order) {
+    public function hash_order_message(mixed $order) {
         $accountHash = $this->hash($this->eth_abi_encode(array(
             'bytes32', 'uint256', 'uint256', 'address', 'bytes32', 'uint256', 'address', 'address',
         ), $order), 'keccak', 'binary');
         $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
-        $DOMAIN_SEPARATOR = ($sandboxMode) ? '9bcf4dc06df5d8bf23af818d5716491b995020f377d3b7b64c29ed14e3dd1105' : 'd96e5f90797da7ec8dc4e276260c7f3f87fedf68775fbe1ef116e996fc60441b';
+        $DOMAIN_SEPARATOR = ($sandboxMode === true) ? '9bcf4dc06df5d8bf23af818d5716491b995020f377d3b7b64c29ed14e3dd1105' : 'd96e5f90797da7ec8dc4e276260c7f3f87fedf68775fbe1ef116e996fc60441b';
         $binaryDomainSeparator = $this->base16_to_binary($DOMAIN_SEPARATOR);
         $prefix = $this->base16_to_binary('1901');
         return $this->hash($this->binary_concat($prefix, $binaryDomainSeparator, $accountHash), 'keccak', 'hex');
     }
 
-    public function sign_order($order, $privateKey) {
+    public function sign_order(mixed $order, mixed $privateKey) {
         $hashOrder = $this->hash_order_message($order);
         return $this->sign_hash(mb_substr($hashOrder, -64), mb_substr($privateKey, -64));
     }
 
-    public function hash_message($message) {
+    public function hash_message(mixed $message) {
         $binaryMessage = $this->encode($message);
         $binaryMessageLength = $this->binary_length($binaryMessage);
         $x19 = $this->base16_to_binary('19');
         $newline = $this->base16_to_binary('0a');
-        $prefix = $this->binary_concat($x19, $this->encode('Ethereum Signed Message:'), $newline, $this->encode(($this->number_to_string($binaryMessageLength))));
+        $prefix = $this->binary_concat($x19, $this->encode('Ethereum Signed Message:'), $newline, $this->encode($this->number_to_string($binaryMessageLength)));
         return '0x' . $this->hash($this->binary_concat($prefix, $binaryMessage), 'keccak', 'hex');
     }
 
-    public function sign_hash($hash, $privateKey) {
+    public function sign_hash(mixed $hash, mixed $privateKey) {
         $this->check_required_credentials();
         $signature = $this->ecdsa(mb_substr($hash, -64), mb_substr($privateKey, -64), 'secp256k1', null);
         $r = $signature['r'];
@@ -1169,7 +1195,7 @@ class derive extends Exchange {
         return '0x' . str_pad($r, 64, '0', STR_PAD_LEFT) . str_pad($s, 64, '0', STR_PAD_LEFT) . $v;
     }
 
-    public function sign_message($message, $privateKey) {
+    public function sign_message(mixed $message, mixed $privateKey) {
         return $this->sign_hash($this->hash_message($message), mb_substr($privateKey, -64));
     }
 
@@ -1218,7 +1244,7 @@ class derive extends Exchange {
         $signatureExpiry = $this->safe_integer($params, 'signature_expiry_sec', $this->seconds() + 7776000);
         $ACTION_TYPEHASH = $this->base16_to_binary('4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17');
         $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
-        $TRADE_MODULE_ADDRESS = ($sandboxMode) ? '0x87F2863866D85E3192a35A73b388BD625D83f2be' : '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b';
+        $TRADE_MODULE_ADDRESS = ($sandboxMode === true) ? '0x87F2863866D85E3192a35A73b388BD625D83f2be' : '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b';
         $priceString = $this->number_to_string($price);
         $maxFee = null;
         list($maxFee, $params) = $this->handle_option_and_params($params, 'createOrder', 'max_fee');
@@ -1265,7 +1291,7 @@ class derive extends Exchange {
         );
         if ($reduceOnly !== null) {
             $request['reduce_only'] = $reduceOnly;
-            if ($reduceOnly && $postOnly) {
+            if ($reduceOnly && ($postOnly === true)) {
                 throw new InvalidOrder($this->id . ' cannot use reduce only with post only time in force');
             }
         }
@@ -1294,7 +1320,7 @@ class derive extends Exchange {
         }
         $request['signature'] = $signature;
         $params = $this->omit($params, array( 'reduceOnly', 'reduce_only', 'timeInForce', 'time_in_force', 'postOnly', 'test', 'clientOrderId', 'stopPrice', 'triggerPrice', 'trigger_price', 'stopLoss', 'takeProfit', 'trigger_price_type' ));
-        if ($test) {
+        if ($test === true) {
             $response = $this->privatePostOrderDebug($this->extend($request, $params));
         } else {
             $response = $this->privatePostOrder($this->extend($request, $params));
@@ -1408,7 +1434,7 @@ class derive extends Exchange {
         // TODO => subaccount $id / trade module address
         $ACTION_TYPEHASH = $this->base16_to_binary('4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17');
         $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
-        $TRADE_MODULE_ADDRESS = ($sandboxMode) ? '0x87F2863866D85E3192a35A73b388BD625D83f2be' : '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b';
+        $TRADE_MODULE_ADDRESS = ($sandboxMode === true) ? '0x87F2863866D85E3192a35A73b388BD625D83f2be' : '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b';
         $priceString = $this->number_to_string($price);
         $maxFeeString = $this->safe_string($params, 'max_fee', '0');
         $amountString = $this->number_to_string($amount);
@@ -1450,7 +1476,7 @@ class derive extends Exchange {
         );
         if ($reduceOnly !== null) {
             $request['reduce_only'] = $reduceOnly;
-            if ($reduceOnly && $postOnly) {
+            if ($reduceOnly && ($postOnly === true)) {
                 throw new InvalidOrder($this->id . ' cannot use reduce only with post only time in force');
             }
         }
@@ -1583,7 +1609,7 @@ class derive extends Exchange {
             $response = $this->privatePostCancelByLabel($this->extend($request, $params));
         } else {
             $request['order_id'] = $id;
-            if ($isTrigger) {
+            if ($isTrigger === true) {
                 $response = $this->privatePostCancelTriggerOrder($this->extend($request, $params));
             } else {
                 $response = $this->privatePostCancel($this->extend($request, $params));
@@ -1647,7 +1673,7 @@ class derive extends Exchange {
          * @see https://docs.derive.xyz/reference/post_private-cancel-all
          *
          * cancel all open orders in a $market
-         * @param {string} $symbol unified $market $symbol
+         * @param {string} [$symbol] unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->subaccount_id] *required* the subaccount id
          * @return {array} an list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
@@ -1726,7 +1752,7 @@ class derive extends Exchange {
         } else {
             $request['page_size'] = 500;
         }
-        if ($isTrigger) {
+        if ($isTrigger === true) {
             $request['status'] = 'untriggered';
         }
         $response = $this->privatePostGetOrders($this->extend($request, $params));
@@ -1944,7 +1970,7 @@ class derive extends Exchange {
         $isBid = $this->safe_bool($order, 'is_bid');
         $side = $this->safe_string($order, 'direction');
         if ($side === null) {
-            if ($isBid) {
+            if ($isBid === true) {
                 $side = 'buy';
             } else {
                 $side = 'sell';
@@ -2167,7 +2193,7 @@ class derive extends Exchange {
          *
          * @see https://docs.derive.xyz/reference/post_private-get-$positions
          *
-         * @param {string[]} [$symbols] not used by kraken fetchPositions ()
+         * @param {string[]} [$symbols] not used by fetchPositions ()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->subaccount_id] *required* the subaccount id
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
@@ -2384,7 +2410,7 @@ class derive extends Exchange {
         return $this->parse_incomes($events, $market, $since, $limit);
     }
 
-    public function parse_income($income, ?array $market = null) {
+    public function parse_income(mixed $income, ?array $market = null) {
         //
         // {
         //     "instrument_name" => "BTC-PERP",
@@ -2480,7 +2506,7 @@ class derive extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         $result = array(
             'info' => $response,
         );
@@ -2498,7 +2524,9 @@ class derive extends Exchange {
                     $amount = $this->safe_string($balance, 'amount');
                     $account['total'] = Precise::string_add($account['total'], $amount);
                 }
-                $result[$code] = $account;
+                if ($code !== null) {
+                    $result[$code] = $account;
+                }
             }
         }
         return $this->safe_balance($result);
@@ -2652,7 +2680,7 @@ class derive extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function handle_derive_subaccount_id(string $methodName, array $params) {
+    public function handle_derive_subaccount_id(string $methodName, array $params): array {
         $derivesubAccountId = null;
         list($derivesubAccountId, $params) = $this->handle_option_and_params($params, $methodName, 'subaccount_id');
         if (($derivesubAccountId !== null) && ($derivesubAccountId !== '')) {
@@ -2680,8 +2708,8 @@ class derive extends Exchange {
         throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a $deriveWalletAddress parameter inside \'params\' or exchange.options[\'deriveWalletAddress\'] = ADDRESS, the address can find in HOME => Developers tab.');
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
-        if (!$response) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+        if ($response === null) {
             return null; // fallback to default $error handler
         }
         $error = $this->safe_dict($response, 'error');
@@ -2695,7 +2723,7 @@ class derive extends Exchange {
         return null;
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $url = $this->urls['api'][$api] . '/' . $path;
         if ($method === 'POST') {
             $headers = array(

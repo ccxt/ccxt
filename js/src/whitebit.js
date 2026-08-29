@@ -38,7 +38,7 @@ export default class whitebit extends Exchange {
                 'createConvertTrade': true,
                 'createDepositAddress': true,
                 'createMarketBuyOrderWithCost': true,
-                'createMarketOrderWithCost': false,
+                'createMarketOrderWithCost': true,
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
                 'createPostOnlyOrder': true,
@@ -49,13 +49,14 @@ export default class whitebit extends Exchange {
                 'editOrder': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
+                'fetchBorrowInterest': true,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
                 'fetchClosedOrders': true,
                 'fetchConvertQuote': true,
                 'fetchConvertTrade': false,
                 'fetchConvertTradeHistory': true,
-                'fetchCrossBorrowRate': true,
+                'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDeposit': true,
@@ -147,144 +148,145 @@ export default class whitebit extends Exchange {
             },
             'api': {
                 'web': {
-                    'get': [
-                        'v1/healthcheck',
-                    ],
+                    'get': {
+                        'v1/healthcheck': { 'cost': 1 },
+                    },
                 },
                 'v1': {
                     'public': {
-                        'get': [
-                            'markets',
-                            'tickers',
-                            'ticker',
-                            'symbols',
-                            'depth/result',
-                            'history',
-                            'kline',
-                        ],
+                        'get': {
+                            'markets': { 'cost': 1 },
+                            'tickers': { 'cost': 1 },
+                            'ticker': { 'cost': 1 },
+                            'symbols': { 'cost': 1 },
+                            'depth/result': { 'cost': 1 },
+                            'history': { 'cost': 1 },
+                            'kline': { 'cost': 1 },
+                        },
                     },
                     'private': {
-                        'post': [
-                            'account/balance',
-                            'order/new',
-                            'order/cancel',
-                            'orders',
-                            'account/order_history',
-                            'account/executed_history',
-                            'account/executed_history/all',
-                            'account/order',
-                        ],
+                        'post': {
+                            'account/balance': { 'cost': 1 },
+                            'order/new': { 'cost': 1 },
+                            'order/cancel': { 'cost': 1 },
+                            'orders': { 'cost': 1 },
+                            'account/order_history': { 'cost': 1 },
+                            'account/executed_history': { 'cost': 1 },
+                            'account/executed_history/all': { 'cost': 1 },
+                            'account/order': { 'cost': 1 },
+                        },
                     },
                 },
                 'v2': {
                     'public': {
-                        'get': [
-                            'markets',
-                            'ticker',
-                            'assets',
-                            'fee',
-                            'depth/{market}',
-                            'trades/{market}',
-                        ],
+                        'get': {
+                            'markets': { 'cost': 1 },
+                            'ticker': { 'cost': 1 },
+                            'assets': { 'cost': 1 },
+                            'fee': { 'cost': 1 },
+                            'depth/{market}': { 'cost': 1 },
+                            'trades/{market}': { 'cost': 1 },
+                        },
                     },
                 },
                 'v4': {
                     'public': {
-                        'get': [
-                            'assets',
-                            'collateral/markets',
-                            'fee',
-                            'funding-history/{market}',
-                            'orderbook/depth/{market}',
-                            'orderbook/{market}',
-                            'ticker',
-                            'trades/{market}',
-                            'time',
-                            'ping',
-                            'markets',
-                            'futures',
-                            'platform/status',
-                            'mining-pool',
-                        ],
+                        'get': {
+                            'assets': { 'cost': 1 },
+                            'collateral/markets': { 'cost': 1 },
+                            'fee': { 'cost': 1 },
+                            'funding-history/{market}': { 'cost': 1 },
+                            'orderbook/depth/{market}': { 'cost': 1 },
+                            'orderbook/{market}': { 'cost': 1 },
+                            'ticker': { 'cost': 1 },
+                            'trades/{market}': { 'cost': 1 },
+                            'time': { 'cost': 1 },
+                            'ping': { 'cost': 1 },
+                            'markets': { 'cost': 1 },
+                            'futures': { 'cost': 1 },
+                            'platform/status': { 'cost': 1 },
+                            'mining-pool': { 'cost': 1 },
+                        },
                     },
                     'private': {
-                        'post': [
-                            'collateral-account/balance',
-                            'collateral-account/balance-summary',
-                            'collateral-account/positions/history',
-                            'collateral-account/leverage',
-                            'collateral-account/positions/open',
-                            'collateral-account/summary',
-                            'collateral-account/funding-history',
-                            'main-account/address',
-                            'main-account/balance',
-                            'main-account/create-new-address',
-                            'main-account/codes',
-                            'main-account/codes/apply',
-                            'main-account/codes/my',
-                            'main-account/codes/history',
-                            'main-account/fiat-deposit-url',
-                            'main-account/history',
-                            'main-account/withdraw',
-                            'main-account/withdraw-pay',
-                            'main-account/transfer',
-                            'main-account/smart/plans',
-                            'main-account/smart/investment',
-                            'main-account/smart/investment/close',
-                            'main-account/smart/investments',
-                            'main-account/fee',
-                            'main-account/smart/interest-payment-history',
-                            'trade-account/balance',
-                            'trade-account/executed-history',
-                            'trade-account/order/history',
-                            'trade-account/order',
-                            'order/collateral/limit',
-                            'order/collateral/market',
-                            'order/collateral/stop-limit',
-                            'order/collateral/trigger-market',
-                            'order/collateral/bulk',
-                            'order/new',
-                            'order/market',
-                            'order/stock_market',
-                            'order/stop_limit',
-                            'order/stop_market',
-                            'order/cancel',
-                            'order/cancel/all',
-                            'order/kill-switch',
-                            'order/kill-switch/status',
-                            'order/bulk',
-                            'order/modify',
-                            'order/conditional-cancel',
-                            'orders',
-                            'oco-orders',
-                            'order/collateral/oco',
-                            'order/oco-cancel',
-                            'order/oto-cancel',
-                            'profile/websocket_token',
-                            'convert/estimate',
-                            'convert/confirm',
-                            'convert/history',
-                            'sub-account/create',
-                            'sub-account/delete',
-                            'sub-account/edit',
-                            'sub-account/list',
-                            'sub-account/transfer',
-                            'sub-account/block',
-                            'sub-account/unblock',
-                            'sub-account/balances',
-                            'sub-account/transfer/history',
-                            'sub-account/api-key/create',
-                            'sub-account/api-key/edit',
-                            'sub-account/api-key/delete',
-                            'sub-account/api-key/list',
-                            'sub-account/api-key/reset',
-                            'sub-account/api-key/ip-address/list',
-                            'sub-account/api-key/ip-address/create',
-                            'sub-account/api-key/ip-address/delete',
-                            'mining/rewards',
-                            'market/fee',
-                            'conditional-orders',
-                        ],
+                        'post': {
+                            'collateral-account/balance': { 'cost': 1 },
+                            'collateral-account/balance-summary': { 'cost': 1 },
+                            'collateral-account/positions/history': { 'cost': 1 },
+                            'collateral-account/leverage': { 'cost': 1 },
+                            'collateral-account/positions/open': { 'cost': 1 },
+                            'collateral-account/summary': { 'cost': 1 },
+                            'collateral-account/funding-history': { 'cost': 1 },
+                            'main-account/address': { 'cost': 1 },
+                            'main-account/balance': { 'cost': 1 },
+                            'main-account/create-new-address': { 'cost': 1 },
+                            'main-account/codes': { 'cost': 1 },
+                            'main-account/codes/apply': { 'cost': 1 },
+                            'main-account/codes/my': { 'cost': 1 },
+                            'main-account/codes/history': { 'cost': 1 },
+                            'main-account/fiat-deposit-url': { 'cost': 1 },
+                            'main-account/history': { 'cost': 1 },
+                            'main-account/withdraw': { 'cost': 1 },
+                            'main-account/withdraw-pay': { 'cost': 1 },
+                            'main-account/transfer': { 'cost': 1 },
+                            'main-account/smart/plans': { 'cost': 1 },
+                            'main-account/smart/investment': { 'cost': 1 },
+                            'main-account/smart/investment/close': { 'cost': 1 },
+                            'main-account/smart/investments': { 'cost': 1 },
+                            'main-account/fee': { 'cost': 1 },
+                            'main-account/smart/interest-payment-history': { 'cost': 1 },
+                            'trade-account/balance': { 'cost': 1 },
+                            // answers with a list when a market is set and a dict of lists otherwise — no shape assertion
+                            'trade-account/executed-history': { 'cost': 1 },
+                            'trade-account/order/history': { 'cost': 1 },
+                            'trade-account/order': { 'cost': 1 },
+                            'order/collateral/limit': { 'cost': 1 },
+                            'order/collateral/market': { 'cost': 1 },
+                            'order/collateral/stop-limit': { 'cost': 1 },
+                            'order/collateral/trigger-market': { 'cost': 1 },
+                            'order/collateral/bulk': { 'cost': 1 },
+                            'order/new': { 'cost': 1 },
+                            'order/market': { 'cost': 1 },
+                            'order/stock_market': { 'cost': 1 },
+                            'order/stop_limit': { 'cost': 1 },
+                            'order/stop_market': { 'cost': 1 },
+                            'order/cancel': { 'cost': 1 },
+                            'order/cancel/all': { 'cost': 1 },
+                            'order/kill-switch': { 'cost': 1 },
+                            'order/kill-switch/status': { 'cost': 1 },
+                            'order/bulk': { 'cost': 1 },
+                            'order/modify': { 'cost': 1 },
+                            'order/conditional-cancel': { 'cost': 1 },
+                            'orders': { 'cost': 1 },
+                            'oco-orders': { 'cost': 1 },
+                            'order/collateral/oco': { 'cost': 1 },
+                            'order/oco-cancel': { 'cost': 1 },
+                            'order/oto-cancel': { 'cost': 1 },
+                            'profile/websocket_token': { 'cost': 1 },
+                            'convert/estimate': { 'cost': 1 },
+                            'convert/confirm': { 'cost': 1 },
+                            'convert/history': { 'cost': 1 },
+                            'sub-account/create': { 'cost': 1 },
+                            'sub-account/delete': { 'cost': 1 },
+                            'sub-account/edit': { 'cost': 1 },
+                            'sub-account/list': { 'cost': 1 },
+                            'sub-account/transfer': { 'cost': 1 },
+                            'sub-account/block': { 'cost': 1 },
+                            'sub-account/unblock': { 'cost': 1 },
+                            'sub-account/balances': { 'cost': 1 },
+                            'sub-account/transfer/history': { 'cost': 1 },
+                            'sub-account/api-key/create': { 'cost': 1 },
+                            'sub-account/api-key/edit': { 'cost': 1 },
+                            'sub-account/api-key/delete': { 'cost': 1 },
+                            'sub-account/api-key/list': { 'cost': 1 },
+                            'sub-account/api-key/reset': { 'cost': 1 },
+                            'sub-account/api-key/ip-address/list': { 'cost': 1 },
+                            'sub-account/api-key/ip-address/create': { 'cost': 1 },
+                            'sub-account/api-key/ip-address/delete': { 'cost': 1 },
+                            'mining/rewards': { 'cost': 1 },
+                            'market/fee': { 'cost': 1 },
+                            'conditional-orders': { 'cost': 1 },
+                        },
                     },
                 },
             },
@@ -327,9 +329,9 @@ export default class whitebit extends Exchange {
                         'takeProfitPrice': false, // todo
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
-                            'IOC': true, // todo
+                            'IOC': true,
                             'FOK': false,
-                            'PO': true, // todo
+                            'PO': true,
                             'GTD': false,
                         },
                         'hedged': false,
@@ -451,7 +453,7 @@ export default class whitebit extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets(params = {}) {
-        if (this.options['adjustForTimeDifference']) {
+        if (this.options['adjustForTimeDifference'] === true) {
             await this.loadTimeDifference();
         }
         const markets = await this.v4PublicGetMarkets();
@@ -494,11 +496,10 @@ export default class whitebit extends Exchange {
         let settle = undefined;
         let settleId = undefined;
         let symbol = base + '/' + quote;
-        const swap = typeId === 'futures';
-        const margin = isCollateral && !swap;
+        const swap = (typeId === 'futures') || (typeId === 'tradfiFutures');
+        const margin = (isCollateral === true) && !swap;
         let contract = false;
         const amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(market, 'stockPrec')));
-        const contractSize = amountPrecision;
         let linear = undefined;
         let inverse = undefined;
         if (swap) {
@@ -518,7 +519,7 @@ export default class whitebit extends Exchange {
         const makerFeeRate = this.safeString(market, 'makerFee');
         const maker = Precise.stringDiv(makerFeeRate, '100');
         const isSpot = !swap;
-        return {
+        return this.safeMarketStructure({
             'id': id,
             'symbol': symbol,
             'base': base,
@@ -539,7 +540,7 @@ export default class whitebit extends Exchange {
             'inverse': inverse,
             'taker': this.parseNumber(taker),
             'maker': this.parseNumber(maker),
-            'contractSize': isSpot ? undefined : contractSize,
+            'contractSize': isSpot ? undefined : this.parseNumber('1'), // perpetual amounts are denominated in base currency units
             'expiry': undefined,
             'expiryDatetime': undefined,
             'strike': undefined,
@@ -568,7 +569,7 @@ export default class whitebit extends Exchange {
             },
             'created': undefined,
             'info': market,
-        };
+        });
     }
     /**
      * @method
@@ -666,25 +667,27 @@ export default class whitebit extends Exchange {
             const networkCode = this.networkIdToCode(networkId, code);
             const networkDepositLimits = this.safeDict(depositLimits, networkId, {});
             const networkWithdrawLimits = this.safeDict(withdrawLimits, networkId, {});
-            networks[networkCode] = {
-                'id': networkId,
-                'network': networkCode,
-                'active': undefined,
-                'deposit': this.inArray(networkId, depositsNetworks),
-                'withdraw': this.inArray(networkId, withdrawsNetworks),
-                'fee': undefined,
-                'precision': undefined,
-                'limits': {
-                    'deposit': {
-                        'min': this.safeNumber(networkDepositLimits, 'min'),
-                        'max': this.safeNumber(networkDepositLimits, 'max'),
+            if (networkCode !== undefined) {
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'active': undefined,
+                    'deposit': this.inArray(networkId, depositsNetworks),
+                    'withdraw': this.inArray(networkId, withdrawsNetworks),
+                    'fee': undefined,
+                    'precision': undefined,
+                    'limits': {
+                        'deposit': {
+                            'min': this.safeNumber(networkDepositLimits, 'min'),
+                            'max': this.safeNumber(networkDepositLimits, 'max'),
+                        },
+                        'withdraw': {
+                            'min': this.safeNumber(networkWithdrawLimits, 'min'),
+                            'max': this.safeNumber(networkWithdrawLimits, 'max'),
+                        },
                     },
-                    'withdraw': {
-                        'min': this.safeNumber(networkWithdrawLimits, 'min'),
-                        'max': this.safeNumber(networkWithdrawLimits, 'max'),
-                    },
-                },
-            };
+                };
+            }
         }
         return this.safeCurrencyStructure({
             'id': id,
@@ -759,12 +762,16 @@ export default class whitebit extends Exchange {
         const depositFees = {};
         for (let i = 0; i < currenciesIds.length; i++) {
             const currency = currenciesIds[i];
-            const data = response[currency];
+            const data = this.safeDict(response, currency, {});
             const code = this.safeCurrencyCode(currency);
             const withdraw = this.safeValue(data, 'withdraw', {});
-            withdrawFees[code] = this.safeString(withdraw, 'fixed');
+            if (code !== undefined) {
+                withdrawFees[code] = this.safeString(withdraw, 'fixed');
+            }
             const deposit = this.safeValue(data, 'deposit', {});
-            depositFees[code] = this.safeString(deposit, 'fixed');
+            if (code !== undefined) {
+                depositFees[code] = this.safeString(deposit, 'fixed');
+            }
         }
         return {
             'withdraw': withdrawFees,
@@ -882,7 +889,7 @@ export default class whitebit extends Exchange {
             const currencyId = splitEntry[0];
             const feeInfo = response[entry];
             const code = this.safeCurrencyCode(currencyId);
-            if ((codes === undefined) || (this.inArray(code, codes))) {
+            if ((code !== undefined) && ((codes === undefined) || (this.inArray(code, codes)))) {
                 const depositWithdrawFee = this.safeValue(depositWithdrawFees, code);
                 if (depositWithdrawFee === undefined) {
                     depositWithdrawFees[code] = this.depositWithdrawFee({});
@@ -905,10 +912,12 @@ export default class whitebit extends Exchange {
                     const networkLength = networkId.length;
                     networkId = networkId.slice(1, networkLength - 1);
                     const networkCode = this.networkIdToCode(networkId, code);
-                    depositWithdrawFees[code]['networks'][networkCode] = {
-                        'withdraw': withdrawResult,
-                        'deposit': depositResult,
-                    };
+                    if (networkCode !== undefined) {
+                        depositWithdrawFees[code]['networks'][networkCode] = {
+                            'withdraw': withdrawResult,
+                            'deposit': depositResult,
+                        };
+                    }
                 }
                 else {
                     depositWithdrawFees[code]['withdraw'] = withdrawResult;
@@ -955,8 +964,9 @@ export default class whitebit extends Exchange {
         //      }
         //
         const result = {};
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+        const symbols = this.symbols;
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
             const market = this.market(symbol);
             const fee = this.safeValue(response, market['baseId'], {});
             let makerFee = this.safeString(fee, 'maker_fee');
@@ -1033,16 +1043,21 @@ export default class whitebit extends Exchange {
         //
         const result = {};
         // Process all markets from the loaded markets cache
-        const marketIds = Object.keys(this.markets);
+        const markets = this.markets;
+        if (markets === undefined) {
+            throw new ExchangeError(this.id + ' markets not loaded');
+        }
+        const marketIds = Object.keys(markets);
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
-            const market = this.markets[marketId];
-            if (!market || !market['symbol']) {
+            const market = markets[marketId];
+            const marketSymbol = this.safeString(market, 'symbol');
+            if ((market === undefined) || (market === null) || (marketSymbol === undefined) || (marketSymbol === '')) {
                 continue; // Skip invalid markets silently
             }
             const symbol = market['symbol'];
             // Filter by symbols if specified
-            if (symbols) {
+            if (symbols !== undefined) {
                 let symbolFound = false;
                 for (let j = 0; j < symbols.length; j++) {
                     if (symbols[j] === symbol) {
@@ -1060,10 +1075,10 @@ export default class whitebit extends Exchange {
             const priceLimits = this.safeDict(limits, 'price');
             const costLimits = this.safeDict(limits, 'cost');
             // Validate that all required limits exist and are valid numbers
-            const hasAmountLimits = amountLimits && this.safeNumber(amountLimits, 'min') !== undefined && this.safeNumber(amountLimits, 'max') !== undefined;
-            const hasPriceLimits = priceLimits && this.safeNumber(priceLimits, 'min') !== undefined && this.safeNumber(priceLimits, 'max') !== undefined;
-            const hasCostLimits = costLimits && this.safeNumber(costLimits, 'min') !== undefined && this.safeNumber(costLimits, 'max') !== undefined;
-            if (hasAmountLimits && hasPriceLimits && hasCostLimits) {
+            const hasAmountLimits = (amountLimits !== undefined) && (amountLimits !== null) && this.safeNumber(amountLimits, 'min') !== undefined && this.safeNumber(amountLimits, 'max') !== undefined;
+            const hasPriceLimits = (priceLimits !== undefined) && (priceLimits !== null) && this.safeNumber(priceLimits, 'min') !== undefined && this.safeNumber(priceLimits, 'max') !== undefined;
+            const hasCostLimits = (costLimits !== undefined) && (costLimits !== null) && this.safeNumber(costLimits, 'min') !== undefined && this.safeNumber(costLimits, 'max') !== undefined;
+            if ((hasAmountLimits === true) && (hasPriceLimits === true) && (hasCostLimits === true)) {
                 result[symbol] = {
                     'info': market,
                     'limits': {
@@ -1165,7 +1180,7 @@ export default class whitebit extends Exchange {
         for (let i = 0; i < currencyKeys.length; i++) {
             const code = currencyKeys[i];
             const currency = currenciesData[code];
-            if (!currency) {
+            if (currency === undefined) {
                 // Skip invalid currency silently
                 continue;
             }
@@ -1178,32 +1193,33 @@ export default class whitebit extends Exchange {
             const feeKeys = Object.keys(feesData);
             for (let j = 0; j < feeKeys.length; j++) {
                 const feeKey = feeKeys[j];
-                const fee = feesData[feeKey];
-                if (fee && fee['ticker'] === code) {
+                const fee = this.safeDict(feesData, feeKey);
+                if ((fee !== undefined && fee !== null) && fee['ticker'] === code) {
                     feeData = fee;
                     break;
                 }
             }
             // Build comprehensive funding limits
+            const currencyLimits = this.safeDict(currency, 'limits', {});
             const limits = {
                 'deposit': {
-                    'min': currency['limits']['deposit']['min'],
-                    'max': currency['limits']['deposit']['max'],
+                    'min': currencyLimits['deposit']['min'],
+                    'max': currencyLimits['deposit']['max'],
                 },
                 'withdraw': {
-                    'min': currency['limits']['withdraw']['min'],
-                    'max': currency['limits']['withdraw']['max'],
+                    'min': currencyLimits['withdraw']['min'],
+                    'max': currencyLimits['withdraw']['max'],
                 },
             };
             // Add fee information if available
-            if (feeData) {
+            if (feeData !== undefined) {
                 const depositFee = feeData['deposit'];
                 const withdrawFee = feeData['withdraw'];
-                if (depositFee) {
+                if ((depositFee !== undefined) && (depositFee !== null)) {
                     const depositFeeData = {
                         'fixed': this.safeNumber(depositFee, 'fixed'),
                     };
-                    if (depositFee['flex']) {
+                    if ((depositFee['flex'] !== undefined) && (depositFee['flex'] !== null)) {
                         depositFeeData['flex'] = {
                             'min': this.safeNumber(depositFee['flex'], 'min_fee'),
                             'max': this.safeNumber(depositFee['flex'], 'max_fee'),
@@ -1212,11 +1228,11 @@ export default class whitebit extends Exchange {
                     }
                     limits['deposit']['fee'] = depositFeeData;
                 }
-                if (withdrawFee) {
+                if ((withdrawFee !== undefined) && (withdrawFee !== null)) {
                     const withdrawFeeData = {
                         'fixed': this.safeNumber(withdrawFee, 'fixed'),
                     };
-                    if (withdrawFee['flex']) {
+                    if ((withdrawFee['flex'] !== undefined) && (withdrawFee['flex'] !== null)) {
                         withdrawFeeData['flex'] = {
                             'min': this.safeNumber(withdrawFee['flex'], 'min_fee'),
                             'max': this.safeNumber(withdrawFee['flex'], 'max_fee'),
@@ -1227,7 +1243,7 @@ export default class whitebit extends Exchange {
                 }
             }
             // Add network-specific limits if available
-            if (currency['networks']) {
+            if (currency['networks'] !== undefined) {
                 limits['networks'] = currency['networks'];
             }
             result[code] = {
@@ -1410,6 +1426,7 @@ export default class whitebit extends Exchange {
         // Extract control parameters from params
         const checkActive = this.safeBool(params, 'checkActive', true);
         const checkExecuted = this.safeBool(params, 'checkExecuted', true);
+        params = this.omit(params, ['checkActive', 'checkExecuted']);
         const request = {
             'orderId': id,
         };
@@ -1419,12 +1436,13 @@ export default class whitebit extends Exchange {
             request['market'] = market['id'];
         }
         // Try active orders first (if enabled)
-        if (checkActive) {
+        if (checkActive === true) {
             try {
                 const response = await this.v4PrivatePostOrders(this.extend(request, params));
                 // Search for order in active orders response (array format)
-                for (let i = 0; i < response.length; i++) {
-                    const order = response[i];
+                const orders = this.toArray(response);
+                for (let i = 0; i < orders.length; i++) {
+                    const order = orders[i];
                     const orderId = this.safeString(order, 'orderId');
                     if (orderId === id) {
                         const marketId = this.safeString(order, 'market');
@@ -1440,7 +1458,7 @@ export default class whitebit extends Exchange {
             }
         }
         // Try executed orders (if enabled)
-        if (checkExecuted) {
+        if (checkExecuted === true) {
             try {
                 const response = await this.v4PrivatePostTradeAccountOrderHistory(this.extend(request, params));
                 // Search for order in executed orders response (object format)
@@ -1448,9 +1466,9 @@ export default class whitebit extends Exchange {
                 for (let i = 0; i < marketIds.length; i++) {
                     const marketId = marketIds[i];
                     const marketNew = this.safeMarket(marketId, undefined, '_');
-                    const orders = response[marketId];
-                    for (let j = 0; j < orders.length; j++) {
-                        const order = orders[j];
+                    const marketOrders = this.safeList(response, marketId, []);
+                    for (let j = 0; j < marketOrders.length; j++) {
+                        const order = marketOrders[j];
                         const orderId = this.safeString(order, 'id');
                         if (orderId === id) {
                             return this.parseOrder(order, marketNew);
@@ -1488,7 +1506,7 @@ export default class whitebit extends Exchange {
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
                 const market = this.market(symbol);
-                if (!(market['contract'])) {
+                if (market['contract'] !== true) {
                     onlyContractSymbols = false;
                     break;
                 }
@@ -1593,7 +1611,7 @@ export default class whitebit extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -1978,6 +1996,7 @@ export default class whitebit extends Exchange {
      * @param {float} [params.cost] *market orders only* the cost of the order in units of the base currency
      * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
      * @param {bool} [params.postOnly] If true, the order will only be posted to the order book and not executed immediately
+     * @param {string} [params.timeInForce] "GTC", "IOC" or "PO"; IOC and PO are limit-order only, not supported for stop orders
      * @param {string} [params.clientOrderId] a unique id for the order
      * @param {string} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
@@ -2018,15 +2037,29 @@ export default class whitebit extends Exchange {
         const isMarketOrder = type === 'market';
         const triggerPrice = this.safeNumberN(params, ['triggerPrice', 'stopPrice', 'activation_price']);
         const isStopOrder = (triggerPrice !== undefined);
+        const timeInForce = this.safeStringUpper(params, 'timeInForce');
+        if ((timeInForce !== undefined) && (timeInForce !== 'GTC') && (timeInForce !== 'IOC') && (timeInForce !== 'PO')) {
+            throw new NotSupported(this.id + ' createOrder() does not support timeInForce ' + timeInForce + ', only GTC, IOC and PO are allowed');
+        }
         const postOnly = this.isPostOnly(isMarketOrder, false, params);
+        const ioc = (timeInForce === 'IOC');
+        if (isStopOrder && (postOnly || ioc)) {
+            throw new NotSupported(this.id + ' createOrder() does not support postOnly or timeInForce IOC for stop orders');
+        }
+        if (ioc && !isLimitOrder) {
+            throw new NotSupported(this.id + ' createOrder() timeInForce IOC is only supported for limit orders');
+        }
         const [marginMode, query] = this.handleMarginModeAndParams('createOrder', params);
         if (postOnly) {
             request['postOnly'] = true;
         }
+        if (ioc) {
+            request['ioc'] = true;
+        }
         if (marginMode !== undefined && marginMode !== 'cross') {
             throw new NotSupported(this.id + ' createOrder() is only available for cross margin');
         }
-        params = this.omit(query, ['postOnly', 'triggerPrice', 'stopPrice']);
+        params = this.omit(query, ['postOnly', 'triggerPrice', 'stopPrice', 'timeInForce']);
         const useCollateralEndpoint = marginMode !== undefined || marketType === 'swap';
         let response;
         if (isStopOrder) {
@@ -2192,7 +2225,7 @@ export default class whitebit extends Exchange {
      * @name whitebit#cancelAllOrders
      * @description cancel all open orders
      * @see https://docs.whitebit.com/private/http-trade-v4/#cancel-all-orders
-     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.type] market type, ['swap', 'spot']
      * @param {boolean} [params.isMargin] cancel all margin orders
@@ -2285,10 +2318,12 @@ export default class whitebit extends Exchange {
         }
         const market = this.market(symbol);
         params = this.omit(params, 'symbol');
+        if (timeout === undefined) {
+            throw new ExchangeError(this.id + ' cancelAllOrdersAfter() missing timeout');
+        }
         const isBiggerThanZero = (timeout > 0);
         const request = {
             'market': market['id'],
-            // 'timeout': (timeout > 0) ? this.numberToString (timeout / 1000) : null,
         };
         if (isBiggerThanZero) {
             request['timeout'] = this.numberToString(timeout / 1000);
@@ -2319,12 +2354,16 @@ export default class whitebit extends Exchange {
                 account['free'] = this.safeString2(balance, 'available', 'main_balance');
                 account['used'] = this.safeString(balance, 'freeze');
                 account['total'] = this.safeString(balance, 'main_balance');
-                result[code] = account;
+                if (code !== undefined) {
+                    result[code] = account;
+                }
             }
             else {
                 const account = this.account();
                 account['total'] = balance;
-                result[code] = account;
+                if (code !== undefined) {
+                    result[code] = account;
+                }
             }
         }
         return this.safeBalance(result);
@@ -2479,7 +2518,7 @@ export default class whitebit extends Exchange {
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const marketNew = this.safeMarket(marketId, undefined, '_');
-            const orders = response[marketId];
+            const orders = this.safeList(response, marketId, []);
             for (let j = 0; j < orders.length; j++) {
                 const order = this.parseOrder(orders[j], marketNew);
                 results.push(this.extend(order, { 'status': 'closed' }));
@@ -2574,6 +2613,15 @@ export default class whitebit extends Exchange {
         }
         const timestamp = this.safeTimestamp2(order, 'ctime', 'timestamp');
         const lastTradeTimestamp = this.safeTimestamp(order, 'ftime');
+        const postOnly = this.safeBool(order, 'postOnly');
+        const ioc = this.safeBool(order, 'ioc');
+        let timeInForce = undefined;
+        if (ioc === true) {
+            timeInForce = 'IOC';
+        }
+        else if (postOnly === true) {
+            timeInForce = 'PO';
+        }
         return this.safeOrder({
             'info': order,
             'id': orderId,
@@ -2582,8 +2630,8 @@ export default class whitebit extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
-            'timeInForce': undefined,
-            'postOnly': undefined,
+            'timeInForce': timeInForce,
+            'postOnly': postOnly,
             'status': this.parseOrderStatus(this.safeString(order, 'status')),
             'side': side,
             'price': price,
@@ -2745,24 +2793,34 @@ export default class whitebit extends Exchange {
         // Do not filter by transactionMethod to get all transactions (deposits and withdrawals)
         const response = await this.v4PrivatePostMainAccountHistory(this.extend(request, params));
         //
-        //     [
-        //         {
-        //             "id": 123456789,                    // Transaction ID
-        //             "method": "1",                      // Method: 1=deposit, 2=withdrawal
-        //             "ticker": "BTC",                    // Currency ticker
-        //             "amount": "0.001",                  // Transaction amount
-        //             "address": "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa", // Transaction address
-        //             "memo": "",                         // Memo/tag (if required)
-        //             "network": "BTC",                   // Network name
-        //             "fee": "0.0005",                    // Transaction fee
-        //             "status": "1",                      // Status: 0=pending, 1=completed, 2=failed
-        //             "timestamp": 1641051917,            // Transaction timestamp
-        //             "txid": "abc123def456..."           // Transaction hash
-        //         },
-        //         { ... }                                 // More transactions (deposits and withdrawals)
-        //     ]
+        //     {
+        //         "records": [
+        //             {
+        //                 "address": "TDepositAddressExample1111111111111",
+        //                 "uniqueId": null,
+        //                 "transactionId": "11111111-2222-3333-4444-555555555555",
+        //                 "createdAt": 1786182572,
+        //                 "currency": "Tether US",
+        //                 "ticker": "USDT",
+        //                 "method": 1,                    // 1 = deposit, 2 = withdraw
+        //                 "amount": "20.723117",
+        //                 "description": null,
+        //                 "memo": null,
+        //                 "fee": "0",
+        //                 "status": 3,
+        //                 "network": "TRC20",
+        //                 "transactionHash": "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2",
+        //                 "details": { "partial": null },
+        //                 "centralized": false
+        //             }
+        //         ],
+        //         "total": 1,
+        //         "limit": 100,
+        //         "offset": 0
+        //     }
         //
-        return this.parseTransactions(response, currency, since, limit);
+        const records = this.safeList(response, 'records', []);
+        return this.parseTransactions(records, currency, since, limit);
     }
     /**
      * @method
@@ -2911,33 +2969,37 @@ export default class whitebit extends Exchange {
             await this.loadMarkets();
         }
         const accounts = [];
-        // Fetch sub-accounts
+        const response = await this.v4PrivatePostSubAccountList(params);
         //
-        //     [
-        //         {
-        //             "id": "12345",
-        //             "name": "SubAccount1",
-        //             "status": "active",
-        //             "permissions": ["trade", "withdraw"]
-        //         }
-        //     ]
+        //     {
+        //         "offset": 0,
+        //         "limit": 100,
+        //         "data": [
+        //             {
+        //                 "id": "8e667b4a-0b71-4988-8af5-9474dbfaeb51",
+        //                 "alias": "trading_bot",
+        //                 "userId": "u-12345",
+        //                 "email": "s***@example.com",
+        //                 "status": "active",
+        //                 "color": "#FF5733",
+        //                 "kyc": { "shareKyc": false, "kycStatus": "verified" },
+        //                 "permissions": { "spotEnabled": true, "collateralEnabled": false }
+        //             }
+        //         ]
+        //     }
         //
-        const subAccounts = await this.v4PrivatePostSubAccountList(params);
-        if (subAccounts && Array.isArray(subAccounts)) {
-            for (let i = 0; i < subAccounts.length; i++) {
-                const subAccount = this.safeValue(subAccounts, i);
-                const accountId = this.safeString(subAccount, 'id');
-                const accountName = this.safeString(subAccount, 'name');
-                if (accountId) {
-                    accounts.push({
-                        'id': accountId,
-                        'type': 'subaccount',
-                        'name': accountName || 'SubAccount ' + accountId,
-                        'code': undefined,
-                        'info': subAccount,
-                    });
-                }
-            }
+        const subAccounts = this.safeList(response, 'data', []);
+        for (let i = 0; i < subAccounts.length; i++) {
+            const subAccount = this.safeDict(subAccounts, i, {});
+            const accountId = this.safeString(subAccount, 'id');
+            const accountName = this.safeString(subAccount, 'alias');
+            accounts.push({
+                'id': accountId,
+                'type': 'subaccount',
+                'name': accountName,
+                'code': undefined,
+                'info': subAccount,
+            });
         }
         return accounts;
     }
@@ -3155,7 +3217,7 @@ export default class whitebit extends Exchange {
      * @description fetch information on a deposit
      * @see https://docs.whitebit.com/private/http-main-v4/#get-depositwithdraw-history
      * @param {string} id deposit id
-     * @param {string} code not used by whitebit fetchDeposit ()
+     * @param {string} code not used by fetchDeposit ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
@@ -3283,7 +3345,11 @@ export default class whitebit extends Exchange {
         //     }
         //
         const records = this.safeList(response, 'records', []);
-        return this.parseTransactions(records, currency, since, limit);
+        let recordsList = [];
+        if (records !== undefined) {
+            recordsList = records;
+        }
+        return this.parseTransactions(recordsList, currency, since, limit);
     }
     /**
      * @method
@@ -3533,10 +3599,10 @@ export default class whitebit extends Exchange {
             request['startDate'] = since;
         }
         if (limit !== undefined) {
-            request['limit'] = since;
+            request['limit'] = limit;
         }
         [request, params] = this.handleUntilOption('endDate', request, params);
-        const response = await this.v4PrivatePostCollateralAccountFundingHistory(request);
+        const response = await this.v4PrivatePostCollateralAccountFundingHistory(this.extend(request, params));
         //
         //     {
         //         "records": [
@@ -3662,7 +3728,11 @@ export default class whitebit extends Exchange {
         //    }
         //
         const records = this.safeList(response, 'records');
-        return this.parseTransactions(records, currency, since, limit);
+        let recordsList = [];
+        if (records !== undefined) {
+            recordsList = records;
+        }
+        return this.parseTransactions(recordsList, currency, since, limit);
     }
     /**
      * @method
@@ -3857,7 +3927,7 @@ export default class whitebit extends Exchange {
      * @param {string} symbol unified contract symbol
      * @param {int} [since] the earliest time in ms to fetch positions for
      * @param {int} [limit] the maximum amount of records to fetch
-     * @param {object} [params] extra parameters specific to the exchange api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.positionId] the id of the requested position
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
@@ -4062,43 +4132,6 @@ export default class whitebit extends Exchange {
             'takeProfitPrice': this.safeNumber(tpsl, 'takeProfit'),
         });
     }
-    /**
-     * @method
-     * @name whitebit#fetchCrossBorrowRate
-     * @description fetch the rate of interest to borrow a currency for margin trading
-     * @see https://docs.whitebit.com/private/http-main-v4/#get-plans
-     * @param {string} code unified currency code
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
-     */
-    async fetchCrossBorrowRate(code, params = {}) {
-        if (this.markets === undefined) {
-            await this.loadMarkets();
-        }
-        const currency = this.currency(code);
-        const request = {
-            'ticker': currency['id'],
-        };
-        const response = await this.v4PrivatePostMainAccountSmartPlans(this.extend(request, params));
-        //
-        //
-        const data = this.safeList(response, 0, []);
-        return this.parseBorrowRate(data, currency);
-    }
-    parseBorrowRate(info, currency = undefined) {
-        //
-        //
-        const currencyId = this.safeString(info, 'ticker');
-        const percent = this.safeString(info, 'percent');
-        return {
-            'currency': this.safeCurrencyCode(currencyId, currency),
-            'rate': this.parseNumber(Precise.stringDiv(percent, '100')),
-            'period': this.safeInteger(info, 'duration'),
-            'timestamp': undefined,
-            'datetime': undefined,
-            'info': info,
-        };
-    }
     isFiat(currency) {
         const fiatCurrencies = this.safeValue(this.options, 'fiatCurrencies', []);
         return this.inArray(currency, fiatCurrencies);
@@ -4179,7 +4212,7 @@ export default class whitebit extends Exchange {
         const pathWithParams = '/' + this.implodeParams(path, params);
         let url = this.urls['api'][version][accessibility] + pathWithParams;
         if (accessibility === 'public') {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
             }
         }
@@ -4242,7 +4275,7 @@ export default class whitebit extends Exchange {
             }
             // {"success":false,"message":{"limit":["limit must be less than or equal to 100"]},"result":null}
             const success = this.safeBool(response, 'success', true);
-            if (!success) {
+            if (success !== true) {
                 const errMsg = this.safeDict(response, 'message', {});
                 const errKeys = Object.keys(errMsg);
                 const errKeysLength = errKeys.length;

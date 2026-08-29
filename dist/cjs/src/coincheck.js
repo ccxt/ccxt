@@ -122,48 +122,48 @@ class coincheck extends coincheck$1["default"] {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'exchange/orders/rate',
-                        'exchange_status',
-                        'order_books',
-                        'rate/{pair}',
-                        'ticker',
-                        'trades',
-                    ],
+                    'get': {
+                        'exchange/orders/rate': { 'cost': 1 },
+                        'exchange_status': { 'cost': 1 },
+                        'order_books': { 'cost': 1 },
+                        'rate/{pair}': { 'cost': 1 },
+                        'ticker': { 'cost': 1 },
+                        'trades': { 'cost': 1 },
+                    },
                 },
                 'private': {
-                    'get': [
-                        'accounts',
-                        'accounts/balance',
-                        'accounts/leverage_balance',
-                        'bank_accounts',
-                        'deposit_money',
-                        'exchange/orders/{id}',
-                        'exchange/orders/opens',
-                        'exchange/orders/cancel_status',
-                        'exchange/orders/transactions',
-                        'exchange/orders/transactions_pagination',
-                        'exchange/leverage/positions',
-                        'lending/borrows/matches',
-                        'send_money',
-                        'withdraws',
-                    ],
-                    'post': [
-                        'bank_accounts',
-                        'deposit_money/{id}/fast',
-                        'exchange/orders',
-                        'exchange/transfers/to_leverage',
-                        'exchange/transfers/from_leverage',
-                        'lending/borrows',
-                        'lending/borrows/{id}/repay',
-                        'send_money',
-                        'withdraws',
-                    ],
-                    'delete': [
-                        'bank_accounts/{id}',
-                        'exchange/orders/{id}',
-                        'withdraws/{id}',
-                    ],
+                    'get': {
+                        'accounts': { 'cost': 1 },
+                        'accounts/balance': { 'cost': 1 },
+                        'accounts/leverage_balance': { 'cost': 1 },
+                        'bank_accounts': { 'cost': 1 },
+                        'deposit_money': { 'cost': 1 },
+                        'exchange/orders/{id}': { 'cost': 1 },
+                        'exchange/orders/opens': { 'cost': 1 },
+                        'exchange/orders/cancel_status': { 'cost': 1 },
+                        'exchange/orders/transactions': { 'cost': 1 },
+                        'exchange/orders/transactions_pagination': { 'cost': 1 },
+                        'exchange/leverage/positions': { 'cost': 1 },
+                        'lending/borrows/matches': { 'cost': 1 },
+                        'send_money': { 'cost': 1 },
+                        'withdraws': { 'cost': 1 },
+                    },
+                    'post': {
+                        'bank_accounts': { 'cost': 1 },
+                        'deposit_money/{id}/fast': { 'cost': 1 },
+                        'exchange/orders': { 'cost': 1 },
+                        'exchange/transfers/to_leverage': { 'cost': 1 },
+                        'exchange/transfers/from_leverage': { 'cost': 1 },
+                        'lending/borrows': { 'cost': 1 },
+                        'lending/borrows/{id}/repay': { 'cost': 1 },
+                        'send_money': { 'cost': 1 },
+                        'withdraws': { 'cost': 1 },
+                    },
+                    'delete': {
+                        'bank_accounts/{id}': { 'cost': 1 },
+                        'exchange/orders/{id}': { 'cost': 1 },
+                        'withdraws/{id}': { 'cost': 1 },
+                    },
                 },
             },
             'markets': {
@@ -429,7 +429,7 @@ class coincheck extends coincheck$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -784,7 +784,7 @@ class coincheck extends coincheck$1["default"] {
      * @description cancels an open order
      * @see https://coincheck.com/documents/exchange/api#order-cancel
      * @param {string} id order id
-     * @param {string} symbol not used by coincheck cancelOrder ()
+     * @param {string} symbol not used by cancelOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -986,7 +986,7 @@ class coincheck extends coincheck$1["default"] {
         let url = this.urls['api']['rest'] + '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
         if (api === 'public') {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
             }
         }
@@ -995,12 +995,12 @@ class coincheck extends coincheck$1["default"] {
             const nonce = this.nonce().toString();
             let queryString = '';
             if (method === 'GET') {
-                if (Object.keys(query).length) {
+                if (Object.keys(query).length > 0) {
                     url += '?' + this.urlencode(this.keysort(query));
                 }
             }
             else {
-                if (Object.keys(query).length) {
+                if (Object.keys(query).length > 0) {
                     body = this.urlencode(this.keysort(query));
                     queryString = body;
                 }
@@ -1024,7 +1024,7 @@ class coincheck extends coincheck$1["default"] {
         //     {"success":false,"error":"invalid authentication"}
         //
         const success = this.safeBool(response, 'success', true);
-        if (!success) {
+        if (success !== true) {
             const error = this.safeString(response, 'error');
             const feedback = this.id + ' ' + this.json(response);
             this.throwExactlyMatchedException(this.exceptions['exact'], error, feedback);

@@ -224,9 +224,15 @@ class PredictionExchange extends Exchange.BaseExchange {
             let matched = false;
             for (let qi = 0; qi < queries.length; qi++) {
                 const q = queries[qi].toLowerCase();
+                if (title === undefined) {
+                    throw new errors.ExchangeError(this.id + ' filterEventsBySearchIn() missing title');
+                }
                 if (checkTitle && (title.indexOf(q) >= 0)) {
                     matched = true;
                     break;
+                }
+                if (description === undefined) {
+                    throw new errors.ExchangeError(this.id + ' filterEventsBySearchIn() missing description');
                 }
                 if (checkDescription && (description.indexOf(q) >= 0)) {
                     matched = true;
@@ -268,11 +274,7 @@ class PredictionExchange extends Exchange.BaseExchange {
     filterEventsByTags(events, tags = undefined) {
         // keep events carrying one of the requested tags; tolerant to string tags and to
         // object tags ({ slug, title, ... }) since venues differ. no-op when no tags requested
-        let tagsLength = 0;
-        if (tags !== undefined) {
-            tagsLength = tags.length;
-        }
-        if (tagsLength === 0) {
+        if ((tags === undefined) || (tags.length === 0)) {
             return events;
         }
         const wanted = [];
@@ -372,7 +374,7 @@ class PredictionExchange extends Exchange.BaseExchange {
         // note: the cache-hit shortcut ignores params, so events fetched under one scope are
         // returned for a later differently-scoped call. events are scoped (unlike global
         // markets), so prefer fetchEvents (params) directly when you need a specific scope
-        if (!reload && this.events) {
+        if (!reload && (this.events !== undefined && this.events !== null)) {
             return this.events;
         }
         const events = await this.fetchEvents(params);
@@ -396,6 +398,9 @@ class PredictionExchange extends Exchange.BaseExchange {
         throw new errors.BadSymbol(this.id + ' has no cached event ' + eventIdOrSlug + " - call fetchEvents ({ 'query': ... }) first");
     }
     outcome(outcomeSymbol) {
+        if (outcomeSymbol === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' outcome() requires an outcomeSymbol argument');
+        }
         if ((this.outcomes === undefined) || this.isEmpty(this.outcomes)) {
             throw new errors.ExchangeError(this.id + ' outcomes not loaded - call loadOutcomes () or an outcome-addressed method first');
         }
@@ -411,6 +416,9 @@ class PredictionExchange extends Exchange.BaseExchange {
         // sync cache-only membership probe — never throws and never fetches. this is the predicate
         // behind loadOutcome's fast path and loadOutcomes' miss filter; safeOutcome (stub on miss)
         // and outcome (throws on miss) are the accessors
+        if (outcomeIdOrSymbol === undefined) {
+            return false;
+        }
         if ((this.outcomes !== undefined) && (outcomeIdOrSymbol in this.outcomes)) {
             return true;
         }
@@ -490,7 +498,9 @@ class PredictionExchange extends Exchange.BaseExchange {
         for (let i = 0; i < replacementKeys.length; i++) {
             const replacementKey = replacementKeys[i];
             const replacementValue = this.safeString(replacements, replacementKey);
-            s = s.replaceAll(replacementKey, replacementValue);
+            if (replacementValue !== undefined) {
+                s = s.replaceAll(replacementKey, replacementValue);
+            }
         }
         const rawParts = s.split('-');
         const parts = [];
@@ -527,6 +537,9 @@ class PredictionExchange extends Exchange.BaseExchange {
         // removal so labels like "UP OR DOWN" survive intact) — venue labels with spaces or
         // currency symbols ("JD Vance", a dollar-sign price) yield clean handles (JD_VANCE, 120)
         // instead of leaking raw text into the outcome handle
+        if (outcome === undefined) {
+            outcome = '';
+        }
         const upper = outcome.toUpperCase();
         const allowed = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
         const chars = this.stringToCharsArray(upper);
@@ -563,17 +576,17 @@ class PredictionExchange extends Exchange.BaseExchange {
             copy['symbol'] = this.safeString2(row, 'market', 'symbol');
             aliased.push(copy);
         }
-        super.setMarkets(aliased, currencies);
+        const stored = super.setMarkets(aliased, currencies);
         // strip the alias back off the stored rows — venues assemble user-visible event
         // structures from this.markets (hyperliquid groups its outcome markets that way),
         // so a leftover 'symbol' key would leak the deprecated field back to the caller
-        const marketKeys = Object.keys(this.markets);
+        const marketKeys = Object.keys(stored);
         for (let i = 0; i < marketKeys.length; i++) {
             const key = marketKeys[i];
-            this.markets[key] = this.omit(this.markets[key], 'symbol');
+            stored[key] = this.omit(stored[key], 'symbol');
         }
         this.populateOutcomes();
-        return this.markets;
+        return stored;
     }
     indexMarketOutcomes(market) {
         // index one market's outcome tokens into this.outcomes / this.outcomes_by_id,
@@ -681,7 +694,7 @@ class PredictionExchange extends Exchange.BaseExchange {
             let missingLength = missing.length;
             const wasWarm = (this.outcomes !== undefined) && !this.isEmpty(this.outcomes);
             const loadAll = this.safeBool(this.options, 'loadAllOutcomes', false);
-            if ((missingLength > 0) && loadAll && !wasWarm && !reload) {
+            if ((missingLength > 0) && (loadAll === true) && !wasWarm && !reload) {
                 // same trade-off as loadOutcome: on venues where the whole universe is one cheap
                 // request (hyperliquid), a cold miss bulk-warms once instead of fetching per outcome
                 await this.loadOutcomes();
@@ -728,6 +741,9 @@ class PredictionExchange extends Exchange.BaseExchange {
         // options.loadAllOutcomes (default false) opts back into the legacy bulk warm-up: the first
         // miss loads the whole (capped) listing once so later lookups are 0-network hits — only
         // sane on venues whose full universe is one cheap request (hyperliquid)
+        if (outcomeSymbol === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' loadOutcome() requires an outcomeSymbol argument');
+        }
         if (!reload) {
             if (this.hasOutcome(outcomeSymbol)) {
                 return this.safeOutcome(outcomeSymbol);
@@ -743,7 +759,7 @@ class PredictionExchange extends Exchange.BaseExchange {
                 }
             }
             const loadAll = this.safeBool(this.options, 'loadAllOutcomes', false);
-            if (loadAll && !wasWarm) {
+            if ((loadAll === true) && !wasWarm) {
                 // a miss on a cold cache: bulk-load once so later lookups are 0-network hits.
                 // a miss on an already-warm cache is authoritative — the outcome genuinely isn't
                 // listed, so fall through to fetchOutcome (a real BadSymbol) rather than refetching
@@ -1277,7 +1293,7 @@ class PredictionExchange extends Exchange.BaseExchange {
             if (orderType === 'market') {
                 timeInForce = 'IOC';
             }
-            if (postOnly) {
+            if (postOnly === true) {
                 timeInForce = 'PO';
             }
         }
@@ -1572,6 +1588,9 @@ class PredictionExchange extends Exchange.BaseExchange {
     // per-language prediction base skeletons don't carry; this base
     // sendEvmTransaction dispatches to the exchange's signEvmTransaction override
     padHexToEven(hex) {
+        if (hex === undefined) {
+            return '';
+        }
         // prepend a nibble so the hex has an even number of characters (whole bytes)
         const hexLength = hex.length;
         if ((hexLength % 2) !== 0) {
@@ -1580,11 +1599,17 @@ class PredictionExchange extends Exchange.BaseExchange {
         return hex;
     }
     padHexAddress(address) {
+        if (address === undefined) {
+            return '';
+        }
         // left-pads a 20-byte address to a 32-byte ABI word (24 leading zero bytes)
         const stripped = this.remove0xPrefix(address);
         return '000000000000000000000000' + stripped;
     }
     rlpEncodeBytes(hex) {
+        if (hex === undefined) {
+            return '';
+        }
         // RLP-encodes a single byte string (hex without 0x) per the Ethereum RLP spec
         const byteLength = this.parseToInt(hex.length / 2);
         if (byteLength === 0) {
@@ -1616,6 +1641,9 @@ class PredictionExchange extends Exchange.BaseExchange {
         return this.intToBase16(247 + lengthOfLength) + lengthHex + concatenated;
     }
     intToRlpHex(value) {
+        if (value === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' intToRlpHex() requires a value argument');
+        }
         // an integer as its minimal big-endian byte hex; 0 is the empty byte string
         if (value === 0) {
             return '';
@@ -1627,6 +1655,9 @@ class PredictionExchange extends Exchange.BaseExchange {
     hexToRlpBytes(hexValue) {
         // a hex value (e.g. an RPC result) as minimal big-endian byte hex; leading zero bytes
         // are stripped and 0 becomes the empty byte string (RLP integer encoding)
+        if (hexValue === undefined) {
+            return '';
+        }
         let h = this.remove0xPrefix(hexValue);
         let start = 0;
         const total = h.length;
@@ -1678,7 +1709,7 @@ class PredictionExchange extends Exchange.BaseExchange {
         const start = this.milliseconds();
         while ((this.milliseconds() - start) < timeout) {
             const receipt = await this.ethRpc(rpcUrl, 'eth_getTransactionReceipt', [txHash]);
-            if (receipt) {
+            if ((receipt !== undefined) && (receipt !== null)) {
                 return receipt;
             }
             await this.sleep(2000);

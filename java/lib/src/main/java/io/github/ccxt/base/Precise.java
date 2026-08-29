@@ -1,49 +1,87 @@
 package io.github.ccxt.base;
 
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.List;
 
 public class Precise {
 
     public Object decimals = -1;
     public BigInteger integer = BigInteger.ZERO;
+    // kept for API compatibility; never actually consulted (mirrors the dead
+    // `base` field on the TS/JS Precise class) — all power-of-ten math below
+    // is fixed to base 10 via the POWERS_OF_TEN cache
     public long baseNumber = 10;
 
+    // static bounded lookup table for 10^n, n in [0, 128] — order-independent,
+    // never invalidated, uniform O(1) cost for any input (falls back to
+    // BigInteger.pow for exponents beyond the table)
+    private static final BigInteger[] POWERS_OF_TEN = buildPowersOfTen();
+
+    private static BigInteger[] buildPowersOfTen() {
+        BigInteger[] table = new BigInteger[129];
+        table[0] = BigInteger.ONE;
+        for (int i = 1; i < table.length; i++) {
+            table[i] = table[i - 1].multiply(BigInteger.TEN);
+        }
+        return table;
+    }
+
+    private static BigInteger powerOfTen(int exponent) {
+        return (exponent < POWERS_OF_TEN.length) ? POWERS_OF_TEN[exponent] : BigInteger.TEN.pow(exponent);
+    }
+
     // -------- ctor ----------
+
+    // internal fast path: builds directly from an already-computed BigInteger
+    // and int decimals, skipping the BigInteger -> String -> BigInteger
+    // round-trip that every op previously paid on every intermediate result
+    private Precise(BigInteger integer, int decimals) {
+        this.integer = integer;
+        this.decimals = decimals;
+    }
+
     public Precise(Object number2) {
         this(number2, null);
     }
 
     public Precise(Object number2, Object dec2) {
-        int dec = (dec2 != null) ? toInt(dec2) : Integer.MIN_VALUE;
-        String number = String.valueOf(number2);
-
-        if (dec == Integer.MIN_VALUE) {
+        if (dec2 == null) {
+            String number = String.valueOf(number2);
             int modified = 0;
-            String numberLowerCase = number.toLowerCase();
-            if (numberLowerCase.indexOf('e') > -1) {
-                String[] parts = numberLowerCase.split("e");
-                number = parts[0];
-                modified = Integer.parseInt(parts[1].trim());
+            // scientific notation is rare -- only locate an exponent marker
+            // when one is present, instead of lowercasing every input
+            int eIndex = number.indexOf('e');
+            if (eIndex == -1) {
+                eIndex = number.indexOf('E');
+            }
+            if (eIndex > -1) {
+                modified = Integer.parseInt(number.substring(eIndex + 1).trim());
+                number = number.substring(0, eIndex);
             }
             int decimalIndex = number.indexOf('.');
-            int newDecimals = (decimalIndex > -1) ? (number.length() - decimalIndex - 1) : 0;
-            this.decimals = newDecimals;
-            String integerString = number.replace(".", "");
+            String integerString;
+            int newDecimals;
+            if (decimalIndex > -1) {
+                newDecimals = number.length() - decimalIndex - 1;
+                integerString = number.substring(0, decimalIndex) + number.substring(decimalIndex + 1);
+            } else {
+                newDecimals = 0;
+                integerString = number;
+            }
             this.integer = new BigInteger(integerString);
-            this.decimals = toInt(this.decimals) - modified;
+            this.decimals = newDecimals - modified;
+        } else if (number2 instanceof BigInteger) {
+            this.integer = (BigInteger) number2;
+            this.decimals = toInt(dec2);
         } else {
-            this.integer = new BigInteger(number);
-            this.decimals = dec;
+            this.integer = new BigInteger(String.valueOf(number2));
+            this.decimals = toInt(dec2);
         }
     }
 
     // ---------- ops ----------
     public Precise mul(Precise other) {
-        BigInteger integer = this.integer.multiply(other.integer);
         int decimals = toInt(this.decimals) + toInt(other.decimals);
-        return new Precise(integer.toString(), decimals);
+        return new Precise(this.integer.multiply(other.integer), decimals);
     }
 
     public Precise div(Precise other) {
@@ -58,60 +96,63 @@ public class Precise {
         if (distance == 0) {
             numerator = this.integer;
         } else if (distance < 0) {
-            BigInteger exponent = BigInteger.valueOf(baseNumber).pow(-distance);
-            numerator = this.integer.divide(exponent);
+            numerator = this.integer.divide(powerOfTen(-distance));
         } else {
-            BigInteger exponent = BigInteger.valueOf(baseNumber).pow(distance);
-            numerator = this.integer.multiply(exponent);
+            numerator = this.integer.multiply(powerOfTen(distance));
         }
         BigInteger result = numerator.divide(other.integer);
-        return new Precise(result.toString(), precision);
+        return new Precise(result, precision);
     }
 
     public Precise add(Precise other) {
-        if (this.decimals == other.decimals) {
-            BigInteger integerResult = this.integer.add(other.integer);
-            return new Precise(integerResult.toString(), this.decimals);
-        } else {
-            Precise smaller;
-            Precise bigger;
-            if (toInt(this.decimals) < toInt(other.decimals)) {
-                smaller = this;
-                bigger = other;
-            } else {
-                smaller = other;
-                bigger = this;
-            }
-            int exponent = toInt(bigger.decimals) - toInt(smaller.decimals);
-            BigInteger factor = BigInteger.valueOf(baseNumber).pow(exponent);
-            BigInteger normalized = smaller.integer.multiply(factor);
-            BigInteger result = normalized.add(bigger.integer);
-            return new Precise(result.toString(), bigger.decimals);
+        int thisDecimals = toInt(this.decimals);
+        int otherDecimals = toInt(other.decimals);
+        if (thisDecimals == otherDecimals) {
+            return new Precise(this.integer.add(other.integer), thisDecimals);
         }
+        int diff = thisDecimals - otherDecimals;
+        if (diff > 0) {
+            BigInteger scaledOther = other.integer.multiply(powerOfTen(diff));
+            return new Precise(scaledOther.add(this.integer), thisDecimals);
+        }
+        BigInteger scaledThis = this.integer.multiply(powerOfTen(-diff));
+        return new Precise(scaledThis.add(other.integer), otherDecimals);
     }
 
     public Precise mod(Precise other) {
-        int rationizerNumerator = Math.max(-toInt(this.decimals) + toInt(other.decimals), 0);
-        BigInteger numerator = this.integer.multiply(BigInteger.valueOf(this.baseNumber).pow(rationizerNumerator));
-        int rationizerDenominator = Math.max(-toInt(other.decimals) + toInt(this.decimals), 0);
-        BigInteger denominator = other.integer.multiply(BigInteger.valueOf(this.baseNumber).pow(rationizerDenominator));
+        int thisDecimals = toInt(this.decimals);
+        int otherDecimals = toInt(other.decimals);
+        int rationizerNumerator = Math.max(-thisDecimals + otherDecimals, 0);
+        BigInteger numerator = this.integer.multiply(powerOfTen(rationizerNumerator));
+        int rationizerDenominator = Math.max(-otherDecimals + thisDecimals, 0);
+        BigInteger denominator = other.integer.multiply(powerOfTen(rationizerDenominator));
         BigInteger result = numerator.remainder(denominator);
-        return new Precise(result.toString(), rationizerDenominator + toInt(other.decimals));
+        return new Precise(result, rationizerDenominator + otherDecimals);
     }
 
     public Precise sub(Precise other) {
-        Precise negative = new Precise(other.integer.negate().toString(), other.decimals);
-        return this.add(negative);
+        int thisDecimals = toInt(this.decimals);
+        int otherDecimals = toInt(other.decimals);
+        if (thisDecimals == otherDecimals) {
+            return new Precise(this.integer.subtract(other.integer), thisDecimals);
+        }
+        // inline of add (this, neg (other)) without the intermediate instance
+        boolean thisIsBigger = thisDecimals > otherDecimals;
+        BigInteger smallerInteger = thisIsBigger ? other.integer : this.integer;
+        BigInteger biggerInteger = thisIsBigger ? this.integer : other.integer;
+        int biggerDecimals = thisIsBigger ? thisDecimals : otherDecimals;
+        int smallerDecimals = thisIsBigger ? otherDecimals : thisDecimals;
+        BigInteger normalised = smallerInteger.multiply(powerOfTen(biggerDecimals - smallerDecimals));
+        BigInteger result = thisIsBigger ? biggerInteger.subtract(normalised) : normalised.subtract(biggerInteger);
+        return new Precise(result, biggerDecimals);
     }
 
     public Precise or(Precise other) {
-        BigInteger integer = this.integer.or(other.integer);
-        int decimals = toInt(this.decimals) + toInt(other.decimals);
-        return new Precise(integer.toString(), decimals);
+        return new Precise(this.integer.or(other.integer), toInt(this.decimals));
     }
 
     public Precise neg() {
-        return new Precise(this.integer.negate().toString(), this.decimals);
+        return new Precise(this.integer.negate(), toInt(this.decimals));
     }
 
     public Precise min(Precise other) {
@@ -122,39 +163,58 @@ public class Precise {
         return this.gt(other) ? this : other;
     }
 
+    // aligned comparison without intermediate instance allocation: aligns the
+    // operand with fewer decimals by multiplying its integer by 10^difference,
+    // then compares the scaled integers directly (used by gt/ge/lt/le below,
+    // replacing the previous sub(other) + new Precise(...) + compareTo chain)
+    private int compare(Precise other) {
+        int thisDecimals = toInt(this.decimals);
+        int otherDecimals = toInt(other.decimals);
+        if (thisDecimals == otherDecimals) {
+            return this.integer.compareTo(other.integer);
+        }
+        int diff = thisDecimals - otherDecimals;
+        if (diff > 0) {
+            BigInteger scaledOther = other.integer.multiply(powerOfTen(diff));
+            return this.integer.compareTo(scaledOther);
+        }
+        BigInteger scaledThis = this.integer.multiply(powerOfTen(-diff));
+        return scaledThis.compareTo(other.integer);
+    }
+
     public boolean gt(Precise other) {
-        Precise sum = this.sub(other);
-        return sum.integer.compareTo(BigInteger.ZERO) > 0;
+        return this.compare(other) > 0;
     }
 
     public boolean ge(Precise other) {
-        Precise sum = this.sub(other);
-        return sum.integer.compareTo(BigInteger.ZERO) >= 0;
+        return this.compare(other) >= 0;
     }
 
     public boolean lt(Precise other) {
-        return other.gt(this);
+        return this.compare(other) < 0;
     }
 
     public boolean le(Precise other) {
-        return other.ge(this);
+        return this.compare(other) <= 0;
     }
 
     public Precise abs() {
-        BigInteger result = (this.integer.compareTo(BigInteger.ZERO) < 0)
-                ? this.integer.negate()
-                : this.integer;
-        return new Precise(result.toString(), this.decimals);
+        BigInteger result = (this.integer.signum() < 0) ? this.integer.negate() : this.integer;
+        return new Precise(result, toInt(this.decimals));
     }
 
-    public Precise reduce() {
+    // internal: strips trailing zero digits from the integer representation
+    // and returns the reduced digit string (sign included) so callers that
+    // immediately stringify (toString) avoid a second integer-to-string
+    // conversion
+    private String reduceDigits() {
         String str = this.integer.toString();
         int start = str.length() - 1;
         if (start == 0) {
             if (str.equals("0")) {
                 this.decimals = 0;
             }
-            return this;
+            return str;
         }
         int i;
         for (i = start; i >= 0; i--) {
@@ -164,59 +224,44 @@ public class Precise {
         }
         int difference = start - i;
         if (difference == 0) {
-            return this;
+            return str;
         }
         this.decimals = toInt(this.decimals) - difference;
-        this.integer = new BigInteger(str.substring(0, i + 1));
+        String reduced = str.substring(0, i + 1);
+        this.integer = new BigInteger(reduced);
+        return reduced;
+    }
+
+    // reduces the representation in place, returns the instance so calls can
+    // be chained (precise.reduce().toString())
+    public Precise reduce() {
+        this.reduceDigits();
         return this;
     }
 
     public boolean equals(Precise other) {
         this.reduce();
         other.reduce();
-        return this.integer.equals(other.integer) && this.decimals == other.decimals;
+        return this.integer.equals(other.integer) && (toInt(this.decimals) == toInt(other.decimals));
     }
 
     @Override
     public String toString() {
-        this.reduce();
+        String digits = this.reduceDigits();
         String sign = "";
-        BigInteger abs;
-        if (this.integer.compareTo(BigInteger.ZERO) < 0) {
+        if (!digits.isEmpty() && digits.charAt(0) == '-') {
             sign = "-";
-            abs = this.integer.negate();
-        } else {
-            abs = this.integer;
+            digits = digits.substring(1);
         }
-        String absParsed = abs.toString();
-
-        int padSize = Math.max(toInt(this.decimals), 0);
-        String padded = leftPad(absParsed, Math.max(padSize, absParsed.length()), '0');
-
-        List<String> integerArray = new ArrayList<>(padded.length());
-        for (int i = 0; i < padded.length(); i++) {
-            integerArray.add(String.valueOf(padded.charAt(i)));
+        int decimals = toInt(this.decimals);
+        if (decimals <= 0) {
+            return sign + digits + repeat('0', -decimals);
         }
-
-        int index = integerArray.size() - toInt(this.decimals);
-
-        String item;
-        if (index == 0) {
-            item = "0.";
-        } else if (toInt(this.decimals) < 0) {
-            item = repeat('0', -toInt(this.decimals));
-        } else if (toInt(this.decimals) == 0) {
-            item = "";
-        } else {
-            item = ".";
+        if (digits.length() <= decimals) {
+            return sign + "0." + leftPad(digits, decimals, '0');
         }
-
-        int arrayIndex = Math.min(index, integerArray.size());
-        integerArray.add(arrayIndex, item);
-
-        StringBuilder sb = new StringBuilder(sign);
-        for (String s : integerArray) sb.append(s);
-        return sb.toString();
+        int index = digits.length() - decimals;
+        return sign + digits.substring(0, index) + "." + digits.substring(index);
     }
 
     // -------- static string ops --------
@@ -234,7 +279,7 @@ public class Precise {
     public static String stringDiv(Object string1, Object string2, Object precision) {
         if (string1 == null || string2 == null) return null;
         Precise string2Precise = new Precise(String.valueOf(string2));
-        if (string2Precise.integer.equals(BigInteger.ZERO)) {
+        if (string2Precise.integer.signum() == 0) {
             return null;
         }
         Precise stringDiv = new Precise(String.valueOf(string1)).div(string2Precise, precision);

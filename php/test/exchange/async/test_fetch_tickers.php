@@ -33,7 +33,7 @@ function fetch_tickers_helper_test($exchange, $skipped_properties, $arg_symbols,
     return Async\async(function () use ($exchange, $skipped_properties, $arg_symbols, $arg_params) {
         $method = 'fetchTickers';
         $response = \React\Async\await($exchange->fetch_tickers($arg_symbols, $arg_params));
-        assert($exchange->is_dictionary($response), $exchange->id . ' ' . $method . ' ' . $exchange->json($arg_symbols) . ' must return a dict. ' . $exchange->json($response));
+        assert_dictionary_response($exchange, $method, $response, $exchange->json($arg_symbols));
         $values = is_array($response) ? array_values($response) : array();
         $checked_symbol = null;
         if ($arg_symbols !== null && count($arg_symbols) === 1) {
@@ -46,7 +46,12 @@ function fetch_tickers_helper_test($exchange, $skipped_properties, $arg_symbols,
             try {
                 test_ticker($exchange, $skipped_properties, $method, $ticker, $checked_symbol);
             } catch(\Throwable $ex) {
-                \React\Async\await(validate_ticker_exception_for_percentage($ex, $exchange, $ticker));
+                $ohlcv = null;
+                $ticker_symbol = $ticker['symbol'];
+                if (($ticker_symbol !== null) && ticker_exception_needs_ohlcv($ex, $exchange, $ticker)) {
+                    $ohlcv = \React\Async\await($exchange->fetch_ohlcv($ticker_symbol, '1d', null, 5));
+                }
+                validate_ticker_exception_for_percentage($ex, $exchange, $ticker, $ohlcv);
             }
         }
         return $response;
@@ -69,6 +74,9 @@ function fetch_tickers_amounts_test($exchange, $skipped_properties, $tickers) {
         // ensure tickers length is less than markets length
         //
         $all_markets = $exchange->markets;
+        if ($all_markets === null) {
+            return;
+        }
         $all_markets_length = count(is_array($all_markets) ? array_keys($all_markets) : array());
         assert($obtained_tickers_length <= $all_markets_length, $exchange->id . ' ' . 'fetchTickers' . ' must return <= than all markets, but returned: ' . ((string) $obtained_tickers_length) . ' tickers, ' . ((string) $all_markets_length) . ' markets');
     }

@@ -85,20 +85,23 @@ function assert_structure($exchange, $skipped_properties, $method, $entry, $form
             assert($value !== null, ((string) $i) . ' index is expected to have a value' . $log_text);
             // because of other langs, this is needed for arrays
             $type_assertion = assert_type($exchange, array(), $entry, $i, $format);
-            assert($type_assertion, ((string) $i) . ' index does not have an expected type ' . $log_text);
+            assert($type_assertion === true, ((string) $i) . ' index does not have an expected type ' . $log_text);
         }
     } else {
         assert($exchange->is_dictionary($entry), 'entry is not a dict' . $log_text);
         $keys = is_array($format) ? array_keys($format) : array();
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
+            if (is_array($skipped_properties) && array_key_exists($key, $skipped_properties)) {
+                continue;
+            }
             assert(is_array($entry) && array_key_exists($key, $entry), '"' . string_value($key) . '" key is missing from structure' . $log_text);
             $empty_allowed_for_this_key = ($empty_allowed_for === null) || $exchange->in_array($key, $empty_allowed_for);
             $value = $entry[$key];
             // check when:
             // - it's not inside "allowed empty values" list
             // - it's not undefined
-            if (($empty_allowed_for_this_key && ($value === null)) || (is_array($skipped_properties) && array_key_exists($key, $skipped_properties))) {
+            if ($empty_allowed_for_this_key && ($value === null)) {
                 continue;
             }
             // if it was in needed keys, then it should have value.
@@ -106,7 +109,7 @@ function assert_structure($exchange, $skipped_properties, $method, $entry, $form
             // add exclusion for info key, as it can be any type
             if ($key !== 'info') {
                 $type_assertion = assert_type($exchange, array(), $entry, $key, $format);
-                assert($type_assertion, '"' . string_value($key) . '" key is neither undefined, neither of expected type' . $log_text);
+                assert($type_assertion === true, '"' . string_value($key) . '" key is neither undefined, neither of expected type' . $log_text);
                 if ($deep) {
                     if ($exchange->is_dictionary($value) || gettype($value) === 'array' && array_is_list($value)) {
                         assert_structure($exchange, $skipped_properties, $method, $value, $format[$key], $empty_allowed_for, $deep);
@@ -169,6 +172,9 @@ function assert_timestamp_and_datetime($exchange, $skipped_properties, $method, 
             // so, we have to compare with millisecond accururacy
             $dt_parsed = $exchange->parse8601($dt);
             $ts_ms = $entry['timestamp'];
+            if ($dt_parsed === null) {
+                assert(false, 'datetime is not parseable: ' . $dt . $log_text);
+            }
             $diff = abs($dt_parsed - $ts_ms);
             if ($diff >= 500) {
                 $dt_parsed_string = $exchange->iso8601($dt_parsed);
@@ -236,7 +242,7 @@ function assert_symbol($exchange, $skipped_properties, $method, $entry, $key, $e
 
 function assert_symbol_in_markets($exchange, $skipped_properties, $method, $symbol) {
     $log_text = log_template($exchange, $method, array());
-    assert((is_array($exchange->markets) && array_key_exists($symbol, $exchange->markets)), 'symbol should be present in exchange.symbols' . $log_text);
+    assert(($exchange->markets !== null) && (is_array($exchange->markets) && array_key_exists($symbol, $exchange->markets)), 'symbol should be present in exchange.symbols' . $log_text);
 }
 
 
@@ -422,7 +428,7 @@ function fetch_best_bid_ask($exchange, $method, $symbol) {
     $best_bid = null;
     $best_ask = null;
     $used_method = null;
-    if ($exchange->has['fetchOrderBook']) {
+    if (($exchange->has['fetchOrderBook'] !== null) && ($exchange->has['fetchOrderBook'] !== false)) {
         $used_method = 'fetchOrderBook';
         $orderbook = $exchange->fetch_order_book($symbol);
         $bids = $exchange->safe_list($orderbook, 'bids');
@@ -431,18 +437,18 @@ function fetch_best_bid_ask($exchange, $method, $symbol) {
         $best_ask_array = $exchange->safe_list($asks, 0);
         $best_bid = $exchange->safe_number($best_bid_array, 0);
         $best_ask = $exchange->safe_number($best_ask_array, 0);
-    } elseif ($exchange->has['fetchBidsAsks']) {
+    } elseif (($exchange->has['fetchBidsAsks'] !== null) && ($exchange->has['fetchBidsAsks'] !== false)) {
         $used_method = 'fetchBidsAsks';
         $tickers = $exchange->fetch_bids_asks([$symbol]);
         $ticker = $exchange->safe_dict($tickers, $symbol);
         $best_bid = $exchange->safe_number($ticker, 'bid');
         $best_ask = $exchange->safe_number($ticker, 'ask');
-    } elseif ($exchange->has['fetchTicker']) {
+    } elseif (($exchange->has['fetchTicker'] !== null) && ($exchange->has['fetchTicker'] !== false)) {
         $used_method = 'fetchTicker';
         $ticker = $exchange->fetch_ticker($symbol);
         $best_bid = $exchange->safe_number($ticker, 'bid');
         $best_ask = $exchange->safe_number($ticker, 'ask');
-    } elseif ($exchange->has['fetchTickers']) {
+    } elseif (($exchange->has['fetchTickers'] !== null) && ($exchange->has['fetchTickers'] !== false)) {
         $used_method = 'fetchTickers';
         $tickers = $exchange->fetch_tickers([$symbol]);
         $ticker = $exchange->safe_dict($tickers, $symbol);
@@ -464,7 +470,7 @@ function fetch_order($exchange, $symbol, $order_id, $skipped_properties) {
     $methods_singular = ['fetchOrder', 'fetchOpenOrder', 'fetchClosedOrder', 'fetchCanceledOrder'];
     for ($i = 0; $i < count($methods_singular); $i++) {
         $singular_fetch_name = $methods_singular[$i];
-        if ($exchange->has[$singular_fetch_name]) {
+        if (($exchange->has[$singular_fetch_name] !== null) && ($exchange->has[$singular_fetch_name] !== false)) {
             $current_order = $exchange[$singular_fetch_name]($original_id, $symbol);
             // if there is an id inside the order, it means the order was fetched successfully
             if ($current_order['id'] === $original_id) {
@@ -479,7 +485,7 @@ function fetch_order($exchange, $symbol, $order_id, $skipped_properties) {
         $methods_plural = ['fetchOrders', 'fetchOpenOrders', 'fetchClosedOrders', 'fetchCanceledOrders'];
         for ($i = 0; $i < count($methods_plural); $i++) {
             $plural_fetch_name = $methods_plural[$i];
-            if ($exchange->has[$plural_fetch_name]) {
+            if (($exchange->has[$plural_fetch_name] !== null) && ($exchange->has[$plural_fetch_name] !== false)) {
                 $orders = $exchange[$plural_fetch_name]($symbol, $since_time);
                 $found = false;
                 for ($j = 0; $j < count($orders); $j++) {
@@ -617,6 +623,23 @@ function concat($a = null, $b = null) {
 }
 
 
+function assert_dictionary_response($exchange, $method, $response, $hint = null) {
+    // php cannot distinguish an empty dict from an empty list, both are a plain array
+    // there, so an empty array response is shape indeterminate and accepted, observed
+    // as false positive FAILs in the live tests on https://github.com/ccxt/ccxt/pull/29696
+    $is_empty_array_response = false;
+    if (gettype($response) === 'array' && array_is_list($response)) {
+        $response_length = count($response);
+        $is_empty_array_response = ($response_length === 0);
+    }
+    $hint_text = '';
+    if ($hint !== null) {
+        $hint_text = ' ' . $hint;
+    }
+    assert($exchange->is_dictionary($response) || $is_empty_array_response, $exchange->id . ' ' . $method . $hint_text . ' must return a dict. ' . $exchange->json($response));
+}
+
+
 function assert_non_emtpy_array($exchange, $skipped_properties, $method, $entry, $hint = null) {
     $log_text = log_template($exchange, $method, $entry);
     if ($hint !== null) {
@@ -662,21 +685,41 @@ function exchange_prop($exchange, $key, $default_value = null) {
 }
 
 
-function validate_ticker_exception_for_percentage($ex, $exchange, $ticker) {
+function ticker_exception_needs_ohlcv($ex, $exchange, $ticker) {
+    // pure helper (no awaits): files under test/Exchange/base transpile into a single
+    // sync-flavored php shared by both lanes, so the actual fetchOHLCV await must live
+    // in the per-lane callers - this tells them whether the probe is needed
+    $e_message = $exchange->exception_message($ex, false); // typed string so the php transpile uses mb_strpos, not in_array
+    if (mb_strpos($e_message, 'percentage should be above') !== false || mb_strpos($e_message, 'percentage should be below') !== false) {
+        $symbol = $ticker['symbol'];
+        if ($symbol !== null) {
+            if (($exchange->markets !== null) && (is_array($exchange->markets) && array_key_exists($symbol, $exchange->markets))) {
+                if ($exchange->feature_value($symbol, 'fetchOHLCV') !== null) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
+
+function validate_ticker_exception_for_percentage($ex, $exchange, $ticker, $ohlcv = null) {
     // only skip cases of "too far price" when it's the first day of listing, otherwise rethrow abnormality
-    $e_message = $exchange->exception_message($ex, false);
-    if (in_array('percentage should be above', $e_message) || in_array('percentage should be below', $e_message)) {
+    // pure (no awaits) for the sync-shared php transpile - the ohlcv candles, when needed
+    // per tickerExceptionNeedsOhlcv, are fetched by the per-lane caller and passed in
+    $e_message = $exchange->exception_message($ex, false); // typed string so the php transpile uses mb_strpos, not in_array
+    if (mb_strpos($e_message, 'percentage should be above') !== false || mb_strpos($e_message, 'percentage should be below') !== false) {
         $symbol = $ticker['symbol'];
         if ($symbol !== null) {
             // if it's not in markets, then maybe newly added symbol, so can can compromise there
-            if (!(is_array($exchange->markets) && array_key_exists($symbol, $exchange->markets))) {
+            if (($exchange->markets === null) || !(is_array($exchange->markets) && array_key_exists($symbol, $exchange->markets))) {
                 return;
             }
-            // if OHLCV supported
-            if ($exchange->feature_value($symbol, 'fetchOHLCV') !== null) {
-                $ohlcv = $exchange->fetch_ohlcv($symbol, '1d', null, 5);
-                if (count($ohlcv) <= 1) {
-                    // if only 1 day, then allow it
+            if ($ohlcv !== null) {
+                $ohlcv_length = count($ohlcv);
+                if ($ohlcv_length <= 1) {
+                    // if only 1 day of listing, then allow it
                     return;
                 }
             }

@@ -13,6 +13,7 @@ sys.path.append(root)
 # -*- coding: utf-8 -*-
 
 from ccxt.test.exchange.base import test_order_book  # noqa E402
+from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 
 def test_fetch_order_books(exchange, skipped_properties):
     method = 'fetchOrderBooks'
@@ -20,9 +21,9 @@ def test_fetch_order_books(exchange, skipped_properties):
     assert symbols is not None, exchange.id + ' ' + method + ' requires exchange.symbols to be loaded'
     symbol = symbols[0]
     order_books = exchange.fetch_order_books([symbol])
-    assert exchange.is_dictionary(order_books), exchange.id + ' ' + method + ' must return a dict. ' + exchange.json(order_books)
+    test_shared_methods.assert_dictionary_response(exchange, method, order_books)
     order_book_keys = list(order_books.keys())
-    assert len(order_book_keys), exchange.id + ' ' + method + ' returned 0 length data'
+    assert len(order_book_keys) > 0, exchange.id + ' ' + method + ' returned 0 length data'
     for i in range(0, len(order_book_keys)):
         symbol_inner = order_book_keys[i]
         test_order_book(exchange, skipped_properties, method, order_books[symbol_inner], symbol_inner)

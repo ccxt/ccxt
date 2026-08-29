@@ -4,8 +4,9 @@
 import assert from 'assert';
 import ccxt from '../../../ccxt.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../../base/ws/Cache.js';
+import type { Dict } from '../../base/types.js';
 
-function equals (a, b) {
+function equals (a: any, b: any) {
     // does not check if b has more properties than a
     // eslint-disable-next-line no-restricted-syntax
     for (const prop of Object.keys (a)) {
@@ -472,7 +473,7 @@ function testCacheSafeCalls () {
     const arrayCacheBySymbolById = new ArrayCacheBySymbolById (100);
     arrayCacheBySymbolById.append ({ 'symbol': 'ETH/USDT', 'id': 'order2', 'price': 3000 });
     // Use direct property access for object attributes
-    const arrayCacheBySymbolByIdHashmap = arrayCacheBySymbolById.hashmap;
+    const arrayCacheBySymbolByIdHashmap: Dict = arrayCacheBySymbolById.hashmap;
     assert (arrayCacheBySymbolByIdHashmap['ETH/USDT'] !== undefined);
     assert (arrayCacheBySymbolByIdHashmap['ETH/USDT']['order2'] !== undefined);
     const arrayCacheBySymbolByIdData = exchange.safeValue (arrayCacheBySymbolById, 'Data');
@@ -483,7 +484,7 @@ function testCacheSafeCalls () {
     const arrayCacheBySymbolBySide = new ArrayCacheBySymbolBySide ();
     arrayCacheBySymbolBySide.append ({ 'symbol': 'BNB/USDT', 'side': 'buy', 'price': 400 });
     // Use direct property access for object attributes
-    const arrayCacheBySymbolBySideHashmap = arrayCacheBySymbolBySide.hashmap;
+    const arrayCacheBySymbolBySideHashmap: Dict = arrayCacheBySymbolBySide.hashmap;
     assert (arrayCacheBySymbolBySideHashmap['BNB/USDT'] !== undefined);
     const arrayCacheBySymbolBySideData = exchange.safeValue (arrayCacheBySymbolBySide, 'Data');
     const cacheBySymbolBySideData = arrayCacheBySymbolBySideData !== undefined ? arrayCacheBySymbolBySideData : arrayCacheBySymbolBySide;

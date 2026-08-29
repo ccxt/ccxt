@@ -6,8 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.coincheck import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees, Transaction
-from typing import List
+from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Status, Str, Ticker, Trade, TradingFees, Transaction
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -17,7 +16,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 
 class coincheck(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(coincheck, self).describe(), {
             'id': 'coincheck',
             'name': 'Coincheck',
@@ -125,48 +124,48 @@ class coincheck(Exchange, ImplicitAPI):
             },
             'api': {
                 'public': {
-                    'get': [
-                        'exchange/orders/rate',
-                        'exchange_status',
-                        'order_books',
-                        'rate/{pair}',
-                        'ticker',
-                        'trades',
-                    ],
+                    'get': {
+                        'exchange/orders/rate': {'cost': 1},
+                        'exchange_status': {'cost': 1},
+                        'order_books': {'cost': 1},
+                        'rate/{pair}': {'cost': 1},
+                        'ticker': {'cost': 1},
+                        'trades': {'cost': 1},
+                    },
                 },
                 'private': {
-                    'get': [
-                        'accounts',
-                        'accounts/balance',
-                        'accounts/leverage_balance',
-                        'bank_accounts',
-                        'deposit_money',
-                        'exchange/orders/{id}',
-                        'exchange/orders/opens',
-                        'exchange/orders/cancel_status',
-                        'exchange/orders/transactions',
-                        'exchange/orders/transactions_pagination',
-                        'exchange/leverage/positions',
-                        'lending/borrows/matches',
-                        'send_money',
-                        'withdraws',
-                    ],
-                    'post': [
-                        'bank_accounts',
-                        'deposit_money/{id}/fast',
-                        'exchange/orders',
-                        'exchange/transfers/to_leverage',
-                        'exchange/transfers/from_leverage',
-                        'lending/borrows',
-                        'lending/borrows/{id}/repay',
-                        'send_money',
-                        'withdraws',
-                    ],
-                    'delete': [
-                        'bank_accounts/{id}',
-                        'exchange/orders/{id}',
-                        'withdraws/{id}',
-                    ],
+                    'get': {
+                        'accounts': {'cost': 1},
+                        'accounts/balance': {'cost': 1},
+                        'accounts/leverage_balance': {'cost': 1},
+                        'bank_accounts': {'cost': 1},
+                        'deposit_money': {'cost': 1},
+                        'exchange/orders/{id}': {'cost': 1},
+                        'exchange/orders/opens': {'cost': 1},
+                        'exchange/orders/cancel_status': {'cost': 1},
+                        'exchange/orders/transactions': {'cost': 1},
+                        'exchange/orders/transactions_pagination': {'cost': 1},
+                        'exchange/leverage/positions': {'cost': 1},
+                        'lending/borrows/matches': {'cost': 1},
+                        'send_money': {'cost': 1},
+                        'withdraws': {'cost': 1},
+                    },
+                    'post': {
+                        'bank_accounts': {'cost': 1},
+                        'deposit_money/{id}/fast': {'cost': 1},
+                        'exchange/orders': {'cost': 1},
+                        'exchange/transfers/to_leverage': {'cost': 1},
+                        'exchange/transfers/from_leverage': {'cost': 1},
+                        'lending/borrows': {'cost': 1},
+                        'lending/borrows/{id}/repay': {'cost': 1},
+                        'send_money': {'cost': 1},
+                        'withdraws': {'cost': 1},
+                    },
+                    'delete': {
+                        'bank_accounts/{id}': {'cost': 1},
+                        'exchange/orders/{id}': {'cost': 1},
+                        'withdraws/{id}': {'cost': 1},
+                    },
                 },
             },
             'markets': {
@@ -268,7 +267,7 @@ class coincheck(Exchange, ImplicitAPI):
             },
         })
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: object) -> Balances:
         result = {'info': response}
         codes = list(self.currencies.keys())
         for i in range(0, len(codes)):
@@ -283,7 +282,7 @@ class coincheck(Exchange, ImplicitAPI):
                 result[code] = account
         return self.safe_balance(result)
 
-    async def fetch_status(self, params={}) -> dict:
+    async def fetch_status(self, params={}) -> Status:
         """
         the latest known information on the availability of the exchange API
 
@@ -341,7 +340,7 @@ class coincheck(Exchange, ImplicitAPI):
         response = await self.privateGetAccountsBalance(params)
         return self.parse_balance(response)
 
-    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -424,7 +423,7 @@ class coincheck(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             await self.load_markets()
@@ -627,7 +626,7 @@ class coincheck(Exchange, ImplicitAPI):
         transactions = self.safe_list(response, 'data', [])
         return self.parse_trades(transactions, market, since, limit)
 
-    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -759,7 +758,7 @@ class coincheck(Exchange, ImplicitAPI):
         https://coincheck.com/documents/exchange/api#order-cancel
 
         :param str id: order id
-        :param str symbol: not used by coincheck cancelOrder()
+        :param str symbol: not used by cancelOrder()
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
@@ -775,7 +774,7 @@ class coincheck(Exchange, ImplicitAPI):
         #
         return self.parse_order(response)
 
-    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch all deposits made to an account
 
@@ -823,7 +822,7 @@ class coincheck(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'deposits', [])
         return self.parse_transactions(data, currency, since, limit, {'type': 'deposit'})
 
-    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch all withdrawals made from an account
 
@@ -949,21 +948,21 @@ class coincheck(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Any = None):
+    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: object = None):
         url = self.urls['api']['rest'] + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
-            if query:
+            if len(query) > 0:
                 url += '?' + self.urlencode(query)
         else:
             self.check_required_credentials()
             nonce = str(self.nonce())
             queryString = ''
             if method == 'GET':
-                if query:
+                if len(query) > 0:
                     url += '?' + self.urlencode(self.keysort(query))
             else:
-                if query:
+                if len(query) > 0:
                     body = self.urlencode(self.keysort(query))
                     queryString = body
             auth = nonce + url + queryString
@@ -975,7 +974,7 @@ class coincheck(Exchange, ImplicitAPI):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:
             return None
         #
@@ -983,7 +982,7 @@ class coincheck(Exchange, ImplicitAPI):
         #     {"success":false,"error":"invalid authentication"}
         #
         success = self.safe_bool(response, 'success', True)
-        if not success:
+        if success is not True:
             error = self.safe_string(response, 'error')
             feedback = self.id + ' ' + self.json(response)
             self.throw_exactly_matched_exception(self.exceptions['exact'], error, feedback)

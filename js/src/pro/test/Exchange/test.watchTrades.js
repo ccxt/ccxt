@@ -10,9 +10,12 @@ async function testWatchTrades(exchange, skippedProperties, symbol) {
     const method = 'watchTrades';
     let now = exchange.milliseconds();
     const ends = now + 15000;
-    while (now < ends) {
+    const maxIdleTime = 5000;
+    let idle = false;
+    while ((now < ends) && !idle) {
         let response = [];
         let success = true;
+        const startTime = exchange.milliseconds();
         try {
             response = await exchange.watchTrades(symbol);
         }
@@ -20,21 +23,19 @@ async function testWatchTrades(exchange, skippedProperties, symbol) {
             if (!testSharedMethods.isTemporaryFailure(e)) {
                 throw e;
             }
-            now = exchange.milliseconds();
-            // continue;
             success = false;
         }
+        now = exchange.milliseconds();
         if (success === true) {
             testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, response);
-            now = exchange.milliseconds();
             for (let i = 0; i < response.length; i++) {
                 testTrade(exchange, skippedProperties, method, response[i], symbol, now);
             }
-            // temporarily disabled, bcz of neverending breaks
-            // if (!('timestampSort' in skippedProperties)) {
-            //     testSharedMethods.assertTimestampOrder (exchange, method, symbol, response);
-            // }
+            if ((now - startTime) > maxIdleTime) {
+                idle = true;
+            }
         }
     }
+    return true;
 }
 export default testWatchTrades;

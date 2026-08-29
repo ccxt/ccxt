@@ -55,6 +55,9 @@ class gemini extends gemini$1["default"] {
         const market = this.market(symbol);
         const messageHash = 'trades:' + market['symbol'];
         const marketId = market['id'];
+        if (marketId === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' watchTrades() marketId is required');
+        }
         const request = {
             'type': 'subscribe',
             'subscriptions': [
@@ -169,7 +172,9 @@ class gemini extends gemini$1["default"] {
         let stored = this.safeValue(this.trades, symbol);
         if (stored === undefined) {
             stored = new Cache.ArrayCache(tradesLimit);
-            this.trades[symbol] = stored;
+            if (symbol !== undefined) {
+                this.trades[symbol] = stored;
+            }
         }
         stored.append(trade);
         const messageHash = 'trades:' + symbol;
@@ -336,11 +341,13 @@ class gemini extends gemini$1["default"] {
         if (ohlcvsBySymbol === undefined) {
             this.ohlcvs[symbol] = {};
         }
-        let stored = this.safeValue(this.ohlcvs[symbol], timeframe);
+        let stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
             stored = new Cache.ArrayCacheByTimestamp(limit);
-            this.ohlcvs[symbol][timeframe] = stored;
+            if (symbol !== undefined && timeframe !== undefined) {
+                this.ohlcvs[symbol][timeframe] = stored;
+            }
         }
         const changesLength = changes.length;
         // reverse order of array to store candles in ascending order
@@ -361,7 +368,7 @@ class gemini extends gemini$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -370,6 +377,9 @@ class gemini extends gemini$1["default"] {
         const market = this.market(symbol);
         const messageHash = 'orderbook:' + market['symbol'];
         const marketId = market['id'];
+        if (marketId === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' watchOrderBook() marketId is required');
+        }
         const request = {
             'type': 'subscribe',
             'subscriptions': [
@@ -426,7 +436,7 @@ class gemini extends gemini$1["default"] {
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
         const orderbook = await this.helperForWatchMultipleConstruct('orderbook', symbols, params);
@@ -517,7 +527,7 @@ class gemini extends gemini$1["default"] {
         }
         symbols = this.marketSymbols(symbols, undefined, false, true, true);
         const firstMarket = this.market(symbols[0]);
-        if (!firstMarket['spot'] && !firstMarket['linear']) {
+        if ((firstMarket['spot'] !== true) && (firstMarket['linear'] !== true)) {
             throw new errors.NotSupported(this.id + ' watchMultiple supports only spot or linear-swap symbols');
         }
         const messageHashes = [];
@@ -880,6 +890,9 @@ class gemini extends gemini$1["default"] {
             const ts = this.safeInteger(message, 'timestampms', this.milliseconds());
             const eventId = this.safeInteger(message, 'eventId');
             const events = this.safeList(message, 'events');
+            if (events === undefined) {
+                return;
+            }
             const orderBookItems = [];
             const bidaskItems = [];
             const collectedEventsOfTrades = [];
@@ -916,6 +929,9 @@ class gemini extends gemini$1["default"] {
     }
     async authenticate(params = {}) {
         const url = this.safeString(params, 'url');
+        if (url === undefined) {
+            return;
+        }
         if ((this.clients !== undefined) && (url in this.clients)) {
             return;
         }

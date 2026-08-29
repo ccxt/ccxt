@@ -45,7 +45,7 @@ public partial class bithumb : ccxt.bithumb
      * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
      * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
      */
-    public async override Task<object> watchTicker(object symbol, object parameters = null)
+    public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
@@ -60,7 +60,7 @@ public partial class bithumb : ccxt.bithumb
             { "symbols", new List<object>() {add(add(getValue(market, "base"), "_"), getValue(market, "quote"))} },
             { "tickTypes", new List<object> {this.safeString(parameters, "tickTypes", "24H")} },
         };
-        return await this.watch(url, messageHash, this.extend(request, parameters), messageHash);
+        return ccxt.BaseExchange.ToTicker(await this.watch(url, messageHash, this.extend(request, parameters), messageHash));
     }
 
     /**
@@ -99,7 +99,7 @@ public partial class bithumb : ccxt.bithumb
             { "symbols", marketIds },
             { "tickTypes", new List<object> {this.safeString(parameters, "tickTypes", "24H")} },
         };
-        object message = this.extend(request, parameters);
+        Dictionary<string, object> message = this.extend(request, parameters);
         object newTicker = await this.watchMultiple(url, messageHashes, message, messageHashes);
         if (isTrue(this.newUpdates))
         {
@@ -202,25 +202,26 @@ public partial class bithumb : ccxt.bithumb
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
+    public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
+        object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
-        object market = this.market(symbol);
-        symbol = getValue(market, "symbol");
-        object messageHash = add(add("orderbook", ":"), symbol);
+        object market = this.market(symbolVar);
+        symbolVar = getValue(market, "symbol");
+        object messageHash = add(add("orderbook", ":"), symbolVar);
         object request = new Dictionary<string, object>() {
             { "type", "orderbookdepth" },
             { "symbols", new List<object>() {add(add(getValue(market, "base"), "_"), getValue(market, "quote"))} },
         };
         object orderbook = await this.watch(url, messageHash, this.extend(request, parameters), messageHash);
-        return (orderbook as IOrderBook).limit();
+        return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 
     public virtual void handleOrderBook(WebSocketClient client, object message)
@@ -306,17 +307,19 @@ public partial class bithumb : ccxt.bithumb
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
      */
-    public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object symbolVar = symbol;
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
-        object market = this.market(symbol);
-        symbol = getValue(market, "symbol");
-        object messageHash = add("trade:", symbol);
+        object market = this.market(symbolVar);
+        symbolVar = getValue(market, "symbol");
+        object messageHash = add("trade:", symbolVar);
         object request = new Dictionary<string, object>() {
             { "type", "transaction" },
             { "symbols", new List<object>() {add(add(getValue(market, "base"), "_"), getValue(market, "quote"))} },
@@ -324,9 +327,9 @@ public partial class bithumb : ccxt.bithumb
         object trades = await this.watch(url, messageHash, this.extend(request, parameters), messageHash);
         if (isTrue(this.newUpdates))
         {
-            limit = callDynamically(trades, "getLimit", new object[] {symbol, limit});
+            limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
         }
-        return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
 
     public virtual void handleTrades(WebSocketClient client, object message)
@@ -441,7 +444,7 @@ public partial class bithumb : ccxt.bithumb
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public async override Task<object> watchBalance(object parameters = null)
+    public async override Task<ccxt.Balances> WatchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -450,14 +453,14 @@ public partial class bithumb : ccxt.bithumb
         }
         await this.authenticate();
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "privateV2");
-        object messageHash = "myAsset";
+        string messageHash = "myAsset";
         object request = new List<object>() {new Dictionary<string, object>() {
     { "ticket", "ccxt" },
 }, new Dictionary<string, object>() {
     { "type", messageHash },
 }};
         object balance = await this.watch(url, messageHash, request, messageHash);
-        return balance;
+        return ccxt.BaseExchange.ToBalances(balance);
     }
 
     public virtual void handleBalance(WebSocketClient client, object message)
@@ -477,7 +480,7 @@ public partial class bithumb : ccxt.bithumb
         //        "stream_type": "REALTIME"
         //    }
         //
-        object messageHash = "myAsset";
+        string messageHash = "myAsset";
         object assets = this.safeList(message, "assets", new List<object>() {});
         if (isTrue(isEqual(this.balance, null)))
         {
@@ -491,7 +494,10 @@ public partial class bithumb : ccxt.bithumb
             object account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString(asset, "balance");
             ((IDictionary<string,object>)account)["used"] = this.safeString(asset, "locked");
-            ((IDictionary<string,object>)this.balance)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)this.balance)[(string)code] = account;
+            }
         }
         ((IDictionary<string,object>)this.balance)["info"] = message;
         object timestamp = this.safeInteger(message, "timestamp");
@@ -540,8 +546,10 @@ public partial class bithumb : ccxt.bithumb
      * @param {string[]} [params.codes] market codes to filter orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object symbolVar = symbol;
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
@@ -557,18 +565,18 @@ public partial class bithumb : ccxt.bithumb
     { "type", messageHash },
     { "codes", codes },
 }};
-        if (isTrue(!isEqual(symbol, null)))
+        if (isTrue(!isEqual(symbolVar, null)))
         {
-            object market = this.market(symbol);
-            symbol = getValue(market, "symbol");
-            messageHash = add(add(messageHash, ":"), symbol);
+            object market = this.market(symbolVar);
+            symbolVar = getValue(market, "symbol");
+            messageHash = add(add(messageHash, ":"), symbolVar);
         }
         object orders = await this.watch(url, messageHash, request, messageHash);
         if (isTrue(this.newUpdates))
         {
-            limit = callDynamically(orders, "getLimit", new object[] {symbol, limit});
+            limitVar = callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar});
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolVar, since, limitVar, true));
     }
 
     public virtual void handleOrders(WebSocketClient client, object message)
@@ -597,7 +605,7 @@ public partial class bithumb : ccxt.bithumb
         //        "stream_type": "REALTIME"
         //    }
         //
-        object messageHash = "myOrder";
+        string messageHash = "myOrder";
         object parsed = this.parseWsOrder(message);
         object symbol = this.safeString(parsed, "symbol");
         // const orderId = this.safeString (parsed, 'id');
@@ -715,7 +723,7 @@ public partial class bithumb : ccxt.bithumb
 
     public override void handleMessage(WebSocketClient client, object message)
     {
-        if (!isTrue(this.handleErrorMessage(client as WebSocketClient, message)))
+        if (isTrue(!isEqual(this.handleErrorMessage(client as WebSocketClient, message), true)))
         {
             return;
         }

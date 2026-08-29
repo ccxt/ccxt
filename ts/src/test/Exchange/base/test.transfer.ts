@@ -1,5 +1,6 @@
 import { Exchange } from "../../../../ccxt.js";
 import testSharedMethods from './test.sharedMethods.js';
+import type { Dict } from '../../../base/types.js';
 
 function testTransfer (exchange: Exchange, skippedProperties: object, method: string, entry: object, requestedCode: string) {
     const format = {
@@ -16,7 +17,7 @@ function testTransfer (exchange: Exchange, skippedProperties: object, method: st
     const emptyAllowedFor = [ 'fromAccount', 'toAccount' ];
     testSharedMethods.assertStructure (exchange, skippedProperties, method, entry, format, emptyAllowedFor);
     testSharedMethods.assertTimestampAndDatetime (exchange, skippedProperties, method, entry, exchange.milliseconds ());
-    testSharedMethods.assertCurrencyCode (exchange, skippedProperties, method, entry, entry['currency'], requestedCode);
+    testSharedMethods.assertCurrencyCode (exchange, skippedProperties, method, entry, (entry as Dict)['currency'], requestedCode);
     //
     testSharedMethods.assertInArray (exchange, skippedProperties, method, entry, 'status', [ 'ok', 'pending', 'failed' ]);
     testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, entry, 'amount', '0');

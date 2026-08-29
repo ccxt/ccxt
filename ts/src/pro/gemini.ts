@@ -3,14 +3,14 @@
 import { sha384 } from '@noble/hashes/sha2.js';
 import geminiRest from '../gemini.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import { ExchangeError, NotSupported } from '../base/errors.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, OHLCV, Tickers, Dict } from '../base/types.js';
+import { ArgumentsRequired, ExchangeError, NotSupported } from '../base/errors.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, OHLCV, Tickers, Dict, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { Precise } from '../base/Precise.js';
 
 //  ---------------------------------------------------------------------------
 export default class gemini extends geminiRest {
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -48,13 +48,16 @@ export default class gemini extends geminiRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
         const messageHash = 'trades:' + market['symbol'];
         const marketId = market['id'];
+        if (marketId === undefined) {
+            throw new ArgumentsRequired (this.id + ' watchTrades() marketId is required');
+        }
         const request: Dict = {
             'type': 'subscribe',
             'subscriptions': [
@@ -86,7 +89,7 @@ export default class gemini extends geminiRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         const trades = await this.helperForWatchMultipleConstruct ('trades', symbols, params);
         if (this.newUpdates) {
             const first = this.safeList (trades, 0);
@@ -96,7 +99,7 @@ export default class gemini extends geminiRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    parseWsTrade (trade, market = undefined): Trade {
+    override parseWsTrade (trade: any, market: Market = undefined): Trade {
         //
         // regular v2 trade
         //
@@ -153,7 +156,7 @@ export default class gemini extends geminiRest {
         }, market);
     }
 
-    handleTrade (client: Client, message) {
+    handleTrade (client: Client, message: any) {
         //
         //     {
         //         "type": "trade",
@@ -171,14 +174,16 @@ export default class gemini extends geminiRest {
         let stored = this.safeValue (this.trades, symbol);
         if (stored === undefined) {
             stored = new ArrayCache (tradesLimit);
-            this.trades[symbol] = stored;
+            if (symbol !== undefined) {
+                this.trades[symbol] = stored;
+            }
         }
         stored.append (trade);
         const messageHash = 'trades:' + symbol;
         client.resolve (stored, messageHash);
     }
 
-    handleTrades (client: Client, message) {
+    handleTrades (client: Client, message: any) {
         //
         //     {
         //         "type": "l2_updates",
@@ -236,7 +241,7 @@ export default class gemini extends geminiRest {
         }
     }
 
-    handleTradesForMultidata (client: Client, trades, timestamp: Int) {
+    handleTradesForMultidata (client: Client, trades: any, timestamp: Int) {
         if (trades !== undefined) {
             const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
             const storesForSymbols: Dict = {};
@@ -277,7 +282,7 @@ export default class gemini extends geminiRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -303,7 +308,7 @@ export default class gemini extends geminiRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    handleOHLCV (client: Client, message) {
+    handleOHLCV (client: Client, message: any) {
         //
         //     {
         //         "type": "candles_15m_updates",
@@ -342,11 +347,13 @@ export default class gemini extends geminiRest {
         if (ohlcvsBySymbol === undefined) {
             this.ohlcvs[symbol] = {};
         }
-        let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+        let stored = this.safeValue (this.safeValue (this.ohlcvs, symbol), timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             stored = new ArrayCacheByTimestamp (limit);
-            this.ohlcvs[symbol][timeframe] = stored;
+            if (symbol !== undefined && timeframe !== undefined) {
+                this.ohlcvs[symbol][timeframe] = stored;
+            }
         }
         const changesLength = changes.length;
         // reverse order of array to store candles in ascending order
@@ -368,15 +375,18 @@ export default class gemini extends geminiRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
         const messageHash = 'orderbook:' + market['symbol'];
         const marketId = market['id'];
+        if (marketId === undefined) {
+            throw new ArgumentsRequired (this.id + ' watchOrderBook() marketId is required');
+        }
         const request: Dict = {
             'type': 'subscribe',
             'subscriptions': [
@@ -394,7 +404,7 @@ export default class gemini extends geminiRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client: Client, message) {
+    handleOrderBook (client: Client, message: any) {
         const isInitial = ('auction_events' in message) && ('trades' in message) && ('changes' in message);
         const changes = this.safeValue (message, 'changes', []);
         const marketId = this.safeStringLower (message, 'symbol');
@@ -434,9 +444,9 @@ export default class gemini extends geminiRest {
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
         const orderbook = await this.helperForWatchMultipleConstruct ('orderbook', symbols, params);
         return orderbook.limit ();
     }
@@ -450,11 +460,11 @@ export default class gemini extends geminiRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         return this.helperForWatchMultipleConstruct ('bidsasks', symbols, params);
     }
 
-    handleBidsAsksForMultidata (client: Client, rawBidAskChanges, timestamp: Int, nonce: Int) {
+    handleBidsAsksForMultidata (client: Client, rawBidAskChanges: any, timestamp: Int, nonce: Int) {
         //
         // {
         //     eventId: '1683002916916153',
@@ -512,13 +522,13 @@ export default class gemini extends geminiRest {
         currentBidAsk['timestamp'] = timestamp;
         currentBidAsk['datetime'] = this.iso8601 (timestamp);
         currentBidAsk['info'] = rawBidAskChanges;
-        const bidsAsksDict = {};
+        const bidsAsksDict: Dict = {};
         bidsAsksDict[symbol] = currentBidAsk;
         this.bidsasks[symbol] = currentBidAsk;
         client.resolve (bidsAsksDict, messageHash);
     }
 
-    async helperForWatchMultipleConstruct (itemHashName:string, symbols: string[] = undefined, params = {}) {
+    async helperForWatchMultipleConstruct (itemHashName:string, symbols: Strings = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -527,11 +537,11 @@ export default class gemini extends geminiRest {
         }
         symbols = this.marketSymbols (symbols, undefined, false, true, true);
         const firstMarket = this.market (symbols[0]);
-        if (!firstMarket['spot'] && !firstMarket['linear']) {
+        if ((firstMarket['spot'] !== true) && (firstMarket['linear'] !== true)) {
             throw new NotSupported (this.id + ' watchMultiple supports only spot or linear-swap symbols');
         }
-        const messageHashes = [];
-        const marketIds = [];
+        const messageHashes: string[] = [];
+        const marketIds: Str[] = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const messageHash = itemHashName + ':' + symbol;
@@ -551,7 +561,7 @@ export default class gemini extends geminiRest {
         return await this.watchMultiple (url, messageHashes, undefined);
     }
 
-    handleOrderBookForMultidata (client: Client, rawOrderBookChanges, timestamp: Int, nonce: Int) {
+    handleOrderBookForMultidata (client: Client, rawOrderBookChanges: any, timestamp: Int, nonce: Int) {
         //
         // rawOrderBookChanges
         //
@@ -599,7 +609,7 @@ export default class gemini extends geminiRest {
         client.resolve (orderbook, messageHash);
     }
 
-    handleL2Updates (client: Client, message) {
+    handleL2Updates (client: Client, message: any) {
         //
         //     {
         //         "type": "l2_updates",
@@ -652,7 +662,7 @@ export default class gemini extends geminiRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         const url = this.urls['api']['ws'] + '/v1/order/events?eventTypeFilter=initial&eventTypeFilter=accepted&eventTypeFilter=rejected&eventTypeFilter=fill&eventTypeFilter=cancelled&eventTypeFilter=booked';
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -673,7 +683,7 @@ export default class gemini extends geminiRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleHeartbeat (client: Client, message) {
+    handleHeartbeat (client: Client, message: any) {
         //
         //     {
         //         "type": "heartbeat",
@@ -687,7 +697,7 @@ export default class gemini extends geminiRest {
         return message;
     }
 
-    handleSubscription (client: Client, message) {
+    handleSubscription (client: Client, message: any) {
         //
         //     {
         //         "type": "subscription_ack",
@@ -701,7 +711,7 @@ export default class gemini extends geminiRest {
         return message;
     }
 
-    handleOrder (client: Client, message) {
+    handleOrder (client: Client, message: any) {
         //
         //     [
         //         {
@@ -738,7 +748,7 @@ export default class gemini extends geminiRest {
         client.resolve (this.orders, messageHash);
     }
 
-    parseWsOrder (order, market = undefined) {
+    override parseWsOrder (order: any, market: Market = undefined) {
         //
         //     {
         //         "type": "accepted",
@@ -800,7 +810,7 @@ export default class gemini extends geminiRest {
         }, market);
     }
 
-    parseWsOrderStatus (status) {
+    parseWsOrderStatus (status: any) {
         const statuses: Dict = {
             'accepted': 'open',
             'booked': 'open',
@@ -812,7 +822,7 @@ export default class gemini extends geminiRest {
         return this.safeString (statuses, status, status);
     }
 
-    parseWsOrderType (type) {
+    parseWsOrderType (type: any) {
         const types: Dict = {
             'exchange limit': 'limit',
             'market buy': 'market',
@@ -821,7 +831,7 @@ export default class gemini extends geminiRest {
         return this.safeString (types, type, type);
     }
 
-    handleError (client: Client, message) {
+    handleError (client: Client, message: any) {
         //
         //     {
         //         "reason": "NoValidTradingPairs",
@@ -831,7 +841,7 @@ export default class gemini extends geminiRest {
         throw new ExchangeError (this.json (message));
     }
 
-    handleMessage (client: Client, message) {
+    override handleMessage (client: Client, message: any) {
         //
         //  public
         //     {
@@ -896,9 +906,12 @@ export default class gemini extends geminiRest {
             const ts = this.safeInteger (message, 'timestampms', this.milliseconds ());
             const eventId = this.safeInteger (message, 'eventId');
             const events = this.safeList (message, 'events');
-            const orderBookItems = [];
-            const bidaskItems = [];
-            const collectedEventsOfTrades = [];
+            if (events === undefined) {
+                return;
+            }
+            const orderBookItems: Dict[] = [];
+            const bidaskItems: Dict[] = [];
+            const collectedEventsOfTrades: Dict[] = [];
             const eventsLength = events.length;
             for (let i = 0; i < events.length; i++) {
                 const event = events[i];
@@ -931,6 +944,9 @@ export default class gemini extends geminiRest {
 
     async authenticate (params = {}) {
         const url = this.safeString (params, 'url');
+        if (url === undefined) {
+            return;
+        }
         if ((this.clients !== undefined) && (url in this.clients)) {
             return;
         }

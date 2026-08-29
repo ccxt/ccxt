@@ -5,13 +5,13 @@ import krakenRest from '../kraken.js';
 import { ExchangeError, BadSymbol, PermissionDenied, AccountSuspended, BadRequest, InsufficientFunds, InvalidOrder, OrderNotFound, NotSupported, RateLimitExceeded, ExchangeNotAvailable, ChecksumError, AuthenticationError, ArgumentsRequired } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
-import type { Int, Strings, OrderSide, OrderType, Str, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Num, Dict, Balances, Bool, List } from '../base/types.js';
+import type { Int, Strings, OrderSide, OrderType, Str, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Num, Dict, Balances, Bool, List, Fee , Market } from '../base/types.js';
 import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
 import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
 
 export default class kraken extends krakenRest {
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -131,7 +131,7 @@ export default class kraken extends krakenRest {
         const isMarket = (type === 'market');
         let postOnly: Bool = undefined;
         [ postOnly, params ] = this.handlePostOnly (isMarket, false, params);
-        if (postOnly) {
+        if (postOnly === true) {
             request['params']['post_only'] = true;
         }
         const clientOrderId = this.safeString (params, 'clientOrderId');
@@ -162,15 +162,15 @@ export default class kraken extends krakenRest {
         const isTrailingPercentOrder = trailingPercent !== undefined;
         const isTrailingLimitAmountOrder = trailingLimitAmount !== undefined;
         const isTrailingLimitPercentOrder = trailingLimitPercent !== undefined;
-        const offset = this.safeString (params, 'offset', '') as string; // can set this to - for minus
-        const trailingAmountString = (trailingAmount !== undefined) ? offset + (this.numberToString (trailingAmount) as string) : undefined;
-        const trailingPercentString = (trailingPercent !== undefined) ? offset + (this.numberToString (trailingPercent) as string) : undefined;
-        const trailingLimitAmountString = (trailingLimitAmount !== undefined) ? offset + (this.numberToString (trailingLimitAmount) as string) : undefined;
-        const trailingLimitPercentString = (trailingLimitPercent !== undefined) ? offset + (this.numberToString (trailingLimitPercent) as string) : undefined;
+        const offset = this.safeString (params, 'offset', ''); // can set this to - for minus
+        const trailingAmountString = (trailingAmount !== undefined) ? offset + this.numberToString (trailingAmount) : undefined;
+        const trailingPercentString = (trailingPercent !== undefined) ? offset + this.numberToString (trailingPercent) : undefined;
+        const trailingLimitAmountString = (trailingLimitAmount !== undefined) ? offset + this.numberToString (trailingLimitAmount) : undefined;
+        const trailingLimitPercentString = (trailingLimitPercent !== undefined) ? offset + this.numberToString (trailingLimitPercent) : undefined;
         const priceType = (isTrailingPercentOrder || isTrailingLimitPercentOrder) ? 'pct' : 'quote';
         if (method === 'createOrderWs') {
             const reduceOnly = this.safeBool (params, 'reduceOnly');
-            if (reduceOnly) {
+            if (reduceOnly === true) {
                 request['params']['reduce_only'] = true;
             }
             const timeInForce = this.safeStringLower (params, 'timeInForce');
@@ -279,7 +279,7 @@ export default class kraken extends krakenRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
+    override async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
         await this.loadMarkets ();
         const token = await this.authenticate ();
         const market = this.market (symbol);
@@ -301,7 +301,7 @@ export default class kraken extends krakenRest {
         return await this.watch (url, messageHash, this.extend (request, params), messageHash);
     }
 
-    handleCreateEditOrder (client, message) {
+    handleCreateEditOrder (client: Client, message: any) {
         //
         //  createOrder
         //     {
@@ -329,7 +329,7 @@ export default class kraken extends krakenRest {
         //     }
         //
         const result = this.safeDict (message, 'result', {});
-        const order = this.parseOrder (result as Dict);
+        const order = this.parseOrder (result);
         const messageHash = this.safeString2 (message, 'reqid', 'req_id');
         client.resolve (order, messageHash);
     }
@@ -348,7 +348,7 @@ export default class kraken extends krakenRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async editOrderWs (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}): Promise<Order> {
+    override async editOrderWs (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}): Promise<Order> {
         await this.loadMarkets ();
         const token = await this.authenticate ();
         const url = (this.urls['api'] as Dict)['ws']['privateV2'];
@@ -377,7 +377,7 @@ export default class kraken extends krakenRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async cancelOrdersWs (ids: string[], symbol: Str = undefined, params = {}) {
+    override async cancelOrdersWs (ids: string[], symbol: Str = undefined, params = {}) {
         if (symbol !== undefined) {
             throw new NotSupported (this.id + ' cancelOrdersWs () does not support cancelling orders for a specific symbol.');
         }
@@ -407,7 +407,7 @@ export default class kraken extends krakenRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async cancelOrderWs (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
+    override async cancelOrderWs (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         if (symbol !== undefined) {
             throw new NotSupported (this.id + ' cancelOrderWs () does not support cancelling orders for a specific symbol.');
         }
@@ -427,7 +427,7 @@ export default class kraken extends krakenRest {
         return await this.watch (url, messageHash, this.extend (request, params), messageHash);
     }
 
-    handleCancelOrder (client, message) {
+    handleCancelOrder (client: Client, message: any) {
         //
         //     {
         //         "method": "cancel_order",
@@ -453,7 +453,7 @@ export default class kraken extends krakenRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async cancelAllOrdersWs (symbol: Str = undefined, params = {}): Promise<Order[]> {
+    override async cancelAllOrdersWs (symbol: Str = undefined, params = {}): Promise<Order[]> {
         if (symbol !== undefined) {
             throw new NotSupported (this.id + ' cancelAllOrdersWs () does not support cancelling orders in a specific market.');
         }
@@ -472,7 +472,7 @@ export default class kraken extends krakenRest {
         return await this.watch (url, messageHash, this.extend (request, params), messageHash);
     }
 
-    handleCancelAllOrders (client, message) {
+    handleCancelAllOrders (client: Client, message: any) {
         //
         //     {
         //         "method": "cancel_all",
@@ -489,7 +489,7 @@ export default class kraken extends krakenRest {
         client.resolve (message, reqId);
     }
 
-    handleTicker (client, message) {
+    handleTicker (client: any, message: any) {
         //
         //     {
         //         "channel": "ticker",
@@ -549,7 +549,7 @@ export default class kraken extends krakenRest {
         client.resolve (result, messageHash);
     }
 
-    handleTrades (client: Client, message) {
+    handleTrades (client: Client, message: any) {
         //
         //     {
         //         "channel": "trade",
@@ -585,7 +585,7 @@ export default class kraken extends krakenRest {
         client.resolve (stored, messageHash);
     }
 
-    handleOHLCV (client: Client, message) {
+    handleOHLCV (client: Client, message: any) {
         //
         //     {
         //         "channel": "ohlc",
@@ -618,7 +618,7 @@ export default class kraken extends krakenRest {
         const interval = this.safeInteger (first, 'interval');
         const timeframe = this.findTimeframe (interval) as string;
         const messageHash = this.getMessageHash ('ohlcv', undefined, symbol);
-        let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+        let stored = this.safeValue (this.safeValue (this.ohlcvs, symbol), timeframe);
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
@@ -627,16 +627,16 @@ export default class kraken extends krakenRest {
         }
         const ohlcvsLength = data.length;
         for (let i = 0; i < ohlcvsLength; i++) {
-            const candle = data[ohlcvsLength - i - 1];
+            const candle = data[i];
             const datetime = this.safeString (candle, 'interval_begin');
             const timestamp = this.parse8601 (datetime);
             const parsed = [
                 timestamp,
-                this.safeString (candle, 'open'),
-                this.safeString (candle, 'high'),
-                this.safeString (candle, 'low'),
-                this.safeString (candle, 'close'),
-                this.safeString (candle, 'volume'),
+                this.safeNumber (candle, 'open'),
+                this.safeNumber (candle, 'high'),
+                this.safeNumber (candle, 'low'),
+                this.safeNumber (candle, 'close'),
+                this.safeNumber (candle, 'volume'),
             ];
             stored.append (parsed);
         }
@@ -661,7 +661,7 @@ export default class kraken extends krakenRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         await this.loadMarkets ();
         symbol = this.symbol (symbol);
         const tickers = await this.watchTickers ([ symbol ], params);
@@ -677,7 +677,7 @@ export default class kraken extends krakenRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, false);
         const ticker = await this.watchMultiHelper ('ticker', 'ticker', symbols, undefined, params);
@@ -698,7 +698,7 @@ export default class kraken extends krakenRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async watchBidsAsks (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, false);
         params['event_trigger'] = 'bbo';
@@ -722,7 +722,7 @@ export default class kraken extends krakenRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         return this.watchTradesForSymbols ([ symbol ], since, limit, params);
     }
 
@@ -737,7 +737,7 @@ export default class kraken extends krakenRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         const trades = await this.watchMultiHelper ('trade', 'trade', symbols, undefined, params);
         if (this.newUpdates) {
             const first = this.safeList (trades, 0);
@@ -757,7 +757,7 @@ export default class kraken extends krakenRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         return this.watchOrderBookForSymbols ([ symbol ], limit, params);
     }
 
@@ -769,9 +769,9 @@ export default class kraken extends krakenRest {
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
         const requiredParams: Dict = {};
         if (limit !== undefined) {
             if (this.inArray (limit, [ 10, 25, 100, 500, 1000 ])) {
@@ -796,7 +796,7 @@ export default class kraken extends krakenRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         const name = 'ohlc';
         const market = this.market (symbol);
@@ -821,7 +821,7 @@ export default class kraken extends krakenRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 'timestamp', true);
     }
 
-    async loadMarkets (reload = false, params = {}) {
+    override async loadMarkets (reload = false, params = {}) {
         const markets = await super.loadMarkets (reload, params);
         let marketsByWsName = this.safeValue (this.options, 'marketsByWsName');
         if ((marketsByWsName === undefined) || reload) {
@@ -830,7 +830,7 @@ export default class kraken extends krakenRest {
             if (symbols !== undefined) {
                 for (let i = 0; i < symbols.length; i++) {
                     const symbol = symbols[i];
-                    const market = this.markets[symbol];
+                    const market = this.market (symbol);
                     const info = this.safeValue (market, 'info', {});
                     const wsName = this.safeString (info, 'wsname') as string;
                     marketsByWsName[wsName] = market;
@@ -841,9 +841,9 @@ export default class kraken extends krakenRest {
         return markets;
     }
 
-    ping (client: Client) {
+    override ping (client: Client) {
         const url = client.url;
-        const request = {};
+        const request: Dict = {};
         if (url.indexOf ('v2') >= 0) {
             request['method'] = 'ping';
         } else {
@@ -852,7 +852,7 @@ export default class kraken extends krakenRest {
         return request;
     }
 
-    handlePong (client: Client, message) {
+    handlePong (client: Client, message: any) {
         client.lastPong = this.milliseconds ();
         return message;
     }
@@ -864,7 +864,7 @@ export default class kraken extends krakenRest {
         return await this.watch (url, event);
     }
 
-    handleHeartbeat (client: Client, message) {
+    handleHeartbeat (client: Client, message: any) {
         //
         // every second (approx) if no other updates are sent
         //
@@ -874,7 +874,7 @@ export default class kraken extends krakenRest {
         client.resolve (message, event);
     }
 
-    handleOrderBook (client: Client, message) {
+    handleOrderBook (client: Client, message: any) {
         //
         // first message (snapshot)
         //
@@ -931,7 +931,7 @@ export default class kraken extends krakenRest {
         //     }
         //
         const type = this.safeString (message, 'type');
-        const data = this.safeList (message, 'data', []) as List;
+        const data = this.safeList (message, 'data', []);
         const first = this.safeDict (data, 0, {});
         const symbol = this.safeString (first, 'symbol') as string;
         const a = this.safeValue (first, 'asks', []);
@@ -961,9 +961,10 @@ export default class kraken extends krakenRest {
             const keys = [ 'asks', 'bids' ];
             for (let i = 0; i < keys.length; i++) {
                 const key = keys[i];
-                const bookside = orderbook[key];
+                const bookside = (orderbook as Dict)[key];
                 const deltas = this.safeValue (first, key, []);
-                if (deltas.length > 0) {
+                const deltasLength = deltas.length;
+                if (deltasLength > 0) {
                     this.customHandleDeltas (bookside, deltas);
                 }
             }
@@ -972,7 +973,7 @@ export default class kraken extends krakenRest {
         orderbook.limit ();
         // checksum temporarily disabled because the exchange checksum was not reliable
         const checksum = this.handleOption ('watchOrderBook', 'checksum', false);
-        if (checksum) {
+        if (checksum === true) {
             const payloadArray: string[] = [];
             if (c !== undefined) {
                 const checkAsks = orderbook['asks'];
@@ -1003,7 +1004,7 @@ export default class kraken extends krakenRest {
         client.resolve (orderbook, messageHash);
     }
 
-    customHandleDeltas (bookside, deltas) {
+    customHandleDeltas (bookside: any, deltas: any) {
         // const sortOrder = (key === 'bids') ? true : false;
         for (let j = 0; j < deltas.length; j++) {
             const delta = deltas[j];
@@ -1021,10 +1022,10 @@ export default class kraken extends krakenRest {
         }
     }
 
-    formatNumber (data) {
+    formatNumber (data: any) {
         const parts = data.split ('.');
-        const integer = this.safeString (parts, 0) as string;
-        const decimals = this.safeString (parts, 1, '') as string;
+        const integer = this.safeString (parts, 0);
+        const decimals = this.safeString (parts, 1, '');
         let joinedResult = integer + decimals;
         let i = 0;
         while (joinedResult[i] === '0') {
@@ -1036,7 +1037,7 @@ export default class kraken extends krakenRest {
         return joinedResult;
     }
 
-    handleSystemStatus (client: Client, message) {
+    handleSystemStatus (client: Client, message: any) {
         //
         // todo: answer the question whether handleSystemStatus should be renamed
         // and unified as handleStatus for any usage pattern that
@@ -1075,25 +1076,63 @@ export default class kraken extends krakenRest {
         const start = this.safeInteger (subscription, 'start') as number;
         const expires = this.safeInteger (subscription, 'expires') as number;
         if ((subscription === undefined) || ((subscription !== undefined) && (start + expires) <= now)) {
-            // https://docs.kraken.com/api/docs/rest-api/get-websockets-token
-            const response = await this.privatePostGetWebSocketsToken (params);
-            //
-            //     {
-            //         "error":[],
-            //         "result":{
-            //             "token":"xeAQ\/RCChBYNVh53sTv1yZ5H4wIbwDF20PiHtTF+4UI",
-            //             "expires":900
-            //         }
-            //     }
-            //
-            subscription = this.safeDict (response, 'result');
-            subscription['start'] = now;
-            client.subscriptions[authenticated] = subscription;
+            // single-flight leader election, see
+            // https://github.com/ccxt/ccxt/issues/29393: the staleness gate
+            // above is followed by an awaited privatePostGetWebSocketsToken (),
+            // so N concurrent watchPrivate () calls on a cold instance each
+            // pass the gate and each burn a rate-limited private REST call to
+            // mint a separate token. client.futures is the flight registry
+            // itself, namespaced away from the real subscription keys on the
+            // same client that already caches the token, and settlement goes
+            // through client.resolve () / client.reject () so every write to
+            // that map stays behind the client's own lock
+            const messageHash = 'authenticateFlight';
+            if (messageHash in client.futures) {
+                // a flight is already in progress - wake when the leader
+                // settles it: the token is then in the subscriptions bucket
+                await client.future (messageHash);
+                subscription = this.safeDict (client.subscriptions, authenticated);
+                return this.safeString (subscription, 'token');
+            }
+            const future = client.reusableFuture (messageHash);
+            try {
+                // https://docs.kraken.com/api/docs/rest-api/get-websockets-token
+                const response = await this.privatePostGetWebSocketsToken (params);
+                //
+                //     {
+                //         "error":[],
+                //         "result":{
+                //             "token":"xeAQ\/RCChBYNVh53sTv1yZ5H4wIbwDF20PiHtTF+4UI",
+                //             "expires":900
+                //         }
+                //     }
+                //
+                subscription = this.safeDict (response, 'result');
+                const token = this.safeString (subscription, 'token');
+                if (token === undefined) {
+                    // reject instead of caching an empty credential, so
+                    // waiters retry rather than proceed unauthenticated
+                    throw new AuthenticationError (this.id + ' authenticate() received an empty token');
+                }
+                subscription['start'] = now;
+                client.subscriptions[authenticated] = subscription;
+                // settle the flight and wake every waiter - resolve () also
+                // clears the registry entry, so the next refresh re-leads
+                client.resolve (token, messageHash);
+            } catch (e) {
+                // reject the flight - all waiters throw and the next caller
+                // re-leads instead of deadlocking on a dead flight
+                client.reject (e, messageHash);
+            }
+            // rethrows the leader's own failure and attaches the handler that
+            // keeps an alone leader's rejection from killing the process
+            await future;
+            subscription = this.safeDict (client.subscriptions, authenticated);
         }
         return this.safeString (subscription, 'token');
     }
 
-    async watchPrivate (name, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchPrivate (name: any, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const token = await this.authenticate ();
         const subscriptionHash = 'executions';
@@ -1133,12 +1172,12 @@ export default class kraken extends krakenRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         params['snap_trades'] = true;
         return await this.watchPrivate ('myTrades', symbol, since, limit, params);
     }
 
-    handleMyTrades (client: Client, message, subscription = undefined) {
+    handleMyTrades (client: Client, message: any, subscription: Dict | undefined = undefined) {
         //
         //     {
         //         "channel": "executions",
@@ -1196,7 +1235,7 @@ export default class kraken extends krakenRest {
         }
     }
 
-    parseWsTrade (trade, market = undefined) {
+    override parseWsTrade (trade: any, market: Market = undefined) {
         //
         //     {
         //         "order_id": "O6NTZC-K6FRH-ATWBCK",
@@ -1225,7 +1264,7 @@ export default class kraken extends krakenRest {
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        let fee = undefined;
+        let fee: Fee = undefined;
         if ('fees' in trade) {
             const fees = this.safeList (trade, 'fees', []);
             const firstFee = this.safeDict (fees, 0, {});
@@ -1265,11 +1304,11 @@ export default class kraken extends krakenRest {
      * @param {object} [params] maximum number of orderic to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         return this.watchPrivate ('orders', symbol, since, limit, this.extend (params, { 'snap_orders': true }));
     }
 
-    handleOrders (client: Client, message, subscription = undefined) {
+    handleOrders (client: Client, message: any, subscription: Dict | undefined = undefined) {
         //
         //     {
         //         "channel": "executions",
@@ -1311,8 +1350,8 @@ export default class kraken extends krakenRest {
                 const id = this.safeString (order, 'order_id');
                 const parsed = this.parseWsOrder (order);
                 const symbol = this.safeString (order, 'symbol');
-                const previousOrders = this.safeValue (stored.hashmap, symbol as string);
-                const previousOrder = this.safeValue (previousOrders, id as string);
+                const previousOrders = this.safeValue (stored.hashmap, symbol);
+                const previousOrder = this.safeValue (previousOrders, id);
                 let newOrder = parsed;
                 if (previousOrder !== undefined) {
                     const newRawOrder = this.extend (previousOrder['info'], newOrder['info']);
@@ -1341,7 +1380,7 @@ export default class kraken extends krakenRest {
         }
     }
 
-    parseWsOrder (order, market = undefined) {
+    override parseWsOrder (order: any, market: Market = undefined) {
         //
         // watchOrders
         //
@@ -1413,7 +1452,7 @@ export default class kraken extends krakenRest {
         });
     }
 
-    async watchMultiHelper (unifiedName: string, channelName: string, symbols: Strings = undefined, subscriptionArgs = undefined, params = {}) {
+    async watchMultiHelper (unifiedName: string, channelName: string, symbols: Strings = undefined, subscriptionArgs: any = undefined, params = {}) {
         await this.loadMarkets ();
         // symbols are required
         symbols = this.marketSymbols (symbols, undefined, false, true, false);
@@ -1450,7 +1489,7 @@ export default class kraken extends krakenRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    async watchBalance (params = {}): Promise<Balances> {
+    override async watchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
         const token = await this.authenticate ();
         const messageHash = 'balances';
@@ -1468,7 +1507,7 @@ export default class kraken extends krakenRest {
         return await this.watch (url, messageHash, request, messageHash);
     }
 
-    handleBalance (client: Client, message) {
+    handleBalance (client: Client, message: any) {
         //
         //     {
         //         "channel": "balances",
@@ -1525,7 +1564,7 @@ export default class kraken extends krakenRest {
         return messageHash;
     }
 
-    handleSubscriptionStatus (client: Client, message) {
+    handleSubscriptionStatus (client: Client, message: any) {
         //
         // public
         //
@@ -1559,7 +1598,7 @@ export default class kraken extends krakenRest {
         // }
     }
 
-    handleErrorMessage (client: Client, message): Bool {
+    handleErrorMessage (client: Client, message: any): Bool {
         //
         //     {
         //         "errorMessage": "Currency pair not in ISO 4217-A3 format foobar",
@@ -1584,7 +1623,7 @@ export default class kraken extends krakenRest {
             const requestId = this.safeString2 (message, 'reqid', 'req_id');
             const broad = this.exceptions['ws']['broad'];
             const broadKey = this.findBroadlyMatchedKey (broad, errorMessage);
-            let exception = undefined;
+            let exception: ExchangeError | undefined = undefined;
             if (broadKey === undefined) {
                 exception = new ExchangeError ((errorMessage as string)); // c# requirement to convert the errorMessage to string
             } else {
@@ -1598,11 +1637,11 @@ export default class kraken extends krakenRest {
         return true;
     }
 
-    handleMessage (client: Client, message) {
+    override handleMessage (client: Client, message: any) {
         let channel = this.safeString (message, 'channel');
         if (channel !== undefined) {
             if (channel === 'executions') {
-                const data = this.safeList (message, 'data', []) as List;
+                const data = this.safeList (message, 'data', []);
                 const first = this.safeDict (data, 0, {});
                 const execType = this.safeString (first, 'exec_type');
                 channel = (execType === 'trade') ? 'myTrades' : 'orders';
@@ -1622,7 +1661,7 @@ export default class kraken extends krakenRest {
                 method.call (this, client, message);
             }
         }
-        if (this.handleErrorMessage (client, message)) {
+        if (this.handleErrorMessage (client, message) === true) {
             const event = this.safeString2 (message, 'event', 'method');
             const methods: Dict = {
                 'heartbeat': this.handleHeartbeat,
@@ -1634,7 +1673,7 @@ export default class kraken extends krakenRest {
                 'cancel_all': this.handleCancelAllOrders,
                 'pong': this.handlePong,
             };
-            const method = this.safeValue (methods, event as string);
+            const method = this.safeValue (methods, event);
             if (method !== undefined) {
                 method.call (this, client, message);
             }

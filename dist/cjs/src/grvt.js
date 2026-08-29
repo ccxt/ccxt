@@ -106,64 +106,64 @@ class grvt extends grvt$1["default"] {
                 // RL : https://help.grvt.io/en/articles/9636566-what-are-the-rate-limitations-on-grvt
                 'privateEdge': {
                     'post': {
-                        'auth/api_key/login': 100,
-                        'auth/wallet/login': 100,
+                        'auth/api_key/login': { 'cost': 100 },
+                        'auth/wallet/login': { 'cost': 100 },
                     },
                 },
                 'publicMarket': {
                     'post': {
-                        'full/v1/instrument': 4,
-                        'full/v1/all_instruments': 4,
-                        'full/v1/instruments': 4,
-                        'full/v1/currency': 12,
-                        'full/v1/margin_rules': 12,
-                        'full/v1/mini': 4,
-                        'full/v1/ticker': 4,
-                        'full/v1/book': 12,
-                        'full/v1/trade': 12,
-                        'full/v1/trade_history': 12,
-                        'full/v1/kline': 12,
-                        'full/v1/funding': 12,
+                        'full/v1/instrument': { 'cost': 4 },
+                        'full/v1/all_instruments': { 'cost': 4 },
+                        'full/v1/instruments': { 'cost': 4 },
+                        'full/v1/currency': { 'cost': 12 },
+                        'full/v1/margin_rules': { 'cost': 12 },
+                        'full/v1/mini': { 'cost': 4 },
+                        'full/v1/ticker': { 'cost': 4 },
+                        'full/v1/book': { 'cost': 12 },
+                        'full/v1/trade': { 'cost': 12 },
+                        'full/v1/trade_history': { 'cost': 12 },
+                        'full/v1/kline': { 'cost': 12 },
+                        'full/v1/funding': { 'cost': 12 },
                     },
                 },
                 'privateTrading': {
                     'post': {
-                        'full/v1/create_order': 5,
-                        'full/v1/cancel_order': 5,
-                        'full/v1/cancel_on_disconnect': 100,
-                        'full/v1/cancel_all_orders': 50,
-                        'full/v1/order': rlOrders,
-                        'full/v1/order_history': rlOrders,
-                        'full/v1/open_orders': rlOrders,
-                        'full/v1/fill_history': rlOrders,
-                        'full/v1/positions': rlOrders,
-                        'full/v1/funding_payment_history': rlOthers,
-                        'full/v1/get_sub_accounts': rlOthers,
-                        'full/v1/account_summary': rlOthers,
-                        'full/v1/account_history': rlOthers,
-                        'full/v1/aggregated_account_summary': rlOthers,
-                        'full/v1/funding_account_summary': rlOthers,
-                        'full/v1/transfer': 100,
-                        'full/v1/deposit_history': 100,
-                        'full/v1/transfer_history': 100,
-                        'full/v1/withdrawal': 100,
-                        'full/v1/withdrawal_history': 100,
-                        'full/v1/add_position_margin': rlOthers, // addMargin
-                        'full/v1/get_position_margin_limits': rlOthers,
-                        'full/v1/set_position_config': rlOthers, // setPositionMode/setMarginMode
-                        'full/v1/set_initial_leverage': rlOthers,
-                        'full/v1/get_all_initial_leverage': rlOthers,
-                        'full/v1/set_derisk_mm_ratio': rlOthers,
-                        'full/v1/vault_burn_tokens': rlOthers,
-                        'full/v1/vault_invest': rlOthers,
-                        'full/v1/vault_investor_summary': rlOthers,
-                        'full/v1/vault_redeem': rlOthers,
-                        'full/v1/vault_redeem_cancel': rlOthers,
-                        'full/v1/vault_view_redemption_queue': rlOthers,
-                        'full/v1/vault_manager_investor_history': rlOthers,
-                        'full/v1/authorize_builder': rlOthers, // https://pastebin(dot)com/0Mb8cFhN
-                        'full/v1/get_authorized_builders': rlOthers,
-                        'full/v1/builder_fill_history': rlOthers,
+                        'full/v1/create_order': { 'cost': 5 },
+                        'full/v1/cancel_order': { 'cost': 5 },
+                        'full/v1/cancel_on_disconnect': { 'cost': 100 },
+                        'full/v1/cancel_all_orders': { 'cost': 50 },
+                        'full/v1/order': { 'cost': rlOrders },
+                        'full/v1/order_history': { 'cost': rlOrders },
+                        'full/v1/open_orders': { 'cost': rlOrders },
+                        'full/v1/fill_history': { 'cost': rlOrders },
+                        'full/v1/positions': { 'cost': rlOrders },
+                        'full/v1/funding_payment_history': { 'cost': rlOthers },
+                        'full/v1/get_sub_accounts': { 'cost': rlOthers },
+                        'full/v1/account_summary': { 'cost': rlOthers },
+                        'full/v1/account_history': { 'cost': rlOthers },
+                        'full/v1/aggregated_account_summary': { 'cost': rlOthers },
+                        'full/v1/funding_account_summary': { 'cost': rlOthers },
+                        'full/v1/transfer': { 'cost': 100 },
+                        'full/v1/deposit_history': { 'cost': 100 },
+                        'full/v1/transfer_history': { 'cost': 100 },
+                        'full/v1/withdrawal': { 'cost': 100 },
+                        'full/v1/withdrawal_history': { 'cost': 100 },
+                        'full/v1/add_position_margin': { 'cost': rlOthers }, // addMargin
+                        'full/v1/get_position_margin_limits': { 'cost': rlOthers },
+                        'full/v1/set_position_config': { 'cost': rlOthers }, // setPositionMode/setMarginMode
+                        'full/v1/set_initial_leverage': { 'cost': rlOthers },
+                        'full/v1/get_all_initial_leverage': { 'cost': rlOthers },
+                        'full/v1/set_derisk_mm_ratio': { 'cost': rlOthers },
+                        'full/v1/vault_burn_tokens': { 'cost': rlOthers },
+                        'full/v1/vault_invest': { 'cost': rlOthers },
+                        'full/v1/vault_investor_summary': { 'cost': rlOthers },
+                        'full/v1/vault_redeem': { 'cost': rlOthers },
+                        'full/v1/vault_redeem_cancel': { 'cost': rlOthers },
+                        'full/v1/vault_view_redemption_queue': { 'cost': rlOthers },
+                        'full/v1/vault_manager_investor_history': { 'cost': rlOthers },
+                        'full/v1/authorize_builder': { 'cost': rlOthers }, // https://pastebin(dot)com/0Mb8cFhN
+                        'full/v1/get_authorized_builders': { 'cost': rlOthers },
+                        'full/v1/builder_fill_history': { 'cost': rlOthers },
                     },
                 },
             },
@@ -172,7 +172,7 @@ class grvt extends grvt$1["default"] {
                 'accountId': undefined, // needs to be set manually by user
                 // https://api.rhino.fi/bridge/configs
                 'networks': {
-                    'ARBONE': '42161',
+                    'ARBITRUM': '42161',
                     'AVAXC': '43114',
                     'BASE': '8453',
                     'BSC': '56',
@@ -549,11 +549,11 @@ class grvt extends grvt$1["default"] {
     }
     async initializeClient(params = {}) {
         const builderFee = this.safeBool(params, 'builderFee', this.safeBool(this.options, 'builderFee', true)); // we shouldn't omit here
-        if (!builderFee) {
+        if (builderFee !== true) {
             return false; // skip if builder fee is not enabled
         }
         const approvedBuilderFee = this.safeBool(this.options, 'approvedBuilderFee', false);
-        if (approvedBuilderFee) {
+        if (approvedBuilderFee === true) {
             return true; // skip if builder fee is already approved
         }
         const results = await Promise.all([this.privateTradingPostFullV1GetAuthorizedBuilders(), this.loadAccountInfos()]);
@@ -603,7 +603,7 @@ class grvt extends grvt$1["default"] {
                 //
                 const authResult = this.safeDict(authResponse, 'result');
                 const ack = this.safeBool(authResult, 'ack');
-                if (!ack) {
+                if (ack !== true) {
                     throw new errors.ExchangeError('Builder authorization failed, ' + this.json(authResponse));
                 }
                 this.options['approvedBuilderFee'] = true;
@@ -619,7 +619,7 @@ class grvt extends grvt$1["default"] {
      * @name grvt#fetchMarkets
      * @description retrieves data on all markets
      * @see https://api-docs.grvt.io/market_data_api/#get-instrument-prod
-     * @param {object} [params] extra parameters specific to the exchange api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets(params = {}) {
@@ -903,9 +903,12 @@ class grvt extends grvt$1["default"] {
         //        }
         //
         const marketId = this.safeString(ticker, 'instrument');
+        const timestamp = this.safeIntegerProduct(ticker, 'event_time', 0.000001);
         return this.safeTicker({
             'info': ticker,
             'symbol': this.safeSymbol(marketId, market),
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
             'open': this.safeString(ticker, 'open_price'),
             'high': this.safeString(ticker, 'high_price'),
             'low': this.safeString(ticker, 'low_price'),
@@ -934,7 +937,7 @@ class grvt extends grvt$1["default"] {
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.loc] crypto location, default: us
-     * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -1078,8 +1081,10 @@ class grvt extends grvt$1["default"] {
             takerOrMaker = 'taker';
         }
         else {
-            takerOrMaker = this.safeBool(trade, 'is_taker') ? 'taker' : 'maker';
-            side = this.safeBool(trade, 'is_buyer') ? 'buy' : 'sell';
+            const isTaker = (this.safeBool(trade, 'is_taker') === true);
+            const isBuyer = (this.safeBool(trade, 'is_buyer') === true);
+            takerOrMaker = isTaker ? 'taker' : 'maker';
+            side = isBuyer ? 'buy' : 'sell';
         }
         let fee = undefined;
         const feeString = this.safeString(trade, 'fee');
@@ -1368,7 +1373,9 @@ class grvt extends grvt$1["default"] {
             const account = this.account();
             account['total'] = this.safeString(balance, 'balance');
             account['free'] = availableBalance; // todo: revise after API team clarification
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1400,7 +1407,7 @@ class grvt extends grvt$1["default"] {
             request['start_time'] = this.numberToString(since * 1000000);
         }
         const useTransfersEndpoint = this.safeBool(this.options, 'useTransfersEndpointForDepositsWithdrawals', true);
-        if (useTransfersEndpoint) {
+        if (useTransfersEndpoint === true) {
             const transfers = await this.internalFetchTransfers(this.extend(request, params), currency, since, limit);
             const filteredResults = this.filterTransfersByType(transfers, 'deposit', true);
             const transactions = this.getListFromObjectValues(filteredResults[0], 'info');
@@ -1458,7 +1465,7 @@ class grvt extends grvt$1["default"] {
             request['start_time'] = this.numberToString(since * 1000000);
         }
         const useTransfersEndpoint = this.safeBool(this.options, 'useTransfersEndpointForDepositsWithdrawals', true);
-        if (useTransfersEndpoint) {
+        if (useTransfersEndpoint === true) {
             const transfers = await this.internalFetchTransfers(this.extend(request, params), currency, since, limit);
             const filteredResults = this.filterTransfersByType(transfers, 'withdrawal', true);
             const transactions = this.getListFromObjectValues(filteredResults[0], 'info');
@@ -1775,7 +1782,7 @@ class grvt extends grvt$1["default"] {
         catch (error) {
             const msg = this.exceptionMessage(error);
             const isFromFundingAccount = fromAccount === 'funding';
-            if (isFromFundingAccount && msg.indexOf('You are not authorized')) {
+            if (isFromFundingAccount && (msg.indexOf('You are not authorized') >= 0)) {
                 throw new errors.PermissionDenied(this.id + ' transfer() failed. Ensure you use funding api-keys when trying to transfer from Funding accounts: ' + msg);
             }
             throw error;
@@ -2083,7 +2090,7 @@ class grvt extends grvt$1["default"] {
         }
         let eipType = 'EIP712_ORDER_TYPE';
         const builderFee = this.safeBool(params, 'builderFee', this.safeBool(this.options, 'builderFee', true));
-        if (builderFee) {
+        if (builderFee === true) {
             eipType = 'EIP712_ORDER_WITH_BUILDER_TYPE';
             orderRequest['builder'] = this.safeString(this.options, 'builder');
             orderRequest['builder_fee'] = this.safeString(this.options, 'builderRate');
@@ -2958,11 +2965,11 @@ class grvt extends grvt$1["default"] {
             });
         }
         const isMarket = this.safeBool(order, 'is_market');
-        const orderType = isMarket ? 'market' : 'limit';
+        const orderType = (isMarket === true) ? 'market' : 'limit';
         const isPostOnly = this.safeBool(order, 'post_only');
         const isReduceOnly = this.safeBool(order, 'reduce_only');
         const timeInForceRaw = this.safeString(order, 'time_in_force');
-        const timeInForce = isPostOnly ? 'PO' : this.parseTimeInForce(timeInForceRaw);
+        const timeInForce = (isPostOnly === true) ? 'PO' : this.parseTimeInForce(timeInForceRaw);
         let size = undefined;
         let side = undefined;
         let price = undefined;
@@ -2979,7 +2986,8 @@ class grvt extends grvt$1["default"] {
             const marketId = this.safeString(firstLeg, 'instrument');
             market = this.safeMarket(marketId, market);
             size = this.safeString(firstLeg, 'size');
-            side = this.safeBool(firstLeg, 'is_buying_asset') ? 'buy' : 'sell';
+            const isBuyingAsset = (this.safeBool(firstLeg, 'is_buying_asset') === true);
+            side = isBuyingAsset ? 'buy' : 'sell';
             price = this.safeString(firstLeg, 'limit_price');
             filled = this.safeString(filledAmounts, primaryOrderIndex);
             avgPrice = this.safeString(avgPrices, primaryOrderIndex);
@@ -3050,7 +3058,7 @@ class grvt extends grvt$1["default"] {
      * @name grvt#cancelAllOrders
      * @description cancel all open orders in a market
      * @see https://api-docs.grvt.io/trading_api/#cancel-all-orders
-     * @param {string} symbol cancel alls open orders
+     * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -3132,6 +3140,9 @@ class grvt extends grvt$1["default"] {
         if (structureType === 'EIP712_TRANSFER_TYPE') {
             const amountMultiplier = this.convertToBigIntCustom('1000000');
             const amountInt = request['num_tokens'] * amountMultiplier;
+            if (currencyObj === undefined) {
+                throw new errors.ExchangeError(this.id + ' createSignedRequest() missing currencyObj');
+            }
             messageData = {
                 'fromAccount': request['from_account_id'],
                 'fromSubAccount': request['from_sub_account_id'],
@@ -3145,6 +3156,9 @@ class grvt extends grvt$1["default"] {
         }
         else if (structureType === 'EIP712_WITHDRAWAL_TYPE') {
             const amountMultiplier = this.convertToBigIntCustom('1000000');
+            if (currencyObj === undefined) {
+                throw new errors.ExchangeError(this.id + ' createSignedRequest() missing currencyObj');
+            }
             messageData = {
                 'fromAccount': request['from_account_id'],
                 'toEthAddress': request['to_eth_address'],
@@ -3228,16 +3242,30 @@ class grvt extends grvt$1["default"] {
         let url = this.urls['api'][api] + path;
         let queryString = '';
         if (method === 'GET') {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 queryString = this.urlencode(query);
                 url += '?' + queryString;
             }
         }
         else if (method === 'POST') {
-            body = this.json(params);
+            // the venue rejects json POSTs without an explicit content type with 1003 malformed syntax,
+            // the private branch below sets its own headers, this covers the public market-data endpoints
+            headers = {
+                'Content-Type': 'application/json',
+            };
+            // an empty params dict must serialize as an empty json object, not an empty json array,
+            // php json_encode would produce [] here which the venue rejects with the same 1003 error
+            const paramsKeys = Object.keys(params);
+            const paramsKeysLength = paramsKeys.length;
+            if (paramsKeysLength === 0) {
+                body = '{}';
+            }
+            else {
+                body = this.json(params);
+            }
         }
         const isPrivate = api.startsWith('private');
-        if (isPrivate) {
+        if (isPrivate === true) {
             this.checkRequiredCredentials();
             if (queryString !== '') {
                 path = path + '?' + queryString;
@@ -3245,7 +3273,7 @@ class grvt extends grvt$1["default"] {
             headers = {
                 'Content-Type': 'application/json',
             };
-            if (path.endsWith('auth/api_key/login') || path.endsWith('auth/wallet/login')) {
+            if ((path.endsWith('auth/api_key/login') === true) || (path.endsWith('auth/wallet/login') === true)) {
                 headers['Cookie'] = 'rm=true;';
             }
             else {

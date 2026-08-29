@@ -2,7 +2,7 @@ import assert from 'assert';
 import { Exchange } from "../../../ccxt.js";
 import testTicker from './base/test.ticker.js';
 import testSharedMethods from './base/test.sharedMethods.js';
-import type { Str } from '../../base/types.js';
+import type { Str, Strings } from '../../base/types.js';
 
 
 async function testFetchTickers (exchange: Exchange, skippedProperties: object, symbol: string) {
@@ -20,10 +20,10 @@ async function testFetchTickers (exchange: Exchange, skippedProperties: object, 
     return results;
 }
 
-async function fetchTickersHelperTest (exchange: Exchange, skippedProperties: object, argSymbols, argParams = {}) {
+async function fetchTickersHelperTest (exchange: Exchange, skippedProperties: object, argSymbols: Strings, argParams = {}) {
     const method = 'fetchTickers';
     const response =  await exchange.fetchTickers (argSymbols, argParams);
-    assert (exchange.isDictionary (response), exchange.id + ' ' + method + ' ' + exchange.json (argSymbols) + ' must return a dict. ' + exchange.json (response));
+    testSharedMethods.assertDictionaryResponse (exchange, method, response, exchange.json (argSymbols));
     const values = Object.values (response);
     let checkedSymbol: Str = undefined;
     if (argSymbols !== undefined && argSymbols.length === 1) {
@@ -36,7 +36,12 @@ async function fetchTickersHelperTest (exchange: Exchange, skippedProperties: ob
         try {
             testTicker (exchange, skippedProperties, method, ticker, checkedSymbol);
         } catch (ex) {
-            await testSharedMethods.validateTickerExceptionForPercentage (ex, exchange, ticker);
+            let ohlcv = undefined;
+            const tickerSymbol = ticker['symbol'];
+            if ((tickerSymbol !== undefined) && testSharedMethods.tickerExceptionNeedsOhlcv (ex, exchange, ticker)) {
+                ohlcv = await exchange.fetchOHLCV (tickerSymbol, '1d', undefined, 5);
+            }
+            testSharedMethods.validateTickerExceptionForPercentage (ex, exchange, ticker, ohlcv);
         }
     }
     return response;
@@ -57,6 +62,9 @@ function fetchTickersAmountsTest (exchange: Exchange, skippedProperties: object,
         // ensure tickers length is less than markets length
         //
         const allMarkets = exchange.markets;
+        if (allMarkets === undefined) {
+            return;
+        }
         const allMarketsLength = Object.keys (allMarkets).length;
         assert (obtainedTickersLength <= allMarketsLength, exchange.id + ' ' + 'fetchTickers' + ' must return <= than all markets, but returned: ' + obtainedTickersLength.toString () + ' tickers, ' + allMarketsLength.toString () + ' markets');
     }

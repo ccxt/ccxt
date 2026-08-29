@@ -5,36 +5,36 @@
 
 // -------------------------------------------------------------------------------
 
-import { implicitReturnType } from '../base/types.js';
+import { Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
-    marketGetPriceKline (params?: {}): Promise<implicitReturnType>;
-    marketGetPriceMarkKline (params?: {}): Promise<implicitReturnType>;
-    privateGetFutures (params?: {}): Promise<implicitReturnType>;
-    privateGetFuturesAssetId (params?: {}): Promise<implicitReturnType>;
-    privateGetWalletFunds (params?: {}): Promise<implicitReturnType>;
-    privateGetFuturesFunds (params?: {}): Promise<implicitReturnType>;
-    privateGetFuturesOrders (params?: {}): Promise<implicitReturnType>;
-    privateGetFuturesOrdersHistory (params?: {}): Promise<implicitReturnType>;
-    privateGetFuturesOrdersOrderId (params?: {}): Promise<implicitReturnType>;
-    privateGetFuturesPositions (params?: {}): Promise<implicitReturnType>;
-    privateGetFuturesPositionsHistory (params?: {}): Promise<implicitReturnType>;
-    privateGetFuturesFeeHistory (params?: {}): Promise<implicitReturnType>;
-    privateGetFuturesAssetIdLeverage (params?: {}): Promise<implicitReturnType>;
-    privateGetFuturesPositionsPositionIdLiqPrice (params?: {}): Promise<implicitReturnType>;
-    privatePostWalletFuturesTransfer (params?: {}): Promise<implicitReturnType>;
-    privatePostFuturesTransfersInr (params?: {}): Promise<implicitReturnType>;
-    privatePostFuturesAssetIdOrder (params?: {}): Promise<implicitReturnType>;
-    privatePostFuturesPositionsPositionIdClose (params?: {}): Promise<implicitReturnType>;
-    privatePostFuturesPositionsPositionIdClosePartial (params?: {}): Promise<implicitReturnType>;
-    privatePostFuturesPositionsPositionIdReverse (params?: {}): Promise<implicitReturnType>;
-    privatePostFuturesPositionsPositionIdAddMargin (params?: {}): Promise<implicitReturnType>;
-    privatePostFuturesPositionsPositionIdRiskorder (params?: {}): Promise<implicitReturnType>;
-    privatePostFuturesAssetIdLeverage (params?: {}): Promise<implicitReturnType>;
-    privatePatchFuturesOrdersOrderId (params?: {}): Promise<implicitReturnType>;
-    privatePatchFuturesPositionsPositionIdRiskorder (params?: {}): Promise<implicitReturnType>;
-    privateDeleteFuturesOrdersOrderId (params?: {}): Promise<implicitReturnType>;
+    marketGetPriceKline (params?: {}): Promise<Dict>;
+    marketGetPriceMarkKline (params?: {}): Promise<Dict>;
+    privateGetFutures (params?: {}): Promise<Dict>;
+    privateGetFuturesAssetId (params?: {}): Promise<Dict>;
+    privateGetWalletFunds (params?: {}): Promise<Dict>;
+    privateGetFuturesFunds (params?: {}): Promise<Dict>;
+    privateGetFuturesOrders (params?: {}): Promise<Dict>;
+    privateGetFuturesOrdersHistory (params?: {}): Promise<Dict>;
+    privateGetFuturesOrdersOrderId (params?: {}): Promise<Dict>;
+    privateGetFuturesPositions (params?: {}): Promise<Dict>;
+    privateGetFuturesPositionsHistory (params?: {}): Promise<Dict>;
+    privateGetFuturesFeeHistory (params?: {}): Promise<Dict>;
+    privateGetFuturesAssetIdLeverage (params?: {}): Promise<Dict>;
+    privateGetFuturesPositionsPositionIdLiqPrice (params?: {}): Promise<Dict>;
+    privatePostWalletFuturesTransfer (params?: {}): Promise<Dict>;
+    privatePostFuturesTransfersInr (params?: {}): Promise<Dict>;
+    privatePostFuturesAssetIdOrder (params?: {}): Promise<Dict>;
+    privatePostFuturesPositionsPositionIdClose (params?: {}): Promise<Dict>;
+    privatePostFuturesPositionsPositionIdClosePartial (params?: {}): Promise<Dict>;
+    privatePostFuturesPositionsPositionIdReverse (params?: {}): Promise<Dict>;
+    privatePostFuturesPositionsPositionIdAddMargin (params?: {}): Promise<Dict>;
+    privatePostFuturesPositionsPositionIdRiskorder (params?: {}): Promise<Dict>;
+    privatePostFuturesAssetIdLeverage (params?: {}): Promise<Dict>;
+    privatePatchFuturesOrdersOrderId (params?: {}): Promise<Dict>;
+    privatePatchFuturesPositionsPositionIdRiskorder (params?: {}): Promise<Dict>;
+    privateDeleteFuturesOrdersOrderId (params?: {}): Promise<Dict>;
 }
 abstract class Exchange extends _Exchange {}
 

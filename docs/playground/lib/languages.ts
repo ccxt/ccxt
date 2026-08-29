@@ -1,10 +1,8 @@
 // Per-language metadata for the playground.
-// Runnable languages execute in the backend sandbox (lib/runners/). Java is shown
-// as a tab so users know CCXT supports it — with a one-line local install instead
-// of in-browser execution (its dependency tree can't be resolved in the sandbox).
+// Runnable languages execute in the backend sandbox (lib/runners/).
 
-export type RunnableLanguageId = "js" | "ts" | "python" | "php" | "go" | "csharp";
-export type LanguageId = RunnableLanguageId | "java";
+export type RunnableLanguageId = "ts" | "python" | "php" | "go" | "csharp" | "java";
+export type LanguageId = RunnableLanguageId;
 
 export type Install = {
   via: string; // heading for the command block, e.g. "Terminal" or "build.gradle.kts"
@@ -18,6 +16,11 @@ export type Language = {
   label: string;
   monaco: string;
   ext: string;
+  // Extension for the Monaco model URI when it must differ from `ext`. Monaco's
+  // TS worker picks the script kind off the file suffix and only knows
+  // ts/tsx/js/jsx — anything else falls back to JS when allowJs is on, which
+  // flags every type annotation as "can only be used in TypeScript files".
+  monacoExt?: string;
   hint: string;
   available: boolean;
   // Runnable languages not covered by the shared examples fall back to this.
@@ -42,19 +45,12 @@ const enabled = (id: string, base: boolean) => base && !DISABLED.has(id);
 
 export const languages: Language[] = [
   {
-    id: "js",
-    label: "JavaScript",
-    monaco: "javascript",
-    ext: "mjs",
-    hint: "Node.js (ESM, top-level await)",
-    available: enabled("js", true),
-  },
-  {
     id: "ts",
     label: "TypeScript",
     monaco: "typescript",
-    ext: "mts",
-    hint: "Node.js native type-stripping",
+    ext: "mts", // the runner writes .mts so Node treats the snippet as ESM
+    monacoExt: "ts",
+    hint: "Node.js native TypeScript",
     available: enabled("ts", true),
   },
   {
@@ -148,23 +144,35 @@ Console.WriteLine($"{ticker.symbol}  last={ticker.last}  bid={ticker.bid}  ask={
     label: "Java",
     monaco: "java",
     ext: "java",
-    hint: "compiled — run it locally (Java 21+)",
-    available: false,
+    hint: "compiled — OpenJDK 21, runs server-side",
+    available: enabled("java", true),
     install: {
       via: "build.gradle.kts",
-      command: 'implementation("io.github.ccxt:ccxt:4.5.56")',
+      command: 'implementation("io.github.ccxt:ccxt:4.5.70")',
       docs: "https://central.sonatype.com/artifact/io.github.ccxt/ccxt",
       note: "Maven Central · requires Java 21+",
     },
     sample: `import io.github.ccxt.exchanges.Binance;
+import io.github.ccxt.types.Ticker;
 
 public class Main {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         Binance exchange = new Binance();
-        Object ticker = exchange.fetchTicker("BTC/USDT").join();
+        Ticker ticker = exchange.fetchTicker("BTC/USDT");
         System.out.println(ticker);
     }
 }`,
+    defaultCode: `import io.github.ccxt.exchanges.Binance;
+import io.github.ccxt.types.Ticker;
+
+public class Main {
+    public static void main(String[] args) throws Exception {
+        Binance exchange = new Binance();
+        Ticker ticker = exchange.fetchTicker("BTC/USDT");
+        System.out.println(ticker.symbol + "  last=" + ticker.last + "  bid=" + ticker.bid + "  ask=" + ticker.ask);
+    }
+}
+`,
   },
 ];
 

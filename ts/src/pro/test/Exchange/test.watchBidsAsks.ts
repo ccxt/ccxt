@@ -3,7 +3,7 @@ import assert from 'assert';
 import testTicker from '../../../test/Exchange/base/test.ticker.js';
 import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js';
 import { ArgumentsRequired } from '../../../base/errors.js';
-import { Ticker, Tickers, Str, Strings } from '../../../base/types.js';
+import { Tickers, Str, Strings } from '../../../base/types.js';
 import { Exchange } from "../../../../ccxt.js";
 
 async function testWatchBidsAsks (exchange: Exchange, skippedProperties: object, symbol: string) {
@@ -16,10 +16,13 @@ async function testWatchBidsAsksHelper (exchange: Exchange, skippedProperties: o
     const method = 'watchBidsAsks';
     let now = exchange.milliseconds ();
     const ends = now + 15000;
-    while (now < ends) {
+    const maxIdleTime = 5000;
+    let idle = false;
+    while ((now < ends) && !idle) {
         let success = true;
         let shouldReturn = false;
         let response: Tickers = {};
+        const startTime = exchange.milliseconds ();
         try {
             response = await exchange.watchBidsAsks (argSymbols, argParams);
         } catch (e) {
@@ -34,10 +37,9 @@ async function testWatchBidsAsksHelper (exchange: Exchange, skippedProperties: o
             else if (!testSharedMethods.isTemporaryFailure (e)) {
                 throw e;
             }
-            now = exchange.milliseconds ();
-            // continue;
             success = false;
         }
+        now = exchange.milliseconds ();
         if (shouldReturn) {
             return false;
         }
@@ -50,10 +52,12 @@ async function testWatchBidsAsksHelper (exchange: Exchange, skippedProperties: o
             }
             testSharedMethods.assertNonEmtpyArray (exchange, skippedProperties, method, values, checkedSymbol);
             for (let i = 0; i < values.length; i++) {
-                const ticker = values[i] as Ticker;
+                const ticker = values[i];
                 testTicker (exchange, skippedProperties, method, ticker, checkedSymbol);
             }
-            now = exchange.milliseconds ();
+            if ((now - startTime) > maxIdleTime) {
+                idle = true;
+            }
         }
     }
     return true;

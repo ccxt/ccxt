@@ -373,6 +373,138 @@ public class SlimConcurrentList<T> : IList<T>, ICollection<T>, IReadOnlyList<T>,
         }
     }
 
+    /// <summary>
+    /// Searches for an element that matches the given predicate and returns the
+    /// zero-based index of its first occurrence, or -1 if there is no match.
+    /// </summary>
+    /// <remarks>
+    /// Locates a row in a single locked pass, where <see cref="Find"/> followed by
+    /// <see cref="IndexOf"/> would traverse the list twice under two separate lock
+    /// acquisitions and would additionally re-match the located object by equality.
+    /// </remarks>
+    /// <param name="match">The predicate that defines the element to search for.</param>
+    public int FindIndex(Predicate<T> match)
+    {
+        try
+        {
+            _lock.EnterReadLock();
+            return _list.FindIndex(match);
+        }
+        finally
+        {
+            _lock.ExitReadLock();
+        }
+    }
+
+    /// <summary>
+    /// Performs a bisect-left binary search over the list, taking the read lock
+    /// ONCE for the whole probe sequence instead of one acquire/release pair per
+    /// <see cref="Count"/> / indexer access.
+    /// </summary>
+    /// <param name="value">The value to locate the left insertion point for.</param>
+    /// <param name="comparer">Comparer to use; <c>null</c> means <see cref="Comparer{T}.Default"/>.</param>
+    /// <returns>
+    /// The lowest index at which <paramref name="value"/> could be inserted while
+    /// keeping the list sorted - identical to walking the list through
+    /// <see cref="IList{T}"/> with the same comparisons.
+    /// </returns>
+    /// <remarks>
+    /// Additive helper, no existing behaviour is changed. It only touches the
+    /// backing list directly, so it never re-enters the (NoRecursion)
+    /// <see cref="ReaderWriterLockSlim"/> and cannot throw
+    /// <see cref="LockRecursionException"/> on its own account.
+    /// </remarks>
+    public int BisectLeft(T value, IComparer<T> comparer = null)
+    {
+        try
+        {
+            _lock.EnterReadLock();
+            var list = _list;
+            int low = 0;
+            int high = list.Count - 1;
+            if (comparer == null)
+            {
+                // spelled out as Comparer<T>.Default.Compare so the JIT can
+                // devirtualize/inline the comparison for value types such as decimal
+                while (low <= high)
+                {
+                    int mid = (low + high) / 2;
+                    if (Comparer<T>.Default.Compare(list[mid], value) < 0) low = mid + 1;
+                    else high = mid - 1;
+                }
+            }
+            else
+            {
+                while (low <= high)
+                {
+                    int mid = (low + high) / 2;
+                    if (comparer.Compare(list[mid], value) < 0) low = mid + 1;
+                    else high = mid - 1;
+                }
+            }
+            return low;
+        }
+        finally
+        {
+            _lock.ExitReadLock();
+        }
+    }
+
+    /// <summary>
+    /// <see cref="BisectLeft(T, IComparer{T})"/> fused with the "is the found slot an
+    /// exact hit?" test that callers invariably run straight afterwards, so the whole
+    /// bisect + Count + indexer sequence costs ONE read lock acquire/release pair.
+    /// </summary>
+    /// <param name="value">The value to locate the left insertion point for.</param>
+    /// <param name="found">
+    /// Receives <c>true</c> when the returned index is in range AND the element there
+    /// compares equal to <paramref name="value"/> - i.e. exactly
+    /// <c>index &lt; Count &amp;&amp; comparer.Compare(this[index], value) == 0</c>.
+    /// </param>
+    /// <param name="comparer">Comparer to use; <c>null</c> means <see cref="Comparer{T}.Default"/>.</param>
+    /// <returns>The bisect-left insertion index.</returns>
+    /// <remarks>
+    /// Additive helper, no existing behaviour is changed. Beyond saving locks this is
+    /// strictly more atomic than doing the three steps separately, since the list
+    /// cannot be mutated between the search and the hit test.
+    /// </remarks>
+    public int BisectLeft(T value, out bool found, IComparer<T> comparer = null)
+    {
+        try
+        {
+            _lock.EnterReadLock();
+            var list = _list;
+            int count = list.Count;
+            int low = 0;
+            int high = count - 1;
+            if (comparer == null)
+            {
+                while (low <= high)
+                {
+                    int mid = (low + high) / 2;
+                    if (Comparer<T>.Default.Compare(list[mid], value) < 0) low = mid + 1;
+                    else high = mid - 1;
+                }
+                found = low < count && Comparer<T>.Default.Compare(list[low], value) == 0;
+            }
+            else
+            {
+                while (low <= high)
+                {
+                    int mid = (low + high) / 2;
+                    if (comparer.Compare(list[mid], value) < 0) low = mid + 1;
+                    else high = mid - 1;
+                }
+                found = low < count && comparer.Compare(list[low], value) == 0;
+            }
+            return low;
+        }
+        finally
+        {
+            _lock.ExitReadLock();
+        }
+    }
+
 
     #endregion
 

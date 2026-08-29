@@ -27,7 +27,7 @@ class coinbaseinternational extends Exchange {
                 'spot' => true,
                 'margin' => true,
                 'swap' => true,
-                'future' => true,
+                'future' => false,
                 'option' => false,
                 'addMargin' => false,
                 'cancelAllOrders' => true,
@@ -61,6 +61,7 @@ class coinbaseinternational extends Exchange {
                 'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => true,
                 'fetchDeposits' => true,
+                'fetchDepositsWithdrawals' => true,
                 'fetchFundingHistory' => true,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => true,
@@ -106,6 +107,7 @@ class coinbaseinternational extends Exchange {
                 'setMargin' => true,
                 'setMarginMode' => false,
                 'setPositionMode' => false,
+                'transfer' => true,
                 'withdraw' => true,
             ),
             'urls' => array(
@@ -134,51 +136,51 @@ class coinbaseinternational extends Exchange {
                 'v1' => array(
                     'public' => array(
                         'get' => array(
-                            'assets',
-                            'assets/{assets}',
-                            'assets/{asset}/networks',
-                            'instruments',
-                            'instruments/{instrument}',
-                            'instruments/{instrument}/quote',
-                            'instruments/{instrument}/funding',
-                            'instruments/{instrument}/candles',
+                            'assets' => array( 'cost' => 1 ),
+                            'assets/{assets}' => array( 'cost' => 1 ),
+                            'assets/{asset}/networks' => array( 'cost' => 1 ),
+                            'instruments' => array( 'cost' => 1 ),
+                            'instruments/{instrument}' => array( 'cost' => 1 ),
+                            'instruments/{instrument}/quote' => array( 'cost' => 1 ),
+                            'instruments/{instrument}/funding' => array( 'cost' => 1 ),
+                            'instruments/{instrument}/candles' => array( 'cost' => 1 ),
                         ),
                     ),
                     'private' => array(
                         'get' => array(
-                            'orders',
-                            'orders/{id}',
-                            'portfolios',
-                            'portfolios/{portfolio}',
-                            'portfolios/{portfolio}/detail',
-                            'portfolios/{portfolio}/summary',
-                            'portfolios/{portfolio}/balances',
-                            'portfolios/{portfolio}/balances/{asset}',
-                            'portfolios/{portfolio}/positions',
-                            'portfolios/{portfolio}/positions/{instrument}',
-                            'portfolios/fills',
-                            'portfolios/{portfolio}/fills',
-                            'transfers',
-                            'transfers/{transfer_uuid}',
+                            'orders' => array( 'cost' => 1 ),
+                            'orders/{id}' => array( 'cost' => 1 ),
+                            'portfolios' => array( 'cost' => 1 ),
+                            'portfolios/{portfolio}' => array( 'cost' => 1 ),
+                            'portfolios/{portfolio}/detail' => array( 'cost' => 1 ),
+                            'portfolios/{portfolio}/summary' => array( 'cost' => 1 ),
+                            'portfolios/{portfolio}/balances' => array( 'cost' => 1 ),
+                            'portfolios/{portfolio}/balances/{asset}' => array( 'cost' => 1 ),
+                            'portfolios/{portfolio}/positions' => array( 'cost' => 1 ),
+                            'portfolios/{portfolio}/positions/{instrument}' => array( 'cost' => 1 ),
+                            'portfolios/fills' => array( 'cost' => 1 ),
+                            'portfolios/{portfolio}/fills' => array( 'cost' => 1 ),
+                            'transfers' => array( 'cost' => 1 ),
+                            'transfers/{transfer_uuid}' => array( 'cost' => 1 ),
                         ),
                         'post' => array(
-                            'orders',
-                            'portfolios',
-                            'portfolios/margin',
-                            'portfolios/transfer',
-                            'transfers/withdraw',
-                            'transfers/address',
-                            'transfers/create-counterparty-id',
-                            'transfers/validate-counterparty-id',
-                            'transfers/withdraw/counterparty',
+                            'orders' => array( 'cost' => 1 ),
+                            'portfolios' => array( 'cost' => 1 ),
+                            'portfolios/margin' => array( 'cost' => 1 ),
+                            'portfolios/transfer' => array( 'cost' => 1 ),
+                            'transfers/withdraw' => array( 'cost' => 1 ),
+                            'transfers/address' => array( 'cost' => 1 ),
+                            'transfers/create-counterparty-id' => array( 'cost' => 1 ),
+                            'transfers/validate-counterparty-id' => array( 'cost' => 1 ),
+                            'transfers/withdraw/counterparty' => array( 'cost' => 1 ),
                         ),
                         'put' => array(
-                            'orders/{id}',
-                            'portfolios/{portfolio}',
+                            'orders/{id}' => array( 'cost' => 1 ),
+                            'portfolios/{portfolio}' => array( 'cost' => 1 ),
                         ),
                         'delete' => array(
-                            'orders',
-                            'orders/{id}',
+                            'orders' => array( 'cost' => 1 ),
+                            'orders/{id}' => array( 'cost' => 1 ),
                         ),
                     ),
                 ),
@@ -324,7 +326,7 @@ class coinbaseinternational extends Exchange {
         ));
     }
 
-    public function handle_portfolio_and_params(string $methodName, $params = array()) {
+    public function handle_portfolio_and_params(string $methodName, $params = array()): array {
         $portfolio = null;
         list($portfolio, $params) = $this->handle_option_and_params($params, $methodName, 'portfolio');
         if (($portfolio !== null) && ($portfolio !== '')) {
@@ -338,7 +340,7 @@ class coinbaseinternational extends Exchange {
         for ($i = 0; $i < count($accounts); $i++) {
             $account = $accounts[$i];
             $info = $this->safe_dict($account, 'info', array());
-            if ($this->safe_bool($info, 'is_default')) {
+            if ($this->safe_bool($info, 'is_default') === true) {
                 $portfolioId = $this->safe_string($info, 'portfolio_id');
                 $this->options['portfolio'] = $portfolioId;
                 return array( $portfolioId, $params );
@@ -347,7 +349,7 @@ class coinbaseinternational extends Exchange {
         throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a $portfolio parameter or set the default $portfolio with $this->options["portfolio"]');
     }
 
-    public function handle_network_id_and_params(string $currencyCode, string $methodName, $params = array()) {
+    public function handle_network_id_and_params(string $currencyCode, string $methodName, $params = array()): array {
         $networkId = null;
         list($networkId, $params) = $this->handle_option_and_params($params, $methodName, 'network_arn_id');
         if ($networkId === null) {
@@ -401,7 +403,7 @@ class coinbaseinternational extends Exchange {
         return $this->parse_accounts($response, $params);
     }
 
-    public function parse_account($account) {
+    public function parse_account(mixed $account) {
         //
         //    {
         //       "portfolio_id":"1ap32qsc-1-0",
@@ -482,7 +484,7 @@ class coinbaseinternational extends Exchange {
         return $this->parse_ohlcvs($candles, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //   {
         //     "start" => "2024-04-23T00:00:00Z",
@@ -524,8 +526,8 @@ class coinbaseinternational extends Exchange {
         }
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
-        $maxEntriesPerRequest = null;
-        list($maxEntriesPerRequest, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'maxEntriesPerRequest', 100);
+        $maxEntriesPerRequest = 100;
+        list($maxEntriesPerRequest, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'maxEntriesPerRequest', $maxEntriesPerRequest);
         $pageKey = 'ccxtPageKey';
         if ($paginate) {
             return $this->fetch_paginated_call_incremental('fetchFundingRateHistory', $symbol, $since, $limit, $params, $pageKey, $maxEntriesPerRequest);
@@ -562,11 +564,11 @@ class coinbaseinternational extends Exchange {
         return $this->parse_funding_rate_histories($rawRates, $market, $since, $limit);
     }
 
-    public function parse_funding_rate_history($info, ?array $market = null) {
+    public function parse_funding_rate_history(mixed $info, ?array $market = null) {
         return $this->parse_funding_rate($info, $market);
     }
 
-    public function parse_funding_rate($contract, ?array $market = null) {
+    public function parse_funding_rate(mixed $contract, ?array $market = null) {
         //
         //    {
         //       "instrument_id":"149264167780483072",
@@ -637,7 +639,7 @@ class coinbaseinternational extends Exchange {
         return $this->parse_incomes($fundings, $market, $since, $limit);
     }
 
-    public function parse_income($income, ?array $market = null) {
+    public function parse_income(mixed $income, ?array $market = null) {
         //
         // {
         //     "amount":"0.0008",
@@ -802,7 +804,12 @@ class coinbaseinternational extends Exchange {
             list($networkId, $params) = $this->handle_network_id_and_params($code, 'createDepositAddress', $params);
             $request['network_arn_id'] = $networkId;
         }
-        $response = $this->$method($this->extend($request, $params));
+        $response = null;
+        if ($method === 'v1PrivatePostTransfersCreateCounterpartyId') {
+            $response = $this->v1PrivatePostTransfersCreateCounterpartyId($this->extend($request, $params));
+        } else {
+            $response = $this->v1PrivatePostTransfersAddress($this->extend($request, $params));
+        }
         //
         // v1PrivatePostTransfersAddress
         //    {
@@ -827,7 +834,7 @@ class coinbaseinternational extends Exchange {
         );
     }
 
-    public function find_default_network($networks) {
+    public function find_default_network(mixed $networks) {
         $networksArray = $this->to_array($networks);
         for ($i = 0; $i < count($networksArray); $i++) {
             $info = $networksArray[$i]['info'];
@@ -839,7 +846,7 @@ class coinbaseinternational extends Exchange {
         return $networksArray[0];
     }
 
-    public function load_currency_networks($code, $params = array()) {
+    public function load_currency_networks(mixed $code, $params = array()) {
         $currency = $this->currency($code);
         $networks = $this->safe_dict($currency, 'networks');
         if ($networks !== null) {
@@ -871,7 +878,7 @@ class coinbaseinternational extends Exchange {
         return true;
     }
 
-    public function parse_networks($networks, $params = array()) {
+    public function parse_networks(mixed $networks, $params = array()) {
         $result = array();
         for ($i = 0; $i < count($networks); $i++) {
             $network = $this->extend($this->parse_network($networks[$i]), $params);
@@ -880,7 +887,7 @@ class coinbaseinternational extends Exchange {
         return $result;
     }
 
-    public function parse_network($network, $params = array()) {
+    public function parse_network(mixed $network, $params = array()) {
         //
         //    {
         //        "asset_id":"1",
@@ -943,7 +950,8 @@ class coinbaseinternational extends Exchange {
             'portfolio' => $portfolio,
             'margin_override' => $amount,
         );
-        return $this->v1PrivatePostPortfoliosMargin($this->extend($request, $params));
+        $response = $this->v1PrivatePostPortfoliosMargin($this->extend($request, $params));
+        return $response;
     }
 
     public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -968,10 +976,10 @@ class coinbaseinternational extends Exchange {
         }
         $paginate = null;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchDepositsWithdrawals', 'paginate');
-        $maxEntriesPerRequest = null;
-        list($maxEntriesPerRequest, $params) = $this->handle_option_and_params($params, 'fetchDepositsWithdrawals', 'maxEntriesPerRequest', 100);
+        $maxEntriesPerRequest = 100;
+        list($maxEntriesPerRequest, $params) = $this->handle_option_and_params($params, 'fetchDepositsWithdrawals', 'maxEntriesPerRequest', $maxEntriesPerRequest);
         $pageKey = 'ccxtPageKey';
-        if ($paginate) {
+        if ($paginate === true) {
             return $this->fetch_paginated_call_incremental('fetchDepositsWithdrawals', $code, $since, $limit, $params, $pageKey, $maxEntriesPerRequest);
         }
         $page = $this->safe_integer($params, $pageKey, 1) - 1;
@@ -1431,7 +1439,10 @@ class coinbaseinternational extends Exchange {
         }
         $isLinear = $isSpot ? null : ($settleId === $quoteId);
         $isInverse = $isSpot ? null : ($settleId !== $quoteId);
-        return array(
+        if ($marketId === null) {
+            throw new ExchangeError($this->id . ' parseMarket() missing marketId');
+        }
+        return $this->safe_market_structure(array(
             'id' => $marketId,
             'lowercaseId' => strtolower($marketId),
             'symbol' => $symbol,
@@ -1483,7 +1494,7 @@ class coinbaseinternational extends Exchange {
             ),
             'info' => $market,
             'created' => null,
-        );
+        ));
     }
 
     public function fetch_currencies($params = array()): array {
@@ -1558,8 +1569,12 @@ class coinbaseinternational extends Exchange {
         $symbols = $this->market_symbols($symbols);
         $instruments = $this->v1PublicGetInstruments($params);
         $tickers = array();
-        for ($i = 0; $i < count($instruments); $i++) {
-            $instrument = $instruments[$i];
+        $rows = array();
+        if ((gettype($instruments) === 'array' && array_keys($instruments) === array_keys(array_keys($instruments)))) {
+            $rows = $instruments;
+        }
+        for ($i = 0; $i < count($rows); $i++) {
+            $instrument = $rows[$i];
             $marketId = $this->safe_string($instrument, 'symbol');
             $symbol = $this->safe_symbol($marketId);
             $quote = $this->safe_dict($instrument, 'quote', array());
@@ -1673,7 +1688,7 @@ class coinbaseinternational extends Exchange {
         return $this->parse_balance($balances);
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         //
         //    {
         //       "asset_id":"0-0-1",
@@ -1699,7 +1714,9 @@ class coinbaseinternational extends Exchange {
             $account = $this->account();
             $account['total'] = $this->safe_string($rawBalance, 'quantity');
             $account['used'] = $this->safe_string($rawBalance, 'hold');
-            $result[$code] = $account;
+            if ($code !== null) {
+                $result[$code] = $account;
+            }
         }
         return $this->safe_balance($result);
     }
@@ -1723,7 +1740,7 @@ class coinbaseinternational extends Exchange {
         $currency = $this->currency($code);
         $request = array(
             'asset' => $currency['id'],
-            'ammount' => $amount,
+            'amount' => $amount,
             'from' => $fromAccount,
             'to' => $toAccount,
         );
@@ -1738,7 +1755,7 @@ class coinbaseinternational extends Exchange {
             'amount' => $amount,
             'fromAccount' => $fromAccount,
             'toAccount' => $toAccount,
-            'status' => $success ? 'ok' : 'failed',
+            'status' => ($success === true) ? 'ok' : 'failed',
         );
     }
 
@@ -1772,6 +1789,9 @@ class coinbaseinternational extends Exchange {
         $clientOrderIdprefix = $this->safe_string($this->options, 'brokerId', 'nfqkvdjp');
         $clientOrderId = $clientOrderIdprefix . '-' . $this->uuid();
         $clientOrderId = mb_substr($clientOrderId, 0, 17 - 0);
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' createOrder() requires a $side argument');
+        }
         $request = array(
             'client_order_id' => $clientOrderId,
             'side' => strtoupper($side),
@@ -1935,7 +1955,7 @@ class coinbaseinternational extends Exchange {
          * @see https://docs.cloud.coinbase.com/intx/reference/cancelorder
          *
          * @param {string} $id order $id
-         * @param {string} $symbol not used by coinbaseinternational cancelOrder()
+         * @param {string} $symbol not used by cancelOrder()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
@@ -1982,7 +2002,7 @@ class coinbaseinternational extends Exchange {
     public function cancel_all_orders(?string $symbol = null, $params = array()) {
         /**
          * cancel all open $orders
-         * @param {string} $symbol unified $market $symbol, only $orders in the $market of this $symbol are cancelled when $symbol is not null
+         * @param {string} [$symbol] unified $market $symbol, only $orders in the $market of this $symbol are cancelled when $symbol is not null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
@@ -1995,7 +2015,7 @@ class coinbaseinternational extends Exchange {
             'portfolio' => $portfolio,
         );
         $market = null;
-        if ($symbol) {
+        if (($symbol !== null) && ($symbol !== '')) {
             $market = $this->market($symbol);
             $request['instrument'] = $market['id'];
         }
@@ -2125,8 +2145,8 @@ class coinbaseinternational extends Exchange {
         list($portfolio, $params) = $this->handle_portfolio_and_params('fetchOpenOrders', $params);
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOpenOrders', 'paginate');
-        $maxEntriesPerRequest = null;
-        list($maxEntriesPerRequest, $params) = $this->handle_option_and_params($params, 'fetchOpenOrders', 'maxEntriesPerRequest', 100);
+        $maxEntriesPerRequest = 100;
+        list($maxEntriesPerRequest, $params) = $this->handle_option_and_params($params, 'fetchOpenOrders', 'maxEntriesPerRequest', $maxEntriesPerRequest);
         $pageKey = 'ccxtPageKey';
         if ($paginate) {
             return $this->fetch_paginated_call_incremental('fetchOpenOrders', $symbol, $since, $limit, $params, $pageKey, $maxEntriesPerRequest);
@@ -2138,7 +2158,7 @@ class coinbaseinternational extends Exchange {
             'result_offset' => $offSet,
         );
         $market = null;
-        if ($symbol) {
+        if (($symbol !== null) && ($symbol !== '')) {
             $market = $this->market($symbol);
             $request['instrument'] = $symbol;
         }
@@ -2210,8 +2230,8 @@ class coinbaseinternational extends Exchange {
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
         $pageKey = 'ccxtPageKey';
-        $maxEntriesPerRequest = null;
-        list($maxEntriesPerRequest, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'maxEntriesPerRequest', 100);
+        $maxEntriesPerRequest = 100;
+        list($maxEntriesPerRequest, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'maxEntriesPerRequest', $maxEntriesPerRequest);
         if ($paginate) {
             return $this->fetch_paginated_call_incremental('fetchMyTrades', $symbol, $since, $limit, $params, $pageKey, $maxEntriesPerRequest);
         }
@@ -2322,7 +2342,12 @@ class coinbaseinternational extends Exchange {
             'network_arn_id' => $networkId,
             'nonce' => $this->nonce(),
         );
-        $response = $this->$method($this->extend($request, $params));
+        $response = null;
+        if ($method === 'v1PrivatePostTransfersWithdrawCounterparty') {
+            $response = $this->v1PrivatePostTransfersWithdrawCounterparty($this->extend($request, $params));
+        } else {
+            $response = $this->v1PrivatePostTransfersWithdraw($this->extend($request, $params));
+        }
         //
         //    {
         //        "idem":"8e471d77-4208-45a8-9e5b-f3bd8a2c1fc3"
@@ -2331,14 +2356,14 @@ class coinbaseinternational extends Exchange {
         return $this->parse_transaction($response, $currency);
     }
 
-    public function sign($path, mixed $api = array(), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = array(), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $version = $api[0];
         $signed = $api[1] === 'private';
         $fullPath = '/' . $version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         $savedPath = '/api' . $fullPath;
         if ($method === 'GET' || $method === 'DELETE') {
-            if ($query) {
+            if (count($query) > 0) {
                 $fullPath .= '?' . $this->urlencode_with_array_repeat($query);
             }
         }
@@ -2348,7 +2373,7 @@ class coinbaseinternational extends Exchange {
             $nonce = (string) $this->nonce();
             $payload = '';
             if ($method !== 'GET') {
-                if ($query) {
+                if (count($query) > 0) {
                     $body = $this->json($query);
                     $payload = $body;
                 }
@@ -2365,7 +2390,7 @@ class coinbaseinternational extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         //
         //    {
         //        "title":"io.javalin.http.BadRequestResponse => Order rejected (DUPLICATE_CLIENT_ORDER_ID - duplicate client order id detected)",

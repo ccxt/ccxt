@@ -90,7 +90,8 @@ define('PROXY_TEST_FILE_NAME', 'proxies');
 define('ROOT_DIR', rootDir);
 define('ENV_VARS', $_ENV);
 define('NEW_LINE', "\n");
-define('LOG_CHARS_LENGTH', 1000000); // no need to trim
+define('LOG_CHARS_LENGTH', 10000); // same limit as in JS/PY/C# tests
+define('MAX_TRACE_FRAMES', 12); // 12 first-party frames are enough for a proper trace
 
 function dump(...$s) {
     $args = array_map(function ($arg) {
@@ -168,32 +169,67 @@ function call_exchange_method_dynamically($exchange, $methodName, $args) {
 function call_exchange_method_dynamically_sync($exchange, $methodName, $args) {
     return $exchange->{$methodName}(... $args);
 }
-function exception_message($exc) {
-    $full_trace = $exc->getTrace();
-    // temporarily disable below line, so we dump whole array
-    // $items = array_slice($full_trace, 0, 12); // 12 members are enough for proper trace
-    $items = $full_trace;
-    $output = '';
-    foreach ($items as $item) {
+function is_vendor_trace_file($file) {
+    $normalized = str_replace('\\', '/', $file);
+    return str_contains($normalized, '/vendor/') || str_contains($normalized, '/node_modules/');
+}
+
+function format_trace_item($item) {
+    $output = $item['file'];
+    if (array_key_exists('line', $item)) {
+        $output .= ':' . $item['line'];
+    }
+    if (array_key_exists('class', $item)) {
+        $output .= ' ::: ' . $item['class'];
+    }
+    if (array_key_exists('function', $item)) {
+        $output .= ' > ' . $item['function'];
+    }
+    return $output;
+}
+
+function filter_trace_frames($frames) {
+    $file_frames = array();
+    foreach ($frames as $item) {
         if (array_key_exists('file', $item)) {
-            $output .= $item['file'];
-            if (array_key_exists('line', $item)) {
-                $output .= ':' . $item['line'];
-            }
-            if (array_key_exists('class', $item)) {
-                $output .= ' ::: ' . $item['class'];
-            }
-            if (array_key_exists('function', $item)) {
-                $output .= ' > ' . $item['function'];
-            }
-            $output .= "\n";
+            $file_frames[] = $item;
         }
     }
-    $output = preg_replace('/(\n(.*?)\/home\/travis\/build\/ccxt\/ccxt\/vendor\/)(.*?)\r/', '', $output); // remove excessive lines like: https://app.travis-ci.com/github/ccxt/ccxt/builds/268171081#L3483
+    // skip third-party frames (react/async fibers, react/promise, react/http, evenement, ...)
+    // otherwise every async assertion failure dumps dozens of unreadable event-loop lines
+    $kept = array();
+    foreach ($file_frames as $item) {
+        if (is_vendor_trace_file($item['file'])) {
+            continue;
+        }
+        $kept[] = $item;
+        if (count($kept) >= MAX_TRACE_FRAMES) {
+            break;
+        }
+    }
+    // if the whole trace was third-party (e.g. a throw from deep inside the event-loop)
+    // then fall back to the innermost frames, so that the failure is still debuggable
+    if (count($kept) === 0) {
+        $kept = array_slice($file_frames, 0, MAX_TRACE_FRAMES);
+    }
+    $lines = array();
+    foreach ($kept as $item) {
+        $lines[] = format_trace_item($item);
+    }
+    $omitted = count($file_frames) - count($kept);
+    if ($omitted > 0) {
+        $lines[] = '... ' . $omitted . ' more frame(s) omitted (library internals) ...';
+    }
+    return $lines;
+}
+
+function exception_message($exc) {
+    $lines = filter_trace_frames($exc->getTrace());
+    $output = count($lines) > 0 ? implode("\n", $lines) . "\n" : '';
     $origin_message = null;
-    try{
+    try {
         $origin_message = $exc->getMessage() . "\n" . $exc->getFile() . ':' . $exc->getLine();
-    } catch (\Throwable $exc) { 
+    } catch (\Throwable $e) {
         $origin_message = '';
     }
     $final_message = '[' . get_class($exc) . '] ' . $origin_message . "\n" . $output;
@@ -244,11 +280,16 @@ function create_dynamic_class ($exchangeId, $originalClass, $args) {
                 public $fetch_result = null;
                 public function fetch($url, $method = "GET", $headers = null, $body = null) {
                     return Async\async (function() use ($url, $method, $headers, $body){
-                        if ($this->fetch_result !== null) {
-                            return $this->fetch_result;
-                        }
-                        return  Async\await(parent::fetch($url, $method, $headers, $body));
+                        return $this->do_fetch($url, $method, $headers, $body);
                     })();
+                }
+                // the inner async layers call do_fetch directly (no extra fiber); overriding it
+                // here keeps the mock on that path too, and public fetch() above still routes here
+                protected function do_fetch($url, $method = "GET", $headers = null, $body = null) {
+                    if ($this->fetch_result !== null) {
+                        return $this->fetch_result;
+                    }
+                    return parent::do_fetch($url, $method, $headers, $body);
                 }
             }
         }';
@@ -367,4 +408,81 @@ function is_amd64(): bool {
 function set_fetch_response($exchange, $data) {
     $exchange->fetch_result = $data;
     return $exchange;
+}
+
+class FakeWsConnection {
+    // transport stub used by the static ws tests: everything above the socket
+    // (subscriptions, futures, caches, message routing) runs unmodified
+    public $sent_messages = array();
+    public function send($message) {
+        // record the outgoing frame so the test can assert it
+        $this->sent_messages[] = json_decode($message, true);
+        return null;
+    }
+    public function close($code = 1000, $reason = '') {
+        return null;
+    }
+    public function on($event, $listener) {
+        return null;
+    }
+    public function removeListener($event, $listener) {
+        return null;
+    }
+}
+
+function setup_ws_mock_transport($exchange, $url) {
+    // put the ws client for the given url into an "already connected" state
+    // with a transport stub, so watch* methods never open a real socket
+    $client = $exchange->client($url);
+    $client->connecting = true;
+    $client->connection = new FakeWsConnection();
+    $client->connected->resolve($url);
+    return $exchange;
+}
+
+function inject_ws_message($exchange, $url, $message) {
+    // feed one already-json-parsed frame into the exchange's ws message
+    // handler - the same entry point the real transport invokes
+    $client = $exchange->client($url);
+    $exchange->handle_message($client, $message);
+}
+
+function get_ws_sent_messages($exchange, $url) {
+    // the frames the exchange sent over the mocked transport, already parsed
+    $client = $exchange->client($url);
+    return $client->connection->sent_messages;
+}
+
+function ws_client_has_pending_futures($exchange, $url) {
+    // whether the watch flow is currently awaiting a message - the frame
+    // injector polls this instead of relying on a fixed head-start sleep
+    $client = $exchange->client($url);
+    return count($client->futures) > 0;
+}
+
+$ws_completed_tests = array();
+
+function mark_ws_test_completed($exchange, $url) {
+    // the watch side of a static ws test flags completion here so the frame
+    // injector's rejection loop knows it can stop
+    global $ws_completed_tests;
+    $client = $exchange->client($url);
+    $ws_completed_tests[spl_object_id($client)] = true;
+}
+
+function is_ws_test_completed($exchange, $url) {
+    global $ws_completed_tests;
+    $client = $exchange->client($url);
+    return isset($ws_completed_tests[spl_object_id($client)]);
+}
+
+function reject_pending_ws_futures($exchange, $url) {
+    // reject any futures the injected frames did not resolve, so a broken
+    // fixture fails the test instead of hanging it; resolved futures are
+    // already removed from the futures dict, so only pending ones remain
+    $client = $exchange->client($url);
+    $message_hashes = array_keys($client->futures);
+    foreach ($message_hashes as $message_hash) {
+        $client->reject(new \ccxt\ExchangeError('static ws test: the injected messages did not resolve the watch future'), $message_hash);
+    }
 }

@@ -5,7 +5,7 @@ import { sha512 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/coinspot.js';
 import { ExchangeError, ArgumentsRequired, NotSupported } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Dict, Fee, int, Int, Market, Num, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, NullableDict } from './base/types.js';
+import type { Balances, Dict, Fee, int, Int, Market, Num, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, NullableDict, Endpoint } from './base/types.js';
 import { Precise } from './base/Precise.js';
 
 //  ---------------------------------------------------------------------------
@@ -15,7 +15,7 @@ import { Precise } from './base/Precise.js';
  * @augments Exchange
  */
 export default class coinspot extends Exchange {
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'coinspot',
             'name': 'CoinSpot',
@@ -123,102 +123,90 @@ export default class coinspot extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'latest',
-                    ],
+                    'get': {
+                        'latest': { 'cost': 1 } as Endpoint<Dict>,
+                    },
                 },
                 'private': {
-                    'post': [
-                        'orders',
-                        'orders/history',
-                        'my/coin/deposit',
-                        'my/coin/send',
-                        'quote/buy',
-                        'quote/sell',
-                        'my/balances',
-                        'my/orders',
-                        'my/buy',
-                        'my/sell',
-                        'my/buy/cancel',
-                        'my/sell/cancel',
-                        'ro/my/balances',
-                        'ro/my/balances/{cointype}',
-                        'ro/my/deposits',
-                        'ro/my/withdrawals',
-                        'ro/my/transactions',
-                        'ro/my/transactions/{cointype}',
-                        'ro/my/transactions/open',
-                        'ro/my/transactions/{cointype}/open',
-                        'ro/my/sendreceive',
-                        'ro/my/affiliatepayments',
-                        'ro/my/referralpayments',
-                    ],
+                    'post': {
+                        'orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'orders/history': { 'cost': 1 } as Endpoint<Dict>,
+                        'my/coin/deposit': { 'cost': 1 } as Endpoint<Dict>,
+                        'my/coin/send': { 'cost': 1 } as Endpoint<Dict>,
+                        'quote/buy': { 'cost': 1 } as Endpoint<Dict>,
+                        'quote/sell': { 'cost': 1 } as Endpoint<Dict>,
+                        'my/balances': { 'cost': 1 } as Endpoint<Dict>,
+                        'my/orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'my/buy': { 'cost': 1 } as Endpoint<Dict>,
+                        'my/sell': { 'cost': 1 } as Endpoint<Dict>,
+                        'my/buy/cancel': { 'cost': 1 } as Endpoint<Dict>,
+                        'my/sell/cancel': { 'cost': 1 } as Endpoint<Dict>,
+                        'ro/my/balances': { 'cost': 1 } as Endpoint<Dict>,
+                        'ro/my/balances/{cointype}': { 'cost': 1 } as Endpoint<Dict>,
+                        'ro/my/deposits': { 'cost': 1 } as Endpoint<Dict>,
+                        'ro/my/withdrawals': { 'cost': 1 } as Endpoint<Dict>,
+                        'ro/my/transactions': { 'cost': 1 } as Endpoint<Dict>,
+                        'ro/my/transactions/{cointype}': { 'cost': 1 } as Endpoint<Dict>,
+                        'ro/my/transactions/open': { 'cost': 1 } as Endpoint<Dict>,
+                        'ro/my/transactions/{cointype}/open': { 'cost': 1 } as Endpoint<Dict>,
+                        'ro/my/sendreceive': { 'cost': 1 } as Endpoint<Dict>,
+                        'ro/my/affiliatepayments': { 'cost': 1 } as Endpoint<Dict>,
+                        'ro/my/referralpayments': { 'cost': 1 } as Endpoint<Dict>,
+                    },
                 },
                 'v2': {
                     'public': {
-                        'get': [
-                            'latest',
-                            'latest/{cointype}',
-                            'latest/{cointype}/{markettype}',
-                            'buyprice/{cointype}',
-                            'buyprice/{cointype}/{markettype}',
-                            'sellprice/{cointype}',
-                            'sellprice/{cointype}/{markettype}',
-                            'orders/open/{cointype}',
-                            'orders/open/{cointype}/{markettype}',
-                            'orders/completed/{cointype}',
-                            'orders/completed/{cointype}/{markettype}',
-                            'orders/summary/completed/{cointype}',
-                            'orders/summary/completed/{cointype}/{markettype}',
-                        ],
+                        'get': {
+                            'latest': { 'cost': 1 } as Endpoint<Dict>,
+                            'latest/{cointype}': { 'cost': 1 } as Endpoint<Dict>,
+                            'latest/{cointype}/{markettype}': { 'cost': 1 } as Endpoint<Dict>,
+                            'buyprice/{cointype}': { 'cost': 1 } as Endpoint<Dict>,
+                            'buyprice/{cointype}/{markettype}': { 'cost': 1 } as Endpoint<Dict>,
+                            'sellprice/{cointype}': { 'cost': 1 } as Endpoint<Dict>,
+                            'sellprice/{cointype}/{markettype}': { 'cost': 1 } as Endpoint<Dict>,
+                            'orders/open/{cointype}': { 'cost': 1 } as Endpoint<Dict>,
+                            'orders/open/{cointype}/{markettype}': { 'cost': 1 } as Endpoint<Dict>,
+                            'orders/completed/{cointype}': { 'cost': 1 } as Endpoint<Dict>,
+                            'orders/completed/{cointype}/{markettype}': { 'cost': 1 } as Endpoint<Dict>,
+                            'orders/summary/completed/{cointype}': { 'cost': 1 } as Endpoint<Dict>,
+                            'orders/summary/completed/{cointype}/{markettype}': { 'cost': 1 } as Endpoint<Dict>,
+                        },
                     },
                     'private': {
-                        'post': [
-                            // Status & Account
-                            'status',
-                            'my/coin/deposit',
-                            // Quotes
-                            'quote/buy/now',
-                            'quote/sell/now',
-                            'quote/swap/now',
-                            // Market Orders
-                            'my/buy',
-                            'my/buy/edit',
-                            'my/sell',
-                            'my/sell/edit',
-                            // Instant Orders
-                            'my/buy/now',
-                            'my/sell/now',
-                            'my/swap/now',
-                            // Cancel Orders
-                            'my/buy/cancel',
-                            'my/buy/cancel/all',
-                            'my/sell/cancel',
-                            'my/sell/cancel/all',
-                            // Withdrawals
-                            'my/coin/withdraw/senddetails',
-                            'my/coin/withdraw/send',
-                            // Read Only Status
-                            'ro/status',
-                            // Read Only Market Orders
-                            'ro/orders/market/open',
-                            'ro/orders/market/completed',
-                            // Read Only Balances
-                            'ro/my/balances',
-                            'ro/my/balance/{cointype}',
-                            // Read Only Orders
-                            'ro/my/orders/market/open',
-                            'ro/my/orders/limit/open',
-                            'ro/my/orders/completed',
-                            'ro/my/orders/market/completed',
-                            // Read Only Transactions
-                            'ro/my/sendreceive',
-                            'ro/my/deposits',
-                            'ro/my/withdrawals',
-                            // Read Only Payments
-                            'ro/my/affiliatepayments',
-                            'ro/my/referralpayments',
-                        ],
+                        'post': {
+                            'status': { 'cost': 1 } as Endpoint<Dict>,
+                            'my/coin/deposit': { 'cost': 1 } as Endpoint<Dict>,
+                            'quote/buy/now': { 'cost': 1 } as Endpoint<Dict>,
+                            'quote/sell/now': { 'cost': 1 } as Endpoint<Dict>,
+                            'quote/swap/now': { 'cost': 1 } as Endpoint<Dict>,
+                            'my/buy': { 'cost': 1 } as Endpoint<Dict>,
+                            'my/buy/edit': { 'cost': 1 } as Endpoint<Dict>,
+                            'my/sell': { 'cost': 1 } as Endpoint<Dict>,
+                            'my/sell/edit': { 'cost': 1 } as Endpoint<Dict>,
+                            'my/buy/now': { 'cost': 1 } as Endpoint<Dict>,
+                            'my/sell/now': { 'cost': 1 } as Endpoint<Dict>,
+                            'my/swap/now': { 'cost': 1 } as Endpoint<Dict>,
+                            'my/buy/cancel': { 'cost': 1 } as Endpoint<Dict>,
+                            'my/buy/cancel/all': { 'cost': 1 } as Endpoint<Dict>,
+                            'my/sell/cancel': { 'cost': 1 } as Endpoint<Dict>,
+                            'my/sell/cancel/all': { 'cost': 1 } as Endpoint<Dict>,
+                            'my/coin/withdraw/senddetails': { 'cost': 1 } as Endpoint<Dict>,
+                            'my/coin/withdraw/send': { 'cost': 1 } as Endpoint<Dict>,
+                            'ro/status': { 'cost': 1 } as Endpoint<Dict>,
+                            'ro/orders/market/open': { 'cost': 1 } as Endpoint<Dict>,
+                            'ro/orders/market/completed': { 'cost': 1 } as Endpoint<Dict>,
+                            'ro/my/balances': { 'cost': 1 } as Endpoint<Dict>,
+                            'ro/my/balance/{cointype}': { 'cost': 1 } as Endpoint<Dict>,
+                            'ro/my/orders/market/open': { 'cost': 1 } as Endpoint<Dict>,
+                            'ro/my/orders/limit/open': { 'cost': 1 } as Endpoint<Dict>,
+                            'ro/my/orders/completed': { 'cost': 1 } as Endpoint<Dict>,
+                            'ro/my/orders/market/completed': { 'cost': 1 } as Endpoint<Dict>,
+                            'ro/my/sendreceive': { 'cost': 1 } as Endpoint<Dict>,
+                            'ro/my/deposits': { 'cost': 1 } as Endpoint<Dict>,
+                            'ro/my/withdrawals': { 'cost': 1 } as Endpoint<Dict>,
+                            'ro/my/affiliatepayments': { 'cost': 1 } as Endpoint<Dict>,
+                            'ro/my/referralpayments': { 'cost': 1 } as Endpoint<Dict>,
+                        },
                     },
                 },
             },
@@ -299,7 +287,7 @@ export default class coinspot extends Exchange {
         });
     }
 
-    parseBalance (response): Balances {
+    override parseBalance (response: any): Balances {
         const result: Dict = { 'info': response };
         const balances = this.safeValue2 (response, 'balance', 'balances');
         if (Array.isArray (balances)) {
@@ -312,7 +300,9 @@ export default class coinspot extends Exchange {
                     const code = this.safeCurrencyCode (currencyId);
                     const account = this.account ();
                     account['total'] = this.safeString (balance, 'balance');
-                    result[code] = account;
+                    if (code !== undefined) {
+                        result[code] = account;
+                    }
                 }
             }
         } else {
@@ -322,7 +312,9 @@ export default class coinspot extends Exchange {
                 const code = this.safeCurrencyCode (currencyId);
                 const account = this.account ();
                 account['total'] = this.safeString (balances, currencyId);
-                result[code] = account;
+                if (code !== undefined) {
+                    result[code] = account;
+                }
             }
         }
         return this.safeBalance (result);
@@ -336,12 +328,17 @@ export default class coinspot extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    async fetchBalance (params = {}): Promise<Balances> {
+    override async fetchBalance (params = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const method = this.safeString (this.options, 'fetchBalance', 'private_post_my_balances');
-        const response = await this[method] (params);
+        let response = undefined;
+        if ((method === 'private_post_ro_my_balances') || (method === 'privatePostRoMyBalances')) {
+            response = await this.privatePostRoMyBalances (params);
+        } else {
+            response = await this.privatePostMyBalances (params);
+        }
         //
         // read-write api keys
         //
@@ -369,9 +366,9 @@ export default class coinspot extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -383,7 +380,7 @@ export default class coinspot extends Exchange {
         return this.parseOrderBook (orderbook, market['symbol'], undefined, 'buyorders', 'sellorders', 'rate', 'amount');
     }
 
-    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
+    override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         //     {
         //         "btc":{
@@ -428,7 +425,7 @@ export default class coinspot extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -462,7 +459,7 @@ export default class coinspot extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -490,7 +487,7 @@ export default class coinspot extends Exchange {
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             const market = this.safeMarket (id);
-            if (market['spot']) {
+            if (market['spot'] === true) {
                 const symbol = market['symbol'];
                 const ticker = prices[id];
                 result[symbol] = this.parseTicker (ticker, market);
@@ -510,7 +507,7 @@ export default class coinspot extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -542,7 +539,7 @@ export default class coinspot extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -593,7 +590,7 @@ export default class coinspot extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    parseTrade (trade: Dict, market: Market = undefined): Trade {
+    override parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // public fetchTrades
         //
@@ -676,7 +673,7 @@ export default class coinspot extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -716,11 +713,11 @@ export default class coinspot extends Exchange {
      * @see https://www.coinspot.com.au/api#cancelbuyorder
      * @see https://www.coinspot.com.au/api#cancelsellorder
      * @param {string} id order id
-     * @param {string} symbol not used by coinspot cancelOrder ()
+     * @param {string} symbol not used by cancelOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         const side = this.safeString (params, 'side');
         if (side !== 'buy' && side !== 'sell') {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a side parameter, "buy" or "sell"');
@@ -743,8 +740,8 @@ export default class coinspot extends Exchange {
         });
     }
 
-    handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
-        if (!response) {
+    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+        if (response === undefined) {
             return undefined; // fallback to default error handler
         }
         const status = this.safeString (response, 'status');
@@ -755,7 +752,7 @@ export default class coinspot extends Exchange {
         return undefined;
     }
 
-    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const isVersionedApi = Array.isArray (api);
         const version = isVersionedApi ? api[0] : undefined;
         const accessType = isVersionedApi ? api[1] : api;

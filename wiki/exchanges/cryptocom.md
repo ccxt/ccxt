@@ -232,7 +232,7 @@ cryptocom.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>cryptocom</code>](#cryptocom)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-book  
 
@@ -384,12 +384,12 @@ cancel all open orders
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol of the orders to cancel |
+| symbol | <code>string</code> | No | unified market symbol of the orders to cancel |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-cryptocom.cancelAllOrders (symbol, params?)
+cryptocom.cancelAllOrders (symbol?, params?)
 ```
 
 
@@ -811,7 +811,7 @@ closes open positions for a market
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | Unified CCXT market symbol |
 | side | <code>string</code> | No | not used by cryptocom.closePositions |
-| params | <code>object</code> | No | extra parameters specific to the okx api endpoint EXCHANGE SPECIFIC PARAMETERS |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint EXCHANGE SPECIFIC PARAMETERS |
 | params.type | <code>string</code> | No | LIMIT or MARKET |
 | params.price | <code>number</code> | No | for limit orders only |
 
@@ -915,7 +915,7 @@ cryptocom.unWatchOrderBook (symbol, params?)
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>cryptocom</code>](#cryptocom)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#book-instrument_name  
 

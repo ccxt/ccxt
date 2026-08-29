@@ -1,5 +1,5 @@
 import xtRest from '../xt.js';
-import { Balances, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import { Balances, Dict, FundingRate, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class xt extends xtRest {
     describe(): any;
@@ -8,8 +8,8 @@ export default class xt extends xtRest {
      * @method
      * @description required for private endpoints
      * @param {string} isContract true for contract trades
-     * @see https://doc.xt.com/#websocket_privategetToken
-     * @see https://doc.xt.com/#futures_user_websocket_v2base
+     * @see https://doc.xt.com/docs/spot/WebSocket%20Private/GetWsToken
+     * @see https://doc.xt.com/docs/futures/UserWebsocket/General_WSS_information
      * @returns {string} listen key / access token
      */
     getListenKey(isContract: boolean): Promise<any>;
@@ -19,8 +19,8 @@ export default class xt extends xtRest {
      * @ignore
      * @method
      * @description Connects to a websocket channel
-     * @see https://doc.xt.com/#websocket_privaterequestFormat
-     * @see https://doc.xt.com/#futures_market_websocket_v2base
+     * @see https://doc.xt.com/docs/spot/WebSocket%20Private/RequestMessageFormat
+     * @see https://doc.xt.com/docs/futures/WebsocKetV2/General_WSS_information
      * @param {string} name name of the channel
      * @param {string} access public or private
      * @param {string} methodName the name of the CCXT class method
@@ -34,8 +34,8 @@ export default class xt extends xtRest {
      * @ignore
      * @method
      * @description Connects to a websocket channel
-     * @see https://doc.xt.com/#websocket_privaterequestFormat
-     * @see https://doc.xt.com/#futures_market_websocket_v2base
+     * @see https://doc.xt.com/docs/spot/WebSocket%20Private/RequestMessageFormat
+     * @see https://doc.xt.com/docs/futures/WebsocKetV2/General_WSS_information
      * @param {string} messageHash the message hash of the subscription
      * @param {string} name name of the channel
      * @param {string} access public or private
@@ -52,11 +52,10 @@ export default class xt extends xtRest {
      * @method
      * @name xt#watchTicker
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://doc.xt.com/#websocket_publictickerRealTime
-     * @see https://doc.xt.com/#futures_market_websocket_v2tickerRealTime
-     * @see https://doc.xt.com/#futures_market_websocket_v2aggTickerRealTime
+     * @see https://doc.xt.com/docs/spot/WebSocket%20Public/Ticker
+     * @see https://doc.xt.com/docs/futures/WebsocKetV2/AggTicker
      * @param {string} symbol unified symbol of the market to fetch the ticker for
-     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {string} [params.method] 'agg_ticker' (contract only) or 'ticker', default = 'ticker' - the endpoint that will be streamed
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
      */
@@ -65,11 +64,10 @@ export default class xt extends xtRest {
      * @method
      * @name xt#unWatchTicker
      * @description stops watching a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://doc.xt.com/#websocket_publictickerRealTime
-     * @see https://doc.xt.com/#futures_market_websocket_v2tickerRealTime
-     * @see https://doc.xt.com/#futures_market_websocket_v2aggTickerRealTime
+     * @see https://doc.xt.com/docs/spot/WebSocket%20Public/Ticker
+     * @see https://doc.xt.com/docs/futures/WebsocKetV2/AggTicker
      * @param {string} symbol unified symbol of the market to fetch the ticker for
-     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {string} [params.method] 'agg_ticker' (contract only) or 'ticker', default = 'ticker' - the endpoint that will be streamed
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
      */
@@ -78,11 +76,10 @@ export default class xt extends xtRest {
      * @method
      * @name xt#watchTickers
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://doc.xt.com/#websocket_publicallTicker
-     * @see https://doc.xt.com/#futures_market_websocket_v2allTicker
-     * @see https://doc.xt.com/#futures_market_websocket_v2allAggTicker
+     * @see https://doc.xt.com/docs/spot/WebSocket%20Public/Ticker
+     * @see https://doc.xt.com/docs/futures/WebsocKetV2/AggTicker
      * @param {string} [symbols] unified market symbols
-     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {string} [params.method] 'agg_tickers' (contract only) or 'tickers', default = 'tickers' - the endpoint that will be streamed
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
      */
@@ -91,11 +88,10 @@ export default class xt extends xtRest {
      * @method
      * @name xt#unWatchTickers
      * @description stops watching a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://doc.xt.com/#websocket_publicallTicker
-     * @see https://doc.xt.com/#futures_market_websocket_v2allTicker
-     * @see https://doc.xt.com/#futures_market_websocket_v2allAggTicker
+     * @see https://doc.xt.com/docs/spot/WebSocket%20Public/Ticker
+     * @see https://doc.xt.com/docs/futures/WebsocKetV2/AggTicker
      * @param {string} [symbols] unified market symbols
-     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {string} [params.method] 'agg_tickers' (contract only) or 'tickers', default = 'tickers' - the endpoint that will be streamed
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
      */
@@ -104,13 +100,13 @@ export default class xt extends xtRest {
      * @method
      * @name xt#watchOHLCV
      * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://doc.xt.com/#websocket_publicsymbolKline
-     * @see https://doc.xt.com/#futures_market_websocket_v2symbolKline
+     * @see https://doc.xt.com/docs/spot/WebSocket%20Public/Kline
+     * @see https://doc.xt.com/docs/futures/WebsocKetV2/Kline
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe 1m, 3m, 5m, 15m, 30m, 1h, 2h, 4h, 6h, 8h, 12h, 1d, 3d, 1w, or 1M
      * @param {int} [since] not used by xt watchOHLCV
      * @param {int} [limit] not used by xt watchOHLCV
-     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
@@ -118,11 +114,11 @@ export default class xt extends xtRest {
      * @method
      * @name xt#unWatchOHLCV
      * @description stops watching historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://doc.xt.com/#websocket_publicsymbolKline
-     * @see https://doc.xt.com/#futures_market_websocket_v2symbolKline
+     * @see https://doc.xt.com/docs/spot/WebSocket%20Public/Kline
+     * @see https://doc.xt.com/docs/futures/WebsocKetV2/Kline
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe 1m, 3m, 5m, 15m, 30m, 1h, 2h, 4h, 6h, 8h, 12h, 1d, 3d, 1w, or 1M
-     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     unWatchOHLCV(symbol: string, timeframe?: string, params?: {}): Promise<OHLCV[]>;
@@ -130,12 +126,12 @@ export default class xt extends xtRest {
      * @method
      * @name xt#watchTrades
      * @description get the list of most recent trades for a particular symbol
-     * @see https://doc.xt.com/#websocket_publicdealRecord
-     * @see https://doc.xt.com/#futures_market_websocket_v2dealRecord
+     * @see https://doc.xt.com/docs/spot/WebSocket%20Public/TradeRecord
+     * @see https://doc.xt.com/docs/futures/WebsocKetV2/TradeRecord
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
-     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
      */
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
@@ -143,10 +139,10 @@ export default class xt extends xtRest {
      * @method
      * @name xt#unWatchTrades
      * @description stops watching the list of most recent trades for a particular symbol
-     * @see https://doc.xt.com/#websocket_publicdealRecord
-     * @see https://doc.xt.com/#futures_market_websocket_v2dealRecord
+     * @see https://doc.xt.com/docs/spot/WebSocket%20Public/TradeRecord
+     * @see https://doc.xt.com/docs/futures/WebsocKetV2/TradeRecord
      * @param {string} symbol unified symbol of the market to fetch trades for
-     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
      */
     unWatchTrades(symbol: string, params?: {}): Promise<Trade[]>;
@@ -154,27 +150,27 @@ export default class xt extends xtRest {
      * @method
      * @name xt#watchOrderBook
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://doc.xt.com/#websocket_publiclimitDepth
-     * @see https://doc.xt.com/#websocket_publicincreDepth
-     * @see https://doc.xt.com/#futures_market_websocket_v2limitDepth
-     * @see https://doc.xt.com/#futures_market_websocket_v2increDepth
+     * @see https://doc.xt.com/docs/spot/WebSocket%20Public/LimitedDepth
+     * @see https://doc.xt.com/docs/spot/WebSocket%20Public/IncrementalDepth
+     * @see https://doc.xt.com/docs/futures/WebsocKetV2/LimitedDepth
+     * @see https://doc.xt.com/docs/futures/WebsocKetV2/IncrementalDepth
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] not used by xt watchOrderBook
-     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {int} [params.levels] 5, 10, 20, or 50
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     /**
      * @method
      * @name xt#unWatchOrderBook
      * @description stops watching information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://doc.xt.com/#websocket_publiclimitDepth
-     * @see https://doc.xt.com/#websocket_publicincreDepth
-     * @see https://doc.xt.com/#futures_market_websocket_v2limitDepth
-     * @see https://doc.xt.com/#futures_market_websocket_v2increDepth
+     * @see https://doc.xt.com/docs/spot/WebSocket%20Public/LimitedDepth
+     * @see https://doc.xt.com/docs/spot/WebSocket%20Public/IncrementalDepth
+     * @see https://doc.xt.com/docs/futures/WebsocKetV2/LimitedDepth
+     * @see https://doc.xt.com/docs/futures/WebsocKetV2/IncrementalDepth
      * @param {string} symbol unified symbol of the market to fetch the order book for
-     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {int} [params.levels] 5, 10, 20, or 50
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
      */
@@ -183,12 +179,12 @@ export default class xt extends xtRest {
      * @method
      * @name xt#watchOrders
      * @description watches information on multiple orders made by the user
-     * @see https://doc.xt.com/#websocket_privateorderChange
-     * @see https://doc.xt.com/#futures_user_websocket_v2order
+     * @see https://doc.xt.com/docs/spot/WebSocket%20Private/OrderChange
+     * @see https://doc.xt.com/docs/futures/UserWebsocket/UserOrder
      * @param {string} [symbol] unified market symbol
      * @param {int} [since] not used by xt watchOrders
      * @param {int} [limit] the maximum number of orders to return
-     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
@@ -196,12 +192,12 @@ export default class xt extends xtRest {
      * @method
      * @name xt#watchMyTrades
      * @description watches information on multiple trades made by the user
-     * @see https://doc.xt.com/#websocket_privateorderDeal
-     * @see https://doc.xt.com/#futures_user_websocket_v2trade
+     * @see https://doc.xt.com/docs/spot/WebSocket%20Private/OrderFilled
+     * @see https://doc.xt.com/docs/futures/UserWebsocket/Transactions
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of  orde structures to retrieve
-     * @param {object} params extra parameters specific to the kucoin api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
@@ -209,16 +205,16 @@ export default class xt extends xtRest {
      * @method
      * @name xt#watchOrders
      * @description watches information on multiple orders made by the user
-     * @see https://doc.xt.com/#websocket_privatebalanceChange
-     * @see https://doc.xt.com/#futures_user_websocket_v2balance
-     * @param {object} params extra parameters specific to the xt api endpoint
+     * @see https://doc.xt.com/docs/spot/WebSocket%20Private/BalanceChange
+     * @see https://doc.xt.com/docs/futures/UserWebsocket/BalanceChange
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [balance structures]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     watchBalance(params?: {}): Promise<Balances>;
     /**
      * @method
      * @name xt#watchPositions
-     * @see https://doc.xt.com/#futures_user_websocket_v2position
+     * @see https://doc.xt.com/docs/futures/UserWebsocket/ChangePosition
      * @description watch all open positions
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {number} [since] since timestamp
@@ -227,8 +223,29 @@ export default class xt extends xtRest {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
     watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
+    /**
+     * @method
+     * @name xt#watchFundingRate
+     * @description watch the current funding rate
+     * @see https://doc.xt.com/docs/futures/WebsocKetV2/FundRate
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
+     */
+    watchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
+    /**
+     * @method
+     * @name xt#unWatchFundingRate
+     * @description stops watching the funding rate
+     * @see https://doc.xt.com/docs/futures/WebsocKetV2/FundRate
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
+     */
+    unWatchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
+    handleFundingRate(client: Client, message: Dict): Dict;
     setPositionsCache(client: Client): void;
-    loadPositionsSnapshot(client: any, messageHash: any): Promise<void>;
+    loadPositionsSnapshot(client: Client, messageHash: any): Promise<void>;
     handlePosition(client: any, message: any): void;
     handleTicker(client: Client, message: Dict): Dict;
     handleTickers(client: Client, message: Dict): Dict;
@@ -242,7 +259,7 @@ export default class xt extends xtRest {
     handleMyTrades(client: Client, message: Dict): void;
     handleMessage(client: Client, message: any): void;
     ping(client: Client): string;
-    handleSubscriptionStatus(client: any, message: any): any;
+    handleSubscriptionStatus(client: Client, message: any): any;
     handleUnSubscription(client: Client, subscription: Dict): void;
     handleErrorMessage(client: Client, message: Dict): void;
 }

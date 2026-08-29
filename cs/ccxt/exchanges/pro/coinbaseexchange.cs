@@ -45,10 +45,10 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
     public virtual object authenticate()
     {
         this.checkRequiredCredentials();
-        object path = "/users/self/verify";
+        string path = "/users/self/verify";
         object nonce = this.nonce();
         object payload = add(add(((object)nonce).ToString(), "GET"), path);
-        object signature = this.hmac(this.encode(payload), this.base64ToBinary(this.secret), sha256, "base64");
+        string signature = this.hmac(this.encode(payload), this.base64ToBinary(this.secret), sha256, "base64");
         return new Dictionary<string, object>() {
             { "timestamp", nonce },
             { "key", this.apiKey },
@@ -84,7 +84,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
             { "product_ids", productIds },
             { "channels", new List<object>() {name} },
         };
-        object request = this.extend(subscribe, parameters);
+        Dictionary<string, object> request = this.extend(subscribe, parameters);
         return await this.watch(url, messageHash, request, messageHash);
     }
 
@@ -118,7 +118,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
             { "product_ids", productIds },
             { "channels", new List<object>() {name} },
         };
-        object request = this.extend(subscribe, parameters);
+        Dictionary<string, object> request = this.extend(subscribe, parameters);
         return await this.watchMultiple(url, messageHashes, request, messageHashes);
     }
 
@@ -130,11 +130,11 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> watchTicker(object symbol, object parameters = null)
+    public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object name = "ticker";
-        return await this.subscribe(name, symbol, name, parameters);
+        string name = "ticker";
+        return ccxt.BaseExchange.ToTicker(await this.subscribe(name, symbol, name, parameters));
     }
 
     /**
@@ -153,13 +153,17 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         {
             await this.loadMarkets();
         }
-        object symbolsLength = getArrayLength(symbols);
+        if (isTrue(isEqual(symbols, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " watchTickers() symbols is required")) ;
+        }
+        int symbolsLength = getArrayLength(symbols);
         if (isTrue(isEqual(symbolsLength, 0)))
         {
             throw new BadSymbol ((string)add(this.id, " watchTickers requires a non-empty symbols array")) ;
         }
-        object channel = "ticker";
-        object messageHash = "ticker";
+        string channel = "ticker";
+        string messageHash = "ticker";
         object ticker = await this.subscribeMultiple(channel, symbols, messageHash, parameters);
         if (isTrue(this.newUpdates))
         {
@@ -180,21 +184,23 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object symbolVar = symbol;
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        symbol = this.symbol(symbol);
-        object name = "matches";
-        object trades = await this.subscribe(name, symbol, name, parameters);
+        symbolVar = this.symbol(symbolVar);
+        string name = "matches";
+        object trades = await this.subscribe(name, symbolVar, name, parameters);
         if (isTrue(this.newUpdates))
         {
-            limit = callDynamically(trades, "getLimit", new object[] {symbol, limit});
+            limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
         }
-        return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
 
     /**
@@ -207,10 +213,11 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<object> watchTradesForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(object symbols, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        object symbolsLength = getArrayLength(symbols);
+        int symbolsLength = getArrayLength(symbols);
         if (isTrue(isEqual(symbolsLength, 0)))
         {
             throw new BadRequest ((string)add(this.id, " watchTradesForSymbols() requires a non-empty array of symbols")) ;
@@ -220,15 +227,15 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols);
-        object name = "matches";
+        string name = "matches";
         object trades = await this.subscribeMultiple(name, symbols, name, parameters);
         if (isTrue(this.newUpdates))
         {
             object first = this.safeValue(trades, 0);
             object tradeSymbol = this.safeString(first, "symbol");
-            limit = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limit});
+            limitVar = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar});
         }
-        return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
 
     /**
@@ -241,10 +248,12 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<object> watchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object symbolVar = symbol;
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(symbol, null)))
+        if (isTrue(isEqual(symbolVar, null)))
         {
             throw new ArgumentsRequired ((string)add(this.id, " watchMyTrades() requires a symbol argument")) ;
         }
@@ -252,16 +261,16 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         {
             await this.loadMarkets();
         }
-        symbol = this.symbol(symbol);
-        object name = "user";
-        object messageHash = "myTrades";
+        symbolVar = this.symbol(symbolVar);
+        string name = "user";
+        string messageHash = "myTrades";
         object authentication = this.authenticate();
-        object trades = await this.subscribe(name, symbol, messageHash, this.extend(parameters, authentication));
+        object trades = await this.subscribe(name, symbolVar, messageHash, this.extend(parameters, authentication));
         if (isTrue(this.newUpdates))
         {
-            limit = callDynamically(trades, "getLimit", new object[] {symbol, limit});
+            limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
         }
-        return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
 
     /**
@@ -274,25 +283,26 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<object> watchMyTradesForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchMyTradesForSymbols(object symbols, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         symbols = this.marketSymbols(symbols, null, false);
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        object name = "user";
-        object messageHash = "myTrades";
+        string name = "user";
+        string messageHash = "myTrades";
         object authentication = this.authenticate();
         object trades = await this.subscribeMultiple(name, symbols, messageHash, this.extend(parameters, authentication));
         if (isTrue(this.newUpdates))
         {
             object first = this.safeValue(trades, 0);
             object tradeSymbol = this.safeString(first, "symbol");
-            limit = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limit});
+            limitVar = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar});
         }
-        return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
 
     /**
@@ -305,25 +315,26 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> watchOrdersForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> WatchOrdersForSymbols(object symbols, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols, null, false);
-        object name = "user";
-        object messageHash = "orders";
+        string name = "user";
+        string messageHash = "orders";
         object authentication = this.authenticate();
         object orders = await this.subscribeMultiple(name, symbols, messageHash, this.extend(parameters, authentication));
         if (isTrue(this.newUpdates))
         {
             object first = this.safeValue(orders, 0);
             object tradeSymbol = this.safeString(first, "symbol");
-            limit = callDynamically(orders, "getLimit", new object[] {tradeSymbol, limit});
+            limitVar = callDynamically(orders, "getLimit", new object[] {tradeSymbol, limitVar});
         }
-        return this.filterBySinceLimit(orders, since, limit, "timestamp", true);
+        return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(orders, since, limitVar, "timestamp", true));
     }
 
     /**
@@ -336,10 +347,12 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object symbolVar = symbol;
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(symbol, null)))
+        if (isTrue(isEqual(symbolVar, null)))
         {
             throw new BadSymbol ((string)add(this.id, " watchMyTrades requires a symbol")) ;
         }
@@ -347,16 +360,16 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         {
             await this.loadMarkets();
         }
-        symbol = this.symbol(symbol);
-        object name = "user";
-        object messageHash = "orders";
+        symbolVar = this.symbol(symbolVar);
+        string name = "user";
+        string messageHash = "orders";
         object authentication = this.authenticate();
-        object orders = await this.subscribe(name, symbol, messageHash, this.extend(parameters, authentication));
+        object orders = await this.subscribe(name, symbolVar, messageHash, this.extend(parameters, authentication));
         if (isTrue(this.newUpdates))
         {
-            limit = callDynamically(orders, "getLimit", new object[] {symbol, limit});
+            limitVar = callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar});
         }
-        return this.filterBySinceLimit(orders, since, limit, "timestamp", true);
+        return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(orders, since, limitVar, "timestamp", true));
     }
 
     /**
@@ -366,17 +379,17 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> watchOrderBookForSymbols(object symbols, object limit = null, object parameters = null)
+    public async override Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(object symbols, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object symbolsLength = getArrayLength(symbols);
+        int symbolsLength = getArrayLength(symbols);
         if (isTrue(isEqual(symbolsLength, 0)))
         {
             throw new BadRequest ((string)add(this.id, " watchOrderBookForSymbols() requires a non-empty array of symbols")) ;
         }
-        object name = "level2";
+        string name = "level2";
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
@@ -395,7 +408,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
             { "product_ids", marketIds },
             { "channels", new List<object>() {name} },
         };
-        object request = this.extend(subscribe, parameters);
+        Dictionary<string, object> request = this.extend(subscribe, parameters);
         object subscription = new Dictionary<string, object>() {
             { "messageHash", name },
             { "symbols", symbols },
@@ -404,7 +417,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         };
         object authentication = this.authenticate();
         object orderbook = await this.watchMultiple(url, messageHashes, this.extend(request, authentication), messageHashes, subscription);
-        return (orderbook as IOrderBook).limit();
+        return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 
     /**
@@ -414,18 +427,19 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
+    public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
+        object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
-        object name = "level2";
+        string name = "level2";
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
-        symbol = getValue(market, "symbol");
+        object market = this.market(symbolVar);
+        symbolVar = getValue(market, "symbol");
         object messageHash = add(add(name, ":"), getValue(market, "id"));
         object url = getValue(getValue(this.urls, "api"), "ws");
         object subscribe = new Dictionary<string, object>() {
@@ -433,16 +447,16 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
             { "product_ids", new List<object>() {getValue(market, "id")} },
             { "channels", new List<object>() {name} },
         };
-        object request = this.extend(subscribe, parameters);
+        Dictionary<string, object> request = this.extend(subscribe, parameters);
         object subscription = new Dictionary<string, object>() {
             { "messageHash", messageHash },
-            { "symbol", symbol },
+            { "symbol", symbolVar },
             { "marketId", getValue(market, "id") },
             { "limit", limit },
         };
         object authentication = this.authenticate();
         object orderbook = await this.watch(url, messageHash, this.extend(request, authentication), messageHash, subscription);
-        return (orderbook as IOrderBook).limit();
+        return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 
     public virtual object handleTrade(WebSocketClient client, object message)
@@ -469,14 +483,17 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
             // the exchange sends type = 'match'
             // but requires 'matches' upon subscribing
             // therefore we resolve 'matches' here instead of 'match'
-            object type = "matches";
+            string type = "matches";
             object messageHash = add(add(type, ":"), marketId);
             object tradesArray = this.safeValue(this.trades, symbol);
             if (isTrue(isEqual(tradesArray, null)))
             {
                 object tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
                 tradesArray = new ArrayCache(tradesLimit);
-                ((IDictionary<string,object>)this.trades)[(string)symbol] = tradesArray;
+                if (isTrue(!isEqual(symbol, null)))
+                {
+                    ((IDictionary<string,object>)this.trades)[(string)symbol] = tradesArray;
+                }
             }
             callDynamically(tradesArray, "append", new object[] {trade});
             callDynamically(client as WebSocketClient, "resolve", new object[] {tradesArray, messageHash});
@@ -490,7 +507,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         if (isTrue(!isEqual(marketId, null)))
         {
             object trade = this.parseWsTrade(message);
-            object type = "myTrades";
+            string type = "myTrades";
             object messageHash = add(add(type, ":"), marketId);
             object tradesArray = this.myTrades;
             if (isTrue(isEqual(tradesArray, null)))
@@ -559,7 +576,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         // }
         object parsed = base.parseTrade(trade);
         object feeRate = null;
-        object isMaker = false;
+        bool isMaker = false;
         if (isTrue(inOp(trade, "maker_fee_rate")))
         {
             isMaker = true;
@@ -701,6 +718,10 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
             object makerOrderId = this.safeString(message, "maker_order_id");
             object takerOrderId = this.safeString(message, "taker_order_id");
             object orders = this.orders;
+            if (isTrue(isEqual(orders, null)))
+            {
+                return;
+            }
             object previousOrders = this.safeValue((orders as ArrayCache).hashmap, symbol, new Dictionary<string, object>() {});
             object previousOrder = this.safeValue(previousOrders, orderId);
             if (isTrue(isEqual(previousOrder, null)))
@@ -715,6 +736,10 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
             } else
             {
                 object sequence = this.safeInteger(message, "sequence");
+                if (isTrue(isEqual(sequence, null)))
+                {
+                    return;
+                }
                 object previousInfo = this.safeValue(previousOrder, "info", new Dictionary<string, object>() {});
                 object previousSequence = this.safeInteger(previousInfo, "sequence");
                 if (isTrue(isTrue((isEqual(previousSequence, null))) || isTrue((isGreaterThan(sequence, previousSequence)))))
@@ -770,9 +795,9 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
                         callDynamically(client as WebSocketClient, "resolve", new object[] {orders, messageHash});
                     } else if (isTrue(isTrue((isEqual(type, "received"))) || isTrue((isEqual(type, "done")))))
                     {
-                        object info = this.extend(getValue(previousOrder, "info"), message);
+                        Dictionary<string, object> info = this.extend(getValue(previousOrder, "info"), message);
                         object order = this.parseWsOrder(info);
-                        object keys = new List<object>(((IDictionary<string,object>)order).Keys);
+                        List<object> keys = new List<object>(((IDictionary<string,object>)order).Keys);
                         // update the reference
                         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
                         {
@@ -783,6 +808,10 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
                             }
                         }
                         // update the newUpdates count
+                        if (isTrue(isEqual(orders, null)))
+                        {
+                            return;
+                        }
                         callDynamically(orders, "append", new object[] {previousOrder});
                         callDynamically(client as WebSocketClient, "resolve", new object[] {orders, messageHash});
                     }
@@ -871,7 +900,10 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         {
             object ticker = this.parseTicker(message);
             object symbol = getValue(ticker, "symbol");
-            ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
+            if (isTrue(!isEqual(symbol, null)))
+            {
+                ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
+            }
             object messageHash = add("ticker:", symbol);
             object idMessageHash = add("ticker:", marketId);
             callDynamically(client as WebSocketClient, "resolve", new object[] {ticker, messageHash});
@@ -982,7 +1014,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         object marketId = this.safeString(message, "product_id");
         object market = this.safeMarket(marketId, null, "-");
         object symbol = getValue(market, "symbol");
-        object name = "level2";
+        string name = "level2";
         object messageHash = add(add(name, ":"), marketId);
         object subscription = this.safeValue(((WebSocketClient)client).subscriptions, messageHash, new Dictionary<string, object>() {});
         object limit = this.safeInteger(subscription, "limit");
@@ -1012,7 +1044,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
                 object side = this.safeString(sides, key);
                 object price = this.safeNumber(change, 1);
                 object amount = this.safeNumber(change, 2);
-                object bookside = getValue(orderbook, side);
+                object bookside = this.safeValue(orderbook, side);
                 (bookside as IOrderBookSide).store(price, amount);
             }
             ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
@@ -1087,7 +1119,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
             { "error", this.handleErrorMessage },
         };
         object length = subtract(((string)client.url).Length, 0);
-        object authenticated = isEqual(getValue(client.url, subtract(length, 1)), "?");
+        bool authenticated = isEqual(getValue(client.url, subtract(length, 1)), "?");
         object method = this.safeValue(methods, type);
         if (isTrue(isEqual(method, null)))
         {

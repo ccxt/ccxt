@@ -35,8 +35,9 @@ public partial class testMainClass : BaseTest
     public static int TICK_SIZE = Exchange.TICK_SIZE;
 
     // public static object AuthenticationError = typeof(Exchange.AuthenticationError);
-    public static BaseExchange initExchange(object exchangeId, object exchangeArgs = null, bool isWs = false)
+    public static BaseExchange initExchange(object exchangeId, object exchangeArgs = null, object isWs2 = null)
     {
+        var isWs = (isWs2 == null) ? false : (bool)isWs2;
         // the --prediction flag forces the prediction-markets namespace; prediction exchanges carry
         // their watch* methods on the main prediction class (no ccxt.pro variant), so keep the bare id
         var forcePrediction = getCliArgValue("--prediction");
@@ -206,15 +207,28 @@ public partial class testMainClass : BaseTest
         return null;
     }
 
+    // The REST tests call the unified methods on a `BaseExchange`-typed variable, so they
+    // cannot bind statically (the prediction tier is a sibling type) and they cannot bind
+    // through `dynamic` either: the DLR picks an overload from the arguments' STATIC type,
+    // which is `object` here, so a `string symbol` / `Int64? limit` core is rejected with
+    // RuntimeBinderException even though the runtime value fits. Go through the same
+    // reflective path the runner already uses -- ResolveMethod handles the PascalCase
+    // rename, coerceArgs converts each boxed scalar to its declared parameter type.
+    public static async Task<object> invokeExchangeDynamically(object exchange, string methodName, params object[] args)
+    {
+        return await callExchangeMethodDynamicallyImpl(exchange, methodName, new List<object>(args ?? new object[] { }));
+    }
+
     public async Task<object> callExchangeMethodDynamically(object exchange, object methodName, params object[] args)
     {
-        // args ??= new object[] { };
-        // if (args.Length == 0)
-        // {
-        //     args = new object[] { null };
-        // }
         var realArgs = (args.Length == 0) ? new List<object> { } : args[0] as List<object>;
-        var method = exchange.GetType().GetMethod((string)methodName, BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+        return await callExchangeMethodDynamicallyImpl(exchange, (string)methodName, realArgs);
+    }
+
+    private static async Task<object> callExchangeMethodDynamicallyImpl(object exchange, string methodName, List<object> realArgs)
+    {
+        realArgs ??= new List<object> { };
+        var method = ccxt.BaseExchange.ResolveMethod(exchange.GetType(), methodName);
         var parameters = method.GetParameters();
         var newArgs = new object[parameters.Length];
         for (int i = 0; i < parameters.Length; i++)
@@ -228,9 +242,216 @@ public partial class testMainClass : BaseTest
                 newArgs[i] = null;
             }
         }
-        var res = method.Invoke(exchange, newArgs);
-        var awaittedResult = await ((Task<object>)res);
-        return awaittedResult;
+        var res = method.Invoke(exchange, ccxt.BaseExchange.coerceArgs(method, newArgs));
+        // Implicit API methods may return Task<Dictionary<…>> / Task<List<object>>
+        // and typed cores return Task<Order> / Task<Tickers> / Task<List<Trade>>;
+        // Task<T> is invariant, so a hard cast to Task<object> throws for all of them.
+        // Await the task as-is and read its Result reflectively, then project the value
+        // for comparison here in the TEST path -- deliberately NOT through the
+        // production FromTyped reverse helpers, which rebuild a dictionary from the
+        // struct constructor and therefore drop every key the constructor does not map.
+        var awaited = await awaitAnyTask(res);
+        return detypeForComparison(resolveLiveWsStructure(exchange, awaited));
+    }
+
+    // A watch* core returns a defensive `.Copy()` of the live order book (C# callers can
+    // race the ws thread; JS cannot). The `parsedResponse` ws fixtures assert the state
+    // after EVERY frame was replayed, so re-resolve the live book the copy came from.
+    private static object resolveLiveWsStructure(object exchange, object value)
+    {
+        if (!(value is ccxt.pro.IOrderBook book) || !(exchange is BaseExchange ex))
+        {
+            return value;
+        }
+        var live = ccxt.BaseExchange.GetValue(ex.orderbooks, book.symbol);
+        return (live != null) ? live : value;
+    }
+
+    // Await any Task / Task<T> and re-box its result as object.
+    private static async Task<object> awaitAnyTask(object res)
+    {
+        var task = (Task)res;
+        await task.ConfigureAwait(false);
+        var resultProperty = task.GetType().GetProperty("Result");
+        if (resultProperty == null)
+        {
+            return null; // a non-generic Task carries no result
+        }
+        return resultProperty.GetValue(task);
+    }
+
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<Type, FieldInfo[]> typedStructFields = new System.Collections.Concurrent.ConcurrentDictionary<Type, FieldInfo[]>();
+
+    // A few unified structs project a ROW, not an object: the OHLCV shape is
+    // [timestamp, open, high, low, close, volume]. Reflecting them into a dictionary
+    // would be wrong, so they are listed explicitly and emitted in field order.
+    private static readonly HashSet<string> rowShapedStructs = new HashSet<string> { "OHLCV", "OHLCVC" };
+
+    private static bool isUnifiedStruct(Type type)
+    {
+        // the unified types (Order, Ticker, Tickers, Balances, ...) are all structs
+        // declared in the `ccxt` namespace. ccxt.pro caches are classes and keep their
+        // identity, so restricting to value types leaves the ws path untouched.
+        return type.IsValueType
+            && !type.IsPrimitive
+            && !type.IsEnum
+            && type.Namespace == "ccxt"
+            && !type.IsGenericType;
+    }
+
+    // Is this a generic collection whose element type is a unified struct? Only those
+    // are projected. Anything else -- Dictionary<string, object>, List<object>, and in
+    // particular the live ccxt.pro caches (ArrayCache*, IOrderBook) whose identity the
+    // ws tests depend on -- is handed back untouched.
+    private static Type unifiedElementType(Type type)
+    {
+        foreach (var iface in type.GetInterfaces())
+        {
+            if (!iface.IsGenericType)
+            {
+                continue;
+            }
+            var def = iface.GetGenericTypeDefinition();
+            if (def == typeof(IEnumerable<>))
+            {
+                var element = iface.GetGenericArguments()[0];
+                if (isUnifiedStruct(element))
+                {
+                    return element;
+                }
+            }
+        }
+        return null;
+    }
+
+    // Turn a boxed unified struct back into the plain dictionary the static-response
+    // comparator works on. Unlike the production From* helpers this reflects over the
+    // public fields, so a field the exchange never populated is emitted as an explicit
+    // null instead of vanishing -- which is exactly what the stored fixture holds.
+    // Strictly type-driven: a value that is not a unified struct (or a collection of
+    // them) is returned as-is, so nothing outside the typed-core surface is disturbed.
+    public static object detypeForComparison(object value)
+    {
+        if (value == null)
+        {
+            return null;
+        }
+        var type = value.GetType();
+        if (isUnifiedStruct(type))
+        {
+            return detypeStruct(value, type);
+        }
+        if (unifiedElementType(type) != null && value is System.Collections.IEnumerable rawList)
+        {
+            var outList = new List<object>();
+            foreach (var item in rawList)
+            {
+                outList.Add(detypeForComparison(item));
+            }
+            return outList;
+        }
+        // Balances.free / used / total are Dictionary<string, double>. The comparator's
+        // isDictionary() only recognises Dictionary<string, object>, so anything else
+        // falls through to the scalar branch and Convert blows up on it. Re-key the
+        // narrow generic dictionaries the structs hold to the shape it understands.
+        if (type.IsGenericType
+            && type.GetGenericTypeDefinition() == typeof(Dictionary<,>)
+            && type.GetGenericArguments()[0] == typeof(string)
+            && type.GetGenericArguments()[1] != typeof(object)
+            && value is System.Collections.IDictionary narrowDict)
+        {
+            var outDict = new dict();
+            foreach (System.Collections.DictionaryEntry entry in narrowDict)
+            {
+                outDict[Convert.ToString(entry.Key)] = detypeForComparison(entry.Value);
+            }
+            return outDict;
+        }
+        return value;
+    }
+
+    private static object detypeStruct(object value, Type type)
+    {
+        var fields = typedStructFields.GetOrAdd(type, t => t.GetFields(BindingFlags.Public | BindingFlags.Instance));
+        if (rowShapedStructs.Contains(type.Name))
+        {
+            var row = new List<object>();
+            foreach (var field in fields)
+            {
+                row.Add(field.GetValue(value));
+            }
+            return row;
+        }
+        var result = new dict();
+        foreach (var field in fields)
+        {
+            var fieldValue = field.GetValue(value);
+            var fieldType = field.FieldType;
+            // container structs (Tickers, Balances, TradingFees, OpenInterests,
+            // LeverageTiers, ...) hold a Dictionary<string, T> where T is a unified
+            // struct or a list of them; the unified shape is that dictionary itself,
+            // keyed by symbol/currency, so splat its entries instead of nesting them.
+            if (fieldType.IsGenericType
+                && fieldType.GetGenericTypeDefinition() == typeof(Dictionary<,>)
+                && fieldType.GetGenericArguments()[0] == typeof(string)
+                && isProjectable(fieldType.GetGenericArguments()[1]))
+            {
+                if (fieldValue is System.Collections.IDictionary inner)
+                {
+                    foreach (System.Collections.DictionaryEntry entry in inner)
+                    {
+                        result[Convert.ToString(entry.Key)] = detypeForComparison(entry.Value);
+                    }
+                }
+                continue;
+            }
+            // `info` is the raw venue payload; the constructors set it to null when the
+            // source had no `info` key, and the fixture then has no `info` key either.
+            if (field.Name == "info" && fieldValue == null)
+            {
+                continue;
+            }
+            if (field.Name == "info")
+            {
+                fieldValue = unwrapListInfo(fieldValue);
+            }
+            result[unifiedKeyOf(field.Name)] = detypeForComparison(fieldValue);
+        }
+        return result;
+    }
+
+    // Two struct fields are spelled differently from the unified key they carry, because
+    // `event` and `base` are reserved words in C#. Project them back under the unified
+    // name so the comparator sees the key the fixture stores.
+    private static string unifiedKeyOf(string fieldName)
+    {
+        if (fieldName == "eventId")
+        {
+            return "event";
+        }
+        if (fieldName == "baseCurrency")
+        {
+            return "base";
+        }
+        return fieldName;
+    }
+
+    private static bool isProjectable(Type type)
+    {
+        return isUnifiedStruct(type) || unifiedElementType(type) != null;
+    }
+
+    // Helper.GetInfo wraps a LIST payload as { "response": [...] } because the struct field
+    // is typed Dictionary<string, object> and a bare list will not fit. The fixture holds the
+    // list. Undo the wrap so the comparison sees what the venue actually returned.
+    private static object unwrapListInfo(object value)
+    {
+        var asDict = value as IDictionary<string, object>;
+        if (asDict != null && asDict.Count == 1 && asDict.ContainsKey("response") && asDict["response"] is System.Collections.IList)
+        {
+            return asDict["response"];
+        }
+        return value;
     }
 
     public object callExchangeMethodDynamicallySync(object exchange, object methodName, params object[] args)
@@ -328,6 +549,85 @@ public partial class testMainClass : BaseTest
 
     }
 
+    public object setupWsMockTransport(object exchange2, object url)
+    {
+        // put the ws client for the given url into an "already connected" state
+        // with a transport stub, so watch* methods never open a real socket;
+        // everything above the socket (subscriptions, futures, caches, message
+        // routing) runs unmodified
+        var exchange = exchange2 as BaseExchange;
+        var client = exchange.client((string)url);
+        client.startedConnecting = true;
+        client.isConnected = true;
+        client.isMock = true;
+        client.connected.TrySetResult(true);
+        return exchange;
+    }
+
+    public void injectWsMessage(object exchange2, object url, object message)
+    {
+        // feed one already-json-parsed frame into the exchange's ws message
+        // handler - the same entry point the real transport invokes
+        var exchange = exchange2 as BaseExchange;
+        var client = exchange.client((string)url);
+        client.handleMessage(client, message);
+    }
+
+    public object getWsSentMessages(object exchange2, object url)
+    {
+        // the frames the exchange sent over the mocked transport, already parsed
+        var exchange = exchange2 as BaseExchange;
+        var client = exchange.client((string)url);
+        return client.mockSentMessages;
+    }
+
+    public bool wsClientHasPendingFutures(object exchange2, object url)
+    {
+        // whether the watch flow is currently awaiting a message - the frame
+        // injector polls this instead of relying on a fixed head-start sleep
+        var exchange = exchange2 as BaseExchange;
+        var client = exchange.client((string)url);
+        return client.futures.Count > 0;
+    }
+
+    private static readonly HashSet<object> wsCompletedClients = new HashSet<object>();
+
+    public void markWsTestCompleted(object exchange2, object url)
+    {
+        // the watch side of a static ws test flags completion here so the
+        // frame injector's rejection loop knows it can stop
+        var exchange = exchange2 as BaseExchange;
+        var client = exchange.client((string)url);
+        lock (wsCompletedClients)
+        {
+            wsCompletedClients.Add(client);
+        }
+    }
+
+    public bool isWsTestCompleted(object exchange2, object url)
+    {
+        var exchange = exchange2 as BaseExchange;
+        var client = exchange.client((string)url);
+        lock (wsCompletedClients)
+        {
+            return wsCompletedClients.Contains(client);
+        }
+    }
+
+    public void rejectPendingWsFutures(object exchange2, object url)
+    {
+        // reject any futures the injected frames did not resolve, so a broken
+        // fixture fails the test instead of hanging it; resolved futures are
+        // already removed from the futures dict, so only pending ones remain
+        var exchange = exchange2 as BaseExchange;
+        var client = exchange.client((string)url);
+        var messageHashes = new List<string>(client.futures.Keys);
+        foreach (var messageHash in messageHashes)
+        {
+            client.reject(new ccxt.ExchangeError("static ws test: the injected messages did not resolve the watch future"), messageHash);
+        }
+    }
+
     public bool isNullValue(object value)
     {
         return value == null;
@@ -399,7 +699,8 @@ public partial class testMainClass : BaseTest
     {
         // ast-transpiler uses "json()" method in transpiled C# content,
         // which should pre-exist in the language-specific helpers for project
-        public object json(object a)
+        // string (not object) so generated `string x = json(...)` locals compile
+        public string json(object a)
         {
             return Exchange.Json(a);
         }

@@ -34,8 +34,8 @@ class bullish extends Exchange {
                 'spot' => true,
                 'margin' => false,
                 'swap' => true,
-                'future' => false,
-                'option' => false,
+                'future' => true,
+                'option' => true,
                 'addMargin' => false,
                 'borrowMargin' => false,
                 'cancelAllOrders' => true,
@@ -162,70 +162,70 @@ class bullish extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'v1/nonce' => 1,
-                        'v1/time' => 1,
-                        'v1/assets' => 1,
-                        'v1/assets/{symbol}' => 1,
-                        'v1/markets' => 1,
-                        'v1/markets/{symbol}' => 1,
-                        'v1/history/markets/{symbol}' => 1,
-                        'v1/markets/{symbol}/orderbook/hybrid' => 1,
-                        'v1/markets/{symbol}/trades' => 1,
-                        'v1/markets/{symbol}/tick' => 1,
-                        'v1/markets/{symbol}/candle' => 1,
-                        'v1/history/markets/{symbol}/trades' => 1,
-                        'v1/history/markets/{symbol}/funding-rate' => 1,
-                        'v1/index-prices' => 1,
-                        'v1/index-prices/{assetSymbol}' => 1,
-                        'v1/expiry-prices/{symbol}' => 1,
-                        'v1/option-ladder' => 1,
-                        'v1/option-ladder/{symbol}' => 1,
+                        'v1/nonce' => array( 'cost' => 1 ),
+                        'v1/time' => array( 'cost' => 1 ),
+                        'v1/assets' => array( 'cost' => 1 ),
+                        'v1/assets/{symbol}' => array( 'cost' => 1 ),
+                        'v1/markets' => array( 'cost' => 1 ),
+                        'v1/markets/{symbol}' => array( 'cost' => 1 ),
+                        'v1/history/markets/{symbol}' => array( 'cost' => 1 ),
+                        'v1/markets/{symbol}/orderbook/hybrid' => array( 'cost' => 1 ),
+                        'v1/markets/{symbol}/trades' => array( 'cost' => 1 ),
+                        'v1/markets/{symbol}/tick' => array( 'cost' => 1 ),
+                        'v1/markets/{symbol}/candle' => array( 'cost' => 1 ),
+                        'v1/history/markets/{symbol}/trades' => array( 'cost' => 1 ),
+                        'v1/history/markets/{symbol}/funding-rate' => array( 'cost' => 1 ),
+                        'v1/index-prices' => array( 'cost' => 1 ),
+                        'v1/index-prices/{assetSymbol}' => array( 'cost' => 1 ),
+                        'v1/expiry-prices/{symbol}' => array( 'cost' => 1 ),
+                        'v1/option-ladder' => array( 'cost' => 1 ),
+                        'v1/option-ladder/{symbol}' => array( 'cost' => 1 ),
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'v2/orders' => 1,
-                        'v2/history/orders' => 1,
-                        'v2/orders/{orderId}' => 1,
-                        'v2/amm-instructions' => 1,
-                        'v2/amm-instructions/{instructionId}' => 1,
-                        'v1/wallets/transactions' => 1,
-                        'v1/wallets/limits/{symbol}' => 1,
-                        'v1/wallets/deposit-instructions/crypto/{symbol}' => 1,
-                        'v1/wallets/withdrawal-instructions/crypto/{symbol}' => 1,
-                        'v1/wallets/deposit-instructions/fiat/{symbol}' => 1,
-                        'v1/wallets/withdrawal-instructions/fiat/{symbol}' => 1,
-                        'v1/wallets/self-hosted/verification-attempts' => 1,
-                        'v1/trades' => 5,
-                        'v1/history/trades' => 5,
-                        'v1/trades/{tradeId}' => 5,
-                        'v1/trades/client-order-id/{clientOrderId}' => 1,
-                        'v1/accounts/asset' => 1,
-                        'v1/accounts/asset/{symbol}' => 1,
-                        'v1/users/logout' => 1,
-                        'v1/users/hmac/login' => 1,
-                        'v1/accounts/trading-accounts' => 1,
-                        'v1/accounts/trading-accounts/{tradingAccountId}' => 1,
-                        'v1/derivatives-positions' => 1,
-                        'v1/history/derivatives-settlement' => 1,
-                        'v1/history/transfer' => 1,
-                        'v1/history/borrow-interest' => 1,
-                        'v2/mmp-configuration' => 1,
-                        'v2/otc-trades' => 1,
-                        'v2/otc-trades/{otcTradeId}' => 1,
-                        'v2/otc-trades/unconfirmed-trade' => 1,
+                        'v2/orders' => array( 'cost' => 1 ),
+                        'v2/history/orders' => array( 'cost' => 1 ),
+                        'v2/orders/{orderId}' => array( 'cost' => 1 ),
+                        'v2/amm-instructions' => array( 'cost' => 1 ),
+                        'v2/amm-instructions/{instructionId}' => array( 'cost' => 1 ),
+                        'v1/wallets/transactions' => array( 'cost' => 1 ),
+                        'v1/wallets/limits/{symbol}' => array( 'cost' => 1 ),
+                        'v1/wallets/deposit-instructions/crypto/{symbol}' => array( 'cost' => 1 ),
+                        'v1/wallets/withdrawal-instructions/crypto/{symbol}' => array( 'cost' => 1 ),
+                        'v1/wallets/deposit-instructions/fiat/{symbol}' => array( 'cost' => 1 ),
+                        'v1/wallets/withdrawal-instructions/fiat/{symbol}' => array( 'cost' => 1 ),
+                        'v1/wallets/self-hosted/verification-attempts' => array( 'cost' => 1 ),
+                        'v1/trades' => array( 'cost' => 5 ),
+                        'v1/history/trades' => array( 'cost' => 5 ),
+                        'v1/trades/{tradeId}' => array( 'cost' => 5 ),
+                        'v1/trades/client-order-id/{clientOrderId}' => array( 'cost' => 1 ),
+                        'v1/accounts/asset' => array( 'cost' => 1 ),
+                        'v1/accounts/asset/{symbol}' => array( 'cost' => 1 ),
+                        'v1/users/logout' => array( 'cost' => 1 ),
+                        'v1/users/hmac/login' => array( 'cost' => 1 ),
+                        'v1/accounts/trading-accounts' => array( 'cost' => 1 ),
+                        'v1/accounts/trading-accounts/{tradingAccountId}' => array( 'cost' => 1 ),
+                        'v1/derivatives-positions' => array( 'cost' => 1 ),
+                        'v1/history/derivatives-settlement' => array( 'cost' => 1 ),
+                        'v1/history/transfer' => array( 'cost' => 1 ),
+                        'v1/history/borrow-interest' => array( 'cost' => 1 ),
+                        'v2/mmp-configuration' => array( 'cost' => 1 ),
+                        'v2/otc-trades' => array( 'cost' => 1 ),
+                        'v2/otc-trades/{otcTradeId}' => array( 'cost' => 1 ),
+                        'v2/otc-trades/unconfirmed-trade' => array( 'cost' => 1 ),
                     ),
                     'post' => array(
-                        'v2/orders' => 5,
-                        'v2/command' => 5,
-                        'v2/amm-instructions' => 1,
-                        'v1/wallets/withdrawal' => 1,
-                        'v2/users/login' => 1,
-                        'v1/simulate-portfolio-margin' => 1,
-                        'v1/wallets/self-hosted/initiate' => 1,
-                        'v2/mmp-configuration' => 1,
-                        'v2/otc-trades' => 1,
-                        'v2/otc-command' => 1,
+                        'v2/orders' => array( 'cost' => 5 ),
+                        'v2/command' => array( 'cost' => 5 ),
+                        'v2/amm-instructions' => array( 'cost' => 1 ),
+                        'v1/wallets/withdrawal' => array( 'cost' => 1 ),
+                        'v2/users/login' => array( 'cost' => 1 ),
+                        'v1/simulate-portfolio-margin' => array( 'cost' => 1 ),
+                        'v1/wallets/self-hosted/initiate' => array( 'cost' => 1 ),
+                        'v2/mmp-configuration' => array( 'cost' => 1 ),
+                        'v2/otc-trades' => array( 'cost' => 1 ),
+                        'v2/otc-command' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -241,7 +241,7 @@ class bullish extends Exchange {
             'precisionMode' => TICK_SIZE,
             // exchange-specific options
             'options' => array(
-                'timeDifference' => 0, // the difference between system clock and Binance clock
+                'timeDifference' => 0, // the difference between system clock and exchange clock
                 'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
                 'networks' => array(
                     'BTC' => 'BTC',
@@ -450,83 +450,87 @@ class bullish extends Exchange {
     }
 
     public function fetch_time($params = array()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             * fetches the current integer timestamp in milliseconds from the exchange server
-             *
-             * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#tag--time
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {int} the current integer timestamp in milliseconds from the exchange server
-             */
-            $response = Async\await($this->publicGetV1Time($params));
-            //
-            //     {
-            //         "datetime" => "2025-05-05T20:05:50.999Z",
-            //         "timestamp" => 1746475550999
-            //     }
-            //
-            return $this->safe_integer($response, 'timestamp');
-        })();
+        return Async\async(self::do_fetch_time(...))($params);
+    }
+
+    private function do_fetch_time($params = array()) {
+        /**
+         * fetches the current integer timestamp in milliseconds from the exchange server
+         *
+         * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#tag--time
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {int} the current integer timestamp in milliseconds from the exchange server
+         */
+        $response = Async\await($this->publicGetV1Time($params));
+        //
+        //     {
+        //         "datetime" => "2025-05-05T20:05:50.999Z",
+        //         "timestamp" => 1746475550999
+        //     }
+        //
+        return $this->safe_integer($response, 'timestamp');
     }
 
     public function fetch_currencies($params = array()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             * fetches all available currencies on an exchange
-             *
-             * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/assets
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an associative dictionary of currencies
-             */
-            $response = Async\await($this->publicGetV1Assets($params));
-            //
-            //     array(
-            //         {
-            //             "assetId" => "72",
-            //             "symbol" => "BTT1M",
-            //             "name" => "BitTorrent (millions)",
-            //             "precision" => "5",
-            //             "minBalanceInterest" => "0.00000",
-            //             "apr" => "10.00",
-            //             "minFee" => "0.00000",
-            //             "maxBorrow" => "0.00000",
-            //             "totalOfferedLoanQuantity" => "0.00000",
-            //             "loanBorrowedQuantity" => "0.00000",
-            //             "collateralBands":
-            //                 array(
-            //                     array(
-            //                         "collateralPercentage" => "90.00",
-            //                         "bandLimitUSD" => "100000.0000"
-            //                     ),
-            //                     array(
-            //                         "collateralPercentage" => "68.00",
-            //                         "bandLimitUSD" => "300000.0000"
-            //                     ),
-            //                     {
-            //                         "collateralPercentage" => "25.00",
-            //                         "bandLimitUSD" => "600000.0000"
-            //                     }
-            //                 ),
-            //             "underlyingAsset":
-            //                 array(
-            //                     "symbol" => "BTT1M",
-            //                     "assetId" => "72",
-            //                     "bpmMinReturnStart" => "0.9200",
-            //                     "bpmMinReturnEnd" => "0.9300",
-            //                     "bpmMaxReturnStart" => "1.0800",
-            //                     "bpmMaxReturnEnd" => "1.0800",
-            //                     "marketRiskFloorPctStart" => "2.60",
-            //                     "marketRiskFloorPctEnd" => "2.50",
-            //                     "bpmTransitionDateTimeStart" => "2025-05-05T08:00:00.000Z",
-            //                     "bpmTransitionDateTimeEnd" => "2025-05-08T08:00:00.000Z"
-            //                 }
-            //         ), ...
-            //     )
-            //
-            return $this->parse_currencies($response);
-        })();
+        return Async\async(self::do_fetch_currencies(...))($params);
+    }
+
+    private function do_fetch_currencies($params = array()) {
+        /**
+         * fetches all available currencies on an exchange
+         *
+         * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/assets
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an associative dictionary of currencies
+         */
+        $response = Async\await($this->publicGetV1Assets($params));
+        //
+        //     array(
+        //         {
+        //             "assetId" => "72",
+        //             "symbol" => "BTT1M",
+        //             "name" => "BitTorrent (millions)",
+        //             "precision" => "5",
+        //             "minBalanceInterest" => "0.00000",
+        //             "apr" => "10.00",
+        //             "minFee" => "0.00000",
+        //             "maxBorrow" => "0.00000",
+        //             "totalOfferedLoanQuantity" => "0.00000",
+        //             "loanBorrowedQuantity" => "0.00000",
+        //             "collateralBands":
+        //                 array(
+        //                     array(
+        //                         "collateralPercentage" => "90.00",
+        //                         "bandLimitUSD" => "100000.0000"
+        //                     ),
+        //                     array(
+        //                         "collateralPercentage" => "68.00",
+        //                         "bandLimitUSD" => "300000.0000"
+        //                     ),
+        //                     {
+        //                         "collateralPercentage" => "25.00",
+        //                         "bandLimitUSD" => "600000.0000"
+        //                     }
+        //                 ),
+        //             "underlyingAsset":
+        //                 array(
+        //                     "symbol" => "BTT1M",
+        //                     "assetId" => "72",
+        //                     "bpmMinReturnStart" => "0.9200",
+        //                     "bpmMinReturnEnd" => "0.9300",
+        //                     "bpmMaxReturnStart" => "1.0800",
+        //                     "bpmMaxReturnEnd" => "1.0800",
+        //                     "marketRiskFloorPctStart" => "2.60",
+        //                     "marketRiskFloorPctEnd" => "2.50",
+        //                     "bpmTransitionDateTimeStart" => "2025-05-05T08:00:00.000Z",
+        //                     "bpmTransitionDateTimeEnd" => "2025-05-08T08:00:00.000Z"
+        //                 }
+        //         ), ...
+        //     )
+        //
+        return $this->parse_currencies($response);
     }
 
     public function parse_currency(array $rawCurrency): array {
@@ -554,21 +558,23 @@ class bullish extends Exchange {
     }
 
     public function fetch_markets($params = array()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             * retrieves data on all markets for ace
-             *
-             * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/markets
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} an array of objects representing market data
-             */
-            if ($this->options['adjustForTimeDifference']) {
-                Async\await($this->load_time_difference());
-            }
-            $response = Async\await($this->publicGetV1Markets($params));
-            return $this->parse_markets($response);
-        })();
+        return Async\async(self::do_fetch_markets(...))($params);
+    }
+
+    private function do_fetch_markets($params = array()) {
+        /**
+         * retrieves data on all markets for ace
+         *
+         * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/markets
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} an array of objects representing market data
+         */
+        if ($this->options['adjustForTimeDifference'] === true) {
+            Async\await($this->load_time_difference());
+        }
+        $response = Async\await($this->publicGetV1Markets($params));
+        return $this->parse_markets($response);
     }
 
     public function parse_market(array $market): array {
@@ -913,194 +919,202 @@ class bullish extends Exchange {
     }
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $limit, $params) {
-            /**
-             * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-             *
-             * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/markets/-$symbol-/orderbook/hybrid
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-             * @param {int} [$limit] the maximum amount of order book entries to return (not used by bullish)
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $request = array(
-                'symbol' => $market['id'],
-            );
-            $response = Async\await($this->publicGetV1MarketsSymbolOrderbookHybrid($this->extend($request, $params)));
-            //
-            //     {
-            //         "bids" => array(
-            //             {
-            //                 "price" => "1.00000000",
-            //                 "priceLevelQuantity" => "1.00000000"
-            //             }
-            //         ),
-            //         "asks" => array(
-            //             {
-            //                 "price" => "1.00000000",
-            //                 "priceLevelQuantity" => "1.00000000"
-            //             }
-            //         ),
-            //         "datetime" => "2021-05-20T01:01:01.000Z",
-            //         "timestamp" => "1621490985000",
-            //         "sequenceNumber" => 999
-            //     }
-            //
-            $timestamp = $this->safe_integer($response, 'timestamp');
-            return $this->parse_order_book($response, $symbol, $timestamp, 'bids', 'asks', 'price', 'priceLevelQuantity');
-        })();
+        return Async\async(self::do_fetch_order_book(...))($symbol, $limit, $params);
+    }
+
+    private function do_fetch_order_book(string $symbol, ?int $limit = null, $params = array()) {
+        /**
+         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         *
+         * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/markets/-$symbol-/orderbook/hybrid
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+         * @param {int} [$limit] the maximum amount of order book entries to return (not used by bullish)
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = Async\await($this->publicGetV1MarketsSymbolOrderbookHybrid($this->extend($request, $params)));
+        //
+        //     {
+        //         "bids" => array(
+        //             {
+        //                 "price" => "1.00000000",
+        //                 "priceLevelQuantity" => "1.00000000"
+        //             }
+        //         ),
+        //         "asks" => array(
+        //             {
+        //                 "price" => "1.00000000",
+        //                 "priceLevelQuantity" => "1.00000000"
+        //             }
+        //         ),
+        //         "datetime" => "2021-05-20T01:01:01.000Z",
+        //         "timestamp" => "1621490985000",
+        //         "sequenceNumber" => 999
+        //     }
+        //
+        $timestamp = $this->safe_integer($response, 'timestamp');
+        return $this->parse_order_book($response, $symbol, $timestamp, 'bids', 'asks', 'price', 'priceLevelQuantity');
     }
 
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * get the list of most recent trades for a particular $symbol
-             *
-             * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/markets/-$symbol-/trades
-             * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/history/markets/-$symbol-/trades
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch trades for
-             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
-             * @param {int} [$limit] the maximum amount of trades to fetch (max 100)
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {int} [$params->until] timestamp in ms of the latest trade to fetch
-             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $maxLimit = 100;
-            $paginate = false;
-            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
-            if ($paginate) {
-                $params = $this->handle_pagination_params('fetchTrades', $since, $params);
-                return Async\await($this->fetch_paginated_call_dynamic('fetchTrades', $symbol, $since, $limit, $params, $maxLimit));
-            }
+        return Async\async(self::do_fetch_trades(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * get the list of most recent trades for a particular $symbol
+         *
+         * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/markets/-$symbol-/trades
+         * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/history/markets/-$symbol-/trades
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch trades for
+         * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [$limit] the maximum amount of trades to fetch (max 100)
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] timestamp in ms of the latest trade to fetch
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $maxLimit = 100;
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchTrades', 'paginate');
+        if ($paginate) {
+            $params = $this->handle_pagination_params('fetchTrades', $since, $params);
+            return Async\await($this->fetch_paginated_call_dynamic('fetchTrades', $symbol, $since, $limit, $params, $maxLimit));
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $params = $this->handle_since_and_until($since, $params);
+        if ($limit !== null) {
+            $request['_pageSize'] = $this->get_closest_limit($limit);
+        }
+        $response = Async\await($this->publicGetV1HistoryMarketsSymbolTrades($this->extend($request, $params)));
+        //
+        //     array(
+        //         array(
+        //             "tradeId" => "100178000000367159",
+        //             "symbol" => "BTCUSDC",
+        //             "price" => "103891.8977",
+        //             "quantity" => "0.00029411",
+        //             "quoteAmount" => "30.5556",
+        //             "side" => "BUY",
+        //             "isTaker" => true,
+        //             "createdAtTimestamp" => "1747768055826",
+        //             "createdAtDatetime" => "2025-05-20T19:07:35.826Z"
+        //         ), ...
+        //     )
+        //
+        return $this->parse_trades($response, $market, $since, $limit);
+    }
+
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_fetch_my_trades(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetch all trades made by the user
+         *
+         * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/history/trades
+         *
+         * @param {string} [$symbol] unified $market $symbol
+         * @param {int} [$since] the earliest time in ms to fetch trades for
+         * @param {int} [$limit] the maximum number of trades structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] the latest time in ms to fetch trades for
+         * @param {string} [$params->orderId] the order id to fetch trades for
+         * @param {string} [$params->clientOrderId] the client order id to fetch trades for
+         * @param {string} [$params->tradingAccountId] the trading account id to fetch trades for
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
+         */
+        Async\await(Promise\all(array( $this->load_markets(), $this->handle_token() )));
+        $tradingAccountId = Async\await($this->load_account($params));
+        $request = array(
+            'tradingAccountId' => $tradingAccountId,
+        );
+        $market = null;
+        if ($symbol !== null) {
             $market = $this->market($symbol);
-            $request = array(
-                'symbol' => $market['id'],
-            );
+            $request['symbol'] = $market['id'];
+        }
+        $clientOrderId = $this->safe_string($params, 'clientOrderId');
+        if ($clientOrderId !== null) {
+            $response = Async\await($this->privateGetV1TradesClientOrderIdClientOrderId($this->extend($request, $params)));
+        } else {
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
+            if ($paginate) {
+                $params = $this->handle_pagination_params('fetchMyTrades', $since, $params);
+                return Async\await($this->fetch_paginated_call_dynamic('fetchMyTrades', $symbol, $since, $limit, $params, 100));
+            }
             $params = $this->handle_since_and_until($since, $params);
             if ($limit !== null) {
                 $request['_pageSize'] = $this->get_closest_limit($limit);
             }
-            $response = Async\await($this->publicGetV1HistoryMarketsSymbolTrades($this->extend($request, $params)));
             //
             //     array(
             //         array(
-            //             "tradeId" => "100178000000367159",
-            //             "symbol" => "BTCUSDC",
-            //             "price" => "103891.8977",
-            //             "quantity" => "0.00029411",
-            //             "quoteAmount" => "30.5556",
-            //             "side" => "BUY",
+            //             "baseFee" => "0.00000000",
+            //             "createdAtDatetime" => "2025-05-18T15:57:28.132Z",
+            //             "createdAtTimestamp" => "1747583848132",
+            //             "handle" => null,
             //             "isTaker" => true,
-            //             "createdAtTimestamp" => "1747768055826",
-            //             "createdAtDatetime" => "2025-05-20T19:07:35.826Z"
+            //             "orderId" => "844242293909618689",
+            //             "price" => "103942.7048",
+            //             "publishedAtTimestamp" => "1747769786131",
+            //             "quantity" => "1.00000000",
+            //             "quoteAmount" => "103942.7048",
+            //             "quoteFee" => "0.0000",
+            //             "side" => "BUY",
+            //             "symbol" => "BTCUSDC",
+            //             "tradeId" => "100178000000288892"
             //         ), ...
             //     )
             //
-            return $this->parse_trades($response, $market, $since, $limit);
-        })();
-    }
-
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * fetch all trades made by the user
-             *
-             * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/history/trades
-             *
-             * @param {string} [$symbol] unified $market $symbol
-             * @param {int} [$since] the earliest time in ms to fetch trades for
-             * @param {int} [$limit] the maximum number of trades structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {int} [$params->until] the latest time in ms to fetch trades for
-             * @param {string} [$params->orderId] the order id to fetch trades for
-             * @param {string} [$params->clientOrderId] the client order id to fetch trades for
-             * @param {string} [$params->tradingAccountId] the trading account id to fetch trades for
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
-             */
-            Async\await(Promise\all(array( $this->load_markets(), $this->handle_token() )));
-            $tradingAccountId = Async\await($this->load_account($params));
-            $request = array(
-                'tradingAccountId' => $tradingAccountId,
-            );
-            $market = null;
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-                $request['symbol'] = $market['id'];
-            }
-            $clientOrderId = $this->safe_string($params, 'clientOrderId');
-            if ($clientOrderId !== null) {
-                $response = Async\await($this->privateGetV1TradesClientOrderIdClientOrderId($this->extend($request, $params)));
-            } else {
-                $paginate = false;
-                list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
-                if ($paginate) {
-                    $params = $this->handle_pagination_params('fetchMyTrades', $since, $params);
-                    return Async\await($this->fetch_paginated_call_dynamic('fetchMyTrades', $symbol, $since, $limit, $params, 100));
-                }
-                $params = $this->handle_since_and_until($since, $params);
-                if ($limit !== null) {
-                    $request['_pageSize'] = $this->get_closest_limit($limit);
-                }
-                //
-                //     array(
-                //         array(
-                //             "baseFee" => "0.00000000",
-                //             "createdAtDatetime" => "2025-05-18T15:57:28.132Z",
-                //             "createdAtTimestamp" => "1747583848132",
-                //             "handle" => null,
-                //             "isTaker" => true,
-                //             "orderId" => "844242293909618689",
-                //             "price" => "103942.7048",
-                //             "publishedAtTimestamp" => "1747769786131",
-                //             "quantity" => "1.00000000",
-                //             "quoteAmount" => "103942.7048",
-                //             "quoteFee" => "0.0000",
-                //             "side" => "BUY",
-                //             "symbol" => "BTCUSDC",
-                //             "tradeId" => "100178000000288892"
-                //         ), ...
-                //     )
-                //
-                $response = Async\await($this->privateGetV1HistoryTrades($this->extend($request, $params)));
-            }
-            return $this->parse_trades($response, $market, $since, $limit);
-        })();
+            $response = Async\await($this->privateGetV1HistoryTrades($this->extend($request, $params)));
+        }
+        return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($id, $symbol, $since, $limit, $params) {
-            /**
-             * fetch all the trades made from a single order
-             *
-             * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/history/trades
-             *
-             * @param {string} $id order $id
-             * @param {string} $symbol unified market $symbol
-             * @param {int} [$since] the earliest time in ms to fetch trades for
-             * @param {int} [$limit] the maximum number of trades to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->clientOrderId] the client order $id to fetch trades for
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?$id=trade-structure trade structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $clientOrderId = $this->safe_string($params, 'clientOrderId');
-            if ($clientOrderId === null) {
-                $params = $this->extend(array( 'orderId' => $id ), $params);
-            }
-            return Async\await($this->fetch_my_trades($symbol, $since, $limit, $params));
-        })();
+        return Async\async(self::do_fetch_order_trades(...))($id, $symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetch all the trades made from a single order
+         *
+         * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/history/trades
+         *
+         * @param {string} $id order $id
+         * @param {string} $symbol unified market $symbol
+         * @param {int} [$since] the earliest time in ms to fetch trades for
+         * @param {int} [$limit] the maximum number of trades to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->clientOrderId] the client order $id to fetch trades for
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?$id=trade-structure trade structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $clientOrderId = $this->safe_string($params, 'clientOrderId');
+        if ($clientOrderId === null) {
+            $params = $this->extend(array( 'orderId' => $id ), $params);
+        }
+        return Async\await($this->fetch_my_trades($symbol, $since, $limit, $params));
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
@@ -1169,7 +1183,7 @@ class bullish extends Exchange {
             $fee = array( 'currency' => $code, 'cost' => $feeCost );
         }
         $takerOrMaker = null;
-        if ($isTaker) {
+        if ($isTaker === true) {
             $takerOrMaker = 'taker';
         } else {
             $takerOrMaker = 'maker';
@@ -1193,64 +1207,66 @@ class bullish extends Exchange {
     }
 
     public function fetch_ticker(string $symbol, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
-             *
-             * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/markets/-$symbol-/tick
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $request = array(
-                'symbol' => $market['id'],
-            );
-            $response = Async\await($this->publicGetV1MarketsSymbolTick($this->extend($request, $params)));
-            //
-            //     {
-            //         "createdAtDatetime" => "2021-05-20T01:01:01.000Z",
-            //         "createdAtTimestamp" => "1621490985000",
-            //         "high" => "1.00000000",
-            //         "low" => "1.00000000",
-            //         "bestBid" => "1.00000000",
-            //         "bidVolume" => "1.00000000",
-            //         "bestAsk" => "1.00000000",
-            //         "askVolume" => "1.00000000",
-            //         "vwap" => "1.00000000",
-            //         "open" => "1.00000000",
-            //         "close" => "1.00000000",
-            //         "last" => "1.00000000",
-            //         "change" => "1.00000000",
-            //         "percentage" => "1.00000000",
-            //         "average" => "1.00000000",
-            //         "baseVolume" => "1.00000000",
-            //         "quoteVolume" => "1.00000000",
-            //         "bancorPrice" => "1.00000000",
-            //         "markPrice" => "19999.00",
-            //         "fundingRate" => "0.01",
-            //         "openInterest" => "100000.32452",
-            //         "lastTradeDatetime" => "2021-05-20T01:01:01.000Z",
-            //         "lastTradeTimestamp" => "1621490985000",
-            //         "lastTradeQuantity" => "1.00000000",
-            //         "ammData" => array(
-            //             {
-            //                 "feeTierId" => "1",
-            //                 "bidSpreadFee" => "0.00040000",
-            //                 "askSpreadFee" => "0.00040000",
-            //                 "baseReservesQuantity" => "245.56257825",
-            //                 "quoteReservesQuantity" => "3424383.3629",
-            //                 "currentPrice" => "16856.0000"
-            //             }
-            //         )
-            //     }
-            //
-            return $this->parse_ticker($response, $market);
-        })();
+        return Async\async(self::do_fetch_ticker(...))($symbol, $params);
+    }
+
+    private function do_fetch_ticker(string $symbol, $params = array()) {
+        /**
+         * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         *
+         * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/markets/-$symbol-/tick
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = Async\await($this->publicGetV1MarketsSymbolTick($this->extend($request, $params)));
+        //
+        //     {
+        //         "createdAtDatetime" => "2021-05-20T01:01:01.000Z",
+        //         "createdAtTimestamp" => "1621490985000",
+        //         "high" => "1.00000000",
+        //         "low" => "1.00000000",
+        //         "bestBid" => "1.00000000",
+        //         "bidVolume" => "1.00000000",
+        //         "bestAsk" => "1.00000000",
+        //         "askVolume" => "1.00000000",
+        //         "vwap" => "1.00000000",
+        //         "open" => "1.00000000",
+        //         "close" => "1.00000000",
+        //         "last" => "1.00000000",
+        //         "change" => "1.00000000",
+        //         "percentage" => "1.00000000",
+        //         "average" => "1.00000000",
+        //         "baseVolume" => "1.00000000",
+        //         "quoteVolume" => "1.00000000",
+        //         "bancorPrice" => "1.00000000",
+        //         "markPrice" => "19999.00",
+        //         "fundingRate" => "0.01",
+        //         "openInterest" => "100000.32452",
+        //         "lastTradeDatetime" => "2021-05-20T01:01:01.000Z",
+        //         "lastTradeTimestamp" => "1621490985000",
+        //         "lastTradeQuantity" => "1.00000000",
+        //         "ammData" => array(
+        //             {
+        //                 "feeTierId" => "1",
+        //                 "bidSpreadFee" => "0.00040000",
+        //                 "askSpreadFee" => "0.00040000",
+        //                 "baseReservesQuantity" => "245.56257825",
+        //                 "quoteReservesQuantity" => "3424383.3629",
+        //                 "currentPrice" => "16856.0000"
+        //             }
+        //         )
+        //     }
+        //
+        return $this->parse_ticker($response, $market);
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
@@ -1321,101 +1337,111 @@ class bullish extends Exchange {
     }
 
     public function safe_deterministic_call(string $method, ?string $symbol = null, ?int $since = null, ?int $limit = null, ?string $timeframe = null, $params = array()) {
-        return Async\async(function () use ($method, $symbol, $since, $limit, $timeframe, $params) {
-            $maxRetries = null;
-            list($maxRetries, $params) = $this->handle_option_and_params($params, $method, 'maxRetries', 3);
-            $errors = 0;
-            $params = $this->omit($params, 'until');
-            // the exchange returns the most recent data, so we do not need to pass until into paginated calls
-            // the correct util value will be calculated inside of the $method
-            while ($errors <= $maxRetries) {
-                try {
-                    if ($timeframe && $method !== 'fetchFundingRateHistory') {
-                        return Async\await($this->$method($symbol, $timeframe, $since, $limit, $params));
-                    } else {
-                        return Async\await($this->$method($symbol, $since, $limit, $params));
-                    }
-                } catch (Exception $e) {
-                    if ($e instanceof RateLimitExceeded) {
-                        throw $e; // if we are rate limited, we should not retry and fail fast
-                    }
-                    $errors += 1;
-                    if ($errors > $maxRetries) {
-                        throw $e;
-                    }
+        return Async\async(self::do_safe_deterministic_call(...))($method, $symbol, $since, $limit, $timeframe, $params);
+    }
+
+    private function do_safe_deterministic_call(string $method, ?string $symbol = null, ?int $since = null, ?int $limit = null, ?string $timeframe = null, $params = array()) {
+        $maxRetries = null;
+        list($maxRetries, $params) = $this->handle_option_and_params($params, $method, 'maxRetries', 3);
+        if (($method !== 'fetchOHLCV') && ($method !== 'fetchFundingRateHistory') && ($method !== 'fetchTrades')) {
+            throw new NotSupported($this->id . ' safeDeterministicCall() does not support the ' . $method . ' method');
+        }
+        $errors = 0;
+        $params = $this->omit($params, 'until');
+        // the exchange returns the most recent data, so we do not need to pass until into paginated calls
+        // the correct util value will be calculated inside of the $method
+        while ($errors <= $maxRetries) {
+            try {
+                if ($method === 'fetchOHLCV') {
+                    return Async\await($this->fetch_ohlcv($symbol, $timeframe, $since, $limit, $params));
+                } elseif ($method === 'fetchFundingRateHistory') {
+                    return Async\await($this->fetch_funding_rate_history($symbol, $since, $limit, $params));
+                } else {
+                    return Async\await($this->fetch_trades($symbol, $since, $limit, $params));
+                }
+            } catch (Exception $e) {
+                if ($e instanceof RateLimitExceeded) {
+                    throw $e; // if we are rate limited, we should not retry and fail fast
+                }
+                $errors += 1;
+                if ($errors > $maxRetries) {
+                    throw $e;
                 }
             }
-            return array();
-        })();
+        }
+        return array();
     }
 
     public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
-            /**
-             * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
-             *
-             * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/markets/-$symbol-/candle
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
-             * @param {string} $timeframe the length of time each candle represents
-             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
-             * @param {int} [$limit] the maximum amount of candles to fetch (max 100)
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {int} [$params->until] timestamp in ms of the latest entry
-             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $maxLimit = 100;
-            $paginate = false;
-            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate');
-            if ($paginate) {
-                return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, $maxLimit));
-            }
-            $request = array(
-                'symbol' => $market['id'],
-                'timeBucket' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
-                '_pageSize' => $maxLimit,
-            );
-            list($request, $params) = $this->handle_until_option('createdAtDatetime[lte]', $request, $params);
-            $until = $this->safe_integer($request, 'createdAtDatetime[lte]');
-            $duration = $this->parse_timeframe($timeframe);
-            $maxDelta = 1000 * $duration * $maxLimit;
-            $startTime = $since;
-            // both of $since and $until are required
-            if ($startTime === null && $until === null) {
-                $until = $this->milliseconds();
-                $startTime = $until - $maxDelta;
-            } elseif ($startTime === null) {
-                $startTime = $until - $maxDelta;
-            } elseif ($until === null) {
-                $until = $this->sum($startTime, $maxDelta);
-            }
-            $request['createdAtDatetime[gte]'] = $this->iso8601($startTime);
-            $request['createdAtDatetime[lte]'] = $this->iso8601($until);
-            $response = Async\await($this->publicGetV1MarketsSymbolCandle($this->extend($request, $params)));
-            //
-            //     array(
-            //         array(
-            //             "open" => "100846.7490",
-            //             "high" => "100972.4001",
-            //             "low" => "100840.8129",
-            //             "close" => "100972.2602",
-            //             "volume" => "30.56064890",
-            //             "createdAtTimestamp" => "1746720540000",
-            //             "createdAtDatetime" => "2025-05-08T16:09:00.000Z",
-            //             "publishedAtTimestamp" => "1746720636007"
-            //         ), ...
-            //     )
-            //
-            return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_ohlcv(...))($symbol, $timeframe, $since, $limit, $params);
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    private function do_fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+         *
+         * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/markets/-$symbol-/candle
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
+         * @param {string} $timeframe the length of time each candle represents
+         * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [$limit] the maximum amount of candles to fetch (max 100)
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] timestamp in ms of the latest entry
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $maxLimit = 100;
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate');
+        if ($paginate) {
+            return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, $maxLimit));
+        }
+        $request = array(
+            'symbol' => $market['id'],
+            'timeBucket' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
+            '_pageSize' => $maxLimit,
+        );
+        list($request, $params) = $this->handle_until_option('createdAtDatetime[lte]', $request, $params);
+        $until = $this->safe_integer($request, 'createdAtDatetime[lte]');
+        $duration = $this->parse_timeframe($timeframe);
+        $maxDelta = 1000 * $duration * $maxLimit;
+        $startTime = $since;
+        // both of $since and $until are required
+        if ($startTime === null && $until === null) {
+            $until = $this->milliseconds();
+            $startTime = $until - $maxDelta;
+        } elseif ($startTime === null) {
+            $startTime = $until - $maxDelta;
+        } elseif ($until === null) {
+            $until = $this->sum($startTime, $maxDelta);
+        }
+        $request['createdAtDatetime[gte]'] = $this->iso8601($startTime);
+        $request['createdAtDatetime[lte]'] = $this->iso8601($until);
+        $response = Async\await($this->publicGetV1MarketsSymbolCandle($this->extend($request, $params)));
+        //
+        //     array(
+        //         array(
+        //             "open" => "100846.7490",
+        //             "high" => "100972.4001",
+        //             "low" => "100840.8129",
+        //             "close" => "100972.2602",
+        //             "volume" => "30.56064890",
+        //             "createdAtTimestamp" => "1746720540000",
+        //             "createdAtDatetime" => "2025-05-08T16:09:00.000Z",
+        //             "publishedAtTimestamp" => "1746720636007"
+        //         ), ...
+        //     )
+        //
+        $ohlcvs = $this->to_array($response);
+        return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
+    }
+
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         return array(
             $this->safe_integer($ohlcv, 'createdAtTimestamp'),
             $this->safe_number($ohlcv, 'open'),
@@ -1427,156 +1453,160 @@ class bullish extends Exchange {
     }
 
     public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * fetches historical funding rate prices
-             *
-             * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/history/markets/-$symbol-/funding-rate
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
-             * @param {int} [$since] not sent to exchange api, exchange api always returns the most recent data, only used to filter exchange $response
-             * @param {int} [$limit] the maximum amount of funding rate structures to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~
-             */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
-            }
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $maxLimit = 100;
-            $paginate = false;
-            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
-            if ($paginate) {
-                $params = $this->handle_pagination_params('fetchFundingRateHistory', $since, $params);
-                return Async\await($this->fetch_paginated_call_dynamic('fetchFundingRateHistory', $symbol, $since, $limit, $params, $maxLimit));
-            }
-            $market = $this->market($symbol);
-            if (!$market['swap']) {
-                throw new BadRequest($this->id . ' fetchFundingRateHistory() supports swap markets only');
-            }
-            $request = array(
-                'symbol' => $market['id'],
+        return Async\async(self::do_fetch_funding_rate_history(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetches historical funding rate prices
+         *
+         * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/history/markets/-$symbol-/funding-rate
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
+         * @param {int} [$since] not sent to exchange api, exchange api always returns the most recent data, only used to filter exchange $response
+         * @param {int} [$limit] the maximum amount of funding rate structures to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~
+         */
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
+        }
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $maxLimit = 100;
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
+        if ($paginate) {
+            $params = $this->handle_pagination_params('fetchFundingRateHistory', $since, $params);
+            return Async\await($this->fetch_paginated_call_dynamic('fetchFundingRateHistory', $symbol, $since, $limit, $params, $maxLimit));
+        }
+        $market = $this->market($symbol);
+        if ($market['swap'] !== true) {
+            throw new BadRequest($this->id . ' fetchFundingRateHistory() supports swap markets only');
+        }
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        if ($limit !== null) {
+            $request['_pageSize'] = $this->get_closest_limit($limit);
+        }
+        $params = $this->handle_since_and_until($since, $params, 'updatedAtDatetime[gte]', 'updatedAtDatetime[lte]');
+        $response = Async\await($this->publicGetV1HistoryMarketsSymbolFundingRate($this->extend($request, $params)));
+        //
+        //     array(
+        //         array(
+        //             "fundingRate" => "0.00125",
+        //             "updatedAtDatetime" => "2025-05-18T09:06:04.074Z"
+        //         ),
+        //         array(
+        //             "fundingRate" => "0.00125",
+        //             "updatedAtDatetime" => "2025-05-18T08:59:59.033Z"
+        //         ), ...
+        //     )
+        //
+        $rates = array();
+        $result = $this->to_array($response);
+        for ($i = 0; $i < count($result); $i++) {
+            $entry = $result[$i];
+            $datetime = $this->safe_string($entry, 'updatedAtDatetime');
+            $rates[] = array(
+                'info' => $entry,
+                'symbol' => $symbol,
+                'fundingRate' => $this->safe_number($entry, 'fundingRate'),
+                'timestamp' => $this->parse8601($datetime),
+                'datetime' => $datetime,
             );
-            if ($limit !== null) {
-                $request['_pageSize'] = $this->get_closest_limit($limit);
-            }
-            $params = $this->handle_since_and_until($since, $params, 'updatedAtDatetime[gte]', 'updatedAtDatetime[lte]');
-            $response = Async\await($this->publicGetV1HistoryMarketsSymbolFundingRate($this->extend($request, $params)));
-            //
-            //     array(
-            //         array(
-            //             "fundingRate" => "0.00125",
-            //             "updatedAtDatetime" => "2025-05-18T09:06:04.074Z"
-            //         ),
-            //         array(
-            //             "fundingRate" => "0.00125",
-            //             "updatedAtDatetime" => "2025-05-18T08:59:59.033Z"
-            //         ), ...
-            //     )
-            //
-            $rates = array();
-            $result = $this->to_array($response);
-            for ($i = 0; $i < count($result); $i++) {
-                $entry = $result[$i];
-                $datetime = $this->safe_string($entry, 'updatedAtDatetime');
-                $rates[] = array(
-                    'info' => $entry,
-                    'symbol' => $symbol,
-                    'fundingRate' => $this->safe_number($entry, 'fundingRate'),
-                    'timestamp' => $this->parse8601($datetime),
-                    'datetime' => $datetime,
-                );
-            }
-            $sorted = $this->sort_by($rates, 'timestamp');
-            return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
-        })();
+        }
+        $sorted = $this->sort_by($rates, 'timestamp');
+        return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
     }
 
     public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * fetches information on multiple orders made by the user
-             *
-             * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#tag--orders
-             * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#tag--history
-             *
-             * @param {string} $symbol unified $market $symbol of the $market orders were made in
-             * @param {int} [$since] the earliest time in ms to fetch orders for
-             * @param {int} [$limit] the maximum number of order structures to retrieve (5, 25, 50, 100, default is 25)
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {int} [$params->until] timestamp in ms of the latest order to fetch
-             * @param {string} [$params->tradingAccountId] the trading account id (mandatory parameter)
-             * @param {string} [$params->orderId] the id of the order to fetch for
-             * @param {string} [$params->clientOrderId] the client id of the order to fetch for
-             * @param {string} [$params->status] filter by order status, 'OPEN', 'CANCELLED', 'CLOSED', 'REJECTED'
-             * @param {bool} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            Async\await(Promise\all(array( $this->load_markets(), $this->handle_token() )));
-            $tradingAccountId = Async\await($this->load_account($params));
-            $paginate = $this->safe_bool($params, 'paginate', false);
-            if ($paginate) {
-                $params = $this->handle_pagination_params('fetchOrders', $since, $params);
-                return Async\await($this->fetch_paginated_call_dynamic('fetchOrders', $symbol, $since, $limit, $params, 100));
-            }
-            $market = null;
-            $request = array(
-                'tradingAccountId' => $tradingAccountId,
-            );
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-                $request['symbol'] = $market['id'];
-            }
-            $params = $this->handle_since_and_until($since, $params);
-            if ($limit !== null) {
-                $request['_pageSize'] = $this->get_closest_limit($limit);
-            }
-            $method = 'privateGetV2HistoryOrders';
-            list($method, $params) = $this->handle_option_and_params($params, 'fetchOrders', 'method', $method);
-            $response = array();
-            if ($method === 'privateGetV2Orders') {
-                //
-                //     array(
-                //         {
-                //             "clientOrderId" => "187",
-                //             "orderId" => "297735387747975681",
-                //             "symbol" => "BTCUSDC",
-                //             "price" => "1.00000000",
-                //             "averageFillPrice" => "1.00000000",
-                //             "stopPrice" => "1.00000000",
-                //             "allowBorrow" => false,
-                //             "quantity" => "1.00000000",
-                //             "quantityFilled" => "1.00000000",
-                //             "quoteAmount" => "1.00000000",
-                //             "baseFee" => "0.00100000",
-                //             "quoteFee" => "0.0010",
-                //             "borrowedBaseQuantity" => "1.00000000",
-                //             "borrowedQuoteQuantity" => "1.00000000",
-                //             "isLiquidation" => false,
-                //             "side" => "BUY",
-                //             "type" => "LMT",
-                //             "timeInForce" => "GTC",
-                //             "status" => "OPEN",
-                //             "statusReason" => "User cancelled",
-                //             "statusReasonCode" => "1002",
-                //             "createdAtDatetime" => "2021-05-20T01:01:01.000Z",
-                //             "createdAtTimestamp" => "1621490985000",
-                //         }
-                //     )
-                //
-                $response = Async\await($this->privateGetV2Orders($this->extend($request, $params)));
-            } elseif ($method === 'privateGetV2HistoryOrders') {
-                $response = Async\await($this->privateGetV2HistoryOrders($this->extend($request, $params)));
-            } else {
-                throw new BadRequest($this->id . ' fetchOrders() $method parameter must be either "privateGetV2Orders" or "privateGetV2HistoryOrders"');
-            }
-            return $this->parse_orders($response, $market, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_orders(...))($symbol, $since, $limit, $params);
     }
 
-    public function handle_pagination_params(string $method, ?int $since = null, array $params = array()): array {
+    private function do_fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetches information on multiple orders made by the user
+         *
+         * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#tag--orders
+         * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#tag--history
+         *
+         * @param {string} $symbol unified $market $symbol of the $market orders were made in
+         * @param {int} [$since] the earliest time in ms to fetch orders for
+         * @param {int} [$limit] the maximum number of order structures to retrieve (5, 25, 50, 100, default is 25)
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] timestamp in ms of the latest order to fetch
+         * @param {string} [$params->tradingAccountId] the trading account id (mandatory parameter)
+         * @param {string} [$params->orderId] the id of the order to fetch for
+         * @param {string} [$params->clientOrderId] the client id of the order to fetch for
+         * @param {string} [$params->status] filter by order status, 'OPEN', 'CANCELLED', 'CLOSED', 'REJECTED'
+         * @param {bool} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        Async\await(Promise\all(array( $this->load_markets(), $this->handle_token() )));
+        $tradingAccountId = Async\await($this->load_account($params));
+        $paginate = $this->safe_bool($params, 'paginate', false);
+        if ($paginate === true) {
+            $params = $this->handle_pagination_params('fetchOrders', $since, $params);
+            return Async\await($this->fetch_paginated_call_dynamic('fetchOrders', $symbol, $since, $limit, $params, 100));
+        }
+        $market = null;
+        $request = array(
+            'tradingAccountId' => $tradingAccountId,
+        );
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['symbol'] = $market['id'];
+        }
+        $params = $this->handle_since_and_until($since, $params);
+        if ($limit !== null) {
+            $request['_pageSize'] = $this->get_closest_limit($limit);
+        }
+        $method = 'privateGetV2HistoryOrders';
+        list($method, $params) = $this->handle_option_and_params($params, 'fetchOrders', 'method', $method);
+        $response = array();
+        if ($method === 'privateGetV2Orders') {
+            //
+            //     array(
+            //         {
+            //             "clientOrderId" => "187",
+            //             "orderId" => "297735387747975681",
+            //             "symbol" => "BTCUSDC",
+            //             "price" => "1.00000000",
+            //             "averageFillPrice" => "1.00000000",
+            //             "stopPrice" => "1.00000000",
+            //             "allowBorrow" => false,
+            //             "quantity" => "1.00000000",
+            //             "quantityFilled" => "1.00000000",
+            //             "quoteAmount" => "1.00000000",
+            //             "baseFee" => "0.00100000",
+            //             "quoteFee" => "0.0010",
+            //             "borrowedBaseQuantity" => "1.00000000",
+            //             "borrowedQuoteQuantity" => "1.00000000",
+            //             "isLiquidation" => false,
+            //             "side" => "BUY",
+            //             "type" => "LMT",
+            //             "timeInForce" => "GTC",
+            //             "status" => "OPEN",
+            //             "statusReason" => "User cancelled",
+            //             "statusReasonCode" => "1002",
+            //             "createdAtDatetime" => "2021-05-20T01:01:01.000Z",
+            //             "createdAtTimestamp" => "1621490985000",
+            //         }
+            //     )
+            //
+            $response = Async\await($this->privateGetV2Orders($this->extend($request, $params)));
+        } elseif ($method === 'privateGetV2HistoryOrders') {
+            $response = Async\await($this->privateGetV2HistoryOrders($this->extend($request, $params)));
+        } else {
+            throw new BadRequest($this->id . ' fetchOrders() $method parameter must be either "privateGetV2Orders" or "privateGetV2HistoryOrders"');
+        }
+        return $this->parse_orders($response, $market, $since, $limit);
+    }
+
+    public function handle_pagination_params(string $method, ?int $since = null, $params = array()): array {
         $ninetyDays = 90 * 24 * 60 * 60 * 1000;
         $now = $this->milliseconds();
         $allowedSince = $now - $ninetyDays;
@@ -1592,7 +1622,7 @@ class bullish extends Exchange {
         return $params;
     }
 
-    public function handle_since_and_until(?int $since = null, array $params = array(), ?string $sinceKey = 'createdAtDatetime[gte]', ?string $untilKey = 'createdAtDatetime[lte]'): array {
+    public function handle_since_and_until(?int $since = null, $params = array(), ?string $sinceKey = 'createdAtDatetime[gte]', ?string $untilKey = 'createdAtDatetime[lte]'): array {
         $until = $this->safe_integer($params, 'until');
         if (($since !== null) || ($until !== null)) {
             $timeDelta = 7 * 24 * 60 * 60 * 1000; // 7 days
@@ -1627,337 +1657,355 @@ class bullish extends Exchange {
     }
 
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * fetch all unfilled currently open orders
-             *
-             * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#tag--history
-             *
-             * @param {string} $symbol unified market $symbol of the market orders were made in
-             * @param {int} [$since] the earliest time in ms to fetch orders for
-             * @param {int} [$limit] the maximum number of order structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} $params->tradingAccountId the trading account id (mandatory parameter)
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            $request = array(
-                'status' => 'OPEN',
-            );
-            return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params)));
-        })();
+        return Async\async(self::do_fetch_open_orders(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetch all unfilled currently open orders
+         *
+         * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#tag--history
+         *
+         * @param {string} $symbol unified market $symbol of the market orders were made in
+         * @param {int} [$since] the earliest time in ms to fetch orders for
+         * @param {int} [$limit] the maximum number of order structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} $params->tradingAccountId the trading account id (mandatory parameter)
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        $request = array(
+            'status' => 'OPEN',
+        );
+        return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params)));
     }
 
     public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * fetches information on multiple canceled orders made by the user
-             *
-             * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#tag--orders
-             *
-             * @param {string} $symbol unified market $symbol of the canceled orders
-             * @param {int} [$since] timestamp in ms of the earliest order
-             * @param {int} [$limit] the max number of canceled orders to return
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->tradingAccountId] the trading account id (mandatory parameter)
-             * @return {array} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            $request = array(
-                'status' => 'CANCELLED',
-                'method' => 'privateGetV2Orders', // current endpoint distinquishes between CLOSED and CANCELLED orders
-            );
-            return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params)));
-        })();
+        return Async\async(self::do_fetch_canceled_orders(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetches information on multiple canceled orders made by the user
+         *
+         * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#tag--orders
+         *
+         * @param {string} $symbol unified market $symbol of the canceled orders
+         * @param {int} [$since] timestamp in ms of the earliest order
+         * @param {int} [$limit] the max number of canceled orders to return
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tradingAccountId] the trading account id (mandatory parameter)
+         * @return {array} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        $request = array(
+            'status' => 'CANCELLED',
+            'method' => 'privateGetV2Orders', // current endpoint distinguishes between CLOSED and CANCELLED orders
+        );
+        return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params)));
     }
 
     public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * fetches information on multiple closed orders made by the user
-             *
-             * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#tag--orders
-             *
-             * @param {string} $symbol unified market $symbol of the closed orders
-             * @param {int} [$since] timestamp in ms of the earliest order
-             * @param {int} [$limit] the max number of closed orders to return
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} $params->tradingAccountId the trading account id (mandatory parameter)
-             * @return {array} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            $request = array(
-                'status' => 'CLOSED',
-                'method' => 'privateGetV2Orders', // current endpoint distinquishes between CLOSED and CANCELLED orders
-            );
-            return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params)));
-        })();
+        return Async\async(self::do_fetch_closed_orders(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetches information on multiple closed orders made by the user
+         *
+         * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#tag--orders
+         *
+         * @param {string} $symbol unified market $symbol of the closed orders
+         * @param {int} [$since] timestamp in ms of the earliest order
+         * @param {int} [$limit] the max number of closed orders to return
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} $params->tradingAccountId the trading account id (mandatory parameter)
+         * @return {array} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        $request = array(
+            'status' => 'CLOSED',
+            'method' => 'privateGetV2Orders', // current endpoint distinguishes between CLOSED and CANCELLED orders
+        );
+        return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params)));
     }
 
     public function fetch_canceled_and_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * fetches information on multiple canceled orders made by the user
-             *
-             * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#tag--history
-             *
-             * @param {string} $symbol unified market $symbol of the closed orders
-             * @param {int} [$since] timestamp in ms of the earliest order
-             * @param {int} [$limit] the max number of closed orders to return
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->tradingAccountId] the trading account id (mandatory parameter)
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            $request = array(
-                'status' => 'CLOSED',
-                'method' => 'privateGetV2HistoryOrders', // current endpoint returns both CLOSED and CANCELLED orders
-            );
-            return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params)));
-        })();
+        return Async\async(self::do_fetch_canceled_and_closed_orders(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_canceled_and_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetches information on multiple canceled orders made by the user
+         *
+         * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#tag--history
+         *
+         * @param {string} $symbol unified market $symbol of the closed orders
+         * @param {int} [$since] timestamp in ms of the earliest order
+         * @param {int} [$limit] the max number of closed orders to return
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tradingAccountId] the trading account id (mandatory parameter)
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        $request = array(
+            'status' => 'CLOSED',
+            'method' => 'privateGetV2HistoryOrders', // current endpoint returns both CLOSED and CANCELLED orders
+        );
+        return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params)));
     }
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($id, $symbol, $params) {
-            /**
-             * fetches information on an order made by the user
-             *
-             * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v2/orders/-orderId-
-             *
-             * @param {string} $id the order $id
-             * @param {string} [$symbol] unified $symbol of the $market the order was made in
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->traidingAccountId] the trading account $id (mandatory parameter)
-             * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
-             */
-            Async\await(Promise\all(array( $this->load_markets(), $this->handle_token() )));
-            $tradingAccountId = Async\await($this->load_account($params));
-            $market = null;
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-            }
-            $request = array(
-                'orderId' => $id,
-                'tradingAccountId' => $tradingAccountId,
-            );
-            $response = Async\await($this->privateGetV2OrdersOrderId($this->extend($request, $params)));
-            //
-            //     {
-            //         "clientOrderId" => "187",
-            //         "orderId" => "297735387747975680",
-            //         "symbol" => "BTCUSDC",
-            //         "price" => "1.00000000",
-            //         "averageFillPrice" => "1.00000000",
-            //         "stopPrice" => "1.00000000",
-            //         "allowBorrow" => false,
-            //         "quantity" => "1.00000000",
-            //         "quantityFilled" => "1.00000000",
-            //         "quoteAmount" => "1.00000000",
-            //         "baseFee" => "0.00100000",
-            //         "quoteFee" => "0.0010",
-            //         "borrowedBaseQuantity" => "1.00000000",
-            //         "borrowedQuoteQuantity" => "1.00000000",
-            //         "isLiquidation" => false,
-            //         "side" => "BUY",
-            //         "type" => "LMT",
-            //         "timeInForce" => "GTC",
-            //         "status" => "OPEN",
-            //         "statusReason" => "User cancelled",
-            //         "statusReasonCode" => "1002",
-            //         "createdAtDatetime" => "2021-05-20T01:01:01.000Z",
-            //         "createdAtTimestamp" => "1621490985000",
-            //     }
-            //
-            return $this->parse_order($response, $market);
-        })();
+        return Async\async(self::do_fetch_order(...))($id, $symbol, $params);
+    }
+
+    private function do_fetch_order(string $id, ?string $symbol = null, $params = array()) {
+        /**
+         * fetches information on an order made by the user
+         *
+         * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v2/orders/-orderId-
+         *
+         * @param {string} $id the order $id
+         * @param {string} [$symbol] unified $symbol of the $market the order was made in
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->traidingAccountId] the trading account $id (mandatory parameter)
+         * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
+         */
+        Async\await(Promise\all(array( $this->load_markets(), $this->handle_token() )));
+        $tradingAccountId = Async\await($this->load_account($params));
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
+        $request = array(
+            'orderId' => $id,
+            'tradingAccountId' => $tradingAccountId,
+        );
+        $response = Async\await($this->privateGetV2OrdersOrderId($this->extend($request, $params)));
+        //
+        //     {
+        //         "clientOrderId" => "187",
+        //         "orderId" => "297735387747975680",
+        //         "symbol" => "BTCUSDC",
+        //         "price" => "1.00000000",
+        //         "averageFillPrice" => "1.00000000",
+        //         "stopPrice" => "1.00000000",
+        //         "allowBorrow" => false,
+        //         "quantity" => "1.00000000",
+        //         "quantityFilled" => "1.00000000",
+        //         "quoteAmount" => "1.00000000",
+        //         "baseFee" => "0.00100000",
+        //         "quoteFee" => "0.0010",
+        //         "borrowedBaseQuantity" => "1.00000000",
+        //         "borrowedQuoteQuantity" => "1.00000000",
+        //         "isLiquidation" => false,
+        //         "side" => "BUY",
+        //         "type" => "LMT",
+        //         "timeInForce" => "GTC",
+        //         "status" => "OPEN",
+        //         "statusReason" => "User cancelled",
+        //         "statusReasonCode" => "1002",
+        //         "createdAtDatetime" => "2021-05-20T01:01:01.000Z",
+        //         "createdAtTimestamp" => "1621490985000",
+        //     }
+        //
+        return $this->parse_order($response, $market);
     }
 
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
-            /**
-             * create a trade order
-             *
-             * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#post-/v2/orders
-             *
-             * @param {string} $symbol unified $symbol of the $market to create an order in
-             * @param {string} $type 'market' or 'limit' or 'STOP_LIMIT' or 'POST_ONLY'
-             * @param {string} $side 'buy' or 'sell'
-             * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->clientOrderId] a custom client order id
-             * @param {float} [$params->triggerPrice] the $price at which a stop order is triggered at
-             * @param {string} [$params->timeInForce] the time in force for the order, either 'GTC' (Good Till Cancelled) or 'IOC' (Immediate or Cancel), default is 'GTC'
-             * @param {bool} [$params->allowBorrow] if true, the order will be allowed to borrow assets to fulfill the order (default is false)
-             * @param {bool} [$params->postOnly] if true, the order will only be posted to the order book and not executed immediately (default is false)
-             * @param {string} $params->traidingAccountId the trading account id (mandatory parameter)
-             * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
-             */
-            Async\await(Promise\all(array( $this->load_markets(), $this->handle_token() )));
-            $tradingAccountId = Async\await($this->load_account($params));
-            $market = $this->market($symbol);
-            $request = array(
-                'commandType' => 'V3CreateOrder',
-                'symbol' => $market['id'],
-                'side' => strtoupper($side),
-                'quantity' => $this->amount_to_precision($symbol, $amount),
-                'tradingAccountId' => $tradingAccountId,
-            );
-            $isMarketOrder = (($type === 'market') || $type === 'MARKET');
-            $postOnly = false;
-            list($postOnly, $params) = $this->handle_post_only($isMarketOrder, $type === 'POST_ONLY', $params);
-            if ($postOnly) {
-                $type = 'POST_ONLY';
+        return Async\async(self::do_create_order(...))($symbol, $type, $side, $amount, $price, $params);
+    }
+
+    private function do_create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+        /**
+         * create a trade order
+         *
+         * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#post-/v2/orders
+         *
+         * @param {string} $symbol unified $symbol of the $market to create an order in
+         * @param {string} $type 'market' or 'limit' or 'STOP_LIMIT' or 'POST_ONLY'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->clientOrderId] a custom client order id
+         * @param {float} [$params->triggerPrice] the $price at which a stop order is triggered at
+         * @param {string} [$params->timeInForce] the time in force for the order, either 'GTC' (Good Till Cancelled) or 'IOC' (Immediate or Cancel), default is 'GTC'
+         * @param {bool} [$params->allowBorrow] if true, the order will be allowed to borrow assets to fulfill the order (default is false)
+         * @param {bool} [$params->postOnly] if true, the order will only be posted to the order book and not executed immediately (default is false)
+         * @param {string} $params->traidingAccountId the trading account id (mandatory parameter)
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
+         */
+        Async\await(Promise\all(array( $this->load_markets(), $this->handle_token() )));
+        $tradingAccountId = Async\await($this->load_account($params));
+        $market = $this->market($symbol);
+        $request = array(
+            'commandType' => 'V3CreateOrder',
+            'symbol' => $market['id'],
+            'side' => strtoupper($side),
+            'quantity' => $this->amount_to_precision($symbol, $amount),
+            'tradingAccountId' => $tradingAccountId,
+        );
+        $isMarketOrder = (($type === 'market') || $type === 'MARKET');
+        $postOnly = false;
+        list($postOnly, $params) = $this->handle_post_only($isMarketOrder, $type === 'POST_ONLY', $params);
+        if ($postOnly) {
+            $type = 'POST_ONLY';
+        }
+        $timeInForce = 'GTC'; // is mandatory
+        list($timeInForce, $params) = $this->handle_option_and_params($params, 'createOrder', 'timeInForce', $timeInForce);
+        $params['timeInForce'] = strtoupper($timeInForce);
+        if (!$isMarketOrder) {
+            $request['price'] = $this->price_to_precision($symbol, $price);
+        }
+        $triggerPrice = $this->safe_string($params, 'triggerPrice');
+        if ($triggerPrice !== null) {
+            if ($isMarketOrder) {
+                throw new NotSupported($this->id . ' createOrder() does not support $market trigger orders');
             }
-            $timeInForce = 'GTC'; // is mandatory
-            list($timeInForce, $params) = $this->handle_option_and_params($params, 'createOrder', 'timeInForce', $timeInForce);
-            $params['timeInForce'] = strtoupper($timeInForce);
-            if (!$isMarketOrder) {
-                $request['price'] = $this->price_to_precision($symbol, $price);
-            }
-            $triggerPrice = $this->safe_string($params, 'triggerPrice');
-            if ($triggerPrice !== null) {
-                if ($isMarketOrder) {
-                    throw new NotSupported($this->id . ' createOrder() does not support $market trigger orders');
-                }
-                $request['stopPrice'] = $this->price_to_precision($symbol, $triggerPrice);
-                $type = 'STOP_LIMIT';
-                $params = $this->omit($params, 'triggerPrice');
-            }
-            $request['type'] = strtoupper($type);
-            $response = Async\await($this->privatePostV2Orders($this->extend($request, $params)));
-            //
-            //     {
-            //         "message" => "Command acknowledged - CreateOrder",
-            //         "requestId" => "633910976353665024",
-            //         "orderId" => "633910775316480001",
-            //         "clientOrderId" => "1234567"
-            //     }
-            //
-            return $this->parse_order($response, $market);
-        })();
+            $request['stopPrice'] = $this->price_to_precision($symbol, $triggerPrice);
+            $type = 'STOP_LIMIT';
+            $params = $this->omit($params, 'triggerPrice');
+        }
+        $request['type'] = strtoupper($type);
+        $response = Async\await($this->privatePostV2Orders($this->extend($request, $params)));
+        //
+        //     {
+        //         "message" => "Command acknowledged - CreateOrder",
+        //         "requestId" => "633910976353665024",
+        //         "orderId" => "633910775316480001",
+        //         "clientOrderId" => "1234567"
+        //     }
+        //
+        return $this->parse_order($response, $market);
     }
 
     public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
-        return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
-            /**
-             * edit a trade limit order
-             *
-             * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#post-/v2/command-amend
-             *
-             * @param {string} $id order $id
-             * @param {string} [$symbol] unified $symbol of the $market to create an order in
-             * @param {string} [$type] 'limit' or 'POST_ONLY'
-             * @param {string} [$side] not used by bullish editOrder
-             * @param {float} [$amount] how much of the currency you want to trade in units of the base currency
-             * @param {float} [$price] the $price for the order, in units of the quote currency, ignored in $market orders
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->traidingAccountId] the trading account $id (mandatory parameter)
-             * @param {bool} [$params->postOnly] if true, the order will only be posted to the order book and not executed immediately (default is false)
-             * @param {string} [$params->clientOrderId] a unique identifier for the order, automatically generated if not sent
-             * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
-             */
-            Async\await(Promise\all(array( $this->load_markets(), $this->handle_token() )));
-            $tradingAccountId = Async\await($this->load_account($params));
-            $market = $this->market($symbol);
-            $request = array(
-                'commandType' => 'V1AmendOrder',
-                'symbol' => $market['id'],
-                'tradingAccountId' => $tradingAccountId,
-            );
-            $clientOrderId = $this->safe_string($params, 'clientOrderId');
-            if ($clientOrderId === null) {
-                $request['orderId'] = $id;
-            }
-            if ($type !== null) {
-                $request['type'] = strtoupper($type);
-            }
-            $postOnly = $this->safe_bool($params, 'postOnly', false);
-            if ($postOnly) {
-                $params = $this->omit($params, 'postOnly');
-                $request['type'] = 'POST_ONLY';
-            }
-            if ($amount !== null) {
-                $request['quantity'] = $this->amount_to_precision($symbol, $amount);
-            }
-            if ($price !== null) {
-                $request['price'] = $this->price_to_precision($symbol, $price);
-            }
-            $response = Async\await($this->privatePostV2Command($this->extend($request, $params)));
-            return $this->parse_order($response, $market);
-        })();
+        return Async\async(self::do_edit_order(...))($id, $symbol, $type, $side, $amount, $price, $params);
+    }
+
+    private function do_edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
+        /**
+         * edit a trade limit order
+         *
+         * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#post-/v2/command-amend
+         *
+         * @param {string} $id order $id
+         * @param {string} [$symbol] unified $symbol of the $market to create an order in
+         * @param {string} [$type] 'limit' or 'POST_ONLY'
+         * @param {string} [$side] not used by bullish editOrder
+         * @param {float} [$amount] how much of the currency you want to trade in units of the base currency
+         * @param {float} [$price] the $price for the order, in units of the quote currency, ignored in $market orders
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->traidingAccountId] the trading account $id (mandatory parameter)
+         * @param {bool} [$params->postOnly] if true, the order will only be posted to the order book and not executed immediately (default is false)
+         * @param {string} [$params->clientOrderId] a unique identifier for the order, automatically generated if not sent
+         * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
+         */
+        Async\await(Promise\all(array( $this->load_markets(), $this->handle_token() )));
+        $tradingAccountId = Async\await($this->load_account($params));
+        $market = $this->market($symbol);
+        $request = array(
+            'commandType' => 'V1AmendOrder',
+            'symbol' => $market['id'],
+            'tradingAccountId' => $tradingAccountId,
+        );
+        $clientOrderId = $this->safe_string($params, 'clientOrderId');
+        if ($clientOrderId === null) {
+            $request['orderId'] = $id;
+        }
+        if ($type !== null) {
+            $request['type'] = strtoupper($type);
+        }
+        $postOnly = $this->safe_bool($params, 'postOnly', false);
+        if ($postOnly === true) {
+            $params = $this->omit($params, 'postOnly');
+            $request['type'] = 'POST_ONLY';
+        }
+        if ($amount !== null) {
+            $request['quantity'] = $this->amount_to_precision($symbol, $amount);
+        }
+        if ($price !== null) {
+            $request['price'] = $this->price_to_precision($symbol, $price);
+        }
+        $response = Async\await($this->privatePostV2Command($this->extend($request, $params)));
+        return $this->parse_order($response, $market);
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($id, $symbol, $params) {
-            /**
-             * cancels an open order
-             *
-             * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#post-/v2/command-cancellations
-             *
-             * @param {string} [$id] order $id
-             * @param {string} $symbol unified $symbol of the $market the order was made in
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} $params->commandType the command type, default is 'V3CancelOrder' (mandatory parameter)
-             * @param {string} [$params->traidingAccountId] the trading account $id (mandatory parameter)
-             * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
-             */
-            Async\await(Promise\all(array( $this->load_markets(), $this->handle_token() )));
-            $tradingAccountId = Async\await($this->load_account($params));
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
-            }
-            $market = $this->market($symbol);
-            $request = array(
-                'symbol' => $market['id'],
-                'tradingAccountId' => $tradingAccountId,
-                'commandType' => $this->safe_string($params, 'commandType', 'V3CancelOrder'),
-                'orderId' => $id,
-            );
-            $response = Async\await($this->privatePostV2Command($this->extend($request, $params)));
-            //
-            //     {
-            //         "message" => "Command acknowledged - CancelOrder",
-            //         "requestId" => "844658480774644736",
-            //         "orderId" => "297735387747975680",
-            //         "clientOrderId" => null
-            //     }
-            //
-            return $this->parse_order($response, $market);
-        })();
+        return Async\async(self::do_cancel_order(...))($id, $symbol, $params);
+    }
+
+    private function do_cancel_order(string $id, ?string $symbol = null, $params = array()) {
+        /**
+         * cancels an open order
+         *
+         * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#post-/v2/command-cancellations
+         *
+         * @param {string} [$id] order $id
+         * @param {string} $symbol unified $symbol of the $market the order was made in
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} $params->commandType the command type, default is 'V3CancelOrder' (mandatory parameter)
+         * @param {string} [$params->traidingAccountId] the trading account $id (mandatory parameter)
+         * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
+         */
+        Async\await(Promise\all(array( $this->load_markets(), $this->handle_token() )));
+        $tradingAccountId = Async\await($this->load_account($params));
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+            'tradingAccountId' => $tradingAccountId,
+            'commandType' => $this->safe_string($params, 'commandType', 'V3CancelOrder'),
+            'orderId' => $id,
+        );
+        $response = Async\await($this->privatePostV2Command($this->extend($request, $params)));
+        //
+        //     {
+        //         "message" => "Command acknowledged - CancelOrder",
+        //         "requestId" => "844658480774644736",
+        //         "orderId" => "297735387747975680",
+        //         "clientOrderId" => null
+        //     }
+        //
+        return $this->parse_order($response, $market);
     }
 
     public function cancel_all_orders(?string $symbol = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * cancel all open $orders in a $market
-             *
-             * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#post-/v2/command-cancellations
-             *
-             * @param {string} [$symbol] alpaca cancelAllOrders cannot setting $symbol, it will cancel all open $orders
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} $params->traidingAccountId the trading account id (mandatory parameter)
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            Async\await(Promise\all(array( $this->load_markets(), $this->handle_token() )));
-            $tradingAccountId = Async\await($this->load_account($params));
-            $request = array(
-                'tradingAccountId' => $tradingAccountId,
-            );
-            $market = null;
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-                $request['symbol'] = $market['id'];
-                $request['commandType'] = 'V1CancelAllOrdersByMarket';
-            } else {
-                $request['commandType'] = 'V1CancelAllOrders';
-            }
-            $response = Async\await($this->privatePostV2Command($this->extend($request, $params)));
-            //
-            //     {
-            //         "message" => "Command acknowledged - CancelAllOrders",
-            //         "requestId" => "633900538459062272"
-            //     }
-            //
-            $orders = array( $response );
-            return $this->parse_orders($orders, $market);
-        })();
+        return Async\async(self::do_cancel_all_orders(...))($symbol, $params);
+    }
+
+    private function do_cancel_all_orders(?string $symbol = null, $params = array()) {
+        /**
+         * cancel all open $orders in a $market
+         *
+         * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#post-/v2/command-cancellations
+         *
+         * @param {string} [$symbol] alpaca cancelAllOrders cannot setting $symbol, it will cancel all open $orders
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} $params->traidingAccountId the trading account id (mandatory parameter)
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        Async\await(Promise\all(array( $this->load_markets(), $this->handle_token() )));
+        $tradingAccountId = Async\await($this->load_account($params));
+        $request = array(
+            'tradingAccountId' => $tradingAccountId,
+        );
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['symbol'] = $market['id'];
+            $request['commandType'] = 'V1CancelAllOrdersByMarket';
+        } else {
+            $request['commandType'] = 'V1CancelAllOrders';
+        }
+        $response = Async\await($this->privatePostV2Command($this->extend($request, $params)));
+        //
+        //     {
+        //         "message" => "Command acknowledged - CancelAllOrders",
+        //         "requestId" => "633900538459062272"
+        //     }
+        //
+        $orders = array( $response );
+        return $this->parse_orders($orders, $market);
     }
 
     public function parse_order(array $order, ?array $market = null): array {
@@ -2085,120 +2133,124 @@ class bullish extends Exchange {
     }
 
     public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($code, $since, $limit, $params) {
-            /**
-             * fetch history of deposits and withdrawals
-             *
-             * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/wallets/transactions
-             *
-             * @param {string} [$code] unified $currency $code for the $currency of the deposit/withdrawals, default is null
-             * @param {int} [$since] timestamp in ms of the earliest deposit/withdrawal, default is null
-             * @param {int} [$limit] max number of deposit/withdrawals to return, default is null
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
-             */
-            Async\await(Promise\all(array( $this->load_markets(), $this->handle_token() )));
-            $request = array();
-            list($request, $params) = $this->handle_until_option('createdAtDatetime[lte]', $request, $params);
-            $until = $this->safe_integer($request, 'createdAtDatetime[lte]');
-            if ($until !== null) {
-                $request['createdAtDatetime[lte]'] = $this->iso8601($until);
-            }
-            if ($since !== null) {
-                $request['createdAtDatetime[gte]'] = $this->iso8601($since);
-            }
-            $response = Async\await($this->privateGetV1WalletsTransactions($this->extend($request, $params)));
-            //
-            //     {
-            //         "data" => array(
-            //             {
-            //                 "custodyTransactionId" => "0x791fc85f16a84cbd5250d5517ecad497f564d2e5cc54d31466fe70b952fd58da",
-            //                 "direction" => "DEPOSIT",
-            //                 "quantity" => "150",
-            //                 "symbol" => "USDC",
-            //                 "fee" => "0",
-            //                 "memo" => "0x34625d5f0b6575503a0669994dea24271bfbd443",
-            //                 "createdAtDateTime" => "2025-11-04T14:31:17.000Z",
-            //                 "updatedAtDateTime" => "2025-11-04T14:44:17.500Z",
-            //                 "status" => "COMPLETE",
-            //                 "statusReason" => "OK",
-            //                 "network" => "ETH",
-            //                 "transactionDetails" => {
-            //                     "address" => "0x34625d5f0b6575503a0669994dea24271bfbd443",
-            //                     "blockchainTxId" => "0x791fc85f16a84cbd5250d5517ecad497f564d2e5cc54d31466fe70b952fd58da",
-            //                     "swiftUetr" => null,
-            //                     "sources" => array(
-            //                         {
-            //                             "address" => "0x2653435d52a5f49551ebb757f25b2c8bb954859b"
-            //                         }
-            //                     )
-            //                 }
-            //             }
-            //         ),
-            //         "links" => array(
-            //             "previous" => null,
-            //             "next" => null
-            //         ),
-            //         "totalCount" => 1
-            //     }
-            //
-            $data = $this->safe_list($response, 'data', array());
-            $currency = null;
-            if ($code !== null) {
-                $currency = $this->currency($code);
-            }
-            return $this->parse_transactions($data, $currency, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_deposits_withdrawals(...))($code, $since, $limit, $params);
+    }
+
+    private function do_fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetch history of deposits and withdrawals
+         *
+         * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/wallets/transactions
+         *
+         * @param {string} [$code] unified $currency $code for the $currency of the deposit/withdrawals, default is null
+         * @param {int} [$since] timestamp in ms of the earliest deposit/withdrawal, default is null
+         * @param {int} [$limit] max number of deposit/withdrawals to return, default is null
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
+         */
+        Async\await(Promise\all(array( $this->load_markets(), $this->handle_token() )));
+        $request = array();
+        list($request, $params) = $this->handle_until_option('createdAtDatetime[lte]', $request, $params);
+        $until = $this->safe_integer($request, 'createdAtDatetime[lte]');
+        if ($until !== null) {
+            $request['createdAtDatetime[lte]'] = $this->iso8601($until);
+        }
+        if ($since !== null) {
+            $request['createdAtDatetime[gte]'] = $this->iso8601($since);
+        }
+        $response = Async\await($this->privateGetV1WalletsTransactions($this->extend($request, $params)));
+        //
+        //     {
+        //         "data" => array(
+        //             {
+        //                 "custodyTransactionId" => "0x791fc85f16a84cbd5250d5517ecad497f564d2e5cc54d31466fe70b952fd58da",
+        //                 "direction" => "DEPOSIT",
+        //                 "quantity" => "150",
+        //                 "symbol" => "USDC",
+        //                 "fee" => "0",
+        //                 "memo" => "0x34625d5f0b6575503a0669994dea24271bfbd443",
+        //                 "createdAtDateTime" => "2025-11-04T14:31:17.000Z",
+        //                 "updatedAtDateTime" => "2025-11-04T14:44:17.500Z",
+        //                 "status" => "COMPLETE",
+        //                 "statusReason" => "OK",
+        //                 "network" => "ETH",
+        //                 "transactionDetails" => {
+        //                     "address" => "0x34625d5f0b6575503a0669994dea24271bfbd443",
+        //                     "blockchainTxId" => "0x791fc85f16a84cbd5250d5517ecad497f564d2e5cc54d31466fe70b952fd58da",
+        //                     "swiftUetr" => null,
+        //                     "sources" => array(
+        //                         {
+        //                             "address" => "0x2653435d52a5f49551ebb757f25b2c8bb954859b"
+        //                         }
+        //                     )
+        //                 }
+        //             }
+        //         ),
+        //         "links" => array(
+        //             "previous" => null,
+        //             "next" => null
+        //         ),
+        //         "totalCount" => 1
+        //     }
+        //
+        $data = $this->safe_list($response, 'data', array());
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+        }
+        return $this->parse_transactions($data, $currency, $since, $limit);
     }
 
     public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($code, $amount, $address, $tag, $params) {
-            /**
-             * make a withdrawal
-             *
-             * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#post-/v1/wallets/withdrawal
-             *
-             * @param {string} $code unified $currency $code
-             * @param {float} $amount the $amount to withdraw
-             * @param {string} $address the $address to withdraw to
-             * @param {string} [$tag]
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} $params->timestamp the timestamp of the withdrawal $request (mandatory)
-             * @param {string} $params->nonce the nonce of the withdrawal $request (mandatory)
-             * @param {string} $params->network network for withdraw (mandatory)
-             * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
-             */
-            Async\await(Promise\all(array( $this->load_markets(), $this->handle_token() )));
-            // todo check this method properly
-            $currency = $this->currency($code);
-            $request = array(
-                'command' => array(
-                    'commandType' => 'V1Withdraw',
-                    'destinationId' => $address,
-                    'symbol' => $currency['id'],
-                    'quantity' => $this->currency_to_precision($code, $amount),
-                ),
-            );
-            $networkCode = null;
-            list($networkCode, $params) = $this->handle_network_code_and_params($params);
-            if ($networkCode !== null) {
-                $request['network'] = $this->network_code_to_id($networkCode, $code);
-            } else {
-                throw new ArgumentsRequired($this->id . ' withdraw() requires a network parameter');
-            }
-            $response = Async\await($this->privatePostV1WalletsWithdrawal($this->extend($request, $params)));
-            //
-            //     {
-            //         "code" => "00000",
-            //         "msg" => "success",
-            //         "data" => {
-            //             "orderId":888291686266343424",
-            //             "clientOrderId":"123"
-            //         }
-            //     }
-            //
-            return $this->parse_transaction($response, $currency);
-        })();
+        return Async\async(self::do_withdraw(...))($code, $amount, $address, $tag, $params);
+    }
+
+    private function do_withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()) {
+        /**
+         * make a withdrawal
+         *
+         * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#post-/v1/wallets/withdrawal
+         *
+         * @param {string} $code unified $currency $code
+         * @param {float} $amount the $amount to withdraw
+         * @param {string} $address the $address to withdraw to
+         * @param {string} [$tag]
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} $params->timestamp the timestamp of the withdrawal $request (mandatory)
+         * @param {string} $params->nonce the nonce of the withdrawal $request (mandatory)
+         * @param {string} $params->network network for withdraw (mandatory)
+         * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
+         */
+        Async\await(Promise\all(array( $this->load_markets(), $this->handle_token() )));
+        // todo check this method properly
+        $currency = $this->currency($code);
+        $request = array(
+            'command' => array(
+                'commandType' => 'V1Withdraw',
+                'destinationId' => $address,
+                'symbol' => $currency['id'],
+                'quantity' => $this->currency_to_precision($code, $amount),
+            ),
+        );
+        $networkCode = null;
+        list($networkCode, $params) = $this->handle_network_code_and_params($params);
+        if ($networkCode !== null) {
+            $request['network'] = $this->network_code_to_id($networkCode, $code);
+        } else {
+            throw new ArgumentsRequired($this->id . ' withdraw() requires a network parameter');
+        }
+        $response = Async\await($this->privatePostV1WalletsWithdrawal($this->extend($request, $params)));
+        //
+        //     {
+        //         "code" => "00000",
+        //         "msg" => "success",
+        //         "data" => {
+        //             "orderId":888291686266343424",
+        //             "clientOrderId":"123"
+        //         }
+        //     }
+        //
+        return $this->parse_transaction($response, $currency);
     }
 
     public function parse_transaction(array $transaction, ?array $currency = null): array {
@@ -2276,7 +2328,7 @@ class bullish extends Exchange {
         );
     }
 
-    public function parse_transaction_type($type) {
+    public function parse_transaction_type(mixed $type) {
         $types = array(
             'DEPOSIT' => 'deposit',
             'WITHDRAW' => 'withdrawal',
@@ -2295,121 +2347,126 @@ class bullish extends Exchange {
     }
 
     public function load_account($params = array()) {
-        return Async\async(function () use ($params) {
-            $tradingAccountId = null;
-            list($tradingAccountId, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'tradingAccountId');
-            if ($tradingAccountId === null) {
-                $response = Async\await($this->privateGetV1AccountsTradingAccounts($params));
-                for ($i = 0; $i < count($response); $i++) {
-                    $account = $response[$i];
-                    $name = $this->safe_string($account, 'tradingAccountName');
-                    if ($name === 'Primary Account') {
-                        $tradingAccountId = $this->safe_string($account, 'tradingAccountId');
-                        break;
-                    }
+        return Async\async(self::do_load_account(...))($params);
+    }
+
+    private function do_load_account($params = array()) {
+        $tradingAccountId = null;
+        list($tradingAccountId, $params) = $this->handle_option_and_params($params, 'loadAccount', 'tradingAccountId');
+        if ($tradingAccountId === null) {
+            $response = Async\await($this->privateGetV1AccountsTradingAccounts($params));
+            $accounts = $this->to_array($response);
+            for ($i = 0; $i < count($accounts); $i++) {
+                $account = $accounts[$i];
+                $name = $this->safe_string($account, 'tradingAccountName');
+                if ($name === 'Primary Account') {
+                    $tradingAccountId = $this->safe_string($account, 'tradingAccountId');
+                    break;
                 }
             }
-            if ($tradingAccountId === null) {
-                throw new ArgumentsRequired($this->id . ' loadAccount() requires a $tradingAccountId parameter in options["tradingAccountId"] or $params["tradingAccountId"], fetchAccounts() was not able to find the Primary account');
-            }
-            $this->options['tradingAccountId'] = $tradingAccountId;
-            return $tradingAccountId;
-        })();
+        }
+        if ($tradingAccountId === null) {
+            throw new ArgumentsRequired($this->id . ' loadAccount() requires a $tradingAccountId parameter in options["tradingAccountId"] or $params["tradingAccountId"], fetchAccounts() was not able to find the Primary account');
+        }
+        $this->options['tradingAccountId'] = $tradingAccountId;
+        return $tradingAccountId;
     }
 
     public function fetch_accounts($params = array()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             * fetch all the accounts associated with a profile
-             *
-             * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#tag--trading-accounts
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=account-structure account structures~ indexed by the account type
-             */
-            Async\await(Promise\all(array( $this->load_markets(), $this->handle_token() )));
-            $response = Async\await($this->privateGetV1AccountsTradingAccounts($params));
-            //
-            //     array(
-            //         {
-            //             "defaultedMarginUSD" => "0.0000",
-            //             "endCustomerId" => "222801149768465",
-            //             "fullLiquidationMarginUSD" => "0.0000",
-            //             "initialMarginUSD" => "0.0000",
-            //             "isBorrowing" => "false",
-            //             "isConcentrationRiskEnabled" => "true",
-            //             "isDefaulted" => "false",
-            //             "isLending" => "false",
-            //             "isPrimaryAccount" => "true",
-            //             "liquidationMarginUSD" => "0.0000",
-            //             "liquidityAddonUSD" => "0.0000",
-            //             "makerFee" => "0.00000000",
-            //             "marginProfile" => array(
-            //                 "defaultedMarketRiskMultiplierPct" => "50.00",
-            //                 "fullLiquidationMarketRiskMultiplierPct" => "75.00",
-            //                 "initialMarketRiskMultiplierPct" => "200.00",
-            //                 "liquidationMarketRiskMultiplierPct" => "100.00",
-            //                 "warningMarketRiskMultiplierPct" => "150.00"
-            //             ),
-            //             "marketRiskUSD" => "0.0000",
-            //             "maxInitialLeverage" => "1",
-            //             "rateLimitToken" => "7fc358f0bad4124528318ff415e24f1ad6e530321827162a5e35d8de8dcfc750",
-            //             "riskLimitUSD" => "0.0000",
-            //             "takerFee" => "0.00000002",
-            //             "totalBorrowedUSD" => "0.0000",
-            //             "totalCollateralUSD" => "0.0000",
-            //             "totalLiabilitiesUSD" => "0.0000",
-            //             "tradeFeeRate" => array(
-            //                 array(
-            //                     "feeGroupId" => "1",
-            //                     "makerFee" => "0.00000000",
-            //                     "takerFee" => "0.00000000"
-            //                 ),
-            //                 array(
-            //                     "feeGroupId" => "2",
-            //                     "makerFee" => "0.00000000",
-            //                     "takerFee" => "0.00000000"
-            //                 ),
-            //                 array(
-            //                     "feeGroupId" => "3",
-            //                     "makerFee" => "0.00000000",
-            //                     "takerFee" => "0.00000000"
-            //                 ),
-            //                 array(
-            //                     "feeGroupId" => "4",
-            //                     "makerFee" => "0.00000000",
-            //                     "takerFee" => "0.00000000"
-            //                 ),
-            //                 array(
-            //                     "feeGroupId" => "5",
-            //                     "makerFee" => "0.00000000",
-            //                     "takerFee" => "0.00000000"
-            //                 ),
-            //                 array(
-            //                     "feeGroupId" => "6",
-            //                     "makerFee" => "0.00000000",
-            //                     "takerFee" => "0.00000000"
-            //                 ),
-            //                 array(
-            //                     "feeGroupId" => "7",
-            //                     "makerFee" => "0.00000000",
-            //                     "takerFee" => "0.00000000"
-            //                 ),
-            //                 {
-            //                     "feeGroupId" => "8",
-            //                     "makerFee" => "0.00000000",
-            //                     "takerFee" => "0.00000000"
-            //                 }
-            //             ),
-            //             "tradingAccountDescription" => null,
-            //             "tradingAccountId" => "111309424211255",
-            //             "tradingAccountName" => "Primary Account",
-            //             "warningMarginUSD" => "0.0000"
-            //         }
-            //     )
-            //
-            return $this->parse_accounts($response, $params);
-        })();
+        return Async\async(self::do_fetch_accounts(...))($params);
+    }
+
+    private function do_fetch_accounts($params = array()) {
+        /**
+         * fetch all the accounts associated with a profile
+         *
+         * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#tag--trading-accounts
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=account-structure account structures~ indexed by the account type
+         */
+        Async\await(Promise\all(array( $this->load_markets(), $this->handle_token() )));
+        $response = Async\await($this->privateGetV1AccountsTradingAccounts($params));
+        //
+        //     array(
+        //         {
+        //             "defaultedMarginUSD" => "0.0000",
+        //             "endCustomerId" => "222801149768465",
+        //             "fullLiquidationMarginUSD" => "0.0000",
+        //             "initialMarginUSD" => "0.0000",
+        //             "isBorrowing" => "false",
+        //             "isConcentrationRiskEnabled" => "true",
+        //             "isDefaulted" => "false",
+        //             "isLending" => "false",
+        //             "isPrimaryAccount" => "true",
+        //             "liquidationMarginUSD" => "0.0000",
+        //             "liquidityAddonUSD" => "0.0000",
+        //             "makerFee" => "0.00000000",
+        //             "marginProfile" => array(
+        //                 "defaultedMarketRiskMultiplierPct" => "50.00",
+        //                 "fullLiquidationMarketRiskMultiplierPct" => "75.00",
+        //                 "initialMarketRiskMultiplierPct" => "200.00",
+        //                 "liquidationMarketRiskMultiplierPct" => "100.00",
+        //                 "warningMarketRiskMultiplierPct" => "150.00"
+        //             ),
+        //             "marketRiskUSD" => "0.0000",
+        //             "maxInitialLeverage" => "1",
+        //             "rateLimitToken" => "7fc358f0bad4124528318ff415e24f1ad6e530321827162a5e35d8de8dcfc750",
+        //             "riskLimitUSD" => "0.0000",
+        //             "takerFee" => "0.00000002",
+        //             "totalBorrowedUSD" => "0.0000",
+        //             "totalCollateralUSD" => "0.0000",
+        //             "totalLiabilitiesUSD" => "0.0000",
+        //             "tradeFeeRate" => array(
+        //                 array(
+        //                     "feeGroupId" => "1",
+        //                     "makerFee" => "0.00000000",
+        //                     "takerFee" => "0.00000000"
+        //                 ),
+        //                 array(
+        //                     "feeGroupId" => "2",
+        //                     "makerFee" => "0.00000000",
+        //                     "takerFee" => "0.00000000"
+        //                 ),
+        //                 array(
+        //                     "feeGroupId" => "3",
+        //                     "makerFee" => "0.00000000",
+        //                     "takerFee" => "0.00000000"
+        //                 ),
+        //                 array(
+        //                     "feeGroupId" => "4",
+        //                     "makerFee" => "0.00000000",
+        //                     "takerFee" => "0.00000000"
+        //                 ),
+        //                 array(
+        //                     "feeGroupId" => "5",
+        //                     "makerFee" => "0.00000000",
+        //                     "takerFee" => "0.00000000"
+        //                 ),
+        //                 array(
+        //                     "feeGroupId" => "6",
+        //                     "makerFee" => "0.00000000",
+        //                     "takerFee" => "0.00000000"
+        //                 ),
+        //                 array(
+        //                     "feeGroupId" => "7",
+        //                     "makerFee" => "0.00000000",
+        //                     "takerFee" => "0.00000000"
+        //                 ),
+        //                 {
+        //                     "feeGroupId" => "8",
+        //                     "makerFee" => "0.00000000",
+        //                     "takerFee" => "0.00000000"
+        //                 }
+        //             ),
+        //             "tradingAccountDescription" => null,
+        //             "tradingAccountId" => "111309424211255",
+        //             "tradingAccountName" => "Primary Account",
+        //             "warningMarginUSD" => "0.0000"
+        //         }
+        //     )
+        //
+        return $this->parse_accounts($response, $params);
     }
 
     public function parse_account(array $account): array {
@@ -2422,65 +2479,67 @@ class bullish extends Exchange {
     }
 
     public function fetch_deposit_address(string $code, $params = array()): PromiseInterface {
-        return Async\async(function () use ($code, $params) {
-            /**
-             * fetch the deposit address for a $currency associated with this account
-             *
-             * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/wallets/deposit-instructions/crypto/-symbol-
-             *
-             * @param {string} $code unified $currency $code
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->network] $network for deposit address
-             * @return {array} an ~@link https://docs.ccxt.com/?id=address-structure address structure~
-             */
-            Async\await(Promise\all(array( $this->load_markets(), $this->handle_token() )));
-            $currency = $this->currency($code);
-            $request = array(
-                'symbol' => $currency['id'],
-            );
-            $response = Async\await($this->privateGetV1WalletsDepositInstructionsCryptoSymbol($this->extend($request, $params)));
-            //
-            //     array(
-            //         {
-            //             "network" => "ETH",
-            //             "address" => "0xc2fc755082d052bb334763b144851a0031999f33",
-            //             "symbol" => "ETH"
-            //         }
-            //     )
-            //
-            $safeResponse = $this->to_array($response);
-            $length = count($safeResponse);
-            $data = $this->safe_dict($safeResponse, 0, array());
-            $network = null;
-            list($network, $params) = $this->handle_network_code_and_params($params);
-            $networkDefinedByUser = $network !== null;
-            if (($length > 1) || ($networkDefinedByUser)) {
-                // some currencies have multiple networks
-                if ($network === null) {
-                    // use default $network if not specified and multiple are available
-                    $network = $this->default_network_code($code);
-                }
-                if ($network !== null) {
-                    // find the $entry that matches the $network or return first $entry if not found and user did not specify a $network
-                    for ($i = 0; $i < count($safeResponse); $i++) {
-                        $entry = $this->safe_dict($safeResponse, $i, array());
-                        $networkId = $this->safe_string($entry, 'network');
-                        $networkCode = $this->network_id_to_code($networkId, $code);
-                        if ($network === $networkCode) {
-                            $data = $entry;
-                            break;
-                        }
-                    }
-                    if ($networkDefinedByUser) {
-                        $data = array(); // return an empty structure if the user-defined $network was not found
-                    }
-                }
-            }
-            return $this->parse_deposit_address($data, $currency);
-        })();
+        return Async\async(self::do_fetch_deposit_address(...))($code, $params);
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
+    private function do_fetch_deposit_address(string $code, $params = array()) {
+        /**
+         * fetch the deposit address for a $currency associated with this account
+         *
+         * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/wallets/deposit-instructions/crypto/-symbol-
+         *
+         * @param {string} $code unified $currency $code
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->network] $network for deposit address
+         * @return {array} an ~@link https://docs.ccxt.com/?id=address-structure address structure~
+         */
+        Async\await(Promise\all(array( $this->load_markets(), $this->handle_token() )));
+        $currency = $this->currency($code);
+        $request = array(
+            'symbol' => $currency['id'],
+        );
+        $response = Async\await($this->privateGetV1WalletsDepositInstructionsCryptoSymbol($this->extend($request, $params)));
+        //
+        //     array(
+        //         {
+        //             "network" => "ETH",
+        //             "address" => "0xc2fc755082d052bb334763b144851a0031999f33",
+        //             "symbol" => "ETH"
+        //         }
+        //     )
+        //
+        $safeResponse = $this->to_array($response);
+        $length = count($safeResponse);
+        $data = $this->safe_dict($safeResponse, 0, array());
+        $network = null;
+        list($network, $params) = $this->handle_network_code_and_params($params);
+        $networkDefinedByUser = $network !== null;
+        if (($length > 1) || ($networkDefinedByUser)) {
+            // some currencies have multiple networks
+            if ($network === null) {
+                // use default $network if not specified and multiple are available
+                $network = $this->default_network_code($code);
+            }
+            if ($network !== null) {
+                // find the $entry that matches the $network or return first $entry if not found and user did not specify a $network
+                for ($i = 0; $i < count($safeResponse); $i++) {
+                    $entry = $this->safe_dict($safeResponse, $i, array());
+                    $networkId = $this->safe_string($entry, 'network');
+                    $networkCode = $this->network_id_to_code($networkId, $code);
+                    if ($network === $networkCode) {
+                        $data = $entry;
+                        break;
+                    }
+                }
+                if ($networkDefinedByUser) {
+                    $data = array(); // return an empty structure if the user-defined $network was not found
+                }
+            }
+        }
+        return $this->parse_deposit_address($data, $currency);
+    }
+
+    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
         $id = $this->safe_string($depositAddress, 'symbol');
         $network = $this->safe_string($depositAddress, 'network');
         $code = $this->safe_currency_code($id, $currency);
@@ -2494,53 +2553,55 @@ class bullish extends Exchange {
     }
 
     public function fetch_balance($params = array()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             * query for balance and get the amount of funds available for trading or funds locked in orders
-             *
-             * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/accounts/asset
-             * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/accounts/asset/-symbol-
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} $params->tradingAccountId the trading account id (mandatory parameter)
-             * @param {string} [$params->code] unified currency $code, default is null
-             * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
-             */
-            Async\await(Promise\all(array( $this->load_markets(), $this->handle_token() )));
-            $tradingAccountId = Async\await($this->load_account($params));
-            $request = array(
-                'tradingAccountId' => $tradingAccountId,
-            );
-            $response = null;
-            $code = $this->safe_string($params, 'code');
-            if ($code !== null) {
-                $request['symbol'] = $this->currency($code)['id'];
-                $response = Async\await($this->privateGetV1AccountsAssetSymbol($this->extend($request, $params)));
-                return $this->parse_balance_for_single_currency($response, $code);
-            } else {
-                $response = Async\await($this->privateGetV1AccountsAsset($this->extend($request, $params)));
-                //
-                //     array(
-                //         array(
-                //             "assetId" => "10",
-                //             "assetSymbol" => "AAVE",
-                //             "availableQuantity" => "10000000.00000000",
-                //             "borrowedQuantity" => "0.00000000",
-                //             "loanedQuantity" => "0.00000000",
-                //             "lockedQuantity" => "0.00000000",
-                //             "publishedAtTimestamp" => "1747942728870",
-                //             "tradingAccountId" => "111309424211255",
-                //             "updatedAtDatetime" => "2025-05-13T11:33:08.801Z",
-                //             "updatedAtTimestamp" => "1747135988801"
-                //         ), ...
-                //     )
-                //
-                return $this->parse_balance($response);
-            }
-        })();
+        return Async\async(self::do_fetch_balance(...))($params);
     }
 
-    public function parse_balance_for_single_currency($response, ?string $code): array {
+    private function do_fetch_balance($params = array()) {
+        /**
+         * query for balance and get the amount of funds available for trading or funds locked in orders
+         *
+         * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/accounts/asset
+         * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/accounts/asset/-symbol-
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} $params->tradingAccountId the trading account id (mandatory parameter)
+         * @param {string} [$params->code] unified currency $code, default is null
+         * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
+         */
+        Async\await(Promise\all(array( $this->load_markets(), $this->handle_token() )));
+        $tradingAccountId = Async\await($this->load_account($params));
+        $request = array(
+            'tradingAccountId' => $tradingAccountId,
+        );
+        $response = null;
+        $code = $this->safe_string($params, 'code');
+        if ($code !== null) {
+            $request['symbol'] = $this->currency($code)['id'];
+            $response = Async\await($this->privateGetV1AccountsAssetSymbol($this->extend($request, $params)));
+            return $this->parse_balance_for_single_currency($response, $code);
+        } else {
+            $response = Async\await($this->privateGetV1AccountsAsset($this->extend($request, $params)));
+            //
+            //     array(
+            //         array(
+            //             "assetId" => "10",
+            //             "assetSymbol" => "AAVE",
+            //             "availableQuantity" => "10000000.00000000",
+            //             "borrowedQuantity" => "0.00000000",
+            //             "loanedQuantity" => "0.00000000",
+            //             "lockedQuantity" => "0.00000000",
+            //             "publishedAtTimestamp" => "1747942728870",
+            //             "tradingAccountId" => "111309424211255",
+            //             "updatedAtDatetime" => "2025-05-13T11:33:08.801Z",
+            //             "updatedAtTimestamp" => "1747135988801"
+            //         ), ...
+            //     )
+            //
+            return $this->parse_balance($response);
+        }
+    }
+
+    public function parse_balance_for_single_currency(mixed $response, ?string $code): array {
         $result = array( 'info' => $response );
         $account = $this->account();
         $account['free'] = $this->safe_string($response, 'availableQuantity');
@@ -2549,7 +2610,7 @@ class bullish extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         $result = array(
             'info' => $response,
         );
@@ -2560,53 +2621,57 @@ class bullish extends Exchange {
             $account = $this->account();
             $account['total'] = $this->safe_string($balance, 'availableQuantity');
             $account['used'] = $this->safe_string($balance, 'lockedQuantity');
-            $result[$code] = $account;
+            if ($code !== null) {
+                $result[$code] = $account;
+            }
         }
         return $this->safe_balance($result);
     }
 
     public function fetch_positions(?array $symbols = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             * fetch all open positions
-             *
-             * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/derivatives-positions
-             *
-             * @param {string[]|null} $symbols list of unified market $symbols
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} $params->tradingAccountId the trading account id
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
-             */
-            Async\await(Promise\all(array( $this->load_markets(), $this->handle_token() )));
-            $tradingAccountId = Async\await($this->load_account($params));
-            $request = array(
-                'tradingAccountId' => $tradingAccountId,
-            );
-            $response = Async\await($this->privateGetV1DerivativesPositions($this->extend($request, $params)));
-            //
-            //     array(
-            //         {
-            //             "tradingAccountId" => "111000000000001",
-            //             "symbol" => "BTC-USDC-PERP",
-            //             "side" => "BUY",
-            //             "quantity" => "1.00000000",
-            //             "notional" => "1.0000",
-            //             "entryNotional" => "1.0000",
-            //             "mtmPnl" => "1.0000",
-            //             "reportedMtmPnl" => "1.0000",
-            //             "reportedFundingPnl" => "1.0000",
-            //             "realizedPnl" => "1.0000",
-            //             "settlementAssetSymbol" => "USDC",
-            //             "createdAtDatetime" => "2021-05-20T01:01:01.000Z",
-            //             "createdAtTimestamp" => "1621490985000",
-            //             "updatedAtDatetime" => "2021-05-20T01:01:01.000Z",
-            //             "updatedAtTimestamp" => "1621490985000"
-            //         }
-            //     )
-            //
-            $results = $this->parse_positions($response, $symbols);
-            return $this->filter_by_array_positions($results, 'symbol', $symbols, false);
-        })();
+        return Async\async(self::do_fetch_positions(...))($symbols, $params);
+    }
+
+    private function do_fetch_positions(?array $symbols = null, $params = array()) {
+        /**
+         * fetch all open positions
+         *
+         * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/derivatives-positions
+         *
+         * @param {string[]|null} $symbols list of unified market $symbols
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} $params->tradingAccountId the trading account id
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
+         */
+        Async\await(Promise\all(array( $this->load_markets(), $this->handle_token() )));
+        $tradingAccountId = Async\await($this->load_account($params));
+        $request = array(
+            'tradingAccountId' => $tradingAccountId,
+        );
+        $response = Async\await($this->privateGetV1DerivativesPositions($this->extend($request, $params)));
+        //
+        //     array(
+        //         {
+        //             "tradingAccountId" => "111000000000001",
+        //             "symbol" => "BTC-USDC-PERP",
+        //             "side" => "BUY",
+        //             "quantity" => "1.00000000",
+        //             "notional" => "1.0000",
+        //             "entryNotional" => "1.0000",
+        //             "mtmPnl" => "1.0000",
+        //             "reportedMtmPnl" => "1.0000",
+        //             "reportedFundingPnl" => "1.0000",
+        //             "realizedPnl" => "1.0000",
+        //             "settlementAssetSymbol" => "USDC",
+        //             "createdAtDatetime" => "2021-05-20T01:01:01.000Z",
+        //             "createdAtTimestamp" => "1621490985000",
+        //             "updatedAtDatetime" => "2021-05-20T01:01:01.000Z",
+        //             "updatedAtTimestamp" => "1621490985000"
+        //         }
+        //     )
+        //
+        $results = $this->parse_positions($response, $symbols);
+        return $this->filter_by_array_positions($results, 'symbol', $symbols, false);
     }
 
     public function parse_position(array $position, ?array $market = null) {
@@ -2675,113 +2740,117 @@ class bullish extends Exchange {
     }
 
     public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($code, $since, $limit, $params) {
-            /**
-             * fetch a history of internal transfers made on an account
-             *
-             * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/history/transfer
-             *
-             * @param {string} $code unified $currency $code of the $currency transferred
-             * @param {int} [$since] the earliest time in ms to fetch transfers for
-             * @param {int} [$limit] the maximum number of transfer structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {int} $params->until the latest time in ms to fetch transfers for (default time $now)
-             * @param {string} $params->tradingAccountId the trading account id
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transfer-structure transfer structures~
-             */
-            Async\await(Promise\all(array( $this->load_markets(), $this->handle_token() )));
-            $tradingAccountId = Async\await($this->load_account($params));
-            $maxLimit = 100;
-            $paginate = false;
-            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchTransfers', 'paginate');
-            if ($paginate) {
-                $params = $this->handle_pagination_params('fetchTransfers', $since, $params);
-                return Async\await($this->fetch_paginated_call_dynamic('fetchTransfers', $code, $since, $limit, $params, $maxLimit));
-            }
-            $request = array(
-                'tradingAccountId' => $tradingAccountId,
-            );
-            $currency = null;
-            if ($code !== null) {
-                $currency = $this->currency($code);
-                $request['assetSymbol'] = $currency['id'];
-            }
-            $until = $this->safe_integer($params, 'until');
-            if (($since === null) && ($until === null)) {
-                // $since and $until are mandatory for this endpoint, set $until to $now if both are null
-                $now = $this->milliseconds();
-                $params = $this->extend($params, array( 'until' => $now ));
-            }
-            $params = $this->handle_since_and_until($since, $params);
-            if ($limit !== null) {
-                $request['_pageSize'] = $this->get_closest_limit($limit);
-            }
-            $response = Async\await($this->privateGetV1HistoryTransfer($this->extend($request, $params)));
-            //
-            //     array(
-            //         {
-            //             "requestId" => "1",
-            //             "toTradingAccountId" => "111000000000001",
-            //             "fromTradingAccountId" => "121000000000001",
-            //             "assetSymbol" => "BTC",
-            //             "quantity" => "1.00000000",
-            //             "status" => "CLOSED",
-            //             "statusReasonCode" => "6002",
-            //             "statusReason" => "Executed",
-            //             "createdAtTimestamp" => "1621490985000",
-            //             "createdAtDatetime" => "2021-05-20T01:01:01.000Z"
-            //         }
-            //     )
-            //
-            return $this->parse_transfers($response, $currency, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_transfers(...))($code, $since, $limit, $params);
+    }
+
+    private function do_fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetch a history of internal transfers made on an account
+         *
+         * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/history/transfer
+         *
+         * @param {string} $code unified $currency $code of the $currency transferred
+         * @param {int} [$since] the earliest time in ms to fetch transfers for
+         * @param {int} [$limit] the maximum number of transfer structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} $params->until the latest time in ms to fetch transfers for (default time $now)
+         * @param {string} $params->tradingAccountId the trading account id
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transfer-structure transfer structures~
+         */
+        Async\await(Promise\all(array( $this->load_markets(), $this->handle_token() )));
+        $tradingAccountId = Async\await($this->load_account($params));
+        $maxLimit = 100;
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchTransfers', 'paginate');
+        if ($paginate) {
+            $params = $this->handle_pagination_params('fetchTransfers', $since, $params);
+            return Async\await($this->fetch_paginated_call_dynamic('fetchTransfers', $code, $since, $limit, $params, $maxLimit));
+        }
+        $request = array(
+            'tradingAccountId' => $tradingAccountId,
+        );
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+            $request['assetSymbol'] = $currency['id'];
+        }
+        $until = $this->safe_integer($params, 'until');
+        if (($since === null) && ($until === null)) {
+            // $since and $until are mandatory for this endpoint, set $until to $now if both are null
+            $now = $this->milliseconds();
+            $params = $this->extend($params, array( 'until' => $now ));
+        }
+        $params = $this->handle_since_and_until($since, $params);
+        if ($limit !== null) {
+            $request['_pageSize'] = $this->get_closest_limit($limit);
+        }
+        $response = Async\await($this->privateGetV1HistoryTransfer($this->extend($request, $params)));
+        //
+        //     array(
+        //         {
+        //             "requestId" => "1",
+        //             "toTradingAccountId" => "111000000000001",
+        //             "fromTradingAccountId" => "121000000000001",
+        //             "assetSymbol" => "BTC",
+        //             "quantity" => "1.00000000",
+        //             "status" => "CLOSED",
+        //             "statusReasonCode" => "6002",
+        //             "statusReason" => "Executed",
+        //             "createdAtTimestamp" => "1621490985000",
+        //             "createdAtDatetime" => "2021-05-20T01:01:01.000Z"
+        //         }
+        //     )
+        //
+        return $this->parse_transfers($response, $currency, $since, $limit);
     }
 
     public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array()): PromiseInterface {
-        return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
-            /**
-             * $transfer $currency internally between wallets on the same account
-             *
-             * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#post-/v1/command-commandType-V1TransferAsset
-             *
-             * @param {string} $code unified $currency $codeåå
-             * @param {float} $amount amount to $transfer
-             * @param {string} $fromAccount account ID to $transfer from
-             * @param {string} $toAccount account ID to $transfer to
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=$transfer-structure $transfer structure~
-             */
-            Async\await(Promise\all(array( $this->load_markets(), $this->handle_token() )));
-            // todo check this method properly
-            $currency = $this->currency($code);
-            $request = array(
-                'commandType' => 'V2TransferAsset',
-                'assetSymbol' => $currency['id'],
-                'quantity' => $this->currency_to_precision($code, $amount),
-                'fromTradingAccountId' => $fromAccount,
-                'toTradingAccountId' => $toAccount,
-            );
-            $response = Async\await($this->privatePostV2Command($this->extend($request, $params)));
-            //
-            //     {
-            //         "message" => "Command acknowledged - TransferAsset",
-            //         "requestId" => "633909659774222336"
-            //     }
-            //
-            $transferOptions = $this->safe_dict($this->options, 'transfer', array());
-            $fillResponseFromRequest = $this->safe_bool($transferOptions, 'fillResponseFromRequest', true);
-            $transfer = $this->parse_transfer($response, $currency);
-            if ($fillResponseFromRequest) {
-                $transfer['fromAccount'] = $fromAccount;
-                $transfer['toAccount'] = $toAccount;
-                $transfer['amount'] = $amount;
-                $transfer['currency'] = $code;
-            }
-            return $transfer;
-        })();
+        return Async\async(self::do_transfer(...))($code, $amount, $fromAccount, $toAccount, $params);
     }
 
-    public function parse_transfer($transfer, ?array $currency = null) {
+    private function do_transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array()) {
+        /**
+         * $transfer $currency internally between wallets on the same account
+         *
+         * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#post-/v1/command-commandType-V1TransferAsset
+         *
+         * @param {string} $code unified $currency $codeåå
+         * @param {float} $amount amount to $transfer
+         * @param {string} $fromAccount account ID to $transfer from
+         * @param {string} $toAccount account ID to $transfer to
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=$transfer-structure $transfer structure~
+         */
+        Async\await(Promise\all(array( $this->load_markets(), $this->handle_token() )));
+        // todo check this method properly
+        $currency = $this->currency($code);
+        $request = array(
+            'commandType' => 'V2TransferAsset',
+            'assetSymbol' => $currency['id'],
+            'quantity' => $this->currency_to_precision($code, $amount),
+            'fromTradingAccountId' => $fromAccount,
+            'toTradingAccountId' => $toAccount,
+        );
+        $response = Async\await($this->privatePostV2Command($this->extend($request, $params)));
+        //
+        //     {
+        //         "message" => "Command acknowledged - TransferAsset",
+        //         "requestId" => "633909659774222336"
+        //     }
+        //
+        $transferOptions = $this->safe_dict($this->options, 'transfer', array());
+        $fillResponseFromRequest = $this->safe_bool($transferOptions, 'fillResponseFromRequest', true);
+        $transfer = $this->parse_transfer($response, $currency);
+        if ($fillResponseFromRequest === true) {
+            $transfer['fromAccount'] = $fromAccount;
+            $transfer['toAccount'] = $toAccount;
+            $transfer['amount'] = $amount;
+            $transfer['currency'] = $code;
+        }
+        return $transfer;
+    }
+
+    public function parse_transfer(mixed $transfer, ?array $currency = null) {
         //
         // fetchTransfers
         //     {
@@ -2822,7 +2891,7 @@ class bullish extends Exchange {
         );
     }
 
-    public function parse_transfer_status($status) {
+    public function parse_transfer_status(?string $status) {
         $statuses = array(
             'CLOSED' => 'ok',
             'OPEN' => 'pending',
@@ -2833,58 +2902,60 @@ class bullish extends Exchange {
     }
 
     public function fetch_borrow_rate_history(string $code, ?int $since = null, ?int $limit = null, $params = array()) {
-        return Async\async(function () use ($code, $since, $limit, $params) {
-            /**
-             * retrieves a history of a currencies borrow interest rate at specific time slots
-             *
-             * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/history/borrow-interest
-             *
-             * @param {string} $code unified $currency $code
-             * @param {int} [$since] timestamp for the earliest borrow rate
-             * @param {int} [$limit] the maximum number of ~@link https://docs.ccxt.com/?id=borrow-rate-structure borrow rate structures~ to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {int} $params->until the latest time in ms to fetch entries for
-             * @param {string} $params->tradingAccountId the trading account id
-             * @return {array[]} an array of ~@link https://docs.ccxt.com/?id=borrow-rate-structure borrow rate structures~
-             */
-            Async\await(Promise\all(array( $this->load_markets(), $this->handle_token() )));
-            $tradingAccountId = Async\await($this->load_account($params));
-            $currency = $this->currency($code);
-            $request = array(
-                'assetSymbol' => $currency['id'],
-                'tradingAccountId' => $tradingAccountId,
-            );
-            $now = $this->milliseconds();
-            $startTimestamp = $since;
-            list($request, $params) = $this->handle_until_option('createdAtDatetime[lte]', $request, $params);
-            $until = $this->safe_integer($request, 'createdAtDatetime[lte]');
-            // current endpoint requires both $since and $until parameters
-            if ($startTimestamp === null) {
-                $startTimestamp = $now - 1000 * 60 * 60 * 24 * 90; // Only the last 90 days of data is available for querying
-            }
-            if ($until === null) {
-                $until = $now;
-            }
-            $request['createdAtDatetime[gte]'] = $this->iso8601($startTimestamp);
-            $request['createdAtDatetime[lte]'] = $this->iso8601($until);
-            $response = Async\await($this->privateGetV1HistoryBorrowInterest($this->extend($request, $params)));
-            //
-            //     array(
-            //         {
-            //             "assetId" => "1",
-            //             "assetSymbol" => "BTC",
-            //             "borrowedQuantity" => "1.00000000",
-            //             "totalBorrowedQuantity" => "1.00000000",
-            //             "createdAtDatetime" => "2020-08-21T08:00:00.000Z",
-            //             "createdAtTimestamp" => "1621490985000"
-            //         }
-            //     )
-            //
-            return $this->parse_borrow_rate_history($response, $code, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_borrow_rate_history(...))($code, $since, $limit, $params);
     }
 
-    public function parse_borrow_rate($info, ?array $currency = null) {
+    private function do_fetch_borrow_rate_history(string $code, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * retrieves a history of a currencies borrow interest rate at specific time slots
+         *
+         * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/history/borrow-interest
+         *
+         * @param {string} $code unified $currency $code
+         * @param {int} [$since] timestamp for the earliest borrow rate
+         * @param {int} [$limit] the maximum number of ~@link https://docs.ccxt.com/?id=borrow-rate-structure borrow rate structures~ to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} $params->until the latest time in ms to fetch entries for
+         * @param {string} $params->tradingAccountId the trading account id
+         * @return {array[]} an array of ~@link https://docs.ccxt.com/?id=borrow-rate-structure borrow rate structures~
+         */
+        Async\await(Promise\all(array( $this->load_markets(), $this->handle_token() )));
+        $tradingAccountId = Async\await($this->load_account($params));
+        $currency = $this->currency($code);
+        $request = array(
+            'assetSymbol' => $currency['id'],
+            'tradingAccountId' => $tradingAccountId,
+        );
+        $now = $this->milliseconds();
+        $startTimestamp = $since;
+        list($request, $params) = $this->handle_until_option('createdAtDatetime[lte]', $request, $params);
+        $until = $this->safe_integer($request, 'createdAtDatetime[lte]');
+        // current endpoint requires both $since and $until parameters
+        if ($startTimestamp === null) {
+            $startTimestamp = $now - 1000 * 60 * 60 * 24 * 90; // Only the last 90 days of data is available for querying
+        }
+        if ($until === null) {
+            $until = $now;
+        }
+        $request['createdAtDatetime[gte]'] = $this->iso8601($startTimestamp);
+        $request['createdAtDatetime[lte]'] = $this->iso8601($until);
+        $response = Async\await($this->privateGetV1HistoryBorrowInterest($this->extend($request, $params)));
+        //
+        //     array(
+        //         {
+        //             "assetId" => "1",
+        //             "assetSymbol" => "BTC",
+        //             "borrowedQuantity" => "1.00000000",
+        //             "totalBorrowedQuantity" => "1.00000000",
+        //             "createdAtDatetime" => "2020-08-21T08:00:00.000Z",
+        //             "createdAtTimestamp" => "1621490985000"
+        //         }
+        //     )
+        //
+        return $this->parse_borrow_rate_history($response, $code, $since, $limit);
+    }
+
+    public function parse_borrow_rate(mixed $info, ?array $currency = null) {
         //
         //     {
         //         "assetId" => "1",
@@ -2912,67 +2983,69 @@ class bullish extends Exchange {
     }
 
     public function fetch_open_interest(string $symbol, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * fetches the open interest of a specific $market
-             *
-             * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/markets/-$symbol-/tick
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch the open interest for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/?id=ticker-structure open interest structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $request = array(
-                'symbol' => $market['id'],
-            );
-            $response = Async\await($this->publicGetV1MarketsSymbolTick($this->extend($request, $params)));
-            //
-            //     {
-            //         "createdAtDatetime" => "2021-05-20T01:01:01.000Z",
-            //         "createdAtTimestamp" => "1621490985000",
-            //         "high" => "1.00000000",
-            //         "low" => "1.00000000",
-            //         "bestBid" => "1.00000000",
-            //         "bidVolume" => "1.00000000",
-            //         "bestAsk" => "1.00000000",
-            //         "askVolume" => "1.00000000",
-            //         "vwap" => "1.00000000",
-            //         "open" => "1.00000000",
-            //         "close" => "1.00000000",
-            //         "last" => "1.00000000",
-            //         "change" => "1.00000000",
-            //         "percentage" => "1.00000000",
-            //         "average" => "1.00000000",
-            //         "baseVolume" => "1.00000000",
-            //         "quoteVolume" => "1.00000000",
-            //         "bancorPrice" => "1.00000000",
-            //         "markPrice" => "19999.00",
-            //         "fundingRate" => "0.01",
-            //         "openInterest" => "100000.32452",
-            //         "lastTradeDatetime" => "2021-05-20T01:01:01.000Z",
-            //         "lastTradeTimestamp" => "1621490985000",
-            //         "lastTradeQuantity" => "1.00000000",
-            //         "ammData" => array(
-            //             {
-            //                 "feeTierId" => "1",
-            //                 "bidSpreadFee" => "0.00040000",
-            //                 "askSpreadFee" => "0.00040000",
-            //                 "baseReservesQuantity" => "245.56257825",
-            //                 "quoteReservesQuantity" => "3424383.3629",
-            //                 "currentPrice" => "16856.0000"
-            //             }
-            //         )
-            //     }
-            //
-            return $this->parse_open_interest($response, $market);
-        })();
+        return Async\async(self::do_fetch_open_interest(...))($symbol, $params);
     }
 
-    public function parse_open_interest($interest, ?array $market = null) {
+    private function do_fetch_open_interest(string $symbol, $params = array()) {
+        /**
+         * fetches the open interest of a specific $market
+         *
+         * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/markets/-$symbol-/tick
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch the open interest for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/?id=ticker-structure open interest structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = Async\await($this->publicGetV1MarketsSymbolTick($this->extend($request, $params)));
+        //
+        //     {
+        //         "createdAtDatetime" => "2021-05-20T01:01:01.000Z",
+        //         "createdAtTimestamp" => "1621490985000",
+        //         "high" => "1.00000000",
+        //         "low" => "1.00000000",
+        //         "bestBid" => "1.00000000",
+        //         "bidVolume" => "1.00000000",
+        //         "bestAsk" => "1.00000000",
+        //         "askVolume" => "1.00000000",
+        //         "vwap" => "1.00000000",
+        //         "open" => "1.00000000",
+        //         "close" => "1.00000000",
+        //         "last" => "1.00000000",
+        //         "change" => "1.00000000",
+        //         "percentage" => "1.00000000",
+        //         "average" => "1.00000000",
+        //         "baseVolume" => "1.00000000",
+        //         "quoteVolume" => "1.00000000",
+        //         "bancorPrice" => "1.00000000",
+        //         "markPrice" => "19999.00",
+        //         "fundingRate" => "0.01",
+        //         "openInterest" => "100000.32452",
+        //         "lastTradeDatetime" => "2021-05-20T01:01:01.000Z",
+        //         "lastTradeTimestamp" => "1621490985000",
+        //         "lastTradeQuantity" => "1.00000000",
+        //         "ammData" => array(
+        //             {
+        //                 "feeTierId" => "1",
+        //                 "bidSpreadFee" => "0.00040000",
+        //                 "askSpreadFee" => "0.00040000",
+        //                 "baseReservesQuantity" => "245.56257825",
+        //                 "quoteReservesQuantity" => "3424383.3629",
+        //                 "currentPrice" => "16856.0000"
+        //             }
+        //         )
+        //     }
+        //
+        return $this->parse_open_interest($response, $market);
+    }
+
+    public function parse_open_interest(mixed $interest, ?array $market = null) {
         //
         //     {
         //         "createdAtDatetime" => "2021-05-20T01:01:01.000Z",
@@ -3024,7 +3097,7 @@ class bullish extends Exchange {
         ), $market);
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $request = $this->omit($params, $this->extract_params($path));
         $endpoint = '/' . $this->implode_params($path, $params);
         $url = $this->urls['api'][$api] . $endpoint;
@@ -3072,7 +3145,7 @@ class bullish extends Exchange {
         }
         if ($method === 'GET') {
             $query = $this->urlencode($request);
-            if (strlen($query)) {
+            if (strlen($query) > 0) {
                 $url .= '?' . $query;
             }
         }
@@ -3080,46 +3153,50 @@ class bullish extends Exchange {
     }
 
     public function sign_in($params = array()) {
-        return Async\async(function () use ($params) {
-            /**
-             * sign in, must be called prior to using other authenticated methods
-             *
-             * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#overview--add-authenticated-request-header
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return $response from exchange
-             */
-            $response = Async\await($this->privateGetV1UsersHmacLogin($params));
-            //
-            //     {
-            //         "authorizer" => "113363EFA2CA00007368524E02000000",
-            //         "ownerAuthorizer" => "113363EFA2CA00007368524E02000000",
-            //         "token" => "eyJhbGciOiJFUzI1NiJ9.eyJpc3MiOiJiMXgtYXV0aC1zZXJ2aWNlIiwic3ViIjoiNDY0OTc4MzAiLCJleHAiOjE3NDczMzgzNDMsIlNUQUdFIjoiQVVUSEVOVElDQVRFRF9XSVRIX0JMT0NLQ0hBSU4ifQ.5FSyrihzc1wsJqAY8pVX36Y4ZXg3HopLJypPEbHg5bBK8FbL_oLxkj6zM_iOYL2a1x6-ICG0pQjr8hF_k8Yg-w"
-            //     }
-            //
-            $token = $this->safe_string($response, 'token');
-            $authorizer = $this->safe_string($response, 'authorizer');
-            $this->options['authorizer'] = $authorizer;
-            $this->token = $token;
-            $this->options['tokenExpires'] = $this->sum($this->milliseconds(), 1000 * 60 * 60 * 24); // $token expires in 24 hours
-            return $token;
-        })();
+        return Async\async(self::do_sign_in(...))($params);
+    }
+
+    private function do_sign_in($params = array()) {
+        /**
+         * sign in, must be called prior to using other authenticated methods
+         *
+         * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#overview--add-authenticated-request-header
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return $response from exchange
+         */
+        $response = Async\await($this->privateGetV1UsersHmacLogin($params));
+        //
+        //     {
+        //         "authorizer" => "113363EFA2CA00007368524E02000000",
+        //         "ownerAuthorizer" => "113363EFA2CA00007368524E02000000",
+        //         "token" => "eyJhbGciOiJFUzI1NiJ9.eyJpc3MiOiJiMXgtYXV0aC1zZXJ2aWNlIiwic3ViIjoiNDY0OTc4MzAiLCJleHAiOjE3NDczMzgzNDMsIlNUQUdFIjoiQVVUSEVOVElDQVRFRF9XSVRIX0JMT0NLQ0hBSU4ifQ.5FSyrihzc1wsJqAY8pVX36Y4ZXg3HopLJypPEbHg5bBK8FbL_oLxkj6zM_iOYL2a1x6-ICG0pQjr8hF_k8Yg-w"
+        //     }
+        //
+        $token = $this->safe_string($response, 'token');
+        $authorizer = $this->safe_string($response, 'authorizer');
+        $this->options['authorizer'] = $authorizer;
+        $this->token = $token;
+        $this->options['tokenExpires'] = $this->sum($this->milliseconds(), 1000 * 60 * 60 * 24); // $token expires in 24 hours
+        return $token;
     }
 
     public function handle_token($params = array()) {
-        return Async\async(function () use ($params) {
-            $now = $this->milliseconds();
-            $token = $this->token;
-            $tokenExpires = $this->safe_integer($this->options, 'tokenExpires');
-            if (($token === null) || ($tokenExpires === null) || ($now > $tokenExpires)) {
-                return Async\await($this->sign_in());
-            } else {
-                return $this->token;
-            }
-        })();
+        return Async\async(self::do_handle_token(...))($params);
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    private function do_handle_token($params = array()) {
+        $now = $this->milliseconds();
+        $token = $this->token;
+        $tokenExpires = $this->safe_integer($this->options, 'tokenExpires');
+        if (($token === null) || ($tokenExpires === null) || ($now > $tokenExpires)) {
+            return Async\await($this->sign_in());
+        } else {
+            return $this->token;
+        }
+    }
+
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null; // fallback to default error handler
         }

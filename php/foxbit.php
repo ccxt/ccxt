@@ -35,7 +35,8 @@ class foxbit extends Exchange {
                 'createMarketBuyOrder' => true,
                 'createMarketSellOrder' => true,
                 'createOrder' => true,
-                'fecthOrderBook' => true,
+                'createOrders' => true,
+                'editOrder' => true,
                 'fetchBalance' => true,
                 'fetchCanceledOrders' => true,
                 'fetchClosedOrders' => true,
@@ -49,7 +50,10 @@ class foxbit extends Exchange {
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
+                'fetchOrderBook' => true,
                 'fetchOrders' => true,
+                'fetchOrdersByStatus' => true,
+                'fetchStatus' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
@@ -134,42 +138,42 @@ class foxbit extends Exchange {
                 'v3' => array(
                     'public' => array(
                         'get' => array(
-                            'currencies' => 5, // 6 requests per second
-                            'markets' => 5, // 6 requests per second
-                            'markets/ticker/24hr' => 60, // 1 request per 2 seconds
-                            'markets/{market}/orderbook' => 6, // 10 requests per 2 seconds
-                            'markets/{market}/candlesticks' => 12, // 5 requests per 2 seconds
-                            'markets/{market}/trades/history' => 12, // 5 requests per 2 seconds
-                            'markets/{market}/ticker/24hr' => 15, // 4 requests per 2 seconds
+                            'currencies' => array( 'cost' => 5 ), // 6 requests per second
+                            'markets' => array( 'cost' => 5 ), // 6 requests per second
+                            'markets/ticker/24hr' => array( 'cost' => 60 ), // 1 request per 2 seconds
+                            'markets/{market}/orderbook' => array( 'cost' => 6 ), // 10 requests per 2 seconds
+                            'markets/{market}/candlesticks' => array( 'cost' => 12 ), // 5 requests per 2 seconds
+                            'markets/{market}/trades/history' => array( 'cost' => 12 ), // 5 requests per 2 seconds
+                            'markets/{market}/ticker/24hr' => array( 'cost' => 15 ), // 4 requests per 2 seconds
                         ),
                     ),
                     'private' => array(
                         'get' => array(
-                            'accounts' => 2, // 15 requests per second
-                            'accounts/{symbol}/transactions' => 60, // 1 requests per 2 seconds
-                            'orders' => 2, // 30 requests per 2 seconds
-                            'orders/by-order-id/{id}' => 2, // 30 requests per 2 seconds
-                            'trades' => 6, // 5 orders per second
-                            'deposits/address' => 10, // 3 requests per second
-                            'deposits' => 10, // 3 requests per second
-                            'withdrawals' => 10, // 3 requests per second
-                            'me/fees/trading' => 60, // 1 requests per 2 seconds
+                            'accounts' => array( 'cost' => 2 ), // 15 requests per second
+                            'accounts/{symbol}/transactions' => array( 'cost' => 60 ), // 1 requests per 2 seconds
+                            'orders' => array( 'cost' => 2 ), // 30 requests per 2 seconds
+                            'orders/by-order-id/{id}' => array( 'cost' => 2 ), // 30 requests per 2 seconds
+                            'trades' => array( 'cost' => 6 ), // 5 orders per second
+                            'deposits/address' => array( 'cost' => 10 ), // 3 requests per second
+                            'deposits' => array( 'cost' => 10 ), // 3 requests per second
+                            'withdrawals' => array( 'cost' => 10 ), // 3 requests per second
+                            'me/fees/trading' => array( 'cost' => 60 ), // 1 requests per 2 seconds
                         ),
                         'post' => array(
-                            'orders' => 2, // 30 requests per 2 seconds
-                            'orders/batch' => 7.5, // 8 requests per 2 seconds
-                            'orders/cancel-replace' => 3, // 20 requests per 2 seconds
-                            'withdrawals' => 10, // 3 requests per second
+                            'orders' => array( 'cost' => 2 ), // 30 requests per 2 seconds
+                            'orders/batch' => array( 'cost' => 7.5 ), // 8 requests per 2 seconds
+                            'orders/cancel-replace' => array( 'cost' => 3 ), // 20 requests per 2 seconds
+                            'withdrawals' => array( 'cost' => 10 ), // 3 requests per second
                         ),
                         'put' => array(
-                            'orders/cancel' => 2, // 30 requests per 2 seconds
+                            'orders/cancel' => array( 'cost' => 2 ), // 30 requests per 2 seconds
                         ),
                     ),
                 ),
                 'status' => array(
                     'public' => array(
                         'get' => array(
-                            'status' => 30, // 1 request per second
+                            'status' => array( 'cost' => 30 ), // 1 request per second
                         ),
                     ),
                 ),
@@ -383,31 +387,33 @@ class foxbit extends Exchange {
             $networkDepositInfo = $this->safe_dict($network, 'deposit_info');
             $isWithdrawEnabled = $this->safe_string($networkWithdrawInfo, 'status') === 'ENABLED';
             $isDepositEnabled = $this->safe_string($networkDepositInfo, 'status') === 'ENABLED';
-            $parsedNetworks[$networkCode] = array(
-                'info' => $rawCurrency,
-                'id' => $networkId,
-                'network' => $networkCode,
-                'name' => $this->safe_string($network, 'name'),
-                'deposit' => $isDepositEnabled,
-                'withdraw' => $isWithdrawEnabled,
-                'active' => true,
-                'precision' => $precision,
-                'fee' => $this->safe_number($networkWithdrawInfo, 'fee'),
-                'limits' => array(
-                    'amount' => array(
-                        'min' => null,
-                        'max' => null,
+            if ($networkCode !== null) {
+                $parsedNetworks[$networkCode] = array(
+                    'info' => $rawCurrency,
+                    'id' => $networkId,
+                    'network' => $networkCode,
+                    'name' => $this->safe_string($network, 'name'),
+                    'deposit' => $isDepositEnabled,
+                    'withdraw' => $isWithdrawEnabled,
+                    'active' => true,
+                    'precision' => $precision,
+                    'fee' => $this->safe_number($networkWithdrawInfo, 'fee'),
+                    'limits' => array(
+                        'amount' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'deposit' => array(
+                            'min' => $this->safe_number($depositInfo, 'min_amount'),
+                            'max' => null,
+                        ),
+                        'withdraw' => array(
+                            'min' => $this->safe_number($withdrawInfo, 'min_amount'),
+                            'max' => null,
+                        ),
                     ),
-                    'deposit' => array(
-                        'min' => $this->safe_number($depositInfo, 'min_amount'),
-                        'max' => null,
-                    ),
-                    'withdraw' => array(
-                        'min' => $this->safe_number($withdrawInfo, 'min_amount'),
-                        'max' => null,
-                    ),
-                ),
-            );
+                );
+            }
         }
         return $this->safe_currency_structure(array(
             'id' => $currencyId,
@@ -681,7 +687,7 @@ class foxbit extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return, the maximum is 100
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -807,7 +813,7 @@ class foxbit extends Exchange {
         //         "15466.34096391" // taker buy quote volume
         //     )
         // )
-        return $this->parse_ohlcvs($response, $market, $interval, $since, $limit);
+        return $this->parse_ohlcvs($this->to_array($response), $market, $interval, $since, $limit);
     }
 
     public function fetch_balance($params = array()): array {
@@ -849,7 +855,9 @@ class foxbit extends Exchange {
                 'used' => $used,
                 'total' => $total,
             );
-            $result[$currencyCode] = $balanceObj;
+            if ($currencyCode !== null) {
+                $result[$currencyCode] = $balanceObj;
+            }
         }
         return $this->safe_balance($result);
     }
@@ -943,6 +951,9 @@ class foxbit extends Exchange {
         $timeInForce = $this->safe_string_upper($params, 'timeInForce');
         $postOnly = $this->safe_bool($params, 'postOnly', false);
         $triggerPrice = $this->safe_number($params, 'triggerPrice');
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' createOrder() requires a $side argument');
+        }
         $request = array(
             'market_symbol' => $market['id'],
             'side' => strtoupper($side),
@@ -960,7 +971,7 @@ class foxbit extends Exchange {
                 $request['time_in_force'] = $timeInForce;
             }
         }
-        if ($postOnly) {
+        if ($postOnly === true) {
             $request['post_only'] = true;
         }
         if ($triggerPrice !== null) {
@@ -1032,7 +1043,7 @@ class foxbit extends Exchange {
                 }
                 unset($orderParams['timeInForce']);
             }
-            if ($postOnly) {
+            if ($postOnly === true) {
                 $request['post_only'] = true;
                 unset($orderParams['postOnly']);
             }
@@ -1109,7 +1120,7 @@ class foxbit extends Exchange {
          *
          * @see https://docs.foxbit.com.br/rest/v3/#tag/Trading/operation/OrdersController_cancel
          *
-         * @param {string} $symbol unified $market $symbol of the $market to cancel orders in
+         * @param {string} [$symbol] unified $market $symbol of the $market to cancel orders in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
@@ -1459,7 +1470,7 @@ class foxbit extends Exchange {
         return $result;
     }
 
-    public function fetch_status($params = array()) {
+    public function fetch_status($params = array()): array {
         /**
          * The latest known information on the availability of the exchange API.
          *
@@ -1492,7 +1503,7 @@ class foxbit extends Exchange {
         );
         return array(
             'status' => $this->safe_string($statusMap, $statusRaw, $statusRaw),
-            'updated' => $this->safe_string($attributes, 'updatedAt'),
+            'updated' => $this->parse8601($this->safe_string($attributes, 'updatedAt')),
             'eta' => null,
             'url' => null,
             'info' => $response,
@@ -1525,6 +1536,9 @@ class foxbit extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' editOrder() requires a $side argument');
+        }
         $request = array(
             'mode' => 'ALLOW_FAILURE',
             'cancel' => array(
@@ -1560,7 +1574,8 @@ class foxbit extends Exchange {
         //         "client_order_id" => "451637946501"
         //     }
         // }
-        return $this->parse_order($response['create'], $market);
+        $created = $this->safe_dict($response, 'create', array());
+        return $this->parse_order($created, $market);
     }
 
     public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): array {
@@ -1750,7 +1765,7 @@ class foxbit extends Exchange {
         ), $market);
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         return array(
             $this->safe_integer($ohlcv, 0),
             $this->safe_number($ohlcv, 1),
@@ -1761,7 +1776,7 @@ class foxbit extends Exchange {
         );
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade(mixed $trade, ?array $market = null): array {
         $timestamp = $this->parse_date($this->safe_string($trade, 'created_at'));
         $price = $this->safe_string($trade, 'price');
         $amount = $this->safe_string($trade, 'volume', $this->safe_string($trade, 'quantity'));
@@ -1802,7 +1817,7 @@ class foxbit extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         $symbol = $this->safe_string($order, 'market_symbol');
         if ($market === null && $symbol !== null) {
             $market = $this->market($symbol);
@@ -1820,7 +1835,7 @@ class foxbit extends Exchange {
             $amount = Precise::string_add($remaining, $filled);
         }
         $cost = $this->safe_string($order, 'funds_received');
-        if (!$cost) {
+        if (($cost === null) || ($cost === '')) {
             $priceAverage = $this->safe_string($order, 'price_avg');
             $priceToCalculate = $this->safe_string($order, 'price', $priceAverage);
             $cost = Precise::string_mul($priceToCalculate, $amount);
@@ -1861,7 +1876,7 @@ class foxbit extends Exchange {
         ));
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null) {
+    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null) {
         $network = $this->safe_dict($depositAddress, 'network');
         $networkId = $this->safe_string($network, 'code');
         $currencyCode = $this->safe_currency_code(null, $currency);
@@ -1896,7 +1911,7 @@ class foxbit extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, ?array $currency = null, ?int $since = null, ?int $limit = null): array {
+    public function parse_transaction(mixed $transaction, ?array $currency = null, ?int $since = null, ?int $limit = null): array {
         $cryptoDetails = $this->safe_dict($transaction, 'details_crypto');
         $address = $this->safe_string_2($cryptoDetails, 'receiving_address', 'destination_address');
         $sn = $this->safe_string($transaction, 'sn');
@@ -1947,7 +1962,7 @@ class foxbit extends Exchange {
         );
     }
 
-    public function parse_ledger_entry_type($type) {
+    public function parse_ledger_entry_type(mixed $type) {
         $types = array(
             'DEPOSITING' => 'transaction',
             'WITHDRAWING' => 'transaction',
@@ -1985,9 +2000,21 @@ class foxbit extends Exchange {
             'cost' => $this->safe_number($item, 'fee'),
             'currency' => $currencySymbol,
         );
+        if ($amount === null) {
+            throw new ArgumentsRequired($this->id . ' parseLedgerEntry() requires a $amount argument');
+        }
         if ($amount < 0) {
             $direction = 'out';
+            if ($amount === null) {
+                throw new ArgumentsRequired($this->id . ' parseLedgerEntry() requires a $amount argument');
+            }
             $realAmount = $amount * -1;
+        }
+        if ($balance === null) {
+            throw new ExchangeError($this->id . ' parseLedgerEntry() missing balance');
+        }
+        if ($amount === null) {
+            throw new ArgumentsRequired($this->id . ' parseLedgerEntry() requires a $amount argument');
         }
         return array(
             'id' => $id,
@@ -2008,7 +2035,7 @@ class foxbit extends Exchange {
         );
     }
 
-    public function sign($path, mixed $api = array(), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = array(), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $version = $api[0];
         $urlPath = $api[1];
         $fullPath = '/rest/' . $version . '/' . $this->implode_params($path, $params);
@@ -2048,6 +2075,8 @@ class foxbit extends Exchange {
         }
         $headers = array(
             'Content-Type' => 'application/json',
+            'X-FB-CLIENT' => 'ccxt',
+            'X-FB-CLIENT-VERSION' => $this->get_ccxt_version(),
         );
         if ($urlPath === 'private') {
             $this->check_required_credentials();
@@ -2060,7 +2089,7 @@ class foxbit extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null;
         }
@@ -2069,7 +2098,7 @@ class foxbit extends Exchange {
         $details = $this->safe_list($error, 'details');
         $message = $this->safe_string($error, 'message');
         $detailsString = '';
-        if ($details) {
+        if ($details !== null) {
             for ($i = 0; $i < count($details); $i++) {
                 $detailsString = $detailsString . $details[$i] . ' ';
             }

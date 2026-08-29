@@ -1,7 +1,7 @@
 
 import assert from 'assert';
 import testSharedMethods from '../Exchange/base/test.sharedMethods.js';
-import ccxt, { Exchange } from "../../../ccxt.js";
+import ccxt from "../../../ccxt.js";
 
 async function testSetMarketsFromExchange () {
 
@@ -26,7 +26,7 @@ async function testSetMarketsFromExchange () {
         'id': 'primaryEx',
     });
 
-    assert (Object.keys (exchange1.markets).length > 0, 'Markets should be loaded in exchange1');
+    assert ((exchange1.markets !== undefined) && (Object.keys (exchange1.markets).length > 0), 'Markets should be loaded in exchange1');
 
     // Test error case: exchanges are different
     const differentExchange = new ccxt.Exchange ({

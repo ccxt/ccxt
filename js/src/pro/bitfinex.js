@@ -64,9 +64,9 @@ export default class bitfinex extends bitfinexRest {
         };
         const result = await this.watch(url, messageHash, this.deepExtend(request, params), messageHash, { 'checksum': false });
         const checksum = this.safeBool(this.options, 'checksum', true);
-        if (checksum && (channel === 'book')) {
+        if ((checksum === true) && (channel === 'book')) {
             const sub = client.subscriptions[messageHash];
-            if (sub && !sub['checksum']) {
+            if ((sub !== undefined) && (sub['checksum'] !== true)) {
                 client.subscriptions[messageHash]['checksum'] = true;
                 await client.send({
                     'event': 'conf',
@@ -628,7 +628,7 @@ export default class bitfinex extends bitfinexRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         if (limit !== undefined) {
@@ -671,7 +671,7 @@ export default class bitfinex extends bitfinexRest {
         //         358169, // channel id
         //         [
         //            1807.1, // price
-        //            0, // cound
+        //            0, // count
         //            1 // size
         //         ]
         //     ]
@@ -793,7 +793,7 @@ export default class bitfinex extends bitfinexRest {
             delete client.subscriptions[messageHash];
             delete this.orderbooks[symbol];
             const checksum = this.handleOption('watchOrderBook', 'checksum', true);
-            if (checksum) {
+            if (checksum === true) {
                 const error = new ChecksumError(this.id + ' ' + this.orderbookChecksumMessage(symbol));
                 client.reject(error, messageHash);
             }
@@ -895,7 +895,9 @@ export default class bitfinex extends bitfinexRest {
             const balance = this.parseWsBalance(rawBalance);
             const balanceType = this.safeString(rawBalance, 0);
             const oldBalance = this.safeValue(this.balance, balanceType, {});
-            oldBalance[code] = balance;
+            if (code !== undefined) {
+                oldBalance[code] = balance;
+            }
             oldBalance['info'] = message;
             this.balance[balanceType] = this.safeBalance(oldBalance);
             updatedTypes[balanceType] = true;
@@ -1098,7 +1100,7 @@ export default class bitfinex extends bitfinexRest {
         //           null,
         //           30, // price
         //           0, // price average
-        //           0, // price_trailling
+        //           0, // price_trailing
         //           0, // price_aux_limit
         //           null,
         //           null,
@@ -1181,7 +1183,7 @@ export default class bitfinex extends bitfinexRest {
         //       null,
         //       42.799, // price
         //       42.821, // price average
-        //       0, // price trailling
+        //       0, // price trailing
         //       0, // price_aux_limit
         //       null,
         //       null,

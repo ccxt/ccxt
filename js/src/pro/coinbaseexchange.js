@@ -139,6 +139,9 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
+        if (symbols === undefined) {
+            throw new ArgumentsRequired(this.id + ' watchTickers() symbols is required');
+        }
         const symbolsLength = symbols.length;
         if (symbolsLength === 0) {
             throw new BadSymbol(this.id + ' watchTickers requires a non-empty symbols array');
@@ -316,7 +319,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
         const symbolsLength = symbols.length;
@@ -360,7 +363,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         const name = 'level2';
@@ -419,7 +422,9 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
             if (tradesArray === undefined) {
                 const tradesLimit = this.safeInteger(this.options, 'tradesLimit', 1000);
                 tradesArray = new ArrayCache(tradesLimit);
-                this.trades[symbol] = tradesArray;
+                if (symbol !== undefined) {
+                    this.trades[symbol] = tradesArray;
+                }
             }
             tradesArray.append(trade);
             client.resolve(tradesArray, messageHash);
@@ -630,6 +635,9 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
             const makerOrderId = this.safeString(message, 'maker_order_id');
             const takerOrderId = this.safeString(message, 'taker_order_id');
             const orders = this.orders;
+            if (orders === undefined) {
+                return;
+            }
             const previousOrders = this.safeValue(orders.hashmap, symbol, {});
             let previousOrder = this.safeValue(previousOrders, orderId);
             if (previousOrder === undefined) {
@@ -642,6 +650,9 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
             }
             else {
                 const sequence = this.safeInteger(message, 'sequence');
+                if (sequence === undefined) {
+                    return;
+                }
                 const previousInfo = this.safeValue(previousOrder, 'info', {});
                 const previousSequence = this.safeInteger(previousInfo, 'sequence');
                 if ((previousSequence === undefined) || (sequence > previousSequence)) {
@@ -699,6 +710,9 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
                             }
                         }
                         // update the newUpdates count
+                        if (orders === undefined) {
+                            return;
+                        }
                         orders.append(previousOrder);
                         client.resolve(orders, messageHash);
                     }
@@ -780,7 +794,9 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         if (marketId !== undefined) {
             const ticker = this.parseTicker(message);
             const symbol = ticker['symbol'];
-            this.tickers[symbol] = ticker;
+            if (symbol !== undefined) {
+                this.tickers[symbol] = ticker;
+            }
             const messageHash = 'ticker:' + symbol;
             const idMessageHash = 'ticker:' + marketId;
             client.resolve(ticker, messageHash);
@@ -909,7 +925,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
                 const side = this.safeString(sides, key);
                 const price = this.safeNumber(change, 1);
                 const amount = this.safeNumber(change, 2);
-                const bookside = orderbook[side];
+                const bookside = this.safeValue(orderbook, side);
                 bookside.store(price, amount);
             }
             orderbook['timestamp'] = timestamp;

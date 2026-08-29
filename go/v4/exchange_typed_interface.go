@@ -57,11 +57,11 @@ type IExchange interface {
 	FetchBalanceWs(params ...any) (Balances, error)
 	WatchBalance(params ...any) (Balances, error)
 	FetchFreeBalance(params ...any) (Balance, error)
-	FetchStatus(params ...any) (map[string]any, error)
+	FetchStatus(params ...any) (Status, error)
 	FetchTransactionFee(code string, options ...FetchTransactionFeeOptions) (map[string]any, error)
 	FetchTransactionFees(options ...FetchTransactionFeesOptions) (map[string]any, error)
-	FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]any, error)
-	FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]any, error)
+	FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (DepositWithdrawFees, error)
+	FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (DepositWithdrawFee, error)
 	FetchCrossBorrowRate(code string, options ...FetchCrossBorrowRateOptions) (CrossBorrowRate, error)
 	FetchIsolatedBorrowRate(symbol string, options ...FetchIsolatedBorrowRateOptions) (IsolatedBorrowRate, error)
 	FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBooks, error)
@@ -69,7 +69,7 @@ type IExchange interface {
 	CreateConvertTrade(id string, fromCode string, toCode string, options ...CreateConvertTradeOptions) (Conversion, error)
 	FetchConvertTrade(id string, options ...FetchConvertTradeOptions) (Conversion, error)
 	FetchConvertTradeHistory(options ...FetchConvertTradeHistoryOptions) ([]Conversion, error)
-	FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error)
+	FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error)
 	CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]any, error)
 	CancelOrdersForSymbols(orders []CancellationRequest, options ...CancelOrdersForSymbolsOptions) ([]Order, error)
 	FetchMyLiquidations(options ...FetchMyLiquidationsOptions) ([]Liquidation, error)
@@ -82,8 +82,8 @@ type IExchange interface {
 	FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error)
 	FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error)
 	FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Transaction, error)
-	FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error)
-	FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error)
+	FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error)
+	FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error)
 	FetchFundingRateHistory(options ...FetchFundingRateHistoryOptions) ([]FundingRateHistory, error)
 	FetchFundingHistory(options ...FetchFundingHistoryOptions) ([]FundingHistory, error)
 	FetchDepositAddress(code string, options ...FetchDepositAddressOptions) (DepositAddress, error)
@@ -274,9 +274,6 @@ func CreateExchange(exchangeId string, options map[string]any) IExchange {
 	case "bithumb":
 		itf := NewBithumb(options)
 		return itf
-	case "bitmart":
-		itf := NewBitmart(options)
-		return itf
 	case "bitmex":
 		itf := NewBitmex(options)
 		return itf
@@ -315,6 +312,9 @@ func CreateExchange(exchangeId string, options map[string]any) IExchange {
 		return itf
 	case "btcturk":
 		itf := NewBtcturk(options)
+		return itf
+	case "btse":
+		itf := NewBtse(options)
 		return itf
 	case "bullish":
 		itf := NewBullish(options)
@@ -382,9 +382,6 @@ func CreateExchange(exchangeId string, options map[string]any) IExchange {
 	case "dydx":
 		itf := NewDydx(options)
 		return itf
-	case "exmo":
-		itf := NewExmo(options)
-		return itf
 	case "extended":
 		itf := NewExtended(options)
 		return itf
@@ -438,9 +435,6 @@ func CreateExchange(exchangeId string, options map[string]any) IExchange {
 		return itf
 	case "kucoin":
 		itf := NewKucoin(options)
-		return itf
-	case "kucoineu":
-		itf := NewKucoineu(options)
 		return itf
 	case "kucoinfutures":
 		itf := NewKucoinfutures(options)

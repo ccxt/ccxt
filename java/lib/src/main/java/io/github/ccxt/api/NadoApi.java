@@ -19,72 +19,156 @@ public class NadoApi extends Exchange
         super(options);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  gatewayPublicGetSymbols (Object... optionalArgs)
+    /**
+     * Calls the gatewayPublicGetSymbols endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  gatewayPublicGetSymbols (Object... optionalArgs)
     {
         return this.callAsync ("gatewayPublicGetSymbols", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  gatewayPublicGetQuery (Object... optionalArgs)
+    /**
+     * Calls the gatewayPublicGetQuery endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  gatewayPublicGetQuery (Object... optionalArgs)
     {
         return this.callAsync ("gatewayPublicGetQuery", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  gatewayPublicGetEdgeQuery (Object... optionalArgs)
+    /**
+     * Calls the gatewayPublicGetEdgeQuery endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  gatewayPublicGetEdgeQuery (Object... optionalArgs)
     {
         return this.callAsync ("gatewayPublicGetEdgeQuery", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  gatewayPublicPostQuery (Object... optionalArgs)
+    /**
+     * Calls the gatewayPublicPostQuery endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  gatewayPublicPostQuery (Object... optionalArgs)
     {
         return this.callAsync ("gatewayPublicPostQuery", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  gatewayPrivatePostExecute (Object... optionalArgs)
+    /**
+     * Calls the gatewayPrivatePostExecute endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  gatewayPrivatePostExecute (Object... optionalArgs)
     {
         return this.callAsync ("gatewayPrivatePostExecute", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  gatewayV2PublicGetAssets (Object... optionalArgs)
+    /**
+     * Calls the gatewayV2PublicGetAssets endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  gatewayV2PublicGetAssets (Object... optionalArgs)
     {
         return this.callAsync ("gatewayV2PublicGetAssets", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  gatewayV2PublicGetPairs (Object... optionalArgs)
+    /**
+     * Calls the gatewayV2PublicGetPairs endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  gatewayV2PublicGetPairs (Object... optionalArgs)
     {
         return this.callAsync ("gatewayV2PublicGetPairs", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  gatewayV2PublicGetOrderbook (Object... optionalArgs)
+    /**
+     * Calls the gatewayV2PublicGetOrderbook endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  gatewayV2PublicGetOrderbook (Object... optionalArgs)
     {
         return this.callAsync ("gatewayV2PublicGetOrderbook", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  archivePost (Object... optionalArgs)
+    /**
+     * Calls the archivePost endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  archivePost (Object... optionalArgs)
     {
         return this.callAsync ("archivePost", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  archiveV2PublicGetTickers (Object... optionalArgs)
+    /**
+     * Calls the archiveV2PublicGetTickers endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  archiveV2PublicGetTickers (Object... optionalArgs)
     {
         return this.callAsync ("archiveV2PublicGetTickers", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  archiveV2PublicGetContracts (Object... optionalArgs)
+    /**
+     * Calls the archiveV2PublicGetContracts endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  archiveV2PublicGetContracts (Object... optionalArgs)
     {
         return this.callAsync ("archiveV2PublicGetContracts", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  archiveV2PublicGetTrades (Object... optionalArgs)
+    /**
+     * Calls the archiveV2PublicGetTrades endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  archiveV2PublicGetTrades (Object... optionalArgs)
     {
         return this.callAsync ("archiveV2PublicGetTrades", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  triggerPrivatePostExecute (Object... optionalArgs)
+    /**
+     * Calls the triggerPrivatePostExecute endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  triggerPrivatePostExecute (Object... optionalArgs)
     {
         return this.callAsync ("triggerPrivatePostExecute", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  triggerPrivatePostQuery (Object... optionalArgs)
+    /**
+     * Calls the triggerPrivatePostQuery endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  triggerPrivatePostQuery (Object... optionalArgs)
     {
         return this.callAsync ("triggerPrivatePostQuery", optionalArgs);
     }

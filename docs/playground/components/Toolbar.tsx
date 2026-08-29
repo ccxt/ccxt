@@ -89,7 +89,8 @@ export default function Toolbar({
         onClick={onToggleAi}
         aria-pressed={aiOpen}
       >
-        ✦ AI assistant
+        ✦ <span className="btn-label-full">AI assistant</span>
+        <span className="btn-label-short">AI</span>
       </button>
 
       <button

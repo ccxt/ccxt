@@ -125,40 +125,40 @@ export default class bithumb extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'ticker/ALL_{quoteId}',
-                        'ticker/{baseId}_{quoteId}',
-                        'orderbook/ALL_{quoteId}',
-                        'orderbook/{baseId}_{quoteId}',
-                        'transaction_history/{baseId}_{quoteId}',
-                        'network-info',
-                        'assetsstatus/multichain/ALL',
-                        'assetsstatus/multichain/{currency}',
-                        'withdraw/minimum/ALL',
-                        'withdraw/minimum/{currency}',
-                        'assetsstatus/ALL',
-                        'assetsstatus/{baseId}',
-                        'candlestick/{baseId}_{quoteId}/{interval}',
-                    ],
+                    'get': {
+                        'ticker/ALL_{quoteId}': { 'cost': 1 },
+                        'ticker/{baseId}_{quoteId}': { 'cost': 1 },
+                        'orderbook/ALL_{quoteId}': { 'cost': 1 },
+                        'orderbook/{baseId}_{quoteId}': { 'cost': 1 },
+                        'transaction_history/{baseId}_{quoteId}': { 'cost': 1 },
+                        'network-info': { 'cost': 1 },
+                        'assetsstatus/multichain/ALL': { 'cost': 1 },
+                        'assetsstatus/multichain/{currency}': { 'cost': 1 },
+                        'withdraw/minimum/ALL': { 'cost': 1 },
+                        'withdraw/minimum/{currency}': { 'cost': 1 },
+                        'assetsstatus/ALL': { 'cost': 1 },
+                        'assetsstatus/{baseId}': { 'cost': 1 },
+                        'candlestick/{baseId}_{quoteId}/{interval}': { 'cost': 1 },
+                    },
                 },
                 'private': {
-                    'post': [
-                        'info/account',
-                        'info/balance',
-                        'info/wallet_address',
-                        'info/ticker',
-                        'info/orders',
-                        'info/user_transactions',
-                        'info/order_detail',
-                        'trade/place',
-                        'trade/cancel',
-                        'trade/btc_withdrawal',
-                        'trade/krw_deposit',
-                        'trade/krw_withdrawal',
-                        'trade/market_buy',
-                        'trade/market_sell',
-                        'trade/stop_limit',
-                    ],
+                    'post': {
+                        'info/account': { 'cost': 1 },
+                        'info/balance': { 'cost': 1 },
+                        'info/wallet_address': { 'cost': 1 },
+                        'info/ticker': { 'cost': 1 },
+                        'info/orders': { 'cost': 1 },
+                        'info/user_transactions': { 'cost': 1 },
+                        'info/order_detail': { 'cost': 1 },
+                        'trade/place': { 'cost': 1 },
+                        'trade/cancel': { 'cost': 1 },
+                        'trade/btc_withdrawal': { 'cost': 1 },
+                        'trade/krw_deposit': { 'cost': 1 },
+                        'trade/krw_withdrawal': { 'cost': 1 },
+                        'trade/market_buy': { 'cost': 1 },
+                        'trade/market_sell': { 'cost': 1 },
+                        'trade/stop_limit': { 'cost': 1 },
+                    },
                 },
             },
             'fees': {
@@ -271,7 +271,6 @@ export default class bithumb extends Exchange {
                 },
             },
             'commonCurrencies': {
-                'ALT': 'ArchLoot',
                 'FTC': 'FTC2',
                 'SOC': 'Soda Coin',
             },
@@ -285,7 +284,8 @@ export default class bithumb extends Exchange {
         return super.safeMarket(marketId, market, delimiter, 'spot');
     }
     amountToPrecision(symbol, amount) {
-        return this.decimalToPrecision(amount, TRUNCATE, this.markets[symbol]['precision']['amount'], DECIMAL_PLACES);
+        const market = this.market(symbol);
+        return this.decimalToPrecision(amount, TRUNCATE, market['precision']['amount'], DECIMAL_PLACES);
     }
     /**
      * @method
@@ -456,7 +456,7 @@ export default class bithumb extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -861,15 +861,18 @@ export default class bithumb extends Exchange {
             'payment_currency': market['quote'],
             'units': amount,
         };
-        let method = 'privatePostTradePlace';
+        let response = undefined;
         if (type === 'limit') {
             request['price'] = price;
             request['type'] = (side === 'buy') ? 'bid' : 'ask';
+            response = await this.privatePostTradePlace(this.extend(request, params));
+        }
+        else if (side === 'buy') {
+            response = await this.privatePostTradeMarketBuy(this.extend(request, params));
         }
         else {
-            method = 'privatePostTradeMarket' + this.capitalize(side);
+            response = await this.privatePostTradeMarketSell(this.extend(request, params));
         }
-        const response = await this[method](this.extend(request, params));
         const id = this.safeString(response, 'order_id');
         if (id === undefined) {
             throw new InvalidOrder(this.id + ' createOrder() did not return an order id');
@@ -1226,7 +1229,7 @@ export default class bithumb extends Exchange {
         let url = this.implodeHostname(this.urls['api'][api]) + endpoint;
         const query = this.omit(params, this.extractParams(path));
         if (api === 'public') {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
             }
         }
@@ -1235,6 +1238,9 @@ export default class bithumb extends Exchange {
             body = this.urlencode(this.extend({
                 'endpoint': endpoint,
             }, query));
+            // bithumb verifies signatures with PHP http_build_query conventions, spaces must be '+'
+            const bodyParts = body.split('%20');
+            body = bodyParts.join('+');
             const nonce = this.nonce().toString();
             const auth = endpoint + "\0" + body + "\0" + nonce; // eslint-disable-line quotes
             const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512);

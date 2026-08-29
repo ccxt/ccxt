@@ -10,7 +10,7 @@ import { ArrayCache } from '../base/ws/Cache.js';
 //  ---------------------------------------------------------------------------
 
 export default class coincheck extends coincheckRest {
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -54,9 +54,9 @@ export default class coincheck extends coincheckRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -72,7 +72,7 @@ export default class coincheck extends coincheckRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client, message) {
+    handleOrderBook (client: any, message: any) {
         //
         //     [
         //         "btc_jpy",
@@ -93,7 +93,7 @@ export default class coincheck extends coincheckRest {
         //         }
         //     ]
         //
-        const symbol = this.symbol (this.safeString (message, 0) as string);
+        const symbol = this.symbol (this.safeString (message, 0));
         const data = this.safeValue (message, 1, {});
         const timestamp = this.safeTimestamp (data, 'last_update_at');
         const snapshot = this.parseOrderBook (data, symbol, timestamp);
@@ -120,7 +120,7 @@ export default class coincheck extends coincheckRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -140,7 +140,7 @@ export default class coincheck extends coincheckRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrades (client: Client, message) {
+    handleTrades (client: Client, message: any) {
         //
         //     [
         //         [
@@ -156,7 +156,7 @@ export default class coincheck extends coincheckRest {
         //     ]
         //
         const first = this.safeValue (message, 0, []);
-        const symbol = this.symbol (this.safeString (first, 2) as string);
+        const symbol = this.symbol (this.safeString (first, 2));
         let stored = this.safeValue (this.trades, symbol);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
@@ -172,7 +172,7 @@ export default class coincheck extends coincheckRest {
         client.resolve (stored, messageHash);
     }
 
-    parseWsTrade (trade: Dict, market: Market = undefined): Trade {
+    override parseWsTrade (trade: Dict, market: Market = undefined): Trade {
         //
         //     [
         //         "1663318663", // transaction timestamp (unix time)
@@ -185,7 +185,7 @@ export default class coincheck extends coincheckRest {
         //         "2078767" // ID of the Maker
         //     ]
         //
-        const symbol = this.symbol (this.safeString (trade, 2) as string);
+        const symbol = this.symbol (this.safeString (trade, 2));
         const timestamp = this.safeTimestamp (trade, 0);
         const side = this.safeString (trade, 5);
         const priceString = this.safeString (trade, 3);
@@ -207,7 +207,7 @@ export default class coincheck extends coincheckRest {
         }, market);
     }
 
-    handleMessage (client: Client, message) {
+    override handleMessage (client: Client, message: any) {
         const data = this.safeValue (message, 0);
         if (!Array.isArray (data)) {
             this.handleOrderBook (client, message);

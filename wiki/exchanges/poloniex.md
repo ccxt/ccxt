@@ -316,6 +316,7 @@ create a trade order
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.triggerPrice | <code>float</code> | No | the price at which a trigger order is triggered at |
 | params.cost | <code>float</code> | No | *spot market buy only* the quote quantity that can be used as an alternative for the amount |
+| params.clientOrderId | <code>string</code> | No | a unique identifier for the order |
 
 
 ```javascript
@@ -347,6 +348,7 @@ edit a trade order
 | price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.triggerPrice | <code>float</code> | No | The price at which a trigger order is triggered at |
+| params.clientOrderId | <code>string</code> | No | a unique identifier for the order |
 
 
 ```javascript
@@ -371,13 +373,13 @@ cancel all open orders
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined |
+| symbol | <code>string</code> | No | unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.trigger | <code>boolean</code> | No | true if canceling trigger orders |
 
 
 ```javascript
-poloniex.cancelAllOrders (symbol, params?)
+poloniex.cancelAllOrders (symbol?, params?)
 ```
 
 
@@ -482,7 +484,7 @@ poloniex.fetchTradingFees (params?)
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>poloniex</code>](#poloniex)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 
@@ -729,7 +731,7 @@ poloniex.fetchLeverage (symbol, params?)
 <a name="fetchPositionMode" id="fetchpositionmode"></a>
 
 ### fetchPositionMode{docsify-ignore}
-fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+fetches the position mode, hedged or one way, hedged is set identically for all linear markets or all inverse markets
 
 **Kind**: instance method of [<code>poloniex</code>](#poloniex)  
 **Returns**: <code>object</code> - an object detailing whether the market is in hedged or one-way mode
@@ -738,12 +740,12 @@ fetchs the position mode, hedged or one way, hedged for binance is set identical
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the order book for |
+| symbol | <code>string</code> | No | unified symbol of the market to fetch the position mode for (not used by fetchPositionMode) |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-poloniex.fetchPositionMode (symbol, params?)
+poloniex.fetchPositionMode (symbol?, params?)
 ```
 
 
@@ -759,8 +761,8 @@ set hedged to true or false for a market
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| hedged | <code>bool</code> | Yes | set to true to use dualSidePosition |
-| symbol | <code>string</code> | Yes | not used by binance setPositionMode () |
+| hedged | <code>bool</code> | Yes | set to true to use the hedged position mode |
+| symbol | <code>string</code> | Yes | not used by setPositionMode () |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 

@@ -232,17 +232,22 @@ fetch all deposits made to an account
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
-**See**: https://www.bitget.com/api-doc/spot/account/Get-Deposit-Record  
+**See**
+
+- https://www.bitget.com/api-doc/spot/account/Get-Deposit-Record
+- https://www.bitget.com/api-doc/uta/account/deposit/Get-Deposit-Records
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | code | <code>string</code> | Yes | unified currency code |
-| since | <code>int</code> | No | the earliest time in ms to fetch deposits for |
+| since | <code>int</code> | No | the earliest time in ms to fetch deposits for, the window between since and until must not exceed 30 days for uta accounts |
 | limit | <code>int</code> | No | the maximum number of deposits structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | end time in milliseconds |
-| params.idLessThan | <code>string</code> | No | return records with id less than the provided value |
+| params.idLessThan | <code>string</code> | No | *non-uta only* return records with id less than the provided value |
 | params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
+| params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), defaults to false |
 
 
 ```javascript
@@ -258,7 +263,11 @@ make a withdrawal
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
 **Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
-**See**: https://www.bitget.com/api-doc/spot/account/Wallet-Withdrawal  
+**See**
+
+- https://www.bitget.com/api-doc/spot/account/Wallet-Withdrawal
+- https://www.bitget.com/api-doc/uta/account/withdrawal/
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -268,6 +277,7 @@ make a withdrawal
 | tag | <code>string</code> | Yes |  |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.chain | <code>string</code> | No | the blockchain network the withdrawal is taking place on |
+| params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), defaults to false |
 
 
 ```javascript
@@ -283,17 +293,22 @@ fetch all withdrawals made from an account
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
-**See**: https://www.bitget.com/api-doc/spot/account/Get-Withdraw-Record  
+**See**
+
+- https://www.bitget.com/api-doc/spot/account/Get-Withdraw-Record
+- https://www.bitget.com/api-doc/uta/account/withdrawal/Get-Withdrawal-Records
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | code | <code>string</code> | Yes | unified currency code |
-| since | <code>int</code> | No | the earliest time in ms to fetch withdrawals for |
+| since | <code>int</code> | No | the earliest time in ms to fetch withdrawals for, the window between since and until must not exceed 30 days for uta accounts |
 | limit | <code>int</code> | No | the maximum number of withdrawals structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | end time in milliseconds |
-| params.idLessThan | <code>string</code> | No | return records with id less than the provided value |
+| params.idLessThan | <code>string</code> | No | *non-uta only* return records with id less than the provided value |
 | params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
+| params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), defaults to false |
 
 
 ```javascript
@@ -309,12 +324,17 @@ fetch the deposit address for a currency associated with this account
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
 **Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
 
-**See**: https://www.bitget.com/api-doc/spot/account/Get-Deposit-Address  
+**See**
+
+- https://www.bitget.com/api-doc/spot/account/Get-Deposit-Address
+- https://www.bitget.com/api-doc/uta/account/deposit/Get-Deposit-Address
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | code | <code>string</code> | Yes | unified currency code |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), defaults to false |
 
 
 ```javascript
@@ -328,7 +348,7 @@ bitget.fetchDepositAddress (code, params?)
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 
@@ -565,6 +585,7 @@ query for balance and get the amount of funds available for trading or funds loc
 - https://bitgetlimited.github.io/apidoc/en/margin/#get-cross-assets
 - https://bitgetlimited.github.io/apidoc/en/margin/#get-isolated-assets
 - https://www.bitget.com/api-doc/uta/account/Get-Account
+- https://www.bitget.com/api-doc/uta/account/Get-Account-Funding-Assets
 
 
 | Param | Type | Required | Description |
@@ -572,6 +593,7 @@ query for balance and get the amount of funds available for trading or funds loc
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.productType | <code>string</code> | No | *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES' |
 | params.uta | <code>string</code> | No | set to true for the unified trading account (uta), defaults to false |
+| params.type | <code>string</code> | No | 'funding' to fetch the uta funding-account assets (uta only, classic accounts route funding through 'spot') |
 
 
 ```javascript
@@ -1414,7 +1436,7 @@ set hedged to true or false for a market
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | hedged | <code>bool</code> | Yes | set to true to use dualSidePosition |
-| symbol | <code>string</code> | Yes | not used by bitget setPositionMode () |
+| symbol | <code>string</code> | Yes | not used by setPositionMode () |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.productType | <code>string</code> | No | required if not uta and symbol is undefined: 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES' |
 | params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), defaults to false |
@@ -1483,7 +1505,11 @@ transfer currency internally between wallets on the same account
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
 **Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
 
-**See**: https://www.bitget.com/api-doc/spot/account/Wallet-Transfer  
+**See**
+
+- https://www.bitget.com/api-doc/spot/account/Wallet-Transfer
+- https://www.bitget.com/api-doc/uta/account/transfer
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1492,6 +1518,7 @@ transfer currency internally between wallets on the same account
 | fromAccount | <code>string</code> | Yes | account to transfer from |
 | toAccount | <code>string</code> | Yes | account to transfer to |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.uta | <code>boolean</code> | No | set to true to transfer via the unified trading account v3 endpoint |
 | params.symbol | <code>string</code> | No | unified CCXT market symbol, required when transferring to or from an account type that is a leveraged position-by-position account |
 | params.clientOid | <code>string</code> | No | custom id |
 
@@ -1811,7 +1838,7 @@ fetches historical positions
 | symbols | <code>Array&lt;string&gt;</code> | No | unified contract symbols |
 | since | <code>int</code> | No | timestamp in ms of the earliest position to fetch, default=3 months ago, max range for params["until"] - since is 3 months |
 | limit | <code>int</code> | No | the maximum amount of records to fetch, default=20, max=100 |
-| params | <code>object</code> | Yes | extra parameters specific to the exchange api endpoint |
+| params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | timestamp in ms of the latest position to fetch, max range for params["until"] - since is 3 months |
 | params.productType | <code>string</code> | No | USDT-FUTURES (default), COIN-FUTURES, USDC-FUTURES, SUSDT-FUTURES, SCOIN-FUTURES, or SUSDC-FUTURES |
 | params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), defaults to false |
@@ -2206,7 +2233,7 @@ bitget.unWatchOrderBook (symbol, params?)
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 

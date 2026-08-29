@@ -825,6 +825,118 @@
                     "previousFundingDatetime": null,
                     "interval": null
                 }
+            },
+            {
+                "description": "fetch funding rate inverse",
+                "method": "fetchFundingRate",
+                "input": [
+                    "BTC/USD:BTC"
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "msg": "",
+                    "timestamp": 1787342456049,
+                    "data": [
+                        {
+                            "symbol": "BTC-USD",
+                            "lastFundingRate": "0.0001",
+                            "markPrice": "76881.8",
+                            "indexPrice": "76922.2",
+                            "nextFundingTime": 1787356800000
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "info": {
+                        "symbol": "BTC-USD",
+                        "lastFundingRate": "0.0001",
+                        "markPrice": "76881.8",
+                        "indexPrice": "76922.2",
+                        "nextFundingTime": 1787356800000
+                    },
+                    "symbol": "BTC/USD:BTC",
+                    "markPrice": 76881.8,
+                    "indexPrice": 76922.2,
+                    "interestRate": null,
+                    "estimatedSettlePrice": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "fundingRate": 0.0001,
+                    "fundingTimestamp": null,
+                    "fundingDatetime": null,
+                    "nextFundingRate": null,
+                    "nextFundingTimestamp": 1787356800000,
+                    "nextFundingDatetime": "2026-08-22T00:00:00.000Z",
+                    "previousFundingRate": null,
+                    "previousFundingTimestamp": null,
+                    "previousFundingDatetime": null,
+                    "interval": null
+                }
+            }
+        ],
+        "fetchOpenInterest": [
+            {
+                "description": "fetch open interest linear",
+                "method": "fetchOpenInterest",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "msg": "",
+                    "data": {
+                        "openInterest": "3289641547.10",
+                        "symbol": "BTC-USDT",
+                        "time": 1672026617364
+                    }
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT:USDT",
+                    "baseVolume": null,
+                    "quoteVolume": null,
+                    "openInterestAmount": null,
+                    "openInterestValue": 3289641547.1,
+                    "timestamp": 1672026617364,
+                    "datetime": "2022-12-26T03:50:17.364Z",
+                    "info": {
+                        "openInterest": "3289641547.10",
+                        "symbol": "BTC-USDT",
+                        "time": 1672026617364
+                    }
+                }
+            },
+            {
+                "description": "fetch open interest inverse",
+                "method": "fetchOpenInterest",
+                "input": [
+                    "BTC/USD:BTC"
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "msg": "",
+                    "timestamp": 1787342456489,
+                    "data": [
+                        {
+                            "symbol": "BTC-USD",
+                            "openInterest": "1152.6776",
+                            "timestamp": 1787356800000
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USD:BTC",
+                    "baseVolume": null,
+                    "quoteVolume": null,
+                    "openInterestAmount": 1152.6776,
+                    "openInterestValue": null,
+                    "timestamp": 1787356800000,
+                    "datetime": "2026-08-22T00:00:00.000Z",
+                    "info": {
+                        "symbol": "BTC-USD",
+                        "openInterest": "1152.6776",
+                        "timestamp": 1787356800000
+                    }
+                }
             }
         ],
         "fetchTransfers": [
@@ -3330,8 +3442,8 @@
                         "side": null,
                         "takerOrMaker": null,
                         "price": 65.2965,
-                        "amount": 1,
-                        "cost": 65.2965,
+                        "amount": 10,
+                        "cost": 652.965,
                         "fee": {
                             "cost": 0.0326,
                             "currency": "USDT"
@@ -3339,6 +3451,78 @@
                         "fees": [
                             {
                                 "cost": 0.0326,
+                                "currency": "USDT"
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "description": "Swap trade amount is taken from volume directly, not volume * tradeMinQuantity (regression for issue #29476, 3x inflated amount)",
+                "method": "fetchMyTrades",
+                "input": [
+                    "LTC/USDT:USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "",
+                    "data": {
+                        "fill_orders": [
+                            {
+                                "filledTm": "2026-07-28T10:00:00Z",
+                                "volume": "1.3",
+                                "price": "8.281",
+                                "amount": "10.7653",
+                                "commission": "-0.0053824",
+                                "currency": "USDT",
+                                "orderId": "2082074120363917312",
+                                "liquidatedPrice": "",
+                                "liquidatedMarginRatio": "",
+                                "filledTime": "2026-07-28T10:00:00.000+0800",
+                                "clientOrderID": "",
+                                "symbol": "LTC-USDT",
+                                "onlyOnePosition": false
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "id": null,
+                        "info": {
+                            "filledTm": "2026-07-28T10:00:00Z",
+                            "volume": "1.3",
+                            "price": "8.281",
+                            "amount": "10.7653",
+                            "commission": "-0.0053824",
+                            "currency": "USDT",
+                            "orderId": "2082074120363917312",
+                            "liquidatedPrice": "",
+                            "liquidatedMarginRatio": "",
+                            "filledTime": "2026-07-28T10:00:00.000+0800",
+                            "clientOrderID": "",
+                            "symbol": "LTC-USDT",
+                            "onlyOnePosition": false
+                        },
+                        "timestamp": 1785232800000,
+                        "datetime": "2026-07-28T10:00:00.000Z",
+                        "symbol": "LTC/USDT:USDT",
+                        "order": "2082074120363917312",
+                        "type": null,
+                        "side": null,
+                        "takerOrMaker": null,
+                        "price": 8.281,
+                        "amount": 1.3,
+                        "cost": 10.7653,
+                        "fee": {
+                            "cost": 0.0053824,
+                            "currency": "USDT"
+                        },
+                        "fees": [
+                            {
+                                "cost": 0.0053824,
                                 "currency": "USDT"
                             }
                         ]
@@ -3688,7 +3872,7 @@
                     },
                     "currency": "USDT",
                     "network": "BEP20",
-                    "address": "6d5a760ce95c2f8fc028661f1645f89ea1s62745",
+                    "address": "0x6d5a760ce95c2f8fc028661f1645f89ea1s62745",
                     "tag": null
                   },
                   "HECO": {
@@ -4472,6 +4656,86 @@
                     "initialMargin": 1.9128,
                     "initialMarginPercentage": null,
                     "leverage": 5,
+                    "marginRatio": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null
+                  }
+                ]
+            },
+            {
+                "description": "fetch inverse position",
+                "method": "fetchPositions",
+                "input": [
+                  [
+                    "SOL/USD:SOL"
+                  ]
+                ],
+                "httpResponse": {
+                  "code": "0",
+                  "msg": "",
+                  "data": [
+                    {
+                      "symbol": "SOL-USD",
+                      "positionId": "1813080351385337856",
+                      "positionSide": "LONG",
+                      "isolated": false,
+                      "positionAmt": "1",
+                      "availableAmt": "1",
+                      "unrealizedProfit": "-0.00009074",
+                      "initialMargin": "0.00630398",
+                      "liquidationPrice": 23.968303426677032,
+                      "avgPrice": "158.63",
+                      "leverage": 10,
+                      "markPrice": "158.402",
+                      "riskRate": "0.00123783",
+                      "maxMarginReduction": "0",
+                      "updateTime": 1721107015848
+                    }
+                  ]
+                },
+                "parsedResponse": [
+                  {
+                    "info": {
+                      "symbol": "SOL-USD",
+                      "positionId": "1813080351385337856",
+                      "positionSide": "LONG",
+                      "isolated": false,
+                      "positionAmt": "1",
+                      "availableAmt": "1",
+                      "unrealizedProfit": "-0.00009074",
+                      "initialMargin": "0.00630398",
+                      "liquidationPrice": 23.968303426677032,
+                      "avgPrice": "158.63",
+                      "leverage": 10,
+                      "markPrice": "158.402",
+                      "riskRate": "0.00123783",
+                      "maxMarginReduction": "0",
+                      "updateTime": 1721107015848
+                    },
+                    "id": "1813080351385337856",
+                    "symbol": "SOL/USD:SOL",
+                    "notional": null,
+                    "marginMode": "cross",
+                    "liquidationPrice": 23.968303426677032,
+                    "entryPrice": 158.63,
+                    "unrealizedPnl": -0.00009074,
+                    "realizedPnl": null,
+                    "percentage": -1.43,
+                    "contracts": 1,
+                    "contractSize": 1,
+                    "markPrice": 158.402,
+                    "lastPrice": null,
+                    "side": "long",
+                    "hedged": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastUpdateTimestamp": 1721107015848,
+                    "maintenanceMargin": null,
+                    "maintenanceMarginPercentage": null,
+                    "collateral": null,
+                    "initialMargin": 0.00630398,
+                    "initialMarginPercentage": null,
+                    "leverage": 10,
                     "marginRatio": null,
                     "stopLossPrice": null,
                     "takeProfitPrice": null

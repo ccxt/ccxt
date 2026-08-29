@@ -17,8 +17,10 @@
 import ccxt from '../../../../ccxt.js';
 import { ExchangeClosedByUser, NetworkError } from '../../../base/errors.js';
 
-const exchangeId = process.env['WS_CLOSE_TEST_EXCHANGE'] || 'binance';
-const spotSymbol = process.env['WS_CLOSE_TEST_SYMBOL'] || 'BTC/USDT';
+const envExchangeId = process.env['WS_CLOSE_TEST_EXCHANGE'];
+const envSpotSymbol = process.env['WS_CLOSE_TEST_SYMBOL'];
+const exchangeId = ((envExchangeId !== undefined) && (envExchangeId !== '')) ? envExchangeId : 'binance';
+const spotSymbol = ((envSpotSymbol !== undefined) && (envSpotSymbol !== '')) ? envSpotSymbol : 'BTC/USDT';
 const multiSymbols = [ 'BTC/USDT', 'ETH/USDT', 'LTC/USDT' ];
 
 const results: any[] = [];
@@ -28,15 +30,15 @@ process.on ('unhandledRejection', (reason) => {
     rejectionLeaks.push (reason);
 });
 
-function sleep (ms) {
+function sleep (ms: number) {
     return new Promise ((resolve) => setTimeout (resolve, ms));
 }
 
 const TIMED_OUT = 'TIMED_OUT';
 
 // resolves to TIMED_OUT instead of hanging forever; never rejects
-async function bounded (promise, ms) {
-    let timer;
+async function bounded (promise: any, ms: number) {
+    let timer: any;
     const timeout = new Promise ((resolve) => {
         timer = setTimeout (() => resolve (TIMED_OUT), ms);
     });
@@ -47,23 +49,23 @@ async function bounded (promise, ms) {
     }
 }
 
-function record (name, passed, note) {
+function record (name: string, passed: boolean, note: string) {
     results.push ({ name, passed, note });
-    console.log ((passed ? '✓ PASS' : '✗ FAIL') + ' | ' + name + (note ? ' - ' + note : ''));
+    console.log ((passed ? '✓ PASS' : '✗ FAIL') + ' | ' + name + ((note !== '') ? ' - ' + note : ''));
 }
 
 function newExchange () {
     return new (ccxt.pro as any)[exchangeId] ({ 'enableRateLimit': true });
 }
 
-async function closeAfter (exchange, ms) {
+async function closeAfter (exchange: any, ms: number) {
     await sleep (ms);
     await exchange.close ();
 }
 
 // keeps awaiting the given watch call until it throws or the deadline passes;
 // returns the error it threw, or TIMED_OUT if it was still happily streaming
-async function watchUntilThrown (watchCall, deadlineMs) {
+async function watchUntilThrown (watchCall: any, deadlineMs: number) {
     const loop = (async () => {
         try {
             while (true) {
@@ -150,7 +152,7 @@ async function testCloseDuringRacedWatch () {
 
 async function testCloseWhileConnecting () {
     const exchange = newExchange ();
-    const pending = exchange.watchTicker (spotSymbol).then (() => undefined, (e) => e);
+    const pending = exchange.watchTicker (spotSymbol).then (() => undefined, (e: any) => e);
     await sleep (50); // close mid-handshake, before the connection is established
     await exchange.close ();
     const outcome = await bounded (pending, 15000);
@@ -172,7 +174,7 @@ async function testRewatchAfterClose () {
     const exchange = newExchange ();
     await exchange.watchTicker (spotSymbol);
     await exchange.close ();
-    const outcome = await bounded (exchange.watchTicker (spotSymbol).then ((t) => t, (e) => e), 15000);
+    const outcome = await bounded (exchange.watchTicker (spotSymbol).then ((t: any) => t, (e: any) => e), 15000);
     if (outcome === TIMED_OUT) {
         record ('watch() again after close()', false, 'neither resolved nor rejected within 15s');
     } else if (outcome instanceof Error) {
@@ -196,9 +198,9 @@ async function testCloseManual () {
     await testCloseWhileConnecting ();
     await testRewatchAfterClose ();
     console.log ('---------------------------------------------------------------');
-    const failed = results.filter ((r) => !r.passed);
+    const failed = results.filter ((r) => r.passed !== true);
     console.log (results.length + ' scenarios, ' + failed.length + ' failed, ' + rejectionLeaks.length + ' unhandled rejection(s) leaked overall');
-    process.exit (failed.length ? 1 : 0);
+    process.exit ((failed.length > 0) ? 1 : 0);
 }
 
 testCloseManual ();

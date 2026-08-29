@@ -32,12 +32,16 @@ public class TestCreateOrder extends BaseTest {
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
         Object logPrefix = TestSharedMethods.logTemplate(exchange, "createOrder", new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)));
-        Assert(Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(exchange.has, "cancelOrder")) || Helpers.isTrue(Helpers.GetValue(exchange.has, "cancelOrders"))) || Helpers.isTrue(Helpers.GetValue(exchange.has, "cancelAllOrders")), Helpers.add(logPrefix, " does not have cancelOrder|cancelOrders|canelAllOrders method, which is needed to make tests for `createOrder` method. Skipping the test..."));
+        Object hasCancelOrder = Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "cancelOrder"), null))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "cancelOrder"), false)));
+        Object hasCancelOrders = Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "cancelOrders"), null))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "cancelOrders"), false)));
+        Object hasCancelAllOrders = Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "cancelAllOrders"), null))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "cancelAllOrders"), false)));
+        Assert(Helpers.isTrue(Helpers.isTrue(hasCancelOrder) || Helpers.isTrue(hasCancelOrders)) || Helpers.isTrue(hasCancelAllOrders), Helpers.add(logPrefix, " does not have cancelOrder|cancelOrders|canelAllOrders method, which is needed to make tests for `createOrder` method. Skipping the test..."));
         // pre-define some coefficients, which will be used down below
         Object limitPriceSafetyMultiplierFromMedian = 1.045; // todo: when this https://github.com/ccxt/ccxt/issues/22442 is implemented, we'll remove hardcoded value. atm 5% is enough
         Object market = exchange.market(symbol);
-        Object isSwapFuture = Helpers.isTrue(Helpers.GetValue(market, "swap")) || Helpers.isTrue(Helpers.GetValue(market, "future"));
-        Assert(Helpers.GetValue(exchange.has, "fetchBalance"), Helpers.add(logPrefix, " does not have fetchBalance() method, which is needed to make tests for `createOrder` method. Skipping the test..."));
+        Object isSwapFuture = Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "swap"), true))) || Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "future"), true)));
+        Object hasFetchBalance = Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "fetchBalance"), null))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "fetchBalance"), false)));
+        Assert(hasFetchBalance, Helpers.add(logPrefix, " does not have fetchBalance() method, which is needed to make tests for `createOrder` method. Skipping the test..."));
         Object balance = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchBalance", new Object[]{})).join();
         Object initialBaseBalance = Helpers.GetValue(Helpers.GetValue(balance, Helpers.GetValue(market, "base")), "free");
         Object initialQuoteBalance = Helpers.GetValue(Helpers.GetValue(balance, Helpers.GetValue(market, "quote")), "free");
@@ -153,7 +157,7 @@ public class TestCreateOrder extends BaseTest {
         Object predefinedAmount = Helpers.getArg(optionalArgs, 0, null);
         try
         {
-            Object isSwapFuture = Helpers.isTrue(Helpers.GetValue(market, "swap")) || Helpers.isTrue(Helpers.GetValue(market, "future"));
+            Object isSwapFuture = Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "swap"), true))) || Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "future"), true)));
             Object isBuy = (Helpers.isEqual(buyOrSellString, "buy"));
             Object entrySide = ((Helpers.isTrue(isBuy))) ? "buy" : "sell";
             Object exitSide = ((Helpers.isTrue(isBuy))) ? "sell" : "buy";
@@ -171,7 +175,8 @@ public class TestCreateOrder extends BaseTest {
             {
                 Helpers.addElementToObject(parameters, "reduceOnly", true);
             }
-            Object exitorderFilled = (tcoCreateOrderSafe(exchange, symbol, "market", exitSide, amountToClose, (((Helpers.isTrue(Helpers.GetValue(market, "spot")))) ? null : exitorderPrice), parameters, skippedProperties)).join();
+            Object exitorderPriceArg = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true))))) ? null : exitorderPrice;
+            Object exitorderFilled = (tcoCreateOrderSafe(exchange, symbol, "market", exitSide, amountToClose, exitorderPriceArg, parameters, skippedProperties)).join();
             Object exitorderFetched = (TestSharedMethods.fetchOrder(exchange, symbol, Helpers.GetValue(exitorderFilled, "id"), skippedProperties)).join();
             tcoAssertFilledOrder(exchange, market, logPrefix, skippedProperties, exitorderFilled, exitorderFetched, exitSide, amountToClose);
         } catch(Exception e)
@@ -213,15 +218,15 @@ public class TestCreateOrder extends BaseTest {
         Object logPrefix = TestSharedMethods.logTemplate(exchange, "createOrder", new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)));
         Object usedMethod = "";
         Object cancelResult = null;
-        if (Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(exchange.has, "cancelOrder")) && Helpers.isTrue(!Helpers.isEqual(orderId, null))))
+        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "cancelOrder"), null))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "cancelOrder"), false)))) && Helpers.isTrue((!Helpers.isEqual(orderId, null)))))
         {
             usedMethod = "cancelOrder";
             cancelResult = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "cancelOrder", new Object[]{orderId, symbol})).join();
-        } else if (Helpers.isTrue(Helpers.GetValue(exchange.has, "cancelAllOrders")))
+        } else if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "cancelAllOrders"), null))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "cancelAllOrders"), false)))))
         {
             usedMethod = "cancelAllOrders";
             cancelResult = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "cancelAllOrders", new Object[]{symbol})).join();
-        } else if (Helpers.isTrue(Helpers.GetValue(exchange.has, "cancelOrders")))
+        } else if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "cancelOrders"), null))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "cancelOrders"), false)))))
         {
             throw new RuntimeException((String)Helpers.add(logPrefix, " cancelOrders method is not unified yet, coming soon...")) ;
         }
@@ -255,7 +260,7 @@ public class TestCreateOrder extends BaseTest {
                 // if it was limit order, try to cancel it before exiting the script
                 (tcoTryCancelOrder(exchange, symbol, order, skippedProperties)).join();
             }
-            throw new RuntimeException(e);
+            throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
         }
         return order;
         });
@@ -321,9 +326,13 @@ public class TestCreateOrder extends BaseTest {
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
         Object orderFetched = (TestSharedMethods.fetchOrder(exchange, symbol, Helpers.GetValue(order, "id"), skippedProperties)).join();
+        if (Helpers.isTrue(Helpers.isEqual(orderFetched, null)))
+        {
+            return true;
+        }
         Object needsCancel = exchange.inArray(Helpers.GetValue(orderFetched, "status"), new java.util.ArrayList<Object>(java.util.Arrays.asList("open", "pending", null)));
         // if it was not reported as closed/filled, then try to cancel it
-        if (Helpers.isTrue(needsCancel))
+        if (Helpers.isTrue(Helpers.isEqual(needsCancel, true)))
         {
             tcoDebug(exchange, symbol, "trying to cancel the remaining amount of partially filled order...");
             try

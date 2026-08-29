@@ -83,7 +83,7 @@ function test_market($exchange, $skipped_properties, $method, $market) {
     $is_inactive_market = $market['active'] === false;
     //
     $empty_allowed_for = ['margin'];
-    if (!$contract) {
+    if ($contract !== true) {
         $empty_allowed_for[] = 'contractSize';
         $empty_allowed_for[] = 'linear';
         $empty_allowed_for[] = 'inverse';
@@ -91,11 +91,11 @@ function test_market($exchange, $skipped_properties, $method, $market) {
         $empty_allowed_for[] = 'settle';
         $empty_allowed_for[] = 'settleId';
     }
-    if (!$future && !$option) {
+    if (($future !== true) && ($option !== true)) {
         $empty_allowed_for[] = 'expiry';
         $empty_allowed_for[] = 'expiryDatetime';
     }
-    if (!$option) {
+    if ($option !== true) {
         $empty_allowed_for[] = 'optionType';
         $empty_allowed_for[] = 'strike';
     }
@@ -107,6 +107,11 @@ function test_market($exchange, $skipped_properties, $method, $market) {
         $empty_allowed_for[] = 'quoteId';
         $empty_allowed_for[] = 'base';
         $empty_allowed_for[] = 'quote';
+    }
+    if ($exchange->safe_string($market, 'type') === 'prediction') {
+        // prediction market rows carry the unified 'market' handle, the
+        // deprecated 'symbol' key is intentionally absent from their structures
+        $format = $exchange->omit($format, ['symbol']);
     }
     assert_structure($exchange, $skipped_properties, $method, $market, $format, $empty_allowed_for);
     // prediction market rows are keyed by `market`; `symbol` internally by setMarkets
@@ -130,22 +135,22 @@ function test_market($exchange, $skipped_properties, $method, $market) {
     $checked_types = ['spot', 'swap', 'future', 'option'];
     for ($i = 0; $i < count($checked_types); $i++) {
         $type = $checked_types[$i];
-        if ($market[$type]) {
+        if ($market[$type] === true) {
             assert($type === $market['type'], 'market.type (' . $market['type'] . ') not equal to "' . $type . '"' . $log_text);
         }
     }
     // check if 'subType' is consistent
-    if ($swap || $future) {
+    if (($swap === true) || ($future === true)) {
         $checked_sub_types = ['linear', 'inverse'];
         for ($i = 0; $i < count($checked_sub_types); $i++) {
             $sub_type = $checked_sub_types[$i];
-            if ($market[$sub_type]) {
+            if ($market[$sub_type] === true) {
                 assert($sub_type === $market['subType'], 'market.subType (' . $market['subType'] . ') not equal to "' . $sub_type . '"' . $log_text);
             }
         }
     }
     // margin check (todo: add margin as mandatory, instead of undefined)
-    if ($spot) {
+    if ($spot === true) {
         // for spot market, 'margin' can be either true/false or undefined
         assert_in_array($exchange, $skipped_properties, $method, $market, 'margin', [true, false, null]);
     } else {
@@ -156,16 +161,16 @@ function test_market($exchange, $skipped_properties, $method, $market) {
     $is_prediction = ($market['type'] === 'prediction');
     if ($is_prediction) {
         // prediction markets trade outcome shares — neither spot nor a derivative contract
-        assert(!$spot && !$contract && !$future && !$swap && !$option, 'for prediction market, none of spot/contract/future/swap/option should be set' . $log_text);
-    } elseif ($spot) {
-        assert(!$contract && $linear === null && $inverse === null && !$option && !$swap && !$future, 'for spot market, none of contract/linear/inverse/option/swap/future should be set' . $log_text);
+        assert(($spot !== true) && ($contract !== true) && ($future !== true) && ($swap !== true) && ($option !== true), 'for prediction market, none of spot/contract/future/swap/option should be set' . $log_text);
+    } elseif ($spot === true) {
+        assert(($contract !== true) && ($linear === null) && ($inverse === null) && ($option !== true) && ($swap !== true) && ($future !== true), 'for spot market, none of contract/linear/inverse/option/swap/future should be set' . $log_text);
     } else {
         // if not spot, any of the below should be true
-        assert($contract && ($future || $swap || $option || $is_index), 'for non-spot markets, any of (future/swap/option/index) should be set' . $log_text);
+        assert(($contract === true) && (($future === true) || ($swap === true) || ($option === true) || ($is_index === true)), 'for non-spot markets, any of (future/swap/option/index) should be set' . $log_text);
     }
     $contract_size = $exchange->safe_string($market, 'contractSize');
     // contract fields
-    if ($contract && !$is_inactive_market) {
+    if (($contract === true) && !$is_inactive_market) {
         if ($is_quanto) {
             assert($linear === false, 'linear must be false when "quanto" is true' . $log_text);
             assert($inverse === false, 'inverse must be false when "quanto" is true' . $log_text);
@@ -181,7 +186,7 @@ function test_market($exchange, $skipped_properties, $method, $market) {
         assert((is_array($skipped_properties) && array_key_exists('contractSize', $skipped_properties)) || Precise::string_gt($contract_size, '0'), '"contractSize" must be > 0 when "contract" is true' . $log_text);
         // settle should be defined
         assert((is_array($skipped_properties) && array_key_exists('settle', $skipped_properties)) || ($market['settle'] !== null && $market['settleId'] !== null), '"settle" & "settleId" must be defined when "contract" is true' . $log_text);
-    } elseif (!$contract) {
+    } elseif ($contract !== true) {
         // linear & inverse needs to be undefined
         assert($linear === null && $inverse === null && $quanto === null, 'market linear and inverse (and quanto) must be undefined when "contract" is false' . $log_text);
         // contract size should be undefined
@@ -190,15 +195,15 @@ function test_market($exchange, $skipped_properties, $method, $market) {
         assert(($market['settle'] === null) && ($market['settleId'] === null), '"settle" must be undefined when "contract" is false' . $log_text);
     }
     // future, swap and option should be mutually exclusive
-    if ($market['future']) {
-        assert(!$market['swap'] && !$market['option'] && !$is_index, 'market swap and option must be false when "future" is true' . $log_text);
-    } elseif ($market['swap']) {
-        assert(!$market['future'] && !$market['option'], 'market future and option must be false when "swap" is true' . $log_text);
-    } elseif ($market['option']) {
-        assert(!$market['future'] && !$market['swap'], 'market future and swap must be false when "option" is true' . $log_text);
+    if ($market['future'] === true) {
+        assert(($market['swap'] !== true) && ($market['option'] !== true) && ($is_index !== true), 'market swap and option must be false when "future" is true' . $log_text);
+    } elseif ($market['swap'] === true) {
+        assert(($future !== true) && ($option !== true), 'market future and option must be false when "swap" is true' . $log_text);
+    } elseif ($market['option'] === true) {
+        assert(($future !== true) && ($swap !== true), 'market future and swap must be false when "option" is true' . $log_text);
     }
     // check specific fields for options & futures
-    if ($option || $future) {
+    if (($option === true) || ($future === true)) {
         // future or option markets need 'expiry' and 'expiryDatetime'
         assert($market['expiry'] !== null, '"expiry" must be defined when "future" is true' . $log_text);
         assert($market['expiryDatetime'] !== null, '"expiryDatetime" must be defined when "future" is true' . $log_text);
@@ -206,7 +211,7 @@ function test_market($exchange, $skipped_properties, $method, $market) {
         $iso_string = $exchange->iso8601($market['expiry']);
         assert($market['expiryDatetime'] === $iso_string, 'expiryDatetime ("' . $market['expiryDatetime'] . '") must be equal to expiry in iso8601 format "' . $iso_string . '"' . $log_text);
         assert_greater($exchange, $skipped_properties, $method, $market, 'expiry', '0');
-        if ($option) {
+        if ($option === true) {
             // strike should be defined
             assert(((is_array($skipped_properties) && array_key_exists('strike', $skipped_properties)) || $market['strike'] !== null), '"strike" must be defined when "option" is true' . $log_text);
             assert_greater($exchange, $skipped_properties, $method, $market, 'strike', '0');
@@ -218,7 +223,7 @@ function test_market($exchange, $skipped_properties, $method, $market) {
             assert($market['strike'] === null, '"strike" must be undefined when "option" is false' . $log_text);
             assert($market['optionType'] === null, '"optionType" must be undefined when "option" is false' . $log_text);
         }
-    } elseif ($spot) {
+    } elseif ($spot === true) {
         // otherwise, expiry needs to be undefined
         assert(($market['expiry'] === null) && ($market['expiryDatetime'] === null), '"expiry" and "expiryDatetime" must be undefined when it is not future|option market' . $log_text);
     }
@@ -230,7 +235,7 @@ function test_market($exchange, $skipped_properties, $method, $market) {
         $price_or_amount_key = $precision_keys[$i];
         // only allow very high priced markets (wher coin costs around 100k) to have a 5$ price tickSize
         $is_exclusive_pair = $market['baseId'] === 'BTC';
-        $is_non_spot = !$spot; // such high precision is only allowed in contract markets
+        $is_non_spot = $spot !== true; // such high precision is only allowed in contract markets
         $is_price = $price_or_amount_key === 'price';
         $is_tick_size_5 = Precise::string_eq('5', $exchange->safe_string($market['precision'], $price_or_amount_key));
         if ($is_non_spot && $is_price && $is_exclusive_pair && $is_tick_size_5) {

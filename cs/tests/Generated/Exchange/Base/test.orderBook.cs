@@ -25,15 +25,13 @@ public partial class testMainClass : BaseTest
             { "nonce", 134234234 },
         };
         object emptyAllowedFor = new List<object>() {"nonce"};
-        // turn into copy: https://discord.com/channels/690203284119617602/921046068555313202/1220626834887282728
-        orderbook = exchange.deepExtend(new Dictionary<string, object>() {}, orderbook);
         testSharedMethods.assertStructure(exchange, skippedProperties, method, orderbook, format, emptyAllowedFor);
         // testSharedMethods.assertTimestampAndDatetime (exchange, skippedProperties, method, orderbook);
         testSharedMethods.assertSymbol(exchange, skippedProperties, method, orderbook, "symbol", symbol);
         object logText = testSharedMethods.logTemplate(exchange, method, orderbook);
         // todo: check non-emtpy arrays for bids/asks for toptier exchanges
         object bids = getValue(orderbook, "bids");
-        object bidsLength = getArrayLength(bids);
+        int bidsLength = getArrayLength(bids);
         for (object i = 0; isLessThan(i, bidsLength); postFixIncrement(ref i))
         {
             object currentBidString = exchange.safeString(getValue(bids, i), 0);
@@ -54,7 +52,7 @@ public partial class testMainClass : BaseTest
             }
         }
         object asks = getValue(orderbook, "asks");
-        object asksLength = getArrayLength(asks);
+        int asksLength = getArrayLength(asks);
         for (object i = 0; isLessThan(i, asksLength); postFixIncrement(ref i))
         {
             object currentAskString = exchange.safeString(getValue(asks, i), 0);
@@ -76,7 +74,7 @@ public partial class testMainClass : BaseTest
         }
         if (!isTrue((inOp(skippedProperties, "spread"))))
         {
-            if (isTrue(isTrue(bidsLength) && isTrue(asksLength)))
+            if (isTrue(isTrue((isGreaterThan(bidsLength, 0))) && isTrue((isGreaterThan(asksLength, 0)))))
             {
                 object firstBid = exchange.safeString(getValue(bids, 0), 0);
                 object firstAsk = exchange.safeString(getValue(asks, 0), 0);

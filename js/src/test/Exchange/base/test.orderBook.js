@@ -28,8 +28,6 @@ function testOrderBook(exchange, skippedProperties, method, orderbook, symbol) {
         // 'info': {},
     };
     const emptyAllowedFor = ['nonce'];
-    // turn into copy: https://discord.com/channels/690203284119617602/921046068555313202/1220626834887282728
-    orderbook = exchange.deepExtend({}, orderbook);
     testSharedMethods.assertStructure(exchange, skippedProperties, method, orderbook, format, emptyAllowedFor);
     testSharedMethods.assertTimestampAndDatetime(exchange, skippedProperties, method, orderbook);
     testSharedMethods.assertSymbol(exchange, skippedProperties, method, orderbook, 'symbol', symbol);
@@ -70,7 +68,7 @@ function testOrderBook(exchange, skippedProperties, method, orderbook, symbol) {
         }
     }
     if (!('spread' in skippedProperties)) {
-        if (bidsLength && asksLength) {
+        if ((bidsLength > 0) && (asksLength > 0)) {
             const firstBid = exchange.safeString(bids[0], 0);
             const firstAsk = exchange.safeString(asks[0], 0);
             // check bid-ask spread

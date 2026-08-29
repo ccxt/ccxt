@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import deepcoinRest from '../deepcoin.js';
-import { BadRequest, ExchangeError } from '../base/errors.js';
+import { AuthenticationError, BadRequest, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 //  ---------------------------------------------------------------------------
 export default class deepcoin extends deepcoinRest {
@@ -159,33 +159,77 @@ export default class deepcoin extends deepcoinRest {
     async authenticate(params = {}) {
         this.checkRequiredCredentials();
         const time = this.milliseconds();
-        let listenKeyExpiryTimestamp = this.safeInteger(this.options, 'listenKeyExpiryTimestamp', time);
-        const expired = (time - listenKeyExpiryTimestamp) > 60000; // 1 minute before expiry
-        let listenKey = this.safeString(this.options, 'listenKey');
-        let response = undefined;
-        if (listenKey === undefined) {
-            response = await this.privateGetDeepcoinListenkeyAcquire(params);
+        // single-flight leader election on a never-dialed client, see
+        // https://github.com/ccxt/ccxt/issues/29393: the key rides the private
+        // ws url query string, so racing acquires mint several keys, the last
+        // write wins the cache and every loser dials a stream keyed to an
+        // orphaned credential that never delivers.
+        // the whole check-then-fetch is the critical section here: the
+        // acquire-vs-extend branch reads the very key and expiry the leader
+        // rewrites. the flight IS the entry in client.futures - registered
+        // before the first fetch and settled through client.resolve /
+        // client.reject, so every mutation of that registry happens inside the
+        // client, which is what keeps the go port's map access under one lock
+        const messageHash = 'authenticate';
+        const client = this.client('authenticationFlights');
+        if (messageHash in client.futures) {
+            // a flight is already in progress - wake when the leader
+            // settles it: the listenKey is then in the bucket
+            await client.future(messageHash);
+            return this.safeString(this.options, 'listenKey');
         }
-        else if (expired) {
-            const method = this.safeString(this.options, 'method', 'privateGetDeepcoinListenkeyExtend');
-            const getNewKey = (method === 'privateGetDeepcoinListenkeyAcquire');
-            if (getNewKey) {
+        const future = client.reusableFuture(messageHash);
+        let listenKey = undefined;
+        try {
+            let listenKeyExpiryTimestamp = this.safeInteger(this.options, 'listenKeyExpiryTimestamp', time);
+            const expired = (time - listenKeyExpiryTimestamp) > 60000; // 1 minute before expiry
+            listenKey = this.safeString(this.options, 'listenKey');
+            let response = undefined;
+            if (listenKey === undefined) {
                 response = await this.privateGetDeepcoinListenkeyAcquire(params);
             }
-            else {
-                const request = {
-                    'listenkey': listenKey,
-                };
-                response = await this.privateGetDeepcoinListenkeyExtend(this.extend(request, params));
+            else if (expired) {
+                const method = this.safeString(this.options, 'method', 'privateGetDeepcoinListenkeyExtend');
+                const getNewKey = (method === 'privateGetDeepcoinListenkeyAcquire');
+                if (getNewKey) {
+                    response = await this.privateGetDeepcoinListenkeyAcquire(params);
+                }
+                else {
+                    const request = {
+                        'listenkey': listenKey,
+                    };
+                    response = await this.privateGetDeepcoinListenkeyExtend(this.extend(request, params));
+                }
             }
+            if (response !== undefined) {
+                const data = this.safeDict(response, 'data', {});
+                listenKey = this.safeString(data, 'listenkey');
+                if (listenKey === undefined) {
+                    // reject the flight BEFORE any cache write: a hollow 200
+                    // would otherwise cache an empty credential together with a
+                    // fresh expiry, parking every caller on a query string with
+                    // no key and no retry until that expiry lapses - the catch
+                    // below rejects the flight instead, so the waiters throw
+                    // and the next caller re-leads
+                    throw new AuthenticationError(this.id + ' authenticate() received an empty listenKey');
+                }
+                listenKeyExpiryTimestamp = this.safeTimestamp(data, 'expire_time');
+                this.options['listenKey'] = listenKey;
+                this.options['listenKeyExpiryTimestamp'] = listenKeyExpiryTimestamp;
+            }
+            // settle the flight: client.resolve wakes every waiter and drops
+            // the future from the registry under the client's own lock, so the
+            // next refresh cycle elects a fresh leader
+            client.resolve(listenKey, messageHash);
         }
-        if (response !== undefined) {
-            const data = this.safeDict(response, 'data', {});
-            listenKey = this.safeString(data, 'listenkey');
-            listenKeyExpiryTimestamp = this.safeTimestamp(data, 'expire_time');
-            this.options['listenKey'] = listenKey;
-            this.options['listenKeyExpiryTimestamp'] = listenKeyExpiryTimestamp;
+        catch (e) {
+            // reject the flight - all waiters throw and the next caller
+            // re-leads instead of deadlocking on a dead flight
+            client.reject(e, messageHash);
         }
+        // rethrows the failure to the leader and attaches the handler that
+        // keeps an alone-leader rejection from killing the process
+        await future;
         return listenKey;
     }
     /**
@@ -299,7 +343,7 @@ export default class deepcoin extends deepcoinRest {
         const ask = this.safeNumber(ticker, 'AP1');
         let baseVolume = this.safeNumber(ticker, 'V');
         let quoteVolume = this.safeNumber(ticker, 'T');
-        if (this.safeBool(market, 'inverse')) {
+        if (this.safeBool(market, 'inverse') === true) {
             const temp = baseVolume;
             baseVolume = quoteVolume;
             quoteVolume = temp;
@@ -616,7 +660,7 @@ export default class deepcoin extends deepcoinRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {

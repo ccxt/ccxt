@@ -50,6 +50,7 @@ export default class hashkey extends Exchange {
                 'createMarketOrderWithCost': false,
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
+                'createOrders': true,
                 'createOrderWithTakeProfitAndStopLoss': false,
                 'createReduceOnlyOrder': true,
                 'createStopLimitOrder': true,
@@ -96,6 +97,7 @@ export default class hashkey extends Exchange {
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
                 'fetchIsolatedPositions': false,
+                'fetchLastPrices': true,
                 'fetchLedger': true,
                 'fetchLeverage': true,
                 'fetchLeverages': false,
@@ -192,83 +194,83 @@ export default class hashkey extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'api/v1/exchangeInfo': 5,
-                        'quote/v1/depth': 1,
-                        'quote/v1/trades': 1,
-                        'quote/v1/klines': 1,
-                        'quote/v1/ticker/24hr': 1,
-                        'quote/v1/ticker/price': 1,
-                        'quote/v1/ticker/bookTicker': 1, // not unified
-                        'quote/v1/depth/merged': 1,
-                        'quote/v1/markPrice': 1,
-                        'quote/v1/index': 1,
-                        'api/v1/futures/fundingRate': 1,
-                        'api/v1/futures/historyFundingRate': 1,
-                        'api/v1/ping': 1,
-                        'api/v1/time': 1,
+                        'api/v1/exchangeInfo': { 'cost': 5 },
+                        'quote/v1/depth': { 'cost': 1 },
+                        'quote/v1/trades': { 'cost': 1 },
+                        'quote/v1/klines': { 'cost': 1 },
+                        'quote/v1/ticker/24hr': { 'cost': 1 },
+                        'quote/v1/ticker/price': { 'cost': 1 },
+                        'quote/v1/ticker/bookTicker': { 'cost': 1 }, // not unified
+                        'quote/v1/depth/merged': { 'cost': 1 },
+                        'quote/v1/markPrice': { 'cost': 1 },
+                        'quote/v1/index': { 'cost': 1 },
+                        'api/v1/futures/fundingRate': { 'cost': 1 },
+                        'api/v1/futures/historyFundingRate': { 'cost': 1 },
+                        'api/v1/ping': { 'cost': 1 },
+                        'api/v1/time': { 'cost': 1 },
                     },
                 },
                 'private': {
                     'get': {
-                        'api/v1/spot/order': 1,
-                        'api/v1/spot/openOrders': 1,
-                        'api/v1/spot/tradeOrders': 5,
-                        'api/v1/futures/leverage': 1,
-                        'api/v1/futures/order': 1,
-                        'api/v1/futures/openOrders': 1,
-                        'api/v1/futures/userTrades': 1,
-                        'api/v1/futures/positions': 1,
-                        'api/v1/futures/historyOrders': 1,
-                        'api/v1/futures/balance': 1,
-                        'api/v1/futures/liquidationAssignStatus': 1,
-                        'api/v1/futures/riskLimit': 1,
-                        'api/v1/futures/commissionRate': 1,
-                        'api/v1/futures/getBestOrder': 1,
-                        'api/v1/coinInfo': 1,
-                        'api/v1/account/vipInfo': 1,
-                        'api/v1/account': 1,
-                        'api/v1/account/trades': 5,
-                        'api/v1/account/type': 5,
-                        'api/v1/account/chainType': 1,
-                        'api/v1/account/checkApiKey': 1,
-                        'api/v1/account/balanceFlow': 5,
-                        'api/v1/spot/subAccount/openOrders': 1,
-                        'api/v1/spot/subAccount/tradeOrders': 1,
-                        'api/v1/subAccount/trades': 1,
-                        'api/v1/futures/subAccount/openOrders': 1,
-                        'api/v1/futures/subAccount/historyOrders': 1,
-                        'api/v1/futures/subAccount/userTrades': 1,
-                        'api/v1/account/deposit/address': 1,
-                        'api/v1/account/depositOrders': 1,
-                        'api/v1/account/withdrawOrders': 1,
+                        'api/v1/spot/order': { 'cost': 1 },
+                        'api/v1/spot/openOrders': { 'cost': 1 },
+                        'api/v1/spot/tradeOrders': { 'cost': 5 },
+                        'api/v1/futures/leverage': { 'cost': 1 },
+                        'api/v1/futures/order': { 'cost': 1 },
+                        'api/v1/futures/openOrders': { 'cost': 1 },
+                        'api/v1/futures/userTrades': { 'cost': 1 },
+                        'api/v1/futures/positions': { 'cost': 1 },
+                        'api/v1/futures/historyOrders': { 'cost': 1 },
+                        'api/v1/futures/balance': { 'cost': 1 },
+                        'api/v1/futures/liquidationAssignStatus': { 'cost': 1 },
+                        'api/v1/futures/riskLimit': { 'cost': 1 },
+                        'api/v1/futures/commissionRate': { 'cost': 1 },
+                        'api/v1/futures/getBestOrder': { 'cost': 1 },
+                        'api/v1/coinInfo': { 'cost': 1 },
+                        'api/v1/account/vipInfo': { 'cost': 1 },
+                        'api/v1/account': { 'cost': 1 },
+                        'api/v1/account/trades': { 'cost': 5 },
+                        'api/v1/account/type': { 'cost': 5 },
+                        'api/v1/account/chainType': { 'cost': 1 },
+                        'api/v1/account/checkApiKey': { 'cost': 1 },
+                        'api/v1/account/balanceFlow': { 'cost': 5 },
+                        'api/v1/spot/subAccount/openOrders': { 'cost': 1 },
+                        'api/v1/spot/subAccount/tradeOrders': { 'cost': 1 },
+                        'api/v1/subAccount/trades': { 'cost': 1 },
+                        'api/v1/futures/subAccount/openOrders': { 'cost': 1 },
+                        'api/v1/futures/subAccount/historyOrders': { 'cost': 1 },
+                        'api/v1/futures/subAccount/userTrades': { 'cost': 1 },
+                        'api/v1/account/deposit/address': { 'cost': 1 },
+                        'api/v1/account/depositOrders': { 'cost': 1 },
+                        'api/v1/account/withdrawOrders': { 'cost': 1 },
                     },
                     'post': {
-                        'api/v1/userDataStream': 1,
-                        'api/v1/spot/orderTest': 1,
-                        'api/v1/spot/order': 1,
-                        'api/v1.1/spot/order': 1,
-                        'api/v1/spot/batchOrders': 5,
-                        'api/v1/futures/leverage': 1,
-                        'api/v1/futures/order': 1,
-                        'api/v1/futures/marginType': 1,
-                        'api/v1/futures/positionMargin': 1,
-                        'api/v1/futures/position/trading-stop': 3,
-                        'api/v1/futures/batchOrders': 5,
-                        'api/v1/account/assetTransfer': 1,
-                        'api/v1/account/authAddress': 1,
-                        'api/v1/account/withdraw': 1,
+                        'api/v1/userDataStream': { 'cost': 1 },
+                        'api/v1/spot/orderTest': { 'cost': 1 },
+                        'api/v1/spot/order': { 'cost': 1 },
+                        'api/v1.1/spot/order': { 'cost': 1 },
+                        'api/v1/spot/batchOrders': { 'cost': 5 },
+                        'api/v1/futures/leverage': { 'cost': 1 },
+                        'api/v1/futures/order': { 'cost': 1 },
+                        'api/v1/futures/marginType': { 'cost': 1 },
+                        'api/v1/futures/positionMargin': { 'cost': 1 },
+                        'api/v1/futures/position/trading-stop': { 'cost': 3 },
+                        'api/v1/futures/batchOrders': { 'cost': 5 },
+                        'api/v1/account/assetTransfer': { 'cost': 1 },
+                        'api/v1/account/authAddress': { 'cost': 1 },
+                        'api/v1/account/withdraw': { 'cost': 1 },
                     },
                     'put': {
-                        'api/v1/userDataStream': 1,
+                        'api/v1/userDataStream': { 'cost': 1 },
                     },
                     'delete': {
-                        'api/v1/spot/order': 1,
-                        'api/v1/spot/openOrders': 5,
-                        'api/v1/spot/cancelOrderByIds': 5,
-                        'api/v1/futures/order': 1,
-                        'api/v1/futures/batchOrders': 1,
-                        'api/v1/futures/cancelOrderByIds': 1,
-                        'api/v1/userDataStream': 1,
+                        'api/v1/spot/order': { 'cost': 1 },
+                        'api/v1/spot/openOrders': { 'cost': 5 },
+                        'api/v1/spot/cancelOrderByIds': { 'cost': 5 },
+                        'api/v1/futures/order': { 'cost': 1 },
+                        'api/v1/futures/batchOrders': { 'cost': 1 },
+                        'api/v1/futures/cancelOrderByIds': { 'cost': 1 },
+                        'api/v1/userDataStream': { 'cost': 1 },
                     },
                 },
             },
@@ -348,7 +350,7 @@ export default class hashkey extends Exchange {
                     'DOT': 'Polkadot',
                     'LTC': 'LTC',
                     'OPTIMISM': 'Optimism',
-                    'ARB': 'Arbitrum',
+                    'ARBITRUM': 'Arbitrum',
                     'DOGE': 'Dogecoin',
                     'TRC20': 'Tron',
                     'ZKSYNC': 'zkSync',
@@ -365,7 +367,7 @@ export default class hashkey extends Exchange {
                     'AVAX C-Chain': 'AVAX',
                     'Solana': 'SOL',
                     'Cosmos': 'ATOM',
-                    'Arbitrum': 'ARB',
+                    'Arbitrum': 'ARBITRUM',
                     'Polygon': 'MATIC',
                     'Optimism': 'OPTIMISM',
                     'Polkadot': 'DOT',
@@ -863,7 +865,7 @@ export default class hashkey extends Exchange {
         const swapMarkets = this.safeList(response, 'contracts', []);
         let markets = this.arrayConcat(spotMarkets, swapMarkets);
         if (this.isEmpty(markets)) {
-            markets = [response]; // if user provides params.symbol the exchange returns a single object insted of list of objects
+            markets = [response]; // if user provides params.symbol the exchange returns a single object instead of list of objects
         }
         return this.parseMarkets(markets);
     }
@@ -1186,26 +1188,28 @@ export default class hashkey extends Exchange {
             const network = networks[j];
             const networkId = this.safeString(network, 'chainType');
             const networkCode = this.networkCodeToId(networkId, code);
-            parsedNetworks[networkCode] = {
-                'id': networkId,
-                'network': networkCode,
-                'limits': {
-                    'withdraw': {
-                        'min': this.safeNumber(network, 'minWithdrawQuantity'),
-                        'max': this.parseNumber(this.omitZero(this.safeString(network, 'maxWithdrawQuantity'))),
+            if (networkCode !== undefined) {
+                parsedNetworks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'limits': {
+                        'withdraw': {
+                            'min': this.safeNumber(network, 'minWithdrawQuantity'),
+                            'max': this.parseNumber(this.omitZero(this.safeString(network, 'maxWithdrawQuantity'))),
+                        },
+                        'deposit': {
+                            'min': this.safeNumber(network, 'minDepositQuantity'),
+                            'max': undefined,
+                        },
                     },
-                    'deposit': {
-                        'min': this.safeNumber(network, 'minDepositQuantity'),
-                        'max': undefined,
-                    },
-                },
-                'active': undefined,
-                'deposit': this.safeBool(network, 'allowDeposit'),
-                'withdraw': this.safeBool(network, 'allowWithdraw'),
-                'fee': this.safeNumber(network, 'withdrawFee'),
-                'precision': undefined,
-                'info': network,
-            };
+                    'active': undefined,
+                    'deposit': this.safeBool(network, 'allowDeposit'),
+                    'withdraw': this.safeBool(network, 'allowWithdraw'),
+                    'fee': this.safeNumber(network, 'withdrawFee'),
+                    'precision': undefined,
+                    'info': network,
+                };
+            }
         }
         const rawType = this.safeString(rawCurrency, 'tokenType');
         const type = (rawType === 'REAL_MONEY') ? 'fiat' : 'crypto';
@@ -1241,7 +1245,7 @@ export default class hashkey extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return (maximum value is 200)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -1593,7 +1597,8 @@ export default class hashkey extends Exchange {
         //         ...
         //     ]
         //
-        return this.parseOHLCVs(response, market, timeframe, since, limit);
+        const ohlcvs = this.toArray(response);
+        return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
     }
     parseOHLCV(ohlcv, market = undefined) {
         //
@@ -1692,6 +1697,11 @@ export default class hashkey extends Exchange {
         market = this.safeMarket(marketId, market);
         const symbol = market['symbol'];
         const last = this.safeString(ticker, 'c');
+        let baseVolume = this.safeString(ticker, 'v');
+        if ((market['contract'] === true) && (market['contractSize'] !== undefined)) {
+            // 'v' counts contracts, and a ticker reports base volume
+            baseVolume = Precise.stringMul(baseVolume, this.numberToString(market['contractSize']));
+        }
         return this.safeTicker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -1710,7 +1720,7 @@ export default class hashkey extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeString(ticker, 'v'),
+            'baseVolume': baseVolume,
             'quoteVolume': this.safeString(ticker, 'qv'),
             'info': ticker,
         }, market);
@@ -1750,7 +1760,9 @@ export default class hashkey extends Exchange {
             'symbol': market['symbol'],
             'timestamp': undefined,
             'datetime': undefined,
-            'price': this.safeNumber(entry, 'p'),
+            // dormant listings carry a literal zero price meaning never traded,
+            // the zero is omitted so the structure reports no price instead
+            'price': this.safeNumberOmitZero(entry, 'p'),
             'side': undefined,
             'info': entry,
         };
@@ -1843,7 +1855,9 @@ export default class hashkey extends Exchange {
             account['total'] = this.safeString(balanceEntry, 'total');
             account['free'] = this.safeString(balanceEntry, 'free');
             account['used'] = this.safeString(balanceEntry, 'locked');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1868,7 +1882,9 @@ export default class hashkey extends Exchange {
         const result = {
             'info': balance,
         };
-        result[code] = account;
+        if (code !== undefined) {
+            result[code] = account;
+        }
         return this.safeBalance(result);
     }
     /**
@@ -2140,7 +2156,7 @@ export default class hashkey extends Exchange {
         let status = this.safeString(transaction, 'status'); // for fetchDeposits
         if (status === undefined) {
             const success = this.safeBool(transaction, 'success', false); // for withdraw
-            if (success) {
+            if (success === true) {
                 status = 'ok';
             }
             else {
@@ -2244,7 +2260,7 @@ export default class hashkey extends Exchange {
         const currencyId = this.safeString(currency, 'id');
         let status = undefined;
         const success = this.safeBool(transfer, 'success', false);
-        if (success) {
+        if (success === true) {
             status = 'ok';
         }
         return {
@@ -2482,10 +2498,10 @@ export default class hashkey extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['spot']) {
+        if (market['spot'] === true) {
             return await this.createSpotOrder(symbol, type, side, amount, price, params);
         }
-        else if (market['swap']) {
+        else if (market['swap'] === true) {
             return await this.createSwapOrder(symbol, type, side, amount, price, params);
         }
         else {
@@ -2506,7 +2522,7 @@ export default class hashkey extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (!market['spot']) {
+        if (market['spot'] !== true) {
             throw new NotSupported(this.id + ' createMarketBuyOrderWithCost() is supported for spot markets only');
         }
         const req = {
@@ -2550,7 +2566,7 @@ export default class hashkey extends Exchange {
         const request = this.createSpotOrderRequest(symbol, type, side, amount, price, params);
         let response = {};
         const test = this.safeBool(params, 'test');
-        if (test) {
+        if (test === true) {
             params = this.omit(params, 'test');
             response = await this.privatePostApiV1SpotOrderTest(request);
         }
@@ -2640,11 +2656,17 @@ export default class hashkey extends Exchange {
         return this.parseOrder(response, market);
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired(this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired(this.id + ' requires a side argument');
+        }
         const market = this.market(symbol);
-        if (market['spot']) {
+        if (market['spot'] === true) {
             return this.createSpotOrderRequest(symbol, type, side, amount, price, params);
         }
-        else if (market['swap']) {
+        else if (market['swap'] === true) {
             return this.createSwapOrderRequest(symbol, type, side, amount, price, params);
         }
         else {
@@ -2652,6 +2674,12 @@ export default class hashkey extends Exchange {
         }
     }
     createSpotOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired(this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired(this.id + ' requires a side argument');
+        }
         /**
          * @method
          * @ignore
@@ -2736,7 +2764,7 @@ export default class hashkey extends Exchange {
         let reduceOnly = false;
         [reduceOnly, params] = this.handleParamBool(params, 'reduceOnly', reduceOnly);
         let suffix = '_OPEN';
-        if (reduceOnly) {
+        if (reduceOnly === true) {
             suffix = '_CLOSE';
         }
         request['side'] = side.toUpperCase() + suffix;
@@ -2847,7 +2875,7 @@ export default class hashkey extends Exchange {
             'orders': ordersRequests,
         };
         let response = undefined;
-        if (market['spot']) {
+        if (market['spot'] === true) {
             response = await this.privatePostApiV1SpotBatchOrders(this.extend(request, params));
             //
             //     {
@@ -2877,7 +2905,7 @@ export default class hashkey extends Exchange {
             //     }
             //
         }
-        else if (market['swap']) {
+        else if (market['swap'] === true) {
             response = await this.privatePostApiV1FuturesBatchOrders(this.extend(request, params));
             //
             //     {
@@ -2982,7 +3010,7 @@ export default class hashkey extends Exchange {
         else if (marketType === 'swap') {
             let isTrigger = false;
             [isTrigger, params] = this.handleTriggerOptionAndParams(params, methodName, isTrigger);
-            if (isTrigger) {
+            if (isTrigger === true) {
                 request['type'] = 'STOP';
             }
             else {
@@ -3049,14 +3077,14 @@ export default class hashkey extends Exchange {
         if (side !== undefined) {
             request['side'] = side;
         }
-        let response = undefined;
-        if (market['spot']) {
+        let response;
+        if (market['spot'] === true) {
             response = await this.privateDeleteApiV1SpotOpenOrders(this.extend(request, params));
             //
             //     { "success": true }
             //
         }
-        else if (market['swap']) {
+        else if (market['swap'] === true) {
             response = await this.privateDeleteApiV1FuturesBatchOrders(this.extend(request, params));
             //
             //     { "message": "success", "timestamp": "1723127222198", "code": "0000" }
@@ -3095,7 +3123,7 @@ export default class hashkey extends Exchange {
         }
         let marketType = 'spot';
         [marketType, params] = this.handleMarketTypeAndParams(methodName, market, params, marketType);
-        let response = undefined;
+        let response;
         if (marketType === 'spot') {
             response = await this.privateDeleteApiV1SpotCancelOrderByIds(request);
             //
@@ -3188,7 +3216,7 @@ export default class hashkey extends Exchange {
         else if (marketType === 'swap') {
             let isTrigger = false;
             [isTrigger, params] = this.handleTriggerOptionAndParams(params, methodName, isTrigger);
-            if (isTrigger) {
+            if (isTrigger === true) {
                 request['type'] = 'STOP';
             }
             response = await this.privateGetApiV1FuturesOrder(this.extend(request, params));
@@ -3365,7 +3393,7 @@ export default class hashkey extends Exchange {
         };
         let isTrigger = false;
         [isTrigger, params] = this.handleTriggerOptionAndParams(params, methodName, isTrigger);
-        if (isTrigger) {
+        if (isTrigger === true) {
             request['type'] = 'STOP';
         }
         else {
@@ -3522,7 +3550,7 @@ export default class hashkey extends Exchange {
             request['symbol'] = this.safeString(market, 'id');
             let isTrigger = false;
             [isTrigger, params] = this.handleTriggerOptionAndParams(params, methodName, isTrigger);
-            if (isTrigger) {
+            if (isTrigger === true) {
                 request['type'] = 'STOP';
             }
             else {
@@ -3929,8 +3957,9 @@ export default class hashkey extends Exchange {
         //     ]
         //
         const rates = [];
-        for (let i = 0; i < response.length; i++) {
-            const entry = response[i];
+        const rows = this.toArray(response);
+        for (let i = 0; i < rows.length; i++) {
+            const entry = rows[i];
             const timestamp = this.safeInteger(entry, 'settleTime');
             rates.push({
                 'info': entry,
@@ -3988,7 +4017,7 @@ export default class hashkey extends Exchange {
         const market = this.market(symbol);
         let methodName = 'fetchPosition';
         [methodName, params] = this.handleParamString(params, 'methodName', methodName);
-        if (!market['swap']) {
+        if (market['swap'] !== true) {
             throw new NotSupported(this.id + ' ' + methodName + '() supports swap markets only');
         }
         const request = {
@@ -4151,7 +4180,7 @@ export default class hashkey extends Exchange {
             throw new ArgumentsRequired(this.id + ' setMarginMode() marginMode must be either cross or isolated');
         }
         const market = this.market(symbol);
-        if (!market['swap']) {
+        if (market['swap'] !== true) {
             throw new BadSymbol(this.id + ' setMarginMode() supports swap markets only');
         }
         const request = {
@@ -4193,7 +4222,7 @@ export default class hashkey extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (!market['swap']) {
+        if (market['swap'] !== true) {
             throw new BadSymbol(this.id + ' modifyMarginHelper() supports swap markets only');
         }
         let side = undefined;
@@ -4381,11 +4410,11 @@ export default class hashkey extends Exchange {
         const market = this.market(symbol);
         const methodName = 'fetchTradingFee';
         let response = undefined;
-        if (market['spot']) {
+        if (market['spot'] === true) {
             response = await this.fetchTradingFees(params);
             return this.safeDict(response, symbol);
         }
-        else if (market['swap']) {
+        else if (market['swap'] === true) {
             response = await this.privateGetApiV1FuturesCommissionRate(this.extend({ 'symbol': market['id'] }, params));
             return this.parseTradingFee(response, market);
             //
