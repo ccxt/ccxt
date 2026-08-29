@@ -73,15 +73,9 @@ func (this *Independentreserve) FetchOrderBook(symbol string, options ...FetchOr
 		opt(&opts)
 	}
 
-	var limit any = nil
-	if opts.Limit != nil {
-		limit = *opts.Limit
-	}
+	var limit *int64 = opts.Limit
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params *map[string]any = opts.Params
 	res := <-this.Core.FetchOrderBook(symbol, limit, params)
 	if IsError(res) {
 		return OrderBook{}, CreateReturnError(res)
@@ -105,10 +99,7 @@ func (this *Independentreserve) FetchTicker(symbol string, options ...FetchTicke
 		opt(&opts)
 	}
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params *map[string]any = opts.Params
 	res := <-this.Core.FetchTicker(symbol, params)
 	if IsError(res) {
 		return Ticker{}, CreateReturnError(res)
@@ -133,15 +124,9 @@ func (this *Independentreserve) FetchOrder(id string, options ...FetchOrderOptio
 		opt(&opts)
 	}
 
-	var symbol any = nil
-	if opts.Symbol != nil {
-		symbol = *opts.Symbol
-	}
+	var symbol *string = opts.Symbol
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params *map[string]any = opts.Params
 	res := <-this.Core.FetchOrder(id, symbol, params)
 	if IsError(res) {
 		return Order{}, CreateReturnError(res)
@@ -167,25 +152,13 @@ func (this *Independentreserve) FetchOpenOrders(options ...FetchOpenOrdersOption
 		opt(&opts)
 	}
 
-	var symbol any = nil
-	if opts.Symbol != nil {
-		symbol = *opts.Symbol
-	}
+	var symbol *string = opts.Symbol
 
-	var since any = nil
-	if opts.Since != nil {
-		since = *opts.Since
-	}
+	var since *int64 = opts.Since
 
-	var limit any = nil
-	if opts.Limit != nil {
-		limit = *opts.Limit
-	}
+	var limit *int64 = opts.Limit
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params *map[string]any = opts.Params
 	res := <-this.Core.FetchOpenOrders(symbol, since, limit, params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
@@ -211,25 +184,13 @@ func (this *Independentreserve) FetchClosedOrders(options ...FetchClosedOrdersOp
 		opt(&opts)
 	}
 
-	var symbol any = nil
-	if opts.Symbol != nil {
-		symbol = *opts.Symbol
-	}
+	var symbol *string = opts.Symbol
 
-	var since any = nil
-	if opts.Since != nil {
-		since = *opts.Since
-	}
+	var since *int64 = opts.Since
 
-	var limit any = nil
-	if opts.Limit != nil {
-		limit = *opts.Limit
-	}
+	var limit *int64 = opts.Limit
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params *map[string]any = opts.Params
 	res := <-this.Core.FetchClosedOrders(symbol, since, limit, params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
@@ -255,25 +216,13 @@ func (this *Independentreserve) FetchMyTrades(options ...FetchMyTradesOptions) (
 		opt(&opts)
 	}
 
-	var symbol any = nil
-	if opts.Symbol != nil {
-		symbol = *opts.Symbol
-	}
+	var symbol *string = opts.Symbol
 
-	var since any = nil
-	if opts.Since != nil {
-		since = *opts.Since
-	}
+	var since *int64 = opts.Since
 
-	var limit any = nil
-	if opts.Limit != nil {
-		limit = *opts.Limit
-	}
+	var limit *int64 = opts.Limit
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params *map[string]any = opts.Params
 	res := <-this.Core.FetchMyTrades(symbol, since, limit, params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
@@ -299,20 +248,11 @@ func (this *Independentreserve) FetchTrades(symbol string, options ...FetchTrade
 		opt(&opts)
 	}
 
-	var since any = nil
-	if opts.Since != nil {
-		since = *opts.Since
-	}
+	var since *int64 = opts.Since
 
-	var limit any = nil
-	if opts.Limit != nil {
-		limit = *opts.Limit
-	}
+	var limit *int64 = opts.Limit
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params *map[string]any = opts.Params
 	res := <-this.Core.FetchTrades(symbol, since, limit, params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
@@ -355,15 +295,9 @@ func (this *Independentreserve) CreateOrder(symbol string, typeVar string, side 
 		opt(&opts)
 	}
 
-	var price any = nil
-	if opts.Price != nil {
-		price = *opts.Price
-	}
+	var price *float64 = opts.Price
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params *map[string]any = opts.Params
 	res := <-this.Core.CreateOrder(symbol, typeVar, side, amount, price, params)
 	if IsError(res) {
 		return Order{}, CreateReturnError(res)
@@ -389,15 +323,9 @@ func (this *Independentreserve) CancelOrder(id string, options ...CancelOrderOpt
 		opt(&opts)
 	}
 
-	var symbol any = nil
-	if opts.Symbol != nil {
-		symbol = *opts.Symbol
-	}
+	var symbol *string = opts.Symbol
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params *map[string]any = opts.Params
 	res := <-this.Core.CancelOrder(id, symbol, params)
 	if IsError(res) {
 		return Order{}, CreateReturnError(res)
@@ -422,10 +350,7 @@ func (this *Independentreserve) FetchDepositAddress(code string, options ...Fetc
 		opt(&opts)
 	}
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params *map[string]any = opts.Params
 	res := <-this.Core.FetchDepositAddress(code, params)
 	if IsError(res) {
 		return DepositAddress{}, CreateReturnError(res)
@@ -456,15 +381,9 @@ func (this *Independentreserve) Withdraw(code string, amount float64, address st
 		opt(&opts)
 	}
 
-	var tag any = nil
-	if opts.Tag != nil {
-		tag = *opts.Tag
-	}
+	var tag *string = opts.Tag
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params *map[string]any = opts.Params
 	res := <-this.Core.Withdraw(code, amount, address, tag, params)
 	if IsError(res) {
 		return Transaction{}, CreateReturnError(res)

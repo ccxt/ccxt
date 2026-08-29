@@ -32,11 +32,14 @@ public class TestWatchBidsAsks extends BaseTest {
         Object method = "watchBidsAsks";
         Object now = exchange.milliseconds();
         Object ends = Helpers.add(now, 15000);
-        while (Helpers.isLessThan(now, ends))
+        Object maxIdleTime = 5000;
+        Object idle = false;
+        while (Helpers.isTrue((Helpers.isLessThan(now, ends))) && !Helpers.isTrue(idle))
         {
             Object success = true;
             Object shouldReturn = false;
             Object response = new java.util.HashMap<String, Object>() {{}};
+            Object startTime = exchange.milliseconds();
             try
             {
                 response = (exchange.watchBidsAsks(argSymbols, argParams)).join();
@@ -54,10 +57,9 @@ public class TestWatchBidsAsks extends BaseTest {
                 {
                     throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                 }
-                now = exchange.milliseconds();
-                // continue;
                 success = false;
             }
+            now = exchange.milliseconds();
             if (Helpers.isTrue(shouldReturn))
             {
                 return false;
@@ -77,7 +79,10 @@ public class TestWatchBidsAsks extends BaseTest {
                     Object ticker = Helpers.GetValue(values, i);
                     TestTicker.testTicker(exchange, skippedProperties, method, ticker, checkedSymbol);
                 }
-                now = exchange.milliseconds();
+                if (Helpers.isTrue(Helpers.isGreaterThan((Helpers.subtract(now, startTime)), maxIdleTime)))
+                {
+                    idle = true;
+                }
             }
         }
         return true;

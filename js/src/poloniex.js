@@ -7,7 +7,7 @@
 //  ---------------------------------------------------------------------------
 import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/poloniex.js';
-import { ArgumentsRequired, ExchangeError, ExchangeNotAvailable, NotSupported, RequestTimeout, AuthenticationError, PermissionDenied, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, OnMaintenance, BadSymbol, BadRequest } from './base/errors.js';
+import { ArgumentsRequired, ExchangeError, ExchangeNotAvailable, NotSupported, RequestTimeout, AuthenticationError, PermissionDenied, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, OnMaintenance, BadSymbol, BadRequest, RateLimitExceeded, MarketClosed, OperationRejected, DuplicateOrderId } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 //  ---------------------------------------------------------------------------
@@ -104,18 +104,18 @@ export default class poloniex extends Exchange {
             'timeframes': {
                 '1m': 'MINUTE_1',
                 '5m': 'MINUTE_5',
-                '10m': 'MINUTE_10', // not in swap
+                '10m': 'MINUTE_10',
                 '15m': 'MINUTE_15',
                 '30m': 'MINUTE_30',
                 '1h': 'HOUR_1',
                 '2h': 'HOUR_2',
                 '4h': 'HOUR_4',
-                '6h': 'HOUR_6', // not in swap
+                '6h': 'HOUR_6',
                 '12h': 'HOUR_12',
                 '1d': 'DAY_1',
                 '3d': 'DAY_3',
                 '1w': 'WEEK_1',
-                '1M': 'MONTH_1', // not in swap
+                '1M': 'MONTH_1',
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg',
@@ -313,8 +313,9 @@ export default class poloniex extends Exchange {
                 'networks': {
                     'BEP20': 'BSC',
                     'ERC20': 'ETH',
-                    'TRC20': 'TRON',
-                    'TRX': 'TRON',
+                    // v2 withdraw accepts only the blockchain id: 'TRX' passes validation, 'TRON' is rejected with 830111 (live-verified)
+                    'TRC20': 'TRX',
+                    'TRX': 'TRX',
                 },
                 'networksById': {
                     'TRX': 'TRC20',
@@ -534,10 +535,10 @@ export default class poloniex extends Exchange {
                     '21356': BadRequest, // Order size would cause too much price movement. Reduce order size.
                     '21721': InsufficientFunds,
                     '24101': BadSymbol, // Invalid symbol
-                    '24102': InvalidOrder, // Invalid K-line type
-                    '24103': InvalidOrder, // Invalid endTime
-                    '24104': InvalidOrder, // Invalid amount
-                    '24105': InvalidOrder, // Invalid startTime
+                    '24102': BadRequest, // Invalid K-line type
+                    '24103': BadRequest, // Invalid endTime
+                    '24104': BadRequest, // Invalid limit
+                    '24105': BadRequest, // Invalid startTime
                     '25020': InvalidOrder, // No active kill switch
                     // Smartorders
                     '25000': InvalidOrder, // Invalid userId
@@ -560,6 +561,46 @@ export default class poloniex extends Exchange {
                     '25017': ExchangeError, // No orders were canceled
                     '25018': BadRequest, // Invalid accountType
                     '25019': BadSymbol, // Invalid symbol
+                    // Wallets v2 (undocumented codes, live-verified via validation probes)
+                    '820181': BadRequest, // {"code":820181,"message":"amount must be greater than the transaction fee."}
+                    '820201': BadRequest, // {"code":820201,"message":"blockchain param check error"} — network param missing
+                    '830111': BadRequest, // {"code":830111,"message":"Currency or Network does not exist"}
+                    // Futures v3 (https://api-docs.poloniex.com/v3/futures/error)
+                    '250': DuplicateOrderId, // {"code":250,"msg":"Client order id already exists"} — live-verified on v3/trade/order
+                    '400': BadRequest, // ILLEGAL_PARAM
+                    '403': PermissionDenied, // ACCESS_DENY
+                    '404': BadRequest, // NOT_FOUND
+                    '429': RateLimitExceeded, // TOO_MANY_REQUEST
+                    '503': ExchangeNotAvailable, // DEGRADE_ERROR
+                    '1000': AuthenticationError, // USER_NOT_EXITS
+                    '1001': ExchangeError, // SYSTEM_CONFIG_ERROR
+                    '1002': OnMaintenance, // SYSTEM_MAINTENANCE
+                    '1003': AccountSuspended, // USER_IS_FROZEN
+                    '10000': MarketClosed, // SYMBOL_NOT_IN_TRADING_STATUS
+                    '10001': BadSymbol, // SYMBOL_NOT_EXISTS
+                    '10002': InvalidOrder, // PRICE_LIMIT
+                    '10003': InvalidOrder, // NO_BID
+                    '10004': InvalidOrder, // NO_ASK
+                    '10005': MarketClosed, // SYMBOL_STATUS_PAUSED
+                    '10006': OperationRejected, // SYMBOL_STATUS_CANCEL_ONLY
+                    '10007': OperationRejected, // SYMBOL_STATUS_NOT_ALLOWED
+                    '10008': AccountSuspended, // USER_STATUS_ABNORMAL
+                    '10009': OperationRejected, // ALREADY_EXISTS_GRID_STRATEGY
+                    '10010': InvalidOrder, // PRICE_HIGHER_THAN_BANKRUPT_PRICE
+                    '10011': InvalidOrder, // PRICE_LOWER_THAN_BANKRUPT_PRICE
+                    '10012': InvalidOrder, // PRICE_HIGHER_THAN_LIQUIDATION_PRICE
+                    '10013': InvalidOrder, // PRICE_LOWER_THAN_LIQUIDATION_PRICE
+                    '10014': BadRequest, // PRICE_LIMIT_PARAM
+                    '10015': OperationRejected, // SYMBOL_STATUS_CLOSE_POSITION_ONLY
+                    '10016': BadRequest, // BATCH_PLACE_ORDER_SIZE_OVER_LIMIT
+                    '10017': BadRequest, // BATCH_CANCEL_ORDER_SIZE_OVER_LIMIT
+                    '10018': OperationRejected, // NO_POSITION_TO_CLOSE_ORDER
+                    '10019': OperationRejected, // ACCOUNT_STATE_OPEN_LIMIT
+                    '11003': BadRequest, // UNKNOWN_SOURCE
+                    '11004': OperationRejected, // ORDER_NOT_CANCELABLE
+                    '11008': OrderNotFound, // ORDER_NOT_EXISTS
+                    '12004': PermissionDenied, // NOT_KYC_VERIFIED
+                    '21001': OperationRejected, // POSITION_NOT_EXIST
                 },
                 'broad': {},
             },
@@ -650,8 +691,8 @@ export default class poloniex extends Exchange {
             'symbol': market['id'],
             'interval': this.safeString(this.timeframes, timeframe, timeframe),
         };
-        const keyStart = market['spot'] ? 'startTime' : 'sTime';
-        const keyEnd = market['spot'] ? 'endTime' : 'eTime';
+        const keyStart = (market['spot'] === true) ? 'startTime' : 'sTime';
+        const keyEnd = (market['spot'] === true) ? 'endTime' : 'eTime';
         if (since !== undefined) {
             request[keyStart] = since;
         }
@@ -660,10 +701,7 @@ export default class poloniex extends Exchange {
             request['limit'] = limit;
         }
         [request, params] = this.handleUntilOption(keyEnd, request, params);
-        if (market['contract']) {
-            if (this.inArray(timeframe, ['10m', '1M'])) {
-                throw new NotSupported(this.id + ' ' + timeframe + ' ' + market['type'] + ' fetchOHLCV is not supported');
-            }
+        if (market['contract'] === true) {
             const responseRaw = await this.swapPublicGetV3MarketCandles(this.extend(request, params));
             //
             //     {
@@ -1043,6 +1081,11 @@ export default class poloniex extends Exchange {
         const timestamp = this.safeInteger2(ticker, 'ts', 'cT');
         const marketId = this.safeString2(ticker, 'symbol', 's');
         market = this.safeMarket(marketId);
+        let baseVolume = this.safeString2(ticker, 'quantity', 'qty');
+        if ((market['contract'] === true) && (market['contractSize'] !== undefined)) {
+            // 'quantity' counts contracts, and a ticker reports base volume
+            baseVolume = Precise.stringMul(baseVolume, this.numberToString(market['contractSize']));
+        }
         const relativeChange = this.safeString2(ticker, 'dailyChange', 'dc');
         const percentage = Precise.stringMul(relativeChange, '100');
         return this.safeTicker({
@@ -1063,7 +1106,7 @@ export default class poloniex extends Exchange {
             'change': undefined,
             'percentage': percentage,
             'average': undefined,
-            'baseVolume': this.safeString2(ticker, 'quantity', 'qty'),
+            'baseVolume': baseVolume,
             'quoteVolume': this.safeString2(ticker, 'amount', 'amt'),
             'markPrice': this.safeString2(ticker, 'markPrice', 'mPx'),
             'indexPrice': this.safeString(ticker, 'iPx'),
@@ -1262,7 +1305,7 @@ export default class poloniex extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        if (market['contract']) {
+        if (market['contract'] === true) {
             const tickers = await this.fetchTickers([market['symbol']], params);
             return this.safeDict(tickers, symbol);
         }
@@ -1445,7 +1488,7 @@ export default class poloniex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // max 1000, for spot & swap
         }
-        if (market['contract']) {
+        if (market['contract'] === true) {
             const response = await this.swapPublicGetV3MarketTrades(this.extend(request, params));
             //
             //     {
@@ -1867,7 +1910,7 @@ export default class poloniex extends Exchange {
             //
             response = this.safeList(raw, 'data', []);
         }
-        else if (isTrigger) {
+        else if (isTrigger === true) {
             response = await this.privateGetSmartorders(this.extend(request, params));
         }
         else {
@@ -1989,6 +2032,7 @@ export default class poloniex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
      * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
+     * @param {string} [params.clientOrderId] a unique identifier for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
@@ -2004,7 +2048,7 @@ export default class poloniex extends Exchange {
         const triggerPrice = this.safeNumber2(params, 'stopPrice', 'triggerPrice');
         [request, params] = this.orderRequest(symbol, type, side, amount, request, price, params);
         let response = {};
-        if (market['swap'] || market['future']) {
+        if ((market['swap'] === true) || (market['future'] === true)) {
             const responseInitial = await this.swapPrivatePostV3TradeOrder(this.extend(request, params));
             //
             // {"code":200,"msg":"Success","data":{"ordId":"418876147745775616","clOrdId":"polo418876147745775616"}}
@@ -2028,7 +2072,7 @@ export default class poloniex extends Exchange {
     orderRequest(symbol, type, side, amount, request, price = undefined, params = {}) {
         const triggerPrice = this.safeNumber2(params, 'stopPrice', 'triggerPrice');
         const market = this.market(symbol);
-        if (market['contract']) {
+        if (market['contract'] === true) {
             let marginMode = undefined;
             [marginMode, params] = this.handleParamString(params, 'marginMode');
             if (marginMode !== undefined) {
@@ -2037,7 +2081,7 @@ export default class poloniex extends Exchange {
             }
             let hedged = undefined;
             [hedged, params] = this.handleParamString(params, 'hedged');
-            if (hedged) {
+            if ((hedged !== undefined) && (hedged !== '')) {
                 if (marginMode === undefined) {
                     throw new ArgumentsRequired(this.id + ' createOrder() requires a marginMode parameter "cross" or "isolated" for hedged orders');
                 }
@@ -2051,7 +2095,7 @@ export default class poloniex extends Exchange {
         const isPostOnly = this.isPostOnly(isMarket, upperCaseType === 'LIMIT_MAKER', params);
         params = this.omit(params, ['postOnly', 'triggerPrice', 'stopPrice']);
         if (triggerPrice !== undefined) {
-            if (!market['spot']) {
+            if (market['spot'] !== true) {
                 throw new InvalidOrder(this.id + ' createOrder() does not support trigger orders for ' + market['type'] + ' markets');
             }
             upperCaseType = (price === undefined) ? 'STOP' : 'STOP_LIMIT';
@@ -2071,7 +2115,7 @@ export default class poloniex extends Exchange {
                 if (cost !== undefined) {
                     quoteAmount = this.costToPrecision(symbol, cost);
                 }
-                else if (createMarketBuyOrderRequiresPrice && market['spot']) {
+                else if (createMarketBuyOrderRequiresPrice && (market['spot'] === true)) {
                     if (price === undefined) {
                         throw new InvalidOrder(this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument');
                     }
@@ -2085,24 +2129,26 @@ export default class poloniex extends Exchange {
                 else {
                     quoteAmount = this.costToPrecision(symbol, amount);
                 }
-                const amountKey = market['spot'] ? 'amount' : 'sz';
+                const amountKey = (market['spot'] === true) ? 'amount' : 'sz';
                 request[amountKey] = quoteAmount;
             }
             else {
-                const amountKey = market['spot'] ? 'quantity' : 'sz';
+                const amountKey = (market['spot'] === true) ? 'quantity' : 'sz';
                 request[amountKey] = this.amountToPrecision(symbol, amount);
             }
         }
         else {
-            const amountKey = market['spot'] ? 'quantity' : 'sz';
+            const amountKey = (market['spot'] === true) ? 'quantity' : 'sz';
             request[amountKey] = this.amountToPrecision(symbol, amount);
-            const priceKey = market['spot'] ? 'price' : 'px';
+            const priceKey = (market['spot'] === true) ? 'price' : 'px';
             request[priceKey] = this.priceToPrecision(symbol, price);
         }
-        const clientOrderId = this.safeString(params, 'clientOrderId');
+        const clientOrderId = this.safeString2(params, 'clientOrderId', 'clOrdId');
         if (clientOrderId !== undefined) {
-            request['clientOrderId'] = clientOrderId;
-            params = this.omit(params, 'clientOrderId');
+            // the futures v3 api silently ignores the spot key and generates its own id
+            const clientOrderIdKey = (market['spot'] === true) ? 'clientOrderId' : 'clOrdId';
+            request[clientOrderIdKey] = clientOrderId;
+            params = this.omit(params, ['clientOrderId', 'clOrdId']);
         }
         // remember the timestamp before issuing the request
         return [request, params];
@@ -2121,12 +2167,13 @@ export default class poloniex extends Exchange {
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+     * @param {string} [params.clientOrderId] a unique identifier for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
-        if (!market['spot']) {
+        if (market['spot'] !== true) {
             throw new NotSupported(this.id + ' editOrder() does not support ' + market['type'] + ' orders, only spot orders are accepted');
         }
         let request = {
@@ -2173,7 +2220,7 @@ export default class poloniex extends Exchange {
         }
         const market = this.market(symbol);
         const request = {};
-        if (!market['spot']) {
+        if (market['spot'] !== true) {
             request['symbol'] = market['id'];
             request['ordId'] = id;
             const raw = await this.swapPrivateDeleteV3TradeOrder(this.extend(request, params));
@@ -2197,7 +2244,7 @@ export default class poloniex extends Exchange {
         const isTrigger = this.safeValue2(params, 'trigger', 'stop');
         params = this.omit(params, ['clientOrderId', 'trigger', 'stop']);
         let response = {};
-        if (isTrigger) {
+        if (isTrigger === true) {
             response = await this.privateDeleteSmartordersId(this.extend(request, params));
         }
         else {
@@ -2263,7 +2310,7 @@ export default class poloniex extends Exchange {
         }
         const isTrigger = this.safeValue2(params, 'trigger', 'stop');
         params = this.omit(params, ['trigger', 'stop']);
-        if (isTrigger) {
+        if (isTrigger === true) {
             response = await this.privateDeleteSmartorders(this.extend(request, params));
         }
         else {
@@ -2319,7 +2366,7 @@ export default class poloniex extends Exchange {
         const isTrigger = this.safeValue2(params, 'trigger', 'stop');
         params = this.omit(params, ['trigger', 'stop']);
         let response = {};
-        if (isTrigger) {
+        if (isTrigger === true) {
             response = await this.privateGetSmartordersId(this.extend(request, params));
             response = this.safeValue(response, 0);
         }
@@ -2571,11 +2618,11 @@ export default class poloniex extends Exchange {
         };
         if (limit !== undefined) {
             request['limit'] = limit; // The default value of limit is 10. Valid limit values are: 5, 10, 20, 50, 100, 150.
-            if (market['contract']) {
+            if (market['contract'] === true) {
                 request['limit'] = this.findNearestCeiling([5, 10, 20, 100, 150], limit);
             }
         }
-        if (market['contract']) {
+        if (market['contract'] === true) {
             const responseRaw = await this.swapPublicGetV3MarketOrderBook(this.extend(request, params));
             //
             //    {
@@ -3219,7 +3266,7 @@ export default class poloniex extends Exchange {
         }
         let hedged = undefined;
         [hedged, params] = this.handleParamBool(params, 'hedged', false);
-        if (hedged) {
+        if (hedged === true) {
             if (!('posSide' in params)) {
                 throw new ArgumentsRequired(this.id + ' setLeverage() requires a posSide parameter for hedged mode: "LONG" or "SHORT"');
             }
@@ -3590,7 +3637,7 @@ export default class poloniex extends Exchange {
         const implodedPath = this.implodeParams(path, params);
         if (api === 'public' || api === 'swapPublic') {
             url += '/' + implodedPath;
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
             }
         }
@@ -3602,7 +3649,7 @@ export default class poloniex extends Exchange {
             auth += '/' + implodedPath;
             if ((method === 'POST') || (method === 'PUT') || (method === 'DELETE')) {
                 auth += "\n"; // eslint-disable-line quotes
-                if (Object.keys(query).length) {
+                if (Object.keys(query).length > 0) {
                     body = this.json(query);
                     auth += 'requestBody=' + body + '&';
                 }
@@ -3612,7 +3659,7 @@ export default class poloniex extends Exchange {
                 let sortedQuery = this.extend({ 'signTimestamp': timestamp }, query);
                 sortedQuery = this.keysort(sortedQuery);
                 auth += "\n" + this.urlencode(sortedQuery); // eslint-disable-line quotes
-                if (Object.keys(query).length) {
+                if (Object.keys(query).length > 0) {
                     url += '?' + this.urlencode(query);
                 }
             }
@@ -3638,10 +3685,9 @@ export default class poloniex extends Exchange {
         //
         const responseCode = this.safeString(response, 'code');
         if ((responseCode !== undefined) && (responseCode !== '200')) {
-            const codeInner = response['code'];
-            const message = this.safeString(response, 'message');
+            const message = this.safeString2(response, 'message', 'msg');
             const feedback = this.id + ' ' + body;
-            this.throwExactlyMatchedException(this.exceptions['exact'], codeInner, feedback);
+            this.throwExactlyMatchedException(this.exceptions['exact'], responseCode, feedback);
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
             throw new ExchangeError(feedback); // unknown message
         }

@@ -270,7 +270,6 @@ export default class bithumb extends Exchange {
                 },
             },
             'commonCurrencies': {
-                'ALT': 'ArchLoot',
                 'FTC': 'FTC2',
                 'SOC': 'Soda Coin',
             },
@@ -874,14 +873,16 @@ export default class bithumb extends Exchange {
             'payment_currency': market['quote'],
             'units': amount,
         };
-        let method = 'privatePostTradePlace';
+        let response = undefined;
         if (type === 'limit') {
             request['price'] = price;
             request['type'] = (side === 'buy') ? 'bid' : 'ask';
+            response = await this.privatePostTradePlace (this.extend (request, params));
+        } else if (side === 'buy') {
+            response = await this.privatePostTradeMarketBuy (this.extend (request, params));
         } else {
-            method = 'privatePostTradeMarket' + this.capitalize (side);
+            response = await this.privatePostTradeMarketSell (this.extend (request, params));
         }
-        const response = await this[method] (this.extend (request, params));
         const id = this.safeString (response, 'order_id');
         if (id === undefined) {
             throw new InvalidOrder (this.id + ' createOrder() did not return an order id');
@@ -1247,7 +1248,7 @@ export default class bithumb extends Exchange {
         let url = this.implodeHostname (this.urls['api'][api]) + endpoint;
         const query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
-            if (Object.keys (query).length) {
+            if (Object.keys (query).length > 0) {
                 url += '?' + this.urlencode (query);
             }
         } else {

@@ -684,7 +684,7 @@ class bitstamp extends bitstamp$1["default"] {
                 }
             }
             const isSpot = (type === 'spot');
-            const settle = settleId ? this.safeCurrencyCode(settleId) : undefined;
+            const settle = (settleId !== undefined && settleId !== '') ? this.safeCurrencyCode(settleId) : undefined;
             result.push({
                 'id': this.safeString(market, 'market_symbol'),
                 'symbol': symbol,
@@ -1870,17 +1870,21 @@ class bitstamp extends bitstamp$1["default"] {
             await this.loadMarkets();
         }
         const request = {};
-        let method = 'privatePostUserTransactions';
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
             request['pair'] = market['id'];
-            method += 'Pair';
         }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this[method](this.extend(request, params));
+        let response = undefined;
+        if (symbol !== undefined) {
+            response = await this.privatePostUserTransactionsPair(this.extend(request, params));
+        }
+        else {
+            response = await this.privatePostUserTransactions(this.extend(request, params));
+        }
         const result = this.filterBy(response, 'type', '2');
         return this.parseTrades(result, market, since, limit);
     }
@@ -2550,8 +2554,9 @@ class bitstamp extends bitstamp$1["default"] {
             throw new errors.NotSupported(this.id + ' fiat fetchDepositAddress() for ' + code + ' is not supported!');
         }
         const name = this.getCurrencyName(code);
-        const method = 'privatePost' + this.capitalize(name) + 'Address';
-        const response = await this[method](params);
+        // the per-currency implicit methods (privatePostBtcAddress etc.) all route
+        // through request(), called here directly to avoid dynamic dispatch
+        const response = await this.request(name + '_address/', 'private', 'POST', params);
         const address = this.safeString(response, 'address');
         const tag = this.safeString2(response, 'memo_id', 'destination_tag');
         this.checkAddress(address);
@@ -2588,10 +2593,9 @@ class bitstamp extends bitstamp$1["default"] {
             'amount': amount,
         };
         let currency = undefined;
-        let method = undefined;
+        let response = undefined;
         if (!this.isFiat(code)) {
             const name = this.getCurrencyName(code);
-            method = 'privatePost' + this.capitalize(name) + 'Withdrawal';
             if (code === 'XRP') {
                 if (tag !== undefined) {
                     request['destination_tag'] = tag;
@@ -2603,14 +2607,16 @@ class bitstamp extends bitstamp$1["default"] {
                 }
             }
             request['address'] = address;
+            // the per-currency implicit methods (privatePostBtcWithdrawal etc.) all
+            // route through request(), called here directly to avoid dynamic dispatch
+            response = await this.request(name + '_withdrawal/', 'private', 'POST', this.extend(request, params));
         }
         else {
-            method = 'privatePostWithdrawalOpen';
             currency = this.currency(code);
             request['iban'] = address;
             request['account_currency'] = currency['id'];
+            response = await this.privatePostWithdrawalOpen(this.extend(request, params));
         }
-        const response = await this[method](this.extend(request, params));
         return this.parseTransaction(response, currency);
     }
     /**
@@ -2693,7 +2699,7 @@ class bitstamp extends bitstamp$1["default"] {
         url += this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
         if (api === 'public') {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
             }
         }
@@ -2711,7 +2717,7 @@ class bitstamp extends bitstamp$1["default"] {
                 'X-Auth-Version': xAuthVersion,
             };
             if (method === 'POST') {
-                if (Object.keys(query).length) {
+                if (Object.keys(query).length > 0) {
                     body = this.urlencode(query);
                     contentType = 'application/x-www-form-urlencoded';
                     headers['Content-Type'] = contentType;
@@ -2726,7 +2732,7 @@ class bitstamp extends bitstamp$1["default"] {
                     headers['Content-Type'] = contentType;
                 }
             }
-            const authBody = body ? body : '';
+            const authBody = (body !== undefined && body !== '') ? body : '';
             const auth = xAuth + method + url.replace('https://', '') + contentType + xAuthNonce + xAuthTimestamp + xAuthVersion + authBody;
             const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha256);
             headers['X-Auth-Signature'] = signature;

@@ -1,0 +1,367 @@
+{
+    "exchange": "poloniex",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "watchOrderBook": [
+            {
+                "description": "spot orderbook",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "url": "wss://ws.poloniex.com/ws/public",
+                "messages": [
+                    {
+                        "event": "subscribe",
+                        "channel": "book_lv2",
+                        "symbols": [
+                            "BTC_USDT"
+                        ]
+                    },
+                    {
+                        "channel": "book_lv2",
+                        "data": [
+                            {
+                                "symbol": "BTC_USDT",
+                                "createTime": 1786614249357,
+                                "asks": [
+                                    [
+                                        "63718.04",
+                                        "0.020000"
+                                    ],
+                                    [
+                                        "63719.32",
+                                        "0.000153"
+                                    ],
+                                    [
+                                        "63719.44",
+                                        "0.020000"
+                                    ],
+                                    [
+                                        "63719.52",
+                                        "0.001217"
+                                    ],
+                                    [
+                                        "63719.72",
+                                        "0.000911"
+                                    ]
+                                ],
+                                "bids": [
+                                    [
+                                        "63708.07",
+                                        "0.02"
+                                    ],
+                                    [
+                                        "63707.43",
+                                        "0.02"
+                                    ],
+                                    [
+                                        "63705.73",
+                                        "0.000063"
+                                    ],
+                                    [
+                                        "63703.68",
+                                        "0.000063"
+                                    ],
+                                    [
+                                        "63692.22",
+                                        "0.109046"
+                                    ]
+                                ],
+                                "lastId": 8142122765,
+                                "id": 8142122766,
+                                "ts": 1786614249379
+                            }
+                        ],
+                        "action": "snapshot"
+                    },
+                    {
+                        "channel": "book_lv2",
+                        "data": [
+                            {
+                                "symbol": "BTC_USDT",
+                                "createTime": 1786614249358,
+                                "asks": [
+                                    [
+                                        "63745.06",
+                                        "2.858064"
+                                    ]
+                                ],
+                                "bids": [],
+                                "lastId": 8142122766,
+                                "id": 8142122769,
+                                "ts": 1786614249381
+                            }
+                        ],
+                        "action": "update"
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "event": "subscribe",
+                        "channel": [
+                            "book_lv2"
+                        ],
+                        "symbols": [
+                            "BTC_USDT"
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "bids": [
+                            [
+                                63708.07,
+                                0.02
+                            ],
+                            [
+                                63707.43,
+                                0.02
+                            ],
+                            [
+                                63705.73,
+                                6.3e-05
+                            ],
+                            [
+                                63703.68,
+                                6.3e-05
+                            ],
+                            [
+                                63692.22,
+                                0.109046
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                63718.04,
+                                0.02
+                            ],
+                            [
+                                63719.32,
+                                0.000153
+                            ],
+                            [
+                                63719.44,
+                                0.02
+                            ],
+                            [
+                                63719.52,
+                                0.001217
+                            ],
+                            [
+                                63719.72,
+                                0.000911
+                            ]
+                        ],
+                        "timestamp": 1786614249379,
+                        "datetime": "2026-08-13T09:44:09.379Z",
+                        "nonce": null,
+                        "symbol": "BTC/USDT"
+                    }
+                ]
+            }
+        ],
+        "watchTrades": [
+            {
+                "description": "spot trades",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "url": "wss://ws.poloniex.com/ws/public",
+                "messages": [
+                    {
+                        "event": "subscribe",
+                        "channel": "trades",
+                        "symbols": [
+                            "BTC_USDT"
+                        ]
+                    },
+                    {
+                        "channel": "trades",
+                        "data": [
+                            {
+                                "symbol": "BTC_USDT",
+                                "amount": "1399.4373582",
+                                "quantity": "0.021964",
+                                "takerSide": "buy",
+                                "createTime": 1786614232189,
+                                "price": "63715.05",
+                                "id": "232648447",
+                                "ts": 1786614232198
+                            }
+                        ]
+                    },
+                    {
+                        "channel": "trades",
+                        "data": [
+                            {
+                                "symbol": "BTC_USDT",
+                                "amount": "2599.9563303",
+                                "quantity": "0.040806",
+                                "takerSide": "buy",
+                                "createTime": 1786614232189,
+                                "price": "63715.05",
+                                "id": "232648448",
+                                "ts": 1786614232198
+                            }
+                        ]
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "event": "subscribe",
+                        "channel": [
+                            "trades"
+                        ],
+                        "symbols": [
+                            "BTC_USDT"
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        {
+                            "info": {
+                                "symbol": "BTC_USDT",
+                                "amount": "1399.4373582",
+                                "quantity": "0.021964",
+                                "takerSide": "buy",
+                                "createTime": 1786614232189,
+                                "price": "63715.05",
+                                "id": "232648447",
+                                "ts": 1786614232198
+                            },
+                            "id": "232648447",
+                            "symbol": "BTC/USDT",
+                            "timestamp": 1786614232189,
+                            "datetime": "2026-08-13T09:43:52.189Z",
+                            "order": null,
+                            "type": null,
+                            "side": "buy",
+                            "takerOrMaker": null,
+                            "price": 63715.05,
+                            "amount": 0.021964,
+                            "cost": 1399.4373582,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "fees": []
+                        }
+                    ]
+                ]
+            }
+        ],
+        "watchTicker": [
+            {
+                "description": "spot ticker",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "url": "wss://ws.poloniex.com/ws/public",
+                "messages": [
+                    {
+                        "event": "subscribe",
+                        "channel": "ticker",
+                        "symbols": [
+                            "BTC_USDT"
+                        ]
+                    },
+                    {
+                        "channel": "ticker",
+                        "data": [
+                            {
+                                "symbol": "BTC_USDT",
+                                "startTime": 1786527780000,
+                                "open": "64041.88",
+                                "high": "64472.46",
+                                "low": "63309.75",
+                                "close": "63710.73",
+                                "quantity": "3509.232507",
+                                "amount": "223627684.81842926",
+                                "tradeCount": 220183,
+                                "dailyChange": "-0.0052",
+                                "markPrice": "63683.64",
+                                "closeTime": 1786614215449,
+                                "ts": 1786614216233
+                            }
+                        ]
+                    },
+                    {
+                        "channel": "ticker",
+                        "data": [
+                            {
+                                "symbol": "BTC_USDT",
+                                "startTime": 1786527780000,
+                                "open": "64041.88",
+                                "high": "64472.46",
+                                "low": "63309.75",
+                                "close": "63710.73",
+                                "quantity": "3509.232507",
+                                "amount": "223627684.81842926",
+                                "tradeCount": 220183,
+                                "dailyChange": "-0.0052",
+                                "markPrice": "63683.67",
+                                "closeTime": 1786614215449,
+                                "ts": 1786614217233
+                            }
+                        ]
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "event": "subscribe",
+                        "channel": [
+                            "ticker"
+                        ],
+                        "symbols": [
+                            "BTC_USDT"
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "id": "BTC_USDT",
+                        "symbol": "BTC/USDT",
+                        "timestamp": 1786614216233,
+                        "datetime": "2026-08-13T09:43:36.233Z",
+                        "high": 64472.46,
+                        "low": 63309.75,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": 63725.52527435859,
+                        "open": 64041.88,
+                        "close": 63710.73,
+                        "previousClose": null,
+                        "change": -331.15,
+                        "percentage": -0.52,
+                        "average": 63876.3,
+                        "baseVolume": 3509.232507,
+                        "quoteVolume": 223627684.81842926,
+                        "markPrice": 63683.64,
+                        "indexPrice": null,
+                        "info": {
+                            "symbol": "BTC_USDT",
+                            "startTime": 1786527780000,
+                            "open": "64041.88",
+                            "high": "64472.46",
+                            "low": "63309.75",
+                            "close": "63710.73",
+                            "quantity": "3509.232507",
+                            "amount": "223627684.81842926",
+                            "tradeCount": 220183,
+                            "dailyChange": "-0.0052",
+                            "markPrice": "63683.64",
+                            "closeTime": 1786614215449,
+                            "ts": 1786614216233
+                        },
+                        "last": 63710.73
+                    }
+                ],
+                "disabledGO": "go: injected ticker frame does not resolve the watch future (hangs) - same parity backlog as other disabledGO entries"
+            }
+        ]
+    }
+}

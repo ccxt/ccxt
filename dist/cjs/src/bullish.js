@@ -547,7 +547,7 @@ class bullish extends bullish$1["default"] {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets(params = {}) {
-        if (this.options['adjustForTimeDifference']) {
+        if (this.options['adjustForTimeDifference'] === true) {
             await this.loadTimeDifference();
         }
         const response = await this.publicGetV1Markets(params);
@@ -1142,7 +1142,7 @@ class bullish extends bullish$1["default"] {
             fee = { 'currency': code, 'cost': feeCost };
         }
         let takerOrMaker = undefined;
-        if (isTaker) {
+        if (isTaker === true) {
             takerOrMaker = 'taker';
         }
         else {
@@ -1292,17 +1292,23 @@ class bullish extends bullish$1["default"] {
     async safeDeterministicCall(method, symbol = undefined, since = undefined, limit = undefined, timeframe = undefined, params = {}) {
         let maxRetries = undefined;
         [maxRetries, params] = this.handleOptionAndParams(params, method, 'maxRetries', 3);
+        if ((method !== 'fetchOHLCV') && (method !== 'fetchFundingRateHistory') && (method !== 'fetchTrades')) {
+            throw new errors.NotSupported(this.id + ' safeDeterministicCall() does not support the ' + method + ' method');
+        }
         let errors$1 = 0;
         params = this.omit(params, 'until');
         // the exchange returns the most recent data, so we do not need to pass until into paginated calls
         // the correct util value will be calculated inside of the method
         while (errors$1 <= maxRetries) {
             try {
-                if (timeframe && method !== 'fetchFundingRateHistory') {
-                    return await this[method](symbol, timeframe, since, limit, params);
+                if (method === 'fetchOHLCV') {
+                    return await this.fetchOHLCV(symbol, timeframe, since, limit, params);
+                }
+                else if (method === 'fetchFundingRateHistory') {
+                    return await this.fetchFundingRateHistory(symbol, since, limit, params);
                 }
                 else {
-                    return await this[method](symbol, since, limit, params);
+                    return await this.fetchTrades(symbol, since, limit, params);
                 }
             }
             catch (e) {
@@ -1419,7 +1425,7 @@ class bullish extends bullish$1["default"] {
             return await this.fetchPaginatedCallDynamic('fetchFundingRateHistory', symbol, since, limit, params, maxLimit);
         }
         const market = this.market(symbol);
-        if (!market['swap']) {
+        if (market['swap'] !== true) {
             throw new errors.BadRequest(this.id + ' fetchFundingRateHistory() supports swap markets only');
         }
         const request = {
@@ -1480,7 +1486,7 @@ class bullish extends bullish$1["default"] {
         await Promise.all([this.loadMarkets(), this.handleToken()]);
         const tradingAccountId = await this.loadAccount(params);
         const paginate = this.safeBool(params, 'paginate', false);
-        if (paginate) {
+        if (paginate === true) {
             params = this.handlePaginationParams('fetchOrders', since, params);
             return await this.fetchPaginatedCallDynamic('fetchOrders', symbol, since, limit, params, 100);
         }
@@ -1813,7 +1819,7 @@ class bullish extends bullish$1["default"] {
             request['type'] = type.toUpperCase();
         }
         const postOnly = this.safeBool(params, 'postOnly', false);
-        if (postOnly) {
+        if (postOnly === true) {
             params = this.omit(params, 'postOnly');
             request['type'] = 'POST_ONLY';
         }
@@ -2676,7 +2682,7 @@ class bullish extends bullish$1["default"] {
         const transferOptions = this.safeDict(this.options, 'transfer', {});
         const fillResponseFromRequest = this.safeBool(transferOptions, 'fillResponseFromRequest', true);
         const transfer = this.parseTransfer(response, currency);
-        if (fillResponseFromRequest) {
+        if (fillResponseFromRequest === true) {
             transfer['fromAccount'] = fromAccount;
             transfer['toAccount'] = toAccount;
             transfer['amount'] = amount;
@@ -2966,7 +2972,7 @@ class bullish extends bullish$1["default"] {
         }
         if (method === 'GET') {
             const query = this.urlencode(request);
-            if (query.length) {
+            if (query.length > 0) {
                 url += '?' + query;
             }
         }

@@ -264,7 +264,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         for ($i = 0; $i < count($symbols); $i++) {
             $symbol = $symbols[$i];
             $market = $this->market($symbol);
-            if ($market['active']) {
+            if ($market['active'] === true) {
                 $output[] = $symbol;
             }
         }
@@ -844,7 +844,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
     }
 
     public function handle_message(mixed $client, mixed $message) {
-        if ($this->handle_error_message($client, $message)) {
+        if ($this->handle_error_message($client, $message) === true) {
             return;
         }
         $channel = $this->safe_string($message, 'channel', '');

@@ -98,35 +98,66 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
             Object token = this.safeString(client.subscriptions, "token");
             if (Helpers.isTrue(Helpers.isEqual(token, null)))
             {
-                if (Helpers.isTrue(isContract))
+                // single-flight leader election, see https://github.com/ccxt/ccxt/issues/29393:
+                // concurrent callers each minted their own token, last write won, and the losers
+                // carried an orphaned token into name + '@' + listenKey so their streams went dead
+                Object messageHash = Helpers.add("authenticate:", tradeType);
+                if (Helpers.isTrue(Helpers.inOp(client.futures, messageHash)))
                 {
-                    Object response = (this.privateLinearGetFutureUserV1UserListenKey()).join();
-                    //
-                    //    {
-                    //        returnCode: '0',
-                    //        msgInfo: 'success',
-                    //        error: null,
-                    //        result: '3BC1D71D6CF96DA3458FC35B05B633351684511731128'
-                    //    }
-                    //
-                    Helpers.addElementToObject(client.subscriptions, "token", this.safeString(response, "result"));
-                } else
-                {
-                    Object response = (this.privateSpotPostWsToken()).join();
-                    //
-                    //    {
-                    //        "rc": 0,
-                    //        "mc": "SUCCESS",
-                    //        "ma": [],
-                    //        "result": {
-                    //            "token": "eyJhbqGciOiJSUzI1NiJ9.eyJhY2NvdW50SWQiOiIyMTQ2Mjg1MzIyNTU5Iiwic3ViIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsInNjb3BlIjoiYXV0aCIsImlzcyI6Inh0LmNvbSIsImxhc3RBdXRoVGltZSI6MTY2MzgxMzY5MDk1NSwic2lnblR5cGUiOiJBSyIsInVzZXJOYW1lIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsImV4cCI6MTY2NjQwNTY5MCwiZGV2aWNlIjoidW5rbm93biIsInVzZXJJZCI6MjE0NjI4NTMyMjU1OX0.h3zJlJBQrK2x1HvUxsKivnn6PlSrSDXXXJ7WqHAYSrN2CG5XPTKc4zKnTVoYFbg6fTS0u1fT8wH7wXqcLWXX71vm0YuP8PCvdPAkUIq4-HyzltbPr5uDYd0UByx0FPQtq1exvsQGe7evXQuDXx3SEJXxEqUbq_DNlXPTq_JyScI",
-                    //            "refreshToken": "eyJhbGciOiqJSUzI1NiJ9.eyJhY2NvdW50SWQiOiIyMTQ2Mjg1MzIyNTU5Iiwic3ViIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsInNjb3BlIjoicmVmcmVzaCIsImlzcyI6Inh0LmNvbSIsImxhc3RBdXRoVGltZSI6MTY2MzgxMzY5MDk1NSwic2lnblR5cGUiOiJBSyIsInVzZXJOYW1lIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsImV4cCI6MTY2NjQwNTY5MCwiZGV2aWNlIjoidW5rbm93biIsInVzZXJJZCI6MjE0NjI4NTMyMjU1OX0.Fs3YVm5YrEOzzYOSQYETSmt9iwxUHBovh2u73liv1hLUec683WGfktA_s28gMk4NCpZKFeQWFii623FvdfNoteXR0v1yZ2519uNvNndtuZICDdv3BQ4wzW1wIHZa1skxFfqvsDnGdXpjqu9UFSbtHwxprxeYfnxChNk4ssei430"
-                    //        }
-                    //    }
-                    //
-                    Object result = this.safeDict(response, "result");
-                    Helpers.addElementToObject(client.subscriptions, "token", this.safeString(result, "accessToken"));
+                    // a flight is already in progress - wake when the leader
+                    // settles it: the token is then in the bucket
+                    client.future((String)messageHash).getFuture().join();
+                    return Helpers.GetValue(client.subscriptions, "token");
                 }
+                // client.futures is the same registry Exchange.watch () dedupes on, so registering
+                // the flight here, before any suspension point, makes concurrent callers wait
+                io.github.ccxt.ws.Future future = client.reusableFuture((String)messageHash);
+                try
+                {
+                    Object listenKey = null;
+                    if (Helpers.isTrue(isContract))
+                    {
+                        Object response = (this.privateLinearGetFutureUserV1UserListenKey()).join();
+                        //
+                        //    {
+                        //        returnCode: '0',
+                        //        msgInfo: 'success',
+                        //        error: null,
+                        //        result: '3BC1D71D6CF96DA3458FC35B05B633351684511731128'
+                        //    }
+                        //
+                        listenKey = this.safeString(response, "result");
+                    } else
+                    {
+                        Object response = (this.privateSpotPostWsToken()).join();
+                        //
+                        //    {
+                        //        "rc": 0,
+                        //        "mc": "SUCCESS",
+                        //        "ma": [],
+                        //        "result": {
+                        //            "token": "eyJhbqGciOiJSUzI1NiJ9.eyJhY2NvdW50SWQiOiIyMTQ2Mjg1MzIyNTU5Iiwic3ViIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsInNjb3BlIjoiYXV0aCIsImlzcyI6Inh0LmNvbSIsImxhc3RBdXRoVGltZSI6MTY2MzgxMzY5MDk1NSwic2lnblR5cGUiOiJBSyIsInVzZXJOYW1lIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsImV4cCI6MTY2NjQwNTY5MCwiZGV2aWNlIjoidW5rbm93biIsInVzZXJJZCI6MjE0NjI4NTMyMjU1OX0.h3zJlJBQrK2x1HvUxsKivnn6PlSrSDXXXJ7WqHAYSrN2CG5XPTKc4zKnTVoYFbg6fTS0u1fT8wH7wXqcLWXX71vm0YuP8PCvdPAkUIq4-HyzltbPr5uDYd0UByx0FPQtq1exvsQGe7evXQuDXx3SEJXxEqUbq_DNlXPTq_JyScI",
+                        //            "refreshToken": "eyJhbGciOiqJSUzI1NiJ9.eyJhY2NvdW50SWQiOiIyMTQ2Mjg1MzIyNTU5Iiwic3ViIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsInNjb3BlIjoicmVmcmVzaCIsImlzcyI6Inh0LmNvbSIsImxhc3RBdXRoVGltZSI6MTY2MzgxMzY5MDk1NSwic2lnblR5cGUiOiJBSyIsInVzZXJOYW1lIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsImV4cCI6MTY2NjQwNTY5MCwiZGV2aWNlIjoidW5rbm93biIsInVzZXJJZCI6MjE0NjI4NTMyMjU1OX0.Fs3YVm5YrEOzzYOSQYETSmt9iwxUHBovh2u73liv1hLUec683WGfktA_s28gMk4NCpZKFeQWFii623FvdfNoteXR0v1yZ2519uNvNndtuZICDdv3BQ4wzW1wIHZa1skxFfqvsDnGdXpjqu9UFSbtHwxprxeYfnxChNk4ssei430"
+                        //        }
+                        //    }
+                        //
+                        Object result = this.safeDict(response, "result");
+                        listenKey = this.safeString(result, "accessToken");
+                    }
+                    if (Helpers.isTrue(Helpers.isEqual(listenKey, null)))
+                    {
+                        throw new AuthenticationError((String)Helpers.add(this.id, " getListenKey() received an empty listen key")) ;
+                    }
+                    Helpers.addElementToObject(client.subscriptions, "token", listenKey);
+                    client.resolve(listenKey, messageHash);
+                } catch(Exception e)
+                {
+                    // hand the failure to every waiter so the next caller re-leads instead of
+                    // deadlocking on a dead flight. no throw here: the trailing future rethrows
+                    // to this caller and keeps a waiterless rejection from crashing the process
+                    client.reject(e, messageHash);
+                }
+                ((io.github.ccxt.ws.Future)future).getFuture().join();
             }
             return Helpers.GetValue(client.subscriptions, "token");
         });
@@ -824,7 +855,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
             Object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);
             Object awaitPositionsSnapshot = this.handleOption("watchPositions", "awaitPositionsSnapshot", true);
             Object cache = this.positions;
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(fetchPositionsSnapshot) && Helpers.isTrue(awaitPositionsSnapshot)) && Helpers.isTrue(this.isEmpty(cache))))
+            if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(fetchPositionsSnapshot, true))) && Helpers.isTrue((Helpers.isEqual(awaitPositionsSnapshot, true)))) && Helpers.isTrue(this.isEmpty(cache))))
             {
                 Object snapshot = client.future("fetchPositionsSnapshot").getFuture().join();
                 return this.filterBySymbolsSinceLimit(snapshot, symbols, since, limit, true);
@@ -860,9 +891,9 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            if (!Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
-                throw new BadSymbol((String)Helpers.add(this.id, " watchFundingRate() supports swap contracts only")) ;
+                throw new NotSupported((String)Helpers.add(this.id, " watchFundingRate() supports swap contracts only")) ;
             }
             Object name = Helpers.add("fund_rate@", Helpers.GetValue(market, "id"));
             return (this.subscribe(name, "public", "watchFundingRate", market, null, parameters)).join();
@@ -890,9 +921,9 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            if (!Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
-                throw new BadSymbol((String)Helpers.add(this.id, " unWatchFundingRate() supports swap contracts only")) ;
+                throw new NotSupported((String)Helpers.add(this.id, " unWatchFundingRate() supports swap contracts only")) ;
             }
             Object name = Helpers.add("fund_rate@", Helpers.GetValue(market, "id"));
             Object messageHash = Helpers.add("unsubscribe::", name);
@@ -943,7 +974,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
         }
         Object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot");
-        if (Helpers.isTrue(fetchPositionsSnapshot))
+        if (Helpers.isTrue(Helpers.isEqual(fetchPositionsSnapshot, true)))
         {
             Object messageHash = "fetchPositionsSnapshot";
             if (!Helpers.isTrue((Helpers.inOp(client.futures, messageHash))))
@@ -1783,7 +1814,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
         }
         Object market = this.market(tradeSymbol);
         Helpers.callDynamically(stored, "append", new Object[]{parsedTrade});
-        Object tradeType = ((Helpers.isTrue(Helpers.GetValue(market, "contract")))) ? "contract" : "spot";
+        Object tradeType = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "contract"), true))))) ? "contract" : "spot";
         client.resolve(stored, Helpers.add("trade::", tradeType));
     }
 
@@ -1861,7 +1892,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
         {
             Object subscription = this.safeDict(subscriptionsById, id, new java.util.HashMap<String, Object>() {{}});
             unsubscribe = this.safeBool(subscription, "unsubscribe", false);
-            if (Helpers.isTrue(unsubscribe))
+            if (Helpers.isTrue(Helpers.isEqual(unsubscribe, true)))
             {
                 this.handleUnSubscription(client, subscription);
             }

@@ -424,9 +424,9 @@ func (this *DeltaCore) Describe() any {
 }
 func (this *DeltaCore) CreateExpiredOptionMarket(symbol any) any {
 	// support expired option contracts
-	var quote any = "USDT"
-	var optionParts any = Split(symbol, "-")
-	var symbolBase any = Split(symbol, "/")
+	var quote string = "USDT"
+	var optionParts []string = Split(symbol, "-")
+	var symbolBase []string = Split(symbol, "/")
 	var base any = nil
 	var expiry any = nil
 	var optionType any = nil
@@ -501,7 +501,7 @@ func (this *DeltaCore) SafeMarket(optionalArgs ...any) any {
 	_ = delimiter
 	marketType := GetArg(optionalArgs, 3, nil)
 	_ = marketType
-	var isOption any = IsTrue((!IsEqual(marketId, nil))) && IsTrue((IsTrue(IsTrue(IsTrue((EndsWith(marketId, "-C"))) || IsTrue((EndsWith(marketId, "-P")))) || IsTrue((StartsWith(marketId, "C-")))) || IsTrue((StartsWith(marketId, "P-")))))
+	var isOption bool = IsTrue((!IsEqual(marketId, nil))) && IsTrue((IsTrue(IsTrue(IsTrue((EndsWith(marketId, "-C"))) || IsTrue((EndsWith(marketId, "-P")))) || IsTrue((StartsWith(marketId, "C-")))) || IsTrue((StartsWith(marketId, "P-")))))
 	if IsTrue(IsTrue(isOption) && IsTrue((IsTrue((IsEqual(this.Markets_by_id, nil))) || !IsTrue((InOp(this.Markets_by_id, marketId)))))) {
 		// handle expired option contracts
 		return this.CreateExpiredOptionMarket(marketId)
@@ -517,23 +517,23 @@ func (this *DeltaCore) SafeMarket(optionalArgs ...any) any {
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
 func (this *DeltaCore) FetchTime(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		response := (<-this.PublicGetSettings(params))
-		PanicOnError(response)
-		// full response sample under `fetchStatus`
-		var result any = this.SafeDict(response, "result", map[string]any{})
-
-		ch <- this.SafeIntegerProduct(result, "server_time", 0.001)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchTimeBody(ch, optionalArgs...)
 	return ch
+}
+func (this *DeltaCore) fetchTimeBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	response := (<-this.PublicGetSettings(params))
+	PanicOnError(response)
+	// full response sample under `fetchStatus`
+	var result any = this.SafeDict(response, "result", map[string]any{})
+
+	ch <- this.SafeIntegerProduct(result, "server_time", 0.001)
+	return nil
 }
 
 /**
@@ -544,84 +544,84 @@ func (this *DeltaCore) FetchTime(optionalArgs ...any) <-chan any {
  * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
 func (this *DeltaCore) FetchStatus(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		response := (<-this.PublicGetSettings(params))
-		PanicOnError(response)
-		//
-		//     {
-		//         "result": {
-		//           "deto_liquidity_mining_daily_reward": "40775",
-		//           "deto_msp": "1.0",
-		//           "deto_staking_daily_reward": "23764.08",
-		//           "enabled_wallets": [
-		//             "BTC",
-		//             ...
-		//           ],
-		//           "portfolio_margin_params": {
-		//             "enabled_portfolios": {
-		//               ".DEAVAXUSDT": {
-		//                 "asset_id": 5,
-		//                 "futures_contingency_margin_percent": "1",
-		//                 "interest_rate": "0",
-		//                 "maintenance_margin_multiplier": "0.8",
-		//                 "max_price_shock": "20",
-		//                 "max_short_notional_limit": "2000",
-		//                 "options_contingency_margin_percent": "1",
-		//                 "options_discount_range": "10",
-		//                 "options_liq_band_range_percentage": "25",
-		//                 "settling_asset": "USDT",
-		//                 "sort_priority": 5,
-		//                 "underlying_asset": "AVAX",
-		//                 "volatility_down_shock": "30",
-		//                 "volatility_up_shock": "45"
-		//               },
-		//               ...
-		//             },
-		//             "portfolio_enabled_contracts": [
-		//               "futures",
-		//               "perpetual_futures",
-		//               "call_options",
-		//               "put_options"
-		//             ]
-		//           },
-		//           "server_time": 1650640673500273,
-		//           "trade_farming_daily_reward": "100000",
-		//           "circulating_supply": "140000000",
-		//           "circulating_supply_update_time": "1636752800",
-		//           "deto_referral_mining_daily_reward": "0",
-		//           "deto_total_reward_pool": "100000000",
-		//           "deto_trade_mining_daily_reward": "0",
-		//           "kyc_deposit_limit": "20",
-		//           "kyc_withdrawal_limit": "10000",
-		//           "maintenance_start_time": "1650387600000000",
-		//           "msp_deto_commission_percent": "25",
-		//           "under_maintenance": "false"
-		//         },
-		//         "success": true
-		//     }
-		//
-		var result any = this.SafeDict(response, "result", map[string]any{})
-		var underMaintenance any = this.SafeString(result, "under_maintenance")
-		var status any = Ternary(IsTrue((IsEqual(underMaintenance, "true"))), "maintenance", "ok")
-		var updated any = this.SafeIntegerProduct(result, "server_time", 0.001, this.Milliseconds())
-
-		ch <- map[string]any{
-			"status":  status,
-			"updated": updated,
-			"eta":     nil,
-			"url":     nil,
-			"info":    response,
-		}
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchStatusBody(ch, optionalArgs...)
 	return ch
+}
+func (this *DeltaCore) fetchStatusBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	response := (<-this.PublicGetSettings(params))
+	PanicOnError(response)
+	//
+	//     {
+	//         "result": {
+	//           "deto_liquidity_mining_daily_reward": "40775",
+	//           "deto_msp": "1.0",
+	//           "deto_staking_daily_reward": "23764.08",
+	//           "enabled_wallets": [
+	//             "BTC",
+	//             ...
+	//           ],
+	//           "portfolio_margin_params": {
+	//             "enabled_portfolios": {
+	//               ".DEAVAXUSDT": {
+	//                 "asset_id": 5,
+	//                 "futures_contingency_margin_percent": "1",
+	//                 "interest_rate": "0",
+	//                 "maintenance_margin_multiplier": "0.8",
+	//                 "max_price_shock": "20",
+	//                 "max_short_notional_limit": "2000",
+	//                 "options_contingency_margin_percent": "1",
+	//                 "options_discount_range": "10",
+	//                 "options_liq_band_range_percentage": "25",
+	//                 "settling_asset": "USDT",
+	//                 "sort_priority": 5,
+	//                 "underlying_asset": "AVAX",
+	//                 "volatility_down_shock": "30",
+	//                 "volatility_up_shock": "45"
+	//               },
+	//               ...
+	//             },
+	//             "portfolio_enabled_contracts": [
+	//               "futures",
+	//               "perpetual_futures",
+	//               "call_options",
+	//               "put_options"
+	//             ]
+	//           },
+	//           "server_time": 1650640673500273,
+	//           "trade_farming_daily_reward": "100000",
+	//           "circulating_supply": "140000000",
+	//           "circulating_supply_update_time": "1636752800",
+	//           "deto_referral_mining_daily_reward": "0",
+	//           "deto_total_reward_pool": "100000000",
+	//           "deto_trade_mining_daily_reward": "0",
+	//           "kyc_deposit_limit": "20",
+	//           "kyc_withdrawal_limit": "10000",
+	//           "maintenance_start_time": "1650387600000000",
+	//           "msp_deto_commission_percent": "25",
+	//           "under_maintenance": "false"
+	//         },
+	//         "success": true
+	//     }
+	//
+	var result any = this.SafeDict(response, "result", map[string]any{})
+	var underMaintenance any = this.SafeString(result, "under_maintenance")
+	var status any = Ternary(IsTrue((IsEqual(underMaintenance, "true"))), "maintenance", "ok")
+	var updated any = this.SafeIntegerProduct(result, "server_time", 0.001, this.Milliseconds())
+
+	ch <- map[string]any{
+		"status":  status,
+		"updated": updated,
+		"eta":     nil,
+		"url":     nil,
+		"info":    response,
+	}
+	return nil
 }
 
 /**
@@ -633,77 +633,77 @@ func (this *DeltaCore) FetchStatus(optionalArgs ...any) <-chan any {
  * @returns {object} an associative dictionary of currencies
  */
 func (this *DeltaCore) FetchCurrencies(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		response := (<-this.PublicGetAssets(params))
-		PanicOnError(response)
-		//
-		//    {
-		//        "result": [
-		//            {
-		//                "base_withdrawal_fee": "0.005000000000000000",
-		//                "id": "1",
-		//                "interest_credit": false,
-		//                "interest_slabs": null,
-		//                "kyc_deposit_limit": "0.000000000000000000",
-		//                "kyc_withdrawal_limit": "0.000000000000000000",
-		//                "min_withdrawal_amount": "0.010000000000000000",
-		//                "minimum_precision": "4",
-		//                "name": "Ethereum",
-		//                "networks": [
-		//                    {
-		//                        "allowed_deposit_groups": null,
-		//                        "base_withdrawal_fee": "0.0025",
-		//                        "deposit_status": "enabled",
-		//                        "memo_required": false,
-		//                        "min_deposit_amount": "0.000050000000000000",
-		//                        "min_withdrawal_amount": "0.010000000000000000",
-		//                        "minimum_deposit_confirmations": "12",
-		//                        "network": "ERC20",
-		//                        "variable_withdrawal_fee": "0",
-		//                        "withdrawal_status": "enabled"
-		//                    },
-		//                    {
-		//                        "allowed_deposit_groups": null,
-		//                        "base_withdrawal_fee": "0.0001",
-		//                        "deposit_status": "enabled",
-		//                        "memo_required": false,
-		//                        "min_deposit_amount": "0.000050000000000000",
-		//                        "min_withdrawal_amount": "0.000300000000000000",
-		//                        "minimum_deposit_confirmations": "15",
-		//                        "network": "BEP20(BSC)",
-		//                        "variable_withdrawal_fee": "0",
-		//                        "withdrawal_status": "enabled"
-		//                    }
-		//                ],
-		//                "precision": "18",
-		//                "sort_priority": "3",
-		//                "symbol": "ETH",
-		//                "variable_withdrawal_fee": "0.000000000000000000"
-		//            },
-		//         ],
-		//         "success":true
-		//     }
-		//
-		var currencies any = this.SafeList(response, "result", []any{})
-
-		ch <- this.ParseCurrencies(currencies)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchCurrenciesBody(ch, optionalArgs...)
 	return ch
+}
+func (this *DeltaCore) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	response := (<-this.PublicGetAssets(params))
+	PanicOnError(response)
+	//
+	//    {
+	//        "result": [
+	//            {
+	//                "base_withdrawal_fee": "0.005000000000000000",
+	//                "id": "1",
+	//                "interest_credit": false,
+	//                "interest_slabs": null,
+	//                "kyc_deposit_limit": "0.000000000000000000",
+	//                "kyc_withdrawal_limit": "0.000000000000000000",
+	//                "min_withdrawal_amount": "0.010000000000000000",
+	//                "minimum_precision": "4",
+	//                "name": "Ethereum",
+	//                "networks": [
+	//                    {
+	//                        "allowed_deposit_groups": null,
+	//                        "base_withdrawal_fee": "0.0025",
+	//                        "deposit_status": "enabled",
+	//                        "memo_required": false,
+	//                        "min_deposit_amount": "0.000050000000000000",
+	//                        "min_withdrawal_amount": "0.010000000000000000",
+	//                        "minimum_deposit_confirmations": "12",
+	//                        "network": "ERC20",
+	//                        "variable_withdrawal_fee": "0",
+	//                        "withdrawal_status": "enabled"
+	//                    },
+	//                    {
+	//                        "allowed_deposit_groups": null,
+	//                        "base_withdrawal_fee": "0.0001",
+	//                        "deposit_status": "enabled",
+	//                        "memo_required": false,
+	//                        "min_deposit_amount": "0.000050000000000000",
+	//                        "min_withdrawal_amount": "0.000300000000000000",
+	//                        "minimum_deposit_confirmations": "15",
+	//                        "network": "BEP20(BSC)",
+	//                        "variable_withdrawal_fee": "0",
+	//                        "withdrawal_status": "enabled"
+	//                    }
+	//                ],
+	//                "precision": "18",
+	//                "sort_priority": "3",
+	//                "symbol": "ETH",
+	//                "variable_withdrawal_fee": "0.000000000000000000"
+	//            },
+	//         ],
+	//         "success":true
+	//     }
+	//
+	var currencies any = this.SafeList(response, "result", []any{})
+
+	ch <- this.ParseCurrencies(currencies)
+	return nil
 }
 func (this *DeltaCore) ParseCurrency(rawCurrency any) any {
 	var id any = this.SafeString(rawCurrency, "symbol")
 	var numericId any = this.SafeInteger(rawCurrency, "id")
 	var code any = this.SafeCurrencyCode(id)
 	var chains any = this.SafeList(rawCurrency, "networks", []any{})
-	var networks any = map[string]any{}
+	var networks map[string]any = map[string]any{}
 	for j := 0; IsLessThan(j, GetArrayLength(chains)); j++ {
 		var chain any = GetValue(chains, j)
 		var networkId any = this.SafeString(chain, "network")
@@ -757,38 +757,38 @@ func (this *DeltaCore) ParseCurrency(rawCurrency any) any {
 	})
 }
 func (this *DeltaCore) LoadMarkets(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		reload := GetArg(optionalArgs, 0, false)
-		_ = reload
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-
-		markets := (<-this.Exchange.LoadMarkets(reload, params))
-		PanicOnError(markets)
-		var currenciesByNumericId any = this.SafeDict(this.Options, "currenciesByNumericId")
-		if IsTrue(IsTrue((IsEqual(currenciesByNumericId, nil))) || IsTrue(reload)) {
-			AddElementToObject(this.Options, "currenciesByNumericId", this.IndexByStringifiedNumericId(this.Currencies))
-		}
-		var marketsByNumericId any = this.SafeDict(this.Options, "marketsByNumericId")
-		if IsTrue(IsTrue((IsEqual(marketsByNumericId, nil))) || IsTrue(reload)) {
-			AddElementToObject(this.Options, "marketsByNumericId", this.IndexByStringifiedNumericId(this.Markets))
-		}
-
-		ch <- markets
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.loadMarketsBody(ch, optionalArgs...)
 	return ch
 }
+func (this *DeltaCore) loadMarketsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	reload := GetArg(optionalArgs, 0, false)
+	_ = reload
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+
+	markets := (<-this.Exchange.LoadMarkets(reload, params))
+	PanicOnError(markets)
+	var currenciesByNumericId any = this.SafeDict(this.Options, "currenciesByNumericId")
+	if IsTrue(IsTrue((IsEqual(currenciesByNumericId, nil))) || IsTrue(reload)) {
+		AddElementToObject(this.Options, "currenciesByNumericId", this.IndexByStringifiedNumericId(this.Currencies))
+	}
+	var marketsByNumericId any = this.SafeDict(this.Options, "marketsByNumericId")
+	if IsTrue(IsTrue((IsEqual(marketsByNumericId, nil))) || IsTrue(reload)) {
+		AddElementToObject(this.Options, "marketsByNumericId", this.IndexByStringifiedNumericId(this.Markets))
+	}
+
+	ch <- markets
+	return nil
+}
 func (this *DeltaCore) IndexByStringifiedNumericId(input any) any {
-	var result any = map[string]any{}
+	var result map[string]any = map[string]any{}
 	if IsTrue(IsEqual(input, nil)) {
 		return nil
 	}
-	var keys any = ObjectKeys(input)
+	var keys []string = ObjectKeys(input)
 	for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
 		var key any = GetValue(keys, i)
 		var item any = GetValue(input, key)
@@ -810,318 +810,318 @@ func (this *DeltaCore) IndexByStringifiedNumericId(input any) any {
  * @returns {object[]} an array of objects representing market data
  */
 func (this *DeltaCore) FetchMarkets(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		response := (<-this.PublicGetProducts(params))
-		PanicOnError(response)
-		//
-		//     {
-		//         "meta":{ "after":null, "before":null, "limit":100, "total_count":81 },
-		//         "result":[
-		//             // the below response represents item from perpetual market
-		//             {
-		//                 "annualized_funding":"5.475000000000000000",
-		//                 "is_quanto":false,
-		//                 "ui_config":{
-		//                     "default_trading_view_candle":"15",
-		//                     "leverage_slider_values":[1,3,5,10,25,50],
-		//                     "price_clubbing_values":[0.001,0.005,0.05,0.1,0.5,1,5],
-		//                     "show_bracket_orders":false,
-		//                     "sort_priority":29,
-		//                     "tags":[]
-		//                 },
-		//                 "basis_factor_max_limit":"0.15",
-		//                 "symbol":"P-LINK-D-151120",
-		//                 "id":1584,
-		//                 "default_leverage":"5.000000000000000000",
-		//                 "maker_commission_rate":"0.0005",
-		//                 "contract_unit_currency":"LINK",
-		//                 "strike_price":"12.507948",
-		//                 "settling_asset":{
-		//                     // asset structure
-		//                 },
-		//                 "auction_start_time":null,
-		//                 "auction_finish_time":null,
-		//                 "settlement_time":"2020-11-15T12:00:00Z",
-		//                 "launch_time":"2020-11-14T11:55:05Z",
-		//                 "spot_index":{
-		//                     // index structure
-		//                 },
-		//                 "trading_status":"operational",
-		//                 "tick_size":"0.001",
-		//                 "position_size_limit":100000,
-		//                 "notional_type":"vanilla", // vanilla, inverse
-		//                 "price_band":"0.4",
-		//                 "barrier_price":null,
-		//                 "description":"Daily LINK PUT options quoted in USDT and settled in USDT",
-		//                 "insurance_fund_margin_contribution":"1",
-		//                 "quoting_asset":{
-		//                     // asset structure
-		//                 },
-		//                 "liquidation_penalty_factor":"0.2",
-		//                 "product_specs":{"max_volatility":3,"min_volatility":0.3,"spot_price_band":"0.40"},
-		//                 "initial_margin_scaling_factor":"0.0001",
-		//                 "underlying_asset":{
-		//                     // asset structure
-		//                 },
-		//                 "state":"live",
-		//                 "contract_value":"1",
-		//                 "initial_margin":"2",
-		//                 "impact_size":5000,
-		//                 "settlement_price":null,
-		//                 "contract_type":"put_options", // put_options, call_options, move_options, perpetual_futures, interest_rate_swaps, futures, spreads
-		//                 "taker_commission_rate":"0.0005",
-		//                 "maintenance_margin":"1",
-		//                 "short_description":"LINK Daily PUT Options",
-		//                 "maintenance_margin_scaling_factor":"0.00005",
-		//                 "funding_method":"mark_price",
-		//                 "max_leverage_notional":"20000"
-		//             },
-		//             // the below response represents item from spot market
-		//             {
-		//                 "position_size_limit": 10000000,
-		//                 "settlement_price": null,
-		//                 "funding_method": "mark_price",
-		//                 "settling_asset": null,
-		//                 "impact_size": 10,
-		//                 "id": 32258,
-		//                 "auction_finish_time": null,
-		//                 "description": "Solana tether spot market",
-		//                 "trading_status": "operational",
-		//                 "tick_size": "0.01",
-		//                 "liquidation_penalty_factor": "1",
-		//                 "spot_index": {
-		//                     "config": { "quoting_asset": "USDT", "service_id": 8, "underlying_asset": "SOL" },
-		//                     "constituent_exchanges": [
-		//                         { "exchange": "binance", "health_interval": 60, "health_priority": 1, "weight": 1 },
-		//                         { "exchange": "huobi", "health_interval": 60, "health_priority": 2, "weight": 1 }
-		//                     ],
-		//                     "constituent_indices": null,
-		//                     "description": "Solana index from binance and huobi",
-		//                     "health_interval": 300,
-		//                     "id": 105,
-		//                     "impact_size": "40.000000000000000000",
-		//                     "index_type": "spot_pair",
-		//                     "is_composite": false,
-		//                     "price_method": "ltp",
-		//                     "quoting_asset_id": 5,
-		//                     "symbol": ".DESOLUSDT",
-		//                     "tick_size": "0.000100000000000000",
-		//                     "underlying_asset_id": 66
-		//                 },
-		//                 "contract_type": "spot",
-		//                 "launch_time": "2022-02-03T10:18:11Z",
-		//                 "symbol": "SOL_USDT",
-		//                 "disruption_reason": null,
-		//                 "settlement_time": null,
-		//                 "insurance_fund_margin_contribution": "1",
-		//                 "is_quanto": false,
-		//                 "maintenance_margin": "5",
-		//                 "taker_commission_rate": "0.0005",
-		//                 "auction_start_time": null,
-		//                 "max_leverage_notional": "10000000",
-		//                 "state": "live",
-		//                 "annualized_funding": "0",
-		//                 "notional_type": "vanilla",
-		//                 "price_band": "100",
-		//                 "product_specs": { "kyc_required": false, "max_order_size": 2000, "min_order_size": 0.01, "quoting_precision": 4, "underlying_precision": 2 },
-		//                 "default_leverage": "1.000000000000000000",
-		//                 "initial_margin": "10",
-		//                 "maintenance_margin_scaling_factor": "1",
-		//                 "ui_config": {
-		//                     "default_trading_view_candle": "1d",
-		//                     "leverage_slider_values": [],
-		//                     "price_clubbing_values": [ 0.01, 0.05, 0.1, 0.5, 1, 2.5, 5 ],
-		//                     "show_bracket_orders": false,
-		//                     "sort_priority": 2,
-		//                     "tags": []
-		//                 },
-		//                 "basis_factor_max_limit": "10000",
-		//                 "contract_unit_currency": "SOL",
-		//                 "strike_price": null,
-		//                 "quoting_asset": {
-		//                     "base_withdrawal_fee": "10.000000000000000000",
-		//                     "deposit_status": "enabled",
-		//                     "id": 5,
-		//                     "interest_credit": false,
-		//                     "interest_slabs": null,
-		//                     "kyc_deposit_limit": "100000.000000000000000000",
-		//                     "kyc_withdrawal_limit": "10000.000000000000000000",
-		//                     "min_withdrawal_amount": "30.000000000000000000",
-		//                     "minimum_precision": 2,
-		//                     "name": "Tether",
-		//                     "networks": [
-		//                         { "base_withdrawal_fee": "25", "deposit_status": "enabled", "memo_required": false, "network": "ERC20", "variable_withdrawal_fee": "0", "withdrawal_status": "enabled" },
-		//                         { "base_withdrawal_fee": "1", "deposit_status": "enabled", "memo_required": false, "network": "BEP20(BSC)", "variable_withdrawal_fee": "0", "withdrawal_status": "enabled" },
-		//                         { "base_withdrawal_fee": "1", "deposit_status": "disabled", "memo_required": false, "network": "TRC20(TRON)", "variable_withdrawal_fee": "0", "withdrawal_status": "disabled" }
-		//                     ],
-		//                     "precision": 8,
-		//                     "sort_priority": 1,
-		//                     "symbol": "USDT",
-		//                     "variable_withdrawal_fee": "0.000000000000000000",
-		//                     "withdrawal_status": "enabled"
-		//                 },
-		//                 "maker_commission_rate": "0.0005",
-		//                 "initial_margin_scaling_factor": "2",
-		//                 "underlying_asset": {
-		//                     "base_withdrawal_fee": "0.000000000000000000",
-		//                     "deposit_status": "enabled",
-		//                     "id": 66,
-		//                     "interest_credit": false,
-		//                     "interest_slabs": null,
-		//                     "kyc_deposit_limit": "0.000000000000000000",
-		//                     "kyc_withdrawal_limit": "0.000000000000000000",
-		//                     "min_withdrawal_amount": "0.020000000000000000",
-		//                     "minimum_precision": 4,
-		//                     "name": "Solana",
-		//                     "networks": [
-		//                         { "base_withdrawal_fee": "0.01", "deposit_status": "enabled", "memo_required": false, "network": "SOLANA", "variable_withdrawal_fee": "0", "withdrawal_status": "enabled" },
-		//                         { "base_withdrawal_fee": "0.01", "deposit_status": "enabled", "memo_required": false, "network": "BEP20(BSC)", "variable_withdrawal_fee": "0", "withdrawal_status": "enabled" }
-		//                     ],
-		//                     "precision": 8,
-		//                     "sort_priority": 7,
-		//                     "symbol": "SOL",
-		//                     "variable_withdrawal_fee": "0.000000000000000000",
-		//                     "withdrawal_status": "enabled"
-		//                 },
-		//                 "barrier_price": null,
-		//                 "contract_value": "1",
-		//                 "short_description": "SOL-USDT spot market"
-		//             },
-		//         ],
-		//         "success":true
-		//     }
-		//
-		var markets any = this.SafeList(response, "result", []any{})
-		var result any = []any{}
-		for i := 0; IsLessThan(i, GetArrayLength(markets)); i++ {
-			var market any = GetValue(markets, i)
-			var typeVar any = this.SafeString(market, "contract_type")
-			if IsTrue(IsTrue(IsTrue((IsEqual(typeVar, "options_combos"))) || IsTrue((IsEqual(typeVar, "binary_call_options")))) || IsTrue((IsEqual(typeVar, "binary_put_options")))) {
-				continue
-			}
-			// const settlingAsset = this.safeValue (market, 'settling_asset', {});
-			var quotingAsset any = this.SafeDict(market, "quoting_asset", map[string]any{})
-			var underlyingAsset any = this.SafeDict(market, "underlying_asset", map[string]any{})
-			var settlingAsset any = this.SafeDict(market, "settling_asset")
-			var productSpecs any = this.SafeDict(market, "product_specs", map[string]any{})
-			var baseId any = this.SafeString(underlyingAsset, "symbol")
-			var quoteId any = this.SafeString(quotingAsset, "symbol")
-			var settleId any = this.SafeString(settlingAsset, "symbol")
-			var id any = this.SafeString(market, "symbol")
-			var numericId any = this.SafeInteger(market, "id")
-			var base any = this.SafeCurrencyCode(baseId)
-			var quote any = this.SafeCurrencyCode(quoteId)
-			var settle any = this.SafeCurrencyCode(settleId)
-			var callOptions any = (IsEqual(typeVar, "call_options"))
-			var putOptions any = (IsEqual(typeVar, "put_options"))
-			var moveOptions any = (IsEqual(typeVar, "move_options"))
-			var spot any = (IsEqual(typeVar, "spot"))
-			var swap any = (IsEqual(typeVar, "perpetual_futures"))
-			var future any = (IsEqual(typeVar, "futures"))
-			var option any = (IsTrue(IsTrue(callOptions) || IsTrue(putOptions)) || IsTrue(moveOptions))
-			var strike any = this.SafeString(market, "strike_price")
-			var expiryDatetime any = this.SafeString(market, "settlement_time")
-			var expiry any = this.Parse8601(expiryDatetime)
-			var contractSize any = this.SafeNumber(market, "contract_value")
-			var amountPrecision any = nil
-			if IsTrue(spot) {
-				amountPrecision = this.ParseNumber(this.ParsePrecision(this.SafeString(productSpecs, "underlying_precision"))) // seems inverse of 'impact_size'
-			} else {
-				// other markets (swap, futures, move, spread, irs) seem to use the step of '1' contract
-				amountPrecision = this.ParseNumber("1")
-			}
-			var linear any = (IsEqual(settle, quote))
-			var optionType any = nil
-			var symbol any = Add(Add(base, "/"), quote)
-			if IsTrue(IsTrue(IsTrue(swap) || IsTrue(future)) || IsTrue(option)) {
-				symbol = Add(Add(symbol, ":"), settle)
-				if IsTrue(IsTrue(future) || IsTrue(option)) {
-					symbol = Add(Add(symbol, "-"), this.Yymmdd(expiry))
-					if IsTrue(option) {
-						typeVar = "option"
-						var letter any = "C"
-						optionType = "call"
-						if IsTrue(putOptions) {
-							letter = "P"
-							optionType = "put"
-						} else if IsTrue(moveOptions) {
-							letter = "M"
-							optionType = "move"
-						}
-						symbol = Add(Add(Add(Add(symbol, "-"), strike), "-"), letter)
-					} else {
-						typeVar = "future"
-					}
-				} else {
-					typeVar = "swap"
-				}
-			}
-			var state any = this.SafeString(market, "state")
-			AppendToArray(&result, this.SafeMarketStructure(map[string]any{
-				"id":             id,
-				"numericId":      numericId,
-				"symbol":         symbol,
-				"base":           base,
-				"quote":          quote,
-				"settle":         settle,
-				"baseId":         baseId,
-				"quoteId":        quoteId,
-				"settleId":       settleId,
-				"type":           typeVar,
-				"spot":           spot,
-				"margin":         false,
-				"swap":           swap,
-				"future":         future,
-				"option":         option,
-				"active":         (IsEqual(state, "live")),
-				"contract":       !IsTrue(spot),
-				"linear":         Ternary(IsTrue(spot), nil, linear),
-				"inverse":        Ternary(IsTrue(spot), nil, !IsTrue(linear)),
-				"taker":          this.SafeNumber(market, "taker_commission_rate"),
-				"maker":          this.SafeNumber(market, "maker_commission_rate"),
-				"contractSize":   Ternary(IsTrue(spot), nil, contractSize),
-				"expiry":         expiry,
-				"expiryDatetime": this.Iso8601(expiry),
-				"strike":         this.ParseNumber(strike),
-				"optionType":     optionType,
-				"precision": map[string]any{
-					"amount": amountPrecision,
-					"price":  this.SafeNumber(market, "tick_size"),
-				},
-				"limits": map[string]any{
-					"leverage": map[string]any{
-						"min": nil,
-						"max": nil,
-					},
-					"amount": map[string]any{
-						"min": this.ParseNumber("1"),
-						"max": this.SafeNumber(market, "position_size_limit"),
-					},
-					"price": map[string]any{
-						"min": nil,
-						"max": nil,
-					},
-					"cost": map[string]any{
-						"min": this.SafeNumber(market, "min_size"),
-						"max": nil,
-					},
-				},
-				"created": this.Parse8601(this.SafeString(market, "launch_time")),
-				"info":    market,
-			}))
-		}
-
-		ch <- result
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchMarketsBody(ch, optionalArgs...)
 	return ch
+}
+func (this *DeltaCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	response := (<-this.PublicGetProducts(params))
+	PanicOnError(response)
+	//
+	//     {
+	//         "meta":{ "after":null, "before":null, "limit":100, "total_count":81 },
+	//         "result":[
+	//             // the below response represents item from perpetual market
+	//             {
+	//                 "annualized_funding":"5.475000000000000000",
+	//                 "is_quanto":false,
+	//                 "ui_config":{
+	//                     "default_trading_view_candle":"15",
+	//                     "leverage_slider_values":[1,3,5,10,25,50],
+	//                     "price_clubbing_values":[0.001,0.005,0.05,0.1,0.5,1,5],
+	//                     "show_bracket_orders":false,
+	//                     "sort_priority":29,
+	//                     "tags":[]
+	//                 },
+	//                 "basis_factor_max_limit":"0.15",
+	//                 "symbol":"P-LINK-D-151120",
+	//                 "id":1584,
+	//                 "default_leverage":"5.000000000000000000",
+	//                 "maker_commission_rate":"0.0005",
+	//                 "contract_unit_currency":"LINK",
+	//                 "strike_price":"12.507948",
+	//                 "settling_asset":{
+	//                     // asset structure
+	//                 },
+	//                 "auction_start_time":null,
+	//                 "auction_finish_time":null,
+	//                 "settlement_time":"2020-11-15T12:00:00Z",
+	//                 "launch_time":"2020-11-14T11:55:05Z",
+	//                 "spot_index":{
+	//                     // index structure
+	//                 },
+	//                 "trading_status":"operational",
+	//                 "tick_size":"0.001",
+	//                 "position_size_limit":100000,
+	//                 "notional_type":"vanilla", // vanilla, inverse
+	//                 "price_band":"0.4",
+	//                 "barrier_price":null,
+	//                 "description":"Daily LINK PUT options quoted in USDT and settled in USDT",
+	//                 "insurance_fund_margin_contribution":"1",
+	//                 "quoting_asset":{
+	//                     // asset structure
+	//                 },
+	//                 "liquidation_penalty_factor":"0.2",
+	//                 "product_specs":{"max_volatility":3,"min_volatility":0.3,"spot_price_band":"0.40"},
+	//                 "initial_margin_scaling_factor":"0.0001",
+	//                 "underlying_asset":{
+	//                     // asset structure
+	//                 },
+	//                 "state":"live",
+	//                 "contract_value":"1",
+	//                 "initial_margin":"2",
+	//                 "impact_size":5000,
+	//                 "settlement_price":null,
+	//                 "contract_type":"put_options", // put_options, call_options, move_options, perpetual_futures, interest_rate_swaps, futures, spreads
+	//                 "taker_commission_rate":"0.0005",
+	//                 "maintenance_margin":"1",
+	//                 "short_description":"LINK Daily PUT Options",
+	//                 "maintenance_margin_scaling_factor":"0.00005",
+	//                 "funding_method":"mark_price",
+	//                 "max_leverage_notional":"20000"
+	//             },
+	//             // the below response represents item from spot market
+	//             {
+	//                 "position_size_limit": 10000000,
+	//                 "settlement_price": null,
+	//                 "funding_method": "mark_price",
+	//                 "settling_asset": null,
+	//                 "impact_size": 10,
+	//                 "id": 32258,
+	//                 "auction_finish_time": null,
+	//                 "description": "Solana tether spot market",
+	//                 "trading_status": "operational",
+	//                 "tick_size": "0.01",
+	//                 "liquidation_penalty_factor": "1",
+	//                 "spot_index": {
+	//                     "config": { "quoting_asset": "USDT", "service_id": 8, "underlying_asset": "SOL" },
+	//                     "constituent_exchanges": [
+	//                         { "exchange": "binance", "health_interval": 60, "health_priority": 1, "weight": 1 },
+	//                         { "exchange": "huobi", "health_interval": 60, "health_priority": 2, "weight": 1 }
+	//                     ],
+	//                     "constituent_indices": null,
+	//                     "description": "Solana index from binance and huobi",
+	//                     "health_interval": 300,
+	//                     "id": 105,
+	//                     "impact_size": "40.000000000000000000",
+	//                     "index_type": "spot_pair",
+	//                     "is_composite": false,
+	//                     "price_method": "ltp",
+	//                     "quoting_asset_id": 5,
+	//                     "symbol": ".DESOLUSDT",
+	//                     "tick_size": "0.000100000000000000",
+	//                     "underlying_asset_id": 66
+	//                 },
+	//                 "contract_type": "spot",
+	//                 "launch_time": "2022-02-03T10:18:11Z",
+	//                 "symbol": "SOL_USDT",
+	//                 "disruption_reason": null,
+	//                 "settlement_time": null,
+	//                 "insurance_fund_margin_contribution": "1",
+	//                 "is_quanto": false,
+	//                 "maintenance_margin": "5",
+	//                 "taker_commission_rate": "0.0005",
+	//                 "auction_start_time": null,
+	//                 "max_leverage_notional": "10000000",
+	//                 "state": "live",
+	//                 "annualized_funding": "0",
+	//                 "notional_type": "vanilla",
+	//                 "price_band": "100",
+	//                 "product_specs": { "kyc_required": false, "max_order_size": 2000, "min_order_size": 0.01, "quoting_precision": 4, "underlying_precision": 2 },
+	//                 "default_leverage": "1.000000000000000000",
+	//                 "initial_margin": "10",
+	//                 "maintenance_margin_scaling_factor": "1",
+	//                 "ui_config": {
+	//                     "default_trading_view_candle": "1d",
+	//                     "leverage_slider_values": [],
+	//                     "price_clubbing_values": [ 0.01, 0.05, 0.1, 0.5, 1, 2.5, 5 ],
+	//                     "show_bracket_orders": false,
+	//                     "sort_priority": 2,
+	//                     "tags": []
+	//                 },
+	//                 "basis_factor_max_limit": "10000",
+	//                 "contract_unit_currency": "SOL",
+	//                 "strike_price": null,
+	//                 "quoting_asset": {
+	//                     "base_withdrawal_fee": "10.000000000000000000",
+	//                     "deposit_status": "enabled",
+	//                     "id": 5,
+	//                     "interest_credit": false,
+	//                     "interest_slabs": null,
+	//                     "kyc_deposit_limit": "100000.000000000000000000",
+	//                     "kyc_withdrawal_limit": "10000.000000000000000000",
+	//                     "min_withdrawal_amount": "30.000000000000000000",
+	//                     "minimum_precision": 2,
+	//                     "name": "Tether",
+	//                     "networks": [
+	//                         { "base_withdrawal_fee": "25", "deposit_status": "enabled", "memo_required": false, "network": "ERC20", "variable_withdrawal_fee": "0", "withdrawal_status": "enabled" },
+	//                         { "base_withdrawal_fee": "1", "deposit_status": "enabled", "memo_required": false, "network": "BEP20(BSC)", "variable_withdrawal_fee": "0", "withdrawal_status": "enabled" },
+	//                         { "base_withdrawal_fee": "1", "deposit_status": "disabled", "memo_required": false, "network": "TRC20(TRON)", "variable_withdrawal_fee": "0", "withdrawal_status": "disabled" }
+	//                     ],
+	//                     "precision": 8,
+	//                     "sort_priority": 1,
+	//                     "symbol": "USDT",
+	//                     "variable_withdrawal_fee": "0.000000000000000000",
+	//                     "withdrawal_status": "enabled"
+	//                 },
+	//                 "maker_commission_rate": "0.0005",
+	//                 "initial_margin_scaling_factor": "2",
+	//                 "underlying_asset": {
+	//                     "base_withdrawal_fee": "0.000000000000000000",
+	//                     "deposit_status": "enabled",
+	//                     "id": 66,
+	//                     "interest_credit": false,
+	//                     "interest_slabs": null,
+	//                     "kyc_deposit_limit": "0.000000000000000000",
+	//                     "kyc_withdrawal_limit": "0.000000000000000000",
+	//                     "min_withdrawal_amount": "0.020000000000000000",
+	//                     "minimum_precision": 4,
+	//                     "name": "Solana",
+	//                     "networks": [
+	//                         { "base_withdrawal_fee": "0.01", "deposit_status": "enabled", "memo_required": false, "network": "SOLANA", "variable_withdrawal_fee": "0", "withdrawal_status": "enabled" },
+	//                         { "base_withdrawal_fee": "0.01", "deposit_status": "enabled", "memo_required": false, "network": "BEP20(BSC)", "variable_withdrawal_fee": "0", "withdrawal_status": "enabled" }
+	//                     ],
+	//                     "precision": 8,
+	//                     "sort_priority": 7,
+	//                     "symbol": "SOL",
+	//                     "variable_withdrawal_fee": "0.000000000000000000",
+	//                     "withdrawal_status": "enabled"
+	//                 },
+	//                 "barrier_price": null,
+	//                 "contract_value": "1",
+	//                 "short_description": "SOL-USDT spot market"
+	//             },
+	//         ],
+	//         "success":true
+	//     }
+	//
+	var markets any = this.SafeList(response, "result", []any{})
+	var result any = []any{}
+	for i := 0; IsLessThan(i, GetArrayLength(markets)); i++ {
+		var market any = GetValue(markets, i)
+		var typeVar any = this.SafeString(market, "contract_type")
+		if IsTrue(IsTrue(IsTrue((IsEqual(typeVar, "options_combos"))) || IsTrue((IsEqual(typeVar, "binary_call_options")))) || IsTrue((IsEqual(typeVar, "binary_put_options")))) {
+			continue
+		}
+		// const settlingAsset = this.safeValue (market, 'settling_asset', {});
+		var quotingAsset any = this.SafeDict(market, "quoting_asset", map[string]any{})
+		var underlyingAsset any = this.SafeDict(market, "underlying_asset", map[string]any{})
+		var settlingAsset any = this.SafeDict(market, "settling_asset")
+		var productSpecs any = this.SafeDict(market, "product_specs", map[string]any{})
+		var baseId any = this.SafeString(underlyingAsset, "symbol")
+		var quoteId any = this.SafeString(quotingAsset, "symbol")
+		var settleId any = this.SafeString(settlingAsset, "symbol")
+		var id any = this.SafeString(market, "symbol")
+		var numericId any = this.SafeInteger(market, "id")
+		var base any = this.SafeCurrencyCode(baseId)
+		var quote any = this.SafeCurrencyCode(quoteId)
+		var settle any = this.SafeCurrencyCode(settleId)
+		var callOptions bool = (IsEqual(typeVar, "call_options"))
+		var putOptions bool = (IsEqual(typeVar, "put_options"))
+		var moveOptions bool = (IsEqual(typeVar, "move_options"))
+		var spot bool = (IsEqual(typeVar, "spot"))
+		var swap bool = (IsEqual(typeVar, "perpetual_futures"))
+		var future bool = (IsEqual(typeVar, "futures"))
+		var option bool = (IsTrue(IsTrue(callOptions) || IsTrue(putOptions)) || IsTrue(moveOptions))
+		var strike any = this.SafeString(market, "strike_price")
+		var expiryDatetime any = this.SafeString(market, "settlement_time")
+		var expiry any = this.Parse8601(expiryDatetime)
+		var contractSize any = this.SafeNumber(market, "contract_value")
+		var amountPrecision any = nil
+		if IsTrue(spot) {
+			amountPrecision = this.ParseNumber(this.ParsePrecision(this.SafeString(productSpecs, "underlying_precision"))) // seems inverse of 'impact_size'
+		} else {
+			// other markets (swap, futures, move, spread, irs) seem to use the step of '1' contract
+			amountPrecision = this.ParseNumber("1")
+		}
+		var linear bool = (IsEqual(settle, quote))
+		var optionType any = nil
+		var symbol any = Add(Add(base, "/"), quote)
+		if IsTrue(IsTrue(IsTrue(swap) || IsTrue(future)) || IsTrue(option)) {
+			symbol = Add(Add(symbol, ":"), settle)
+			if IsTrue(IsTrue(future) || IsTrue(option)) {
+				symbol = Add(Add(symbol, "-"), this.Yymmdd(expiry))
+				if IsTrue(option) {
+					typeVar = "option"
+					var letter string = "C"
+					optionType = "call"
+					if IsTrue(putOptions) {
+						letter = "P"
+						optionType = "put"
+					} else if IsTrue(moveOptions) {
+						letter = "M"
+						optionType = "move"
+					}
+					symbol = Add(Add(Add(Add(symbol, "-"), strike), "-"), letter)
+				} else {
+					typeVar = "future"
+				}
+			} else {
+				typeVar = "swap"
+			}
+		}
+		var state any = this.SafeString(market, "state")
+		AppendToArray(&result, this.SafeMarketStructure(map[string]any{
+			"id":             id,
+			"numericId":      numericId,
+			"symbol":         symbol,
+			"base":           base,
+			"quote":          quote,
+			"settle":         settle,
+			"baseId":         baseId,
+			"quoteId":        quoteId,
+			"settleId":       settleId,
+			"type":           typeVar,
+			"spot":           spot,
+			"margin":         false,
+			"swap":           swap,
+			"future":         future,
+			"option":         option,
+			"active":         (IsEqual(state, "live")),
+			"contract":       !IsTrue(spot),
+			"linear":         Ternary(IsTrue(spot), nil, linear),
+			"inverse":        Ternary(IsTrue(spot), nil, !IsTrue(linear)),
+			"taker":          this.SafeNumber(market, "taker_commission_rate"),
+			"maker":          this.SafeNumber(market, "maker_commission_rate"),
+			"contractSize":   Ternary(IsTrue(spot), nil, contractSize),
+			"expiry":         expiry,
+			"expiryDatetime": this.Iso8601(expiry),
+			"strike":         this.ParseNumber(strike),
+			"optionType":     optionType,
+			"precision": map[string]any{
+				"amount": amountPrecision,
+				"price":  this.SafeNumber(market, "tick_size"),
+			},
+			"limits": map[string]any{
+				"leverage": map[string]any{
+					"min": nil,
+					"max": nil,
+				},
+				"amount": map[string]any{
+					"min": this.ParseNumber("1"),
+					"max": this.SafeNumber(market, "position_size_limit"),
+				},
+				"price": map[string]any{
+					"min": nil,
+					"max": nil,
+				},
+				"cost": map[string]any{
+					"min": this.SafeNumber(market, "min_size"),
+					"max": nil,
+				},
+			},
+			"created": this.Parse8601(this.SafeString(market, "launch_time")),
+			"info":    market,
+		}))
+	}
+
+	ch <- result
+	return nil
 }
 func (this *DeltaCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	//
@@ -1243,9 +1243,16 @@ func (this *DeltaCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	_ = market
 	var timestamp any = this.SafeIntegerProduct(ticker, "timestamp", 0.001)
 	var marketId any = this.SafeString(ticker, "symbol")
-	var symbol any = this.SafeSymbol(marketId, market)
+	market = this.SafeMarket(marketId, market)
+	var symbol any = GetValue(market, "symbol")
 	var last any = this.SafeString(ticker, "close")
 	var quotes any = this.SafeDict(ticker, "quotes", map[string]any{})
+	// turnover_symbol names the currency turnover is denominated in, and on
+	// spot markets that is the base currency rather than the quote
+	var turnoverSymbol any = this.SafeStringUpper(ticker, "turnover_symbol")
+	var quoteId any = this.SafeStringUpper(market, "quoteId")
+	var baseDenominated bool = IsTrue(IsTrue((!IsEqual(turnoverSymbol, nil))) && IsTrue((!IsEqual(quoteId, nil)))) && IsTrue((!IsEqual(turnoverSymbol, quoteId)))
+	var quoteVolume any = Ternary(IsTrue(baseDenominated), this.SafeNumber(ticker, "turnover_usd"), this.SafeNumber(ticker, "turnover"))
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
 		"timestamp":     timestamp,
@@ -1265,7 +1272,7 @@ func (this *DeltaCore) ParseTicker(ticker any, optionalArgs ...any) any {
 		"percentage":    nil,
 		"average":       nil,
 		"baseVolume":    this.SafeNumber(ticker, "volume"),
-		"quoteVolume":   this.SafeNumber(ticker, "turnover"),
+		"quoteVolume":   quoteVolume,
 		"markPrice":     this.SafeNumber(ticker, "mark_price"),
 		"indexPrice":    this.SafeNumber(ticker, "spot_price"),
 		"info":          ticker,
@@ -1282,153 +1289,153 @@ func (this *DeltaCore) ParseTicker(ticker any, optionalArgs ...any) any {
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *DeltaCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		retRes11338 := (<-this.LoadMarkets())
-		PanicOnError(retRes11338)
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"symbol": GetValue(market, "id"),
-		}
-
-		response := (<-this.PublicGetTickersSymbol(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		// spot
-		//
-		//     {
-		//         "result": {
-		//             "close": 30634.0,
-		//             "contract_type": "spot",
-		//             "greeks": null,
-		//             "high": 30780.0,
-		//             "low": 30340.5,
-		//             "mark_price": "48000",
-		//             "oi": "0.0000",
-		//             "oi_change_usd_6h": "0.0000",
-		//             "oi_contracts": "0",
-		//             "oi_value": "0.0000",
-		//             "oi_value_symbol": "BTC",
-		//             "oi_value_usd": "0.0000",
-		//             "open": 30464.0,
-		//             "price_band": null,
-		//             "product_id": 8320,
-		//             "quotes": {},
-		//             "size": 2.6816639999999996,
-		//             "spot_price": "30637.91465121",
-		//             "symbol": "BTC_USDT",
-		//             "timestamp": 1689139767621299,
-		//             "turnover": 2.6816639999999996,
-		//             "turnover_symbol": "BTC",
-		//             "turnover_usd": 81896.45613400004,
-		//             "volume": 2.6816639999999996
-		//         },
-		//         "success": true
-		//     }
-		//
-		// swap
-		//
-		//     {
-		//         "result": {
-		//             "close": 30600.5,
-		//             "contract_type": "perpetual_futures",
-		//             "funding_rate": "0.00602961",
-		//             "greeks": null,
-		//             "high": 30803.0,
-		//             "low": 30265.5,
-		//             "mark_basis": "-0.45601594",
-		//             "mark_price": "30600.10481568",
-		//             "oi": "469.9190",
-		//             "oi_change_usd_6h": "2226314.9900",
-		//             "oi_contracts": "469919",
-		//             "oi_value": "469.9190",
-		//             "oi_value_symbol": "BTC",
-		//             "oi_value_usd": "14385640.6802",
-		//             "open": 30458.5,
-		//             "price_band": {
-		//                 "lower_limit": "29067.08312627",
-		//                 "upper_limit": "32126.77608693"
-		//             },
-		//             "product_id": 139,
-		//             "quotes": {
-		//                 "ask_iv": null,
-		//                 "ask_size": "965",
-		//                 "best_ask": "30600.5",
-		//                 "best_bid": "30599.5",
-		//                 "bid_iv": null,
-		//                 "bid_size": "196",
-		//                 "impact_mid_price": null,
-		//                 "mark_iv": "-0.44931641"
-		//             },
-		//             "size": 1226303,
-		//             "spot_price": "30612.85362773",
-		//             "symbol": "BTCUSDT",
-		//             "timestamp": 1689136597460456,
-		//             "turnover": 37392218.45999999,
-		//             "turnover_symbol": "USDT",
-		//             "turnover_usd": 37392218.45999999,
-		//             "volume": 1226.3029999999485
-		//         },
-		//         "success": true
-		//     }
-		//
-		// option
-		//
-		//     {
-		//         "result": {
-		//             "contract_type": "call_options",
-		//             "greeks": {
-		//                 "delta": "0.60873994",
-		//                 "gamma": "0.00014854",
-		//                 "rho": "7.71808010",
-		//                 "spot": "30598.49040622",
-		//                 "theta": "-30.44743017",
-		//                 "vega": "24.83508248"
-		//             },
-		//             "mark_price": "1347.74819696",
-		//             "mark_vol": "0.39966303",
-		//             "oi": "2.7810",
-		//             "oi_change_usd_6h": "0.0000",
-		//             "oi_contracts": "2781",
-		//             "oi_value": "2.7810",
-		//             "oi_value_symbol": "BTC",
-		//             "oi_value_usd": "85127.4337",
-		//             "price_band": {
-		//                 "lower_limit": "91.27423497",
-		//                 "upper_limit": "7846.19454697"
-		//             },
-		//             "product_id": 107150,
-		//             "quotes": {
-		//                 "ask_iv": "0.41023239",
-		//                 "ask_size": "2397",
-		//                 "best_ask": "1374",
-		//                 "best_bid": "1322",
-		//                 "bid_iv": "0.38929375",
-		//                 "bid_size": "3995",
-		//                 "impact_mid_price": null,
-		//                 "mark_iv": "0.39965618"
-		//             },
-		//             "spot_price": "30598.43379314",
-		//             "strike_price": "30000",
-		//             "symbol": "C-BTC-30000-280723",
-		//             "timestamp": 1689136932893181,
-		//             "turnover_symbol": "USDT"
-		//         },
-		//         "success": true
-		//     }
-		//
-		var result any = this.SafeDict(response, "result", map[string]any{})
-
-		ch <- this.ParseTicker(result, market)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchTickerBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *DeltaCore) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	retRes11408 := (<-this.LoadMarkets())
+	PanicOnError(retRes11408)
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"symbol": GetValue(market, "id"),
+	}
+
+	response := (<-this.PublicGetTickersSymbol(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	// spot
+	//
+	//     {
+	//         "result": {
+	//             "close": 30634.0,
+	//             "contract_type": "spot",
+	//             "greeks": null,
+	//             "high": 30780.0,
+	//             "low": 30340.5,
+	//             "mark_price": "48000",
+	//             "oi": "0.0000",
+	//             "oi_change_usd_6h": "0.0000",
+	//             "oi_contracts": "0",
+	//             "oi_value": "0.0000",
+	//             "oi_value_symbol": "BTC",
+	//             "oi_value_usd": "0.0000",
+	//             "open": 30464.0,
+	//             "price_band": null,
+	//             "product_id": 8320,
+	//             "quotes": {},
+	//             "size": 2.6816639999999996,
+	//             "spot_price": "30637.91465121",
+	//             "symbol": "BTC_USDT",
+	//             "timestamp": 1689139767621299,
+	//             "turnover": 2.6816639999999996,
+	//             "turnover_symbol": "BTC",
+	//             "turnover_usd": 81896.45613400004,
+	//             "volume": 2.6816639999999996
+	//         },
+	//         "success": true
+	//     }
+	//
+	// swap
+	//
+	//     {
+	//         "result": {
+	//             "close": 30600.5,
+	//             "contract_type": "perpetual_futures",
+	//             "funding_rate": "0.00602961",
+	//             "greeks": null,
+	//             "high": 30803.0,
+	//             "low": 30265.5,
+	//             "mark_basis": "-0.45601594",
+	//             "mark_price": "30600.10481568",
+	//             "oi": "469.9190",
+	//             "oi_change_usd_6h": "2226314.9900",
+	//             "oi_contracts": "469919",
+	//             "oi_value": "469.9190",
+	//             "oi_value_symbol": "BTC",
+	//             "oi_value_usd": "14385640.6802",
+	//             "open": 30458.5,
+	//             "price_band": {
+	//                 "lower_limit": "29067.08312627",
+	//                 "upper_limit": "32126.77608693"
+	//             },
+	//             "product_id": 139,
+	//             "quotes": {
+	//                 "ask_iv": null,
+	//                 "ask_size": "965",
+	//                 "best_ask": "30600.5",
+	//                 "best_bid": "30599.5",
+	//                 "bid_iv": null,
+	//                 "bid_size": "196",
+	//                 "impact_mid_price": null,
+	//                 "mark_iv": "-0.44931641"
+	//             },
+	//             "size": 1226303,
+	//             "spot_price": "30612.85362773",
+	//             "symbol": "BTCUSDT",
+	//             "timestamp": 1689136597460456,
+	//             "turnover": 37392218.45999999,
+	//             "turnover_symbol": "USDT",
+	//             "turnover_usd": 37392218.45999999,
+	//             "volume": 1226.3029999999485
+	//         },
+	//         "success": true
+	//     }
+	//
+	// option
+	//
+	//     {
+	//         "result": {
+	//             "contract_type": "call_options",
+	//             "greeks": {
+	//                 "delta": "0.60873994",
+	//                 "gamma": "0.00014854",
+	//                 "rho": "7.71808010",
+	//                 "spot": "30598.49040622",
+	//                 "theta": "-30.44743017",
+	//                 "vega": "24.83508248"
+	//             },
+	//             "mark_price": "1347.74819696",
+	//             "mark_vol": "0.39966303",
+	//             "oi": "2.7810",
+	//             "oi_change_usd_6h": "0.0000",
+	//             "oi_contracts": "2781",
+	//             "oi_value": "2.7810",
+	//             "oi_value_symbol": "BTC",
+	//             "oi_value_usd": "85127.4337",
+	//             "price_band": {
+	//                 "lower_limit": "91.27423497",
+	//                 "upper_limit": "7846.19454697"
+	//             },
+	//             "product_id": 107150,
+	//             "quotes": {
+	//                 "ask_iv": "0.41023239",
+	//                 "ask_size": "2397",
+	//                 "best_ask": "1374",
+	//                 "best_bid": "1322",
+	//                 "bid_iv": "0.38929375",
+	//                 "bid_size": "3995",
+	//                 "impact_mid_price": null,
+	//                 "mark_iv": "0.39965618"
+	//             },
+	//             "spot_price": "30598.43379314",
+	//             "strike_price": "30000",
+	//             "symbol": "C-BTC-30000-280723",
+	//             "timestamp": 1689136932893181,
+	//             "turnover_symbol": "USDT"
+	//         },
+	//         "success": true
+	//     }
+	//
+	var result any = this.SafeDict(response, "result", map[string]any{})
+
+	ch <- this.ParseTicker(result, market)
+	return nil
 }
 
 /**
@@ -1441,171 +1448,171 @@ func (this *DeltaCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any {
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *DeltaCore) FetchTickers(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbols := GetArg(optionalArgs, 0, nil)
-		_ = symbols
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-
-		retRes12778 := (<-this.LoadMarkets())
-		PanicOnError(retRes12778)
-		symbols = this.MarketSymbols(symbols)
-
-		response := (<-this.PublicGetTickers(params))
-		PanicOnError(response)
-		//
-		// spot
-		//
-		//     {
-		//         "result": [
-		//             {
-		//                 "close": 30634.0,
-		//                 "contract_type": "spot",
-		//                 "greeks": null,
-		//                 "high": 30780.0,
-		//                 "low": 30340.5,
-		//                 "mark_price": "48000",
-		//                 "oi": "0.0000",
-		//                 "oi_change_usd_6h": "0.0000",
-		//                 "oi_contracts": "0",
-		//                 "oi_value": "0.0000",
-		//                 "oi_value_symbol": "BTC",
-		//                 "oi_value_usd": "0.0000",
-		//                 "open": 30464.0,
-		//                 "price_band": null,
-		//                 "product_id": 8320,
-		//                 "quotes": {},
-		//                 "size": 2.6816639999999996,
-		//                 "spot_price": "30637.91465121",
-		//                 "symbol": "BTC_USDT",
-		//                 "timestamp": 1689139767621299,
-		//                 "turnover": 2.6816639999999996,
-		//                 "turnover_symbol": "BTC",
-		//                 "turnover_usd": 81896.45613400004,
-		//                 "volume": 2.6816639999999996
-		//             },
-		//         ],
-		//         "success":true
-		//     }
-		//
-		// swap
-		//
-		//     {
-		//         "result": [
-		//             {
-		//                 "close": 30600.5,
-		//                 "contract_type": "perpetual_futures",
-		//                 "funding_rate": "0.00602961",
-		//                 "greeks": null,
-		//                 "high": 30803.0,
-		//                 "low": 30265.5,
-		//                 "mark_basis": "-0.45601594",
-		//                 "mark_price": "30600.10481568",
-		//                 "oi": "469.9190",
-		//                 "oi_change_usd_6h": "2226314.9900",
-		//                 "oi_contracts": "469919",
-		//                 "oi_value": "469.9190",
-		//                 "oi_value_symbol": "BTC",
-		//                 "oi_value_usd": "14385640.6802",
-		//                 "open": 30458.5,
-		//                 "price_band": {
-		//                     "lower_limit": "29067.08312627",
-		//                     "upper_limit": "32126.77608693"
-		//                 },
-		//                 "product_id": 139,
-		//                 "quotes": {
-		//                     "ask_iv": null,
-		//                     "ask_size": "965",
-		//                     "best_ask": "30600.5",
-		//                     "best_bid": "30599.5",
-		//                     "bid_iv": null,
-		//                     "bid_size": "196",
-		//                     "impact_mid_price": null,
-		//                     "mark_iv": "-0.44931641"
-		//                 },
-		//                 "size": 1226303,
-		//                 "spot_price": "30612.85362773",
-		//                 "symbol": "BTCUSDT",
-		//                 "timestamp": 1689136597460456,
-		//                 "turnover": 37392218.45999999,
-		//                 "turnover_symbol": "USDT",
-		//                 "turnover_usd": 37392218.45999999,
-		//                 "volume": 1226.3029999999485
-		//             },
-		//         ],
-		//         "success":true
-		//     }
-		//
-		// option
-		//
-		//     {
-		//         "result": [
-		//             {
-		//                 "contract_type": "call_options",
-		//                 "greeks": {
-		//                     "delta": "0.60873994",
-		//                     "gamma": "0.00014854",
-		//                     "rho": "7.71808010",
-		//                     "spot": "30598.49040622",
-		//                     "theta": "-30.44743017",
-		//                     "vega": "24.83508248"
-		//                 },
-		//                 "mark_price": "1347.74819696",
-		//                 "mark_vol": "0.39966303",
-		//                 "oi": "2.7810",
-		//                 "oi_change_usd_6h": "0.0000",
-		//                 "oi_contracts": "2781",
-		//                 "oi_value": "2.7810",
-		//                 "oi_value_symbol": "BTC",
-		//                 "oi_value_usd": "85127.4337",
-		//                 "price_band": {
-		//                     "lower_limit": "91.27423497",
-		//                     "upper_limit": "7846.19454697"
-		//                 },
-		//                 "product_id": 107150,
-		//                 "quotes": {
-		//                     "ask_iv": "0.41023239",
-		//                     "ask_size": "2397",
-		//                     "best_ask": "1374",
-		//                     "best_bid": "1322",
-		//                     "bid_iv": "0.38929375",
-		//                     "bid_size": "3995",
-		//                     "impact_mid_price": null,
-		//                     "mark_iv": "0.39965618"
-		//                 },
-		//                 "spot_price": "30598.43379314",
-		//                 "strike_price": "30000",
-		//                 "symbol": "C-BTC-30000-280723",
-		//                 "timestamp": 1689136932893181,
-		//                 "turnover_symbol": "USDT"
-		//             },
-		//         ],
-		//         "success":true
-		//     }
-		//
-		var tickers any = this.SafeList(response, "result", []any{})
-		var result any = map[string]any{}
-		for i := 0; IsLessThan(i, GetArrayLength(tickers)); i++ {
-			var rawTicker any = GetValue(tickers, i)
-			var contractType any = this.SafeString(rawTicker, "contract_type")
-			if IsTrue(IsTrue(IsTrue((IsEqual(contractType, "options_combos"))) || IsTrue((IsEqual(contractType, "binary_call_options")))) || IsTrue((IsEqual(contractType, "binary_put_options")))) {
-				continue
-			}
-			var ticker any = this.ParseTicker(rawTicker)
-			var symbol any = GetValue(ticker, "symbol")
-			if IsTrue(!IsEqual(symbol, nil)) {
-				AddElementToObject(result, symbol, ticker)
-			}
-		}
-
-		ch <- this.FilterByArrayTickers(result, "symbol", symbols)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchTickersBody(ch, optionalArgs...)
 	return ch
+}
+func (this *DeltaCore) fetchTickersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbols := GetArg(optionalArgs, 0, nil)
+	_ = symbols
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+
+	retRes12848 := (<-this.LoadMarkets())
+	PanicOnError(retRes12848)
+	symbols = this.MarketSymbols(symbols)
+
+	response := (<-this.PublicGetTickers(params))
+	PanicOnError(response)
+	//
+	// spot
+	//
+	//     {
+	//         "result": [
+	//             {
+	//                 "close": 30634.0,
+	//                 "contract_type": "spot",
+	//                 "greeks": null,
+	//                 "high": 30780.0,
+	//                 "low": 30340.5,
+	//                 "mark_price": "48000",
+	//                 "oi": "0.0000",
+	//                 "oi_change_usd_6h": "0.0000",
+	//                 "oi_contracts": "0",
+	//                 "oi_value": "0.0000",
+	//                 "oi_value_symbol": "BTC",
+	//                 "oi_value_usd": "0.0000",
+	//                 "open": 30464.0,
+	//                 "price_band": null,
+	//                 "product_id": 8320,
+	//                 "quotes": {},
+	//                 "size": 2.6816639999999996,
+	//                 "spot_price": "30637.91465121",
+	//                 "symbol": "BTC_USDT",
+	//                 "timestamp": 1689139767621299,
+	//                 "turnover": 2.6816639999999996,
+	//                 "turnover_symbol": "BTC",
+	//                 "turnover_usd": 81896.45613400004,
+	//                 "volume": 2.6816639999999996
+	//             },
+	//         ],
+	//         "success":true
+	//     }
+	//
+	// swap
+	//
+	//     {
+	//         "result": [
+	//             {
+	//                 "close": 30600.5,
+	//                 "contract_type": "perpetual_futures",
+	//                 "funding_rate": "0.00602961",
+	//                 "greeks": null,
+	//                 "high": 30803.0,
+	//                 "low": 30265.5,
+	//                 "mark_basis": "-0.45601594",
+	//                 "mark_price": "30600.10481568",
+	//                 "oi": "469.9190",
+	//                 "oi_change_usd_6h": "2226314.9900",
+	//                 "oi_contracts": "469919",
+	//                 "oi_value": "469.9190",
+	//                 "oi_value_symbol": "BTC",
+	//                 "oi_value_usd": "14385640.6802",
+	//                 "open": 30458.5,
+	//                 "price_band": {
+	//                     "lower_limit": "29067.08312627",
+	//                     "upper_limit": "32126.77608693"
+	//                 },
+	//                 "product_id": 139,
+	//                 "quotes": {
+	//                     "ask_iv": null,
+	//                     "ask_size": "965",
+	//                     "best_ask": "30600.5",
+	//                     "best_bid": "30599.5",
+	//                     "bid_iv": null,
+	//                     "bid_size": "196",
+	//                     "impact_mid_price": null,
+	//                     "mark_iv": "-0.44931641"
+	//                 },
+	//                 "size": 1226303,
+	//                 "spot_price": "30612.85362773",
+	//                 "symbol": "BTCUSDT",
+	//                 "timestamp": 1689136597460456,
+	//                 "turnover": 37392218.45999999,
+	//                 "turnover_symbol": "USDT",
+	//                 "turnover_usd": 37392218.45999999,
+	//                 "volume": 1226.3029999999485
+	//             },
+	//         ],
+	//         "success":true
+	//     }
+	//
+	// option
+	//
+	//     {
+	//         "result": [
+	//             {
+	//                 "contract_type": "call_options",
+	//                 "greeks": {
+	//                     "delta": "0.60873994",
+	//                     "gamma": "0.00014854",
+	//                     "rho": "7.71808010",
+	//                     "spot": "30598.49040622",
+	//                     "theta": "-30.44743017",
+	//                     "vega": "24.83508248"
+	//                 },
+	//                 "mark_price": "1347.74819696",
+	//                 "mark_vol": "0.39966303",
+	//                 "oi": "2.7810",
+	//                 "oi_change_usd_6h": "0.0000",
+	//                 "oi_contracts": "2781",
+	//                 "oi_value": "2.7810",
+	//                 "oi_value_symbol": "BTC",
+	//                 "oi_value_usd": "85127.4337",
+	//                 "price_band": {
+	//                     "lower_limit": "91.27423497",
+	//                     "upper_limit": "7846.19454697"
+	//                 },
+	//                 "product_id": 107150,
+	//                 "quotes": {
+	//                     "ask_iv": "0.41023239",
+	//                     "ask_size": "2397",
+	//                     "best_ask": "1374",
+	//                     "best_bid": "1322",
+	//                     "bid_iv": "0.38929375",
+	//                     "bid_size": "3995",
+	//                     "impact_mid_price": null,
+	//                     "mark_iv": "0.39965618"
+	//                 },
+	//                 "spot_price": "30598.43379314",
+	//                 "strike_price": "30000",
+	//                 "symbol": "C-BTC-30000-280723",
+	//                 "timestamp": 1689136932893181,
+	//                 "turnover_symbol": "USDT"
+	//             },
+	//         ],
+	//         "success":true
+	//     }
+	//
+	var tickers any = this.SafeList(response, "result", []any{})
+	var result map[string]any = map[string]any{}
+	for i := 0; IsLessThan(i, GetArrayLength(tickers)); i++ {
+		var rawTicker any = GetValue(tickers, i)
+		var contractType any = this.SafeString(rawTicker, "contract_type")
+		if IsTrue(IsTrue(IsTrue((IsEqual(contractType, "options_combos"))) || IsTrue((IsEqual(contractType, "binary_call_options")))) || IsTrue((IsEqual(contractType, "binary_put_options")))) {
+			continue
+		}
+		var ticker any = this.ParseTicker(rawTicker)
+		var symbol any = GetValue(ticker, "symbol")
+		if IsTrue(!IsEqual(symbol, nil)) {
+			AddElementToObject(result, symbol, ticker)
+		}
+	}
+
+	ch <- this.FilterByArrayTickers(result, "symbol", symbols)
+	return nil
 }
 
 /**
@@ -1619,52 +1626,52 @@ func (this *DeltaCore) FetchTickers(optionalArgs ...any) <-chan any {
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *DeltaCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		limit := GetArg(optionalArgs, 0, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-
-		retRes14398 := (<-this.LoadMarkets())
-		PanicOnError(retRes14398)
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"symbol": GetValue(market, "id"),
-		}
-		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "depth", limit)
-		}
-
-		response := (<-this.PublicGetL2orderbookSymbol(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "result":{
-		//             "buy":[
-		//                 {"price":"15814.0","size":912},
-		//                 {"price":"15813.5","size":1279},
-		//                 {"price":"15813.0","size":1634},
-		//             ],
-		//             "sell":[
-		//                 {"price":"15814.5","size":625},
-		//                 {"price":"15815.0","size":982},
-		//                 {"price":"15815.5","size":1328},
-		//             ],
-		//             "symbol":"BTCUSDT"
-		//         },
-		//         "success":true
-		//     }
-		//
-		var result any = this.SafeDict(response, "result", map[string]any{})
-
-		ch <- this.ParseOrderBook(result, GetValue(market, "symbol"), nil, "buy", "sell", "price", "size")
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *DeltaCore) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	limit := GetArg(optionalArgs, 0, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+
+	retRes14468 := (<-this.LoadMarkets())
+	PanicOnError(retRes14468)
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"symbol": GetValue(market, "id"),
+	}
+	if IsTrue(!IsEqual(limit, nil)) {
+		AddElementToObject(request, "depth", limit)
+	}
+
+	response := (<-this.PublicGetL2orderbookSymbol(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "result":{
+	//             "buy":[
+	//                 {"price":"15814.0","size":912},
+	//                 {"price":"15813.5","size":1279},
+	//                 {"price":"15813.0","size":1634},
+	//             ],
+	//             "sell":[
+	//                 {"price":"15814.5","size":625},
+	//                 {"price":"15815.0","size":982},
+	//                 {"price":"15815.5","size":1328},
+	//             ],
+	//             "symbol":"BTCUSDT"
+	//         },
+	//         "success":true
+	//     }
+	//
+	var result any = this.SafeDict(response, "result", map[string]any{})
+
+	ch <- this.ParseOrderBook(result, GetValue(market, "symbol"), nil, "buy", "sell", "price", "size")
+	return nil
 }
 func (this *DeltaCore) ParseTrade(trade any, optionalArgs ...any) any {
 	//
@@ -1780,48 +1787,48 @@ func (this *DeltaCore) ParseTrade(trade any, optionalArgs ...any) any {
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *DeltaCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		since := GetArg(optionalArgs, 0, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 1, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 2, map[string]any{})
-		_ = params
-
-		retRes15828 := (<-this.LoadMarkets())
-		PanicOnError(retRes15828)
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"symbol": GetValue(market, "id"),
-		}
-
-		response := (<-this.PublicGetTradesSymbol(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "result":[
-		//             {
-		//                 "buyer_role":"maker",
-		//                 "price":"15896.5",
-		//                 "seller_role":"taker",
-		//                 "size":241,
-		//                 "symbol":"BTCUSDT",
-		//                 "timestamp":1605376684714595
-		//             }
-		//         ],
-		//         "success":true
-		//     }
-		//
-		var result any = this.SafeList(response, "result", []any{})
-
-		ch <- this.ParseTrades(result, market, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *DeltaCore) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	since := GetArg(optionalArgs, 0, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 1, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 2, map[string]any{})
+	_ = params
+
+	retRes15898 := (<-this.LoadMarkets())
+	PanicOnError(retRes15898)
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"symbol": GetValue(market, "id"),
+	}
+
+	response := (<-this.PublicGetTradesSymbol(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "result":[
+	//             {
+	//                 "buyer_role":"maker",
+	//                 "price":"15896.5",
+	//                 "seller_role":"taker",
+	//                 "size":241,
+	//                 "symbol":"BTCUSDT",
+	//                 "timestamp":1605376684714595
+	//             }
+	//         ],
+	//         "success":true
+	//     }
+	//
+	var result any = this.SafeList(response, "result", []any{})
+
+	ch <- this.ParseTrades(result, market, since, limit)
+	return nil
 }
 func (this *DeltaCore) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	//
@@ -1853,77 +1860,77 @@ func (this *DeltaCore) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
 func (this *DeltaCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		timeframe := GetArg(optionalArgs, 0, "1m")
-		_ = timeframe
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-
-		retRes16428 := (<-this.LoadMarkets())
-		PanicOnError(retRes16428)
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"resolution": this.SafeString(this.Timeframes, timeframe, timeframe),
-		}
-		var duration any = this.ParseTimeframe(timeframe)
-		limit = Ternary(IsTrue(limit), limit, 2000) // max 2000
-		var until any = this.SafeIntegerProduct(params, "until", 0.001)
-		var untilIsDefined any = (!IsEqual(until, nil))
-		if IsTrue(untilIsDefined) {
-			until = this.ParseToInt(until)
-		}
-		if IsTrue(IsEqual(since, nil)) {
-			var end any = Ternary(IsTrue(untilIsDefined), until, this.Seconds())
-			AddElementToObject(request, "end", end)
-			if IsTrue(IsEqual(end, nil)) {
-				panic(ExchangeError(Add(this.Id, " fetchOHLCV() missing end")))
-			}
-			AddElementToObject(request, "start", Subtract(end, Multiply(limit, duration)))
-		} else {
-			var start any = this.ParseToInt(Divide(since, 1000))
-			AddElementToObject(request, "start", start)
-			AddElementToObject(request, "end", Ternary(IsTrue(untilIsDefined), until, this.Sum(start, Multiply(limit, duration))))
-		}
-		var price any = this.SafeString(params, "price")
-		if IsTrue(IsEqual(price, "mark")) {
-			AddElementToObject(request, "symbol", Add("MARK:", GetValue(market, "id")))
-		} else if IsTrue(IsEqual(price, "index")) {
-			AddElementToObject(request, "symbol", GetValue(GetValue(GetValue(market, "info"), "spot_index"), "symbol"))
-		} else {
-			AddElementToObject(request, "symbol", GetValue(market, "id"))
-		}
-		params = this.Omit(params, []any{"price", "until"})
-
-		response := (<-this.PublicGetHistoryCandles(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "success":true,
-		//         "result":[
-		//             {"time":1605393120,"open":15989,"high":15989,"low":15987.5,"close":15987.5,"volume":565},
-		//             {"time":1605393180,"open":15966,"high":15966,"low":15959,"close":15959,"volume":24},
-		//             {"time":1605393300,"open":15973,"high":15973,"low":15973,"close":15973,"volume":1288},
-		//         ]
-		//     }
-		//
-		var result any = this.SafeList(response, "result", []any{})
-
-		ch <- this.ParseOHLCVs(result, market, timeframe, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *DeltaCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	timeframe := GetArg(optionalArgs, 0, "1m")
+	_ = timeframe
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+
+	retRes16498 := (<-this.LoadMarkets())
+	PanicOnError(retRes16498)
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"resolution": this.SafeString(this.Timeframes, timeframe, timeframe),
+	}
+	var duration any = this.ParseTimeframe(timeframe)
+	limit = Ternary(IsTrue((IsTrue(IsTrue(!IsEqual(limit, nil)) && IsTrue(!IsEqual(limit, nil))) && IsTrue(!IsEqual(limit, 0)))), limit, 2000) // max 2000
+	var until any = this.SafeIntegerProduct(params, "until", 0.001)
+	var untilIsDefined any = (!IsEqual(until, nil))
+	if IsTrue(untilIsDefined) {
+		until = this.ParseToInt(until)
+	}
+	if IsTrue(IsEqual(since, nil)) {
+		var end any = Ternary(IsTrue(untilIsDefined), until, this.Seconds())
+		AddElementToObject(request, "end", end)
+		if IsTrue(IsEqual(end, nil)) {
+			panic(ExchangeError(Add(this.Id, " fetchOHLCV() missing end")))
+		}
+		AddElementToObject(request, "start", Subtract(end, Multiply(limit, duration)))
+	} else {
+		var start any = this.ParseToInt(Divide(since, 1000))
+		AddElementToObject(request, "start", start)
+		AddElementToObject(request, "end", Ternary(IsTrue(untilIsDefined), until, this.Sum(start, Multiply(limit, duration))))
+	}
+	var price any = this.SafeString(params, "price")
+	if IsTrue(IsEqual(price, "mark")) {
+		AddElementToObject(request, "symbol", Add("MARK:", GetValue(market, "id")))
+	} else if IsTrue(IsEqual(price, "index")) {
+		AddElementToObject(request, "symbol", GetValue(GetValue(GetValue(market, "info"), "spot_index"), "symbol"))
+	} else {
+		AddElementToObject(request, "symbol", GetValue(market, "id"))
+	}
+	params = this.Omit(params, []any{"price", "until"})
+
+	response := (<-this.PublicGetHistoryCandles(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "success":true,
+	//         "result":[
+	//             {"time":1605393120,"open":15989,"high":15989,"low":15987.5,"close":15987.5,"volume":565},
+	//             {"time":1605393180,"open":15966,"high":15966,"low":15959,"close":15959,"volume":24},
+	//             {"time":1605393300,"open":15973,"high":15973,"low":15973,"close":15973,"volume":1288},
+	//         ]
+	//     }
+	//
+	var result any = this.SafeList(response, "result", []any{})
+
+	ch <- this.ParseOHLCVs(result, market, timeframe, since, limit)
+	return nil
 }
 func (this *DeltaCore) ParseBalance(response any) any {
 	var balances any = this.SafeList(response, "result", []any{})
-	var result any = map[string]any{
+	var result map[string]any = map[string]any{
 		"info": response,
 	}
 	var currenciesByNumericId any = this.SafeDict(this.Options, "currenciesByNumericId", map[string]any{})
@@ -1949,45 +1956,45 @@ func (this *DeltaCore) ParseBalance(response any) any {
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *DeltaCore) FetchBalance(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		retRes17168 := (<-this.LoadMarkets())
-		PanicOnError(retRes17168)
-
-		response := (<-this.PrivateGetWalletBalances(params))
-		PanicOnError(response)
-
-		//
-		//     {
-		//         "result":[
-		//             {
-		//                 "asset_id":1,
-		//                 "available_balance":"0",
-		//                 "balance":"0",
-		//                 "commission":"0",
-		//                 "id":154883,
-		//                 "interest_credit":"0",
-		//                 "order_margin":"0",
-		//                 "pending_referral_bonus":"0",
-		//                 "pending_trading_fee_credit":"0",
-		//                 "position_margin":"0",
-		//                 "trading_fee_credit":"0",
-		//                 "user_id":22142
-		//             },
-		//         ],
-		//         "success":true
-		//     }
-		//
-		ch <- this.ParseBalance(response)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchBalanceBody(ch, optionalArgs...)
 	return ch
+}
+func (this *DeltaCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	retRes17238 := (<-this.LoadMarkets())
+	PanicOnError(retRes17238)
+
+	response := (<-this.PrivateGetWalletBalances(params))
+	PanicOnError(response)
+
+	//
+	//     {
+	//         "result":[
+	//             {
+	//                 "asset_id":1,
+	//                 "available_balance":"0",
+	//                 "balance":"0",
+	//                 "commission":"0",
+	//                 "id":154883,
+	//                 "interest_credit":"0",
+	//                 "order_margin":"0",
+	//                 "pending_referral_bonus":"0",
+	//                 "pending_trading_fee_credit":"0",
+	//                 "position_margin":"0",
+	//                 "trading_fee_credit":"0",
+	//                 "user_id":22142
+	//             },
+	//         ],
+	//         "success":true
+	//     }
+	//
+	ch <- this.ParseBalance(response)
+	return nil
 }
 
 /**
@@ -2000,39 +2007,39 @@ func (this *DeltaCore) FetchBalance(optionalArgs ...any) <-chan any {
  * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *DeltaCore) FetchPosition(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		retRes17528 := (<-this.LoadMarkets())
-		PanicOnError(retRes17528)
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"product_id": GetValue(market, "numericId"),
-		}
-
-		response := (<-this.PrivateGetPositions(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "result":{
-		//             "entry_price":null,
-		//             "size":0,
-		//             "timestamp":1605454074268079
-		//         },
-		//         "success":true
-		//     }
-		//
-		var result any = this.SafeDict(response, "result", map[string]any{})
-
-		ch <- this.ParsePosition(result, market)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchPositionBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *DeltaCore) fetchPositionBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	retRes17598 := (<-this.LoadMarkets())
+	PanicOnError(retRes17598)
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"product_id": GetValue(market, "numericId"),
+	}
+
+	response := (<-this.PrivateGetPositions(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "result":{
+	//             "entry_price":null,
+	//             "size":0,
+	//             "timestamp":1605454074268079
+	//         },
+	//         "success":true
+	//     }
+	//
+	var result any = this.SafeDict(response, "result", map[string]any{})
+
+	ch <- this.ParsePosition(result, market)
+	return nil
 }
 
 /**
@@ -2045,48 +2052,48 @@ func (this *DeltaCore) FetchPosition(symbol any, optionalArgs ...any) <-chan any
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *DeltaCore) FetchPositions(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbols := GetArg(optionalArgs, 0, nil)
-		_ = symbols
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-
-		retRes17828 := (<-this.LoadMarkets())
-		PanicOnError(retRes17828)
-
-		response := (<-this.PrivateGetPositionsMargined(params))
-		PanicOnError(response)
-		//
-		//     {
-		//         "success": true,
-		//         "result": [
-		//           {
-		//             "user_id": 0,
-		//             "size": 0,
-		//             "entry_price": "string",
-		//             "margin": "string",
-		//             "liquidation_price": "string",
-		//             "bankruptcy_price": "string",
-		//             "adl_level": 0,
-		//             "product_id": 0,
-		//             "product_symbol": "string",
-		//             "commission": "string",
-		//             "realized_pnl": "string",
-		//             "realized_funding": "string"
-		//           }
-		//         ]
-		//     }
-		//
-		var result any = this.SafeList(response, "result", []any{})
-
-		ch <- this.ParsePositions(result, symbols)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchPositionsBody(ch, optionalArgs...)
 	return ch
+}
+func (this *DeltaCore) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbols := GetArg(optionalArgs, 0, nil)
+	_ = symbols
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+
+	retRes17898 := (<-this.LoadMarkets())
+	PanicOnError(retRes17898)
+
+	response := (<-this.PrivateGetPositionsMargined(params))
+	PanicOnError(response)
+	//
+	//     {
+	//         "success": true,
+	//         "result": [
+	//           {
+	//             "user_id": 0,
+	//             "size": 0,
+	//             "entry_price": "string",
+	//             "margin": "string",
+	//             "liquidation_price": "string",
+	//             "bankruptcy_price": "string",
+	//             "adl_level": 0,
+	//             "product_id": 0,
+	//             "product_symbol": "string",
+	//             "commission": "string",
+	//             "realized_pnl": "string",
+	//             "realized_funding": "string"
+	//           }
+	//         ]
+	//     }
+	//
+	var result any = this.SafeList(response, "result", []any{})
+
+	ch <- this.ParsePositions(result, symbols)
+	return nil
 }
 func (this *DeltaCore) ParsePosition(position any, optionalArgs ...any) any {
 	//
@@ -2160,7 +2167,7 @@ func (this *DeltaCore) ParsePosition(position any, optionalArgs ...any) any {
 	})
 }
 func (this *DeltaCore) ParseOrderStatus(status any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"open":      "open",
 		"pending":   "open",
 		"closed":    "closed",
@@ -2304,84 +2311,84 @@ func (this *DeltaCore) ParseOrder(order any, optionalArgs ...any) any {
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *DeltaCore) CreateOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		price := GetArg(optionalArgs, 0, nil)
-		_ = price
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-
-		retRes20238 := (<-this.LoadMarkets())
-		PanicOnError(retRes20238)
-		var orderType any = Add(typeVar, "_order")
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"product_id": GetValue(market, "numericId"),
-			"size":       this.AmountToPrecision(GetValue(market, "symbol"), amount),
-			"side":       side,
-			"order_type": orderType,
-		}
-		if IsTrue(IsEqual(typeVar, "limit")) {
-			AddElementToObject(request, "limit_price", this.PriceToPrecision(GetValue(market, "symbol"), price))
-		}
-		var clientOrderId any = this.SafeString2(params, "clientOrderId", "client_order_id")
-		params = this.Omit(params, []any{"clientOrderId", "client_order_id"})
-		if IsTrue(!IsEqual(clientOrderId, nil)) {
-			AddElementToObject(request, "client_order_id", clientOrderId)
-		}
-		var reduceOnly any = this.SafeBool(params, "reduceOnly")
-		if IsTrue(reduceOnly) {
-			AddElementToObject(request, "reduce_only", reduceOnly)
-			params = this.Omit(params, "reduceOnly")
-		}
-
-		response := (<-this.PrivatePostOrders(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "result":{
-		//             "average_fill_price":null,
-		//             "bracket_order":null,
-		//             "bracket_stop_loss_limit_price":null,
-		//             "bracket_stop_loss_price":null,
-		//             "bracket_take_profit_limit_price":null,
-		//             "bracket_take_profit_price":null,
-		//             "bracket_trail_amount":null,
-		//             "cancellation_reason":null,
-		//             "client_order_id":null,
-		//             "close_on_trigger":"false",
-		//             "commission":"0",
-		//             "created_at":"2020-11-16T02:38:26Z",
-		//             "id":152870626,
-		//             "limit_price":"10000",
-		//             "meta_data":{"source":"api"},
-		//             "order_type":"limit_order",
-		//             "paid_commission":"0",
-		//             "product_id":139,
-		//             "reduce_only":false,
-		//             "side":"buy",
-		//             "size":0,
-		//             "state":"open",
-		//             "stop_order_type":null,
-		//             "stop_price":null,
-		//             "stop_trigger_method":"mark_price",
-		//             "time_in_force":"gtc",
-		//             "trail_amount":null,
-		//             "unfilled_size":0,
-		//             "user_id":22142
-		//         },
-		//         "success":true
-		//     }
-		//
-		var result any = this.SafeDict(response, "result", map[string]any{})
-
-		ch <- this.ParseOrder(result, market)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
+}
+func (this *DeltaCore) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	price := GetArg(optionalArgs, 0, nil)
+	_ = price
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+
+	retRes20308 := (<-this.LoadMarkets())
+	PanicOnError(retRes20308)
+	var orderType any = Add(typeVar, "_order")
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"product_id": GetValue(market, "numericId"),
+		"size":       this.AmountToPrecision(GetValue(market, "symbol"), amount),
+		"side":       side,
+		"order_type": orderType,
+	}
+	if IsTrue(IsEqual(typeVar, "limit")) {
+		AddElementToObject(request, "limit_price", this.PriceToPrecision(GetValue(market, "symbol"), price))
+	}
+	var clientOrderId any = this.SafeString2(params, "clientOrderId", "client_order_id")
+	params = this.Omit(params, []any{"clientOrderId", "client_order_id"})
+	if IsTrue(!IsEqual(clientOrderId, nil)) {
+		AddElementToObject(request, "client_order_id", clientOrderId)
+	}
+	var reduceOnly any = this.SafeBool(params, "reduceOnly")
+	if IsTrue(IsEqual(reduceOnly, true)) {
+		AddElementToObject(request, "reduce_only", reduceOnly)
+		params = this.Omit(params, "reduceOnly")
+	}
+
+	response := (<-this.PrivatePostOrders(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "result":{
+	//             "average_fill_price":null,
+	//             "bracket_order":null,
+	//             "bracket_stop_loss_limit_price":null,
+	//             "bracket_stop_loss_price":null,
+	//             "bracket_take_profit_limit_price":null,
+	//             "bracket_take_profit_price":null,
+	//             "bracket_trail_amount":null,
+	//             "cancellation_reason":null,
+	//             "client_order_id":null,
+	//             "close_on_trigger":"false",
+	//             "commission":"0",
+	//             "created_at":"2020-11-16T02:38:26Z",
+	//             "id":152870626,
+	//             "limit_price":"10000",
+	//             "meta_data":{"source":"api"},
+	//             "order_type":"limit_order",
+	//             "paid_commission":"0",
+	//             "product_id":139,
+	//             "reduce_only":false,
+	//             "side":"buy",
+	//             "size":0,
+	//             "state":"open",
+	//             "stop_order_type":null,
+	//             "stop_price":null,
+	//             "stop_trigger_method":"mark_price",
+	//             "time_in_force":"gtc",
+	//             "trail_amount":null,
+	//             "unfilled_size":0,
+	//             "user_id":22142
+	//         },
+	//         "success":true
+	//     }
+	//
+	var result any = this.SafeDict(response, "result", map[string]any{})
+
+	ch <- this.ParseOrder(result, market)
+	return nil
 }
 
 /**
@@ -2399,61 +2406,61 @@ func (this *DeltaCore) CreateOrder(symbol any, typeVar any, side any, amount any
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *DeltaCore) EditOrder(id any, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		amount := GetArg(optionalArgs, 0, nil)
-		_ = amount
-		price := GetArg(optionalArgs, 1, nil)
-		_ = price
-		params := GetArg(optionalArgs, 2, map[string]any{})
-		_ = params
-
-		retRes21068 := (<-this.LoadMarkets())
-		PanicOnError(retRes21068)
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"id":         ParseInt(id),
-			"product_id": GetValue(market, "numericId"),
-		}
-		if IsTrue(!IsEqual(amount, nil)) {
-			var sizeString any = this.AmountToPrecision(symbol, amount)
-			if IsTrue(IsEqual(sizeString, nil)) {
-				sizeString = "0"
-			}
-			AddElementToObject(request, "size", ParseInt(sizeString))
-		}
-		if IsTrue(!IsEqual(price, nil)) {
-			AddElementToObject(request, "limit_price", this.PriceToPrecision(symbol, price))
-		}
-
-		response := (<-this.PrivatePutOrders(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "success": true,
-		//         "result": {
-		//             "id": "ashb1212",
-		//             "product_id": 27,
-		//             "limit_price": "9200",
-		//             "side": "buy",
-		//             "size": 100,
-		//             "unfilled_size": 50,
-		//             "user_id": 1,
-		//             "order_type": "limit_order",
-		//             "state": "open",
-		//             "created_at": "..."
-		//         }
-		//     }
-		//
-		var result any = this.SafeDict(response, "result", map[string]any{})
-
-		ch <- this.ParseOrder(result, market)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
+}
+func (this *DeltaCore) editOrderBody(ch chan any, id any, symbol any, typeVar any, side any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	amount := GetArg(optionalArgs, 0, nil)
+	_ = amount
+	price := GetArg(optionalArgs, 1, nil)
+	_ = price
+	params := GetArg(optionalArgs, 2, map[string]any{})
+	_ = params
+
+	retRes21138 := (<-this.LoadMarkets())
+	PanicOnError(retRes21138)
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"id":         ParseInt(id),
+		"product_id": GetValue(market, "numericId"),
+	}
+	if IsTrue(!IsEqual(amount, nil)) {
+		var sizeString any = this.AmountToPrecision(symbol, amount)
+		if IsTrue(IsEqual(sizeString, nil)) {
+			sizeString = "0"
+		}
+		AddElementToObject(request, "size", ParseInt(sizeString))
+	}
+	if IsTrue(!IsEqual(price, nil)) {
+		AddElementToObject(request, "limit_price", this.PriceToPrecision(symbol, price))
+	}
+
+	response := (<-this.PrivatePutOrders(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "success": true,
+	//         "result": {
+	//             "id": "ashb1212",
+	//             "product_id": 27,
+	//             "limit_price": "9200",
+	//             "side": "buy",
+	//             "size": 100,
+	//             "unfilled_size": 50,
+	//             "user_id": 1,
+	//             "order_type": "limit_order",
+	//             "state": "open",
+	//             "created_at": "..."
+	//         }
+	//     }
+	//
+	var result any = this.SafeDict(response, "result", map[string]any{})
+
+	ch <- this.ParseOrder(result, market)
+	return nil
 }
 
 /**
@@ -2467,71 +2474,71 @@ func (this *DeltaCore) EditOrder(id any, symbol any, typeVar any, side any, opti
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *DeltaCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(symbol, nil)) {
-			panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument")))
-		}
-
-		retRes21608 := (<-this.LoadMarkets())
-		PanicOnError(retRes21608)
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"id":         ParseInt(id),
-			"product_id": GetValue(market, "numericId"),
-		}
-
-		response := (<-this.PrivateDeleteOrders(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "result":{
-		//             "average_fill_price":null,
-		//             "bracket_order":null,
-		//             "bracket_stop_loss_limit_price":null,
-		//             "bracket_stop_loss_price":null,
-		//             "bracket_take_profit_limit_price":null,
-		//             "bracket_take_profit_price":null,
-		//             "bracket_trail_amount":null,
-		//             "cancellation_reason":"cancelled_by_user",
-		//             "client_order_id":null,
-		//             "close_on_trigger":"false",
-		//             "commission":"0",
-		//             "created_at":"2020-11-16T02:38:26Z",
-		//             "id":152870626,
-		//             "limit_price":"10000",
-		//             "meta_data":{"source":"api"},
-		//             "order_type":"limit_order",
-		//             "paid_commission":"0",
-		//             "product_id":139,
-		//             "reduce_only":false,
-		//             "side":"buy",
-		//             "size":0,
-		//             "state":"cancelled",
-		//             "stop_order_type":null,
-		//             "stop_price":null,
-		//             "stop_trigger_method":"mark_price",
-		//             "time_in_force":"gtc",
-		//             "trail_amount":null,
-		//             "unfilled_size":0,
-		//             "user_id":22142
-		//         },
-		//         "success":true
-		//     }
-		//
-		var result any = this.SafeDict(response, "result", map[string]any{})
-
-		ch <- this.ParseOrder(result, market)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
+}
+func (this *DeltaCore) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(symbol, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument")))
+	}
+
+	retRes21678 := (<-this.LoadMarkets())
+	PanicOnError(retRes21678)
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"id":         ParseInt(id),
+		"product_id": GetValue(market, "numericId"),
+	}
+
+	response := (<-this.PrivateDeleteOrders(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "result":{
+	//             "average_fill_price":null,
+	//             "bracket_order":null,
+	//             "bracket_stop_loss_limit_price":null,
+	//             "bracket_stop_loss_price":null,
+	//             "bracket_take_profit_limit_price":null,
+	//             "bracket_take_profit_price":null,
+	//             "bracket_trail_amount":null,
+	//             "cancellation_reason":"cancelled_by_user",
+	//             "client_order_id":null,
+	//             "close_on_trigger":"false",
+	//             "commission":"0",
+	//             "created_at":"2020-11-16T02:38:26Z",
+	//             "id":152870626,
+	//             "limit_price":"10000",
+	//             "meta_data":{"source":"api"},
+	//             "order_type":"limit_order",
+	//             "paid_commission":"0",
+	//             "product_id":139,
+	//             "reduce_only":false,
+	//             "side":"buy",
+	//             "size":0,
+	//             "state":"cancelled",
+	//             "stop_order_type":null,
+	//             "stop_price":null,
+	//             "stop_trigger_method":"mark_price",
+	//             "time_in_force":"gtc",
+	//             "trail_amount":null,
+	//             "unfilled_size":0,
+	//             "user_id":22142
+	//         },
+	//         "success":true
+	//     }
+	//
+	var result any = this.SafeDict(response, "result", map[string]any{})
+
+	ch <- this.ParseOrder(result, market)
+	return nil
 }
 
 /**
@@ -2544,39 +2551,39 @@ func (this *DeltaCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *DeltaCore) CancelAllOrders(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(symbol, nil)) {
-			panic(ArgumentsRequired(Add(this.Id, " cancelAllOrders() requires a symbol argument")))
-		}
-
-		retRes22208 := (<-this.LoadMarkets())
-		PanicOnError(retRes22208)
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"product_id": GetValue(market, "numericId"),
-		}
-		var response any = this.PrivateDeleteOrdersAll(this.Extend(request, params))
-
-		//
-		//     {
-		//         "result":{},
-		//         "success":true
-		//     }
-		//
-		ch <- []any{this.SafeOrder(map[string]any{
-			"info": response,
-		})}
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.cancelAllOrdersBody(ch, optionalArgs...)
 	return ch
+}
+func (this *DeltaCore) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(symbol, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " cancelAllOrders() requires a symbol argument")))
+	}
+
+	retRes22278 := (<-this.LoadMarkets())
+	PanicOnError(retRes22278)
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"product_id": GetValue(market, "numericId"),
+	}
+	var response any = this.PrivateDeleteOrdersAll(this.Extend(request, params))
+
+	//
+	//     {
+	//         "result":{},
+	//         "success":true
+	//     }
+	//
+	ch <- []any{this.SafeOrder(map[string]any{
+		"info": response,
+	})}
+	return nil
 }
 
 /**
@@ -2592,67 +2599,67 @@ func (this *DeltaCore) CancelAllOrders(optionalArgs ...any) <-chan any {
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *DeltaCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-
-		retRes22548 := (<-this.LoadMarkets())
-		PanicOnError(retRes22548)
-		var market any = nil
-		if IsTrue(!IsEqual(symbol, nil)) {
-			market = this.Market(symbol)
-		}
-		var clientOrderId any = this.SafeStringN(params, []any{"clientOrderId", "client_oid", "clientOid"})
-		params = this.Omit(params, []any{"clientOrderId", "client_oid", "clientOid"})
-		var request any = map[string]any{}
-		var response any = nil
-		if IsTrue(!IsEqual(clientOrderId, nil)) {
-			AddElementToObject(request, "client_oid", clientOrderId)
-
-			response = (<-this.PrivateGetOrdersClientOrderIdClientOid(this.Extend(request, params)))
-			PanicOnError(response)
-		} else {
-			AddElementToObject(request, "order_id", id)
-
-			response = (<-this.PrivateGetOrdersOrderId(this.Extend(request, params)))
-			PanicOnError(response)
-		}
-		//
-		//     {
-		//         "success": true,
-		//         "result": {
-		//             "id": 123,
-		//             "user_id": 453671,
-		//             "size": 10,
-		//             "unfilled_size": 2,
-		//             "side": "buy",
-		//             "order_type": "limit_order",
-		//             "limit_price": "59000",
-		//             "stop_order_type": "stop_loss_order",
-		//             "stop_price": "55000",
-		//             "paid_commission": "0.5432",
-		//             "commission": "0.5432",
-		//             "reduce_only": false,
-		//             "client_order_id": "my_signal_34521712",
-		//             "state": "open",
-		//             "created_at": "1725865012000000",
-		//             "product_id": 27,
-		//             "product_symbol": "BTCUSD"
-		//         }
-		//     }
-		//
-		var result any = this.SafeDict(response, "result", map[string]any{})
-
-		ch <- this.ParseOrder(result, market)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOrderBody(ch, id, optionalArgs...)
 	return ch
+}
+func (this *DeltaCore) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+
+	retRes22618 := (<-this.LoadMarkets())
+	PanicOnError(retRes22618)
+	var market any = nil
+	if IsTrue(!IsEqual(symbol, nil)) {
+		market = this.Market(symbol)
+	}
+	var clientOrderId any = this.SafeStringN(params, []any{"clientOrderId", "client_oid", "clientOid"})
+	params = this.Omit(params, []any{"clientOrderId", "client_oid", "clientOid"})
+	var request map[string]any = map[string]any{}
+	var response any = nil
+	if IsTrue(!IsEqual(clientOrderId, nil)) {
+		AddElementToObject(request, "client_oid", clientOrderId)
+
+		response = (<-this.PrivateGetOrdersClientOrderIdClientOid(this.Extend(request, params)))
+		PanicOnError(response)
+	} else {
+		AddElementToObject(request, "order_id", id)
+
+		response = (<-this.PrivateGetOrdersOrderId(this.Extend(request, params)))
+		PanicOnError(response)
+	}
+	//
+	//     {
+	//         "success": true,
+	//         "result": {
+	//             "id": 123,
+	//             "user_id": 453671,
+	//             "size": 10,
+	//             "unfilled_size": 2,
+	//             "side": "buy",
+	//             "order_type": "limit_order",
+	//             "limit_price": "59000",
+	//             "stop_order_type": "stop_loss_order",
+	//             "stop_price": "55000",
+	//             "paid_commission": "0.5432",
+	//             "commission": "0.5432",
+	//             "reduce_only": false,
+	//             "client_order_id": "my_signal_34521712",
+	//             "state": "open",
+	//             "created_at": "1725865012000000",
+	//             "product_id": 27,
+	//             "product_symbol": "BTCUSD"
+	//         }
+	//     }
+	//
+	var result any = this.SafeDict(response, "result", map[string]any{})
+
+	ch <- this.ParseOrder(result, market)
+	return nil
 }
 
 /**
@@ -2667,26 +2674,26 @@ func (this *DeltaCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *DeltaCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-
-		retRes231015 := (<-this.FetchOrdersWithMethod("privateGetOrders", symbol, since, limit, params))
-		PanicOnError(retRes231015)
-		ch <- retRes231015
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOpenOrdersBody(ch, optionalArgs...)
 	return ch
+}
+func (this *DeltaCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+
+	retRes231715 := (<-this.FetchOrdersWithMethod("privateGetOrders", symbol, since, limit, params))
+	PanicOnError(retRes231715)
+	ch <- retRes231715
+	return nil
 }
 
 /**
@@ -2701,95 +2708,95 @@ func (this *DeltaCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *DeltaCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-
-		retRes232515 := (<-this.FetchOrdersWithMethod("privateGetOrdersHistory", symbol, since, limit, params))
-		PanicOnError(retRes232515)
-		ch <- retRes232515
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchClosedOrdersBody(ch, optionalArgs...)
 	return ch
 }
+func (this *DeltaCore) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+
+	retRes233215 := (<-this.FetchOrdersWithMethod("privateGetOrdersHistory", symbol, since, limit, params))
+	PanicOnError(retRes233215)
+	ch <- retRes233215
+	return nil
+}
 func (this *DeltaCore) FetchOrdersWithMethod(method any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-
-		retRes23298 := (<-this.LoadMarkets())
-		PanicOnError(retRes23298)
-		var request any = map[string]any{}
-		var market any = nil
-		if IsTrue(!IsEqual(symbol, nil)) {
-			market = this.Market(symbol)
-			AddElementToObject(request, "product_ids", GetValue(market, "numericId")) // accepts a comma-separated list of ids
-		}
-		if IsTrue(!IsEqual(since, nil)) {
-			AddElementToObject(request, "start_time", Add(ToString(since), "000"))
-		}
-		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "page_size", limit)
-		}
-		var response any = nil
-		if IsTrue(IsEqual(method, "privateGetOrders")) {
-
-			response = (<-this.PrivateGetOrders(this.Extend(request, params)))
-			PanicOnError(response)
-		} else if IsTrue(IsEqual(method, "privateGetOrdersHistory")) {
-
-			response = (<-this.PrivateGetOrdersHistory(this.Extend(request, params)))
-			PanicOnError(response)
-		}
-		//
-		//     {
-		//         "success": true,
-		//         "result": [
-		//             {
-		//                 "id": "ashb1212",
-		//                 "product_id": 27,
-		//                 "limit_price": "9200",
-		//                 "side": "buy",
-		//                 "size": 100,
-		//                 "unfilled_size": 50,
-		//                 "user_id": 1,
-		//                 "order_type": "limit_order",
-		//                 "state": "open",
-		//                 "created_at": "..."
-		//             }
-		//         ],
-		//         "meta": {
-		//             "after": "string",
-		//             "before": "string"
-		//         }
-		//     }
-		//
-		var result any = this.SafeList(response, "result", []any{})
-
-		ch <- this.ParseOrders(result, market, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOrdersWithMethodBody(ch, method, optionalArgs...)
 	return ch
+}
+func (this *DeltaCore) fetchOrdersWithMethodBody(ch chan any, method any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+
+	retRes23368 := (<-this.LoadMarkets())
+	PanicOnError(retRes23368)
+	var request map[string]any = map[string]any{}
+	var market any = nil
+	if IsTrue(!IsEqual(symbol, nil)) {
+		market = this.Market(symbol)
+		AddElementToObject(request, "product_ids", GetValue(market, "numericId")) // accepts a comma-separated list of ids
+	}
+	if IsTrue(!IsEqual(since, nil)) {
+		AddElementToObject(request, "start_time", Add(ToString(since), "000"))
+	}
+	if IsTrue(!IsEqual(limit, nil)) {
+		AddElementToObject(request, "page_size", limit)
+	}
+	var response any = nil
+	if IsTrue(IsEqual(method, "privateGetOrders")) {
+
+		response = (<-this.PrivateGetOrders(this.Extend(request, params)))
+		PanicOnError(response)
+	} else if IsTrue(IsEqual(method, "privateGetOrdersHistory")) {
+
+		response = (<-this.PrivateGetOrdersHistory(this.Extend(request, params)))
+		PanicOnError(response)
+	}
+	//
+	//     {
+	//         "success": true,
+	//         "result": [
+	//             {
+	//                 "id": "ashb1212",
+	//                 "product_id": 27,
+	//                 "limit_price": "9200",
+	//                 "side": "buy",
+	//                 "size": 100,
+	//                 "unfilled_size": 50,
+	//                 "user_id": 1,
+	//                 "order_type": "limit_order",
+	//                 "state": "open",
+	//                 "created_at": "..."
+	//             }
+	//         ],
+	//         "meta": {
+	//             "after": "string",
+	//             "before": "string"
+	//         }
+	//     }
+	//
+	var result any = this.SafeList(response, "result", []any{})
+
+	ch <- this.ParseOrders(result, market, since, limit)
+	return nil
 }
 
 /**
@@ -2804,88 +2811,88 @@ func (this *DeltaCore) FetchOrdersWithMethod(method any, optionalArgs ...any) <-
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *DeltaCore) FetchMyTrades(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-
-		retRes23968 := (<-this.LoadMarkets())
-		PanicOnError(retRes23968)
-		var request any = map[string]any{}
-		var market any = nil
-		if IsTrue(!IsEqual(symbol, nil)) {
-			market = this.Market(symbol)
-			AddElementToObject(request, "product_ids", GetValue(market, "numericId")) // accepts a comma-separated list of ids
-		}
-		if IsTrue(!IsEqual(since, nil)) {
-			AddElementToObject(request, "start_time", Add(ToString(since), "000"))
-		}
-		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "page_size", limit)
-		}
-
-		response := (<-this.PrivateGetFills(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "meta":{
-		//             "after":null,
-		//             "before":null,
-		//             "limit":10,
-		//             "total_count":2
-		//         },
-		//         "result":[
-		//             {
-		//                 "commission":"0.008335000000000000",
-		//                 "created_at":"2020-11-16T19:07:19Z",
-		//                 "fill_type":"normal",
-		//                 "id":"e7ff05c233a74245b72381f8dd91d1ce",
-		//                 "meta_data":{
-		//                     "effective_commission_rate":"0.0005",
-		//                     "order_price":"16249",
-		//                     "order_size":1,
-		//                     "order_type":"market_order",
-		//                     "order_unfilled_size":0,
-		//                     "trading_fee_credits_used":"0"
-		//                 },
-		//                 "order_id":"152999629",
-		//                 "price":"16669",
-		//                 "product":{
-		//                     "contract_type":"perpetual_futures",
-		//                     "contract_unit_currency":"BTC",
-		//                     "contract_value":"0.001",
-		//                     "id":139,
-		//                     "notional_type":"vanilla",
-		//                     "quoting_asset":{"minimum_precision":2,"precision":6,"symbol":"USDT"},
-		//                     "settling_asset":{"minimum_precision":2,"precision":6,"symbol":"USDT"},
-		//                     "symbol":"BTCUSDT",
-		//                     "tick_size":"0.5",
-		//                     "underlying_asset":{"minimum_precision":4,"precision":8,"symbol":"BTC"}
-		//                 },
-		//                 "product_id":139,
-		//                 "role":"taker",
-		//                 "side":"sell",
-		//                 "size":1
-		//             }
-		//         ],
-		//         "success":true
-		//     }
-		//
-		var result any = this.SafeList(response, "result", []any{})
-
-		ch <- this.ParseTrades(result, market, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchMyTradesBody(ch, optionalArgs...)
 	return ch
+}
+func (this *DeltaCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+
+	retRes24038 := (<-this.LoadMarkets())
+	PanicOnError(retRes24038)
+	var request map[string]any = map[string]any{}
+	var market any = nil
+	if IsTrue(!IsEqual(symbol, nil)) {
+		market = this.Market(symbol)
+		AddElementToObject(request, "product_ids", GetValue(market, "numericId")) // accepts a comma-separated list of ids
+	}
+	if IsTrue(!IsEqual(since, nil)) {
+		AddElementToObject(request, "start_time", Add(ToString(since), "000"))
+	}
+	if IsTrue(!IsEqual(limit, nil)) {
+		AddElementToObject(request, "page_size", limit)
+	}
+
+	response := (<-this.PrivateGetFills(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "meta":{
+	//             "after":null,
+	//             "before":null,
+	//             "limit":10,
+	//             "total_count":2
+	//         },
+	//         "result":[
+	//             {
+	//                 "commission":"0.008335000000000000",
+	//                 "created_at":"2020-11-16T19:07:19Z",
+	//                 "fill_type":"normal",
+	//                 "id":"e7ff05c233a74245b72381f8dd91d1ce",
+	//                 "meta_data":{
+	//                     "effective_commission_rate":"0.0005",
+	//                     "order_price":"16249",
+	//                     "order_size":1,
+	//                     "order_type":"market_order",
+	//                     "order_unfilled_size":0,
+	//                     "trading_fee_credits_used":"0"
+	//                 },
+	//                 "order_id":"152999629",
+	//                 "price":"16669",
+	//                 "product":{
+	//                     "contract_type":"perpetual_futures",
+	//                     "contract_unit_currency":"BTC",
+	//                     "contract_value":"0.001",
+	//                     "id":139,
+	//                     "notional_type":"vanilla",
+	//                     "quoting_asset":{"minimum_precision":2,"precision":6,"symbol":"USDT"},
+	//                     "settling_asset":{"minimum_precision":2,"precision":6,"symbol":"USDT"},
+	//                     "symbol":"BTCUSDT",
+	//                     "tick_size":"0.5",
+	//                     "underlying_asset":{"minimum_precision":4,"precision":8,"symbol":"BTC"}
+	//                 },
+	//                 "product_id":139,
+	//                 "role":"taker",
+	//                 "side":"sell",
+	//                 "size":1
+	//             }
+	//         ],
+	//         "success":true
+	//     }
+	//
+	var result any = this.SafeList(response, "result", []any{})
+
+	ch <- this.ParseTrades(result, market, since, limit)
+	return nil
 }
 
 /**
@@ -2900,64 +2907,64 @@ func (this *DeltaCore) FetchMyTrades(optionalArgs ...any) <-chan any {
  * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */
 func (this *DeltaCore) FetchLedger(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		code := GetArg(optionalArgs, 0, nil)
-		_ = code
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-
-		retRes24798 := (<-this.LoadMarkets())
-		PanicOnError(retRes24798)
-		var request any = map[string]any{}
-		var currency any = nil
-		if IsTrue(!IsEqual(code, nil)) {
-			currency = this.Currency(code)
-			AddElementToObject(request, "asset_id", GetValue(currency, "numericId"))
-		}
-		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "page_size", limit)
-		}
-
-		response := (<-this.PrivateGetWalletTransactions(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "meta":{"after":null,"before":null,"limit":10,"total_count":1},
-		//         "result":[
-		//             {
-		//                 "amount":"29.889184",
-		//                 "asset_id":5,
-		//                 "balance":"29.889184",
-		//                 "created_at":"2020-11-15T21:25:01Z",
-		//                 "meta_data":{
-		//                     "deposit_id":3884,
-		//                     "transaction_id":"0x41a60174849828530abb5008e98fc63c9b598288743ec4ba9620bcce900a3b8d"
-		//                 },
-		//                 "transaction_type":"deposit",
-		//                 "user_id":22142,
-		//                 "uuid":"70bb5679da3c4637884e2dc63efaa846"
-		//             }
-		//         ],
-		//         "success":true
-		//     }
-		//
-		var result any = this.SafeList(response, "result", []any{})
-
-		ch <- this.ParseLedger(result, currency, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchLedgerBody(ch, optionalArgs...)
 	return ch
 }
+func (this *DeltaCore) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	code := GetArg(optionalArgs, 0, nil)
+	_ = code
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+
+	retRes24868 := (<-this.LoadMarkets())
+	PanicOnError(retRes24868)
+	var request map[string]any = map[string]any{}
+	var currency any = nil
+	if IsTrue(!IsEqual(code, nil)) {
+		currency = this.Currency(code)
+		AddElementToObject(request, "asset_id", GetValue(currency, "numericId"))
+	}
+	if IsTrue(!IsEqual(limit, nil)) {
+		AddElementToObject(request, "page_size", limit)
+	}
+
+	response := (<-this.PrivateGetWalletTransactions(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "meta":{"after":null,"before":null,"limit":10,"total_count":1},
+	//         "result":[
+	//             {
+	//                 "amount":"29.889184",
+	//                 "asset_id":5,
+	//                 "balance":"29.889184",
+	//                 "created_at":"2020-11-15T21:25:01Z",
+	//                 "meta_data":{
+	//                     "deposit_id":3884,
+	//                     "transaction_id":"0x41a60174849828530abb5008e98fc63c9b598288743ec4ba9620bcce900a3b8d"
+	//                 },
+	//                 "transaction_type":"deposit",
+	//                 "user_id":22142,
+	//                 "uuid":"70bb5679da3c4637884e2dc63efaa846"
+	//             }
+	//         ],
+	//         "success":true
+	//     }
+	//
+	var result any = this.SafeList(response, "result", []any{})
+
+	ch <- this.ParseLedger(result, currency, since, limit)
+	return nil
+}
 func (this *DeltaCore) ParseLedgerEntryType(typeVar any) any {
-	var types any = map[string]any{
+	var types map[string]any = map[string]any{
 		"pnl":               "pnl",
 		"deposit":           "transaction",
 		"withdrawal":        "transaction",
@@ -3007,7 +3014,7 @@ func (this *DeltaCore) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	var timestamp any = this.Parse8601(this.SafeString(item, "created_at"))
 	var after any = this.SafeString(item, "balance")
 	var before any = Precise.StringMax("0", Precise.StringSub(after, amount))
-	var status any = "ok"
+	var status string = "ok"
 	return this.SafeLedgerEntry(map[string]any{
 		"info":             item,
 		"id":               id,
@@ -3037,51 +3044,51 @@ func (this *DeltaCore) ParseLedgerEntry(item any, optionalArgs ...any) any {
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
 func (this *DeltaCore) FetchDepositAddress(code any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		retRes26048 := (<-this.LoadMarkets())
-		PanicOnError(retRes26048)
-		var currency any = this.Currency(code)
-		var request any = map[string]any{
-			"asset_symbol": GetValue(currency, "id"),
-		}
-		var networkCode any = this.SafeStringUpper(params, "network")
-		if IsTrue(!IsEqual(networkCode, nil)) {
-			AddElementToObject(request, "network", this.NetworkCodeToId(networkCode, code))
-			params = this.Omit(params, "network")
-		}
-
-		response := (<-this.PrivateGetDepositsAddress(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//    {
-		//        "success": true,
-		//        "result": {
-		//            "id": 1915615,
-		//            "user_id": 27854758,
-		//            "address": "TXYB4GdKsXKEWbeSNPsmGZu4ZVCkhVh1Zz",
-		//            "memo": "",
-		//            "status": "active",
-		//            "updated_at": "2023-01-12T06:03:46.000Z",
-		//            "created_at": "2023-01-12T06:03:46.000Z",
-		//            "asset_symbol": "USDT",
-		//            "network": "TRC20(TRON)",
-		//            "custodian": "fireblocks"
-		//        }
-		//    }
-		//
-		var result any = this.SafeDict(response, "result", map[string]any{})
-
-		ch <- this.ParseDepositAddress(result, currency)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchDepositAddressBody(ch, code, optionalArgs...)
 	return ch
+}
+func (this *DeltaCore) fetchDepositAddressBody(ch chan any, code any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	retRes26118 := (<-this.LoadMarkets())
+	PanicOnError(retRes26118)
+	var currency any = this.Currency(code)
+	var request map[string]any = map[string]any{
+		"asset_symbol": GetValue(currency, "id"),
+	}
+	var networkCode any = this.SafeStringUpper(params, "network")
+	if IsTrue(!IsEqual(networkCode, nil)) {
+		AddElementToObject(request, "network", this.NetworkCodeToId(networkCode, code))
+		params = this.Omit(params, "network")
+	}
+
+	response := (<-this.PrivateGetDepositsAddress(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//    {
+	//        "success": true,
+	//        "result": {
+	//            "id": 1915615,
+	//            "user_id": 27854758,
+	//            "address": "TXYB4GdKsXKEWbeSNPsmGZu4ZVCkhVh1Zz",
+	//            "memo": "",
+	//            "status": "active",
+	//            "updated_at": "2023-01-12T06:03:46.000Z",
+	//            "created_at": "2023-01-12T06:03:46.000Z",
+	//            "asset_symbol": "USDT",
+	//            "network": "TRC20(TRON)",
+	//            "custodian": "fireblocks"
+	//        }
+	//    }
+	//
+	var result any = this.SafeDict(response, "result", map[string]any{})
+
+	ch <- this.ParseDepositAddress(result, currency)
+	return nil
 }
 func (this *DeltaCore) ParseDepositAddress(depositAddress any, optionalArgs ...any) any {
 	//
@@ -3124,77 +3131,77 @@ func (this *DeltaCore) ParseDepositAddress(depositAddress any, optionalArgs ...a
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
 func (this *DeltaCore) FetchFundingRate(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		retRes26758 := (<-this.LoadMarkets())
-		PanicOnError(retRes26758)
-		var market any = this.Market(symbol)
-		if !IsTrue(GetValue(market, "swap")) {
-			panic(BadSymbol(Add(this.Id, " fetchFundingRate() supports swap contracts only")))
-		}
-		var request any = map[string]any{
-			"symbol": GetValue(market, "id"),
-		}
-
-		response := (<-this.PublicGetTickersSymbol(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "result": {
-		//             "close": 30600.5,
-		//             "contract_type": "perpetual_futures",
-		//             "funding_rate": "0.00602961",
-		//             "greeks": null,
-		//             "high": 30803.0,
-		//             "low": 30265.5,
-		//             "mark_basis": "-0.45601594",
-		//             "mark_price": "30600.10481568",
-		//             "oi": "469.9190",
-		//             "oi_change_usd_6h": "2226314.9900",
-		//             "oi_contracts": "469919",
-		//             "oi_value": "469.9190",
-		//             "oi_value_symbol": "BTC",
-		//             "oi_value_usd": "14385640.6802",
-		//             "open": 30458.5,
-		//             "price_band": {
-		//                 "lower_limit": "29067.08312627",
-		//                 "upper_limit": "32126.77608693"
-		//             },
-		//             "product_id": 139,
-		//             "quotes": {
-		//                 "ask_iv": null,
-		//                 "ask_size": "965",
-		//                 "best_ask": "30600.5",
-		//                 "best_bid": "30599.5",
-		//                 "bid_iv": null,
-		//                 "bid_size": "196",
-		//                 "impact_mid_price": null,
-		//                 "mark_iv": "-0.44931641"
-		//             },
-		//             "size": 1226303,
-		//             "spot_price": "30612.85362773",
-		//             "symbol": "BTCUSDT",
-		//             "timestamp": 1689136597460456,
-		//             "turnover": 37392218.45999999,
-		//             "turnover_symbol": "USDT",
-		//             "turnover_usd": 37392218.45999999,
-		//             "volume": 1226.3029999999485
-		//         },
-		//         "success": true
-		//     }
-		//
-		var result any = this.SafeDict(response, "result", map[string]any{})
-
-		ch <- this.ParseFundingRate(result, market)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchFundingRateBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *DeltaCore) fetchFundingRateBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	retRes26828 := (<-this.LoadMarkets())
+	PanicOnError(retRes26828)
+	var market any = this.Market(symbol)
+	if IsTrue(!IsEqual(GetValue(market, "swap"), true)) {
+		panic(BadSymbol(Add(this.Id, " fetchFundingRate() supports swap contracts only")))
+	}
+	var request map[string]any = map[string]any{
+		"symbol": GetValue(market, "id"),
+	}
+
+	response := (<-this.PublicGetTickersSymbol(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "result": {
+	//             "close": 30600.5,
+	//             "contract_type": "perpetual_futures",
+	//             "funding_rate": "0.00602961",
+	//             "greeks": null,
+	//             "high": 30803.0,
+	//             "low": 30265.5,
+	//             "mark_basis": "-0.45601594",
+	//             "mark_price": "30600.10481568",
+	//             "oi": "469.9190",
+	//             "oi_change_usd_6h": "2226314.9900",
+	//             "oi_contracts": "469919",
+	//             "oi_value": "469.9190",
+	//             "oi_value_symbol": "BTC",
+	//             "oi_value_usd": "14385640.6802",
+	//             "open": 30458.5,
+	//             "price_band": {
+	//                 "lower_limit": "29067.08312627",
+	//                 "upper_limit": "32126.77608693"
+	//             },
+	//             "product_id": 139,
+	//             "quotes": {
+	//                 "ask_iv": null,
+	//                 "ask_size": "965",
+	//                 "best_ask": "30600.5",
+	//                 "best_bid": "30599.5",
+	//                 "bid_iv": null,
+	//                 "bid_size": "196",
+	//                 "impact_mid_price": null,
+	//                 "mark_iv": "-0.44931641"
+	//             },
+	//             "size": 1226303,
+	//             "spot_price": "30612.85362773",
+	//             "symbol": "BTCUSDT",
+	//             "timestamp": 1689136597460456,
+	//             "turnover": 37392218.45999999,
+	//             "turnover_symbol": "USDT",
+	//             "turnover_usd": 37392218.45999999,
+	//             "volume": 1226.3029999999485
+	//         },
+	//         "success": true
+	//     }
+	//
+	var result any = this.SafeDict(response, "result", map[string]any{})
+
+	ch <- this.ParseFundingRate(result, market)
+	return nil
 }
 
 /**
@@ -3207,78 +3214,78 @@ func (this *DeltaCore) FetchFundingRate(symbol any, optionalArgs ...any) <-chan 
  * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
  */
 func (this *DeltaCore) FetchFundingRates(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbols := GetArg(optionalArgs, 0, nil)
-		_ = symbols
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-
-		retRes27438 := (<-this.LoadMarkets())
-		PanicOnError(retRes27438)
-		symbols = this.MarketSymbols(symbols)
-		var request any = map[string]any{
-			"contract_types": "perpetual_futures",
-		}
-
-		response := (<-this.PublicGetTickers(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "result": [
-		//             {
-		//                 "close": 30600.5,
-		//                 "contract_type": "perpetual_futures",
-		//                 "funding_rate": "0.00602961",
-		//                 "greeks": null,
-		//                 "high": 30803.0,
-		//                 "low": 30265.5,
-		//                 "mark_basis": "-0.45601594",
-		//                 "mark_price": "30600.10481568",
-		//                 "oi": "469.9190",
-		//                 "oi_change_usd_6h": "2226314.9900",
-		//                 "oi_contracts": "469919",
-		//                 "oi_value": "469.9190",
-		//                 "oi_value_symbol": "BTC",
-		//                 "oi_value_usd": "14385640.6802",
-		//                 "open": 30458.5,
-		//                 "price_band": {
-		//                     "lower_limit": "29067.08312627",
-		//                     "upper_limit": "32126.77608693"
-		//                 },
-		//                 "product_id": 139,
-		//                 "quotes": {
-		//                     "ask_iv": null,
-		//                     "ask_size": "965",
-		//                     "best_ask": "30600.5",
-		//                     "best_bid": "30599.5",
-		//                     "bid_iv": null,
-		//                     "bid_size": "196",
-		//                     "impact_mid_price": null,
-		//                     "mark_iv": "-0.44931641"
-		//                 },
-		//                 "size": 1226303,
-		//                 "spot_price": "30612.85362773",
-		//                 "symbol": "BTCUSDT",
-		//                 "timestamp": 1689136597460456,
-		//                 "turnover": 37392218.45999999,
-		//                 "turnover_symbol": "USDT",
-		//                 "turnover_usd": 37392218.45999999,
-		//                 "volume": 1226.3029999999485
-		//             },
-		//         ],
-		//         "success":true
-		//     }
-		//
-		var rates any = this.SafeList(response, "result", []any{})
-
-		ch <- this.ParseFundingRates(rates, symbols)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchFundingRatesBody(ch, optionalArgs...)
 	return ch
+}
+func (this *DeltaCore) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbols := GetArg(optionalArgs, 0, nil)
+	_ = symbols
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+
+	retRes27508 := (<-this.LoadMarkets())
+	PanicOnError(retRes27508)
+	symbols = this.MarketSymbols(symbols)
+	var request map[string]any = map[string]any{
+		"contract_types": "perpetual_futures",
+	}
+
+	response := (<-this.PublicGetTickers(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "result": [
+	//             {
+	//                 "close": 30600.5,
+	//                 "contract_type": "perpetual_futures",
+	//                 "funding_rate": "0.00602961",
+	//                 "greeks": null,
+	//                 "high": 30803.0,
+	//                 "low": 30265.5,
+	//                 "mark_basis": "-0.45601594",
+	//                 "mark_price": "30600.10481568",
+	//                 "oi": "469.9190",
+	//                 "oi_change_usd_6h": "2226314.9900",
+	//                 "oi_contracts": "469919",
+	//                 "oi_value": "469.9190",
+	//                 "oi_value_symbol": "BTC",
+	//                 "oi_value_usd": "14385640.6802",
+	//                 "open": 30458.5,
+	//                 "price_band": {
+	//                     "lower_limit": "29067.08312627",
+	//                     "upper_limit": "32126.77608693"
+	//                 },
+	//                 "product_id": 139,
+	//                 "quotes": {
+	//                     "ask_iv": null,
+	//                     "ask_size": "965",
+	//                     "best_ask": "30600.5",
+	//                     "best_bid": "30599.5",
+	//                     "bid_iv": null,
+	//                     "bid_size": "196",
+	//                     "impact_mid_price": null,
+	//                     "mark_iv": "-0.44931641"
+	//                 },
+	//                 "size": 1226303,
+	//                 "spot_price": "30612.85362773",
+	//                 "symbol": "BTCUSDT",
+	//                 "timestamp": 1689136597460456,
+	//                 "turnover": 37392218.45999999,
+	//                 "turnover_symbol": "USDT",
+	//                 "turnover_usd": 37392218.45999999,
+	//                 "volume": 1226.3029999999485
+	//             },
+	//         ],
+	//         "success":true
+	//     }
+	//
+	var rates any = this.SafeList(response, "result", []any{})
+
+	ch <- this.ParseFundingRates(rates, symbols)
+	return nil
 }
 func (this *DeltaCore) ParseFundingRate(contract any, optionalArgs ...any) any {
 	//
@@ -3362,20 +3369,20 @@ func (this *DeltaCore) ParseFundingRate(contract any, optionalArgs ...any) any {
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
 func (this *DeltaCore) AddMargin(symbol any, amount any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		retRes288015 := (<-this.ModifyMarginHelper(symbol, amount, "add", params))
-		PanicOnError(retRes288015)
-		ch <- retRes288015
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.addMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
+}
+func (this *DeltaCore) addMarginBody(ch chan any, symbol any, amount any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	retRes288715 := (<-this.ModifyMarginHelper(symbol, amount, "add", params))
+	PanicOnError(retRes288715)
+	ch <- retRes288715
+	return nil
 }
 
 /**
@@ -3389,73 +3396,73 @@ func (this *DeltaCore) AddMargin(symbol any, amount any, optionalArgs ...any) <-
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
 func (this *DeltaCore) ReduceMargin(symbol any, amount any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		retRes289415 := (<-this.ModifyMarginHelper(symbol, amount, "reduce", params))
-		PanicOnError(retRes289415)
-		ch <- retRes289415
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.reduceMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
 }
+func (this *DeltaCore) reduceMarginBody(ch chan any, symbol any, amount any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	retRes290115 := (<-this.ModifyMarginHelper(symbol, amount, "reduce", params))
+	PanicOnError(retRes290115)
+	ch <- retRes290115
+	return nil
+}
 func (this *DeltaCore) ModifyMarginHelper(symbol any, amount any, typeVar any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		retRes28988 := (<-this.LoadMarkets())
-		PanicOnError(retRes28988)
-		var market any = this.Market(symbol)
-		amount = ToString(amount)
-		if IsTrue(IsEqual(typeVar, "reduce")) {
-			amount = Precise.StringMul(amount, "-1")
-		}
-		var request any = map[string]any{
-			"product_id":   GetValue(market, "numericId"),
-			"delta_margin": amount,
-		}
-
-		response := (<-this.PrivatePostPositionsChangeMargin(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "result": {
-		//             "auto_topup": false,
-		//             "bankruptcy_price": "24934.12",
-		//             "commission": "0.01197072",
-		//             "created_at": "2023-07-20T03:49:09.159401Z",
-		//             "entry_price": "29926.8",
-		//             "liquidation_price": "25083.754",
-		//             "margin": "4.99268",
-		//             "margin_mode": "isolated",
-		//             "product_id": 84,
-		//             "product_symbol": "BTCUSDT",
-		//             "realized_cashflow": "0",
-		//             "realized_funding": "0",
-		//             "realized_pnl": "0",
-		//             "size": 1,
-		//             "updated_at": "2023-07-20T03:49:09.159401Z",
-		//             "user_id": 30084879
-		//         },
-		//         "success": true
-		//     }
-		//
-		var result any = this.SafeDict(response, "result", map[string]any{})
-
-		ch <- this.ParseMarginModification(result, market)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.modifyMarginHelperBody(ch, symbol, amount, typeVar, optionalArgs...)
 	return ch
+}
+func (this *DeltaCore) modifyMarginHelperBody(ch chan any, symbol any, amount any, typeVar any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	retRes29058 := (<-this.LoadMarkets())
+	PanicOnError(retRes29058)
+	var market any = this.Market(symbol)
+	amount = ToString(amount)
+	if IsTrue(IsEqual(typeVar, "reduce")) {
+		amount = Precise.StringMul(amount, "-1")
+	}
+	var request map[string]any = map[string]any{
+		"product_id":   GetValue(market, "numericId"),
+		"delta_margin": amount,
+	}
+
+	response := (<-this.PrivatePostPositionsChangeMargin(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "result": {
+	//             "auto_topup": false,
+	//             "bankruptcy_price": "24934.12",
+	//             "commission": "0.01197072",
+	//             "created_at": "2023-07-20T03:49:09.159401Z",
+	//             "entry_price": "29926.8",
+	//             "liquidation_price": "25083.754",
+	//             "margin": "4.99268",
+	//             "margin_mode": "isolated",
+	//             "product_id": 84,
+	//             "product_symbol": "BTCUSDT",
+	//             "realized_cashflow": "0",
+	//             "realized_funding": "0",
+	//             "realized_pnl": "0",
+	//             "size": 1,
+	//             "updated_at": "2023-07-20T03:49:09.159401Z",
+	//             "user_id": 30084879
+	//         },
+	//         "success": true
+	//     }
+	//
+	var result any = this.SafeDict(response, "result", map[string]any{})
+
+	ch <- this.ParseMarginModification(result, market)
+	return nil
 }
 func (this *DeltaCore) ParseMarginModification(data any, optionalArgs ...any) any {
 	//
@@ -3506,84 +3513,84 @@ func (this *DeltaCore) ParseMarginModification(data any, optionalArgs ...any) an
  * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
 func (this *DeltaCore) FetchOpenInterest(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		retRes29838 := (<-this.LoadMarkets())
-		PanicOnError(retRes29838)
-		var market any = this.Market(symbol)
-		if !IsTrue(GetValue(market, "contract")) {
-			panic(BadRequest(Add(this.Id, " fetchOpenInterest() supports contract markets only")))
-		}
-		var request any = map[string]any{
-			"symbol": GetValue(market, "id"),
-		}
-
-		response := (<-this.PublicGetTickersSymbol(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "result": {
-		//             "close": 894.0,
-		//             "contract_type": "call_options",
-		//             "greeks": {
-		//                 "delta": "0.67324861",
-		//                 "gamma": "0.00022178",
-		//                 "rho": "4.34638266",
-		//                 "spot": "30178.53195697",
-		//                 "theta": "-35.64972577",
-		//                 "vega": "16.34381277"
-		//             },
-		//             "high": 946.0,
-		//             "low": 893.0,
-		//             "mark_price": "1037.07582681",
-		//             "mark_vol": "0.35899491",
-		//             "oi": "0.0910",
-		//             "oi_change_usd_6h": "-90.5500",
-		//             "oi_contracts": "91",
-		//             "oi_value": "0.0910",
-		//             "oi_value_symbol": "BTC",
-		//             "oi_value_usd": "2746.3549",
-		//             "open": 946.0,
-		//             "price_band": {
-		//                 "lower_limit": "133.37794509",
-		//                 "upper_limit": "5663.66930164"
-		//             },
-		//             "product_id": 116171,
-		//             "quotes": {
-		//                 "ask_iv": "0.36932389",
-		//                 "ask_size": "1321",
-		//                 "best_ask": "1054",
-		//                 "best_bid": "1020",
-		//                 "bid_iv": "0.34851914",
-		//                 "bid_size": "2202",
-		//                 "impact_mid_price": null,
-		//                 "mark_iv": "0.35896335"
-		//             },
-		//             "size": 152,
-		//             "spot_price": "30178.53195697",
-		//             "strike_price": "29500",
-		//             "symbol": "C-BTC-29500-280723",
-		//             "timestamp": 1689834695286094,
-		//             "turnover": 4546.601744940001,
-		//             "turnover_symbol": "USDT",
-		//             "turnover_usd": 4546.601744940001,
-		//             "volume": 0.15200000000000002
-		//         },
-		//         "success": true
-		//     }
-		//
-		var result any = this.SafeDict(response, "result", map[string]any{})
-
-		ch <- this.ParseOpenInterest(result, market)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOpenInterestBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *DeltaCore) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	retRes29908 := (<-this.LoadMarkets())
+	PanicOnError(retRes29908)
+	var market any = this.Market(symbol)
+	if IsTrue(!IsEqual(GetValue(market, "contract"), true)) {
+		panic(BadRequest(Add(this.Id, " fetchOpenInterest() supports contract markets only")))
+	}
+	var request map[string]any = map[string]any{
+		"symbol": GetValue(market, "id"),
+	}
+
+	response := (<-this.PublicGetTickersSymbol(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "result": {
+	//             "close": 894.0,
+	//             "contract_type": "call_options",
+	//             "greeks": {
+	//                 "delta": "0.67324861",
+	//                 "gamma": "0.00022178",
+	//                 "rho": "4.34638266",
+	//                 "spot": "30178.53195697",
+	//                 "theta": "-35.64972577",
+	//                 "vega": "16.34381277"
+	//             },
+	//             "high": 946.0,
+	//             "low": 893.0,
+	//             "mark_price": "1037.07582681",
+	//             "mark_vol": "0.35899491",
+	//             "oi": "0.0910",
+	//             "oi_change_usd_6h": "-90.5500",
+	//             "oi_contracts": "91",
+	//             "oi_value": "0.0910",
+	//             "oi_value_symbol": "BTC",
+	//             "oi_value_usd": "2746.3549",
+	//             "open": 946.0,
+	//             "price_band": {
+	//                 "lower_limit": "133.37794509",
+	//                 "upper_limit": "5663.66930164"
+	//             },
+	//             "product_id": 116171,
+	//             "quotes": {
+	//                 "ask_iv": "0.36932389",
+	//                 "ask_size": "1321",
+	//                 "best_ask": "1054",
+	//                 "best_bid": "1020",
+	//                 "bid_iv": "0.34851914",
+	//                 "bid_size": "2202",
+	//                 "impact_mid_price": null,
+	//                 "mark_iv": "0.35896335"
+	//             },
+	//             "size": 152,
+	//             "spot_price": "30178.53195697",
+	//             "strike_price": "29500",
+	//             "symbol": "C-BTC-29500-280723",
+	//             "timestamp": 1689834695286094,
+	//             "turnover": 4546.601744940001,
+	//             "turnover_symbol": "USDT",
+	//             "turnover_usd": 4546.601744940001,
+	//             "volume": 0.15200000000000002
+	//         },
+	//         "success": true
+	//     }
+	//
+	var result any = this.SafeDict(response, "result", map[string]any{})
+
+	ch <- this.ParseOpenInterest(result, market)
+	return nil
 }
 func (this *DeltaCore) ParseOpenInterest(interest any, optionalArgs ...any) any {
 	//
@@ -3661,42 +3668,42 @@ func (this *DeltaCore) ParseOpenInterest(interest any, optionalArgs ...any) any 
  * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
 func (this *DeltaCore) FetchLeverage(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		retRes31228 := (<-this.LoadMarkets())
-		PanicOnError(retRes31228)
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"product_id": GetValue(market, "numericId"),
-		}
-
-		response := (<-this.PrivateGetProductsProductIdOrdersLeverage(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "result": {
-		//             "index_symbol": null,
-		//             "leverage": "10",
-		//             "margin_mode": "isolated",
-		//             "order_margin": "0",
-		//             "product_id": 84,
-		//             "user_id": 30084879
-		//         },
-		//         "success": true
-		//     }
-		//
-		var result any = this.SafeDict(response, "result", map[string]any{})
-
-		ch <- this.ParseLeverage(result, market)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchLeverageBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *DeltaCore) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	retRes31298 := (<-this.LoadMarkets())
+	PanicOnError(retRes31298)
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"product_id": GetValue(market, "numericId"),
+	}
+
+	response := (<-this.PrivateGetProductsProductIdOrdersLeverage(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "result": {
+	//             "index_symbol": null,
+	//             "leverage": "10",
+	//             "margin_mode": "isolated",
+	//             "order_margin": "0",
+	//             "product_id": 84,
+	//             "user_id": 30084879
+	//         },
+	//         "success": true
+	//     }
+	//
+	var result any = this.SafeDict(response, "result", map[string]any{})
+
+	ch <- this.ParseLeverage(result, market)
+	return nil
 }
 func (this *DeltaCore) ParseLeverage(leverage any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
@@ -3723,44 +3730,44 @@ func (this *DeltaCore) ParseLeverage(leverage any, optionalArgs ...any) any {
  * @returns {object} response from the exchange
  */
 func (this *DeltaCore) SetLeverage(leverage any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(symbol, nil)) {
-			panic(ArgumentsRequired(Add(this.Id, " setLeverage() requires a symbol argument")))
-		}
-
-		retRes31718 := (<-this.LoadMarkets())
-		PanicOnError(retRes31718)
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"product_id": GetValue(market, "numericId"),
-			"leverage":   leverage,
-		}
-
-		retRes318815 := (<-this.PrivatePostProductsProductIdOrdersLeverage(this.Extend(request, params)))
-		PanicOnError(retRes318815)
-		//
-		//     {
-		//         "result": {
-		//             "leverage": "20",
-		//             "margin_mode": "isolated",
-		//             "order_margin": "0",
-		//             "product_id": 84
-		//         },
-		//         "success": true
-		//     }
-		//
-		ch <- retRes318815
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.setLeverageBody(ch, leverage, optionalArgs...)
 	return ch
+}
+func (this *DeltaCore) setLeverageBody(ch chan any, leverage any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(symbol, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " setLeverage() requires a symbol argument")))
+	}
+
+	retRes31788 := (<-this.LoadMarkets())
+	PanicOnError(retRes31788)
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"product_id": GetValue(market, "numericId"),
+		"leverage":   leverage,
+	}
+
+	retRes319515 := (<-this.PrivatePostProductsProductIdOrdersLeverage(this.Extend(request, params)))
+	PanicOnError(retRes319515)
+	//
+	//     {
+	//         "result": {
+	//             "leverage": "20",
+	//             "margin_mode": "isolated",
+	//             "order_margin": "0",
+	//             "product_id": 84
+	//         },
+	//         "success": true
+	//     }
+	//
+	ch <- retRes319515
+	return nil
 }
 
 /**
@@ -3775,101 +3782,101 @@ func (this *DeltaCore) SetLeverage(leverage any, optionalArgs ...any) <-chan any
  * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
  */
 func (this *DeltaCore) FetchSettlementHistory(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-
-		retRes32038 := (<-this.LoadMarkets())
-		PanicOnError(retRes32038)
-		var market any = nil
-		if IsTrue(!IsEqual(symbol, nil)) {
-			market = this.Market(symbol)
-		}
-		var request any = map[string]any{
-			"states": "expired",
-		}
-		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "page_size", limit)
-		}
-
-		response := (<-this.PublicGetProducts(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "result": [
-		//             {
-		//                 "contract_value": "0.001",
-		//                 "basis_factor_max_limit": "10.95",
-		//                 "maker_commission_rate": "0.0003",
-		//                 "launch_time": "2023-07-19T04:30:03Z",
-		//                 "trading_status": "operational",
-		//                 "product_specs": {
-		//                     "backup_vol_expiry_time": 31536000,
-		//                     "max_deviation_from_external_vol": 0.75,
-		//                     "max_lower_deviation_from_external_vol": 0.75,
-		//                     "max_upper_deviation_from_external_vol": 0.5,
-		//                     "max_volatility": 3,
-		//                     "min_volatility": 0.1,
-		//                     "premium_commission_rate": 0.1,
-		//                     "settlement_index_price": "29993.536675710806",
-		//                     "vol_calculation_method": "orderbook",
-		//                     "vol_expiry_time": 31536000
-		//                 },
-		//                 "description": "BTC call option expiring on 19-7-2023",
-		//                 "settlement_price": "0",
-		//                 "disruption_reason": null,
-		//                 "settling_asset": {},
-		//                 "initial_margin": "1",
-		//                 "tick_size": "0.1",
-		//                 "maintenance_margin": "0.5",
-		//                 "id": 117542,
-		//                 "notional_type": "vanilla",
-		//                 "ui_config": {},
-		//                 "contract_unit_currency": "BTC",
-		//                 "symbol": "C-BTC-30900-190723",
-		//                 "insurance_fund_margin_contribution": "1",
-		//                 "price_band": "2",
-		//                 "annualized_funding": "10.95",
-		//                 "impact_size": 200,
-		//                 "contract_type": "call_options",
-		//                 "position_size_limit": 255633,
-		//                 "max_leverage_notional": "200000",
-		//                 "initial_margin_scaling_factor": "0.000002",
-		//                 "strike_price": "30900",
-		//                 "is_quanto": false,
-		//                 "settlement_time": "2023-07-19T12:00:00Z",
-		//                 "liquidation_penalty_factor": "0.5",
-		//                 "funding_method": "mark_price",
-		//                 "taker_commission_rate": "0.0003",
-		//                 "default_leverage": "100.000000000000000000",
-		//                 "state": "expired",
-		//                 "auction_start_time": null,
-		//                 "short_description": "BTC  Call",
-		//                 "quoting_asset": {},
-		//                 "maintenance_margin_scaling_factor":"0.000002"
-		//             }
-		//         ],
-		//         "success": true
-		//     }
-		//
-		var result any = this.SafeList(response, "result", []any{})
-		var settlements any = this.ParseSettlements(result, market)
-		var sorted any = this.SortBy(settlements, "timestamp")
-
-		ch <- this.FilterBySymbolSinceLimit(sorted, this.SafeString(market, "symbol"), since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchSettlementHistoryBody(ch, optionalArgs...)
 	return ch
+}
+func (this *DeltaCore) fetchSettlementHistoryBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+
+	retRes32108 := (<-this.LoadMarkets())
+	PanicOnError(retRes32108)
+	var market any = nil
+	if IsTrue(!IsEqual(symbol, nil)) {
+		market = this.Market(symbol)
+	}
+	var request map[string]any = map[string]any{
+		"states": "expired",
+	}
+	if IsTrue(!IsEqual(limit, nil)) {
+		AddElementToObject(request, "page_size", limit)
+	}
+
+	response := (<-this.PublicGetProducts(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "result": [
+	//             {
+	//                 "contract_value": "0.001",
+	//                 "basis_factor_max_limit": "10.95",
+	//                 "maker_commission_rate": "0.0003",
+	//                 "launch_time": "2023-07-19T04:30:03Z",
+	//                 "trading_status": "operational",
+	//                 "product_specs": {
+	//                     "backup_vol_expiry_time": 31536000,
+	//                     "max_deviation_from_external_vol": 0.75,
+	//                     "max_lower_deviation_from_external_vol": 0.75,
+	//                     "max_upper_deviation_from_external_vol": 0.5,
+	//                     "max_volatility": 3,
+	//                     "min_volatility": 0.1,
+	//                     "premium_commission_rate": 0.1,
+	//                     "settlement_index_price": "29993.536675710806",
+	//                     "vol_calculation_method": "orderbook",
+	//                     "vol_expiry_time": 31536000
+	//                 },
+	//                 "description": "BTC call option expiring on 19-7-2023",
+	//                 "settlement_price": "0",
+	//                 "disruption_reason": null,
+	//                 "settling_asset": {},
+	//                 "initial_margin": "1",
+	//                 "tick_size": "0.1",
+	//                 "maintenance_margin": "0.5",
+	//                 "id": 117542,
+	//                 "notional_type": "vanilla",
+	//                 "ui_config": {},
+	//                 "contract_unit_currency": "BTC",
+	//                 "symbol": "C-BTC-30900-190723",
+	//                 "insurance_fund_margin_contribution": "1",
+	//                 "price_band": "2",
+	//                 "annualized_funding": "10.95",
+	//                 "impact_size": 200,
+	//                 "contract_type": "call_options",
+	//                 "position_size_limit": 255633,
+	//                 "max_leverage_notional": "200000",
+	//                 "initial_margin_scaling_factor": "0.000002",
+	//                 "strike_price": "30900",
+	//                 "is_quanto": false,
+	//                 "settlement_time": "2023-07-19T12:00:00Z",
+	//                 "liquidation_penalty_factor": "0.5",
+	//                 "funding_method": "mark_price",
+	//                 "taker_commission_rate": "0.0003",
+	//                 "default_leverage": "100.000000000000000000",
+	//                 "state": "expired",
+	//                 "auction_start_time": null,
+	//                 "short_description": "BTC  Call",
+	//                 "quoting_asset": {},
+	//                 "maintenance_margin_scaling_factor":"0.000002"
+	//             }
+	//         ],
+	//         "success": true
+	//     }
+	//
+	var result any = this.SafeList(response, "result", []any{})
+	var settlements any = this.ParseSettlements(result, market)
+	var sorted any = this.SortBy(settlements, "timestamp")
+
+	ch <- this.FilterBySymbolSinceLimit(sorted, this.SafeString(market, "symbol"), since, limit)
+	return nil
 }
 func (this *DeltaCore) ParseSettlement(settlement any, market any) any {
 	//
@@ -3953,81 +3960,81 @@ func (this *DeltaCore) ParseSettlements(settlements any, market any) any {
  * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
  */
 func (this *DeltaCore) FetchGreeks(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		retRes33628 := (<-this.LoadMarkets())
-		PanicOnError(retRes33628)
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"symbol": GetValue(market, "id"),
-		}
-
-		response := (<-this.PublicGetTickersSymbol(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "result": {
-		//             "close": 6793.0,
-		//             "contract_type": "call_options",
-		//             "greeks": {
-		//                 "delta": "0.94739174",
-		//                 "gamma": "0.00002206",
-		//                 "rho": "11.00890725",
-		//                 "spot": "36839.58124652",
-		//                 "theta": "-18.18365310",
-		//                 "vega": "7.85209698"
-		//             },
-		//             "high": 7556.0,
-		//             "low": 6793.0,
-		//             "mark_price": "6955.70698909",
-		//             "mark_vol": "0.66916863",
-		//             "oi": "1.8980",
-		//             "oi_change_usd_6h": "110.4600",
-		//             "oi_contracts": "1898",
-		//             "oi_value": "1.8980",
-		//             "oi_value_symbol": "BTC",
-		//             "oi_value_usd": "69940.7319",
-		//             "open": 7.2e3,
-		//             "price_band": {
-		//                 "lower_limit": "5533.89814767",
-		//                 "upper_limit": "11691.37688371"
-		//             },
-		//             "product_id": 129508,
-		//             "quotes": {
-		//                 "ask_iv": "0.90180438",
-		//                 "ask_size": "1898",
-		//                 "best_ask": "7210",
-		//                 "best_bid": "6913",
-		//                 "bid_iv": "0.60881706",
-		//                 "bid_size": "3163",
-		//                 "impact_mid_price": null,
-		//                 "mark_iv": "0.66973549"
-		//             },
-		//             "size": 5,
-		//             "spot_price": "36839.58153868",
-		//             "strike_price": "30000",
-		//             "symbol": "C-BTC-30000-241123",
-		//             "timestamp": 1699584998504530,
-		//             "turnover": 184.41206804,
-		//             "turnover_symbol": "USDT",
-		//             "turnover_usd": 184.41206804,
-		//             "volume": 0.005
-		//         },
-		//         "success": true
-		//     }
-		//
-		var result any = this.SafeDict(response, "result", map[string]any{})
-
-		ch <- this.ParseGreeks(result, market)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchGreeksBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *DeltaCore) fetchGreeksBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	retRes33698 := (<-this.LoadMarkets())
+	PanicOnError(retRes33698)
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"symbol": GetValue(market, "id"),
+	}
+
+	response := (<-this.PublicGetTickersSymbol(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "result": {
+	//             "close": 6793.0,
+	//             "contract_type": "call_options",
+	//             "greeks": {
+	//                 "delta": "0.94739174",
+	//                 "gamma": "0.00002206",
+	//                 "rho": "11.00890725",
+	//                 "spot": "36839.58124652",
+	//                 "theta": "-18.18365310",
+	//                 "vega": "7.85209698"
+	//             },
+	//             "high": 7556.0,
+	//             "low": 6793.0,
+	//             "mark_price": "6955.70698909",
+	//             "mark_vol": "0.66916863",
+	//             "oi": "1.8980",
+	//             "oi_change_usd_6h": "110.4600",
+	//             "oi_contracts": "1898",
+	//             "oi_value": "1.8980",
+	//             "oi_value_symbol": "BTC",
+	//             "oi_value_usd": "69940.7319",
+	//             "open": 7.2e3,
+	//             "price_band": {
+	//                 "lower_limit": "5533.89814767",
+	//                 "upper_limit": "11691.37688371"
+	//             },
+	//             "product_id": 129508,
+	//             "quotes": {
+	//                 "ask_iv": "0.90180438",
+	//                 "ask_size": "1898",
+	//                 "best_ask": "7210",
+	//                 "best_bid": "6913",
+	//                 "bid_iv": "0.60881706",
+	//                 "bid_size": "3163",
+	//                 "impact_mid_price": null,
+	//                 "mark_iv": "0.66973549"
+	//             },
+	//             "size": 5,
+	//             "spot_price": "36839.58153868",
+	//             "strike_price": "30000",
+	//             "symbol": "C-BTC-30000-241123",
+	//             "timestamp": 1699584998504530,
+	//             "turnover": 184.41206804,
+	//             "turnover_symbol": "USDT",
+	//             "turnover_usd": 184.41206804,
+	//             "volume": 0.005
+	//         },
+	//         "success": true
+	//     }
+	//
+	var result any = this.SafeDict(response, "result", map[string]any{})
+
+	ch <- this.ParseGreeks(result, market)
+	return nil
 }
 func (this *DeltaCore) ParseGreeks(greeks any, optionalArgs ...any) any {
 	//
@@ -4119,32 +4126,32 @@ func (this *DeltaCore) ParseGreeks(greeks any, optionalArgs ...any) any {
  * @returns {object[]} A list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *DeltaCore) CloseAllPositions(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		retRes35128 := (<-this.LoadMarkets())
-		PanicOnError(retRes35128)
-		var request any = map[string]any{
-			"close_all_portfolio": true,
-			"close_all_isolated":  true,
-		}
-
-		response := (<-this.PrivatePostPositionsCloseAll(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		// {"result":{},"success":true}
-		//
-		var position any = this.ParsePosition(this.SafeDict(response, "result", map[string]any{}))
-
-		ch <- []any{position}
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.closeAllPositionsBody(ch, optionalArgs...)
 	return ch
+}
+func (this *DeltaCore) closeAllPositionsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	retRes35198 := (<-this.LoadMarkets())
+	PanicOnError(retRes35198)
+	var request map[string]any = map[string]any{
+		"close_all_portfolio": true,
+		"close_all_isolated":  true,
+	}
+
+	response := (<-this.PrivatePostPositionsCloseAll(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	// {"result":{},"success":true}
+	//
+	var position any = this.ParsePosition(this.SafeDict(response, "result", map[string]any{}))
+
+	ch <- []any{position}
+	return nil
 }
 
 /**
@@ -4157,92 +4164,92 @@ func (this *DeltaCore) CloseAllPositions(optionalArgs ...any) <-chan any {
  * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
  */
 func (this *DeltaCore) FetchMarginMode(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		retRes35368 := (<-this.LoadMarkets())
-		PanicOnError(retRes35368)
-		var market any = nil
-		if IsTrue(!IsEqual(symbol, nil)) {
-			market = this.Market(symbol)
-		}
-
-		response := (<-this.PrivateGetProfile(params))
-		PanicOnError(response)
-		//
-		//     {
-		//         "result": {
-		//             "is_password_set": true,
-		//             "kyc_expiry_date": null,
-		//             "phishing_code": "12345",
-		//             "preferences": {
-		//                 "favorites": []
-		//             },
-		//             "is_kyc_provisioned": false,
-		//             "country": "Canada",
-		//             "margin_mode": "isolated",
-		//             "mfa_updated_at": "2023-07-19T01:04:43Z",
-		//             "last_name": "",
-		//             "oauth_apple_active": false,
-		//             "pf_index_symbol": null,
-		//             "proof_of_identity_status": "approved",
-		//             "dob": null,
-		//             "email": "abc_123@gmail.com",
-		//             "force_change_password": false,
-		//             "nick_name": "still-breeze-123",
-		//             "oauth_google_active": false,
-		//             "phone_verification_status": "verified",
-		//             "id": 12345678,
-		//             "last_seen": null,
-		//             "is_withdrawal_enabled": true,
-		//             "force_change_mfa": false,
-		//             "enable_bots": false,
-		//             "kyc_verified_on": null,
-		//             "created_at": "2023-07-19T01:02:32Z",
-		//             "withdrawal_blocked_till": null,
-		//             "proof_of_address_status": "approved",
-		//             "is_password_change_blocked": false,
-		//             "is_mfa_enabled": true,
-		//             "is_kyc_done": true,
-		//             "oauth": null,
-		//             "account_name": "Main",
-		//             "sub_account_permissions": null,
-		//             "phone_number": null,
-		//             "tracking_info": {
-		//                 "ga_cid": "1234.4321",
-		//                 "is_kyc_gtm_tracked": true,
-		//                 "sub_account_config": {
-		//                     "cross": 2,
-		//                     "isolated": 2,
-		//                     "portfolio": 2
-		//                 }
-		//             },
-		//             "first_name": "",
-		//             "phone_verified_on": null,
-		//             "seen_intro": false,
-		//             "password_updated_at": null,
-		//             "is_login_enabled": true,
-		//             "registration_date": "2023-07-19T01:02:32Z",
-		//             "permissions": {},
-		//             "max_sub_accounts_limit": 2,
-		//             "country_calling_code": null,
-		//             "is_sub_account": false,
-		//             "is_kyc_refresh_required": false
-		//         },
-		//         "success": true
-		//     }
-		//
-		var result any = this.SafeDict(response, "result", map[string]any{})
-
-		ch <- this.ParseMarginMode(result, market)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchMarginModeBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *DeltaCore) fetchMarginModeBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	retRes35438 := (<-this.LoadMarkets())
+	PanicOnError(retRes35438)
+	var market any = nil
+	if IsTrue(!IsEqual(symbol, nil)) {
+		market = this.Market(symbol)
+	}
+
+	response := (<-this.PrivateGetProfile(params))
+	PanicOnError(response)
+	//
+	//     {
+	//         "result": {
+	//             "is_password_set": true,
+	//             "kyc_expiry_date": null,
+	//             "phishing_code": "12345",
+	//             "preferences": {
+	//                 "favorites": []
+	//             },
+	//             "is_kyc_provisioned": false,
+	//             "country": "Canada",
+	//             "margin_mode": "isolated",
+	//             "mfa_updated_at": "2023-07-19T01:04:43Z",
+	//             "last_name": "",
+	//             "oauth_apple_active": false,
+	//             "pf_index_symbol": null,
+	//             "proof_of_identity_status": "approved",
+	//             "dob": null,
+	//             "email": "abc_123@gmail.com",
+	//             "force_change_password": false,
+	//             "nick_name": "still-breeze-123",
+	//             "oauth_google_active": false,
+	//             "phone_verification_status": "verified",
+	//             "id": 12345678,
+	//             "last_seen": null,
+	//             "is_withdrawal_enabled": true,
+	//             "force_change_mfa": false,
+	//             "enable_bots": false,
+	//             "kyc_verified_on": null,
+	//             "created_at": "2023-07-19T01:02:32Z",
+	//             "withdrawal_blocked_till": null,
+	//             "proof_of_address_status": "approved",
+	//             "is_password_change_blocked": false,
+	//             "is_mfa_enabled": true,
+	//             "is_kyc_done": true,
+	//             "oauth": null,
+	//             "account_name": "Main",
+	//             "sub_account_permissions": null,
+	//             "phone_number": null,
+	//             "tracking_info": {
+	//                 "ga_cid": "1234.4321",
+	//                 "is_kyc_gtm_tracked": true,
+	//                 "sub_account_config": {
+	//                     "cross": 2,
+	//                     "isolated": 2,
+	//                     "portfolio": 2
+	//                 }
+	//             },
+	//             "first_name": "",
+	//             "phone_verified_on": null,
+	//             "seen_intro": false,
+	//             "password_updated_at": null,
+	//             "is_login_enabled": true,
+	//             "registration_date": "2023-07-19T01:02:32Z",
+	//             "permissions": {},
+	//             "max_sub_accounts_limit": 2,
+	//             "country_calling_code": null,
+	//             "is_sub_account": false,
+	//             "is_kyc_refresh_required": false
+	//         },
+	//         "success": true
+	//     }
+	//
+	var result any = this.SafeDict(response, "result", map[string]any{})
+
+	ch <- this.ParseMarginMode(result, market)
+	return nil
 }
 func (this *DeltaCore) ParseMarginMode(marginMode any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
@@ -4270,28 +4277,28 @@ func (this *DeltaCore) ParseMarginMode(marginMode any, optionalArgs ...any) any 
  * @returns {object} response from the exchange
  */
 func (this *DeltaCore) SetMarginMode(marginMode any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		this.CheckRequiredArgument("setMarginMode", marginMode, "marginMode", []any{"isolated", "portfolio"})
-		var subaccountUserId any = this.SafeString(params, "subaccount_user_id")
-		this.CheckRequiredArgument("setMarginMode", subaccountUserId, "params[\"subaccount_user_id\"]")
-		var request any = map[string]any{
-			"margin_mode": marginMode,
-		}
-
-		retRes363915 := (<-this.PrivatePutUsersMarginMode(this.Extend(request, params)))
-		PanicOnError(retRes363915)
-		ch <- retRes363915
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.setMarginModeBody(ch, marginMode, optionalArgs...)
 	return ch
+}
+func (this *DeltaCore) setMarginModeBody(ch chan any, marginMode any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	this.CheckRequiredArgument("setMarginMode", marginMode, "marginMode", []any{"isolated", "portfolio"})
+	var subaccountUserId any = this.SafeString(params, "subaccount_user_id")
+	this.CheckRequiredArgument("setMarginMode", subaccountUserId, "params[\"subaccount_user_id\"]")
+	var request map[string]any = map[string]any{
+		"margin_mode": marginMode,
+	}
+
+	retRes364615 := (<-this.PrivatePutUsersMarginMode(this.Extend(request, params)))
+	PanicOnError(retRes364615)
+	ch <- retRes364615
+	return nil
 }
 
 /**
@@ -4304,81 +4311,81 @@ func (this *DeltaCore) SetMarginMode(marginMode any, optionalArgs ...any) <-chan
  * @returns {object} an [option chain structure]{@link https://docs.ccxt.com/?id=option-chain-structure}
  */
 func (this *DeltaCore) FetchOption(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		retRes36528 := (<-this.LoadMarkets())
-		PanicOnError(retRes36528)
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"symbol": GetValue(market, "id"),
-		}
-
-		response := (<-this.PublicGetTickersSymbol(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "result": {
-		//             "close": 6793.0,
-		//             "contract_type": "call_options",
-		//             "greeks": {
-		//                 "delta": "0.94739174",
-		//                 "gamma": "0.00002206",
-		//                 "rho": "11.00890725",
-		//                 "spot": "36839.58124652",
-		//                 "theta": "-18.18365310",
-		//                 "vega": "7.85209698"
-		//             },
-		//             "high": 7556.0,
-		//             "low": 6793.0,
-		//             "mark_price": "6955.70698909",
-		//             "mark_vol": "0.66916863",
-		//             "oi": "1.8980",
-		//             "oi_change_usd_6h": "110.4600",
-		//             "oi_contracts": "1898",
-		//             "oi_value": "1.8980",
-		//             "oi_value_symbol": "BTC",
-		//             "oi_value_usd": "69940.7319",
-		//             "open": 7.2e3,
-		//             "price_band": {
-		//                 "lower_limit": "5533.89814767",
-		//                 "upper_limit": "11691.37688371"
-		//             },
-		//             "product_id": 129508,
-		//             "quotes": {
-		//                 "ask_iv": "0.90180438",
-		//                 "ask_size": "1898",
-		//                 "best_ask": "7210",
-		//                 "best_bid": "6913",
-		//                 "bid_iv": "0.60881706",
-		//                 "bid_size": "3163",
-		//                 "impact_mid_price": null,
-		//                 "mark_iv": "0.66973549"
-		//             },
-		//             "size": 5,
-		//             "spot_price": "36839.58153868",
-		//             "strike_price": "30000",
-		//             "symbol": "C-BTC-30000-241123",
-		//             "timestamp": 1699584998504530,
-		//             "turnover": 184.41206804,
-		//             "turnover_symbol": "USDT",
-		//             "turnover_usd": 184.41206804,
-		//             "volume": 0.005
-		//         },
-		//         "success": true
-		//     }
-		//
-		var result any = this.SafeDict(response, "result", map[string]any{})
-
-		ch <- this.ParseOption(result, nil, market)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOptionBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *DeltaCore) fetchOptionBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	retRes36598 := (<-this.LoadMarkets())
+	PanicOnError(retRes36598)
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"symbol": GetValue(market, "id"),
+	}
+
+	response := (<-this.PublicGetTickersSymbol(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "result": {
+	//             "close": 6793.0,
+	//             "contract_type": "call_options",
+	//             "greeks": {
+	//                 "delta": "0.94739174",
+	//                 "gamma": "0.00002206",
+	//                 "rho": "11.00890725",
+	//                 "spot": "36839.58124652",
+	//                 "theta": "-18.18365310",
+	//                 "vega": "7.85209698"
+	//             },
+	//             "high": 7556.0,
+	//             "low": 6793.0,
+	//             "mark_price": "6955.70698909",
+	//             "mark_vol": "0.66916863",
+	//             "oi": "1.8980",
+	//             "oi_change_usd_6h": "110.4600",
+	//             "oi_contracts": "1898",
+	//             "oi_value": "1.8980",
+	//             "oi_value_symbol": "BTC",
+	//             "oi_value_usd": "69940.7319",
+	//             "open": 7.2e3,
+	//             "price_band": {
+	//                 "lower_limit": "5533.89814767",
+	//                 "upper_limit": "11691.37688371"
+	//             },
+	//             "product_id": 129508,
+	//             "quotes": {
+	//                 "ask_iv": "0.90180438",
+	//                 "ask_size": "1898",
+	//                 "best_ask": "7210",
+	//                 "best_bid": "6913",
+	//                 "bid_iv": "0.60881706",
+	//                 "bid_size": "3163",
+	//                 "impact_mid_price": null,
+	//                 "mark_iv": "0.66973549"
+	//             },
+	//             "size": 5,
+	//             "spot_price": "36839.58153868",
+	//             "strike_price": "30000",
+	//             "symbol": "C-BTC-30000-241123",
+	//             "timestamp": 1699584998504530,
+	//             "turnover": 184.41206804,
+	//             "turnover_symbol": "USDT",
+	//             "turnover_usd": 184.41206804,
+	//             "volume": 0.005
+	//         },
+	//         "success": true
+	//     }
+	//
+	var result any = this.SafeDict(response, "result", map[string]any{})
+
+	ch <- this.ParseOption(result, nil, market)
+	return nil
 }
 func (this *DeltaCore) ParseOption(chain any, optionalArgs ...any) any {
 	//
@@ -4469,198 +4476,198 @@ func (this *DeltaCore) ParseOption(chain any, optionalArgs ...any) any {
  * @returns {object[]} an array of [auto de leverage structures]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
  */
 func (this *DeltaCore) FetchPositionsADLRank(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbols := GetArg(optionalArgs, 0, nil)
-		_ = symbols
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-
-		retRes37998 := (<-this.LoadMarkets())
-		PanicOnError(retRes37998)
-		symbols = this.MarketSymbols(symbols, nil, true, true, true)
-
-		response := (<-this.PrivateGetPositionsMargined(params))
-		PanicOnError(response)
-		//
-		//     {
-		//         "result":
-		//             [
-		//                 {
-		//                     "adl_level": null,
-		//                     "auto_topup": false,
-		//                     "bankruptcy_price": "88618.22667",
-		//                     "commission": "0.03797924",
-		//                     "created_at": "2026-01-14T11:24:35.801586Z",
-		//                     "entry_price": "94948.1",
-		//                     "liquidation_price": "89092.96717",
-		//                     "margin": "6.32987333",
-		//                     "margin_mode": "isolated",
-		//                     "mark_price": "94942.90888022",
-		//                     "product": {
-		//                         "trading_status": "operational",
-		//                         "short_description": null,
-		//                         "quoting_asset": {
-		//                             "base_withdrawal_fee": "0.000000000000000000",
-		//                             "id": 4,
-		//                             "interest_credit": false,
-		//                             "interest_slabs": null,
-		//                             "kyc_deposit_limit": "0.000000000000000000",
-		//                             "kyc_withdrawal_limit": "0.000000000000000000",
-		//                             "min_withdrawal_amount": "0.000000000000000000",
-		//                             "minimum_precision": 2,
-		//                             "name": "Tether",
-		//                             "networks": [],
-		//                             "precision": 8,
-		//                             "sort_priority": null,
-		//                             "symbol": "USDT",
-		//                             "variable_withdrawal_fee": "0.000000000000000000"
-		//                         },
-		//                         "symbol": "BTCUSDT",
-		//                         "taker_commission_rate": "0.0004",
-		//                         "maintenance_margin_scaling_factor": "0",
-		//                         "spot_index": {
-		//                             "config": {
-		//                                 "impact_size": {
-		//                                     "max_impact_size": 150000,
-		//                                     "min_impact_size": 5000,
-		//                                     "step_value": 5000
-		//                                 },
-		//                                 "quoting_asset": "USDT",
-		//                                 "service_id": 1,
-		//                                 "underlying_asset": "BTC"
-		//                             },
-		//                             "constituent_exchanges": [
-		//                                 {
-		//                                     "exchange": "binance",
-		//                                     "health_interval": 3000,
-		//                                     "health_priority": 1,
-		//                                     "weight": 1
-		//                                 },
-		//                                 {
-		//                                     "exchange": "gateio",
-		//                                     "health_interval": 3000,
-		//                                     "health_priority": 3,
-		//                                     "weight": 1
-		//                                 },
-		//                                 {
-		//                                     "exchange": "bybit",
-		//                                     "health_interval": 3000,
-		//                                     "health_priority": 2,
-		//                                     "weight": 1
-		//                                 }
-		//                             ],
-		//                             "constituent_indices": null,
-		//                             "description": "BTC Spot",
-		//                             "health_interval": 300,
-		//                             "id": 2,
-		//                             "impact_size": "1.000000000000000000",
-		//                             "index_type": "spot_pair",
-		//                             "is_composite": false,
-		//                             "price_method": "ltp",
-		//                             "quoting_asset_id": 4,
-		//                             "symbol": ".DEXBTUSDT",
-		//                             "tick_size": "0.100000000000000000",
-		//                             "underlying_asset_id": 2
-		//                         },
-		//                         "liquidation_penalty_factor": "1",
-		//                         "auction_start_time": "2025-12-22T12:18:52Z",
-		//                         "is_quanto": false,
-		//                         "state": "live",
-		//                         "id": 84,
-		//                         "settling_asset": {
-		//                             "base_withdrawal_fee": "0.000000000000000000",
-		//                             "id": 4,
-		//                             "interest_credit": false,
-		//                             "interest_slabs": null,
-		//                             "kyc_deposit_limit": "0.000000000000000000",
-		//                             "kyc_withdrawal_limit": "0.000000000000000000",
-		//                             "min_withdrawal_amount": "0.000000000000000000",
-		//                             "minimum_precision": 2,
-		//                             "name": "Tether",
-		//                             "networks": [],
-		//                             "precision": 8,
-		//                             "sort_priority": null,
-		//                             "symbol": "USDT",
-		//                             "variable_withdrawal_fee": "0.000000000000000000"
-		//                         },
-		//                         "tick_size": "0.1",
-		//                         "impact_size": 4000,
-		//                         "insurance_fund_margin_contribution": "5",
-		//                         "maker_commission_rate": "0.0002",
-		//                         "ui_config": {
-		//                             "default_trading_view_candle": "15",
-		//                             "leverage_slider_values": [1,2,3,5,10,50,100],
-		//                             "price_clubbing_values": [0.1,1,10,50],
-		//                             "show_bracket_orders": false,
-		//                             "sort_priority": 1
-		//                         },
-		//                         "annualized_funding": "0",
-		//                         "strike_price": null,
-		//                         "price_band": "100",
-		//                         "funding_method": "mark_price",
-		//                         "contract_value": "0.001",
-		//                         "auction_finish_time": null,
-		//                         "product_specs": {
-		//                             "vol_expiry_time": 172800
-		//                         },
-		//                         "launch_time": "2020-04-20T08:37:05Z",
-		//                         "basis_factor_max_limit": "1000",
-		//                         "initial_margin": "1",
-		//                         "notional_type": "vanilla",
-		//                         "contract_unit_currency": "BTC",
-		//                         "disruption_reason": null,
-		//                         "underlying_asset": {
-		//                             "base_withdrawal_fee": "0.000000000000000000",
-		//                             "id": 2,
-		//                             "interest_credit": false,
-		//                             "interest_slabs": null,
-		//                             "kyc_deposit_limit": "0.000000000000000000",
-		//                             "kyc_withdrawal_limit": "0.000000000000000000",
-		//                             "min_withdrawal_amount": "0.000000000000000000",
-		//                             "minimum_precision": 4,
-		//                             "name": "Bitcoin",
-		//                             "networks": [],
-		//                             "precision": 8,
-		//                             "sort_priority": 1,
-		//                             "symbol": "BTC",
-		//                             "variable_withdrawal_fee": "0.000000000000000000"
-		//                         },
-		//                         "initial_margin_scaling_factor": "0",
-		//                         "position_size_limit": 10000000,
-		//                         "max_leverage_notional": "10000",
-		//                         "settlement_price": null,
-		//                         "barrier_price": null,
-		//                         "maintenance_margin": "0.5",
-		//                         "default_leverage": "50.000000000000000000",
-		//                         "settlement_time": null,
-		//                         "description": "BTCUSDT-Bitcoin Perpetual futures, quoted,settled & margined in Tether(USDT)",
-		//                         "contract_type": "perpetual_futures"
-		//                     },
-		//                     "product_id": 84,
-		//                     "product_symbol": "BTCUSDT",
-		//                     "realized_cashflow": "0.000000000000000000",
-		//                     "realized_funding": "0",
-		//                     "realized_holding_cost": "0",
-		//                     "realized_pnl": "0",
-		//                     "size": 1,
-		//                     "unrealized_pnl": "-0.00519112",
-		//                     "updated_at": "2026-01-14T11:24:35.801586Z",
-		//                     "user_id": 30084879
-		//                 }
-		//             ],
-		//         "success": true
-		//     }
-		//
-		var result any = this.SafeList(response, "result", []any{})
-
-		ch <- this.ParseADLRanks(result, symbols)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchPositionsADLRankBody(ch, optionalArgs...)
 	return ch
+}
+func (this *DeltaCore) fetchPositionsADLRankBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbols := GetArg(optionalArgs, 0, nil)
+	_ = symbols
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+
+	retRes38068 := (<-this.LoadMarkets())
+	PanicOnError(retRes38068)
+	symbols = this.MarketSymbols(symbols, nil, true, true, true)
+
+	response := (<-this.PrivateGetPositionsMargined(params))
+	PanicOnError(response)
+	//
+	//     {
+	//         "result":
+	//             [
+	//                 {
+	//                     "adl_level": null,
+	//                     "auto_topup": false,
+	//                     "bankruptcy_price": "88618.22667",
+	//                     "commission": "0.03797924",
+	//                     "created_at": "2026-01-14T11:24:35.801586Z",
+	//                     "entry_price": "94948.1",
+	//                     "liquidation_price": "89092.96717",
+	//                     "margin": "6.32987333",
+	//                     "margin_mode": "isolated",
+	//                     "mark_price": "94942.90888022",
+	//                     "product": {
+	//                         "trading_status": "operational",
+	//                         "short_description": null,
+	//                         "quoting_asset": {
+	//                             "base_withdrawal_fee": "0.000000000000000000",
+	//                             "id": 4,
+	//                             "interest_credit": false,
+	//                             "interest_slabs": null,
+	//                             "kyc_deposit_limit": "0.000000000000000000",
+	//                             "kyc_withdrawal_limit": "0.000000000000000000",
+	//                             "min_withdrawal_amount": "0.000000000000000000",
+	//                             "minimum_precision": 2,
+	//                             "name": "Tether",
+	//                             "networks": [],
+	//                             "precision": 8,
+	//                             "sort_priority": null,
+	//                             "symbol": "USDT",
+	//                             "variable_withdrawal_fee": "0.000000000000000000"
+	//                         },
+	//                         "symbol": "BTCUSDT",
+	//                         "taker_commission_rate": "0.0004",
+	//                         "maintenance_margin_scaling_factor": "0",
+	//                         "spot_index": {
+	//                             "config": {
+	//                                 "impact_size": {
+	//                                     "max_impact_size": 150000,
+	//                                     "min_impact_size": 5000,
+	//                                     "step_value": 5000
+	//                                 },
+	//                                 "quoting_asset": "USDT",
+	//                                 "service_id": 1,
+	//                                 "underlying_asset": "BTC"
+	//                             },
+	//                             "constituent_exchanges": [
+	//                                 {
+	//                                     "exchange": "binance",
+	//                                     "health_interval": 3000,
+	//                                     "health_priority": 1,
+	//                                     "weight": 1
+	//                                 },
+	//                                 {
+	//                                     "exchange": "gateio",
+	//                                     "health_interval": 3000,
+	//                                     "health_priority": 3,
+	//                                     "weight": 1
+	//                                 },
+	//                                 {
+	//                                     "exchange": "bybit",
+	//                                     "health_interval": 3000,
+	//                                     "health_priority": 2,
+	//                                     "weight": 1
+	//                                 }
+	//                             ],
+	//                             "constituent_indices": null,
+	//                             "description": "BTC Spot",
+	//                             "health_interval": 300,
+	//                             "id": 2,
+	//                             "impact_size": "1.000000000000000000",
+	//                             "index_type": "spot_pair",
+	//                             "is_composite": false,
+	//                             "price_method": "ltp",
+	//                             "quoting_asset_id": 4,
+	//                             "symbol": ".DEXBTUSDT",
+	//                             "tick_size": "0.100000000000000000",
+	//                             "underlying_asset_id": 2
+	//                         },
+	//                         "liquidation_penalty_factor": "1",
+	//                         "auction_start_time": "2025-12-22T12:18:52Z",
+	//                         "is_quanto": false,
+	//                         "state": "live",
+	//                         "id": 84,
+	//                         "settling_asset": {
+	//                             "base_withdrawal_fee": "0.000000000000000000",
+	//                             "id": 4,
+	//                             "interest_credit": false,
+	//                             "interest_slabs": null,
+	//                             "kyc_deposit_limit": "0.000000000000000000",
+	//                             "kyc_withdrawal_limit": "0.000000000000000000",
+	//                             "min_withdrawal_amount": "0.000000000000000000",
+	//                             "minimum_precision": 2,
+	//                             "name": "Tether",
+	//                             "networks": [],
+	//                             "precision": 8,
+	//                             "sort_priority": null,
+	//                             "symbol": "USDT",
+	//                             "variable_withdrawal_fee": "0.000000000000000000"
+	//                         },
+	//                         "tick_size": "0.1",
+	//                         "impact_size": 4000,
+	//                         "insurance_fund_margin_contribution": "5",
+	//                         "maker_commission_rate": "0.0002",
+	//                         "ui_config": {
+	//                             "default_trading_view_candle": "15",
+	//                             "leverage_slider_values": [1,2,3,5,10,50,100],
+	//                             "price_clubbing_values": [0.1,1,10,50],
+	//                             "show_bracket_orders": false,
+	//                             "sort_priority": 1
+	//                         },
+	//                         "annualized_funding": "0",
+	//                         "strike_price": null,
+	//                         "price_band": "100",
+	//                         "funding_method": "mark_price",
+	//                         "contract_value": "0.001",
+	//                         "auction_finish_time": null,
+	//                         "product_specs": {
+	//                             "vol_expiry_time": 172800
+	//                         },
+	//                         "launch_time": "2020-04-20T08:37:05Z",
+	//                         "basis_factor_max_limit": "1000",
+	//                         "initial_margin": "1",
+	//                         "notional_type": "vanilla",
+	//                         "contract_unit_currency": "BTC",
+	//                         "disruption_reason": null,
+	//                         "underlying_asset": {
+	//                             "base_withdrawal_fee": "0.000000000000000000",
+	//                             "id": 2,
+	//                             "interest_credit": false,
+	//                             "interest_slabs": null,
+	//                             "kyc_deposit_limit": "0.000000000000000000",
+	//                             "kyc_withdrawal_limit": "0.000000000000000000",
+	//                             "min_withdrawal_amount": "0.000000000000000000",
+	//                             "minimum_precision": 4,
+	//                             "name": "Bitcoin",
+	//                             "networks": [],
+	//                             "precision": 8,
+	//                             "sort_priority": 1,
+	//                             "symbol": "BTC",
+	//                             "variable_withdrawal_fee": "0.000000000000000000"
+	//                         },
+	//                         "initial_margin_scaling_factor": "0",
+	//                         "position_size_limit": 10000000,
+	//                         "max_leverage_notional": "10000",
+	//                         "settlement_price": null,
+	//                         "barrier_price": null,
+	//                         "maintenance_margin": "0.5",
+	//                         "default_leverage": "50.000000000000000000",
+	//                         "settlement_time": null,
+	//                         "description": "BTCUSDT-Bitcoin Perpetual futures, quoted,settled & margined in Tether(USDT)",
+	//                         "contract_type": "perpetual_futures"
+	//                     },
+	//                     "product_id": 84,
+	//                     "product_symbol": "BTCUSDT",
+	//                     "realized_cashflow": "0.000000000000000000",
+	//                     "realized_funding": "0",
+	//                     "realized_holding_cost": "0",
+	//                     "realized_pnl": "0",
+	//                     "size": 1,
+	//                     "unrealized_pnl": "-0.00519112",
+	//                     "updated_at": "2026-01-14T11:24:35.801586Z",
+	//                     "user_id": 30084879
+	//                 }
+	//             ],
+	//         "success": true
+	//     }
+	//
+	var result any = this.SafeList(response, "result", []any{})
+
+	ch <- this.ParseADLRanks(result, symbols)
+	return nil
 }
 func (this *DeltaCore) ParseADLRank(info any, optionalArgs ...any) any {
 	//
@@ -4858,19 +4865,19 @@ func (this *DeltaCore) Sign(path any, optionalArgs ...any) any {
 	var url any = Add(GetValue(GetValue(this.Urls, "api"), api), requestPath)
 	var query any = this.Omit(params, this.ExtractParams(path))
 	if IsTrue(IsEqual(api, "public")) {
-		if IsTrue(GetArrayLength(ObjectKeys(query))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 			url = Add(url, Add("?", this.Urlencode(query)))
 		}
 	} else if IsTrue(IsEqual(api, "private")) {
 		this.CheckRequiredCredentials()
-		var timestamp any = ToString(this.Seconds())
+		var timestamp string = ToString(this.Seconds())
 		headers = map[string]any{
 			"api-key":   this.ApiKey,
 			"timestamp": timestamp,
 		}
 		var auth any = Add(Add(method, timestamp), requestPath)
 		if IsTrue(IsEqual(method, "GET")) {
-			if IsTrue(GetArrayLength(ObjectKeys(query))) {
+			if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 				var queryString any = Add("?", this.Urlencode(query))
 				auth = Add(auth, queryString)
 				url = Add(url, queryString)
@@ -4880,7 +4887,7 @@ func (this *DeltaCore) Sign(path any, optionalArgs ...any) any {
 			auth = Add(auth, body)
 			AddElementToObject(headers, "Content-Type", "application/json")
 		}
-		var signature any = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)
+		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)
 		AddElementToObject(headers, "signature", signature)
 	}
 	return map[string]any{

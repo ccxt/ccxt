@@ -19,8 +19,8 @@ public partial class BaseTest
                 { "c", "+&" },
             };
             // as key-order not preserved, expect mixed order
-            object expected1 = "a=1&c=%2B%26";
-            object expected2 = "c=%2B%26&a=1";
+            string expected1 = "a=1&c=%2B%26";
+            string expected2 = "c=%2B%26&a=1";
             object encoded = exchange.urlencode(dict1);
             Assert(isTrue(isEqual(encoded, expected1)) || isTrue(isEqual(encoded, expected2)), add(add(add(add(add("testUrlencode: expected ", expected1), " or "), expected2), " but got "), encoded));
         }

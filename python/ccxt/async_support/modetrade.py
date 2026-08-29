@@ -5,8 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.modetrade import ImplicitAPI
-from ccxt.base.types import Any, Balances, Currencies, Currency, CurrencyInterface, Int, LedgerEntry, Leverage, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Status, Str, Strings, FundingRate, FundingRates, Trade, TradingFees, Transaction
-from typing import List
+from ccxt.base.types import Balances, Currencies, Currency, CurrencyInterface, Int, LedgerEntry, Leverage, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Status, Str, Strings, FundingRate, FundingRates, Trade, TradingFees, Transaction
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -22,7 +21,7 @@ from ccxt.base.precise import Precise
 
 class modetrade(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(modetrade, self).describe(), {
             'id': 'modetrade',
             'name': 'Mode Trade',
@@ -575,7 +574,7 @@ class modetrade(Exchange, ImplicitAPI):
             'info': market,
         })
 
-    async def fetch_markets(self, params={}) -> List[Market]:
+    async def fetch_markets(self, params={}) -> list[Market]:
         """
         retrieves data on all markets for modetrade
 
@@ -716,7 +715,7 @@ class modetrade(Exchange, ImplicitAPI):
             'info': rawCurrency,
         })
 
-    def parse_token_and_fee_temp(self, item: Any, feeTokenKey: Any, feeAmountKey: Any):
+    def parse_token_and_fee_temp(self, item: object, feeTokenKey: object, feeAmountKey: object):
         feeCost = self.safe_string(item, feeAmountKey)
         fee = None
         if feeCost is not None:
@@ -791,7 +790,7 @@ class modetrade(Exchange, ImplicitAPI):
             'info': trade,
         }, market)
 
-    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -831,7 +830,7 @@ class modetrade(Exchange, ImplicitAPI):
         rows = self.safe_list(data, 'rows', [])
         return self.parse_trades(rows, market, since, limit)
 
-    def parse_funding_rate(self, fundingRate: Any, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, fundingRate: object, market: Market = None) -> FundingRate:
         #
         #         {
         #             "symbol":"PERP_AAVE_USDT",
@@ -873,7 +872,7 @@ class modetrade(Exchange, ImplicitAPI):
             'interval': self.parse_funding_interval(millisecondsInterval),
         }
 
-    def parse_funding_interval(self, interval: Any):
+    def parse_funding_interval(self, interval: object):
         intervals = {
             '3600000': '1h',
             '14400000': '4h',
@@ -1030,7 +1029,7 @@ class modetrade(Exchange, ImplicitAPI):
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
-    def parse_income(self, income: Any, market: Market = None):
+    def parse_income(self, income: object, market: Market = None):
         #
         # {
         #         "symbol": "PERP_ETH_USDC",
@@ -1221,7 +1220,7 @@ class modetrade(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(data, 'timestamp')
         return self.parse_order_book(data, symbol, timestamp, 'bids', 'asks', 'price', 'quantity')
 
-    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         return [
             self.safe_integer(ohlcv, 'start_timestamp'),
             self.safe_number(ohlcv, 'open'),
@@ -1231,7 +1230,7 @@ class modetrade(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'volume'),
         ]
 
-    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
         """
 
         https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-kline
@@ -1475,7 +1474,7 @@ class modetrade(Exchange, ImplicitAPI):
                 request['order_type'] = 'FOK'
             elif timeInForce == 'ioc':
                 request['order_type'] = 'IOC'
-        if reduceOnly:
+        if reduceOnly is True:
             request['reduce_only'] = reduceOnly
         if price is not None:
             request[priceKey] = self.price_to_precision(symbol, price)
@@ -1592,7 +1591,7 @@ class modetrade(Exchange, ImplicitAPI):
         order['type'] = type
         return order
 
-    async def create_orders(self, orders: List[OrderRequest], params={}):
+    async def create_orders(self, orders: list[OrderRequest], params={}):
         """
         *contract only* create a list of trade orders
 
@@ -1741,7 +1740,7 @@ class modetrade(Exchange, ImplicitAPI):
         """
         trigger = self.safe_bool_2(params, 'stop', 'trigger', False)
         params = self.omit(params, ['stop', 'trigger'])
-        if not trigger and (symbol is None):
+        if (trigger is not True) and (symbol is None):
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         if self.markets is None:
             await self.load_markets()
@@ -1755,7 +1754,7 @@ class modetrade(Exchange, ImplicitAPI):
         clientOrderIdExchangeSpecific = self.safe_string(params, 'client_order_id', clientOrderIdUnified)
         isByClientOrder = clientOrderIdExchangeSpecific is not None
         response: dict
-        if trigger:
+        if trigger is True:
             if isByClientOrder:
                 request['client_order_id'] = clientOrderIdExchangeSpecific
                 params = self.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id'])
@@ -1791,12 +1790,12 @@ class modetrade(Exchange, ImplicitAPI):
             extendParams['client_order_id'] = clientOrderIdExchangeSpecific
         else:
             extendParams['id'] = id
-        if trigger:
+        if trigger is True:
             return self.extend(self.parse_order(response), extendParams)
         data = self.safe_dict(response, 'data', {})
         return self.extend(self.parse_order(data), extendParams)
 
-    async def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
+    async def cancel_orders(self, ids: list[str], symbol: Str = None, params={}):
         """
         cancel multiple orders
 
@@ -1815,7 +1814,7 @@ class modetrade(Exchange, ImplicitAPI):
         params = self.omit(params, ['clOrdIDs', 'clientOrderIds', 'client_order_ids'])
         request = {}
         response = None
-        if clientOrderIds:
+        if clientOrderIds is not None:
             request['client_order_ids'] = ','.join(clientOrderIds)
             response = await self.v1PrivateDeleteClientBatchOrder(self.extend(request, params))
         else:
@@ -1855,7 +1854,7 @@ class modetrade(Exchange, ImplicitAPI):
             market = self.market(symbol)
             request['symbol'] = market['id']
         response = None
-        if trigger:
+        if trigger is True:
             response = await self.v1PrivateDeleteAlgoOrders(self.extend(request, params))
         else:
             response = await self.v1PrivateDeleteOrders(self.extend(request, params))
@@ -1906,15 +1905,15 @@ class modetrade(Exchange, ImplicitAPI):
         clientOrderId = self.safe_string_n(params, ['clOrdID', 'clientOrderId', 'client_order_id'])
         params = self.omit(params, ['stop', 'trigger', 'clOrdID', 'clientOrderId', 'client_order_id'])
         response = None
-        if trigger:
-            if clientOrderId:
+        if trigger is True:
+            if clientOrderId is not None and clientOrderId != '':
                 request['client_order_id'] = clientOrderId
                 response = await self.v1PrivateGetAlgoClientOrderClientOrderId(self.extend(request, params))
             else:
                 request['oid'] = id
                 response = await self.v1PrivateGetAlgoOrderOid(self.extend(request, params))
         else:
-            if clientOrderId:
+            if (clientOrderId is not None) and (clientOrderId != ''):
                 request['client_order_id'] = clientOrderId
                 response = await self.v1PrivateGetClientOrderClientOrderId(self.extend(request, params))
             else:
@@ -1950,7 +1949,7 @@ class modetrade(Exchange, ImplicitAPI):
         orders = self.safe_dict(response, 'data', response)
         return self.parse_order(orders, market)
 
-    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
 
@@ -1972,7 +1971,7 @@ class modetrade(Exchange, ImplicitAPI):
             await self.load_markets()
         paginate = False
         isTrigger = self.safe_bool_2(params, 'stop', 'trigger', False)
-        maxLimit = 100 if (isTrigger) else 500
+        maxLimit = 100 if (isTrigger is True) else 500
         paginate, params = self.handle_option_and_params(params, 'fetchOrders', 'paginate')
         if paginate:
             return await self.fetch_paginated_call_incremental('fetchOrders', symbol, since, limit, params, 'page', maxLimit)
@@ -1988,11 +1987,11 @@ class modetrade(Exchange, ImplicitAPI):
             request['size'] = limit
         else:
             request['size'] = maxLimit
-        if isTrigger:
+        if isTrigger is True:
             request['algo_type'] = 'STOP'
         request, params = self.handle_until_option('end_t', request, params)
         response = None
-        if isTrigger:
+        if isTrigger is True:
             response = await self.v1PrivateGetAlgoOrders(self.extend(request, params))
         else:
             response = await self.v1PrivateGetOrders(self.extend(request, params))
@@ -2034,7 +2033,7 @@ class modetrade(Exchange, ImplicitAPI):
         orders = self.safe_list(data, 'rows', [])
         return self.parse_orders(orders, market, since, limit)
 
-    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
 
@@ -2057,7 +2056,7 @@ class modetrade(Exchange, ImplicitAPI):
         extendedParams = self.extend(params, {'status': 'INCOMPLETE'})
         return await self.fetch_orders(symbol, since, limit, extendedParams)
 
-    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
 
@@ -2190,7 +2189,7 @@ class modetrade(Exchange, ImplicitAPI):
         trades = self.safe_list(data, 'rows', [])
         return self.parse_trades(trades, market, since, limit, params)
 
-    def parse_balance(self, response: Any) -> Balances:
+    def parse_balance(self, response: object) -> Balances:
         result = {
             'info': response,
         }
@@ -2235,7 +2234,7 @@ class modetrade(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data')
         return self.parse_balance(data)
 
-    async def get_asset_history_rows(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> Any:
+    async def get_asset_history_rows(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> object:
         if self.markets is None:
             await self.load_markets()
         request = {}
@@ -2307,14 +2306,14 @@ class modetrade(Exchange, ImplicitAPI):
             'info': item,
         }, currency)
 
-    def parse_ledger_entry_type(self, type: Any):
+    def parse_ledger_entry_type(self, type: object):
         types = {
             'BALANCE': 'transaction',  # Funds moved in/out wallet
             'COLLATERAL': 'transfer',  # Funds moved between portfolios
         }
         return self.safe_string(types, type, type)
 
-    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LedgerEntry]:
+    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[LedgerEntry]:
         """
         fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
@@ -2376,7 +2375,7 @@ class modetrade(Exchange, ImplicitAPI):
             return None
         return self.safe_string(statuses, status, status)
 
-    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch all deposits made to an account
 
@@ -2393,7 +2392,7 @@ class modetrade(Exchange, ImplicitAPI):
         }
         return await self.fetch_deposits_withdrawals(code, since, limit, self.extend(request, params))
 
-    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch all withdrawals made from an account
 
@@ -2410,7 +2409,7 @@ class modetrade(Exchange, ImplicitAPI):
         }
         return await self.fetch_deposits_withdrawals(code, since, limit, self.extend(request, params))
 
-    async def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch history of deposits and withdrawals
 
@@ -2453,17 +2452,17 @@ class modetrade(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.safe_number(data, 'withdraw_nonce')
 
-    def hash_message(self, message: Any):
+    def hash_message(self, message: object):
         return '0x' + self.hash(message, 'keccak', 'hex')
 
-    def sign_hash(self, hash: Any, privateKey: Any):
+    def sign_hash(self, hash: object, privateKey: object):
         signature = self.ecdsa(hash[-64:], privateKey[-64:], 'secp256k1', None)
         r = signature['r']
         s = signature['s']
         v = self.int_to_base16(self.sum(27, signature['v']))
         return '0x' + r.rjust(64, '0') + s.rjust(64, '0') + v
 
-    def sign_message(self, message: Any, privateKey: Any):
+    def sign_message(self, message: object, privateKey: object):
         return self.sign_hash(self.hash_message(message), privateKey[-64:])
 
     async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
@@ -2737,7 +2736,7 @@ class modetrade(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_position(data, market)
 
-    async def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
+    async def fetch_positions(self, symbols: Strings = None, params={}) -> list[Position]:
         """
         fetch all open positions
 
@@ -2795,7 +2794,7 @@ class modetrade(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
-    def sign(self, path: Any, section='public', method='GET', params: dict = {}, headers: dict = None, body: Any = None):
+    def sign(self, path: object, section='public', method='GET', params: dict = {}, headers: dict = None, body: object = None):
         version = section[0]
         access = section[1]
         pathWithParams = self.implode_params(path, params)
@@ -2804,7 +2803,7 @@ class modetrade(Exchange, ImplicitAPI):
         params = self.keysort(params)
         if access == 'public':
             url += pathWithParams
-            if params:
+            if len(params) > 0:
                 url += '?' + self.urlencode(params)
         else:
             self.check_required_credentials()
@@ -2812,7 +2811,7 @@ class modetrade(Exchange, ImplicitAPI):
             isOrder = path == 'algo/order' or path == 'order' or path == 'batch-order'
             if isPostOrPut and isOrder:
                 isSandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
-                if not isSandboxMode:
+                if isSandboxMode is not True:
                     brokerId = self.safe_string(self.options, 'brokerId', 'CCXTMODE')
                     if path == 'batch-order':
                         ordersList = self.safe_list(params, 'orders', [])
@@ -2838,7 +2837,7 @@ class modetrade(Exchange, ImplicitAPI):
                 auth += body
                 headers['content-type'] = 'application/json'
             else:
-                if params:
+                if len(params) > 0:
                     url += '?' + self.urlencode(params)
                     auth += '?' + self.rawencode(params)
                 headers['content-type'] = 'application/x-www-form-urlencoded'
@@ -2852,8 +2851,8 @@ class modetrade(Exchange, ImplicitAPI):
             headers['orderly-signature'] = self.urlencode_base64(self.base64_to_binary(signature))
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
-        if not response:
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+        if (response is None) or (response is None):
             return None  # fallback to default error handler
         #
         #     400 Bad Request {"success":false,"code":-1012,"message":"Amount is required for buy market orders when margin disabled."}
@@ -2861,7 +2860,7 @@ class modetrade(Exchange, ImplicitAPI):
         #
         success = self.safe_bool(response, 'success')
         errorCode = self.safe_string(response, 'code')
-        if not success:
+        if success is not True:
             feedback = self.id + ' ' + self.json(response)
             self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)

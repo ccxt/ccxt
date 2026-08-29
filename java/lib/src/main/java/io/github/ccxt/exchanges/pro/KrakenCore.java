@@ -141,7 +141,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
         var postOnlyparametersVariable = this.handlePostOnly(isMarket, false, parameters);
         postOnly = ((java.util.List<Object>) postOnlyparametersVariable).get(0);
         parameters = ((java.util.List<Object>) postOnlyparametersVariable).get(1);
-        if (Helpers.isTrue(postOnly))
+        if (Helpers.isTrue(Helpers.isEqual(postOnly, true)))
         {
             Helpers.addElementToObject(Helpers.GetValue(request, "params"), "post_only", true);
         }
@@ -184,7 +184,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
         if (Helpers.isTrue(Helpers.isEqual(method, "createOrderWs")))
         {
             Object reduceOnly = this.safeBool(parameters, "reduceOnly");
-            if (Helpers.isTrue(reduceOnly))
+            if (Helpers.isTrue(Helpers.isEqual(reduceOnly, true)))
             {
                 Helpers.addElementToObject(Helpers.GetValue(request, "params"), "reduce_only", true);
             }
@@ -738,10 +738,10 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
         Object ohlcvsLength = Helpers.getArrayLength(data);
         for (var i = 0; Helpers.isLessThan(i, ohlcvsLength); i++)
         {
-            Object candle = Helpers.GetValue(data, Helpers.subtract(Helpers.subtract(ohlcvsLength, i), 1));
+            Object candle = Helpers.GetValue(data, i);
             Object datetime = this.safeString(candle, "interval_begin");
             Object timestamp = this.parse8601(datetime);
-            Object parsed = new java.util.ArrayList<Object>(java.util.Arrays.asList(timestamp, this.safeString(candle, "open"), this.safeString(candle, "high"), this.safeString(candle, "low"), this.safeString(candle, "close"), this.safeString(candle, "volume")));
+            Object parsed = new java.util.ArrayList<Object>(java.util.Arrays.asList(timestamp, this.safeNumber(candle, "open"), this.safeNumber(candle, "high"), this.safeNumber(candle, "low"), this.safeNumber(candle, "close"), this.safeNumber(candle, "volume")));
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
         }
         client.resolve(stored, messageHash);
@@ -1176,7 +1176,8 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
                 Object key = Helpers.GetValue(keys, i);
                 Object bookside = Helpers.GetValue(orderbook, key);
                 Object deltas = this.safeValue(first, key, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(deltas), 0)))
+                Object deltasLength = Helpers.getArrayLength(deltas);
+                if (Helpers.isTrue(Helpers.isGreaterThan(deltasLength, 0)))
                 {
                     this.customHandleDeltas(bookside, deltas);
                 }
@@ -1186,7 +1187,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
         Helpers.callDynamically(orderbook, "limit", new Object[]{});
         // checksum temporarily disabled because the exchange checksum was not reliable
         Object checksum = this.handleOption("watchOrderBook", "checksum", false);
-        if (Helpers.isTrue(checksum))
+        if (Helpers.isTrue(Helpers.isEqual(checksum, true)))
         {
             Object payloadArray = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(!Helpers.isEqual(c, null)))
@@ -1298,20 +1299,60 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
             Object expires = this.safeInteger(subscription, "expires");
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(subscription, null))) || Helpers.isTrue((Helpers.isTrue((!Helpers.isEqual(subscription, null))) && Helpers.isTrue(Helpers.isLessThanOrEqual((Helpers.add(start, expires)), now))))))
             {
-                // https://docs.kraken.com/api/docs/rest-api/get-websockets-token
-                Object response = (this.privatePostGetWebSocketsToken(parameters)).join();
-                //
-                //     {
-                //         "error":[],
-                //         "result":{
-                //             "token":"xeAQ\/RCChBYNVh53sTv1yZ5H4wIbwDF20PiHtTF+4UI",
-                //             "expires":900
-                //         }
-                //     }
-                //
-                subscription = this.safeDict(response, "result");
-                Helpers.addElementToObject(subscription, "start", now);
-                Helpers.addElementToObject(client.subscriptions, authenticated, subscription);
+                // single-flight leader election, see
+                // https://github.com/ccxt/ccxt/issues/29393: the staleness gate
+                // above is followed by an awaited privatePostGetWebSocketsToken (),
+                // so N concurrent watchPrivate () calls on a cold instance each
+                // pass the gate and each burn a rate-limited private REST call to
+                // mint a separate token. client.futures is the flight registry
+                // itself, namespaced away from the real subscription keys on the
+                // same client that already caches the token, and settlement goes
+                // through client.resolve () / client.reject () so every write to
+                // that map stays behind the client's own lock
+                Object messageHash = "authenticateFlight";
+                if (Helpers.isTrue(Helpers.inOp(client.futures, messageHash)))
+                {
+                    // a flight is already in progress - wake when the leader
+                    // settles it: the token is then in the subscriptions bucket
+                    client.future((String)messageHash).getFuture().join();
+                    subscription = this.safeDict(client.subscriptions, authenticated);
+                    return this.safeString(subscription, "token");
+                }
+                io.github.ccxt.ws.Future future = client.reusableFuture((String)messageHash);
+                try
+                {
+                    // https://docs.kraken.com/api/docs/rest-api/get-websockets-token
+                    Object response = (this.privatePostGetWebSocketsToken(parameters)).join();
+                    //
+                    //     {
+                    //         "error":[],
+                    //         "result":{
+                    //             "token":"xeAQ\/RCChBYNVh53sTv1yZ5H4wIbwDF20PiHtTF+4UI",
+                    //             "expires":900
+                    //         }
+                    //     }
+                    //
+                    subscription = this.safeDict(response, "result");
+                    Object token = this.safeString(subscription, "token");
+                    if (Helpers.isTrue(Helpers.isEqual(token, null)))
+                    {
+                        throw new AuthenticationError((String)Helpers.add(this.id, " authenticate() received an empty token")) ;
+                    }
+                    Helpers.addElementToObject(subscription, "start", now);
+                    Helpers.addElementToObject(client.subscriptions, authenticated, subscription);
+                    // settle the flight and wake every waiter - resolve () also
+                    // clears the registry entry, so the next refresh re-leads
+                    client.resolve(token, messageHash);
+                } catch(Exception e)
+                {
+                    // reject the flight - all waiters throw and the next caller
+                    // re-leads instead of deadlocking on a dead flight
+                    client.reject(e, messageHash);
+                }
+                // rethrows the leader's own failure and attaches the handler that
+                // keeps an alone leader's rejection from killing the process
+                ((io.github.ccxt.ws.Future)future).getFuture().join();
+                subscription = this.safeDict(client.subscriptions, authenticated);
             }
             return this.safeString(subscription, "token");
         });
@@ -1943,7 +1984,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
                 Helpers.callDynamically(this, method, new Object[] {client, message});
             }
         }
-        if (Helpers.isTrue(this.handleErrorMessage(client, message)))
+        if (Helpers.isTrue(Helpers.isEqual(this.handleErrorMessage(client, message), true)))
         {
             Object eventVar = this.safeString2(message, "event", "method");
             Object methods = new java.util.HashMap<String, Object>() {{

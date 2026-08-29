@@ -1069,11 +1069,13 @@ public class CryptocomCore extends CryptocomApi
                     symbol = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(symbol, ":"), quote), "-"), this.yymmdd(expiry)), "-"), strike), "-"), symbolOptionType);
                     contract = true;
                 }
-                Object isLinear = ((Helpers.isTrue((contract)))) ? true : null;
-                Object isInverse = ((Helpers.isTrue((contract)))) ? false : null;
+                Object isLinear = ((Helpers.isTrue((Helpers.isEqual(contract, true))))) ? true : null;
+                Object isInverse = ((Helpers.isTrue((Helpers.isEqual(contract, true))))) ? false : null;
     final Object finalSymbol = symbol;
                 final Object finalBase = base;
                 final Object finalType = type;
+                final Object finalMarginBuyEnabled = marginBuyEnabled;
+                final Object finalMarginSellEnabled = marginSellEnabled;
                 final Object finalContract = contract;
                 final Object finalOptionType = optionType;
                             ((java.util.List<Object>)result).add(new java.util.HashMap<String, Object>() {{
@@ -1087,7 +1089,7 @@ public class CryptocomCore extends CryptocomApi
                     put( "settleId", settleId );
                     put( "type", finalType );
                     put( "spot", spot );
-                    put( "margin", (Helpers.isTrue((marginBuyEnabled)) || Helpers.isTrue((marginSellEnabled))) );
+                    put( "margin", (Helpers.isTrue((Helpers.isEqual(finalMarginBuyEnabled, true))) || Helpers.isTrue((Helpers.isEqual(finalMarginSellEnabled, true)))) );
                     put( "swap", swap );
                     put( "future", future );
                     put( "option", option );
@@ -1531,7 +1533,7 @@ public class CryptocomCore extends CryptocomApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "instrument_name", Helpers.GetValue(market, "id") );
             }};
-            if (Helpers.isTrue(limit))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(limit, null))) && Helpers.isTrue((!Helpers.isEqual(limit, 0)))))
             {
                 Helpers.addElementToObject(request, "depth", Helpers.mathMin(limit, 50)); // max 50
             }
@@ -1782,7 +1784,7 @@ public class CryptocomCore extends CryptocomApi
             }
         }
         Object postOnly = this.safeBool(parameters, "postOnly", false);
-        if (Helpers.isTrue(Helpers.isTrue((postOnly)) || Helpers.isTrue((Helpers.isEqual(timeInForce, "PO")))))
+        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(postOnly, true))) || Helpers.isTrue((Helpers.isEqual(timeInForce, "PO")))))
         {
             Helpers.addElementToObject(request, "exec_inst", new java.util.ArrayList<Object>(java.util.Arrays.asList("POST_ONLY")));
             Helpers.addElementToObject(request, "time_in_force", "GOOD_TILL_CANCEL");
@@ -2059,7 +2061,7 @@ public class CryptocomCore extends CryptocomApi
             }
         }
         Object postOnly = this.safeBool(parameters, "postOnly", false);
-        if (Helpers.isTrue(Helpers.isTrue((postOnly)) || Helpers.isTrue((Helpers.isEqual(timeInForce, "PO")))))
+        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(postOnly, true))) || Helpers.isTrue((Helpers.isEqual(timeInForce, "PO")))))
         {
             Helpers.addElementToObject(request, "exec_inst", new java.util.ArrayList<Object>(java.util.Arrays.asList("POST_ONLY")));
             Helpers.addElementToObject(request, "time_in_force", "GOOD_TILL_CANCEL");
@@ -3852,7 +3854,7 @@ public class CryptocomCore extends CryptocomApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            if (!Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 throw new BadSymbol((String)Helpers.add(this.id, " fetchFundingRate() supports swap contracts only")) ;
             }
@@ -3964,7 +3966,7 @@ public class CryptocomCore extends CryptocomApi
                 return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", parameters)).join();
             }
             Object market = this.market(symbol);
-            if (!Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 throw new BadSymbol((String)Helpers.add(this.id, " fetchFundingRateHistory() supports swap contracts only")) ;
             }
@@ -4186,8 +4188,8 @@ public class CryptocomCore extends CryptocomApi
             put( "timestamp", timestamp );
             put( "datetime", CryptocomCore.this.iso8601(timestamp) );
             put( "hedged", null );
-            put( "side", ((Helpers.isTrue(Precise.stringGt(amount, "0")))) ? "buy" : "sell" );
-            put( "contracts", Precise.stringAbs(amount) );
+            put( "side", ((Helpers.isTrue(Precise.stringGt(amount, "0")))) ? "long" : "short" );
+            put( "contracts", CryptocomCore.this.parseNumber(Precise.stringAbs(amount)) );
             put( "contractSize", Helpers.GetValue(finalMarket, "contractSize") );
             put( "entryPrice", null );
             put( "markPrice", null );
@@ -4418,8 +4420,8 @@ public class CryptocomCore extends CryptocomApi
             Object symbol = Helpers.GetValue(this.symbols, i);
             Object market = this.market(symbol);
             Object isSwap = Helpers.GetValue(market, "swap");
-            Object takerFeeKey = ((Helpers.isTrue(isSwap))) ? "effective_deriv_taker_rate_bps" : "effective_spot_taker_rate_bps";
-            Object makerFeeKey = ((Helpers.isTrue(isSwap))) ? "effective_deriv_maker_rate_bps" : "effective_spot_maker_rate_bps";
+            Object takerFeeKey = ((Helpers.isTrue((Helpers.isEqual(isSwap, true))))) ? "effective_deriv_taker_rate_bps" : "effective_spot_taker_rate_bps";
+            Object makerFeeKey = ((Helpers.isTrue((Helpers.isEqual(isSwap, true))))) ? "effective_deriv_maker_rate_bps" : "effective_spot_maker_rate_bps";
             Object tradingFee = new java.util.HashMap<String, Object>() {{
                 put( "info", response );
                 put( "symbol", symbol );
@@ -4468,7 +4470,7 @@ public class CryptocomCore extends CryptocomApi
         Object query = this.omit(parameters, this.extractParams(path));
         if (Helpers.isTrue(Helpers.isEqual(access, "public")))
         {
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
             {
                 url = Helpers.add(url, Helpers.add("?", this.urlencode(query)));
             }

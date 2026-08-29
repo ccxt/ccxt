@@ -935,7 +935,7 @@ public class PhemexCore extends PhemexApi
         if (Helpers.isTrue(Helpers.isEqual(settle, "USDT")))
         {
             contractSize = this.parseNumber("1");
-        } else if (Helpers.isTrue(Helpers.getIndexOf(contractSizeString, " ")))
+        } else if (Helpers.isTrue(!Helpers.isEqual(Helpers.getIndexOf(contractSizeString, " "), Helpers.opNeg(1))))
         {
             // "1 USD"
             // "0.005 ETH"
@@ -1452,7 +1452,7 @@ public class PhemexCore extends PhemexApi
             throw new ArgumentsRequired((String)Helpers.add(this.id, " customParseBidAsk() requires a market argument")) ;
         }
         Object amount = this.safeString(bidask, amountKey);
-        if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+        if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
         {
             amount = this.fromEv(amount, market);
         }
@@ -1517,7 +1517,7 @@ public class PhemexCore extends PhemexApi
             }};
             Object response = null;
             Object isStableSettled = Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDT"))) || Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDC")));
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(market, "linear")) && Helpers.isTrue(isStableSettled)))
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "linear"), true))) && Helpers.isTrue(isStableSettled)))
             {
                 response = (this.v2GetMdV2Orderbook(this.extend(request, parameters))).join();
             } else
@@ -1567,6 +1567,10 @@ public class PhemexCore extends PhemexApi
 
     public Object toEn(Object n, Object scale)
     {
+        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(n, null))) || Helpers.isTrue((Helpers.isEqual(scale, null)))))
+        {
+            return null;
+        }
         Object stringN = this.numberToString(n);
         var precise = new Precise(((String)stringN));
         precise.decimals = Helpers.subtract(precise.decimals, scale);
@@ -1582,7 +1586,7 @@ public class PhemexCore extends PhemexApi
         {
             return amount;
         }
-        return this.toEn(amount, Helpers.GetValue(market, "valueScale"));
+        return this.toEn(amount, this.safeInteger(market, "valueScale"));
     }
 
     public Object toEp(Object price, Object... optionalArgs)
@@ -1592,7 +1596,7 @@ public class PhemexCore extends PhemexApi
         {
             return price;
         }
-        return this.toEn(price, this.safeValue(market, "priceScale"));
+        return this.toEn(price, this.safeInteger(market, "priceScale"));
     }
 
     public Object fromEn(Object en, Object scale)
@@ -1654,7 +1658,7 @@ public class PhemexCore extends PhemexApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object baseVolume = null;
-        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(market, null))) && Helpers.isTrue(Helpers.GetValue(market, "spot"))))
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(market, null))) && Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))))
         {
             baseVolume = this.parseNumber(this.fromEv(this.safeString(ohlcv, 7), market));
         } else
@@ -1700,7 +1704,7 @@ public class PhemexCore extends PhemexApi
             Object until = this.safeInteger2(parameters, "until", "to");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until")));
             Object isStableSettled = Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDT"))) || Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDC")));
-            Object usesSpecialFromToEndpoint = Helpers.isTrue(((Helpers.isTrue(Helpers.GetValue(market, "linear")) || Helpers.isTrue(isStableSettled)))) && Helpers.isTrue((Helpers.isTrue((!Helpers.isEqual(since, null))) || Helpers.isTrue((!Helpers.isEqual(until, null)))));
+            Object usesSpecialFromToEndpoint = Helpers.isTrue(((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "linear"), true))) || Helpers.isTrue(isStableSettled)))) && Helpers.isTrue((Helpers.isTrue((!Helpers.isEqual(since, null))) || Helpers.isTrue((!Helpers.isEqual(until, null)))));
             Object maxLimit = 1000;
             if (Helpers.isTrue(usesSpecialFromToEndpoint))
             {
@@ -1712,7 +1716,7 @@ public class PhemexCore extends PhemexApi
             }
             Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, maxLimit));
             Object response = null;
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(market, "linear")) || Helpers.isTrue(isStableSettled)))
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "linear"), true))) || Helpers.isTrue(isStableSettled)))
             {
                 if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(until, null))) || Helpers.isTrue((!Helpers.isEqual(since, null)))))
                 {
@@ -1897,9 +1901,9 @@ public class PhemexCore extends PhemexApi
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             Object response = null;
-            if (Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
-                if (Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(market, "inverse")) || Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "settle"), "USD"))))
+                if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "inverse"), true))) || Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "settle"), "USD"))))
                 {
                     response = (this.v1GetMdTicker24hr(this.extend(request, parameters))).join();
                 } else
@@ -2043,7 +2047,7 @@ public class PhemexCore extends PhemexApi
             }};
             Object response = null;
             Object isStableSettled = Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDT"))) || Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDC")));
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(market, "linear")) && Helpers.isTrue(isStableSettled)))
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "linear"), true))) && Helpers.isTrue(isStableSettled)))
             {
                 response = (this.v2GetMdV2Trade(this.extend(request, parameters))).join();
             } else
@@ -2351,7 +2355,7 @@ public class PhemexCore extends PhemexApi
                 if (Helpers.isTrue(!Helpers.isEqual(feeCostString, null)))
                 {
                     feeRateString = this.fromEr(this.safeString(trade, "feeRateEr"), market);
-                    if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+                    if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
                     {
                         feeCurrencyCode = this.safeCurrencyCode(this.safeString(trade, "feeCurrency"));
                     } else
@@ -3102,7 +3106,7 @@ public class PhemexCore extends PhemexApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object isSwap = this.safeBool(market, "swap", false);
         Object hasPnl = Helpers.isTrue(Helpers.isTrue((Helpers.inOp(order, "closedPnl"))) || Helpers.isTrue((Helpers.inOp(order, "closedPnlRv")))) || Helpers.isTrue((Helpers.inOp(order, "totalPnlRv")));
-        if (Helpers.isTrue(Helpers.isTrue(isSwap) || Helpers.isTrue(hasPnl)))
+        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(isSwap, true))) || Helpers.isTrue(hasPnl)))
         {
             return this.parseSwapOrder(order, market);
         }
@@ -3182,7 +3186,7 @@ public class PhemexCore extends PhemexApi
                 }
             }
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stopPx", "stopPrice", "stopLoss", "takeProfit", "triggerPrice")));
-            if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 Object qtyType = this.safeValue(parameters, "qtyType", "ByBase");
                 if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(type, "Market"))) || Helpers.isTrue((Helpers.isEqual(type, "Stop")))) || Helpers.isTrue((Helpers.isEqual(type, "MarketIfTouched")))))
@@ -3208,7 +3212,7 @@ public class PhemexCore extends PhemexApi
                 {
                     Object cost = this.safeNumber(parameters, "cost");
                     parameters = this.omit(parameters, "cost");
-                    if (Helpers.isTrue(Helpers.GetValue(this.options, "createOrderByQuoteRequiresPrice")))
+                    if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(this.options, "createOrderByQuoteRequiresPrice"), true)))
                     {
                         if (Helpers.isTrue(!Helpers.isEqual(price, null)))
                         {
@@ -3229,17 +3233,17 @@ public class PhemexCore extends PhemexApi
                     Object amountString = this.amountToPrecision(symbol, amount);
                     Helpers.addElementToObject(request, "baseQtyEv", this.toEv(amountString, market));
                 }
-            } else if (Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 Object hedged = this.safeBool(parameters, "hedged", false);
                 parameters = this.omit(parameters, "hedged");
                 Object posSide = this.safeStringLower(parameters, "posSide");
                 if (Helpers.isTrue(Helpers.isEqual(posSide, null)))
                 {
-                    if (Helpers.isTrue(hedged))
+                    if (Helpers.isTrue(Helpers.isEqual(hedged, true)))
                     {
                         Object reduceOnly = this.safeBool(parameters, "reduceOnly");
-                        if (Helpers.isTrue(reduceOnly))
+                        if (Helpers.isTrue(Helpers.isEqual(reduceOnly, true)))
                         {
                             side = ((Helpers.isTrue((Helpers.isEqual(side, "buy"))))) ? "sell" : "buy";
                             parameters = this.omit(parameters, "reduceOnly");
@@ -3254,10 +3258,10 @@ public class PhemexCore extends PhemexApi
                 Helpers.addElementToObject(request, "posSide", posSide);
                 if (Helpers.isTrue(isStableSettled))
                 {
-                    Helpers.addElementToObject(request, "orderQtyRq", amount);
+                    Helpers.addElementToObject(request, "orderQtyRq", this.amountToPrecision(symbol, amount));
                 } else
                 {
-                    Helpers.addElementToObject(request, "orderQty", this.parseToInt(amount));
+                    Helpers.addElementToObject(request, "orderQty", this.parseToInt(this.amountToPrecision(symbol, amount)));
                 }
                 if (Helpers.isTrue(!Helpers.isEqual(triggerPrice, null)))
                 {
@@ -3386,7 +3390,7 @@ public class PhemexCore extends PhemexApi
             if (Helpers.isTrue(isStableSettled))
             {
                 response = (this.privatePostGOrders(this.extend(request, parameters))).join();
-            } else if (Helpers.isTrue(Helpers.GetValue(market, "contract")))
+            } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
             {
                 response = (this.privatePostOrders(this.extend(request, parameters))).join();
             } else
@@ -3563,7 +3567,7 @@ public class PhemexCore extends PhemexApi
                     Helpers.addElementToObject(request, "posSide", "Merged");
                 }
                 response = (this.privatePutGOrdersReplace(this.extend(request, parameters))).join();
-            } else if (Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 response = (this.privatePutOrdersReplace(this.extend(request, parameters))).join();
             } else
@@ -3624,7 +3628,7 @@ public class PhemexCore extends PhemexApi
                     Helpers.addElementToObject(request, "posSide", "Merged");
                 }
                 response = (this.privateDeleteGOrdersCancel(this.extend(request, parameters))).join();
-            } else if (Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 response = (this.privateDeleteOrdersCancel(this.extend(request, parameters))).join();
             } else
@@ -3667,7 +3671,7 @@ public class PhemexCore extends PhemexApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            if (Helpers.isTrue(trigger))
+            if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
             {
                 Helpers.addElementToObject(request, "untriggerred", trigger);
             }
@@ -3675,7 +3679,7 @@ public class PhemexCore extends PhemexApi
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDT")) || Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDC"))))
             {
                 response = (this.privateDeleteGOrdersAll(this.extend(request, parameters))).join();
-            } else if (Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 response = (this.privateDeleteOrdersAll(this.extend(request, parameters))).join();
             } else
@@ -3732,7 +3736,7 @@ public class PhemexCore extends PhemexApi
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDT")) || Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDC"))))
             {
                 response = (this.privateGetApiDataGFuturesOrdersByOrderId(this.extend(request, parameters))).join();
-            } else if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 response = (this.privateGetApiDataSpotsOrdersByOrderId(this.extend(request, parameters))).join();
             } else
@@ -3755,7 +3759,7 @@ public class PhemexCore extends PhemexApi
                     }
                 }
                 order = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
-            } else if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 Object rows = this.safeList(data, "rows", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 order = this.safeDict(rows, 0, new java.util.HashMap<String, Object>() {{}});
@@ -3810,7 +3814,7 @@ public class PhemexCore extends PhemexApi
             {
                 Helpers.addElementToObject(request, "currency", Helpers.GetValue(market, "settle"));
                 response = (this.privateGetExchangeOrderV2OrderList(this.extend(request, parameters))).join();
-            } else if (Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 response = (this.privateGetExchangeOrderList(this.extend(request, parameters))).join();
             } else
@@ -3868,7 +3872,7 @@ public class PhemexCore extends PhemexApi
                 if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDT")) || Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDC"))))
                 {
                     response = (this.privateGetGOrdersActiveList(this.extend(request, parameters))).join();
-                } else if (Helpers.isTrue(Helpers.GetValue(market, "swap")))
+                } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
                 {
                     response = (this.privateGetOrdersActiveList(this.extend(request, parameters))).join();
                 } else
@@ -3947,7 +3951,7 @@ public class PhemexCore extends PhemexApi
             {
                 Helpers.addElementToObject(request, "currency", this.safeString(parameters, "settle", "USDT"));
                 response = (this.privateGetExchangeOrderV2OrderList(this.extend(request, parameters))).join();
-            } else if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(market, null)) && Helpers.isTrue(Helpers.GetValue(market, "swap"))))
+            } else if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(market, null)) && Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))))
             {
                 response = (this.privateGetExchangeOrderList(this.extend(request, parameters))).join();
             } else
@@ -4528,7 +4532,7 @@ public class PhemexCore extends PhemexApi
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.code] the currency code to fetch positions for, USD, BTC or USDT, USDT is the default
-     * @param {string} [params.method] *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetGAccountsAccountPositions' default is 'privateGetGAccountsAccountPositions'
+     * @param {string} [params.method] *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetGAccountsPositions' default is 'privateGetGAccountsAccountPositions'
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchPositions(Object... optionalArgs)
@@ -4878,7 +4882,7 @@ public class PhemexCore extends PhemexApi
         // Linear long contract:  unRealizedPnl = (posSize * contractSize) * markPrice - (posSize * contractSize) * avgEntryPrice
         // Linear short contract:  unRealizedPnl = (posSize * contractSize) * avgEntryPrice - (posSize * contractSize) * markPrice
         Object priceDiff = null;
-        if (Helpers.isTrue(Helpers.GetValue(market, "linear")))
+        if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "linear"), true)))
         {
             if (Helpers.isTrue(Helpers.isEqual(side, "long")))
             {
@@ -4905,6 +4909,7 @@ public class PhemexCore extends PhemexApi
         Object isCross = this.safeValue(position, "crossMargin");
         Object timestamp = this.safeInteger(position, "openedTimeNs");
         Object lastUpdateTimestamp = this.safeInteger(position, "updatedTimeNs", this.safeIntegerProduct(position, "transactTimeNs", 0.000001));
+        final Object finalIsCross = isCross;
         final Object finalSide = side;
         return this.safePosition(new java.util.HashMap<String, Object>() {{
             put( "info", position );
@@ -4930,7 +4935,7 @@ public class PhemexCore extends PhemexApi
             put( "marginRatio", PhemexCore.this.parseNumber(marginRatio) );
             put( "timestamp", timestamp );
             put( "datetime", PhemexCore.this.iso8601(timestamp) );
-            put( "marginMode", ((Helpers.isTrue(isCross))) ? "cross" : "isolated" );
+            put( "marginMode", ((Helpers.isTrue((Helpers.isEqual(finalIsCross, true))))) ? "cross" : "isolated" );
             put( "side", finalSide );
             put( "hedged", Helpers.isEqual(PhemexCore.this.safeString(position, "posMode"), "Hedged") );
             put( "percentage", null );
@@ -5073,7 +5078,7 @@ public class PhemexCore extends PhemexApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            if (!Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 throw new BadSymbol((String)Helpers.add(this.id, " fetchFundingRate() supports swap contracts only")) ;
             }
@@ -5081,7 +5086,7 @@ public class PhemexCore extends PhemexApi
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             Object response = new java.util.HashMap<String, Object>() {{}};
-            if (!Helpers.isTrue(Helpers.GetValue(market, "linear")))
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "linear"), true)))
             {
                 response = (this.v1GetMdTicker24hr(this.extend(request, parameters))).join();
             } else
@@ -5246,7 +5251,7 @@ public class PhemexCore extends PhemexApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         market = this.safeMarket(null, market);
         Object inverse = this.safeValue(market, "inverse");
-        Object codeCurrency = ((Helpers.isTrue(inverse))) ? "base" : "quote";
+        Object codeCurrency = ((Helpers.isTrue((Helpers.isEqual(inverse, true))))) ? "base" : "quote";
         final Object finalMarket = market;
         return new java.util.HashMap<String, Object>() {{
             put( "info", data );
@@ -5288,7 +5293,7 @@ public class PhemexCore extends PhemexApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            if (!Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 throw new BadSymbol((String)Helpers.add(this.id, " setMarginMode() supports swap contracts only")) ;
             }
@@ -5540,7 +5545,7 @@ final Object finalI = i;
         Object queryString = "";
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(method, "GET"))) || Helpers.isTrue((Helpers.isEqual(method, "DELETE")))) || Helpers.isTrue((Helpers.isEqual(method, "PUT")))) || Helpers.isTrue((Helpers.isEqual(url, "/positions/assign")))))
         {
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
             {
                 queryString = this.urlencodeWithArrayRepeat(query);
                 url = Helpers.add(url, Helpers.add("?", queryString));
@@ -5633,7 +5638,7 @@ final Object finalI = i;
             Object response = null;
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDT")) || Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDC"))))
             {
-                if (Helpers.isTrue(Helpers.isTrue(!Helpers.isTrue(isHedged) && Helpers.isTrue(Helpers.isEqual(longLeverageRr, null))) && Helpers.isTrue(Helpers.isEqual(shortLeverageRr, null))))
+                if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(isHedged, true))) && Helpers.isTrue(Helpers.isEqual(longLeverageRr, null))) && Helpers.isTrue(Helpers.isEqual(shortLeverageRr, null))))
                 {
                     Helpers.addElementToObject(request, "leverageRr", leverage);
                 } else
@@ -5740,7 +5745,7 @@ final Object finalI = i;
             }
             Object transferOptions = this.safeValue(this.options, "transfer", new java.util.HashMap<String, Object>() {{}});
             Object fillResponseFromRequest = this.safeBool(transferOptions, "fillResponseFromRequest", true);
-            if (Helpers.isTrue(fillResponseFromRequest))
+            if (Helpers.isTrue(Helpers.isEqual(fillResponseFromRequest, true)))
             {
                 if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(transfer, "fromAccount"), null)))
                 {
@@ -5937,7 +5942,7 @@ final Object finalI = i;
             }
             Object market = this.market(symbol);
             Object isUsdtSettled = Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDT")) || Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDC"));
-            if (!Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 throw new BadRequest((String)Helpers.add(this.id, " fetchFundingRateHistory() supports swap contracts only")) ;
             }
@@ -6132,7 +6137,7 @@ final Object finalI = i;
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            if (!Helpers.isTrue(Helpers.GetValue(market, "contract")))
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
             {
                 throw new BadRequest((String)Helpers.add(this.id, " fetchOpenInterest is only supported for contract markets.")) ;
             }
@@ -6474,7 +6479,7 @@ final Object finalI = i;
 
     /**
      * @method
-     * @name phemex#fetchPositionADLRank
+     * @name phemex#fetchPositionsADLRank
      * @description fetches the auto deleveraging rank and risk percentage for a list of symbols
      * @see https://phemex-docs.github.io/#query-account-positions
      * @see https://phemex-docs.github.io/#query-trading-account-and-positions
@@ -6482,7 +6487,7 @@ final Object finalI = i;
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.code] the currency code to fetch ranks for, USD, BTC or USDT, USDT is the default
-     * @param {string} [params.method] *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetGAccountsAccountPositions' default is 'privateGetGAccountsAccountPositions'
+     * @param {string} [params.method] *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetGAccountsPositions' default is 'privateGetGAccountsAccountPositions'
      * @returns {object} an array of [auto de leverage structures]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchPositionsADLRank(Object... optionalArgs)

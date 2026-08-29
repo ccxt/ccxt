@@ -5,8 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.derive import ImplicitAPI
-from ccxt.base.types import Any, Balances, Currencies, Currency, CurrencyInterface, Int, Market, Num, Order, OrderSide, OrderType, Position, Str, Strings, Ticker, FundingRate, Trade, Transaction
-from typing import List
+from ccxt.base.types import Balances, Currencies, Currency, CurrencyInterface, Int, Market, Num, Order, OrderSide, OrderType, Position, Str, Strings, Ticker, FundingRate, Trade, Transaction
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -21,7 +20,7 @@ from ccxt.base.precise import Precise
 
 class derive(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(derive, self).describe(), {
             'id': 'derive',
             'name': 'Derive',
@@ -534,7 +533,7 @@ class derive(Exchange, ImplicitAPI):
             'info': rawCurrency,
         })
 
-    def fetch_markets(self, params={}) -> List[Market]:
+    def fetch_markets(self, params={}) -> list[Market]:
         """
         retrieves data on all markets for bybit
 
@@ -596,7 +595,7 @@ class derive(Exchange, ImplicitAPI):
         result = self.array_concat(result, optionMarkets)
         return result
 
-    def fetch_spot_markets(self, params: Any = {}) -> List[Market]:
+    def fetch_spot_markets(self, params: object = {}) -> list[Market]:
         request = {
             'expired': False,
             'instrument_type': 'erc20',
@@ -606,7 +605,7 @@ class derive(Exchange, ImplicitAPI):
         data = self.safe_list(result, 'instruments', [])
         return self.parse_markets(data)
 
-    def fetch_swap_markets(self, params: Any = {}) -> List[Market]:
+    def fetch_swap_markets(self, params: object = {}) -> list[Market]:
         request = {
             'expired': False,
             'instrument_type': 'perp',
@@ -616,7 +615,7 @@ class derive(Exchange, ImplicitAPI):
         data = self.safe_list(result, 'instruments', [])
         return self.parse_markets(data)
 
-    def fetch_option_markets(self, params: Any = {}) -> List[Market]:
+    def fetch_option_markets(self, params: object = {}) -> list[Market]:
         request = {
             'expired': False,
             'instrument_type': 'option',
@@ -896,7 +895,7 @@ class derive(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -963,7 +962,7 @@ class derive(Exchange, ImplicitAPI):
         data = self.safe_list(result, 'trades', [])
         return self.parse_trades(data, market, since, limit)
 
-    def parse_trades(self, trades: List[Any], market: Market = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    def parse_trades(self, trades: list, market: Market = None, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         tradesArray = self.to_array(trades)
         result = []
         for i in range(0, len(tradesArray)):
@@ -1116,7 +1115,7 @@ class derive(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 0)
         return self.parse_funding_rate(data)
 
-    def parse_funding_rate(self, contract: Any, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
         symbol = self.safe_string(contract, 'symbol')
         fundingTimestamp = self.safe_integer(contract, 'timestamp')
         return {
@@ -1140,21 +1139,21 @@ class derive(Exchange, ImplicitAPI):
             'interval': None,
         }
 
-    def hash_order_message(self, order: Any):
+    def hash_order_message(self, order: object):
         accountHash = self.hash(self.eth_abi_encode([
             'bytes32', 'uint256', 'uint256', 'address', 'bytes32', 'uint256', 'address', 'address',
         ], order), 'keccak', 'binary')
         sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
-        DOMAIN_SEPARATOR = '9bcf4dc06df5d8bf23af818d5716491b995020f377d3b7b64c29ed14e3dd1105' if (sandboxMode) else 'd96e5f90797da7ec8dc4e276260c7f3f87fedf68775fbe1ef116e996fc60441b'
+        DOMAIN_SEPARATOR = '9bcf4dc06df5d8bf23af818d5716491b995020f377d3b7b64c29ed14e3dd1105' if (sandboxMode is True) else 'd96e5f90797da7ec8dc4e276260c7f3f87fedf68775fbe1ef116e996fc60441b'
         binaryDomainSeparator = self.base16_to_binary(DOMAIN_SEPARATOR)
         prefix = self.base16_to_binary('1901')
         return self.hash(self.binary_concat(prefix, binaryDomainSeparator, accountHash), 'keccak', 'hex')
 
-    def sign_order(self, order: Any, privateKey: Any):
+    def sign_order(self, order: object, privateKey: object):
         hashOrder = self.hash_order_message(order)
         return self.sign_hash(hashOrder[-64:], privateKey[-64:])
 
-    def hash_message(self, message: Any):
+    def hash_message(self, message: object):
         binaryMessage = self.encode(message)
         binaryMessageLength = self.binary_length(binaryMessage)
         x19 = self.base16_to_binary('19')
@@ -1162,7 +1161,7 @@ class derive(Exchange, ImplicitAPI):
         prefix = self.binary_concat(x19, self.encode('Ethereum Signed Message:'), newline, self.encode(self.number_to_string(binaryMessageLength)))
         return '0x' + self.hash(self.binary_concat(prefix, binaryMessage), 'keccak', 'hex')
 
-    def sign_hash(self, hash: Any, privateKey: Any):
+    def sign_hash(self, hash: object, privateKey: object):
         self.check_required_credentials()
         signature = self.ecdsa(hash[-64:], privateKey[-64:], 'secp256k1', None)
         r = signature['r']
@@ -1170,7 +1169,7 @@ class derive(Exchange, ImplicitAPI):
         v = self.int_to_base16(self.sum(27, signature['v']))
         return '0x' + r.rjust(64, '0') + s.rjust(64, '0') + v
 
-    def sign_message(self, message: Any, privateKey: Any):
+    def sign_message(self, message: object, privateKey: object):
         return self.sign_hash(self.hash_message(message), privateKey[-64:])
 
     def parse_units(self, num: str, dec='1000000000000000000'):
@@ -1215,7 +1214,7 @@ class derive(Exchange, ImplicitAPI):
         signatureExpiry = self.safe_integer(params, 'signature_expiry_sec', self.seconds() + 7776000)
         ACTION_TYPEHASH = self.base16_to_binary('4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17')
         sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
-        TRADE_MODULE_ADDRESS = '0x87F2863866D85E3192a35A73b388BD625D83f2be' if (sandboxMode) else '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b'
+        TRADE_MODULE_ADDRESS = '0x87F2863866D85E3192a35A73b388BD625D83f2be' if (sandboxMode is True) else '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b'
         priceString = self.number_to_string(price)
         maxFee = None
         maxFee, params = self.handle_option_and_params(params, 'createOrder', 'max_fee')
@@ -1261,7 +1260,7 @@ class derive(Exchange, ImplicitAPI):
         }
         if reduceOnly is not None:
             request['reduce_only'] = reduceOnly
-            if reduceOnly and postOnly:
+            if reduceOnly and (postOnly is True):
                 raise InvalidOrder(self.id + ' cannot use reduce only with post only time in force')
         if postOnly is not None:
             request['time_in_force'] = 'post_only'
@@ -1286,7 +1285,7 @@ class derive(Exchange, ImplicitAPI):
         request['signature'] = signature
         params = self.omit(params, ['reduceOnly', 'reduce_only', 'timeInForce', 'time_in_force', 'postOnly', 'test', 'clientOrderId', 'stopPrice', 'triggerPrice', 'trigger_price', 'stopLoss', 'takeProfit', 'trigger_price_type'])
         response: dict
-        if test:
+        if test is True:
             response = self.privatePostOrderDebug(self.extend(request, params))
         else:
             response = self.privatePostOrder(self.extend(request, params))
@@ -1396,7 +1395,7 @@ class derive(Exchange, ImplicitAPI):
         # TODO: subaccount id / trade module address
         ACTION_TYPEHASH = self.base16_to_binary('4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17')
         sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
-        TRADE_MODULE_ADDRESS = '0x87F2863866D85E3192a35A73b388BD625D83f2be' if (sandboxMode) else '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b'
+        TRADE_MODULE_ADDRESS = '0x87F2863866D85E3192a35A73b388BD625D83f2be' if (sandboxMode is True) else '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b'
         priceString = self.number_to_string(price)
         maxFeeString = self.safe_string(params, 'max_fee', '0')
         amountString = self.number_to_string(amount)
@@ -1438,7 +1437,7 @@ class derive(Exchange, ImplicitAPI):
         }
         if reduceOnly is not None:
             request['reduce_only'] = reduceOnly
-            if reduceOnly and postOnly:
+            if reduceOnly and (postOnly is True):
                 raise InvalidOrder(self.id + ' cannot use reduce only with post only time in force')
         if postOnly is not None:
             request['time_in_force'] = 'post_only'
@@ -1565,7 +1564,7 @@ class derive(Exchange, ImplicitAPI):
             response = self.privatePostCancelByLabel(self.extend(request, params))
         else:
             request['order_id'] = id
-            if isTrigger:
+            if isTrigger is True:
                 response = self.privatePostCancelTriggerOrder(self.extend(request, params))
             else:
                 response = self.privatePostCancel(self.extend(request, params))
@@ -1661,7 +1660,7 @@ class derive(Exchange, ImplicitAPI):
         #
         return [self.safe_order({'info': response})]
 
-    def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
 
@@ -1697,7 +1696,7 @@ class derive(Exchange, ImplicitAPI):
             request['page_size'] = limit
         else:
             request['page_size'] = 500
-        if isTrigger:
+        if isTrigger is True:
             request['status'] = 'untriggered'
         response = self.privatePostGetOrders(self.extend(request, params))
         #
@@ -1755,7 +1754,7 @@ class derive(Exchange, ImplicitAPI):
         orders = self.safe_list(data, 'orders', [])
         return self.parse_orders(orders, market, since, limit)
 
-    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
 
@@ -1773,7 +1772,7 @@ class derive(Exchange, ImplicitAPI):
         extendedParams = self.extend(params, {'status': 'open'})
         return self.fetch_orders(symbol, since, limit, extendedParams)
 
-    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
 
@@ -1900,7 +1899,7 @@ class derive(Exchange, ImplicitAPI):
         isBid = self.safe_bool(order, 'is_bid')
         side = self.safe_string(order, 'direction')
         if side is None:
-            if isBid:
+            if isBid is True:
                 side = 'buy'
             else:
                 side = 'sell'
@@ -2099,7 +2098,7 @@ class derive(Exchange, ImplicitAPI):
         trades = self.safe_list(result, 'trades', [])
         return self.parse_trades(trades, market, since, limit, params)
 
-    def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
+    def fetch_positions(self, symbols: Strings = None, params={}) -> list[Position]:
         """
         fetch all open positions
 
@@ -2213,9 +2212,9 @@ class derive(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastUpdateTimestamp': None,
-            'initialMargin': self.safe_string(position, 'initial_margin'),
+            'initialMargin': self.safe_number(position, 'initial_margin'),
             'initialMarginPercentage': None,
-            'maintenanceMargin': self.safe_string(position, 'maintenance_margin'),
+            'maintenanceMargin': self.safe_number(position, 'maintenance_margin'),
             'maintenanceMarginPercentage': None,
             'entryPrice': None,
             'notional': self.parse_number(notional),
@@ -2310,7 +2309,7 @@ class derive(Exchange, ImplicitAPI):
         events = self.safe_list(result, 'events', [])
         return self.parse_incomes(events, market, since, limit)
 
-    def parse_income(self, income: Any, market: Market = None):
+    def parse_income(self, income: object, market: Market = None):
         #
         # {
         #     "instrument_name": "BTC-PERP",
@@ -2403,7 +2402,7 @@ class derive(Exchange, ImplicitAPI):
         result = self.safe_list(response, 'result')
         return self.parse_balance(result)
 
-    def parse_balance(self, response: Any) -> Balances:
+    def parse_balance(self, response: object) -> Balances:
         result = {
             'info': response,
         }
@@ -2424,7 +2423,7 @@ class derive(Exchange, ImplicitAPI):
                     result[code] = account
         return self.safe_balance(result)
 
-    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch all deposits made to an account
 
@@ -2470,7 +2469,7 @@ class derive(Exchange, ImplicitAPI):
         events = self.safe_list(result, 'events', [])
         return self.parse_transactions(events, currency, since, limit, params)
 
-    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch all withdrawals made from an account
 
@@ -2585,8 +2584,8 @@ class derive(Exchange, ImplicitAPI):
             return [optionsWallet, params]
         raise ArgumentsRequired(self.id + ' ' + methodName + '() requires a deriveWalletAddress parameter inside \'params\' or exchange.options[\'deriveWalletAddress\'] = ADDRESS, the address can find in HOME => Developers tab.')
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
-        if not response:
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+        if response is None:
             return None  # fallback to default error handler
         error = self.safe_dict(response, 'error')
         if error is not None:
@@ -2597,7 +2596,7 @@ class derive(Exchange, ImplicitAPI):
             raise ExchangeError(feedback)
         return None
 
-    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         url = self.urls['api'][api] + '/' + path
         if method == 'POST':
             headers = {

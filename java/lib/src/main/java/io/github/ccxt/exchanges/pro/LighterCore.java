@@ -638,7 +638,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
         Object priceString = this.safeString(trade, "price");
         Object amountString = this.safeString(trade, "size");
         Object isMakerAsk = this.safeBool(trade, "is_maker_ask");
-        Object side = ((Helpers.isTrue(isMakerAsk))) ? "buy" : "sell";
+        Object side = ((Helpers.isTrue((Helpers.isEqual(isMakerAsk, true))))) ? "buy" : "sell";
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", tradeId );
@@ -837,18 +837,18 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
                 // Own trades should use the account's order side
                 side = "buy";
                 order = this.safeString(trade, "bid_id");
-                takerOrMaker = ((Helpers.isTrue(isMakerAsk))) ? "taker" : "maker";
+                takerOrMaker = ((Helpers.isTrue((Helpers.isEqual(isMakerAsk, true))))) ? "taker" : "maker";
             } else if (Helpers.isTrue(Helpers.isEqual(askAccountId, accountIndex)))
             {
                 side = "sell";
                 order = this.safeString(trade, "ask_id");
-                takerOrMaker = ((Helpers.isTrue(isMakerAsk))) ? "maker" : "taker";
+                takerOrMaker = ((Helpers.isTrue((Helpers.isEqual(isMakerAsk, true))))) ? "maker" : "taker";
             }
         }
         // public trades use Lighter's taker-side convention
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
-            side = ((Helpers.isTrue(isMakerAsk))) ? "buy" : "sell";
+            side = ((Helpers.isTrue((Helpers.isEqual(isMakerAsk, true))))) ? "buy" : "sell";
         }
         Object fee = null;
         if (Helpers.isTrue(!Helpers.isEqual(takerOrMaker, null)))
@@ -1080,7 +1080,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object timestamp = this.safeInteger(liquidation, "timestamp");
         Object isMakerAsk = this.safeBool(liquidation, "is_maker_ask");
-        Object side = ((Helpers.isTrue(isMakerAsk))) ? "buy" : "sell";
+        Object side = ((Helpers.isTrue((Helpers.isEqual(isMakerAsk, true))))) ? "buy" : "sell";
         Object contracts = this.safeString(liquidation, "size");
         Object contractSize = this.safeString(market, "contractSize");
         Object price = this.safeString(liquidation, "price");

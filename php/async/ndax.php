@@ -550,7 +550,7 @@ class ndax extends Exchange {
             'type' => $type,
             'precision' => $this->safe_number($rawCurrency, 'TickSize'),
             'info' => $rawCurrency,
-            'active' => !$this->safe_bool($rawCurrency, 'IsDisabled'),
+            'active' => ($this->safe_bool($rawCurrency, 'IsDisabled') !== true),
             'deposit' => $this->safe_bool($rawCurrency, 'DepositEnabled'),
             'withdraw' => $this->safe_bool($rawCurrency, 'WithdrawEnabled'),
             'fee' => null,
@@ -661,7 +661,7 @@ class ndax extends Exchange {
             'swap' => false,
             'future' => false,
             'option' => false,
-            'active' => ($sessionRunning && !$isDisable),
+            'active' => ($sessionRunning && ($isDisable !== true)),
             'contract' => false,
             'linear' => null,
             'inverse' => null,
@@ -727,7 +727,7 @@ class ndax extends Exchange {
             }
             $bidask = $this->parse_order_book_bid_ask($level, $priceKey, $amountKey);
             $levelSide = $this->safe_integer($level, 9);
-            $side = $levelSide ? $asksKey : $bidsKey;
+            $side = ($levelSide !== null && $levelSide !== null && $levelSide !== 0) ? $asksKey : $bidsKey;
             $result[$side][] = $bidask;
         }
         $result['bids'] = $this->sort_by($result['bids'], 0, true);
@@ -1177,7 +1177,7 @@ class ndax extends Exchange {
             $id = $this->safe_string($trade, 0);
             $marketId = $this->safe_string($trade, 1);
             $takerSide = $this->safe_value($trade, 8);
-            $side = $takerSide ? 'sell' : 'buy';
+            $side = ($takerSide === true) ? 'sell' : 'buy';
             $orderId = $this->safe_string($trade, 4);
         } else {
             $timestamp = $this->safe_integer_2($trade, 'TradeTimeMS', 'ReceiveTime');
@@ -1267,7 +1267,7 @@ class ndax extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=account-structure account structures~ indexed by the account type
          */
-        if (!$this->login) {
+        if (($this->login === null) || ($this->login === '')) {
             throw new AuthenticationError($this->id . ' fetchAccounts() requires exchange.login email credential');
         }
         $omsId = $this->safe_integer($this->options, 'omsId', 1);
@@ -2827,7 +2827,7 @@ class ndax extends Exchange {
                     $query = $this->omit($query, 'pending2faToken');
                 }
             }
-            if ($query) {
+            if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
         } elseif ($api === 'private') {
@@ -2852,7 +2852,7 @@ class ndax extends Exchange {
                 $headers['Content-Type'] = 'application/json';
                 $body = $this->json($query);
             } else {
-                if ($query) {
+                if (count($query) > 0) {
                     $url .= '?' . $this->urlencode($query);
                 }
             }

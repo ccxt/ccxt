@@ -35,7 +35,7 @@ public class WoofiproCore extends WoofiproApi
                 put( "swap", true );
                 put( "future", false );
                 put( "option", false );
-                put( "addMargin", false );
+                put( "addMargin", true );
                 put( "borrowCrossMargin", false );
                 put( "borrowIsolatedMargin", false );
                 put( "borrowMargin", false );
@@ -97,7 +97,8 @@ public class WoofiproCore extends WoofiproApi
                 put( "fetchLedger", true );
                 put( "fetchLeverage", true );
                 put( "fetchMarginAdjustmentHistory", false );
-                put( "fetchMarginMode", false );
+                put( "fetchMarginMode", true );
+                put( "fetchMarginModes", true );
                 put( "fetchMarkets", true );
                 put( "fetchMarkOHLCV", false );
                 put( "fetchMyTrades", true );
@@ -128,11 +129,12 @@ public class WoofiproCore extends WoofiproApi
                 put( "fetchTransfers", false );
                 put( "fetchVolatilityHistory", false );
                 put( "fetchWithdrawals", true );
-                put( "reduceMargin", false );
+                put( "reduceMargin", true );
                 put( "repayCrossMargin", false );
                 put( "repayIsolatedMargin", false );
                 put( "setLeverage", true );
                 put( "setMargin", false );
+                put( "setMarginMode", true );
                 put( "setPositionMode", false );
                 put( "transfer", false );
                 put( "withdraw", true );
@@ -418,6 +420,9 @@ public class WoofiproCore extends WoofiproApi
                             put( "kline", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
+                            put( "client/margin_modes", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                         }} );
                         put( "post", new java.util.HashMap<String, Object>() {{
                             put( "orderly_key", new java.util.HashMap<String, Object>() {{
@@ -458,6 +463,12 @@ public class WoofiproCore extends WoofiproApi
                             }} );
                             put( "client/leverage", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 120 );
+                            }} );
+                            put( "client/margin_mode", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "position_margin", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
                             }} );
                             put( "client/maintenance_config", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 60 );
@@ -2295,7 +2306,7 @@ public class WoofiproCore extends WoofiproApi
                 Helpers.addElementToObject(request, "order_type", "IOC");
             }
         }
-        if (Helpers.isTrue(reduceOnly))
+        if (Helpers.isTrue(Helpers.isEqual(reduceOnly, true)))
         {
             Helpers.addElementToObject(request, "reduce_only", reduceOnly);
         }
@@ -2614,7 +2625,7 @@ public class WoofiproCore extends WoofiproApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             Object trigger = this.safeBool2(parameters, "stop", "trigger", false);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "trigger")));
-            if (Helpers.isTrue(!Helpers.isTrue(trigger) && Helpers.isTrue((Helpers.isEqual(symbol, null)))))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(trigger, true))) && Helpers.isTrue((Helpers.isEqual(symbol, null)))))
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
             }
@@ -2635,7 +2646,7 @@ public class WoofiproCore extends WoofiproApi
             Object clientOrderIdExchangeSpecific = this.safeString(parameters, "client_order_id", clientOrderIdUnified);
             Object isByClientOrder = !Helpers.isEqual(clientOrderIdExchangeSpecific, null);
             Object response = null;
-            if (Helpers.isTrue(trigger))
+            if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
             {
                 if (Helpers.isTrue(isByClientOrder))
                 {
@@ -2686,7 +2697,7 @@ public class WoofiproCore extends WoofiproApi
             {
                 Helpers.addElementToObject(extendParams, "id", id);
             }
-            if (Helpers.isTrue(trigger))
+            if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
             {
                 Object parsedResponse = ((Helpers.isTrue((Helpers.isEqual(response, null))))) ? new java.util.HashMap<String, Object>() {{}} : response;
                 return this.extend(this.parseOrder(parsedResponse), extendParams);
@@ -2724,7 +2735,7 @@ public class WoofiproCore extends WoofiproApi
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clOrdIDs", "clientOrderIds", "client_order_ids")));
             Object request = new java.util.HashMap<String, Object>() {{}};
             Object response = null;
-            if (Helpers.isTrue(clientOrderIds))
+            if (Helpers.isTrue(!Helpers.isEqual(clientOrderIds, null)))
             {
                 Helpers.addElementToObject(request, "client_order_ids", String.join((String)",", (java.util.List<String>)clientOrderIds));
                 response = (this.v1PrivateDeleteClientBatchOrder(this.extend(request, parameters))).join();
@@ -2781,7 +2792,7 @@ public class WoofiproCore extends WoofiproApi
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
             }
             Object response = null;
-            if (Helpers.isTrue(trigger))
+            if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
             {
                 response = (this.v1PrivateDeleteAlgoOrders(this.extend(request, parameters))).join();
             } else
@@ -2847,9 +2858,9 @@ public class WoofiproCore extends WoofiproApi
             Object clientOrderId = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clOrdID", "clientOrderId", "client_order_id")));
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "trigger", "clOrdID", "clientOrderId", "client_order_id")));
             Object response = null;
-            if (Helpers.isTrue(trigger))
+            if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
             {
-                if (Helpers.isTrue(clientOrderId))
+                if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)) && Helpers.isTrue(!Helpers.isEqual(clientOrderId, ""))))
                 {
                     Helpers.addElementToObject(request, "client_order_id", clientOrderId);
                     response = (this.v1PrivateGetAlgoClientOrderClientOrderId(this.extend(request, parameters))).join();
@@ -2860,7 +2871,7 @@ public class WoofiproCore extends WoofiproApi
                 }
             } else
             {
-                if (Helpers.isTrue(clientOrderId))
+                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(clientOrderId, null))) && Helpers.isTrue((!Helpers.isEqual(clientOrderId, "")))))
                 {
                     Helpers.addElementToObject(request, "client_order_id", clientOrderId);
                     response = (this.v1PrivateGetClientOrderClientOrderId(this.extend(request, parameters))).join();
@@ -2936,7 +2947,7 @@ public class WoofiproCore extends WoofiproApi
             }
             Object paginate = false;
             Object isTrigger = this.safeBool2(parameters, "stop", "trigger", false);
-            Object maxLimit = ((Helpers.isTrue((isTrigger)))) ? 100 : 500;
+            Object maxLimit = ((Helpers.isTrue((Helpers.isEqual(isTrigger, true))))) ? 100 : 500;
             var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOrders", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
@@ -2963,7 +2974,7 @@ public class WoofiproCore extends WoofiproApi
             {
                 Helpers.addElementToObject(request, "size", maxLimit);
             }
-            if (Helpers.isTrue(isTrigger))
+            if (Helpers.isTrue(Helpers.isEqual(isTrigger, true)))
             {
                 Helpers.addElementToObject(request, "algo_type", "STOP");
             }
@@ -2971,7 +2982,7 @@ public class WoofiproCore extends WoofiproApi
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             Object response = null;
-            if (Helpers.isTrue(isTrigger))
+            if (Helpers.isTrue(Helpers.isEqual(isTrigger, true)))
             {
                 response = (this.v1PrivateGetAlgoOrders(this.extend(request, parameters))).join();
             } else
@@ -3742,6 +3753,256 @@ public class WoofiproCore extends WoofiproApi
 
     }
 
+    public Object parseMarginMode(Object marginMode, Object... optionalArgs)
+    {
+        //
+        //     {
+        //         "symbol": "PERP_BTC_USDC",
+        //         "default_margin_mode": "CROSS"
+        //     }
+        //
+        Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object marketId = this.safeString(marginMode, "symbol");
+        market = this.safeMarket(marketId, market);
+        final Object finalMarket = market;
+        return new java.util.HashMap<String, Object>() {{
+            put( "info", marginMode );
+            put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
+            put( "marginMode", WoofiproCore.this.safeStringLower(marginMode, "default_margin_mode") );
+        }};
+    }
+
+    /**
+     * @method
+     * @name woofipro#fetchMarginModes
+     * @description fetches the set margin mode of every contract market
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-margin-modes
+     * @param {string[]} [symbols] a list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/?id=margin-mode-structure}
+     */
+    public java.util.concurrent.CompletableFuture<Object> fetchMarginModes(Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object symbols = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
+            symbols = this.marketSymbols(symbols);
+            Object response = (this.v1PrivateGetClientMarginModes(parameters)).join();
+            //
+            // {
+            //     "success": true,
+            //     "timestamp": 1702989203989,
+            //     "data": {
+            //         "rows": [{
+            //             "symbol": "PERP_BTC_USDC",
+            //             "default_margin_mode": "CROSS"
+            //         }]
+            //     }
+            // }
+            //
+            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            Object rows = this.safeList(data, "rows", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            return this.parseMarginModes(rows, symbols, "symbol");
+        });
+
+    }
+
+    /**
+     * @method
+     * @name woofipro#fetchMarginMode
+     * @description fetches the set margin mode of a contract market
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-margin-modes
+     * @param {string} symbol unified symbol of the market
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
+     */
+    public java.util.concurrent.CompletableFuture<Object> fetchMarginMode(Object symbol, Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
+            Object market = this.market(symbol);
+            Object marginModes = (this.fetchMarginModes(new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(market, "symbol"))), parameters)).join();
+            Object marginMode = this.safeDict(marginModes, Helpers.GetValue(market, "symbol"));
+            if (Helpers.isTrue(Helpers.isEqual(marginMode, null)))
+            {
+                throw new BadSymbol((String)Helpers.add(Helpers.add(this.id, " fetchMarginMode() did not return a margin mode for "), Helpers.GetValue(market, "symbol"))) ;
+            }
+            return marginMode;
+        });
+
+    }
+
+    /**
+     * @method
+     * @name woofipro#setMarginMode
+     * @description set margin mode to 'cross' or 'isolated' for a market
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/update-margin-mode
+     * @param {string} marginMode 'cross' or 'isolated'
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} response from the exchange
+     */
+    public java.util.concurrent.CompletableFuture<Object> setMarginMode(Object marginMode2, Object... optionalArgs)
+    {
+        final Object marginMode3 = marginMode2;
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+            Object marginMode = marginMode3;
+            Object symbol = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
+            {
+                throw new ArgumentsRequired((String)Helpers.add(this.id, " setMarginMode() requires a symbol argument")) ;
+            }
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
+            marginMode = ((String)marginMode).toLowerCase();
+            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(marginMode, "cross")) && Helpers.isTrue(!Helpers.isEqual(marginMode, "isolated"))))
+            {
+                throw new BadRequest((String)Helpers.add(this.id, " setMarginMode() marginMode must be either cross or isolated")) ;
+            }
+            Object market = this.market(symbol);
+            final Object finalMarginMode = marginMode;
+            Object request = new java.util.HashMap<String, Object>() {{
+                put( "symbol", Helpers.GetValue(market, "id") );
+                put( "default_margin_mode", ((String)finalMarginMode).toUpperCase() );
+            }};
+            //
+            // {
+            //     "success": true,
+            //     "timestamp": 1702989203989
+            // }
+            //
+            return (this.v1PrivatePostClientMarginMode(this.extend(request, parameters))).join();
+        });
+
+    }
+
+    public Object parseMarginModification(Object data, Object... optionalArgs)
+    {
+        //
+        //     {
+        //         "success": true,
+        //         "timestamp": 1702989203989
+        //     }
+        //
+        Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object timestamp = this.safeInteger(data, "timestamp");
+        Object success = this.safeBool(data, "success", false);
+        final Object finalSuccess = success;
+        return new java.util.HashMap<String, Object>() {{
+            put( "info", data );
+            put( "symbol", WoofiproCore.this.safeString(market, "symbol") );
+            put( "type", null );
+            put( "marginMode", "isolated" );
+            put( "amount", null );
+            put( "total", null );
+            put( "code", WoofiproCore.this.safeString(market, "settle") );
+            put( "status", ((Helpers.isTrue((Helpers.isEqual(finalSuccess, true))))) ? "ok" : "failed" );
+            put( "timestamp", timestamp );
+            put( "datetime", WoofiproCore.this.iso8601(timestamp) );
+        }};
+    }
+
+    /**
+     * @method
+     * @ignore
+     * @name woofipro#modifyMarginHelper
+     * @description add or reduce isolated position margin
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/add-or-reduce-position-margin
+     * @param {string} symbol unified market symbol
+     * @param {float} amount amount of margin to add or reduce
+     * @param {string} type 'ADD' or 'REDUCE'
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
+     */
+    public java.util.concurrent.CompletableFuture<Object> modifyMarginHelper(Object symbol, Object amount, Object type2, Object... optionalArgs)
+    {
+        final Object type3 = type2;
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+            Object type = type3;
+            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
+            Object market = this.market(symbol);
+            final Object finalType = type;
+            Object request = new java.util.HashMap<String, Object>() {{
+                put( "symbol", Helpers.GetValue(market, "id") );
+                put( "amount", WoofiproCore.this.numberToString(amount) );
+                put( "type", finalType );
+            }};
+            Object response = (this.v1PrivatePostPositionMargin(this.extend(request, parameters))).join();
+            //
+            // {
+            //     "success": true,
+            //     "timestamp": 1702989203989
+            // }
+            //
+            Object modification = this.parseMarginModification(response, market);
+            Helpers.addElementToObject(modification, "type", ((Helpers.isTrue((Helpers.isEqual(type, "ADD"))))) ? "add" : "reduce");
+            Helpers.addElementToObject(modification, "amount", this.parseNumber(this.numberToString(amount)));
+            return modification;
+        });
+
+    }
+
+    /**
+     * @method
+     * @name woofipro#addMargin
+     * @description add margin to an isolated position
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/add-or-reduce-position-margin
+     * @param {string} symbol unified market symbol
+     * @param {float} amount amount of margin to add
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
+     */
+    public java.util.concurrent.CompletableFuture<Object> addMargin(Object symbol, Object amount, Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            return (this.modifyMarginHelper(symbol, amount, "ADD", parameters)).join();
+        });
+
+    }
+
+    /**
+     * @method
+     * @name woofipro#reduceMargin
+     * @description remove margin from an isolated position
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/add-or-reduce-position-margin
+     * @param {string} symbol unified market symbol
+     * @param {float} amount amount of margin to remove
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=reduce-margin-structure}
+     */
+    public java.util.concurrent.CompletableFuture<Object> reduceMargin(Object symbol, Object amount, Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            return (this.modifyMarginHelper(symbol, amount, "REDUCE", parameters)).join();
+        });
+
+    }
+
     public Object parseLeverage(Object leverage, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
@@ -4064,7 +4325,7 @@ public class WoofiproCore extends WoofiproApi
         if (Helpers.isTrue(Helpers.isEqual(access, "public")))
         {
             url = Helpers.add(url, pathWithParams);
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(parameters))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(parameters)), 0)))
             {
                 url = Helpers.add(url, Helpers.add("?", this.urlencode(parameters)));
             }
@@ -4074,7 +4335,7 @@ public class WoofiproCore extends WoofiproApi
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isTrue(Helpers.isEqual(method, "POST")) || Helpers.isTrue(Helpers.isEqual(method, "PUT")))) && Helpers.isTrue((Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(path, "algo/order")) || Helpers.isTrue(Helpers.isEqual(path, "order"))) || Helpers.isTrue(Helpers.isEqual(path, "batch-order"))))))
             {
                 Object isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
-                if (!Helpers.isTrue(isSandboxMode))
+                if (Helpers.isTrue(!Helpers.isEqual(isSandboxMode, true)))
                 {
                     Object brokerId = this.safeString(this.options, "brokerId", "CCXT");
                     if (Helpers.isTrue(Helpers.isEqual(path, "batch-order")))
@@ -4114,7 +4375,7 @@ public class WoofiproCore extends WoofiproApi
                 Helpers.addElementToObject(headers, "content-type", "application/json");
             } else
             {
-                if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(parameters))))
+                if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(parameters)), 0)))
                 {
                     url = Helpers.add(url, Helpers.add("?", this.urlencode(parameters)));
                     auth = Helpers.add(auth, Helpers.add("?", this.rawencode(parameters)));
@@ -4148,7 +4409,7 @@ public class WoofiproCore extends WoofiproApi
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
     {
-        if (!Helpers.isTrue(response))
+        if (Helpers.isTrue(Helpers.isEqual(response, null)))
         {
             return null;  // fallback to default error handler
         }
@@ -4158,7 +4419,7 @@ public class WoofiproCore extends WoofiproApi
         //
         Object success = this.safeBool(response, "success");
         Object errorCode = this.safeString(response, "code");
-        if (!Helpers.isTrue(success))
+        if (Helpers.isTrue(!Helpers.isEqual(success, true)))
         {
             Object feedback = Helpers.add(Helpers.add(this.id, " "), this.json(response));
             this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions, "broad"), body, feedback);

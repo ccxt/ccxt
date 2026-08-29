@@ -97,18 +97,18 @@ class poloniex extends Exchange {
             'timeframes' => array(
                 '1m' => 'MINUTE_1',
                 '5m' => 'MINUTE_5',
-                '10m' => 'MINUTE_10', // not in swap
+                '10m' => 'MINUTE_10',
                 '15m' => 'MINUTE_15',
                 '30m' => 'MINUTE_30',
                 '1h' => 'HOUR_1',
                 '2h' => 'HOUR_2',
                 '4h' => 'HOUR_4',
-                '6h' => 'HOUR_6', // not in swap
+                '6h' => 'HOUR_6',
                 '12h' => 'HOUR_12',
                 '1d' => 'DAY_1',
                 '3d' => 'DAY_3',
                 '1w' => 'WEEK_1',
-                '1M' => 'MONTH_1', // not in swap
+                '1M' => 'MONTH_1',
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg',
@@ -306,8 +306,9 @@ class poloniex extends Exchange {
                 'networks' => array(
                     'BEP20' => 'BSC',
                     'ERC20' => 'ETH',
-                    'TRC20' => 'TRON',
-                    'TRX' => 'TRON',
+                    // v2 withdraw accepts only the blockchain id => 'TRX' passes validation, 'TRON' is rejected with 830111 (live-verified)
+                    'TRC20' => 'TRX',
+                    'TRX' => 'TRX',
                 ),
                 'networksById' => array(
                     'TRX' => 'TRC20',
@@ -527,10 +528,10 @@ class poloniex extends Exchange {
                     '21356' => '\\ccxt\\BadRequest', // Order size would cause too much price movement. Reduce order size.
                     '21721' => '\\ccxt\\InsufficientFunds',
                     '24101' => '\\ccxt\\BadSymbol', // Invalid symbol
-                    '24102' => '\\ccxt\\InvalidOrder', // Invalid K-line type
-                    '24103' => '\\ccxt\\InvalidOrder', // Invalid endTime
-                    '24104' => '\\ccxt\\InvalidOrder', // Invalid amount
-                    '24105' => '\\ccxt\\InvalidOrder', // Invalid startTime
+                    '24102' => '\\ccxt\\BadRequest', // Invalid K-line type
+                    '24103' => '\\ccxt\\BadRequest', // Invalid endTime
+                    '24104' => '\\ccxt\\BadRequest', // Invalid limit
+                    '24105' => '\\ccxt\\BadRequest', // Invalid startTime
                     '25020' => '\\ccxt\\InvalidOrder', // No active kill switch
                     // Smartorders
                     '25000' => '\\ccxt\\InvalidOrder', // Invalid userId
@@ -553,6 +554,46 @@ class poloniex extends Exchange {
                     '25017' => '\\ccxt\\ExchangeError', // No orders were canceled
                     '25018' => '\\ccxt\\BadRequest', // Invalid accountType
                     '25019' => '\\ccxt\\BadSymbol', // Invalid symbol
+                    // Wallets v2 (undocumented codes, live-verified via validation probes)
+                    '820181' => '\\ccxt\\BadRequest', // array("code":820181,"message":"amount must be greater than the transaction fee.")
+                    '820201' => '\\ccxt\\BadRequest', // array("code":820201,"message":"blockchain param check error") — network param missing
+                    '830111' => '\\ccxt\\BadRequest', // array("code":830111,"message":"Currency or Network does not exist")
+                    // Futures v3 (https://api-docs.poloniex.com/v3/futures/error)
+                    '250' => '\\ccxt\\DuplicateOrderId', // array("code":250,"msg":"Client order id already exists") — live-verified on v3/trade/order
+                    '400' => '\\ccxt\\BadRequest', // ILLEGAL_PARAM
+                    '403' => '\\ccxt\\PermissionDenied', // ACCESS_DENY
+                    '404' => '\\ccxt\\BadRequest', // NOT_FOUND
+                    '429' => '\\ccxt\\RateLimitExceeded', // TOO_MANY_REQUEST
+                    '503' => '\\ccxt\\ExchangeNotAvailable', // DEGRADE_ERROR
+                    '1000' => '\\ccxt\\AuthenticationError', // USER_NOT_EXITS
+                    '1001' => '\\ccxt\\ExchangeError', // SYSTEM_CONFIG_ERROR
+                    '1002' => '\\ccxt\\OnMaintenance', // SYSTEM_MAINTENANCE
+                    '1003' => '\\ccxt\\AccountSuspended', // USER_IS_FROZEN
+                    '10000' => '\\ccxt\\MarketClosed', // SYMBOL_NOT_IN_TRADING_STATUS
+                    '10001' => '\\ccxt\\BadSymbol', // SYMBOL_NOT_EXISTS
+                    '10002' => '\\ccxt\\InvalidOrder', // PRICE_LIMIT
+                    '10003' => '\\ccxt\\InvalidOrder', // NO_BID
+                    '10004' => '\\ccxt\\InvalidOrder', // NO_ASK
+                    '10005' => '\\ccxt\\MarketClosed', // SYMBOL_STATUS_PAUSED
+                    '10006' => '\\ccxt\\OperationRejected', // SYMBOL_STATUS_CANCEL_ONLY
+                    '10007' => '\\ccxt\\OperationRejected', // SYMBOL_STATUS_NOT_ALLOWED
+                    '10008' => '\\ccxt\\AccountSuspended', // USER_STATUS_ABNORMAL
+                    '10009' => '\\ccxt\\OperationRejected', // ALREADY_EXISTS_GRID_STRATEGY
+                    '10010' => '\\ccxt\\InvalidOrder', // PRICE_HIGHER_THAN_BANKRUPT_PRICE
+                    '10011' => '\\ccxt\\InvalidOrder', // PRICE_LOWER_THAN_BANKRUPT_PRICE
+                    '10012' => '\\ccxt\\InvalidOrder', // PRICE_HIGHER_THAN_LIQUIDATION_PRICE
+                    '10013' => '\\ccxt\\InvalidOrder', // PRICE_LOWER_THAN_LIQUIDATION_PRICE
+                    '10014' => '\\ccxt\\BadRequest', // PRICE_LIMIT_PARAM
+                    '10015' => '\\ccxt\\OperationRejected', // SYMBOL_STATUS_CLOSE_POSITION_ONLY
+                    '10016' => '\\ccxt\\BadRequest', // BATCH_PLACE_ORDER_SIZE_OVER_LIMIT
+                    '10017' => '\\ccxt\\BadRequest', // BATCH_CANCEL_ORDER_SIZE_OVER_LIMIT
+                    '10018' => '\\ccxt\\OperationRejected', // NO_POSITION_TO_CLOSE_ORDER
+                    '10019' => '\\ccxt\\OperationRejected', // ACCOUNT_STATE_OPEN_LIMIT
+                    '11003' => '\\ccxt\\BadRequest', // UNKNOWN_SOURCE
+                    '11004' => '\\ccxt\\OperationRejected', // ORDER_NOT_CANCELABLE
+                    '11008' => '\\ccxt\\OrderNotFound', // ORDER_NOT_EXISTS
+                    '12004' => '\\ccxt\\PermissionDenied', // NOT_KYC_VERIFIED
+                    '21001' => '\\ccxt\\OperationRejected', // POSITION_NOT_EXIST
                 ),
                 'broad' => array(
                 ),
@@ -646,8 +687,8 @@ class poloniex extends Exchange {
             'symbol' => $market['id'],
             'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
-        $keyStart = $market['spot'] ? 'startTime' : 'sTime';
-        $keyEnd = $market['spot'] ? 'endTime' : 'eTime';
+        $keyStart = ($market['spot'] === true) ? 'startTime' : 'sTime';
+        $keyEnd = ($market['spot'] === true) ? 'endTime' : 'eTime';
         if ($since !== null) {
             $request[$keyStart] = $since;
         }
@@ -656,10 +697,7 @@ class poloniex extends Exchange {
             $request['limit'] = $limit;
         }
         list($request, $params) = $this->handle_until_option($keyEnd, $request, $params);
-        if ($market['contract']) {
-            if ($this->in_array($timeframe, array( '10m', '1M' ))) {
-                throw new NotSupported($this->id . ' ' . $timeframe . ' ' . $market['type'] . ' fetchOHLCV is not supported');
-            }
+        if ($market['contract'] === true) {
             $responseRaw = $this->swapPublicGetV3MarketCandles($this->extend($request, $params));
             //
             //     {
@@ -1046,6 +1084,11 @@ class poloniex extends Exchange {
         $timestamp = $this->safe_integer_2($ticker, 'ts', 'cT');
         $marketId = $this->safe_string_2($ticker, 'symbol', 's');
         $market = $this->safe_market($marketId);
+        $baseVolume = $this->safe_string_2($ticker, 'quantity', 'qty');
+        if (($market['contract'] === true) && ($market['contractSize'] !== null)) {
+            // 'quantity' counts contracts, and a $ticker reports base volume
+            $baseVolume = Precise::string_mul($baseVolume, $this->number_to_string($market['contractSize']));
+        }
         $relativeChange = $this->safe_string_2($ticker, 'dailyChange', 'dc');
         $percentage = Precise::string_mul($relativeChange, '100');
         return $this->safe_ticker(array(
@@ -1066,7 +1109,7 @@ class poloniex extends Exchange {
             'change' => null,
             'percentage' => $percentage,
             'average' => null,
-            'baseVolume' => $this->safe_string_2($ticker, 'quantity', 'qty'),
+            'baseVolume' => $baseVolume,
             'quoteVolume' => $this->safe_string_2($ticker, 'amount', 'amt'),
             'markPrice' => $this->safe_string_2($ticker, 'markPrice', 'mPx'),
             'indexPrice' => $this->safe_string($ticker, 'iPx'),
@@ -1269,7 +1312,7 @@ class poloniex extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        if ($market['contract']) {
+        if ($market['contract'] === true) {
             $tickers = $this->fetch_tickers(array( $market['symbol'] ), $params);
             return $this->safe_dict($tickers, $symbol);
         }
@@ -1454,7 +1497,7 @@ class poloniex extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit; // max 1000, for spot & swap
         }
-        if ($market['contract']) {
+        if ($market['contract'] === true) {
             $response = $this->swapPublicGetV3MarketTrades($this->extend($request, $params));
             //
             //     {
@@ -1880,7 +1923,7 @@ class poloniex extends Exchange {
             //            ),
             //
             $response = $this->safe_list($raw, 'data', array());
-        } elseif ($isTrigger) {
+        } elseif ($isTrigger === true) {
             $response = $this->privateGetSmartorders($this->extend($request, $params));
         } else {
             $response = $this->privateGetOrders($this->extend($request, $params));
@@ -2004,6 +2047,7 @@ class poloniex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {float} [$params->triggerPrice] the $price at which a trigger order is triggered at
          * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used alternative for the $amount
+         * @param {string} [$params->clientOrderId] a unique identifier for the order
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         $this->load_markets();
@@ -2018,7 +2062,7 @@ class poloniex extends Exchange {
         $triggerPrice = $this->safe_number_2($params, 'stopPrice', 'triggerPrice');
         list($request, $params) = $this->order_request($symbol, $type, $side, $amount, $request, $price, $params);
         $response = array();
-        if ($market['swap'] || $market['future']) {
+        if (($market['swap'] === true) || ($market['future'] === true)) {
             $responseInitial = $this->swapPrivatePostV3TradeOrder($this->extend($request, $params));
             //
             // array("code":200,"msg":"Success","data":array("ordId":"418876147745775616","clOrdId":"polo418876147745775616"))
@@ -2041,7 +2085,7 @@ class poloniex extends Exchange {
     public function order_request(mixed $symbol, mixed $type, mixed $side, mixed $amount, mixed $request, ?float $price = null, $params = array()) {
         $triggerPrice = $this->safe_number_2($params, 'stopPrice', 'triggerPrice');
         $market = $this->market($symbol);
-        if ($market['contract']) {
+        if ($market['contract'] === true) {
             $marginMode = null;
             list($marginMode, $params) = $this->handle_param_string($params, 'marginMode');
             if ($marginMode !== null) {
@@ -2050,7 +2094,7 @@ class poloniex extends Exchange {
             }
             $hedged = null;
             list($hedged, $params) = $this->handle_param_string($params, 'hedged');
-            if ($hedged) {
+            if (($hedged !== null) && ($hedged !== '')) {
                 if ($marginMode === null) {
                     throw new ArgumentsRequired($this->id . ' createOrder() requires a $marginMode parameter "cross" or "isolated" for $hedged orders');
                 }
@@ -2064,7 +2108,7 @@ class poloniex extends Exchange {
         $isPostOnly = $this->is_post_only($isMarket, $upperCaseType === 'LIMIT_MAKER', $params);
         $params = $this->omit($params, array( 'postOnly', 'triggerPrice', 'stopPrice' ));
         if ($triggerPrice !== null) {
-            if (!$market['spot']) {
+            if ($market['spot'] !== true) {
                 throw new InvalidOrder($this->id . ' createOrder() does not support trigger orders for ' . $market['type'] . ' markets');
             }
             $upperCaseType = ($price === null) ? 'STOP' : 'STOP_LIMIT';
@@ -2082,7 +2126,7 @@ class poloniex extends Exchange {
                 $params = $this->omit($params, 'cost');
                 if ($cost !== null) {
                     $quoteAmount = $this->cost_to_precision($symbol, $cost);
-                } elseif ($createMarketBuyOrderRequiresPrice && $market['spot']) {
+                } elseif ($createMarketBuyOrderRequiresPrice && ($market['spot'] === true)) {
                     if ($price === null) {
                         throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for $market buy orders to calculate the total $cost to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option or param to false and pass the $cost to spend (quote quantity) in the $amount argument');
                     } else {
@@ -2094,22 +2138,24 @@ class poloniex extends Exchange {
                 } else {
                     $quoteAmount = $this->cost_to_precision($symbol, $amount);
                 }
-                $amountKey = $market['spot'] ? 'amount' : 'sz';
+                $amountKey = ($market['spot'] === true) ? 'amount' : 'sz';
                 $request[$amountKey] = $quoteAmount;
             } else {
-                $amountKey = $market['spot'] ? 'quantity' : 'sz';
+                $amountKey = ($market['spot'] === true) ? 'quantity' : 'sz';
                 $request[$amountKey] = $this->amount_to_precision($symbol, $amount);
             }
         } else {
-            $amountKey = $market['spot'] ? 'quantity' : 'sz';
+            $amountKey = ($market['spot'] === true) ? 'quantity' : 'sz';
             $request[$amountKey] = $this->amount_to_precision($symbol, $amount);
-            $priceKey = $market['spot'] ? 'price' : 'px';
+            $priceKey = ($market['spot'] === true) ? 'price' : 'px';
             $request[$priceKey] = $this->price_to_precision($symbol, $price);
         }
-        $clientOrderId = $this->safe_string($params, 'clientOrderId');
+        $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'clOrdId');
         if ($clientOrderId !== null) {
-            $request['clientOrderId'] = $clientOrderId;
-            $params = $this->omit($params, 'clientOrderId');
+            // the futures v3 api silently ignores the spot key and generates its own id
+            $clientOrderIdKey = ($market['spot'] === true) ? 'clientOrderId' : 'clOrdId';
+            $request[$clientOrderIdKey] = $clientOrderId;
+            $params = $this->omit($params, array( 'clientOrderId', 'clOrdId' ));
         }
         // remember the timestamp before issuing the $request
         return array( $request, $params );
@@ -2130,11 +2176,12 @@ class poloniex extends Exchange {
          * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {float} [$params->triggerPrice] The $price at which a trigger order is triggered at
+         * @param {string} [$params->clientOrderId] a unique identifier for the order
          * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
-        if (!$market['spot']) {
+        if ($market['spot'] !== true) {
             throw new NotSupported($this->id . ' editOrder() does not support ' . $market['type'] . ' orders, only spot orders are accepted');
         }
         $request = array(
@@ -2181,7 +2228,7 @@ class poloniex extends Exchange {
         }
         $market = $this->market($symbol);
         $request = array();
-        if (!$market['spot']) {
+        if ($market['spot'] !== true) {
             $request['symbol'] = $market['id'];
             $request['ordId'] = $id;
             $raw = $this->swapPrivateDeleteV3TradeOrder($this->extend($request, $params));
@@ -2205,7 +2252,7 @@ class poloniex extends Exchange {
         $isTrigger = $this->safe_value_2($params, 'trigger', 'stop');
         $params = $this->omit($params, array( 'clientOrderId', 'trigger', 'stop' ));
         $response = array();
-        if ($isTrigger) {
+        if ($isTrigger === true) {
             $response = $this->privateDeleteSmartordersId($this->extend($request, $params));
         } else {
             $response = $this->privateDeleteOrdersId($this->extend($request, $params));
@@ -2271,7 +2318,7 @@ class poloniex extends Exchange {
         }
         $isTrigger = $this->safe_value_2($params, 'trigger', 'stop');
         $params = $this->omit($params, array( 'trigger', 'stop' ));
-        if ($isTrigger) {
+        if ($isTrigger === true) {
             $response = $this->privateDeleteSmartorders($this->extend($request, $params));
         } else {
             $response = $this->privateDeleteOrders($this->extend($request, $params));
@@ -2327,7 +2374,7 @@ class poloniex extends Exchange {
         $isTrigger = $this->safe_value_2($params, 'trigger', 'stop');
         $params = $this->omit($params, array( 'trigger', 'stop' ));
         $response = array();
-        if ($isTrigger) {
+        if ($isTrigger === true) {
             $response = $this->privateGetSmartordersId($this->extend($request, $params));
             $response = $this->safe_value($response, 0);
         } else {
@@ -2584,11 +2631,11 @@ class poloniex extends Exchange {
         );
         if ($limit !== null) {
             $request['limit'] = $limit; // The default value of $limit is 10. Valid $limit values are => 5, 10, 20, 50, 100, 150.
-            if ($market['contract']) {
+            if ($market['contract'] === true) {
                 $request['limit'] = $this->find_nearest_ceiling(array( 5, 10, 20, 100, 150 ), $limit);
             }
         }
-        if ($market['contract']) {
+        if ($market['contract'] === true) {
             $responseRaw = $this->swapPublicGetV3MarketOrderBook($this->extend($request, $params));
             //
             //    {
@@ -3248,7 +3295,7 @@ class poloniex extends Exchange {
         }
         $hedged = null;
         list($hedged, $params) = $this->handle_param_bool($params, 'hedged', false);
-        if ($hedged) {
+        if ($hedged === true) {
             if (!(is_array($params) && array_key_exists('posSide' ?? '', $params))) {
                 throw new ArgumentsRequired($this->id . ' setLeverage() requires a posSide parameter for $hedged mode => "LONG" or "SHORT"');
             }
@@ -3625,7 +3672,7 @@ class poloniex extends Exchange {
         $implodedPath = $this->implode_params($path, $params);
         if ($api === 'public' || $api === 'swapPublic') {
             $url .= '/' . $implodedPath;
-            if ($query) {
+            if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
         } else {
@@ -3636,7 +3683,7 @@ class poloniex extends Exchange {
             $auth .= '/' . $implodedPath;
             if (($method === 'POST') || ($method === 'PUT') || ($method === 'DELETE')) {
                 $auth .= "\n"; // eslint-disable-line quotes
-                if ($query) {
+                if (count($query) > 0) {
                     $body = $this->json($query);
                     $auth .= 'requestBody=' . $body . '&';
                 }
@@ -3645,7 +3692,7 @@ class poloniex extends Exchange {
                 $sortedQuery = $this->extend(array( 'signTimestamp' => $timestamp ), $query);
                 $sortedQuery = $this->keysort($sortedQuery);
                 $auth .= "\n" . $this->urlencode($sortedQuery); // eslint-disable-line quotes
-                if ($query) {
+                if (count($query) > 0) {
                     $url .= '?' . $this->urlencode($query);
                 }
             }
@@ -3672,10 +3719,9 @@ class poloniex extends Exchange {
         //
         $responseCode = $this->safe_string($response, 'code');
         if (($responseCode !== null) && ($responseCode !== '200')) {
-            $codeInner = $response['code'];
-            $message = $this->safe_string($response, 'message');
+            $message = $this->safe_string_2($response, 'message', 'msg');
             $feedback = $this->id . ' ' . $body;
-            $this->throw_exactly_matched_exception($this->exceptions['exact'], $codeInner, $feedback);
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $responseCode, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
             throw new ExchangeError($feedback); // unknown $message
         }

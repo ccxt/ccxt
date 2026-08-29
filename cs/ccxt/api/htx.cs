@@ -725,41 +725,6 @@ public partial class htx : Exchange
         return await this.callAsync<Dictionary<string, object>> ("privatePostSubuserTransfer",parameters);
     }
 
-    /// <summary>Calls the statusPublicSpotGetApiV2SummaryJson endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> statusPublicSpotGetApiV2SummaryJson (object parameters = null)
-    {
-        return await this.callAsync<Dictionary<string, object>> ("statusPublicSpotGetApiV2SummaryJson",parameters);
-    }
-
-    /// <summary>Calls the statusPublicFutureInverseGetApiV2SummaryJson endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> statusPublicFutureInverseGetApiV2SummaryJson (object parameters = null)
-    {
-        return await this.callAsync<Dictionary<string, object>> ("statusPublicFutureInverseGetApiV2SummaryJson",parameters);
-    }
-
-    /// <summary>Calls the statusPublicFutureLinearGetApiV2SummaryJson endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> statusPublicFutureLinearGetApiV2SummaryJson (object parameters = null)
-    {
-        return await this.callAsync<Dictionary<string, object>> ("statusPublicFutureLinearGetApiV2SummaryJson",parameters);
-    }
-
-    /// <summary>Calls the statusPublicSwapInverseGetApiV2SummaryJson endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> statusPublicSwapInverseGetApiV2SummaryJson (object parameters = null)
-    {
-        return await this.callAsync<Dictionary<string, object>> ("statusPublicSwapInverseGetApiV2SummaryJson",parameters);
-    }
-
-    /// <summary>Calls the statusPublicSwapLinearGetApiV2SummaryJson endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> statusPublicSwapLinearGetApiV2SummaryJson (object parameters = null)
-    {
-        return await this.callAsync<Dictionary<string, object>> ("statusPublicSwapLinearGetApiV2SummaryJson",parameters);
-    }
-
     /// <summary>Calls the spotPublicGetV2MarketStatus endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> spotPublicGetV2MarketStatus (object parameters = null)

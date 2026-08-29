@@ -620,7 +620,7 @@ public class ApexCore extends ApexApi
     put( "id", networkId );
     put( "network", finalNetworkCode );
     put( "active", null );
-    put( "deposit", !Helpers.isTrue(ApexCore.this.safeBool(chain, "depositDisable")) );
+    put( "deposit", (!Helpers.isEqual(ApexCore.this.safeBool(chain, "depositDisable"), true)) );
     put( "withdraw", ApexCore.this.safeBool(token, "withdrawEnable") );
     put( "fee", ApexCore.this.safeNumber(token, "minFee") );
     put( "precision", ApexCore.this.parseNumber(ApexCore.this.parsePrecision(ApexCore.this.safeString(token, "decimals"))) );
@@ -1510,7 +1510,8 @@ public class ApexCore extends ApexApi
 
     public Object generateRandomClientIdOmni(Object _accountId)
     {
-        Object accountId = Helpers.isTrue(_accountId) || Helpers.isTrue(String.valueOf(this.randNumber(12)));
+        Object hasAccountId = Helpers.isTrue((!Helpers.isEqual(_accountId, null))) && Helpers.isTrue((!Helpers.isEqual(_accountId, "")));
+        Object accountId = ((Helpers.isTrue(hasAccountId))) ? _accountId : String.valueOf(this.randNumber(12));
         return Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("apexomni-", accountId), "-"), String.valueOf(this.milliseconds())), "-"), String.valueOf(this.randNumber(6)));
     }
 
@@ -2367,7 +2368,7 @@ public class ApexCore extends ApexApi
             put( "info", position );
             put( "id", ApexCore.this.safeString(position, "id") );
             put( "symbol", symbol );
-            put( "entryPrice", ApexCore.this.safeString(position, "entryPrice") );
+            put( "entryPrice", ApexCore.this.safeNumber(position, "entryPrice") );
             put( "markPrice", null );
             put( "notional", null );
             put( "collateral", null );
@@ -2407,7 +2408,7 @@ public class ApexCore extends ApexApi
         Object signBody = body;
         if (Helpers.isTrue(!Helpers.isEqual(((String)method).toUpperCase(), "POST")))
         {
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(parameters))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(parameters)), 0)))
             {
                 signPath = Helpers.add(signPath, Helpers.add("?", this.rawencode(parameters)));
                 url = Helpers.add(url, Helpers.add("?", this.rawencode(parameters)));

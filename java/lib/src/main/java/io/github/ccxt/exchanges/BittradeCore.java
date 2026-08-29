@@ -760,7 +760,14 @@ public class BittradeCore extends BittradeApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object method = this.handleOption("fetchMarkets", "method", "publicGetCommonSymbols");
-            Object response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { parameters })).join();
+            Object response = null;
+            if (Helpers.isTrue(Helpers.isEqual(method, "publicGetCommonSymbols")))
+            {
+                response = (this.publicGetCommonSymbols(parameters)).join();
+            } else
+            {
+                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchMarkets() does not support the "), method), " method")) ;
+            }
             //
             //    {
             //        "status": "ok",
@@ -1030,7 +1037,7 @@ public class BittradeCore extends BittradeApi
             //
             if (Helpers.isTrue(Helpers.inOp(response, "tick")))
             {
-                if (!Helpers.isTrue(Helpers.GetValue(response, "tick")))
+                if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(response, "tick"), null))) || Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(response, "tick"), null)))))
                 {
                     throw new BadSymbol((String)Helpers.add(Helpers.add(this.id, " fetchOrderBook() returned empty response: "), this.json(response))) ;
                 }
@@ -1547,17 +1554,19 @@ public class BittradeCore extends BittradeApi
         Object countryDisabled = this.safeValue(currency, "country-disabled");
         Object visible = this.safeBool(currency, "visible", false);
         Object state = this.safeString(currency, "state");
-        Object active = Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(visible) && Helpers.isTrue(depositEnabled)) && Helpers.isTrue(withdrawEnabled)) && Helpers.isTrue((Helpers.isEqual(state, "online")))) && !Helpers.isTrue(countryDisabled);
+        Object active = Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(visible, true))) && Helpers.isTrue((Helpers.isEqual(depositEnabled, true)))) && Helpers.isTrue((Helpers.isEqual(withdrawEnabled, true)))) && Helpers.isTrue((Helpers.isEqual(state, "online")))) && Helpers.isTrue((!Helpers.isEqual(countryDisabled, true)));
         Object name = this.safeString(currency, "display-name");
         Object precision = this.parseNumber(this.parsePrecision(this.safeString(currency, "withdraw-precision")));
+        final Object finalDepositEnabled = depositEnabled;
+        final Object finalWithdrawEnabled = withdrawEnabled;
         return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
             put( "id", id );
             put( "code", code );
             put( "type", "crypto" );
             put( "name", name );
             put( "active", active );
-            put( "deposit", depositEnabled );
-            put( "withdraw", withdrawEnabled );
+            put( "deposit", finalDepositEnabled );
+            put( "withdraw", finalWithdrawEnabled );
             put( "fee", null );
             put( "precision", precision );
             put( "networks", null );
@@ -1644,7 +1653,14 @@ public class BittradeCore extends BittradeApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "id", Helpers.GetValue(Helpers.GetValue(BittradeCore.this.accounts, 0), "id") );
             }};
-            Object response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { this.extend(request, parameters) })).join();
+            Object response = null;
+            if (Helpers.isTrue(Helpers.isEqual(method, "privateGetAccountAccountsIdBalance")))
+            {
+                response = (this.privateGetAccountAccountsIdBalance(this.extend(request, parameters))).join();
+            } else
+            {
+                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchBalance() does not support the "), method), " method")) ;
+            }
             return this.parseBalance(response);
         });
 
@@ -1673,7 +1689,14 @@ public class BittradeCore extends BittradeApi
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
             }
             Object method = this.handleOption("fetchOrdersByStates", "method", "private_get_order_orders");
-            Object response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { this.extend(request, parameters) })).join();
+            Object response = null;
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(method, "private_get_order_history"))) || Helpers.isTrue((Helpers.isEqual(method, "privateGetOrderHistory")))))
+            {
+                response = (this.privateGetOrderHistory(this.extend(request, parameters))).join();
+            } else
+            {
+                response = (this.privateGetOrderOrders(this.extend(request, parameters))).join();
+            }
             //
             //     { "status":   "ok",
             //         "data": [ {                  id:  13997833016,
@@ -1770,7 +1793,11 @@ public class BittradeCore extends BittradeApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             Object method = ((String)this.handleOption("fetchOpenOrders", "method", "fetch_open_orders_v1"));
-            return ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { symbol, since, limit, parameters })).join();
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(method, "fetch_open_orders_v2"))) || Helpers.isTrue((Helpers.isEqual(method, "fetchOpenOrdersV2")))))
+            {
+                return (this.fetchOpenOrdersV2(symbol, since, limit, parameters)).join();
+            }
+            return (this.fetchOpenOrdersV1(symbol, since, limit, parameters)).join();
         });
 
     }
@@ -2015,7 +2042,7 @@ public class BittradeCore extends BittradeApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            if (!Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 throw new NotSupported((String)Helpers.add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
             }
@@ -2112,12 +2139,20 @@ public class BittradeCore extends BittradeApi
             {
                 Helpers.addElementToObject(request, "price", this.priceToPrecision(symbol, price));
             }
-            Object method = Helpers.GetValue(this.options, "createOrderMethod");
-            Object response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { this.extend(request, parameters) })).join();
+            Object method = this.handleOption("createOrder", "method", "privatePostOrderOrdersPlace");
+            Object response = null;
+            if (Helpers.isTrue(Helpers.isEqual(method, "privatePostOrderOrdersPlace")))
+            {
+                response = (this.privatePostOrderOrdersPlace(this.extend(request, parameters))).join();
+            } else
+            {
+                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() does not support the "), method), " method")) ;
+            }
             Object id = this.safeString(response, "data");
+            final Object finalResponse = response;
             final Object finalPrice = price;
             return this.safeOrder(new java.util.HashMap<String, Object>() {{
-                put( "info", response );
+                put( "info", finalResponse );
                 put( "id", id );
                 put( "timestamp", null );
                 put( "datetime", null );
@@ -2715,7 +2750,7 @@ public class BittradeCore extends BittradeApi
             }
         } else
         {
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(parameters))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(parameters)), 0)))
             {
                 url = Helpers.add(url, Helpers.add("?", this.urlencode(parameters)));
             }

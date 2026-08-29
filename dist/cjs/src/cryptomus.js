@@ -742,7 +742,7 @@ class cryptomus extends cryptomus$1["default"] {
                     }
                 }
                 else {
-                    cost = cost ? cost : amountToString;
+                    cost = (cost !== undefined && cost !== '') ? cost : amountToString;
                 }
                 request['value'] = cost;
             }

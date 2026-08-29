@@ -780,7 +780,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
 
     public void handleMessage(Client client, Object message)
     {
-        if (!Helpers.isTrue(this.handleErrorMessage(client, message)))
+        if (Helpers.isTrue(!Helpers.isEqual(this.handleErrorMessage(client, message), true)))
         {
             return;
         }

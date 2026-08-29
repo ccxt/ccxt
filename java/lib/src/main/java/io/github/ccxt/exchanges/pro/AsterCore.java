@@ -391,7 +391,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             {
                 Object symbol = Helpers.GetValue(symbols, i);
                 Object market = this.market(symbol);
-                Object suffix = ((Helpers.isTrue((use1sFreq)))) ? "@1s" : "";
+                Object suffix = ((Helpers.isTrue((Helpers.isEqual(use1sFreq, true))))) ? "@1s" : "";
                 ((java.util.List<Object>)subscriptionArgs).add(Helpers.add(Helpers.add(this.safeStringLower(market, "id"), "@markPrice"), suffix));
                 ((java.util.List<Object>)messageHashes).add(Helpers.add("ticker:", Helpers.GetValue(market, "symbol")));
             }
@@ -458,7 +458,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             {
                 Object symbol = Helpers.GetValue(symbols, i);
                 Object market = this.market(symbol);
-                Object suffix = ((Helpers.isTrue((use1sFreq)))) ? "@1s" : "";
+                Object suffix = ((Helpers.isTrue((Helpers.isEqual(use1sFreq, true))))) ? "@1s" : "";
                 ((java.util.List<Object>)subscriptionArgs).add(Helpers.add(Helpers.add(this.safeStringLower(market, "id"), "@markPrice"), suffix));
                 ((java.util.List<Object>)messageHashes).add(Helpers.add("unsubscribe:ticker:", Helpers.GetValue(market, "symbol")));
             }
@@ -1045,9 +1045,9 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
         {
             if (Helpers.isTrue(Helpers.isEqual(side, null)))
             {
-                side = ((Helpers.isTrue(Helpers.GetValue(trade, "m")))) ? "sell" : "buy"; // this is reversed intentionally
+                side = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(trade, "m"), true))))) ? "sell" : "buy"; // this is reversed intentionally
             }
-            takerOrMaker = ((Helpers.isTrue(Helpers.GetValue(trade, "m")))) ? "maker" : "taker";
+            takerOrMaker = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(trade, "m"), true))))) ? "maker" : "taker";
         }
         Object fee = null;
         Object feeCost = this.safeString(trade, "n");
@@ -1572,21 +1572,61 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             Object listenKeyRefreshRate = this.safeInteger(listenKeyRefreshRateOptions, type, 3600000); // 1 hour
             if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.subtract(time, lastAuthenticatedTime), listenKeyRefreshRate)))
             {
-                Object response = new java.util.HashMap<String, Object>() {{}};
-                if (Helpers.isTrue(Helpers.isEqual(type, "spot")))
+                // single-flight leader election on a never-dialed client, see
+                // https://github.com/ccxt/ccxt/issues/29393: concurrent watch
+                // calls on a cold instance each passed the staleness check and
+                // fetched their own listenKey (last write wins, earlier keys
+                // orphan) - now one leader fetches per type and waiters wake when
+                // the flight settles. client.futures is the registry:
+                // client.future () is the atomic check-and-insert and
+                // client.resolve () / client.reject () settle and remove the entry
+                // under the same lock in every port
+                Object messageHash = Helpers.add("authenticate:", type);
+                Client client = this.client("authenticationFlights");
+                if (Helpers.isTrue(Helpers.inOp(client.futures, messageHash)))
                 {
-                    response = (this.sapiPrivatePostV3ListenKey(parameters)).join();
-                } else
-                {
-                    response = (this.fapiPrivatePostV3ListenKey(parameters)).join();
+                    // a flight is already in progress - wake when the leader
+                    // settles it: the listenKey is then in the bucket
+                    client.future((String)messageHash).getFuture().join();
+                    return null;
                 }
-                Helpers.addElementToObject(Helpers.GetValue(this.options, "listenKey"), type, this.safeString(response, "listenKey"));
-                Helpers.addElementToObject(Helpers.GetValue(this.options, "lastAuthenticatedTime"), type, time);
-                final Object finalType = type;
-                parameters = this.extend(new java.util.HashMap<String, Object>() {{
-                    put( "type", finalType );
-                }}, parameters);
-                this.scheduleCallback(listenKeyRefreshRate, "keepAliveListenKey", parameters);
+                // reusableFuture (), not future () - the two match in
+                // js/py/php/cs/java, but go's Client.Future () yields a channel
+                // that the trailing suspension point below would panic on
+                io.github.ccxt.ws.Future future = client.reusableFuture((String)messageHash);
+                try
+                {
+                    Object response = new java.util.HashMap<String, Object>() {{}};
+                    if (Helpers.isTrue(Helpers.isEqual(type, "spot")))
+                    {
+                        response = (this.sapiPrivatePostV3ListenKey(parameters)).join();
+                    } else
+                    {
+                        response = (this.fapiPrivatePostV3ListenKey(parameters)).join();
+                    }
+                    Object listenKey = this.safeString(response, "listenKey");
+                    if (Helpers.isTrue(Helpers.isEqual(listenKey, null)))
+                    {
+                        throw new AuthenticationError((String)Helpers.add(this.id, " authenticate() received an empty listenKey")) ;
+                    }
+                    Helpers.addElementToObject(Helpers.GetValue(this.options, "listenKey"), type, listenKey);
+                    Helpers.addElementToObject(Helpers.GetValue(this.options, "lastAuthenticatedTime"), type, time);
+                    final Object finalType = type;
+                    parameters = this.extend(new java.util.HashMap<String, Object>() {{
+                        put( "type", finalType );
+                    }}, parameters);
+                    this.scheduleCallback(listenKeyRefreshRate, "keepAliveListenKey", parameters);
+                    // settle the flight: client.resolve () removes the future from
+                    // client.futures and wakes every waiter
+                    client.resolve(listenKey, messageHash);
+                } catch(Exception e)
+                {
+                    // reject the flight - waiters throw and the next caller re-leads.
+                    // no rethrow here, the trailing suspension point rethrows to this
+                    // caller AND attaches the handler an alone leader needs
+                    client.reject(e, messageHash);
+                }
+                ((io.github.ccxt.ws.Future)future).getFuture().join();
             }
             return null;
         });
@@ -1678,7 +1718,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             Object options = this.safeDict(this.options, "watchBalance");
             Object fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
             Object awaitBalanceSnapshot = this.safeBool(options, "awaitBalanceSnapshot", true);
-            if (Helpers.isTrue(Helpers.isTrue(fetchBalanceSnapshot) && Helpers.isTrue(awaitBalanceSnapshot)))
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(fetchBalanceSnapshot, true))) && Helpers.isTrue((Helpers.isEqual(awaitBalanceSnapshot, true)))))
             {
                 client.future((String)Helpers.add(type, ":fetchBalanceSnapshot")).getFuture().join();
             }
@@ -1697,7 +1737,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
         }
         Object options = this.safeValue(this.options, "watchBalance");
         Object fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
-        if (Helpers.isTrue(fetchBalanceSnapshot))
+        if (Helpers.isTrue(Helpers.isEqual(fetchBalanceSnapshot, true)))
         {
             Object messageHash = Helpers.add(type, ":fetchBalanceSnapshot");
             if (!Helpers.isTrue((Helpers.inOp(client.futures, messageHash))))
@@ -1868,7 +1908,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             Object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);
             Object awaitPositionsSnapshot = this.handleOption("watchPositions", "awaitPositionsSnapshot", true);
             Object cache = this.positions;
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(fetchPositionsSnapshot) && Helpers.isTrue(awaitPositionsSnapshot)) && Helpers.isTrue(Helpers.isEqual(cache, null))))
+            if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(fetchPositionsSnapshot, true))) && Helpers.isTrue((Helpers.isEqual(awaitPositionsSnapshot, true)))) && Helpers.isTrue((Helpers.isEqual(cache, null)))))
             {
                 Object snapshot = client.future("fetchPositionsSnapshot").getFuture().join();
                 return this.filterBySymbolsSinceLimit(snapshot, symbols, since, limit, true);
@@ -1890,7 +1930,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             return;
         }
         Object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", false);
-        if (Helpers.isTrue(fetchPositionsSnapshot))
+        if (Helpers.isTrue(Helpers.isEqual(fetchPositionsSnapshot, true)))
         {
             Object messageHash = "fetchPositionsSnapshot";
             if (!Helpers.isTrue((Helpers.inOp(client.futures, messageHash))))

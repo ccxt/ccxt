@@ -30,7 +30,7 @@ class bitmex extends \ccxt\async\bitmex {
                 'watchOrderBook' => true,
                 'watchOrderBookForSymbols' => true,
                 'watchOrders' => true,
-                'watchPostions' => true,
+                'watchPositions' => true,
                 'watchTicker' => true,
                 'watchTickers' => true,
                 'watchTrades' => true,
@@ -754,7 +754,7 @@ class bitmex extends \ccxt\async\bitmex {
     public function handle_authentication_message(Client $client, mixed $message) {
         $authenticated = $this->safe_bool($message, 'success', false);
         $messageHash = 'authenticated';
-        if ($authenticated) {
+        if ($authenticated === true) {
             // we resolve the $future here permanently so authentication only happens once
             $future = $this->safe_value($client->futures, $messageHash);
             $future->resolve(true);
@@ -790,7 +790,8 @@ class bitmex extends \ccxt\async\bitmex {
         $subscriptionHash = 'position';
         $messageHash = 'positions';
         if (!$this->is_empty($symbols)) {
-            $messageHash = '::' . implode(',', ($symbols));
+            $symbols = $this->market_symbols($symbols);
+            $messageHash = 'positions::' . implode(',', ($symbols));
         }
         $url = $this->urls['api']['ws'];
         $request = array(
@@ -1839,7 +1840,7 @@ class bitmex extends \ccxt\async\bitmex {
         //         )
         //     }
         //
-        if ($this->handle_error_message($client, $message)) {
+        if ($this->handle_error_message($client, $message) === true) {
             $table = $this->safe_string($message, 'table');
             $methods = array(
                 'orderBookL2' => array($this, 'handle_order_book'),

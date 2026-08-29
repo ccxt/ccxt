@@ -5,8 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bigone import ImplicitAPI
-from ccxt.base.types import Any, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
-from typing import List
+from ccxt.base.types import Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -23,7 +22,7 @@ from ccxt.base.precise import Precise
 
 class bigone(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(bigone, self).describe(), {
             'id': 'bigone',
             'name': 'BigONE',
@@ -571,7 +570,7 @@ class bigone(Exchange, ImplicitAPI):
                 }
         chainLength = len(chains)
         type = None
-        if self.safe_bool(rawCurrency, 'is_fiat'):
+        if self.safe_bool(rawCurrency, 'is_fiat') is True:
             type = 'fiat'
         elif chainLength == 0:
             if self.is_leveraged_currency(id):
@@ -604,7 +603,7 @@ class bigone(Exchange, ImplicitAPI):
             'networks': networks,
         })
 
-    def fetch_markets(self, params={}) -> List[Market]:
+    def fetch_markets(self, params={}) -> list[Market]:
         """
         retrieves data on all markets for bigone
 
@@ -757,7 +756,7 @@ class bigone(Exchange, ImplicitAPI):
                 'option': False,
                 'active': self.safe_bool(market, 'enable'),
                 'contract': True,
-                'linear': not inverse,
+                'linear': (inverse is not True),
                 'inverse': inverse,
                 'contractSize': self.safe_number(market, 'multiplier'),
                 'expiry': None,
@@ -1034,7 +1033,7 @@ class bigone(Exchange, ImplicitAPI):
             self.load_markets()
         market = self.market(symbol)
         response: dict
-        if market['contract']:
+        if market['contract'] is True:
             request = {
                 'symbol': market['id'],
             }
@@ -1091,7 +1090,7 @@ class bigone(Exchange, ImplicitAPI):
             orderbook = self.safe_dict(response, 'data', {})
             return self.parse_order_book(orderbook, market['symbol'], None, 'bids', 'asks', 'price', 'quantity')
 
-    def parse_contract_bids_asks(self, bidsAsks: Any):
+    def parse_contract_bids_asks(self, bidsAsks: object):
         bidsAsksKeys = list(bidsAsks.keys())
         result = []
         for i in range(0, len(bidsAsksKeys)):
@@ -1240,7 +1239,7 @@ class bigone(Exchange, ImplicitAPI):
             result['fee'] = None
         return self.safe_trade(result, market)
 
-    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -1255,7 +1254,7 @@ class bigone(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if market['contract']:
+        if market['contract'] is True:
             raise NotSupported(self.id + ' fetchTrades() can only fetch trades for spot markets')
         request = {
             'asset_pair_name': market['id'],
@@ -1285,7 +1284,7 @@ class bigone(Exchange, ImplicitAPI):
         trades = self.safe_list(response, 'data', [])
         return self.parse_trades(trades, market, since, limit)
 
-    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #
         #     {
         #         "close": "0.021562",
@@ -1305,7 +1304,7 @@ class bigone(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'volume'),
         ]
 
-    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -1322,7 +1321,7 @@ class bigone(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if market['contract']:
+        if market['contract'] is True:
             raise NotSupported(self.id + ' fetchOHLCV() can only fetch ohlcvs for spot markets')
         until = self.safe_integer(params, 'until')
         untilIsDefined = (until is not None)
@@ -1372,7 +1371,7 @@ class bigone(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
-    def parse_balance(self, response: Any) -> Balances:
+    def parse_balance(self, response: object) -> Balances:
         result = {
             'info': response,
             'timestamp': None,
@@ -1464,7 +1463,7 @@ class bigone(Exchange, ImplicitAPI):
             triggerPrice = None
         immediateOrCancel = self.safe_bool(order, 'immediate_or_cancel')
         timeInForce = None
-        if immediateOrCancel:
+        if immediateOrCancel is True:
             timeInForce = 'IOC'
         type = self.parse_type(self.safe_string(order, 'type'))
         price = self.safe_string(order, 'price')
@@ -1514,7 +1513,7 @@ class bigone(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if not market['spot']:
+        if market['spot'] is not True:
             raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot orders only')
         params['createMarketBuyOrderRequiresPrice'] = False
         return self.create_order(symbol, 'market', 'buy', cost, None, params)
@@ -1567,7 +1566,7 @@ class bigone(Exchange, ImplicitAPI):
                 timeInForce = self.safe_string(params, 'timeInForce')
                 if timeInForce == 'IOC':
                     request['immediate_or_cancel'] = True
-                if postOnly:
+                if postOnly is True:
                     request['post_only'] = True
             request['amount'] = self.amount_to_precision(symbol, amount)
         else:
@@ -1716,7 +1715,7 @@ class bigone(Exchange, ImplicitAPI):
         order = self.safe_dict(response, 'data', {})
         return self.parse_order(order)
 
-    def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
 
@@ -1835,7 +1834,7 @@ class bigone(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status)
 
-    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -1852,7 +1851,7 @@ class bigone(Exchange, ImplicitAPI):
         }
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
-    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple closed orders made by the user
 
@@ -1873,13 +1872,13 @@ class bigone(Exchange, ImplicitAPI):
         exchangeTimeCorrection = self.safe_integer(self.options, 'exchangeMillisecondsCorrection', 0) * 1000000
         return self.sum(self.microseconds() * 1000, exchangeTimeCorrection)
 
-    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         query = self.omit(params, self.extract_params(path))
         baseUrl = self.implode_hostname(self.urls['api'][api])
         url = baseUrl + '/' + self.implode_params(path, params)
         headers = {}
         if api == 'public' or api == 'webExchange' or api == 'contractPublic':
-            if query:
+            if len(query) > 0:
                 url += '?' + self.urlencode(query)
         else:
             self.check_required_credentials()
@@ -1893,7 +1892,7 @@ class bigone(Exchange, ImplicitAPI):
             token = self.jwt(request, self.encode(self.secret), 'sha256')
             headers['Authorization'] = 'Bearer ' + token
             if method == 'GET':
-                if query:
+                if len(query) > 0:
                     url += '?' + self.urlencode(query)
             elif method == 'POST':
                 headers['Content-Type'] = 'application/json'
@@ -2052,7 +2051,7 @@ class bigone(Exchange, ImplicitAPI):
             'internal': internal,
         }
 
-    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch all deposits made to an account
 
@@ -2103,7 +2102,7 @@ class bigone(Exchange, ImplicitAPI):
         deposits = self.safe_list(response, 'data', [])
         return self.parse_transactions(deposits, currency, since, limit)
 
-    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch all withdrawals made from an account
 
@@ -2193,7 +2192,7 @@ class bigone(Exchange, ImplicitAPI):
         transfer = self.parse_transfer(response, currency)
         transferOptions = self.safe_dict(self.options, 'transfer', {})
         fillResponseFromRequest = self.safe_bool(transferOptions, 'fillResponseFromRequest', True)
-        if fillResponseFromRequest:
+        if fillResponseFromRequest is True:
             transfer['fromAccount'] = fromAccount
             transfer['toAccount'] = toAccount
             transfer['amount'] = amount
@@ -2280,7 +2279,7 @@ class bigone(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_transaction(data, currency)
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:
             return None  # fallback to default error handler
         #

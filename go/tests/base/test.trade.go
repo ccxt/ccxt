@@ -14,7 +14,7 @@ func TestTrade(exchange ccxt.ICoreExchange, skippedProperties any, method any, e
 			"fees":   true,
 		}, skippedProperties)
 	}
-	var format any = map[string]any{
+	var format map[string]any = map[string]any{
 		"info":         map[string]any{},
 		"id":           "12345-67890:09876/54321",
 		"timestamp":    1502962946216,
@@ -34,7 +34,7 @@ func TestTrade(exchange ccxt.ICoreExchange, skippedProperties any, method any, e
 	}
 	// todo: add takeOrMaker as mandatory (atm, many exchanges fail)
 	// removed side because some public endpoints return trades without side
-	var emptyAllowedFor any = []any{"fees", "fee", "symbol", "order", "id", "takerOrMaker"}
+	var emptyAllowedFor []any = []any{"fees", "fee", "symbol", "order", "id", "takerOrMaker"}
 	AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor)
 	AssertTimestampAndDatetime(exchange, skippedProperties, method, entry, now)
 	AssertSymbol(exchange, skippedProperties, method, entry, "symbol", symbol)

@@ -1559,7 +1559,7 @@ public class ParadexCore extends ParadexApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            if (!Helpers.isTrue(Helpers.GetValue(market, "contract")))
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
             {
                 throw new BadRequest((String)Helpers.add(this.id, " fetchOpenInterest() supports contract markets only")) ;
             }
@@ -1903,12 +1903,13 @@ public class ParadexCore extends ParadexApi
         Object side = this.safeStringLower(order, "side");
         Object average = this.omitZero(this.safeString(order, "avg_fill_price"));
         Object remaining = this.omitZero(this.safeString(order, "remaining_size"));
+        Object triggerPrice = this.omitZero(this.safeString(order, "trigger_price"));
         Object lastUpdateTimestamp = this.safeInteger(order, "last_updated_at");
-        Object flags = this.safeList(order, "flags", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object flags = this.safeList(order, "flags");
         Object reduceOnly = null;
-        if (Helpers.isTrue(Helpers.inOp(flags, "REDUCE_ONLY")))
+        if (Helpers.isTrue(!Helpers.isEqual(flags, null)))
         {
-            reduceOnly = true;
+            reduceOnly = this.inArray("REDUCE_ONLY", flags);
         }
         final Object finalStatus = status;
         final Object finalReduceOnly = reduceOnly;
@@ -1927,7 +1928,7 @@ public class ParadexCore extends ParadexApi
             put( "reduceOnly", finalReduceOnly );
             put( "side", side );
             put( "price", price );
-            put( "triggerPrice", ParadexCore.this.safeString(order, "trigger_price") );
+            put( "triggerPrice", triggerPrice );
             put( "takeProfitPrice", null );
             put( "stopLossPrice", null );
             put( "average", average );
@@ -2087,7 +2088,7 @@ public class ParadexCore extends ParadexApi
             Helpers.addElementToObject(request, "trigger_price", stopPrice);
         }
         Helpers.addElementToObject(request, "size", sizeString);
-        if (Helpers.isTrue(reduceOnly))
+        if (Helpers.isTrue(Helpers.isEqual(reduceOnly, true)))
         {
             Helpers.addElementToObject(request, "flags", new java.util.ArrayList<Object>(java.util.Arrays.asList("REDUCE_ONLY")));
         }
@@ -3074,17 +3075,18 @@ public class ParadexCore extends ParadexApi
             quantity = Precise.stringMul("-1", quantity);
         }
         Object timestamp = this.safeInteger(position, "time");
+        Object liquidationPrice = this.parseNumber(this.omitZero(this.safeString(position, "liquidation_price")));
         final Object finalSide = side;
         final Object finalQuantity = quantity;
         return this.safePosition(new java.util.HashMap<String, Object>() {{
             put( "info", position );
             put( "id", ParadexCore.this.safeString(position, "id") );
             put( "symbol", symbol );
-            put( "entryPrice", ParadexCore.this.safeString(position, "average_entry_price") );
+            put( "entryPrice", ParadexCore.this.safeNumber(position, "average_entry_price") );
             put( "markPrice", null );
             put( "notional", null );
-            put( "collateral", ParadexCore.this.safeString(position, "cost") );
-            put( "unrealizedPnl", ParadexCore.this.safeString(position, "unrealized_pnl") );
+            put( "collateral", ParadexCore.this.safeNumber(position, "cost") );
+            put( "unrealizedPnl", ParadexCore.this.safeNumber(position, "unrealized_pnl") );
             put( "side", finalSide );
             put( "contracts", ParadexCore.this.parseNumber(finalQuantity) );
             put( "contractSize", null );
@@ -3096,7 +3098,7 @@ public class ParadexCore extends ParadexApi
             put( "initialMargin", null );
             put( "initialMarginPercentage", null );
             put( "leverage", null );
-            put( "liquidationPrice", null );
+            put( "liquidationPrice", liquidationPrice );
             put( "marginRatio", null );
             put( "marginMode", null );
             put( "percentage", null );
@@ -4164,7 +4166,7 @@ public class ParadexCore extends ParadexApi
         Object query = this.omit(parameters, this.extractParams(path));
         if (Helpers.isTrue(Helpers.isEqual(api, "public")))
         {
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
             {
                 url = Helpers.add(url, Helpers.add("?", this.urlencode(query)));
             }
@@ -4219,7 +4221,7 @@ public class ParadexCore extends ParadexApi
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
     {
-        if (!Helpers.isTrue(response))
+        if (Helpers.isTrue(Helpers.isEqual(response, null)))
         {
             return null;  // fallback to default error handler
         }

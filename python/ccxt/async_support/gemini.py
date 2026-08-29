@@ -7,8 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.gemini import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Any, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
-from typing import List
+from ccxt.base.types import Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -28,7 +27,7 @@ from ccxt.base.precise import Precise
 
 class gemini(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(gemini, self).describe(), {
             'id': 'gemini',
             'name': 'Gemini',
@@ -460,7 +459,9 @@ class gemini(Exchange, ImplicitAPI):
     def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
         id = self.safe_string(rawCurrency, 0)
         code = self.safe_currency_code(id)
-        type = 'fiat' if self.safe_string(rawCurrency, 7) else 'crypto'
+        fiatFlag = self.safe_string(rawCurrency, 7)
+        isFiat = (fiatFlag is not None) and (fiatFlag != '')
+        type = 'fiat' if isFiat else 'crypto'
         precision = self.parse_number(self.parse_precision(self.safe_string(rawCurrency, 5)))
         networks = {}
         networkId = self.safe_string(rawCurrency, 9)
@@ -512,7 +513,7 @@ class gemini(Exchange, ImplicitAPI):
             'networks': networks,
         })
 
-    async def fetch_markets(self, params={}) -> List[Market]:
+    async def fetch_markets(self, params={}) -> list[Market]:
         """
         retrieves data on all markets for gemini
 
@@ -623,7 +624,7 @@ class gemini(Exchange, ImplicitAPI):
             })
         return result
 
-    def parse_market_active(self, status: Any):
+    def parse_market_active(self, status: object):
         statuses = {
             'open': True,
             'closed': False,
@@ -710,7 +711,7 @@ class gemini(Exchange, ImplicitAPI):
                         result.append(self.parse_market(marketIds[i]))
         return result
 
-    def parse_market(self, response: Any) -> Market:
+    def parse_market(self, response: object) -> Market:
         #
         # response might be:
         #
@@ -1144,7 +1145,7 @@ class gemini(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -1182,7 +1183,7 @@ class gemini(Exchange, ImplicitAPI):
         #
         return self.parse_trades(response, market, since, limit)
 
-    def parse_balance(self, response: Any) -> Balances:
+    def parse_balance(self, response: object) -> Balances:
         result = {'info': response}
         for i in range(0, len(response)):
             balance = response[i]
@@ -1373,9 +1374,9 @@ class gemini(Exchange, ImplicitAPI):
         remaining = self.safe_string(order, 'remaining_amount')
         filled = self.safe_string(order, 'executed_amount')
         status = 'closed'
-        if order['is_live']:
+        if order['is_live'] is True:
             status = 'open'
-        if order['is_cancelled']:
+        if order['is_cancelled'] is True:
             status = 'canceled'
         price = self.safe_string(order, 'price')
         average = self.safe_string(order, 'avg_execution_price')
@@ -1470,7 +1471,7 @@ class gemini(Exchange, ImplicitAPI):
         #
         return self.parse_order(response)
 
-    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -1571,7 +1572,7 @@ class gemini(Exchange, ImplicitAPI):
                     request['options'] = ['maker-or-cancel']
             postOnly = self.safe_bool(params, 'postOnly', False)
             params = self.omit(params, 'postOnly')
-            if postOnly:
+            if postOnly is True:
                 request['options'] = ['maker-or-cancel']
             # allowing override for auction-only and indication-of-interest order options
             options = self.safe_string(params, 'options')
@@ -1731,7 +1732,7 @@ class gemini(Exchange, ImplicitAPI):
             return self.milliseconds()
         return self.seconds()
 
-    async def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch history of deposits and withdrawals
 
@@ -1816,7 +1817,7 @@ class gemini(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_deposit_address(self, depositAddress: Any, currency: Currency = None):
+    def parse_deposit_address(self, depositAddress: object, currency: Currency = None):
         #
         #      {
         #          "address": "0xed6494Fe7c1E56d1bd6136e89268C51E32d9708B",
@@ -1853,7 +1854,7 @@ class gemini(Exchange, ImplicitAPI):
         networkGroup = self.index_by(self.safe_value(groupedByNetwork, networkCode), 'currency')
         return self.safe_value(networkGroup, code)
 
-    async def fetch_deposit_addresses_by_network(self, code: str, params={}) -> List[DepositAddress]:
+    async def fetch_deposit_addresses_by_network(self, code: str, params={}) -> list[DepositAddress]:
         """
         fetch a dictionary of addresses for a currency, indexed by network
 
@@ -1880,7 +1881,7 @@ class gemini(Exchange, ImplicitAPI):
         results = self.parse_deposit_addresses(response, [code], False, {'network': networkCode, 'currency': code})
         return self.group_by(results, 'network')
 
-    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         url = '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'private':
@@ -1904,14 +1905,14 @@ class gemini(Exchange, ImplicitAPI):
                 'X-GEMINI-SIGNATURE': signature,
             }
         else:
-            if query:
+            if len(query) > 0:
                 url += '?' + self.urlencode(query)
         url = self.urls['api'][api] + url
         if (method == 'POST') or (method == 'DELETE'):
             body = self.json(query)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:
             if isinstance(body, str):
                 feedback = self.id + ' ' + body
@@ -1962,7 +1963,7 @@ class gemini(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -2024,7 +2025,7 @@ class gemini(Exchange, ImplicitAPI):
         #
         return self.parse_open_interest(response, market)
 
-    def parse_open_interest(self, interest: Any, market: Market = None):
+    def parse_open_interest(self, interest: object, market: Market = None):
         #
         #    {
         #        product_type: 'PerpetualSwapContract',

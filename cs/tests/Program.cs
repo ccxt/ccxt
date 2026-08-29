@@ -141,9 +141,10 @@ public class Tests
             if (isWs)
             {
                 WsCacheTests();
+                WsCacheRegressionTests();
                 WsOrderBookTests();
                 WsOrderBookDefaultsTests();
-                await WsClientRetentionTests();
+                WsOrderBookCopyAtomicityTests();
                 await WsClientKeepAliveLivenessTests();
                 Helper.Green("[C#] base WS tests passed");
             }
@@ -180,16 +181,23 @@ public class Tests
         Helper.Green(" [C#] ArrayCache tests passed");
     }
 
-    static async Task WsClientRetentionTests()
+    static void WsCacheRegressionTests()
     {
-        await baseTestInstance.testWsClientRetention();
-        Helper.Green(" [C#] WebSocketClient retention tests passed");
+        baseTestInstance.testWsCacheRegressions();
+        Helper.Green(" [C#] ArrayCache regression tests passed");
     }
 
     static void WsOrderBookDefaultsTests()
     {
         baseTestInstance.testWsOrderBookNullSnapshotDefaults();
         Helper.Green(" [C#] OrderBook null-snapshot defaults tests passed");
+    }
+
+    static void WsOrderBookCopyAtomicityTests()
+    {
+        baseTestInstance.testWsOrderBookCopyAtomicity();
+        baseTestInstance.testWsOrderBookSingleStore();
+        Helper.Green(" [C#] OrderBook Copy() atomicity tests passed");
     }
 
     static async Task WsClientKeepAliveLivenessTests()

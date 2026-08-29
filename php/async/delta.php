@@ -1111,9 +1111,16 @@ class delta extends Exchange {
         //
         $timestamp = $this->safe_integer_product($ticker, 'timestamp', 0.001);
         $marketId = $this->safe_string($ticker, 'symbol');
-        $symbol = $this->safe_symbol($marketId, $market);
+        $market = $this->safe_market($marketId, $market);
+        $symbol = $market['symbol'];
         $last = $this->safe_string($ticker, 'close');
         $quotes = $this->safe_dict($ticker, 'quotes', array());
+        // turnover_symbol names the currency turnover is denominated in, and on
+        // spot markets that is the base currency rather than the quote
+        $turnoverSymbol = $this->safe_string_upper($ticker, 'turnover_symbol');
+        $quoteId = $this->safe_string_upper($market, 'quoteId');
+        $baseDenominated = ($turnoverSymbol !== null) && ($quoteId !== null) && ($turnoverSymbol !== $quoteId);
+        $quoteVolume = $baseDenominated ? $this->safe_number($ticker, 'turnover_usd') : $this->safe_number($ticker, 'turnover');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -1133,7 +1140,7 @@ class delta extends Exchange {
             'percentage' => null,
             'average' => null,
             'baseVolume' => $this->safe_number($ticker, 'volume'),
-            'quoteVolume' => $this->safe_number($ticker, 'turnover'),
+            'quoteVolume' => $quoteVolume,
             'markPrice' => $this->safe_number($ticker, 'mark_price'),
             'indexPrice' => $this->safe_number($ticker, 'spot_price'),
             'info' => $ticker,
@@ -1685,7 +1692,7 @@ class delta extends Exchange {
             'resolution' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
         $duration = $this->parse_timeframe($timeframe);
-        $limit = $limit ? $limit : 2000; // max 2000
+        $limit = ($limit !== null && $limit !== null && $limit !== 0) ? $limit : 2000; // max 2000
         $until = $this->safe_integer_product($params, 'until', 0.001);
         $untilIsDefined = ($until !== null);
         if ($untilIsDefined) {
@@ -2099,7 +2106,7 @@ class delta extends Exchange {
             $request['client_order_id'] = $clientOrderId;
         }
         $reduceOnly = $this->safe_bool($params, 'reduceOnly');
-        if ($reduceOnly) {
+        if ($reduceOnly === true) {
             $request['reduce_only'] = $reduceOnly;
             $params = $this->omit($params, 'reduceOnly');
         }
@@ -2772,7 +2779,7 @@ class delta extends Exchange {
          */
         Async\await($this->load_markets());
         $market = $this->market($symbol);
-        if (!$market['swap']) {
+        if ($market['swap'] !== true) {
             throw new BadSymbol($this->id . ' fetchFundingRate() supports swap contracts only');
         }
         $request = array(
@@ -3100,7 +3107,7 @@ class delta extends Exchange {
          */
         Async\await($this->load_markets());
         $market = $this->market($symbol);
-        if (!$market['contract']) {
+        if ($market['contract'] !== true) {
             throw new BadRequest($this->id . ' fetchOpenInterest() supports contract markets only');
         }
         $request = array(
@@ -4312,7 +4319,7 @@ class delta extends Exchange {
         $url = $this->urls['api'][$api] . $requestPath;
         $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {
-            if ($query) {
+            if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
         } elseif ($api === 'private') {
@@ -4324,7 +4331,7 @@ class delta extends Exchange {
             );
             $auth = $method . $timestamp . $requestPath;
             if ($method === 'GET') {
-                if ($query) {
+                if (count($query) > 0) {
                     $queryString = '?' . $this->urlencode($query);
                     $auth .= $queryString;
                     $url .= $queryString;

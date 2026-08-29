@@ -1,8 +1,7 @@
 from ccxt.base.types import Entry
-from typing import Any as PythonAny, Dict, List, Union
+_Dict = dict[str, object]
+_List = list[object]
 
-_Dict = Dict[str, PythonAny]
-_List = List[PythonAny]
 
 class ImplicitAPI:
     sapi_get_copytrading_futures_userstatus = sapiGetCopyTradingFuturesUserStatus = Entry[_Dict]('copyTrading/futures/userStatus', 'sapi', 'GET', {'cost': 2})
@@ -504,7 +503,7 @@ class ImplicitAPI:
     dapipublic_get_indexpriceklines = dapiPublicGetIndexPriceKlines = Entry[_List]('indexPriceKlines', 'dapiPublic', 'GET', {'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]]})
     dapipublic_get_markpriceklines = dapiPublicGetMarkPriceKlines = Entry[_List]('markPriceKlines', 'dapiPublic', 'GET', {'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]]})
     dapipublic_get_premiumindexklines = dapiPublicGetPremiumIndexKlines = Entry[_List]('premiumIndexKlines', 'dapiPublic', 'GET', {'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]]})
-    dapipublic_get_ticker_24hr = dapiPublicGetTicker24hr = Entry[Union[_Dict, _List]]('ticker/24hr', 'dapiPublic', 'GET', {'cost': 1, 'noSymbol': 40})
+    dapipublic_get_ticker_24hr = dapiPublicGetTicker24hr = Entry[_Dict | _List]('ticker/24hr', 'dapiPublic', 'GET', {'cost': 1, 'noSymbol': 40})
     dapipublic_get_ticker_price = dapiPublicGetTickerPrice = Entry[_List]('ticker/price', 'dapiPublic', 'GET', {'cost': 1, 'noSymbol': 2})
     dapipublic_get_ticker_bookticker = dapiPublicGetTickerBookTicker = Entry[_List]('ticker/bookTicker', 'dapiPublic', 'GET', {'cost': 2, 'noSymbol': 5})
     dapipublic_get_constituents = dapiPublicGetConstituents = Entry[_Dict]('constituents', 'dapiPublic', 'GET', {'cost': 2})
@@ -576,8 +575,8 @@ class ImplicitAPI:
     fapipublic_get_fundingrate = fapiPublicGetFundingRate = Entry[_List]('fundingRate', 'fapiPublic', 'GET', {'cost': 1})
     fapipublic_get_fundinginfo = fapiPublicGetFundingInfo = Entry[_List]('fundingInfo', 'fapiPublic', 'GET', {'cost': 1})
     fapipublic_get_premiumindex = fapiPublicGetPremiumIndex = Entry[_List]('premiumIndex', 'fapiPublic', 'GET', {'cost': 1})
-    fapipublic_get_ticker_24hr = fapiPublicGetTicker24hr = Entry[Union[_Dict, _List]]('ticker/24hr', 'fapiPublic', 'GET', {'cost': 1, 'noSymbol': 40})
-    fapipublic_get_ticker_price = fapiPublicGetTickerPrice = Entry[Union[_Dict, _List]]('ticker/price', 'fapiPublic', 'GET', {'cost': 1, 'noSymbol': 2})
+    fapipublic_get_ticker_24hr = fapiPublicGetTicker24hr = Entry[_Dict | _List]('ticker/24hr', 'fapiPublic', 'GET', {'cost': 1, 'noSymbol': 40})
+    fapipublic_get_ticker_price = fapiPublicGetTickerPrice = Entry[_Dict | _List]('ticker/price', 'fapiPublic', 'GET', {'cost': 1, 'noSymbol': 2})
     fapipublic_get_ticker_bookticker = fapiPublicGetTickerBookTicker = Entry[_List]('ticker/bookTicker', 'fapiPublic', 'GET', {'cost': 1, 'noSymbol': 2})
     fapipublic_get_openinterest = fapiPublicGetOpenInterest = Entry[_Dict]('openInterest', 'fapiPublic', 'GET', {'cost': 1})
     fapipublic_get_indexinfo = fapiPublicGetIndexInfo = Entry[_List]('indexInfo', 'fapiPublic', 'GET', {'cost': 1})
@@ -663,7 +662,7 @@ class ImplicitAPI:
     fapiprivate_delete_listenkey = fapiPrivateDeleteListenKey = Entry[_Dict]('listenKey', 'fapiPrivate', 'DELETE', {'cost': 1})
     fapiprivate_delete_algoorder = fapiPrivateDeleteAlgoOrder = Entry[_Dict]('algoOrder', 'fapiPrivate', 'DELETE', {'cost': 1})
     fapiprivate_delete_algoopenorders = fapiPrivateDeleteAlgoOpenOrders = Entry[_Dict]('algoOpenOrders', 'fapiPrivate', 'DELETE', {'cost': 1})
-    fapipublicv2_get_ticker_price = fapiPublicV2GetTickerPrice = Entry[Union[_Dict, _List]]('ticker/price', 'fapiPublicV2', 'GET', {'cost': 0})
+    fapipublicv2_get_ticker_price = fapiPublicV2GetTickerPrice = Entry[_Dict | _List]('ticker/price', 'fapiPublicV2', 'GET', {'cost': 0})
     fapiprivatev2_get_account = fapiPrivateV2GetAccount = Entry[_Dict]('account', 'fapiPrivateV2', 'GET', {'cost': 1})
     fapiprivatev2_get_balance = fapiPrivateV2GetBalance = Entry[_List]('balance', 'fapiPrivateV2', 'GET', {'cost': 1})
     fapiprivatev2_get_positionrisk = fapiPrivateV2GetPositionRisk = Entry[_List]('positionRisk', 'fapiPrivateV2', 'GET', {'cost': 1})
@@ -725,10 +724,10 @@ class ImplicitAPI:
     public_get_historicaltrades = publicGetHistoricalTrades = Entry[_List]('historicalTrades', 'public', 'GET', {'cost': 5})
     public_get_klines = publicGetKlines = Entry[_List]('klines', 'public', 'GET', {'cost': 1})
     public_get_uiklines = publicGetUiKlines = Entry[_List]('uiKlines', 'public', 'GET', {'cost': 0.4})
-    public_get_ticker_24hr = publicGetTicker24hr = Entry[Union[_Dict, _List]]('ticker/24hr', 'public', 'GET', {'cost': 1, 'noSymbol': 40})
+    public_get_ticker_24hr = publicGetTicker24hr = Entry[_Dict | _List]('ticker/24hr', 'public', 'GET', {'cost': 1, 'noSymbol': 40})
     public_get_ticker = publicGetTicker = Entry[_List]('ticker', 'public', 'GET', {'cost': 2, 'noSymbol': 100})
     public_get_ticker_tradingday = publicGetTickerTradingDay = Entry[_Dict]('ticker/tradingDay', 'public', 'GET', {'cost': 0.8})
-    public_get_ticker_price = publicGetTickerPrice = Entry[Union[_Dict, _List]]('ticker/price', 'public', 'GET', {'cost': 1, 'noSymbol': 2})
+    public_get_ticker_price = publicGetTickerPrice = Entry[_Dict | _List]('ticker/price', 'public', 'GET', {'cost': 1, 'noSymbol': 2})
     public_get_ticker_bookticker = publicGetTickerBookTicker = Entry[_List]('ticker/bookTicker', 'public', 'GET', {'cost': 1, 'noSymbol': 2})
     public_get_exchangeinfo = publicGetExchangeInfo = Entry[_Dict]('exchangeInfo', 'public', 'GET', {'cost': 10})
     public_get_avgprice = publicGetAvgPrice = Entry[_Dict]('avgPrice', 'public', 'GET', {'cost': 1})

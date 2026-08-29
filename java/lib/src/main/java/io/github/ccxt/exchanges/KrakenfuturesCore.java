@@ -82,6 +82,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
                 put( "fetchOrders", true );
                 put( "fetchPositions", true );
                 put( "fetchPremiumIndexOHLCV", false );
+                put( "fetchTicker", "emulated" );
                 put( "fetchTickers", true );
                 put( "fetchTrades", true );
                 put( "fetchTradingFee", "emulated" );
@@ -579,6 +580,8 @@ public class KrakenfuturesCore extends KrakenfuturesApi
                     put( "linear", finalLinear );
                     put( "inverse", finalInverse );
                     put( "contractSize", KrakenfuturesCore.this.safeNumber(market, "contractSize") );
+                    put( "taker", KrakenfuturesCore.this.safeNumber(Helpers.GetValue(KrakenfuturesCore.this.fees, "trading"), "taker") );
+                    put( "maker", KrakenfuturesCore.this.safeNumber(Helpers.GetValue(KrakenfuturesCore.this.fees, "trading"), "maker") );
                     put( "maintenanceMarginRate", null );
                     put( "expiry", finalExpiry );
                     put( "expiryDatetime", KrakenfuturesCore.this.iso8601(finalExpiry) );
@@ -792,12 +795,12 @@ public class KrakenfuturesCore extends KrakenfuturesApi
         Object baseVolume = null;
         Object quoteVolume = null;
         Object isIndex = this.safeBool(market, "index", false);
-        if (!Helpers.isTrue(isIndex))
+        if (Helpers.isTrue(!Helpers.isEqual(isIndex, true)))
         {
-            if (Helpers.isTrue(Helpers.GetValue(market, "linear")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "linear"), true)))
             {
                 baseVolume = volume;
-            } else if (Helpers.isTrue(Helpers.GetValue(market, "inverse")))
+            } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "inverse"), true)))
             {
                 quoteVolume = volume;
             }
@@ -1309,7 +1312,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
         Object linear = this.safeBool(market, "linear");
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(amount, null))) && Helpers.isTrue((!Helpers.isEqual(price, null)))) && Helpers.isTrue((!Helpers.isEqual(market, null)))))
         {
-            if (Helpers.isTrue(linear))
+            if (Helpers.isTrue(Helpers.isEqual(linear, true)))
             {
                 cost = Precise.stringMul(amount, price); // in quote
             } else
@@ -1346,29 +1349,37 @@ public class KrakenfuturesCore extends KrakenfuturesApi
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(takerOrMaker, null))) && Helpers.isTrue((!Helpers.isEqual(cost, null)))))
         {
             Object feeRate = this.safeString(market, takerOrMaker);
+            // fees are charged in the settlement currency: the quote currency
+            // for linear contracts, the base currency for inverse contracts
+            Object feeCurrency = this.safeString(market, "settle");
+            if (Helpers.isTrue(Helpers.isEqual(feeCurrency, null)))
+            {
+                feeCurrency = this.safeString(market, "quote");
+            }
             final Object finalCost = cost;
-            final Object finalMarket = market;
+            final Object finalFeeCurrency = feeCurrency;
             fee = new java.util.HashMap<String, Object>() {{
                 put( "cost", Precise.stringMul(finalCost, feeRate) );
-                put( "currency", KrakenfuturesCore.this.safeString(finalMarket, "quote") );
+                put( "currency", finalFeeCurrency );
                 put( "rate", feeRate );
             }};
         }
         final Object finalId = id;
-        final Object finalMarket_2 = market;
+        final Object finalMarket = market;
         final Object finalTimestamp = timestamp;
         final Object finalOrder = order;
         final Object finalType = type;
         final Object finalSide = side;
         final Object finalTakerOrMaker = takerOrMaker;
         final Object finalPrice = price;
+        final Object finalLinear = linear;
         final Object finalAmount = amount;
         final Object finalCost_2 = cost;
         final Object finalFee = fee;
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", finalId );
-            put( "symbol", KrakenfuturesCore.this.safeString(finalMarket_2, "symbol") );
+            put( "symbol", KrakenfuturesCore.this.safeString(finalMarket, "symbol") );
             put( "timestamp", finalTimestamp );
             put( "datetime", KrakenfuturesCore.this.iso8601(finalTimestamp) );
             put( "order", finalOrder );
@@ -1376,7 +1387,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
             put( "side", finalSide );
             put( "takerOrMaker", finalTakerOrMaker );
             put( "price", finalPrice );
-            put( "amount", ((Helpers.isTrue(linear))) ? finalAmount : null );
+            put( "amount", ((Helpers.isTrue((Helpers.isEqual(finalLinear, true))))) ? finalAmount : null );
             put( "cost", finalCost_2 );
             put( "fee", finalFee );
         }});
@@ -1457,7 +1468,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
                 Helpers.addElementToObject(request, "stopPrice", this.priceToPrecision(symbol, takeProfitTriggerPrice));
             }
         }
-        if (Helpers.isTrue(reduceOnly))
+        if (Helpers.isTrue(Helpers.isEqual(reduceOnly, true)))
         {
             Helpers.addElementToObject(request, "reduceOnly", true);
         }
@@ -2069,7 +2080,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
             }
             Object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
             Object response = null;
-            if (Helpers.isTrue(isTrigger))
+            if (Helpers.isTrue(Helpers.isEqual(isTrigger, true)))
             {
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("trigger", "stop")));
                 response = (this.historyGetTriggers(this.extend(request, parameters))).join();
@@ -2151,7 +2162,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
             }
             Object response = null;
             Object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
-            if (Helpers.isTrue(isTrigger))
+            if (Helpers.isTrue(Helpers.isEqual(isTrigger, true)))
             {
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("trigger", "stop")));
                 response = (this.historyGetTriggers(this.extend(request, parameters))).join();
@@ -2634,7 +2645,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
         Object statusId = null;
         Object price = null;
         Object trades = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-        if (Helpers.isTrue(orderEventsLength))
+        if (Helpers.isTrue(Helpers.isGreaterThan(orderEventsLength, 0)))
         {
             Object executions = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orderEvents)); i++)
@@ -2748,7 +2759,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
             Object whichPrice = ((Helpers.isTrue((!Helpers.isEqual(average, null))))) ? average : price;
             if (Helpers.isTrue(!Helpers.isEqual(whichPrice, null)))
             {
-                if (Helpers.isTrue(Helpers.GetValue(market, "linear")))
+                if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "linear"), true)))
                 {
                     cost = Precise.stringMul(filled, whichPrice); // in quote
                 } else
@@ -3473,7 +3484,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            if (!Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 throw new BadRequest((String)Helpers.add(this.id, " fetchFundingRateHistory() supports swap contracts only")) ;
             }
@@ -3571,7 +3582,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
         Object positions = this.safeList(response, "openPositions");
         if (Helpers.isTrue(Helpers.isEqual(positions, null)))
         {
-            throw new ExchangeError((String)Helpers.add(this.id, " fetchPositions() returned a response without an \"openPositions\" list")) ;
+            throw new ExchangeNotAvailable((String)Helpers.add(this.id, " fetchPositions() returned a response without an \"openPositions\" list")) ;
         }
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(positions)); i++)
         {
@@ -3590,6 +3601,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
         //        "price": "0.7533",
         //        "fillTime": "2022-03-03T22:51:16.566Z",
         //        "size": "230",
+        //        "unrealizedPnl": "-607250.006654067",
         //        "unrealizedFunding": "-0.001878596918214635"
         //    }
         //
@@ -3600,6 +3612,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
         //        "price":"0.4921",
         //        "fillTime":"2023-02-22T11:37:16.685Z",
         //        "size":"1",
+        //        "unrealizedPnl":"12.34",
         //        "unrealizedFunding":"-8.155240068885155E-8",
         //        "pnlCurrency":"USD",
         //        "maxFixedLeverage":"1.0"
@@ -3630,7 +3643,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
             put( "entryPrice", KrakenfuturesCore.this.safeNumber(position, "price") );
             put( "notional", null );
             put( "leverage", finalLeverage );
-            put( "unrealizedPnl", null );
+            put( "unrealizedPnl", KrakenfuturesCore.this.safeNumber(position, "unrealizedPnl") );
             put( "contracts", KrakenfuturesCore.this.safeNumber(position, "size") );
             put( "contractSize", KrakenfuturesCore.this.safeNumber(finalMarket, "contractSize") );
             put( "marginRatio", null );
@@ -3836,7 +3849,7 @@ final Object finalI = i;
             Object market = this.market(account);
             Object marketId = Helpers.GetValue(market, "id");
             Object splitId = Helpers.split(((String)marketId), "_");
-            if (Helpers.isTrue(Helpers.GetValue(market, "inverse")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "inverse"), true)))
             {
                 return Helpers.add("fi_", this.safeString(splitId, 1));
             } else
@@ -4131,7 +4144,7 @@ final Object finalI = i;
         {
             postData = Helpers.add("json=", this.json(parameters));
             body = postData;
-        } else if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(parameters))))
+        } else if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(parameters)), 0)))
         {
             if (Helpers.isTrue(Helpers.inOp(parameters, "orderIds")))
             {

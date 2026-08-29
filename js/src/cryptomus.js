@@ -743,7 +743,7 @@ export default class cryptomus extends Exchange {
                     }
                 }
                 else {
-                    cost = cost ? cost : amountToString;
+                    cost = (cost !== undefined && cost !== '') ? cost : amountToString;
                 }
                 request['value'] = cost;
             }

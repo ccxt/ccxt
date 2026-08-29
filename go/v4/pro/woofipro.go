@@ -84,29 +84,29 @@ func (this *WoofiproCore) RequestId(url any) any {
 	return newValue
 }
 func (this *WoofiproCore) WatchPublic(messageHash any, message any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		// the default id
-		var id any = "OqdphuyCtYWxwzhxyLLjOWNdFP7sQt8RPWzmb5xY"
-		if ccxt.IsTrue(ccxt.IsTrue(!ccxt.IsEqual(this.AccountId, nil)) && ccxt.IsTrue(!ccxt.IsEqual(this.AccountId, ""))) {
-			id = this.AccountId
-		}
-		var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"), "/"), id)
-		var requestId any = this.RequestId(url)
-		var subscribe any = map[string]any{
-			"id": requestId,
-		}
-		var request any = this.Extend(subscribe, message)
-
-		retRes9215 := (<-this.Watch(url, messageHash, request, messageHash, subscribe))
-		ccxt.PanicOnError(retRes9215)
-		ch <- retRes9215
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchPublicBody(ch, messageHash, message)
 	return ch
+}
+func (this *WoofiproCore) watchPublicBody(ch chan any, messageHash any, message any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	// the default id
+	var id any = "OqdphuyCtYWxwzhxyLLjOWNdFP7sQt8RPWzmb5xY"
+	if ccxt.IsTrue(ccxt.IsTrue(!ccxt.IsEqual(this.AccountId, nil)) && ccxt.IsTrue(!ccxt.IsEqual(this.AccountId, ""))) {
+		id = this.AccountId
+	}
+	var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"), "/"), id)
+	var requestId any = this.RequestId(url)
+	var subscribe map[string]any = map[string]any{
+		"id": requestId,
+	}
+	var request map[string]any = this.Extend(subscribe, message)
+
+	retRes9215 := (<-this.Watch(url, messageHash, request, messageHash, subscribe))
+	ccxt.PanicOnError(retRes9215)
+	ch <- retRes9215
+	return nil
 }
 
 /**
@@ -120,36 +120,36 @@ func (this *WoofiproCore) WatchPublic(messageHash any, message any) <-chan any {
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *WoofiproCore) WatchOrderBook(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		limit := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = limit
-		params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
-
-			retRes10712 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes10712)
-		}
-		var name any = "orderbook"
-		var market any = this.Market(symbol)
-		var topic any = ccxt.Add(ccxt.Add(ccxt.GetValue(market, "id"), "@"), name)
-		var request any = map[string]any{
-			"event": "subscribe",
-			"topic": topic,
-		}
-		var message any = this.Extend(request, params)
-
-		orderbook := (<-this.WatchPublic(topic, message))
-		ccxt.PanicOnError(orderbook)
-
-		ch <- orderbook.(ccxt.OrderBookInterface).Limit()
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *WoofiproCore) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	limit := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = limit
+	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes10712 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes10712)
+	}
+	var name string = "orderbook"
+	var market any = this.Market(symbol)
+	var topic any = ccxt.Add(ccxt.Add(ccxt.GetValue(market, "id"), "@"), name)
+	var request map[string]any = map[string]any{
+		"event": "subscribe",
+		"topic": topic,
+	}
+	var message map[string]any = this.Extend(request, params)
+
+	orderbook := (<-this.WatchPublic(topic, message))
+	ccxt.PanicOnError(orderbook)
+
+	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
+	return nil
 }
 func (this *WoofiproCore) HandleOrderBook(client any, message any) {
 	//
@@ -198,34 +198,34 @@ func (this *WoofiproCore) HandleOrderBook(client any, message any) {
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *WoofiproCore) WatchTicker(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
-
-			retRes16912 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes16912)
-		}
-		var name any = "ticker"
-		var market any = this.Market(symbol)
-		symbol = ccxt.GetValue(market, "symbol")
-		var topic any = ccxt.Add(ccxt.Add(ccxt.GetValue(market, "id"), "@"), name)
-		var request any = map[string]any{
-			"event": "subscribe",
-			"topic": topic,
-		}
-		var message any = this.Extend(request, params)
-
-		retRes18015 := (<-this.WatchPublic(topic, message))
-		ccxt.PanicOnError(retRes18015)
-		ch <- retRes18015
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchTickerBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *WoofiproCore) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes16912 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes16912)
+	}
+	var name string = "ticker"
+	var market any = this.Market(symbol)
+	symbol = ccxt.GetValue(market, "symbol")
+	var topic any = ccxt.Add(ccxt.Add(ccxt.GetValue(market, "id"), "@"), name)
+	var request map[string]any = map[string]any{
+		"event": "subscribe",
+		"topic": topic,
+	}
+	var message map[string]any = this.Extend(request, params)
+
+	retRes18015 := (<-this.WatchPublic(topic, message))
+	ccxt.PanicOnError(retRes18015)
+	ch <- retRes18015
+	return nil
 }
 func (this *WoofiproCore) ParseWsTicker(ticker any, optionalArgs ...any) any {
 	//
@@ -305,36 +305,36 @@ func (this *WoofiproCore) HandleTicker(client any, message any) any {
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *WoofiproCore) WatchTickers(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		symbols := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = symbols
-		params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
-
-			retRes26112 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes26112)
-		}
-		symbols = this.MarketSymbols(symbols)
-		var name any = "tickers"
-		var topic any = name
-		var request any = map[string]any{
-			"event": "subscribe",
-			"topic": topic,
-		}
-		var message any = this.Extend(request, params)
-
-		tickers := (<-this.WatchPublic(topic, message))
-		ccxt.PanicOnError(tickers)
-
-		ch <- this.FilterByArray(tickers, "symbol", symbols)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchTickersBody(ch, optionalArgs...)
 	return ch
+}
+func (this *WoofiproCore) watchTickersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	symbols := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = symbols
+	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes26112 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes26112)
+	}
+	symbols = this.MarketSymbols(symbols)
+	var name string = "tickers"
+	var topic any = name
+	var request map[string]any = map[string]any{
+		"event": "subscribe",
+		"topic": topic,
+	}
+	var message map[string]any = this.Extend(request, params)
+
+	tickers := (<-this.WatchPublic(topic, message))
+	ccxt.PanicOnError(tickers)
+
+	ch <- this.FilterByArray(tickers, "symbol", symbols)
+	return nil
 }
 func (this *WoofiproCore) HandleTickers(client any, message any) {
 	//
@@ -382,36 +382,36 @@ func (this *WoofiproCore) HandleTickers(client any, message any) {
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *WoofiproCore) WatchBidsAsks(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		symbols := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = symbols
-		params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
-
-			retRes32012 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes32012)
-		}
-		symbols = this.MarketSymbols(symbols)
-		var name any = "bbos"
-		var topic any = name
-		var request any = map[string]any{
-			"event": "subscribe",
-			"topic": topic,
-		}
-		var message any = this.Extend(request, params)
-
-		tickers := (<-this.WatchPublic(topic, message))
-		ccxt.PanicOnError(tickers)
-
-		ch <- this.FilterByArray(tickers, "symbol", symbols)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchBidsAsksBody(ch, optionalArgs...)
 	return ch
+}
+func (this *WoofiproCore) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	symbols := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = symbols
+	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes32012 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes32012)
+	}
+	symbols = this.MarketSymbols(symbols)
+	var name string = "bbos"
+	var topic any = name
+	var request map[string]any = map[string]any{
+		"event": "subscribe",
+		"topic": topic,
+	}
+	var message map[string]any = this.Extend(request, params)
+
+	tickers := (<-this.WatchPublic(topic, message))
+	ccxt.PanicOnError(tickers)
+
+	ch <- this.FilterByArray(tickers, "symbol", symbols)
+	return nil
 }
 func (this *WoofiproCore) HandleBidAsk(client any, message any) {
 	//
@@ -476,47 +476,47 @@ func (this *WoofiproCore) ParseWsBidAsk(ticker any, optionalArgs ...any) any {
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
 func (this *WoofiproCore) WatchOHLCV(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		timeframe := ccxt.GetArg(optionalArgs, 0, "1m")
-		_ = timeframe
-		since := ccxt.GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := ccxt.GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
-
-			retRes39512 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes39512)
-		}
-		if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(timeframe, "1m"))) && ccxt.IsTrue((!ccxt.IsEqual(timeframe, "5m")))) && ccxt.IsTrue((!ccxt.IsEqual(timeframe, "15m")))) && ccxt.IsTrue((!ccxt.IsEqual(timeframe, "30m")))) && ccxt.IsTrue((!ccxt.IsEqual(timeframe, "1h")))) && ccxt.IsTrue((!ccxt.IsEqual(timeframe, "1d")))) && ccxt.IsTrue((!ccxt.IsEqual(timeframe, "1w")))) && ccxt.IsTrue((!ccxt.IsEqual(timeframe, "1M")))) {
-			panic(ccxt.NotSupported(ccxt.Add(this.Id, " watchOHLCV timeframe argument must be 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M")))
-		}
-		var market any = this.Market(symbol)
-		var interval any = this.SafeString(this.Timeframes, timeframe, timeframe)
-		var name any = "kline"
-		var topic any = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.GetValue(market, "id"), "@"), name), "_"), interval)
-		var request any = map[string]any{
-			"event": "subscribe",
-			"topic": topic,
-		}
-		var message any = this.Extend(request, params)
-
-		ohlcv := (<-this.WatchPublic(topic, message))
-		ccxt.PanicOnError(ohlcv)
-		if ccxt.IsTrue(this.NewUpdates) {
-			limit = ccxt.ToGetsLimit(ohlcv).GetLimit(ccxt.GetValue(market, "symbol"), limit)
-		}
-
-		ch <- this.FilterBySinceLimit(ohlcv, since, limit, 0, true)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *WoofiproCore) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	timeframe := ccxt.GetArg(optionalArgs, 0, "1m")
+	_ = timeframe
+	since := ccxt.GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes39512 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes39512)
+	}
+	if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(timeframe, "1m"))) && ccxt.IsTrue((!ccxt.IsEqual(timeframe, "5m")))) && ccxt.IsTrue((!ccxt.IsEqual(timeframe, "15m")))) && ccxt.IsTrue((!ccxt.IsEqual(timeframe, "30m")))) && ccxt.IsTrue((!ccxt.IsEqual(timeframe, "1h")))) && ccxt.IsTrue((!ccxt.IsEqual(timeframe, "1d")))) && ccxt.IsTrue((!ccxt.IsEqual(timeframe, "1w")))) && ccxt.IsTrue((!ccxt.IsEqual(timeframe, "1M")))) {
+		panic(ccxt.NotSupported(ccxt.Add(this.Id, " watchOHLCV timeframe argument must be 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M")))
+	}
+	var market any = this.Market(symbol)
+	var interval any = this.SafeString(this.Timeframes, timeframe, timeframe)
+	var name string = "kline"
+	var topic any = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.GetValue(market, "id"), "@"), name), "_"), interval)
+	var request map[string]any = map[string]any{
+		"event": "subscribe",
+		"topic": topic,
+	}
+	var message map[string]any = this.Extend(request, params)
+
+	ohlcv := (<-this.WatchPublic(topic, message))
+	ccxt.PanicOnError(ohlcv)
+	if ccxt.IsTrue(this.NewUpdates) {
+		limit = ccxt.ToGetsLimit(ohlcv).GetLimit(ccxt.GetValue(market, "symbol"), limit)
+	}
+
+	ch <- this.FilterBySinceLimit(ohlcv, since, limit, 0, true)
+	return nil
 }
 func (this *WoofiproCore) HandleOHLCV(client any, message any) {
 	//
@@ -544,7 +544,7 @@ func (this *WoofiproCore) HandleOHLCV(client any, message any) {
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var interval any = this.SafeString(data, "type")
 	var timeframe any = this.FindTimeframe(interval)
-	var parsed any = []any{this.SafeInteger(data, "startTime"), this.SafeNumber(data, "open"), this.SafeNumber(data, "high"), this.SafeNumber(data, "low"), this.SafeNumber(data, "close"), this.SafeNumber(data, "volume")}
+	var parsed []any = []any{this.SafeInteger(data, "startTime"), this.SafeNumber(data, "open"), this.SafeNumber(data, "high"), this.SafeNumber(data, "low"), this.SafeNumber(data, "close"), this.SafeNumber(data, "volume")}
 	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeValue(this.Ohlcvs, symbol, map[string]any{}))
 	var stored any = this.SafeValue(this.SafeValue(this.Ohlcvs, symbol), timeframe)
 	if ccxt.IsTrue(ccxt.IsEqual(stored, nil)) {
@@ -570,41 +570,41 @@ func (this *WoofiproCore) HandleOHLCV(client any, message any) {
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *WoofiproCore) WatchTrades(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		since := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = since
-		limit := ccxt.GetArg(optionalArgs, 1, nil)
-		_ = limit
-		params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
-		_ = params
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
-
-			retRes47612 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes47612)
-		}
-		var market any = this.Market(symbol)
-		symbol = ccxt.GetValue(market, "symbol")
-		var topic any = ccxt.Add(ccxt.GetValue(market, "id"), "@trade")
-		var request any = map[string]any{
-			"event": "subscribe",
-			"topic": topic,
-		}
-		var message any = this.Extend(request, params)
-
-		trades := (<-this.WatchPublic(topic, message))
-		ccxt.PanicOnError(trades)
-		if ccxt.IsTrue(this.NewUpdates) {
-			limit = ccxt.ToGetsLimit(trades).GetLimit(ccxt.GetValue(market, "symbol"), limit)
-		}
-
-		ch <- this.FilterBySymbolSinceLimit(trades, symbol, since, limit, true)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchTradesBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *WoofiproCore) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	since := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = since
+	limit := ccxt.GetArg(optionalArgs, 1, nil)
+	_ = limit
+	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
+	_ = params
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes47612 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes47612)
+	}
+	var market any = this.Market(symbol)
+	symbol = ccxt.GetValue(market, "symbol")
+	var topic any = ccxt.Add(ccxt.GetValue(market, "id"), "@trade")
+	var request map[string]any = map[string]any{
+		"event": "subscribe",
+		"topic": topic,
+	}
+	var message map[string]any = this.Extend(request, params)
+
+	trades := (<-this.WatchPublic(topic, message))
+	ccxt.PanicOnError(trades)
+	if ccxt.IsTrue(this.NewUpdates) {
+		limit = ccxt.ToGetsLimit(trades).GetLimit(ccxt.GetValue(market, "symbol"), limit)
+	}
+
+	ch <- this.FilterBySymbolSinceLimit(trades, symbol, since, limit, true)
+	return nil
 }
 func (this *WoofiproCore) HandleTrade(client any, message any) {
 	//
@@ -722,9 +722,9 @@ func (this *WoofiproCore) HandleAuth(client any, message any) {
 	//         "ts": 1657463158812
 	//     }
 	//
-	var messageHash any = "authenticated"
+	var messageHash string = "authenticated"
 	var success any = this.SafeValue(message, "success")
-	if ccxt.IsTrue(success) {
+	if ccxt.IsTrue(ccxt.IsEqual(success, true)) {
 		// client.resolve (message, messageHash)
 		var future any = this.SafeValue(client.(ccxt.ClientInterface).GetFutures(), "authenticated")
 		future.(*ccxt.Future).Resolve(true)
@@ -738,97 +738,97 @@ func (this *WoofiproCore) HandleAuth(client any, message any) {
 	}
 }
 func (this *WoofiproCore) Authenticate(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		this.CheckRequiredCredentials()
-		var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"), "/"), this.AccountId)
-		var client any = this.Client(url)
-		var messageHash any = "authenticated"
-		var event any = "auth"
-		var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
-		var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
-		if ccxt.IsTrue(ccxt.IsEqual(authenticated, nil)) {
-			var ts any = ccxt.ToString(this.Nonce())
-			var auth any = ts
-			var secret any = this.Secret
-			if ccxt.IsTrue(ccxt.IsGreaterThanOrEqual(ccxt.GetIndexOf(secret, "ed25519:"), 0)) {
-				var parts any = ccxt.Split(secret, "ed25519:")
-				secret = ccxt.GetValue(parts, 1)
-			}
-			var signature any = ccxt.Eddsa(this.Encode(auth), this.Base58ToBinary(secret), ccxt.Ed25519)
-			var request any = map[string]any{
-				"event": event,
-				"params": map[string]any{
-					"orderly_key": this.ApiKey,
-					"sign":        signature,
-					"timestamp":   ts,
-				},
-			}
-			var message any = this.Extend(request, params)
-			this.Watch(url, messageHash, message, messageHash)
-		}
-
-		retRes65115 := <-future.(*ccxt.Future).Await()
-		ccxt.PanicOnError(retRes65115)
-		ch <- retRes65115
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.authenticateBody(ch, optionalArgs...)
 	return ch
+}
+func (this *WoofiproCore) authenticateBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	this.CheckRequiredCredentials()
+	var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"), "/"), this.AccountId)
+	var client any = this.Client(url)
+	var messageHash string = "authenticated"
+	var event string = "auth"
+	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
+	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+	if ccxt.IsTrue(ccxt.IsEqual(authenticated, nil)) {
+		var ts string = ccxt.ToString(this.Nonce())
+		var auth any = ts
+		var secret any = this.Secret
+		if ccxt.IsTrue(ccxt.IsGreaterThanOrEqual(ccxt.GetIndexOf(secret, "ed25519:"), 0)) {
+			var parts []string = ccxt.Split(secret, "ed25519:")
+			secret = ccxt.GetValue(parts, 1)
+		}
+		var signature any = ccxt.Eddsa(this.Encode(auth), this.Base58ToBinary(secret), ccxt.Ed25519)
+		var request map[string]any = map[string]any{
+			"event": event,
+			"params": map[string]any{
+				"orderly_key": this.ApiKey,
+				"sign":        signature,
+				"timestamp":   ts,
+			},
+		}
+		var message map[string]any = this.Extend(request, params)
+		this.Watch(url, messageHash, message, messageHash)
+	}
+
+	retRes65115 := <-future.(*ccxt.Future).Await()
+	ccxt.PanicOnError(retRes65115)
+	ch <- retRes65115
+	return nil
 }
 func (this *WoofiproCore) WatchPrivate(messageHash any, message any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		retRes6558 := (<-this.Authenticate(params))
-		ccxt.PanicOnError(retRes6558)
-		var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"), "/"), this.AccountId)
-		var requestId any = this.RequestId(url)
-		var subscribe any = map[string]any{
-			"id": requestId,
-		}
-		var request any = this.Extend(subscribe, message)
-
-		retRes66215 := (<-this.Watch(url, messageHash, request, messageHash, subscribe))
-		ccxt.PanicOnError(retRes66215)
-		ch <- retRes66215
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchPrivateBody(ch, messageHash, message, optionalArgs...)
 	return ch
 }
+func (this *WoofiproCore) watchPrivateBody(ch chan any, messageHash any, message any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	retRes6558 := (<-this.Authenticate(params))
+	ccxt.PanicOnError(retRes6558)
+	var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"), "/"), this.AccountId)
+	var requestId any = this.RequestId(url)
+	var subscribe map[string]any = map[string]any{
+		"id": requestId,
+	}
+	var request map[string]any = this.Extend(subscribe, message)
+
+	retRes66215 := (<-this.Watch(url, messageHash, request, messageHash, subscribe))
+	ccxt.PanicOnError(retRes66215)
+	ch <- retRes66215
+	return nil
+}
 func (this *WoofiproCore) WatchPrivateMultiple(messageHashes any, message any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		retRes6668 := (<-this.Authenticate(params))
-		ccxt.PanicOnError(retRes6668)
-		var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"), "/"), this.AccountId)
-		var requestId any = this.RequestId(url)
-		var subscribe any = map[string]any{
-			"id": requestId,
-		}
-		var request any = this.Extend(subscribe, message)
-
-		retRes67315 := (<-this.WatchMultiple(url, messageHashes, request, messageHashes, subscribe))
-		ccxt.PanicOnError(retRes67315)
-		ch <- retRes67315
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchPrivateMultipleBody(ch, messageHashes, message, optionalArgs...)
 	return ch
+}
+func (this *WoofiproCore) watchPrivateMultipleBody(ch chan any, messageHashes any, message any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	retRes6668 := (<-this.Authenticate(params))
+	ccxt.PanicOnError(retRes6668)
+	var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"), "/"), this.AccountId)
+	var requestId any = this.RequestId(url)
+	var subscribe map[string]any = map[string]any{
+		"id": requestId,
+	}
+	var request map[string]any = this.Extend(subscribe, message)
+
+	retRes67315 := (<-this.WatchMultiple(url, messageHashes, request, messageHashes, subscribe))
+	ccxt.PanicOnError(retRes67315)
+	ch <- retRes67315
+	return nil
 }
 
 /**
@@ -845,49 +845,49 @@ func (this *WoofiproCore) WatchPrivateMultiple(messageHashes any, message any, o
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *WoofiproCore) WatchOrders(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		symbol := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := ccxt.GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := ccxt.GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
-
-			retRes69112 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes69112)
-		}
-		var trigger any = this.SafeBool2(params, "stop", "trigger", false)
-		var topic any = ccxt.Ternary(ccxt.IsTrue((trigger)), "algoexecutionreport", "executionreport")
-		params = this.Omit(params, []any{"stop", "trigger"})
-		var messageHash any = topic
-		if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
-			var market any = this.Market(symbol)
-			symbol = ccxt.GetValue(market, "symbol")
-			messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbol))
-		}
-		var request any = map[string]any{
-			"event": "subscribe",
-			"topic": topic,
-		}
-		var message any = this.Extend(request, params)
-
-		orders := (<-this.WatchPrivate(messageHash, message))
-		ccxt.PanicOnError(orders)
-		if ccxt.IsTrue(this.NewUpdates) {
-			limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
-		}
-
-		ch <- this.FilterBySymbolSinceLimit(orders, symbol, since, limit, true)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchOrdersBody(ch, optionalArgs...)
 	return ch
+}
+func (this *WoofiproCore) watchOrdersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := ccxt.GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes69112 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes69112)
+	}
+	var trigger any = this.SafeBool2(params, "stop", "trigger", false)
+	var topic any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(trigger, true))), "algoexecutionreport", "executionreport")
+	params = this.Omit(params, []any{"stop", "trigger"})
+	var messageHash any = topic
+	if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
+		var market any = this.Market(symbol)
+		symbol = ccxt.GetValue(market, "symbol")
+		messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbol))
+	}
+	var request map[string]any = map[string]any{
+		"event": "subscribe",
+		"topic": topic,
+	}
+	var message map[string]any = this.Extend(request, params)
+
+	orders := (<-this.WatchPrivate(messageHash, message))
+	ccxt.PanicOnError(orders)
+	if ccxt.IsTrue(this.NewUpdates) {
+		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
+	}
+
+	ch <- this.FilterBySymbolSinceLimit(orders, symbol, since, limit, true)
+	return nil
 }
 
 /**
@@ -904,49 +904,49 @@ func (this *WoofiproCore) WatchOrders(optionalArgs ...any) <-chan any {
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *WoofiproCore) WatchMyTrades(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		symbol := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := ccxt.GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := ccxt.GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
-
-			retRes72912 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes72912)
-		}
-		var trigger any = this.SafeBool2(params, "stop", "trigger", false)
-		var topic any = ccxt.Ternary(ccxt.IsTrue((trigger)), "algoexecutionreport", "executionreport")
-		params = this.Omit(params, "stop")
-		var messageHash any = "myTrades"
-		if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
-			var market any = this.Market(symbol)
-			symbol = ccxt.GetValue(market, "symbol")
-			messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbol))
-		}
-		var request any = map[string]any{
-			"event": "subscribe",
-			"topic": topic,
-		}
-		var message any = this.Extend(request, params)
-
-		orders := (<-this.WatchPrivate(messageHash, message))
-		ccxt.PanicOnError(orders)
-		if ccxt.IsTrue(this.NewUpdates) {
-			limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
-		}
-
-		ch <- this.FilterBySymbolSinceLimit(orders, symbol, since, limit, true)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchMyTradesBody(ch, optionalArgs...)
 	return ch
+}
+func (this *WoofiproCore) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := ccxt.GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes72912 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes72912)
+	}
+	var trigger any = this.SafeBool2(params, "stop", "trigger", false)
+	var topic any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(trigger, true))), "algoexecutionreport", "executionreport")
+	params = this.Omit(params, "stop")
+	var messageHash any = "myTrades"
+	if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
+		var market any = this.Market(symbol)
+		symbol = ccxt.GetValue(market, "symbol")
+		messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbol))
+	}
+	var request map[string]any = map[string]any{
+		"event": "subscribe",
+		"topic": topic,
+	}
+	var message map[string]any = this.Extend(request, params)
+
+	orders := (<-this.WatchPrivate(messageHash, message))
+	ccxt.PanicOnError(orders)
+	if ccxt.IsTrue(this.NewUpdates) {
+		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
+	}
+
+	ch <- this.FilterBySymbolSinceLimit(orders, symbol, since, limit, true)
+	return nil
 }
 func (this *WoofiproCore) ParseWsOrder(order any, optionalArgs ...any) any {
 	//
@@ -1021,7 +1021,7 @@ func (this *WoofiproCore) ParseWsOrder(order any, optionalArgs ...any) any {
 	market = this.Market(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var timestamp any = this.SafeInteger(order, "timestamp")
-	var fee any = map[string]any{
+	var fee map[string]any = map[string]any{
 		"cost":     this.SafeString(order, "totalFee"),
 		"currency": this.SafeString(order, "feeAsset"),
 	}
@@ -1180,7 +1180,7 @@ func (this *WoofiproCore) HandleMyTrade(client any, message any) {
 	//     maker: false
 	// }
 	//
-	var messageHash any = "myTrades"
+	var messageHash string = "myTrades"
 	var marketId any = this.SafeString(message, "symbol")
 	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
@@ -1209,77 +1209,77 @@ func (this *WoofiproCore) HandleMyTrade(client any, message any) {
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
  */
 func (this *WoofiproCore) WatchPositions(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		symbols := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = symbols
-		since := ccxt.GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := ccxt.GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+	ch := make(chan any, 1)
+	go this.watchPositionsBody(ch, optionalArgs...)
+	return ch
+}
+func (this *WoofiproCore) watchPositionsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	symbols := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = symbols
+	since := ccxt.GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes101512 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes101512)
+		retRes101512 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes101512)
+	}
+	var messageHashes any = []any{}
+	symbols = this.MarketSymbols(symbols)
+	if !ccxt.IsTrue(this.IsEmpty(symbols)) {
+		if ccxt.IsTrue(ccxt.IsEqual(symbols, nil)) {
+			panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " watchPositions() symbols is required")))
 		}
-		var messageHashes any = []any{}
-		symbols = this.MarketSymbols(symbols)
-		if !ccxt.IsTrue(this.IsEmpty(symbols)) {
+		for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
 			if ccxt.IsTrue(ccxt.IsEqual(symbols, nil)) {
 				panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " watchPositions() symbols is required")))
 			}
-			for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
-				if ccxt.IsTrue(ccxt.IsEqual(symbols, nil)) {
-					panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " watchPositions() symbols is required")))
-				}
-				var symbol any = ccxt.GetValue(symbols, i)
-				ccxt.AppendToArray(&messageHashes, ccxt.Add("positions::", symbol))
-			}
-		} else {
-			ccxt.AppendToArray(&messageHashes, "positions")
+			var symbol any = ccxt.GetValue(symbols, i)
+			ccxt.AppendToArray(&messageHashes, ccxt.Add("positions::", symbol))
 		}
-		var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"), "/"), this.AccountId)
-		var client any = this.Client(url)
-		this.SetPositionsCache(client, symbols)
-		var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", true)
-		var awaitPositionsSnapshot any = this.HandleOption("watchPositions", "awaitPositionsSnapshot", true)
-		if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue(fetchPositionsSnapshot) && ccxt.IsTrue(awaitPositionsSnapshot)) && ccxt.IsTrue(ccxt.IsEqual(this.Positions, nil))) {
+	} else {
+		ccxt.AppendToArray(&messageHashes, "positions")
+	}
+	var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"), "/"), this.AccountId)
+	var client any = this.Client(url)
+	this.SetPositionsCache(client, symbols)
+	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", true)
+	var awaitPositionsSnapshot any = this.HandleOption("watchPositions", "awaitPositionsSnapshot", true)
+	if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(fetchPositionsSnapshot, true))) && ccxt.IsTrue((ccxt.IsEqual(awaitPositionsSnapshot, true)))) && ccxt.IsTrue((ccxt.IsEqual(this.Positions, nil)))) {
 
-			snapshot := (<-client.(ccxt.ClientInterface).Future("fetchPositionsSnapshot"))
-			ccxt.PanicOnError(snapshot)
+		snapshot := (<-client.(ccxt.ClientInterface).Future("fetchPositionsSnapshot"))
+		ccxt.PanicOnError(snapshot)
 
-			ch <- this.FilterBySymbolsSinceLimit(snapshot, symbols, since, limit, true)
-			return nil
-		}
-		var request any = map[string]any{
-			"event": "subscribe",
-			"topic": "position",
-		}
-
-		newPositions := (<-this.WatchPrivateMultiple(messageHashes, request, params))
-		ccxt.PanicOnError(newPositions)
-		if ccxt.IsTrue(this.NewUpdates) {
-
-			ch <- newPositions
-			return nil
-		}
-
-		ch <- this.FilterBySymbolsSinceLimit(this.Positions, symbols, since, limit, true)
+		ch <- this.FilterBySymbolsSinceLimit(snapshot, symbols, since, limit, true)
 		return nil
+	}
+	var request map[string]any = map[string]any{
+		"event": "subscribe",
+		"topic": "position",
+	}
 
-	}()
-	return ch
+	newPositions := (<-this.WatchPrivateMultiple(messageHashes, request, params))
+	ccxt.PanicOnError(newPositions)
+	if ccxt.IsTrue(this.NewUpdates) {
+
+		ch <- newPositions
+		return nil
+	}
+
+	ch <- this.FilterBySymbolsSinceLimit(this.Positions, symbols, since, limit, true)
+	return nil
 }
 func (this *WoofiproCore) SetPositionsCache(client any, optionalArgs ...any) {
 	symbols := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = symbols
 	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", false)
-	if ccxt.IsTrue(fetchPositionsSnapshot) {
-		var messageHash any = "fetchPositionsSnapshot"
+	if ccxt.IsTrue(ccxt.IsEqual(fetchPositionsSnapshot, true)) {
+		var messageHash string = "fetchPositionsSnapshot"
 		if !ccxt.IsTrue((ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash))) {
 			client.(ccxt.ClientInterface).Future(messageHash)
 			this.Spawn(this.LoadPositionsSnapshot, client, messageHash)
@@ -1289,31 +1289,32 @@ func (this *WoofiproCore) SetPositionsCache(client any, optionalArgs ...any) {
 	}
 }
 func (this *WoofiproCore) LoadPositionsSnapshot(client any, messageHash any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-
-		positions := (<-this.FetchPositions())
-		ccxt.PanicOnError(positions)
-		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
-		var cache any = this.Positions
-		for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(positions)); i++ {
-			var position any = ccxt.GetValue(positions, i)
-			var contracts any = this.SafeString(position, "contracts", "0")
-			if ccxt.IsTrue(ccxt.Precise.StringGt(contracts, "0")) {
-				cache.(ccxt.Appender).Append(position)
-			}
-		}
-		// don't remove the future from the .futures cache
-		if ccxt.IsTrue(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
-			var future any = ccxt.GetValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
-			future.(*ccxt.Future).Resolve(cache)
-			client.(ccxt.ClientInterface).Resolve(cache, "positions")
-		}
-		return nil
-	}()
+	ch := make(chan any, 1)
+	go this.loadPositionsSnapshotBody(ch, client, messageHash)
 	return ch
+}
+func (this *WoofiproCore) loadPositionsSnapshotBody(ch chan any, client any, messageHash any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+
+	positions := (<-this.FetchPositions())
+	ccxt.PanicOnError(positions)
+	this.Positions = ccxt.NewArrayCacheBySymbolBySide()
+	var cache any = this.Positions
+	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(positions)); i++ {
+		var position any = ccxt.GetValue(positions, i)
+		var contracts any = this.SafeString(position, "contracts", "0")
+		if ccxt.IsTrue(ccxt.Precise.StringGt(contracts, "0")) {
+			cache.(ccxt.Appender).Append(position)
+		}
+	}
+	// don't remove the future from the .futures cache
+	if ccxt.IsTrue(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
+		var future any = ccxt.GetValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
+		future.(*ccxt.Future).Resolve(cache)
+		client.(ccxt.ClientInterface).Resolve(cache, "positions")
+	}
+	return nil
 }
 func (this *WoofiproCore) HandlePositions(client any, message any) {
 	//
@@ -1451,32 +1452,32 @@ func (this *WoofiproCore) ParseWsPosition(position any, optionalArgs ...any) any
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *WoofiproCore) WatchBalance(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
-
-			retRes122112 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes122112)
-		}
-		var topic any = "balance"
-		var messageHash any = topic
-		var request any = map[string]any{
-			"event": "subscribe",
-			"topic": topic,
-		}
-		var message any = this.Extend(request, params)
-
-		retRes123015 := (<-this.WatchPrivate(messageHash, message))
-		ccxt.PanicOnError(retRes123015)
-		ch <- retRes123015
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchBalanceBody(ch, optionalArgs...)
 	return ch
+}
+func (this *WoofiproCore) watchBalanceBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes122112 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes122112)
+	}
+	var topic string = "balance"
+	var messageHash any = topic
+	var request map[string]any = map[string]any{
+		"event": "subscribe",
+		"topic": topic,
+	}
+	var message map[string]any = this.Extend(request, params)
+
+	retRes123015 := (<-this.WatchPrivate(messageHash, message))
+	ccxt.PanicOnError(retRes123015)
+	ch <- retRes123015
+	return nil
 }
 func (this *WoofiproCore) HandleBalance(client any, message any) {
 	//
@@ -1508,7 +1509,7 @@ func (this *WoofiproCore) HandleBalance(client any, message any) {
 	//
 	var data any = this.SafeDict(message, "data", map[string]any{})
 	var balances any = this.SafeDict(data, "balances", map[string]any{})
-	var keys any = ccxt.ObjectKeys(balances)
+	var keys []string = ccxt.ObjectKeys(balances)
 	var ts any = this.SafeInteger(message, "ts")
 	ccxt.AddElementToObject(this.Balance, "info", data)
 	ccxt.AddElementToObject(this.Balance, "timestamp", ts)
@@ -1541,7 +1542,7 @@ func (this *WoofiproCore) HandleErrorMessage(client any, message any) any {
 		return false
 	}
 	var success any = this.SafeBool(message, "success")
-	if ccxt.IsTrue(success) {
+	if ccxt.IsTrue(ccxt.IsEqual(success, true)) {
 		return false
 	}
 	var errorMessage any = this.SafeString(message, "errorMsg")
@@ -1556,7 +1557,7 @@ func (this *WoofiproCore) HandleErrorMessage(client any, message any) any {
 					ret_ = func(this *WoofiproCore) any {
 						// catch block:
 						if ccxt.IsTrue(ccxt.IsInstance(error, ccxt.AuthenticationError)) {
-							var messageHash any = "authenticated"
+							var messageHash string = "authenticated"
 							client.(ccxt.ClientInterface).Reject(error, messageHash)
 							if ccxt.IsTrue(ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)) {
 								ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
@@ -1585,10 +1586,10 @@ func (this *WoofiproCore) HandleErrorMessage(client any, message any) any {
 	}
 }
 func (this *WoofiproCore) HandleMessage(client any, message any) {
-	if ccxt.IsTrue(this.HandleErrorMessage(client, message)) {
+	if ccxt.IsTrue(ccxt.IsEqual(this.HandleErrorMessage(client, message), true)) {
 		return
 	}
-	var methods any = map[string]any{
+	var methods map[string]any = map[string]any{
 		"ping":                this.HandlePing,
 		"pong":                this.HandlePong,
 		"subscribe":           this.HandleSubscribe,
@@ -1617,8 +1618,8 @@ func (this *WoofiproCore) HandleMessage(client any, message any) {
 			ccxt.CallDynamically(method, client, message)
 			return
 		}
-		var splitTopic any = ccxt.Split(topic, "@")
-		var splitLength any = ccxt.GetArrayLength(splitTopic)
+		var splitTopic []string = ccxt.Split(topic, "@")
+		var splitLength int = ccxt.GetArrayLength(splitTopic)
 		if ccxt.IsTrue(ccxt.IsEqual(splitLength, 2)) {
 			var name any = this.SafeString(splitTopic, 1)
 			if ccxt.IsTrue(ccxt.IsEqual(name, nil)) {
@@ -1629,8 +1630,8 @@ func (this *WoofiproCore) HandleMessage(client any, message any) {
 				ccxt.CallDynamically(method, client, message)
 				return
 			}
-			var splitName any = ccxt.Split(name, "_")
-			var splitNameLength any = ccxt.GetArrayLength(splitTopic)
+			var splitName []string = ccxt.Split(name, "_")
+			var splitNameLength int = ccxt.GetArrayLength(splitTopic)
 			if ccxt.IsTrue(ccxt.IsEqual(splitNameLength, 2)) {
 				method = this.SafeValue(methods, this.SafeString(splitName, 0))
 				if ccxt.IsTrue(!ccxt.IsEqual(method, nil)) {
@@ -1646,18 +1647,19 @@ func (this *WoofiproCore) Ping(client any) any {
 	}
 }
 func (this *WoofiproCore) Pong(client any, message any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-
-		retRes13838 := (<-client.(ccxt.ClientInterface).Send(map[string]any{
-			"event": "pong",
-		}))
-		ccxt.PanicOnError(retRes13838)
-		return nil
-	}()
+	ch := make(chan any, 1)
+	go this.pongBody(ch, client, message)
 	return ch
+}
+func (this *WoofiproCore) pongBody(ch chan any, client any, message any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+
+	retRes13838 := (<-client.(ccxt.ClientInterface).Send(map[string]any{
+		"event": "pong",
+	}))
+	ccxt.PanicOnError(retRes13838)
+	return nil
 }
 func (this *WoofiproCore) HandlePing(client any, message any) {
 	this.Spawn(this.Pong, client, message)

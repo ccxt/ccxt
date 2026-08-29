@@ -675,7 +675,7 @@ class onetrading extends onetrading$1["default"] {
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market(symbol);
-            const tierObject = (market['spot']) ? firstSpotTier : firstFuturesTier;
+            const tierObject = (market['spot'] === true) ? firstSpotTier : firstFuturesTier;
             result[symbol] = {
                 'info': spotFees,
                 'symbol': symbol,
@@ -742,8 +742,8 @@ class onetrading extends onetrading$1["default"] {
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market(symbol);
-            const makerFee = (market['spot']) ? spotMakerFee : futuresMakerFee;
-            const takerFee = (market['spot']) ? spotTakerFee : futuresTakerFee;
+            const makerFee = (market['spot'] === true) ? spotMakerFee : futuresMakerFee;
+            const takerFee = (market['spot'] === true) ? spotTakerFee : futuresTakerFee;
             result[symbol] = {
                 'info': response,
                 'symbol': symbol,
@@ -1871,7 +1871,7 @@ class onetrading extends onetrading$1["default"] {
         let url = this.urls['api'][api] + '/' + this.version + '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
         if (api === 'public') {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
             }
         }
@@ -1886,7 +1886,7 @@ class onetrading extends onetrading$1["default"] {
                 headers['Content-Type'] = 'application/json';
             }
             else {
-                if (Object.keys(query).length) {
+                if (Object.keys(query).length > 0) {
                     url += '?' + this.urlencode(query);
                 }
             }

@@ -19,19 +19,22 @@ async def test_watch_trades_for_symbols(exchange, skipped_properties, symbols):
     method = 'watchTradesForSymbols'
     now = exchange.milliseconds()
     ends = now + 15000
+    max_idle_time = 5000
+    idle = False
     returned_symbols = []
-    while now < ends or len(returned_symbols) < len(symbols):
+    while (now < ends) and not idle:
         response = None
         success = True
+        start_time = exchange.milliseconds()
         try:
             response = await exchange.watch_trades_for_symbols(symbols)
         except Exception as e:
             if not test_shared_methods.is_temporary_failure(e):
                 raise e
-            now = exchange.milliseconds()
+            success = False
+        now = exchange.milliseconds()
         if (success) and (response is not None):
             assert isinstance(response, list), exchange.id + ' ' + method + ' ' + exchange.json(symbols) + ' must return an array. ' + exchange.json(response)
-            now = exchange.milliseconds()
             symbol = None
             for i in range(0, len(response)):
                 trade = response[i]
@@ -42,4 +45,6 @@ async def test_watch_trades_for_symbols(exchange, skipped_properties, symbols):
                 test_shared_methods.assert_in_array(exchange, skipped_properties, method, trade, 'symbol', symbols)
                 if not exchange.in_array(symbol, returned_symbols):
                     returned_symbols.append(symbol)
+            if (now - start_time) > max_idle_time:
+                idle = True
     return True

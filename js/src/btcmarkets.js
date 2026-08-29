@@ -314,7 +314,16 @@ export default class btcmarkets extends Exchange {
         if (code !== undefined) {
             currency = this.currency(code);
         }
-        const response = await this[method](this.extend(request, params));
+        let response = undefined;
+        if (method === 'privateGetTransfers') {
+            response = await this.privateGetTransfers(this.extend(request, params));
+        }
+        else if (method === 'privateGetDeposits') {
+            response = await this.privateGetDeposits(this.extend(request, params));
+        }
+        else {
+            response = await this.privateGetWithdrawals(this.extend(request, params));
+        }
         return this.parseTransactions(response, currency, since, limit);
     }
     /**
@@ -449,7 +458,7 @@ export default class btcmarkets extends Exchange {
         const currencyId = this.safeString(transaction, 'assetName');
         const code = this.safeCurrencyCode(currencyId);
         let amount = this.safeString(transaction, 'amount');
-        if (fee) {
+        if ((fee !== undefined) && (fee !== '')) {
             amount = Precise.stringSub(amount, fee);
         }
         return {
@@ -1407,7 +1416,7 @@ export default class btcmarkets extends Exchange {
             const secret = this.base64ToBinary(this.secret);
             let auth = method + request + nonce;
             if ((method === 'GET') || (method === 'DELETE')) {
-                if (Object.keys(query).length) {
+                if (Object.keys(query).length > 0) {
                     request += '?' + this.urlencode(query);
                 }
             }
@@ -1426,7 +1435,7 @@ export default class btcmarkets extends Exchange {
             };
         }
         else if (api === 'public') {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 request += '?' + this.urlencode(query);
             }
         }

@@ -546,8 +546,11 @@ export declare class BaseExchange {
     describe(): any;
     cleanRestData(): void;
     cleanWsData(): void;
+    safeBoolN(dictionaryOrList: any, keys: NullableIndexType[], defaultValue: boolean): boolean;
     safeBoolN(dictionaryOrList: any, keys: NullableIndexType[], defaultValue?: Bool): boolean | undefined;
+    safeBool2(dictionaryOrList: any, key1: NullableIndexType, key2: NullableIndexType, defaultValue: boolean): boolean;
     safeBool2(dictionaryOrList: any, key1: NullableIndexType, key2: NullableIndexType, defaultValue?: Bool): boolean | undefined;
+    safeBool(dictionaryOrList: any, key: NullableIndexType, defaultValue: boolean): boolean;
     safeBool(dictionaryOrList: any, key: NullableIndexType, defaultValue?: Bool): boolean | undefined;
     safeDictN(dictionaryOrList: any, keys: NullableIndexType[], defaultValue: Dictionary<any>): Dictionary<any>;
     safeDictN(dictionaryOrList: any, keys: NullableIndexType[], defaultValue?: Dictionary<any>): Dictionary<any> | undefined;

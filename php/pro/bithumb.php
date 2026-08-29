@@ -685,7 +685,7 @@ class bithumb extends \ccxt\async\bithumb {
     }
 
     public function handle_message(Client $client, mixed $message) {
-        if (!$this->handle_error_message($client, $message)) {
+        if ($this->handle_error_message($client, $message) !== true) {
             return;
         }
         $topic = $this->safe_string($message, 'type');

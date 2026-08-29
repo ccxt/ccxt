@@ -33,14 +33,14 @@ public partial class binancecoinm : binance
         });
     }
 
-    public async virtual Task<object> transferIn(object code, object amount, object parameters = null)
+    public async virtual Task<object> transferIn(string code, object amount, object parameters = null)
     {
         // transfer from spot wallet to coinm futures wallet
         parameters ??= new Dictionary<string, object>();
         return await this.futuresTransfer(code, amount, 3, parameters);
     }
 
-    public async virtual Task<object> transferOut(object code, object amount, object parameters = null)
+    public async virtual Task<object> transferOut(string code, object amount, object parameters = null)
     {
         // transfer from coinm futures wallet to spot wallet
         parameters ??= new Dictionary<string, object>();

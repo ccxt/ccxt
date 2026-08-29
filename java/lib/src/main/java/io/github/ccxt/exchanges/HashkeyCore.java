@@ -1914,6 +1914,13 @@ public class HashkeyCore extends HashkeyApi
         market = this.safeMarket(marketId, market);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object last = this.safeString(ticker, "c");
+        Object baseVolume = this.safeString(ticker, "v");
+        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "contract"), true))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(market, "contractSize"), null)))))
+        {
+            // 'v' counts contracts, and a ticker reports base volume
+            baseVolume = Precise.stringMul(baseVolume, this.numberToString(Helpers.GetValue(market, "contractSize")));
+        }
+        final Object finalBaseVolume = baseVolume;
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
@@ -1932,7 +1939,7 @@ public class HashkeyCore extends HashkeyApi
             put( "change", null );
             put( "percentage", null );
             put( "average", null );
-            put( "baseVolume", HashkeyCore.this.safeString(ticker, "v") );
+            put( "baseVolume", finalBaseVolume );
             put( "quoteVolume", HashkeyCore.this.safeString(ticker, "qv") );
             put( "info", ticker );
         }}, market);
@@ -2476,7 +2483,7 @@ public class HashkeyCore extends HashkeyApi
         if (Helpers.isTrue(Helpers.isEqual(status, null)))
         {
             Object success = this.safeBool(transaction, "success", false); // for withdraw
-            if (Helpers.isTrue(success))
+            if (Helpers.isTrue(Helpers.isEqual(success, true)))
             {
                 status = "ok";
             } else
@@ -2600,7 +2607,7 @@ public class HashkeyCore extends HashkeyApi
         Object currencyId = this.safeString(currency, "id");
         Object status = null;
         Object success = this.safeBool(transfer, "success", false);
-        if (Helpers.isTrue(success))
+        if (Helpers.isTrue(Helpers.isEqual(success, true)))
         {
             status = "ok";
         }
@@ -2896,10 +2903,10 @@ public class HashkeyCore extends HashkeyApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 return (this.createSpotOrder(symbol, type, side, amount, price, parameters)).join();
-            } else if (Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 return (this.createSwapOrder(symbol, type, side, amount, price, parameters)).join();
             } else
@@ -2930,7 +2937,7 @@ public class HashkeyCore extends HashkeyApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            if (!Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 throw new NotSupported((String)Helpers.add(this.id, " createMarketBuyOrderWithCost() is supported for spot markets only")) ;
             }
@@ -2989,7 +2996,7 @@ public class HashkeyCore extends HashkeyApi
             Object request = this.createSpotOrderRequest(symbol, type, side, amount, price, parameters);
             Object response = new java.util.HashMap<String, Object>() {{}};
             Object test = this.safeBool(parameters, "test");
-            if (Helpers.isTrue(test))
+            if (Helpers.isTrue(Helpers.isEqual(test, true)))
             {
                 parameters = this.omit(parameters, "test");
                 response = (this.privatePostApiV1SpotOrderTest(request)).join();
@@ -3018,10 +3025,10 @@ public class HashkeyCore extends HashkeyApi
             throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a side argument")) ;
         }
         Object market = this.market(symbol);
-        if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+        if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
         {
             return this.createSpotOrderRequest(symbol, type, side, amount, price, parameters);
-        } else if (Helpers.isTrue(Helpers.GetValue(market, "swap")))
+        } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
         {
             return this.createSwapOrderRequest(symbol, type, side, amount, price, parameters);
         } else
@@ -3147,7 +3154,7 @@ public class HashkeyCore extends HashkeyApi
         reduceOnly = ((java.util.List<Object>) reduceOnlyparametersVariable).get(0);
         parameters = ((java.util.List<Object>) reduceOnlyparametersVariable).get(1);
         Object suffix = "_OPEN";
-        if (Helpers.isTrue(reduceOnly))
+        if (Helpers.isTrue(Helpers.isEqual(reduceOnly, true)))
         {
             suffix = "_CLOSE";
         }
@@ -3286,10 +3293,10 @@ public class HashkeyCore extends HashkeyApi
                 put( "orders", ordersRequests );
             }};
             Object response = null;
-            if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 response = (this.privatePostApiV1SpotBatchOrders(this.extend(request, parameters))).join();
-            } else if (Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 response = (this.privatePostApiV1FuturesBatchOrders(this.extend(request, parameters))).join();
             } else
@@ -3362,7 +3369,7 @@ public class HashkeyCore extends HashkeyApi
                 var isTriggerparametersVariable = this.handleTriggerOptionAndParams(parameters, methodName, isTrigger);
                 isTrigger = ((java.util.List<Object>) isTriggerparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) isTriggerparametersVariable).get(1);
-                if (Helpers.isTrue(isTrigger))
+                if (Helpers.isTrue(Helpers.isEqual(isTrigger, true)))
                 {
                     Helpers.addElementToObject(request, "type", "STOP");
                 } else
@@ -3421,10 +3428,10 @@ public class HashkeyCore extends HashkeyApi
                 Helpers.addElementToObject(request, "side", side);
             }
             Object response = null;
-            if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 response = (this.privateDeleteApiV1SpotOpenOrders(this.extend(request, parameters))).join();
-            } else if (Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 response = (this.privateDeleteApiV1FuturesBatchOrders(this.extend(request, parameters))).join();
             } else
@@ -3553,7 +3560,7 @@ public class HashkeyCore extends HashkeyApi
                 var isTriggerparametersVariable = this.handleTriggerOptionAndParams(parameters, methodName, isTrigger);
                 isTrigger = ((java.util.List<Object>) isTriggerparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) isTriggerparametersVariable).get(1);
-                if (Helpers.isTrue(isTrigger))
+                if (Helpers.isTrue(Helpers.isEqual(isTrigger, true)))
                 {
                     Helpers.addElementToObject(request, "type", "STOP");
                 }
@@ -3733,7 +3740,7 @@ public class HashkeyCore extends HashkeyApi
             var isTriggerparametersVariable = this.handleTriggerOptionAndParams(parameters, methodName, isTrigger);
             isTrigger = ((java.util.List<Object>) isTriggerparametersVariable).get(0);
             parameters = ((java.util.List<Object>) isTriggerparametersVariable).get(1);
-            if (Helpers.isTrue(isTrigger))
+            if (Helpers.isTrue(Helpers.isEqual(isTrigger, true)))
             {
                 Helpers.addElementToObject(request, "type", "STOP");
             } else
@@ -3851,7 +3858,7 @@ public class HashkeyCore extends HashkeyApi
                 var isTriggerparametersVariable = this.handleTriggerOptionAndParams(parameters, methodName, isTrigger);
                 isTrigger = ((java.util.List<Object>) isTriggerparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) isTriggerparametersVariable).get(1);
-                if (Helpers.isTrue(isTrigger))
+                if (Helpers.isTrue(Helpers.isEqual(isTrigger, true)))
                 {
                     Helpers.addElementToObject(request, "type", "STOP");
                 } else
@@ -4398,7 +4405,7 @@ public class HashkeyCore extends HashkeyApi
             var methodNameparametersVariable = this.handleParamString(parameters, "methodName", methodName);
             methodName = ((java.util.List<Object>) methodNameparametersVariable).get(0);
             parameters = ((java.util.List<Object>) methodNameparametersVariable).get(1);
-            if (!Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() supports swap markets only")) ;
             }
@@ -4601,7 +4608,7 @@ public class HashkeyCore extends HashkeyApi
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " setMarginMode() marginMode must be either cross or isolated")) ;
             }
             Object market = this.market(symbol);
-            if (!Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 throw new BadSymbol((String)Helpers.add(this.id, " setMarginMode() supports swap markets only")) ;
             }
@@ -4670,7 +4677,7 @@ public class HashkeyCore extends HashkeyApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            if (!Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 throw new BadSymbol((String)Helpers.add(this.id, " modifyMarginHelper() supports swap markets only")) ;
             }
@@ -4896,11 +4903,11 @@ final Object finalI = i;
             Object market = this.market(symbol);
             Object methodName = "fetchTradingFee";
             Object response = null;
-            if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 response = (this.fetchTradingFees(parameters)).join();
                 return this.safeDict(response, symbol);
-            } else if (Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 response = (this.privateGetApiV1FuturesCommissionRate(this.extend(new java.util.HashMap<String, Object>() {{
                     put( "symbol", Helpers.GetValue(market, "id") );

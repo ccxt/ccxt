@@ -44,6 +44,8 @@ declare class testMainClass {
     getExchangeCode(exchange: any, codes?: Strings): string;
     getMarketsFromExchange(exchange: any, spot?: boolean): Dict;
     getValidSymbol(exchange: any, spot?: boolean): any;
+    getTickerVolume(exchange: any, ticker: any): any;
+    getMostActiveSymbols(exchange: any, defaultSymbols: string[]): Promise<any[]>;
     testExchange(exchange: any, providedSymbol?: undefined): Promise<boolean>;
     runPredictionTests(exchange: any): Promise<boolean>;
     assertPredictionEvents(exchange: any, events: any): boolean;
@@ -63,6 +65,9 @@ declare class testMainClass {
     loadStaticData(folder: string, targetExchange?: Str): Dict | undefined;
     removeHostnamefromUrl(url: string): string | undefined;
     urlencodedToDict(url: string): Dict;
+    isEmptyOutputValue(exchange: Exchange, value: any): boolean;
+    isVacantValue(exchange: Exchange, value: any): boolean;
+    countSignificantKeys(exchange: Exchange, target: any, otherKeys: string[]): number;
     assertNewAndStoredOutputInner(exchange: Exchange, skipKeys: string[], newOutput: any, storedOutput: any, strictTypeCheck?: boolean, assertingKey?: Str): boolean;
     assertNewAndStoredOutput(exchange: Exchange, skipKeys: string[], newOutput: any, storedOutput: any, strictTypeCheck?: boolean, assertingKey?: Str): boolean;
     varToString(obj?: any): string;
@@ -71,8 +76,8 @@ declare class testMainClass {
     sanitizeDataInput(input: any): List | undefined;
     testRequestStatically(exchange: any, method: string, data: Dict, type: Str, skipKeys: string[]): Promise<boolean>;
     testResponseStatically(exchange: any, method: string, skipKeys: string[], data: Dict): Promise<boolean>;
-    injectWsMessages(exchange: any, url: string, messages: List): Promise<boolean>;
-    watchAndAssertSequence(exchange: any, method: string, input: any, skipKeys: string[], expectedResults: List): Promise<boolean>;
+    injectWsMessages(exchange: any, url: string, messages: List, sequential?: boolean): Promise<boolean>;
+    watchAndAssertSequence(exchange: any, url: string, method: string, input: any, skipKeys: string[], expectedResults: List): Promise<boolean>;
     assertWsSentMessages(exchange: any, url: string, data: Dict): void;
     testWsStatically(exchange: any, method: string, skipKeys: string[], data: Dict): Promise<boolean>;
     testExchangeWsStatically(exchangeName: string, exchangeData: Dict, testName?: Str): Promise<boolean>;

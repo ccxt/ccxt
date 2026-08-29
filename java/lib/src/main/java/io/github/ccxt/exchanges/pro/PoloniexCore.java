@@ -1483,7 +1483,7 @@ public class PoloniexCore extends io.github.ccxt.exchanges.Poloniex
 
     public void handleMessage(Client client, Object message)
     {
-        if (Helpers.isTrue(this.handleErrorMessage(client, message)))
+        if (Helpers.isTrue(Helpers.isEqual(this.handleErrorMessage(client, message), true)))
         {
             return;
         }
@@ -1616,7 +1616,7 @@ public class PoloniexCore extends io.github.ccxt.exchanges.Poloniex
         Object data = this.safeValue(message, "data");
         Object success = this.safeValue(data, "success");
         Object messageHash = "authenticated";
-        if (Helpers.isTrue(success))
+        if (Helpers.isTrue(Helpers.isEqual(success, true)))
         {
             client.resolve(message, messageHash);
         } else

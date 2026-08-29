@@ -82,7 +82,7 @@ export default class grvt extends grvtRest {
         //     prev_sequence_number: "0",
         //  }
         //
-        if (this.handleErrorMessage(client, message)) {
+        if (this.handleErrorMessage(client, message) === true) {
             return;
         }
         const methods = {
