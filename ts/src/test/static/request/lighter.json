@@ -1,6 +1,6 @@
 {
     "exchange": "lighter",
-    "skipKeys": ["OrderExpiry", "Nonce", "AccountIndex", "ApiKeyIndex", "Sig", "ExpiredAt", "account_index", "ClientOrderIndex"],
+    "skipKeys": ["OrderExpiry", "Nonce", "AccountIndex", "ApiKeyIndex", "Sig", "ExpiredAt", "account_index", "ClientOrderIndex", "tx_infos"],
     "outputType": "json",
     "disabledGO": true,
     "disabledCS": true,
@@ -336,6 +336,164 @@
                         "value": "0xabc123abc123abc123abc123abc123abc123abc1"
                     }
                 ]
+            }
+        ],
+        "createOrders": [
+            {
+                "description": "create multiple orders in one batch request",
+                "method": "createOrders",
+                "url": "https://mainnet.zklighter.elliot.ai/api/v1/sendTxBatch",
+                "input": [
+                    [
+                        {
+                            "symbol": "LTC/USDC:USDC",
+                            "type": "limit",
+                            "side": "buy",
+                            "amount": 1,
+                            "price": 40
+                        },
+                        {
+                            "symbol": "LTC/USDC:USDC",
+                            "type": "limit",
+                            "side": "sell",
+                            "amount": 2,
+                            "price": 60
+                        }
+                    ]
+                ],
+                "output": {
+                    "tx_types": "[14,14]",
+                    "tx_infos": "skipped, contains a non deterministic signature"
+                }
+            }
+        ],
+        "cancelOrders": [
+            {
+                "description": "cancel multiple orders in one batch request",
+                "method": "cancelOrders",
+                "url": "https://mainnet.zklighter.elliot.ai/api/v1/sendTxBatch",
+                "input": [
+                    [
+                        "1001",
+                        "1002"
+                    ],
+                    "LTC/USDC:USDC"
+                ],
+                "output": {
+                    "tx_types": "[15,15]",
+                    "tx_infos": "skipped, contains a non deterministic signature"
+                }
+            }
+        ],
+        "cancelOrdersForSymbols": [
+            {
+                "description": "cancel orders of different markets in one batch request",
+                "method": "cancelOrdersForSymbols",
+                "url": "https://mainnet.zklighter.elliot.ai/api/v1/sendTxBatch",
+                "input": [
+                    [
+                        {
+                            "id": "1001",
+                            "symbol": "LTC/USDC:USDC"
+                        },
+                        {
+                            "id": "1002",
+                            "symbol": "ETH/USDC:USDC"
+                        }
+                    ]
+                ],
+                "output": {
+                    "tx_types": "[15,15]",
+                    "tx_infos": "skipped, contains a non deterministic signature"
+                }
+            }
+        ],
+        "sendTxBatch": [
+            {
+                "description": "cancel an order and create a new one in a single batch request",
+                "method": "sendTxBatch",
+                "url": "https://mainnet.zklighter.elliot.ai/api/v1/sendTxBatch",
+                "input": [
+                    [
+                        {
+                            "method": "cancelOrder",
+                            "id": "1001",
+                            "symbol": "LTC/USDC:USDC"
+                        },
+                        {
+                            "method": "createOrder",
+                            "symbol": "LTC/USDC:USDC",
+                            "type": "limit",
+                            "side": "buy",
+                            "amount": 1,
+                            "price": 40
+                        }
+                    ]
+                ],
+                "output": {
+                    "tx_types": "[15,14]",
+                    "tx_infos": "skipped, contains a non deterministic signature"
+                }
+            },
+            {
+                "description": "cancel, edit and create in a single batch request",
+                "method": "sendTxBatch",
+                "url": "https://mainnet.zklighter.elliot.ai/api/v1/sendTxBatch",
+                "input": [
+                    [
+                        {
+                            "method": "cancelOrder",
+                            "id": "1001",
+                            "symbol": "LTC/USDC:USDC"
+                        },
+                        {
+                            "method": "editOrder",
+                            "id": "1002",
+                            "symbol": "LTC/USDC:USDC",
+                            "amount": 2,
+                            "price": 61
+                        },
+                        {
+                            "method": "createOrder",
+                            "symbol": "LTC/USDC:USDC",
+                            "type": "limit",
+                            "side": "buy",
+                            "amount": 1,
+                            "price": 40
+                        }
+                    ]
+                ],
+                "output": {
+                    "tx_types": "[15,17,14]",
+                    "tx_infos": "skipped, contains a non deterministic signature"
+                }
+            }
+        ],
+        "editOrders": [
+            {
+                "description": "edit multiple orders in one batch request",
+                "method": "editOrders",
+                "url": "https://mainnet.zklighter.elliot.ai/api/v1/sendTxBatch",
+                "input": [
+                    [
+                        {
+                            "id": "1001",
+                            "symbol": "LTC/USDC:USDC",
+                            "amount": 1,
+                            "price": 41
+                        },
+                        {
+                            "id": "1002",
+                            "symbol": "LTC/USDC:USDC",
+                            "amount": 2,
+                            "price": 61
+                        }
+                    ]
+                ],
+                "output": {
+                    "tx_types": "[17,17]",
+                    "tx_infos": "skipped, contains a non deterministic signature"
+                }
             }
         ]
     }
