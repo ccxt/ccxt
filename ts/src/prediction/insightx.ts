@@ -919,7 +919,7 @@ export default class insightx extends Exchange {
      * @param {string} [params.rpcUrl] Mantle JSON-RPC URL, defaults to options.rpcUrl
      * @param {string} [params.rpc] alias for params.rpcUrl
      * @param {string} [params.gasLimit] gas limit as a hex quantity; estimated automatically when omitted
-     * @param {boolean} [params.confirmOnChain] submit the Mantle confirmation with privateKey, defaults to true; false returns the pending intent and calldata for an external wallet
+     * @param {boolean} [params.confirmOnChain] submit the Mantle confirmation with privateKey, defaults to false;
      * @param {boolean} [params.skipWaitForReceipt] return after broadcasting without waiting for the transaction receipt, defaults to false
      * @param {int} [params.receiptTimeout] maximum milliseconds to wait for the transaction receipt, defaults to 60000
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
@@ -1237,7 +1237,7 @@ export default class insightx extends Exchange {
      */
     parseEvent (rawMarkets: Dict[]): PredictionEvent {
         const first = this.safeDict (rawMarkets, 0, {});
-        const eventId = this.safeString (first, 'id');
+        const eventId = this.safeString (first, 'event_id');
         if (eventId === undefined) {
             throw new ExchangeError (this.id + ' parseEvent() requires an event_id or id');
         }
