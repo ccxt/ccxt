@@ -4,7 +4,7 @@ import Exchange from '../abstract/prediction/insightx.js';
 import { ArgumentsRequired, AuthenticationError, BadSymbol, ExchangeError, InsufficientFunds, InvalidOrder, NotSupported, OrderNotFound, PermissionDenied } from '../base/errors.js';
 import { Precise } from '../base/Precise.js';
 import { ecdsa } from '../base/functions/crypto.js';
-import type { Bool, Dict, Int, Market, Num, PredictionEvent, PredictionOrder, PredictionPosition, PredictionTicker, PredictionTickers, Str, Strings, fetchEventsParams, int } from '../base/types.js';
+import type { Bool, Dict, Int, Market, Num, PredictionEvent, PredictionOrder, PredictionPosition, PredictionTicker, Str, fetchEventsParams, int } from '../base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -561,11 +561,8 @@ export default class insightx extends Exchange {
         const parsedId = this.parseOutcomeId (outcomeSymbol);
         const marketId = this.safeString (parsedId, 'marketId');
         if (marketId !== undefined) {
-            const raw = await this.fetchRawMarket (marketId);
-            if (this.hasOutcome (outcomeSymbol)) {
-                return this.safeOutcome (outcomeSymbol);
-            }
-            throw new BadSymbol (this.id + ' could not resolve outcome ' + outcomeSymbol);
+            const outcomeObj = await this.loadOutcome (outcomeSymbol);
+            return outcomeObj;
         }
         return await super.fetchOutcome (outcomeSymbol);
     }
