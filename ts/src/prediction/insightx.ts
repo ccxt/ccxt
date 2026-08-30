@@ -561,8 +561,17 @@ export default class insightx extends Exchange {
         const parsedId = this.parseOutcomeId (outcomeSymbol);
         const marketId = this.safeString (parsedId, 'marketId');
         if (marketId !== undefined) {
-            const outcomeObj = await this.loadOutcome (outcomeSymbol);
-            return outcomeObj;
+            const rawMarket = await this.fetchRawMarket (marketId);
+            const parsedMarket = this.parseMarket (rawMarket);
+            if (this.markets === undefined) {
+                this.markets = this.createSafeDictionary ();
+            }
+            if (parsedMarket === undefined) {
+                throw new ExchangeError (this.id + ' fetchOutcome() could not resolve parsed');
+            }
+            this.markets[(parsedMarket as Dict)['market']] = parsedMarket;
+            this.indexMarketOutcomes (parsedMarket);
+            return this.outcome (outcomeSymbol);
         }
         return await super.fetchOutcome (outcomeSymbol);
     }
@@ -676,7 +685,7 @@ export default class insightx extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallIncremental ('fetchOrders', outcome, since, limit, params, pageKey, maxEntriesPerRequest) as PredictionOrder[];
         }
-        const page = this.safeInteger (params, pageKey, 1);
+        const page = this.safeInteger2 (params, pageKey, 'page', 1);
         let pageSize = this.safeInteger (params, 'size');
         if ((limit !== undefined) && ((pageSize === undefined) || (pageSize < limit))) {
             pageSize = limit;
@@ -695,7 +704,7 @@ export default class insightx extends Exchange {
             }
             request['market_id'] = marketId;
         }
-        const rest = this.omit (params, [ 'market_id', 'outcome_idx', 'page', 'size' ]);
+        const rest = this.omit (params, [ 'market_id', 'outcome_idx', 'page', 'size', pageKey ]);
         const response = await this.insightxPrivateGetPredictV2Orders (this.extend (request, rest));
         //
         // {
