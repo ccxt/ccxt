@@ -71,7 +71,7 @@ for (let i = 0; i < 1000; i++) {
     iso8601ThreeDigits.push ((i < 10) ? ('00' + i) : ((i < 100) ? ('0' + i) : ('' + i)));
 }
 const iso8601Years = [];
-for (let year = 1970; year <= 9999; year++) {
+for (let year = 1970; year <= 2999; year++) {
     iso8601Years.push ('' + year); // every post-epoch 4-digit year, prebuilt once
 }
 const iso8601 = (timestamp) => {
