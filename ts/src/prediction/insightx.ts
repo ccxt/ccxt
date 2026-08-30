@@ -213,7 +213,8 @@ export default class insightx extends Exchange {
         } else if (remainder === '1') {
             return undefined;
         }
-        const decoded = this.parseJson (this.base64ToString (payload));
+        const decodedBytes = this.base64ToBinary (payload);
+        const decoded = this.parseJson (this.binaryToString (decodedBytes));
         const expires = this.safeInteger (decoded, 'exp');
         if (expires === undefined) {
             return undefined;
