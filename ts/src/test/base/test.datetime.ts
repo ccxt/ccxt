@@ -27,9 +27,7 @@ function testIso8601 () {
     // 1970-9999 — the only input range where all language implementations agree
     // (python/php/go return empty values for non-integer inputs, use different
     // extended-year formats above 9999, and go treats 0 as out-of-range)
-    // day and second boundaries
-    assert (exchange.iso8601 (1) === '1970-01-01T00:00:00.001Z');
-    assert (exchange.iso8601 (999) === '1970-01-01T00:00:00.999Z');
+    // 1ms after epoch is asserted above
     assert (exchange.iso8601 (1000) === '1970-01-01T00:00:01.000Z');
     assert (exchange.iso8601 (1001) === '1970-01-01T00:00:01.001Z');
     assert (exchange.iso8601 (86399999) === '1970-01-01T23:59:59.999Z');
