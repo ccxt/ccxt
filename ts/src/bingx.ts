@@ -5448,7 +5448,7 @@ export default class bingx extends Exchange {
         const currencyId = this.safeString (depositAddress, 'coin');
         currency = this.safeCurrency (currencyId, currency);
         const code = currency['code'];
-        let address = this.safeString (depositAddress, 'addressWithPrefix');
+        let address = this.safeString2 (depositAddress, 'addressWithPrefix', 'address');
         const networkId = this.safeString (depositAddress, 'network');
         const networkCode = this.networkIdToCode (networkId, code);
         // despite its name the addressWithPrefix field sometimes arrives without
