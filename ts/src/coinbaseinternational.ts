@@ -1929,6 +1929,9 @@ export default class coinbaseinternational extends Exchange {
 
     parseOrderStatus (status: Str) {
         const statuses: Dict = {
+            // order_status carries WORKING and DONE; the other keys are event_type
+            // values, which the same payload reports in its own field
+            'WORKING': 'open',
             'NEW': 'open',
             'PARTIAL_FILLED': 'open',
             'FILLED': 'closed',
