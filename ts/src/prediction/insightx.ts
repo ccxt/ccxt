@@ -891,7 +891,13 @@ export default class insightx extends Exchange {
         deadlineHex = deadlineHex.padStart (64, '0');
         offsetHex = offsetHex.padStart (64, '0');
         signatureLengthHex = signatureLengthHex.padStart (64, '0');
-        signatureHex = signatureHex.padEnd (64, '0');
+        while (true) {
+            const signatureHexLength = this.numberToString (signatureHex.length);
+            if (Precise.stringMod (signatureHexLength, '64') === '0') {
+                break;
+            }
+            signatureHex = signatureHex + '0';
+        }
         const selectorHash = this.hash (this.encode ('trade(uint64,uint64,bytes)'), keccak, 'hex');
         const selector = selectorHash.slice (0, 8);
         return '0x' + selector + orderIdHex + deadlineHex + offsetHex + signatureLengthHex + signatureHex;
