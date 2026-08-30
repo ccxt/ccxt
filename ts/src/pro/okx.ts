@@ -1447,7 +1447,11 @@ export default class okx extends okxRest {
         // okx sends a crc32 over the raw strings of the top 25 levels a side
         const checksum = this.handleOption ('watchOrderBook', 'checksum', true);
         const responseChecksum = this.safeInteger (message, 'checksum');
-        if ((checksum !== true) || (responseChecksum === undefined)) {
+        // a channel that computes no checksum says so in one of two ways: books-rpi
+        // omits the field, books carries a literal 0 on every frame, snapshot and
+        // update alike
+        const supplied = (responseChecksum !== undefined) && (responseChecksum !== 0);
+        if ((checksum !== true) || !supplied) {
             return true;
         }
         const storedAsks = orderbook['asks'];
