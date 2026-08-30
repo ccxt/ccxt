@@ -5485,7 +5485,7 @@ export default class bingx extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const request: Dict = {
+        let request: Dict = {
         };
         let currency: Currency = undefined;
         if (code !== undefined) {
@@ -5496,8 +5496,9 @@ export default class bingx extends Exchange {
             request['startTime'] = since;
         }
         if (limit !== undefined) {
-            request['limit'] = limit; // default 1000
+            request['limit'] = Math.min (limit, 1000); // api maximum 1000
         }
+        [ request, params ] = this.handleUntilOption ('endTime', request, params);
         const response = await this.spotV3PrivateGetCapitalDepositHisrec (this.extend (request, params));
         //
         //    [
@@ -5534,7 +5535,7 @@ export default class bingx extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const request: Dict = {
+        let request: Dict = {
         };
         let currency: Currency = undefined;
         if (code !== undefined) {
@@ -5545,8 +5546,9 @@ export default class bingx extends Exchange {
             request['startTime'] = since;
         }
         if (limit !== undefined) {
-            request['limit'] = limit; // default 1000
+            request['limit'] = Math.min (limit, 1000); // api maximum 1000
         }
+        [ request, params ] = this.handleUntilOption ('endTime', request, params);
         const response = await this.spotV3PrivateGetCapitalWithdrawHistory (this.extend (request, params));
         //
         //    [
