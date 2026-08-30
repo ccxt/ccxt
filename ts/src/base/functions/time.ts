@@ -101,7 +101,14 @@ const iso8601 = (timestamp) => {
     const month = (mp < 10) ? (mp + 3) : (mp - 9); // [1, 12]
     const yearExact = yoe + (era * 400);
     const year = (month <= 2) ? (yearExact + 1) : yearExact;
-    const yearString = '+0' + year;
+    let yearString = undefined;
+    if (year > 9999) {
+        yearString = '+' + ('' + year).padStart (6, '0');
+    } else if (year >= 1000) {
+        yearString = '' + year;
+    } else {
+        yearString = ('' + year).padStart (4, '0');
+    }
     const hours = Math.floor (timeOfDay / 3600);
     const minutesSeconds = timeOfDay - (hours * 3600);
     const minutes = Math.floor (minutesSeconds / 60);

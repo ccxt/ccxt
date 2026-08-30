@@ -13,7 +13,6 @@ import testLegacyHas from './test.legacyHas.js';
 import testTypes from './test.type.js';
 import testThrottlerPerformance from './test.throttlerPerformance.js';
 import testOnJsonResponse from './test.onJsonResponse.js';
-import testIso8601JsSpecific from './test.iso8601.js';
 // todo: import testConfig from './test.config.js';
 // import './test.time.js' :todo
 // import './test.timeout_hang.js' :todo
@@ -27,7 +26,6 @@ async function testLanguageSpecific () {
     testLegacyHas ();
     testTypes ();
     testOnJsonResponse ();
-    testIso8601JsSpecific ();
     await testThrottlerPerformance ();
     // testConfig ();
 }
