@@ -1758,6 +1758,7 @@ export class BaseExchange {
                 'ping': ((this as any).ping !== undefined) ? (this as any).ping.bind (this) : (this as any).ping,
                 'verbose': this.verbose,
                 'throttler': new Throttler (this.tokenBucket),
+                'throttle': this.throttle.bind (this),
                 // add support for proxies
                 'options': {
                     'agent': finalAgent,
