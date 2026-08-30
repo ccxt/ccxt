@@ -357,8 +357,7 @@ export default class insightx extends Exchange {
         let collectedEvents = 0;
         for (let statusIndex = 0; statusIndex < statusesLength; statusIndex++) {
             let page = initialPage;
-            let statusDone = false;
-            while (!statusDone) {
+            while (true) {
                 const request: Dict = {
                     'page': page,
                     'size': pageSize,
@@ -667,15 +666,30 @@ export default class insightx extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest order to fetch
      * @param {int} [limit] the maximum number of orders to fetch
      * @param {object} [params] extra exchange-specific parameters
-     * @param {int} [params.page] page number to start fetching from, defaults to 1
-     * @param {int} [params.size] number of raw orders to request per page, defaults to limit when limit is defined
+     * @param {boolean} [params.paginate] *spot only* default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @param {string} [params.status] raw order status filter, 'pending', 'partially_filled', 'filled', 'cancelled' or 'expired'
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     override async fetchOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'paginate');
+        let maxEntriesPerRequest = undefined;
+        [ maxEntriesPerRequest, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'maxEntriesPerRequest', 100);
+        const pageKey = 'ccxtPageKey';
+        if (paginate) {
+            return await this.fetchPaginatedCallIncremental ('fetchOrders', outcome, since, limit, params, pageKey, maxEntriesPerRequest) as PredictionOrder[];
+        }
+        const page = this.safeInteger (params, pageKey, 1);
+        let pageSize = this.safeInteger (params, 'size');
+        if ((limit !== undefined) && ((pageSize === undefined) || (pageSize < limit))) {
+            pageSize = limit;
+        }
+        const request: Dict = {
+            'page': page,
+            'size': pageSize,
+        };
         await this.handleToken ();
         let outcomeObj: any = undefined;
-        const request: Dict = {};
         if (outcome !== undefined) {
             outcomeObj = await this.loadOutcome (outcome);
             const marketId = this.safeString (outcomeObj, 'marketId');
@@ -684,50 +698,38 @@ export default class insightx extends Exchange {
             }
             request['market_id'] = marketId;
         }
-        let page = this.safeInteger (params, 'page', 1);
-        let pageSize = this.safeInteger (params, 'size');
-        if ((limit !== undefined) && ((pageSize === undefined) || (pageSize < limit))) {
-            pageSize = limit;
-        }
-        if (pageSize !== undefined) {
-            request['size'] = pageSize;
-        }
         const rest = this.omit (params, [ 'market_id', 'outcome_idx', 'page', 'size' ]);
-        let result: PredictionOrder[] = [];
-        while (true) {
-            request['page'] = page;
-            const response = await this.insightxPrivateGetPredictV2Orders (this.extend (request, rest));
-            const data = this.safeDict (response, 'data', {});
-            const orders = this.safeList (data, 'list', []);
-            const parsed = this.parsePredictionOrders (orders, outcomeObj, since);
-            result = this.arrayConcat (result, parsed);
-            const indexed = this.indexBy (result, 'id');
-            result = this.toArray (indexed) as PredictionOrder[];
-            const resultLength = result.length;
-            if ((limit !== undefined) && (resultLength >= limit)) {
-                break;
-            }
-            const ordersLength = orders.length;
-            if (ordersLength === 0) {
-                break;
-            }
-            const effectivePageSize = (pageSize === undefined) ? ordersLength : pageSize;
-            const totalOrders = this.safeInteger (data, 'count');
-            if (totalOrders !== undefined) {
-                const totalPages = Math.ceil (totalOrders / effectivePageSize);
-                if (page >= totalPages) {
-                    break;
-                }
-            } else if (ordersLength < effectivePageSize) {
-                break;
-            }
-            if (limit === undefined) {
-                break;
-            }
-            page = this.sum (page, 1);
-        }
-        result = this.sortBy (result, 'timestamp');
-        return this.filterBySinceLimit (result, since, limit, 'timestamp') as PredictionOrder[];
+        const response = await this.insightxPrivateGetPredictV2Orders (this.extend (request, rest));
+        //
+        // {
+        //     "errno": 0,
+        //     "errmsg": "no error",
+        //     "data": {
+        //         "list": [
+        //             {
+        //                 "id": 820700,
+        //                 "market_id": 80436029,
+        //                 "outcome_idx": 1,
+        //                 "side": "buy",
+        //                 "type": "limit",
+        //                 "price": 0.2,
+        //                 "amount": 1,
+        //                 "filled_amount": 0,
+        //                 "remaining_amt": 1,
+        //                 "uid": 6353,
+        //                 "status": "pending",
+        //                 "created_at": 1786666977,
+        //                 "updated_at": 1786666977
+        //             }
+        //         ],
+        //         "count": 0
+        //     }
+        // }
+        //
+        const data = this.safeDict (response, 'data', {});
+        const orders = this.safeList (data, 'list', []);
+        const parsedOrders = this.parsePredictionOrders (orders, outcomeObj, since);
+        return this.filterByOutcomeSinceLimit (parsedOrders, outcome, since, limit) as PredictionOrder[];
     }
 
     /**
@@ -785,7 +787,7 @@ export default class insightx extends Exchange {
     /**
      * @method
      * @name insightx#fetchClosedOrders
-     * @description fetches the authenticated user's filled, cancelled, and expired orders
+     * @description fetches the authenticated user's filled orders
      * @see https://insightx-2.gitbook.io/whitepaper/insightx-whitepaper/10.-developer-resources-and-api-integration#get-orders
      * @param {string} [outcome] unified outcome handle or raw outcome id in marketId:outcomeIndex format
      * @param {int} [since] timestamp in ms of the earliest order to fetch
@@ -802,7 +804,7 @@ export default class insightx extends Exchange {
         for (let i = 0; i < orders.length; i++) {
             const order = orders[i];
             const status = this.safeString (order, 'status');
-            if ((status === 'closed') || (status === 'canceled') || (status === 'expired')) {
+            if ((status === 'closed')) {
                 result.push (order);
             }
         }
@@ -1036,6 +1038,16 @@ export default class insightx extends Exchange {
         };
         const rest = this.omit (params, [ 'order_id' ]);
         const response = await this.insightxPrivatePostPredictV2CancelOrder (this.extend (request, rest));
+        //
+        // {
+        //     "errno": 0,
+        //     "errmsg": "no error",
+        //     "data": {
+        //         "order_id": 820700,
+        //         "status": "cancelled"
+        //     }
+        // }
+        //
         return this.safePredictionOrder ({
             'id': id,
             'status': 'canceled',
