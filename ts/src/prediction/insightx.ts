@@ -878,7 +878,8 @@ export default class insightx extends Exchange {
             throw new InvalidOrder (this.id + ' createOrder() received an invalid uint64 deadline');
         }
         let signatureHex = this.remove0xPrefix (signature);
-        if ((signatureHex === undefined) || (signatureHex === '') || (Precise.stringMod (this.numberToString (signatureHex.length), '2') !== '0')) {
+        const signatureLength = this.numberToString (signatureHex.length);
+        if ((signatureHex === undefined) || (signatureHex === '') || (Precise.stringMod (signatureLength, '2') !== '0')) {
             throw new InvalidOrder (this.id + ' createOrder() received an invalid trade signature');
         }
         this.base16ToBinary (signatureHex);
@@ -890,9 +891,7 @@ export default class insightx extends Exchange {
         deadlineHex = deadlineHex.padStart (64, '0');
         offsetHex = offsetHex.padStart (64, '0');
         signatureLengthHex = signatureLengthHex.padStart (64, '0');
-        while (Precise.stringMod (this.numberToString (signatureHex.length), '64') !== '0') {
-            signatureHex = signatureHex + '0';
-        }
+        signatureHex = signatureHex.padEnd (64, '0');
         const selectorHash = this.hash (this.encode ('trade(uint64,uint64,bytes)'), keccak, 'hex');
         const selector = selectorHash.slice (0, 8);
         return '0x' + selector + orderIdHex + deadlineHex + offsetHex + signatureLengthHex + signatureHex;
