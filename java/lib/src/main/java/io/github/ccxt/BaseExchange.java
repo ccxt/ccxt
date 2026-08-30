@@ -730,6 +730,10 @@ public class BaseExchange {
         return Encode.binaryToBase64((byte[]) buff);
     }
 
+    public static String binaryToString(Object buff) {
+        return Encode.binaryToString((byte[]) buff);
+    }
+
     public static byte[] base58ToBinary(Object pt) {
         return Encode.Base58ToBinary(pt);
     }
