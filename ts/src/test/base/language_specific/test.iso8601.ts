@@ -23,8 +23,7 @@ function testIso8601JsSpecific () {
     // float inputs are floored (python/php return None/null)
     assert (exchange.iso8601 (514862627559.9) === '1986-04-26T01:23:47.559Z');
     // last representable millisecond of year 9999
-    assert (exchange.iso8601 (253402300799999) === '9999-12-31T23:59:59.999Z');
-    // extended years above 9999 use the '+YYYYYY' format, byte-identical to
+    assert (exchange.iso8601 (253402300799999) === '9999-12-31T23:59:59.999Z');    // extended years above 9999 use the '+YYYYYY' format, byte-identical to
     // new Date (ms).toISOString () — python returns None, php/go drop the '+'
     assert (exchange.iso8601 (253402300800000) === '+010000-01-01T00:00:00.000Z');
     assert (exchange.iso8601 (253402300800001) === '+010000-01-01T00:00:00.001Z');
@@ -36,6 +35,12 @@ function testIso8601JsSpecific () {
         assert (exchange.iso8601 (t) === new Date (t).toISOString ());
     }
     for (let t = 8630000000000000; t <= 8640000000000000; t += 333333337) {
+        assert (exchange.iso8601 (t) === new Date (t).toISOString ());
+    }
+    // modern-range sweep: guards the iso8601Years lookup table and the
+    // month-day math in the common (non-extended-year) fast path
+    // 1230768000000 = 2009-01-01T00:00:00.000Z, 2051222400000 = 2035-01-01T00:00:00.000Z
+    for (let t = 1230768000000; t < 2051222400000; t += 987654321) {
         assert (exchange.iso8601 (t) === new Date (t).toISOString ());
     }
 }

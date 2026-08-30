@@ -70,10 +70,7 @@ const iso8601ThreeDigits = [];
 for (let i = 0; i < 1000; i++) {
     iso8601ThreeDigits.push ((i < 10) ? ('00' + i) : ((i < 100) ? ('0' + i) : ('' + i)));
 }
-const iso8601Years = [];
-for (let year = 1970; year <= 2999; year++) {
-    iso8601Years.push ('' + year); // every post-epoch 4-digit year, prebuilt once
-}
+
 const iso8601 = (timestamp) => {
     let _timestampNumber = undefined;
     if (typeof timestamp === 'number') {
@@ -104,15 +101,7 @@ const iso8601 = (timestamp) => {
     const month = (mp < 10) ? (mp + 3) : (mp - 9); // [1, 12]
     const yearExact = yoe + (era * 400);
     const year = (month <= 2) ? (yearExact + 1) : yearExact;
-    let yearString = undefined;
-    if (year <= 9999) {
-        yearString = iso8601Years[year - 1970];
-    } else if (year < 100000) {
-        // extended year, same format as Date.toISOString ()
-        yearString = '+0' + year;
-    } else {
-        yearString = '+' + year;
-    }
+    const yearString = '+0' + year;
     const hours = Math.floor (timeOfDay / 3600);
     const minutesSeconds = timeOfDay - (hours * 3600);
     const minutes = Math.floor (minutesSeconds / 60);
