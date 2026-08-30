@@ -975,7 +975,6 @@ export default class insightx extends Exchange {
         const tradingContract = this.safeString (this.options, 'tradingContract');
         const confirmOnChain = this.safeBool (params, 'confirmOnChain', false);
         let transactionHash: Str = undefined;
-        const skipWaitForReceipt = this.safeBool (params, 'skipWaitForReceipt', false);
         let receipt: any = undefined;
         let status: Str = undefined;
         if (confirmOnChain) {
@@ -995,7 +994,7 @@ export default class insightx extends Exchange {
             }
             const chainId = this.safeInteger (this.options, 'chainId', 5000);
             transactionHash = await this.sendEvmTransaction (rpcUrl, chainId, fromAddress, tradingContract, '0x0', calldata, gasLimit);
-
+            const skipWaitForReceipt = this.safeBool (params, 'skipWaitForReceipt', false);
             if (!skipWaitForReceipt) {
                 const receiptTimeout = this.safeInteger (params, 'receiptTimeout', 60000);
                 receipt = await this.waitForTransactionReceipt (rpcUrl, transactionHash, receiptTimeout);
