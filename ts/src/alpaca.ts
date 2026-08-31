@@ -1011,12 +1011,12 @@ export default class alpaca extends Exchange {
             const prevDailyBar = this.safeDict (entry, 'prevDailyBar', {});
             const latestQuote = this.safeDict (entry, 'latestQuote', {});
             const latestTrade = this.safeDict (entry, 'latestTrade', {});
-            const datetime = this.safeString (latestQuote, 't');
+            const timestamp = this.parse8601 (this.safeString (latestQuote, 't'));
             const ticker = this.safeTicker ({
                 'info': entry,
                 'symbol': market['symbol'],
-                'timestamp': this.parse8601 (datetime),
-                'datetime': datetime,
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
                 'high': this.safeString (dailyBar, 'h'),
                 'low': this.safeString (dailyBar, 'l'),
                 'bid': this.safeString (latestQuote, 'bp'),
@@ -1502,13 +1502,12 @@ export default class alpaca extends Exchange {
                 orderType = 'limit';
             }
         }
-        const datetime = this.safeString (order, 'submitted_at');
-        const timestamp = this.parse8601 (datetime);
+        const timestamp = this.parse8601 (this.safeString (order, 'submitted_at'));
         return this.safeOrder ({
             'id': this.safeString (order, 'id'),
             'clientOrderId': this.safeString (order, 'client_order_id'),
             'timestamp': timestamp,
-            'datetime': datetime,
+            'datetime': this.iso8601 (timestamp),
             'lastTradeTimeStamp': undefined,
             'status': status,
             'symbol': symbol,
@@ -1928,7 +1927,6 @@ export default class alpaca extends Exchange {
         const activityType = this.safeString (transaction, 'activity_type');
         let txid: Str = undefined;
         let timestamp: Int = undefined;
-        let datetime: Str = undefined;
         let network: Str = undefined;
         let address: Str = undefined;
         let addressTo: Str = undefined;
@@ -1944,7 +1942,6 @@ export default class alpaca extends Exchange {
             const netAmount = this.safeString (transaction, 'net_amount');
             const isIncoming = (activityType === 'CSD') || ((activityType === 'TRANS') && !Precise.stringLt (netAmount, '0'));
             timestamp = this.parse8601 (this.safeString (transaction, 'date') + 'T00:00:00Z');
-            datetime = this.iso8601 (timestamp);
             type = isIncoming ? 'deposit' : 'withdrawal';
             amount = this.parseNumber (Precise.stringAbs (netAmount));
             // cash ledger rows carry no per-entry asset field and are USD, while crypto
@@ -1963,8 +1960,7 @@ export default class alpaca extends Exchange {
             internal = (activityType !== 'TRANS');
         } else {
             txid = this.safeString (transaction, 'tx_hash');
-            datetime = this.safeString (transaction, 'created_at');
-            timestamp = this.parse8601 (datetime);
+            timestamp = this.parse8601 (this.safeString (transaction, 'created_at'));
             network = this.safeString (transaction, 'chain');
             address = this.safeString (transaction, 'to_address');
             addressTo = this.safeString (transaction, 'to_address');
@@ -1987,7 +1983,7 @@ export default class alpaca extends Exchange {
             'id': this.safeString (transaction, 'id'),
             'txid': txid,
             'timestamp': timestamp,
-            'datetime': datetime,
+            'datetime': this.iso8601 (timestamp),
             'network': network,
             'address': address,
             'addressTo': addressTo,
