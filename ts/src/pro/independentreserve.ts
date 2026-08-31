@@ -110,7 +110,7 @@ export default class independentreserve extends independentreserveRest {
         //        "Side": "Buy"
         //    }
         //
-        const datetime = this.safeString (trade, 'TradeDate');
+        const timestamp = this.parse8601 (this.safeString (trade, 'TradeDate'));
         const marketId = this.safeString (market, 'Pair');
         return this.safeTrade ({
             'info': trade,
@@ -124,8 +124,8 @@ export default class independentreserve extends independentreserveRest {
             'amount': this.safeString (trade, 'Volume'),
             'cost': undefined,
             'fee': undefined,
-            'timestamp': this.parse8601 (datetime),
-            'datetime': datetime,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
         }, market);
     }
 
