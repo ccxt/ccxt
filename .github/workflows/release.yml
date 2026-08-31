@@ -238,6 +238,11 @@ jobs:
           # reject them until its version is live in the index. `cargo publish`
           # waits for the index by default; the retry loop covers the window
           # where propagation is slower than that wait.
+          #
+          # NPM_VERSION comes from `npm version` and is prefixed with a "v"
+          # (v4.5.x); crates.io versions are bare, so strip it before matching
+          # against `cargo search` output.
+          CRATE_VERSION="${NPM_VERSION#v}"
           publish () {
             local crate="$1"
             for attempt in 1 2 3 4 5; do
@@ -245,8 +250,8 @@ jobs:
                 echo "published $crate"
                 return 0
               fi
-              if cargo search "$crate" | grep -q "^$crate = \"${NPM_VERSION}\""; then
-                echo "$crate ${NPM_VERSION} already on crates.io, continuing"
+              if cargo search "$crate" | grep -q "^$crate = \"${CRATE_VERSION}\""; then
+                echo "$crate ${CRATE_VERSION} already on crates.io, continuing"
                 return 0
               fi
               echo "publish $crate failed (attempt $attempt), retrying in 30s…"
