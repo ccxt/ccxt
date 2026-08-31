@@ -3659,10 +3659,10 @@ public partial class binance : Exchange
     }
 
     /// <summary>Calls the fapiPublicGetTickerBookTicker endpoint.</summary>
-    /// <returns>a JSON array</returns>
-    public async Task<List<object>> fapiPublicGetTickerBookTicker (object parameters = null)
+    /// <returns>a JSON object or a JSON array, so this endpoint keeps object</returns>
+    public async Task<object> fapiPublicGetTickerBookTicker (object parameters = null)
     {
-        return await this.callAsync<List<object>> ("fapiPublicGetTickerBookTicker",parameters);
+        return await this.callAsync<object> ("fapiPublicGetTickerBookTicker",parameters);
     }
 
     /// <summary>Calls the fapiPublicGetOpenInterest endpoint.</summary>

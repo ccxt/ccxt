@@ -1883,8 +1883,8 @@ public partial class binance : Exchange
                             { "noSymbol", 2 },
                         } },
                         { "ticker/bookTicker", new Dictionary<string, object>() {
-                            { "cost", 1 },
-                            { "noSymbol", 2 },
+                            { "cost", 2 },
+                            { "noSymbol", 5 },
                         } },
                         { "openInterest", new Dictionary<string, object>() {
                             { "cost", 1 },
@@ -6361,19 +6361,27 @@ public partial class binance : Exchange
         var subTypeparametersVariable = this.handleSubTypeAndParams("fetchBidsAsks", market, parameters);
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
+        object request = new Dictionary<string, object>() {};
+        if (isTrue(isTrue((!isEqual(symbols, null))) && isTrue((isTrue(this.isLinear(type, subType)) || isTrue(this.isInverse(type, subType))))))
+        {
+            int symbolsLength = getArrayLength(symbols);
+            if (isTrue(isEqual(symbolsLength, 1)))
+            {
+                ((IDictionary<string,object>)request)["symbol"] = this.marketId(getValue(symbols, 0));
+            }
+        }
         object response = null;
         if (isTrue(isEqual(type, "option")))
         {
             response = await this.eapiPublicGetTicker(parameters);
         } else if (isTrue(this.isLinear(type, subType)))
         {
-            response = await this.fapiPublicGetTickerBookTicker(parameters);
+            response = await this.fapiPublicGetTickerBookTicker(this.extend(request, parameters));
         } else if (isTrue(this.isInverse(type, subType)))
         {
-            response = await this.dapiPublicGetTickerBookTicker(parameters);
+            response = await this.dapiPublicGetTickerBookTicker(this.extend(request, parameters));
         } else if (isTrue(isEqual(type, "spot")))
         {
-            object request = new Dictionary<string, object>() {};
             if (isTrue(!isEqual(symbols, null)))
             {
                 ((IDictionary<string,object>)request)["symbols"] = this.json(this.marketIds(symbols));
@@ -6382,6 +6390,10 @@ public partial class binance : Exchange
         } else
         {
             throw new NotSupported ((string)add(add(add(this.id, " fetchBidsAsks() does not support "), type), " markets yet")) ;
+        }
+        if (!isTrue(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        {
+            response = new List<object>() {response};
         }
         return ccxt.BaseExchange.ToTickers(this.parseTickers(response, symbols));
     }
