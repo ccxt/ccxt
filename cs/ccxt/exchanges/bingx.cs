@@ -5598,7 +5598,7 @@ public partial class bingx : Exchange
         object currencyId = this.safeString(depositAddress, "coin");
         currency = this.safeCurrency(currencyId, currency);
         object code = getValue(currency, "code");
-        object address = this.safeString(depositAddress, "addressWithPrefix");
+        object address = this.safeString2(depositAddress, "addressWithPrefix", "address");
         object networkId = this.safeString(depositAddress, "network");
         object networkCode = this.networkIdToCode(networkId, code);
         // despite its name the addressWithPrefix field sometimes arrives without
