@@ -1918,7 +1918,7 @@ export default class bitso extends Exchange {
         const currencyId = this.safeString2 (transaction, 'currency', 'asset');
         currency = this.safeCurrency (currencyId, currency);
         const details = this.safeValue (transaction, 'details', {});
-        const datetime = this.safeString (transaction, 'created_at');
+        const timestamp = this.parse8601 (this.safeString (transaction, 'created_at'));
         const withdrawalAddress = this.safeString (details, 'withdrawal_address');
         const receivingAddress = this.safeString (details, 'receiving_address');
         const networkId = this.safeString2 (transaction, 'network', 'method');
@@ -1929,8 +1929,8 @@ export default class bitso extends Exchange {
         return {
             'id': this.safeString2 (transaction, 'wid', 'fid'),
             'txid': this.safeString (details, 'tx_hash'),
-            'timestamp': this.parse8601 (datetime),
-            'datetime': datetime,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'network': networkCodeUpper,
             'addressFrom': receivingAddress,
             'address': (withdrawalAddress !== undefined) ? withdrawalAddress : receivingAddress,
