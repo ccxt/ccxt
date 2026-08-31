@@ -368,6 +368,7 @@ export default class onetrading extends Exchange {
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': 100,
+                        'untilDays': 30, // days between start-end
                         'trigger': false,
                         'trailing': false,
                         'symbolRequired': false,
@@ -1824,7 +1825,7 @@ export default class onetrading extends Exchange {
      * @description fetch all trades made by the user
      * @see https://docs.onetrading.com/rest/trading/get-trades
      * @param {string} symbol unified market symbol
-     * @param {int} [since] the earliest time in ms to fetch trades for, the maximum window between since and until is 30 days
+     * @param {int} [since] the earliest time in ms to fetch trades for, the maximum window between since and until is 30 days, when until is omitted the exchange defaults to 7 days after since
      * @param {int} [limit] the maximum number of trades structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest entry to fetch
