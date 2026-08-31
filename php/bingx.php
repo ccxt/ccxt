@@ -5443,6 +5443,7 @@ class bingx extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch deposits for
          * @param {int} [$limit] the maximum number of deposits structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] the latest time in ms to fetch deposits for
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
         if ($this->markets === null) {
@@ -5459,8 +5460,9 @@ class bingx extends Exchange {
             $request['startTime'] = $since;
         }
         if ($limit !== null) {
-            $request['limit'] = $limit; // default 1000
+            $request['limit'] = min($limit, 1000); // api maximum 1000
         }
+        list($request, $params) = $this->handle_until_option('endTime', $request, $params);
         $response = $this->spotV3PrivateGetCapitalDepositHisrec($this->extend($request, $params));
         //
         //    array(
@@ -5492,6 +5494,7 @@ class bingx extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch withdrawals for
          * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] the latest time in ms to fetch withdrawals for
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
         if ($this->markets === null) {
@@ -5508,8 +5511,9 @@ class bingx extends Exchange {
             $request['startTime'] = $since;
         }
         if ($limit !== null) {
-            $request['limit'] = $limit; // default 1000
+            $request['limit'] = min($limit, 1000); // api maximum 1000
         }
+        list($request, $params) = $this->handle_until_option('endTime', $request, $params);
         $response = $this->spotV3PrivateGetCapitalWithdrawHistory($this->extend($request, $params));
         //
         //    array(
