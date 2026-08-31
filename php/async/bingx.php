@@ -1092,6 +1092,8 @@ class bingx extends Exchange {
             $isActive = true; // $swap active
         } elseif (($this->safe_bool($market, 'apiStateSell') === true) && ($this->safe_bool($market, 'apiStateBuy') === true) && ($this->safe_string($market, 'status') === '1')) {
             $isActive = true; // $spot active
+        } elseif ($checkIsInverse && ($this->safe_string($market, 'status') === '1')) {
+            $isActive = true; // inverse $swap active
         }
         $isInverse = ($spot) ? null : $checkIsInverse;
         $isLinear = ($spot) ? null : $checkIsLinear;
