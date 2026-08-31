@@ -5265,8 +5265,10 @@ export default class bingx extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch transfers for
      * @param {int} [limit] the maximum number of transfers structures to retrieve (default 10, max 100)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} params.fromAccount (mandatory) transfer from (spot, swap (linear or inverse), future, or funding)
-     * @param {string} params.toAccount (mandatory) transfer to (spot, swap(linear or inverse), future, or funding)
+     * @param {string} [params.fromAccount] transfer from (spot, swap (linear or inverse), future, or funding), required unless transferId is provided
+     * @param {string} [params.toAccount] transfer to (spot, swap(linear or inverse), future, or funding), required unless transferId is provided
+     * @param {string} [params.transferId] the transfer ID, either transferId or both fromAccount and toAccount are required
+     * @param {int} [params.until] the latest time in ms to fetch transfers for
      * @param {boolean} [params.paginate] whether to paginate the results (default false)
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
@@ -5282,10 +5284,14 @@ export default class bingx extends Exchange {
         const accountsByType = this.safeDict (this.options, 'accountsByType', {});
         const fromAccount = this.safeString (params, 'fromAccount');
         const toAccount = this.safeString (params, 'toAccount');
+        const transferId = this.safeString (params, 'transferId');
         const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
         const toId = this.safeString (accountsByType, toAccount, toAccount);
-        if (fromId === undefined || toId === undefined) {
-            throw new ExchangeError (this.id + ' fromAccount & toAccount parameters are required');
+        if ((transferId === undefined) && ((fromId === undefined) || (toId === undefined))) {
+            throw new ExchangeError (this.id + ' fetchTransfers() requires params["transferId"] or both params["fromAccount"] and params["toAccount"]');
+        }
+        if (transferId !== undefined) {
+            request['transferId'] = transferId;
         }
         if (fromAccount !== undefined) {
             request['fromAccount'] = fromId;
@@ -5293,7 +5299,7 @@ export default class bingx extends Exchange {
         if (toAccount !== undefined) {
             request['toAccount'] = toId;
         }
-        params = this.omit (params, [ 'fromAccount', 'toAccount' ]);
+        params = this.omit (params, [ 'fromAccount', 'toAccount', 'transferId' ]);
         const maxLimit = 100;
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchTransfers', 'paginate', false);
@@ -5304,7 +5310,7 @@ export default class bingx extends Exchange {
             request['startTime'] = since;
         }
         if (limit !== undefined) {
-            request['pageSize'] = limit;
+            request['pageSize'] = Math.min (limit, maxLimit);
         }
         [ request, params ] = this.handleUntilOption ('endTime', request, params);
         const response = await this.apiV3PrivateGetAssetTransferRecord (this.extend (request, params));
