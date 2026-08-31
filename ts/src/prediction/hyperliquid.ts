@@ -475,7 +475,6 @@ export default class hyperliquid extends Exchange {
         // Parse expiry from description
         const expiry = this.safeString (desc, 'expiry');
         let expiryMs: Int = undefined;
-        let expiryDatetime: Str = undefined;
         if ((expiry !== undefined) && (expiry !== '')) {
             // e.g. "20260503-0600" → "2026-05-03T06:00:00Z"
             const expParts = expiry.split ('-');
@@ -485,7 +484,6 @@ export default class hyperliquid extends Exchange {
                 const hm = (expPartsLength >= 2) ? expParts[1] : '0000';
                 const isoStr = ymd.slice (0, 4) + '-' + ymd.slice (4, 6) + '-' + ymd.slice (6, 8) + 'T' + hm.slice (0, 2) + ':' + hm.slice (2, 4) + ':00Z';
                 expiryMs = this.parse8601 (isoStr);
-                expiryDatetime = isoStr;
             }
         }
         // Side labels from sideSpecs (e.g. "Yes"/"No", but use YES/NO normalised)
@@ -566,7 +564,7 @@ export default class hyperliquid extends Exchange {
             'maker': 0.0002,
             'contractSize': undefined,
             'expiry': expiryMs,
-            'expiryDatetime': expiryDatetime,
+            'expiryDatetime': this.iso8601 (expiryMs),
             'strike': undefined,
             'optionType': undefined,
             'percentage': true,
@@ -1980,7 +1978,6 @@ export default class hyperliquid extends Exchange {
         const targetPrice = this.safeString (desc, 'targetPrice');
         const expiryRaw = this.safeString (desc, 'expiry');
         let expiryMs: Int = undefined;
-        let expiryDatetime: Str = undefined;
         if ((expiryRaw !== undefined) && (expiryRaw !== '')) {
             const parts = expiryRaw.split ('-');
             const partsLength = parts.length;
@@ -1989,7 +1986,6 @@ export default class hyperliquid extends Exchange {
                 const hm = (partsLength >= 2) ? parts[1] : '0000';
                 const isoStr = ymd.slice (0, 4) + '-' + ymd.slice (4, 6) + '-' + ymd.slice (6, 8) + 'T' + hm.slice (0, 2) + ':' + hm.slice (2, 4) + ':00Z';
                 expiryMs = this.parse8601 (isoStr);
-                expiryDatetime = isoStr;
             }
         }
         const firstExpiry = this.safeInteger (firstMarket, 'expiry');
@@ -2020,7 +2016,7 @@ export default class hyperliquid extends Exchange {
             'created': undefined,
             'createdDatetime': undefined,
             'end': endValue,
-            'endDatetime': expiryDatetime,
+            'endDatetime': this.iso8601 (endValue),
             'category': 'crypto',
             'lastUpdatedAt': undefined,
             'resolutionSource': 'Hyperliquid mark price',
