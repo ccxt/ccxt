@@ -449,6 +449,7 @@ export default class bingx extends Exchange {
                                 'uid': { 'cost': 1 } as Endpoint<Dict>,
                                 'apiKey/query': { 'cost': 2 } as Endpoint<Dict>,
                                 'account/apiPermissions': { 'cost': 5 } as Endpoint<Dict>,
+                                'account/apiRestrictions': { 'cost': 5 } as Endpoint<Dict>,
                                 'allAccountBalance': { 'cost': 2 } as Endpoint<Dict>,
                             },
                             'post': {
@@ -7061,7 +7062,7 @@ export default class bingx extends Exchange {
             version = section[2];
             access = section[3];
         }
-        if (path !== 'account/apiPermissions') {
+        if ((path !== 'account/apiPermissions') && (path !== 'account/apiRestrictions')) {
             if (type === 'spot' && version === 'v3') {
                 url += '/api';
             } else {
