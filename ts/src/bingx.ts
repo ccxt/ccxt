@@ -7062,7 +7062,8 @@ export default class bingx extends Exchange {
             version = section[2];
             access = section[3];
         }
-        if ((path !== 'account/apiPermissions') && (path !== 'account/apiRestrictions')) {
+        const flatAccountPaths = [ 'account/apiPermissions', 'account/apiRestrictions' ];
+        if (!this.inArray (path, flatAccountPaths)) {
             if (type === 'spot' && version === 'v3') {
                 url += '/api';
             } else {
