@@ -5176,7 +5176,7 @@ class bingx(Exchange, ImplicitAPI):
         currencyId = self.safe_string(depositAddress, 'coin')
         currency = self.safe_currency(currencyId, currency)
         code = currency['code']
-        address = self.safe_string(depositAddress, 'addressWithPrefix')
+        address = self.safe_string_2(depositAddress, 'addressWithPrefix', 'address')
         networkId = self.safe_string(depositAddress, 'network')
         networkCode = self.network_id_to_code(networkId, code)
         # despite its name the addressWithPrefix field sometimes arrives without
