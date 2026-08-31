@@ -7586,7 +7586,9 @@ class BaseExchange(object):
         year = date[0:2]
         month = date[2:4]
         day = date[4:6]
-        reconstructedDate = '20' + year + '-' + month + '-' + day + 'T00:00:00Z'
+        # the milliseconds are spelled out because every caller writes this into
+        # expiryDatetime, which types.ts documents in the ISO 8601 form with them
+        reconstructedDate = '20' + year + '-' + month + '-' + day + 'T00:00:00.000Z'
         return reconstructedDate
 
     def convert_expire_date_to_market_id_date(self, date: Str):
