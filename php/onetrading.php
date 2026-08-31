@@ -1239,16 +1239,17 @@ class onetrading extends Exchange {
 
     public function parse_order_status(?string $status) {
         $statuses = array(
-            'FILLED' => 'open',
+            'OPEN' => 'open',
+            'BOOKED' => 'open',
+            'FILL' => 'open',
+            'MOVED' => 'open',
             'FILLED_FULLY' => 'closed',
             'FILLED_CLOSED' => 'canceled',
             'FILLED_REJECTED' => 'rejected',
-            'OPEN' => 'open',
-            'REJECTED' => 'rejected',
-            'CLOSED' => 'canceled',
-            'FAILED' => 'failed',
-            'STOP_TRIGGERED' => 'triggered',
-            'DONE' => 'closed',
+            'CANCELLED' => 'canceled',
+            'INSUFFICIENT_FUNDS' => 'rejected',
+            'INSUFFICIENT_LIQUIDITY' => 'rejected',
+            'RISK_FAILED_OVER_MAX_POSITION' => 'rejected',
         );
         return $this->safe_string($statuses, $status, $status);
     }
@@ -1324,8 +1325,7 @@ class onetrading extends Exchange {
         $id = $this->safe_string($rawOrder, 'order_id');
         $clientOrderId = $this->safe_string($rawOrder, 'client_id');
         $timestamp = $this->parse8601($this->safe_string($rawOrder, 'time'));
-        $rawStatus = $this->parse_order_status($this->safe_string($rawOrder, 'status'));
-        $status = $this->parse_order_status($rawStatus);
+        $status = $this->parse_order_status($this->safe_string($rawOrder, 'status'));
         $marketId = $this->safe_string($rawOrder, 'instrument_code');
         $symbol = $this->safe_symbol($marketId, $market, '_');
         $price = $this->safe_string($rawOrder, 'price');
@@ -1344,7 +1344,7 @@ class onetrading extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
             'symbol' => $symbol,
-            'type' => $this->parse_order_type($type),
+            'type' => $type,
             'timeInForce' => $timeInForce,
             'postOnly' => $postOnly,
             'side' => $side,
@@ -1361,19 +1361,13 @@ class onetrading extends Exchange {
         ), $market);
     }
 
-    public function parse_order_type(?string $type) {
-        $types = array(
-            'booked' => 'limit',
-        );
-        return $this->safe_string($types, $type, $type);
-    }
-
     public function parse_time_in_force(?string $timeInForce) {
         $timeInForces = array(
             'GOOD_TILL_CANCELLED' => 'GTC',
             'GOOD_TILL_TIME' => 'GTT',
             'IMMEDIATE_OR_CANCELLED' => 'IOC',
             'FILL_OR_KILL' => 'FOK',
+            'POST_ONLY' => 'PO',
         );
         return $this->safe_string($timeInForces, $timeInForce, $timeInForce);
     }
