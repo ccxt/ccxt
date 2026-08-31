@@ -37,6 +37,9 @@ function testParse8601 () {
     assert (exchange.parse8601 ('1986-04-26T01:23:47.06Z') === 514862627060);
     assert (exchange.parse8601 ('1986-04-26T01:23:47.6Z') === 514862627600);
 
+    // a negative offset is a zone like any other
+    assert (exchange.parse8601 ('1986-04-26T01:23:47.559-04:00') === 514877027559);
+    assert (exchange.parse8601 ('1986-04-26T01:23:47.559+00:00') === 514862627559);
     assert (exchange.parse8601 ('1977-13-13T00:00:00.000Z') === undefined);
     assert (exchange.parse8601 ('1986-04-26T25:71:47.000Z') === undefined);
 
