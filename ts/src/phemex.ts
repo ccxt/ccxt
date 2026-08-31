@@ -2333,6 +2333,10 @@ export default class phemex extends Exchange {
             '10': 'market',
             'Limit': 'limit',
             'Market': 'market',
+            'Stop': 'market',
+            'StopLimit': 'limit',
+            'MarketIfTouched': 'market',
+            'LimitIfTouched': 'limit',
         };
         return this.safeString (types, (type as string), type);
     }
