@@ -5479,13 +5479,14 @@ export default class bingx extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch deposits for
      * @param {int} [limit] the maximum number of deposits structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch deposits for
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const request: Dict = {
+        let request: Dict = {
         };
         let currency: Currency = undefined;
         if (code !== undefined) {
@@ -5496,8 +5497,9 @@ export default class bingx extends Exchange {
             request['startTime'] = since;
         }
         if (limit !== undefined) {
-            request['limit'] = limit; // default 1000
+            request['limit'] = Math.min (limit, 1000); // api maximum 1000
         }
+        [ request, params ] = this.handleUntilOption ('endTime', request, params);
         const response = await this.spotV3PrivateGetCapitalDepositHisrec (this.extend (request, params));
         //
         //    [
@@ -5528,13 +5530,14 @@ export default class bingx extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch withdrawals for
      * @param {int} [limit] the maximum number of withdrawals structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch withdrawals for
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const request: Dict = {
+        let request: Dict = {
         };
         let currency: Currency = undefined;
         if (code !== undefined) {
@@ -5545,8 +5548,9 @@ export default class bingx extends Exchange {
             request['startTime'] = since;
         }
         if (limit !== undefined) {
-            request['limit'] = limit; // default 1000
+            request['limit'] = Math.min (limit, 1000); // api maximum 1000
         }
+        [ request, params ] = this.handleUntilOption ('endTime', request, params);
         const response = await this.spotV3PrivateGetCapitalWithdrawHistory (this.extend (request, params));
         //
         //    [
