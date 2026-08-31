@@ -1066,6 +1066,8 @@ export default class bingx extends Exchange {
             isActive = true; // swap active
         } else if ((this.safeBool (market, 'apiStateSell') === true) && (this.safeBool (market, 'apiStateBuy') === true) && (this.safeString (market, 'status') === '1')) {
             isActive = true; // spot active
+        } else if (checkIsInverse && (this.safeString (market, 'status') === '1')) {
+            isActive = true; // inverse swap active
         }
         const isInverse = (spot) ? undefined : checkIsInverse;
         const isLinear = (spot) ? undefined : checkIsLinear;
