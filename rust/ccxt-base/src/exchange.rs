@@ -1113,6 +1113,17 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
             };
             client.send_text(payload);
         }
+        // Mirror the connection into `self.clients`, the map TS venues iterate
+        // to decide whether a stream is still worth keeping alive (binance's
+        // `keepAliveListenKey` re-arms only while some client still holds a
+        // subscription for the type). The handle serves `subscriptions` /
+        // `futures` live from the registry, so this stays coherent as
+        // subscriptions come and go.
+        crate::runtime::add_element_to_object(
+            &mut self.clients,
+            &Value::Str(url.clone()),
+            crate::pro::ws_client::client_value(&url),
+        );
         // If an ancestor ws_run on this task is already driving `url`, don't
         // start a nested loop — the subscribe frame was sent above; report the
         // current settled state and let the outer loop resolve `hashes`.
@@ -1151,35 +1162,11 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
         url: String,
     ) -> impl ::std::future::Future<Output = Value> + Send { async move {
         loop {
-            if let Some(settled) = client.take_settled(&hashes) {
-                match settled {
-                    Ok(v) => return v,
-                    Err(e) => panic!(
-                        "{}",
-                        match &e {
-                            Value::Str(s) => s.clone(),
-                            v => crate::runtime::stringify_param(v),
-                        }
-                    ),
-                }
-            }
-            let msg = match client.next_message().await {
-                Some(m) => m,
-                None => panic!("[NetworkError] {} websocket connection closed", url),
-            };
-            if std::env::var("CCXT_WS_DEBUG").is_ok() {
-                let n: usize = std::env::var("CCXT_WS_DEBUG").ok()
-                    .and_then(|v| v.parse().ok()).filter(|v| *v > 1).unwrap_or(220);
-                let s = msg.to_json().to_string();
-                eprintln!("[wsmsg] {}", s.chars().take(n).collect::<String>());
-            }
-            let client_value = crate::pro::ws_client::client_value(&url);
-            let _ = self
-                .dispatch_to_derived("handle_message", vec![client_value, msg])
-                .await;
-            // Run coroutines the handler scheduled via spawn/delay, inline (they
-            // need &mut self). Drain repeatedly: a coroutine may schedule another
-            // (handle_order_book → delay(watch_order_book_snapshot)).
+            // Run coroutines scheduled via spawn/delay, inline (they need
+            // &mut self). Drain repeatedly: a coroutine may schedule another
+            // (handle_order_book → delay(watch_order_book_snapshot)). Runs at
+            // the top of the iteration rather than after the dispatch below so
+            // the `continue` on a fired deadline reaches it too.
             loop {
                 let batch = crate::exchange_stubs::drain_spawn_queue();
                 if batch.is_empty() { break; }
@@ -1194,6 +1181,45 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
                     }
                 }
             }
+            if let Some(settled) = client.take_settled(&hashes) {
+                match settled {
+                    Ok(v) => return v,
+                    Err(e) => panic!(
+                        "{}",
+                        match &e {
+                            Value::Str(s) => s.clone(),
+                            v => crate::runtime::stringify_param(v),
+                        }
+                    ),
+                }
+            }
+            // Bound the read by the earliest pending `delay` deadline, so a
+            // periodic coroutine (binance's `keepAliveListenKey`) still fires
+            // on a stream that has gone quiet. `next_message` keeps its frames
+            // in the client's queue, so timing out drops nothing.
+            let next_due = crate::exchange_stubs::next_spawn_due();
+            let received = match next_due {
+                Some(d) => match tokio::time::timeout(d, client.next_message()).await {
+                    Ok(m) => m,
+                    // Deadline reached: loop back round to the drain above.
+                    Err(_) => continue,
+                },
+                None => client.next_message().await,
+            };
+            let msg = match received {
+                Some(m) => m,
+                None => panic!("[NetworkError] {} websocket connection closed", url),
+            };
+            if std::env::var("CCXT_WS_DEBUG").is_ok() {
+                let n: usize = std::env::var("CCXT_WS_DEBUG").ok()
+                    .and_then(|v| v.parse().ok()).filter(|v| *v > 1).unwrap_or(220);
+                let s = msg.to_json().to_string();
+                eprintln!("[wsmsg] {}", s.chars().take(n).collect::<String>());
+            }
+            let client_value = crate::pro::ws_client::client_value(&url);
+            let _ = self
+                .dispatch_to_derived("handle_message", vec![client_value, msg])
+                .await;
         }
     } }
 

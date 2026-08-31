@@ -3863,7 +3863,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         let mut messageHash: Value = add(&Value::Str("authenticate:signature:".to_string()), &marketType);
         if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("futures".to_string())), &messageHash))) {
             // another caller is already subscribing, wait for it instead of subscribing again
-            client.future(&[messageHash.clone()]);
+            crate::exchange_stubs::ws_await_flight(&client.future(&[messageHash.clone()])).await;
             return Value::Null;
         }
         client.future(&[messageHash.clone()]); // created ahead of the request below, so concurrent callers can find it
@@ -3962,7 +3962,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut messageHash: Value = add(&add(&Value::Str("authenticate:".to_string()), &marketType), &Value::Str(":listenToken".to_string()));
             if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("futures".to_string())), &messageHash))) {
                 // another caller is already fetching, wait for it instead of fetching again
-                client.future(&[messageHash.clone()]);
+                crate::exchange_stubs::ws_await_flight(&client.future(&[messageHash.clone()])).await;
                 return Value::Null;
             }
             client.future(&[messageHash.clone()]); // created ahead of the request below, so concurrent callers can find it
@@ -4141,7 +4141,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("futures".to_string())), &messageHash))) {
                 // a flight is already in progress - wake when the leader
                 // settles it: the listenKey is then in the bucket
-                client.future(&[messageHash.clone()]);
+                crate::exchange_stubs::ws_await_flight(&client.future(&[messageHash.clone()])).await;
                 return Value::Null;
             }
             // reusableFuture (), not future () - the two match in
@@ -4201,7 +4201,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 // caller AND attaches the handler an alone leader needs
                 client.reject(&[e.clone(), messageHash.clone()]);
             }
-            get_value(&future, &Value::Str("await".to_string()));
+            crate::exchange_stubs::ws_await_flight(&future).await;
         }
 
     Value::Null
@@ -4736,7 +4736,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut fetchBalanceSnapshot: Value = self.safe_bool_k(options.clone(), "fetchBalanceSnapshot", &[Value::Bool(false)]);
         let mut awaitBalanceSnapshot: Value = self.safe_bool_k(options.clone(), "awaitBalanceSnapshot", &[Value::Bool(true)]);
         if is_true(&(is_equal(&fetchBalanceSnapshot, &Value::Bool(true)))) && is_true(&(is_equal(&awaitBalanceSnapshot, &Value::Bool(true)))) {
-            client.future(&[add(&type_var, &Value::Str(":fetchBalanceSnapshot".to_string()))]);
+            crate::exchange_stubs::ws_await_flight(&client.future(&[add(&type_var, &Value::Str(":fetchBalanceSnapshot".to_string()))])).await;
         }
         let mut messageHash: Value = add(&type_var, &Value::Str(":balance".to_string()));
         let mut message: Value = Value::Null;
@@ -6448,7 +6448,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut awaitPositionsSnapshot: Value = self.handle_option(Value::Str("watchPositions".to_string()), Value::Str("awaitPositionsSnapshot".to_string()), &[Value::Bool(true)]);
         let mut cache: Value = self.safe_value(self.positions.clone(), type_var.clone(), &[]);
         if is_true(&(is_equal(&fetchPositionsSnapshot, &Value::Bool(true)))) && is_true(&(is_equal(&awaitPositionsSnapshot, &Value::Bool(true)))) && is_true(&(is_equal(&cache, &Value::Null))) {
-            let mut snapshot: Value = client.future(&[add(&type_var, &Value::Str(":fetchPositionsSnapshot".to_string()))]);
+            let mut snapshot: Value = crate::exchange_stubs::ws_await_flight(&client.future(&[add(&type_var, &Value::Str(":fetchPositionsSnapshot".to_string()))])).await;
             return self.filter_by_symbols_since_limit(snapshot.clone(), &[symbols.clone(), since.clone(), limit.clone(), Value::Bool(true)]);
         }
         let mut newPositions: Value = self.watch(url.clone(), messageHash.clone(), &[Value::Null, type_var.clone()]).await;

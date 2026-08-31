@@ -56,6 +56,13 @@ pub struct ClientState {
     /// messageHashes some `watch` call is currently waiting on. Mirrors TS
     /// `client.futures` (read by a few venues' `handle_message`).
     futures: Mutex<HashSet<String>>,
+    /// In-flight single-flight slots keyed by messageHash — the registry behind
+    /// TS's `client.future ()` / `client.reusableFuture ()` leader election
+    /// (binance/bybit/kucoin/... `authenticate`). Separate from `resolved`
+    /// because a flight has *many* waiters (all of whom must observe the
+    /// settled value, not consume it) and because settling one must also clear
+    /// its `futures` entry so the NEXT cycle can elect a fresh leader.
+    flights: Mutex<HashMap<String, FlightSlot>>,
     connected: Mutex<bool>,
     closed: Mutex<bool>,
     last_pong_ms: Mutex<i64>,
@@ -66,6 +73,17 @@ pub struct ClientState {
     mock: Mutex<bool>,
     mock_sent: Mutex<Vec<Value>>,
     ws_test_completed: Mutex<bool>,
+}
+
+/// One single-flight slot. `settled` stays populated after the flight closes so
+/// waiters that poll late still observe the result, and so a caller that
+/// re-awaits a hash nobody is working on any more gets the last value instead
+/// of blocking (TS's already-resolved Future). `open` is what a concurrent
+/// caller joins.
+#[derive(Clone)]
+struct FlightSlot {
+    open: bool,
+    settled: Option<Result<Value, Value>>,
 }
 
 static REGISTRY: Lazy<Mutex<HashMap<String, Arc<ClientState>>>> =
@@ -151,14 +169,22 @@ impl ClientState {
         }
     }
 
-    /// Store a resolved value for `hash` (TS `client.resolve`).
+    /// Store a resolved value for `hash` (TS `client.resolve`). Also settles an
+    /// open single-flight on the same hash: TS's `client.resolve ()` settles
+    /// the future AND removes it from `client.futures`, which is what lets the
+    /// next cycle elect a fresh leader. Both paths run — a hash can in
+    /// principle be someone's flight and someone else's `watch`, and only the
+    /// waiter that exists will read its side.
     pub fn resolve(&self, hash: &str, value: Value) {
+        self.flight_settle(hash, Ok(value.clone()));
         self.resolved.lock().unwrap().insert(hash.to_string(), value);
         self.notify.notify_waiters();
     }
 
-    /// Store an error for `hash` (TS `client.reject`).
+    /// Store an error for `hash` (TS `client.reject`), settling an open
+    /// single-flight on the same hash — see `resolve`.
     pub fn reject(&self, hash: &str, err: Value) {
+        self.flight_settle(hash, Err(err.clone()));
         self.rejections.lock().unwrap().insert(hash.to_string(), err);
         self.notify.notify_waiters();
     }
@@ -190,6 +216,66 @@ impl ClientState {
         for h in hashes {
             f.insert(h.clone());
         }
+    }
+
+    /// Open a single-flight for `hash`, or join one already in progress. `true`
+    /// means this caller is the leader and must do the work; `false` means a
+    /// flight is already open and the caller should wait on it.
+    ///
+    /// The insert into `futures` is what makes the transpiled
+    /// `if (messageHash in client.futures)` follower test observable, and it
+    /// happens under the same lock as the check — this is TS's documented
+    /// "atomic check-and-insert".
+    pub fn flight_begin(&self, hash: &str) -> bool {
+        let mut fl = self.flights.lock().unwrap();
+        match fl.get_mut(hash) {
+            // Open flight — join it as a follower.
+            Some(slot) if slot.open => false,
+            // Closed: re-open, keeping the last value for anyone who re-awaits
+            // without new work being done.
+            Some(slot) => {
+                slot.open = true;
+                self.futures.lock().unwrap().insert(hash.to_string());
+                true
+            }
+            None => {
+                fl.insert(hash.to_string(), FlightSlot { open: true, settled: None });
+                self.futures.lock().unwrap().insert(hash.to_string());
+                true
+            }
+        }
+    }
+
+    /// The flight's last outcome, if it has one. Does NOT consume it: every
+    /// waiter must be able to observe the same result.
+    pub fn flight_peek(&self, hash: &str) -> Option<Result<Value, Value>> {
+        self.flights.lock().unwrap().get(hash).and_then(|s| s.settled.clone())
+    }
+
+    /// Whether a flight for `hash` exists and is still open.
+    pub fn flight_is_open(&self, hash: &str) -> bool {
+        self.flights.lock().unwrap().get(hash).map(|s| s.open).unwrap_or(false)
+    }
+
+    /// Settle an open flight and wake its waiters. Returns false (and does
+    /// nothing) when `hash` names no open flight, so `resolve`/`reject` can
+    /// fall through to their normal watch-hash behaviour.
+    pub fn flight_settle(&self, hash: &str, res: Result<Value, Value>) -> bool {
+        {
+            let mut fl = self.flights.lock().unwrap();
+            match fl.get_mut(hash) {
+                Some(slot) if slot.open => {
+                    slot.open = false;
+                    slot.settled = Some(res);
+                }
+                _ => return false,
+            }
+        }
+        // Clear the `futures` entry as part of settling, mirroring TS: the
+        // flight is over, so the next cycle must elect a fresh leader.
+        self.futures.lock().unwrap().remove(hash);
+        self.notify.notify_waiters();
+        true
     }
 
     /// Record `subscribe_hash` → `subscription`; returns true the first time
@@ -241,6 +327,7 @@ impl ClientState {
         self.incoming.lock().unwrap().push_back(msg);
         self.notify.notify_one();
     }
+    pub fn is_mock(&self) -> bool { *self.mock.lock().unwrap() }
     /// The captured outgoing frames as a `Value::List`.
     pub fn mock_sent_value(&self) -> Value {
         Value::Array(self.mock_sent.lock().unwrap().clone())
@@ -276,6 +363,7 @@ impl ClientState {
         self.rejections.lock().unwrap().clear();
         self.subscriptions.lock().unwrap().clear();
         self.futures.lock().unwrap().clear();
+        self.flights.lock().unwrap().clear();
     }
 
     /// Snapshot of `subscriptions` as a `Value::Map { hash: subscription }` —
@@ -466,6 +554,7 @@ fn ensure_slot(url: &str) -> Arc<ClientState> {
         rejections: Mutex::new(HashMap::new()),
         subscriptions: Mutex::new(HashMap::new()),
         futures: Mutex::new(HashSet::new()),
+        flights: Mutex::new(HashMap::new()),
         connected: Mutex::new(false),
         closed: Mutex::new(false),
         last_pong_ms: Mutex::new(now_ms()),
@@ -541,6 +630,118 @@ pub fn client_value(url: &str) -> Value {
     m.insert("subscriptions".to_string(), c.subscriptions_value());
     m.insert("futures".to_string(), c.futures_value());
     Value::Map(m)
+}
+
+/// Open-or-join the single-flight for `hash` on `url`, creating the registry
+/// slot if the client has not been dialed yet (venue `authenticate` parks its
+/// flights on a never-dialed pseudo-url, because the real user-data url embeds
+/// the credential the flight is fetching).
+pub fn begin_flight(url: &str, hash: &str) -> bool {
+    ensure_slot(url).flight_begin(hash)
+}
+
+
+/// The `Value` a `client.future ()` / `client.reusableFuture ()` call hands
+/// back: enough to find the flight again (its client's url + the hash). TS
+/// returns a real Future object; a `Value` can't hold one, so the port returns
+/// a handle and `ws_await_flight` does the awaiting.
+pub fn flight_handle(url: &str, hash: &str, led: bool) -> Value {
+    let mut m = indexmap::IndexMap::new();
+    m.insert("url".to_string(), Value::Str(url.to_string()));
+    m.insert("__ws_flight_hash".to_string(), Value::Str(hash.to_string()));
+    // Whether the call that produced this handle opened the flight. A leader
+    // settles its own flight (and TS's `await future` resolves the instant it
+    // does), so it must never block on itself — including when the venue
+    // decides, after taking the lead, that there is no work to do because it
+    // is already subscribed (bitget's `authenticate`).
+    m.insert("__ws_flight_led".to_string(), Value::Bool(led));
+    Value::Map(m)
+}
+
+/// The hash a flight handle refers to. Accepts the `futures_value ()` handle
+/// shape too, so `client.futures[hash]` entries can be awaited as well.
+fn flight_hash_of(handle: &Value) -> Option<String> {
+    for key in ["__ws_flight_hash", "__ws_future_hash"] {
+        if let Value::Str(h) = crate::get_value(handle, &Value::Str(key.to_string())) {
+            return Some(h);
+        }
+    }
+    None
+}
+
+/// Await a flight handle — the port of TS's `await client.future (hash)` and
+/// of the trailing `await future` a single-flight leader runs after settling.
+///
+/// Returns the resolved value; a rejected flight panics with the error, which
+/// is how the port rethrows (the drive loop does the same with `take_settled`).
+/// A handle that names no flight returns `Value::Null` rather than hanging.
+pub async fn ws_await_flight(handle: &Value) -> Value {
+    let (url, hash) = match (url_of(handle), flight_hash_of(handle)) {
+        (Some(u), Some(h)) => (u, h),
+        _ => return Value::Null,
+    };
+    let client = match get_client(&url) {
+        Some(c) => c,
+        None => return Value::Null,
+    };
+    let settled = client.flight_peek(&hash);
+    // The leader: its own `client.resolve ()` has already run by the time it
+    // reaches its trailing await, so take the value and go. Waiting here would
+    // deadlock the (common) case where the venue took the lead and then found
+    // it had nothing to do.
+    let led = matches!(
+        crate::get_value(handle, &Value::Str("__ws_flight_led".to_string())),
+        Value::Bool(true)
+    );
+    if led || !client.flight_is_open(&hash) {
+        return match settled {
+            Some(Ok(v)) => v,
+            Some(Err(e)) => panic!(
+                "{}",
+                match &e {
+                    Value::Str(s) => s.clone(),
+                    v => crate::runtime::stringify_param(v),
+                }
+            ),
+            // A flight that never opened is not an error — the value it would
+            // have carried is already in the venue's own cache, which is what
+            // the caller reads next.
+            None => Value::Null,
+        };
+    }
+    let budget = if client.is_mock() {
+        std::time::Duration::from_millis(1500)
+    } else {
+        std::time::Duration::from_secs(60)
+    };
+    let deadline = tokio::time::Instant::now() + budget;
+    loop {
+        // Create the wakeup before peeking, so a settle racing this loop is
+        // never missed (same pattern as `next_message`).
+        let notified = client.notify.notified();
+        if let Some(res) = client.flight_peek(&hash) {
+            return match res {
+                Ok(v) => v,
+                Err(e) => panic!(
+                    "{}",
+                    match &e {
+                        Value::Str(s) => s.clone(),
+                        v => crate::runtime::stringify_param(v),
+                    }
+                ),
+            };
+        }
+        if !client.flight_is_open(&hash) {
+            // Closed without a value (reset between fixture cases).
+            return Value::Null;
+        }
+        if tokio::time::timeout_at(deadline, notified).await.is_err() {
+            panic!(
+                "[NetworkError] timed out waiting for the in-flight '{}' on {}",
+                hash, url
+            );
+        }
+    }
 }
 
 /// Extract the `url` from a client-handle `Value` (`Map{"url": ...}`).
@@ -779,6 +980,110 @@ mod tests {
         // First streamed ticker.
         assert_eq!(result, Value::Str("100.5".to_string()));
         drop_client(&url);
+    }
+
+    // ── single-flight (client.future / client.reusableFuture) ───────────────
+    //
+    // The venue `authenticate` idiom: the first caller leads and fetches the
+    // credential, concurrent callers join the flight and wake when it settles.
+    // Regression cover for the port's original no-op `future()` stub, where
+    // every caller led and nobody waited.
+
+    #[tokio::test]
+    async fn flight_elects_one_leader_and_registers_it() {
+        let url = "flight-test-election";
+        let c = ensure_slot(url);
+        assert!(c.flight_begin("authenticate:future"), "first caller leads");
+        assert!(!c.flight_begin("authenticate:future"), "second caller follows");
+        // The follower's `messageHash in client.futures` test must see it.
+        assert!(in_op_futures(&c, "authenticate:future"));
+        drop_client(url);
+    }
+
+    #[tokio::test]
+    async fn flight_settle_wakes_waiters_and_reopens() {
+        let url = "flight-test-settle";
+        let c = ensure_slot(url);
+        assert!(c.flight_begin("auth"));
+        // Every waiter observes the value — settling must not consume it.
+        c.resolve("auth", Value::Str("listen-key".to_string()));
+        assert_eq!(
+            ws_await_flight(&flight_handle(url, "auth", false)).await,
+            Value::Str("listen-key".to_string())
+        );
+        assert_eq!(
+            ws_await_flight(&flight_handle(url, "auth", false)).await,
+            Value::Str("listen-key".to_string())
+        );
+        // Settled ⇒ cleared from `futures`, so the next cycle re-leads rather
+        // than parking every caller on the follower branch forever.
+        assert!(!in_op_futures(&c, "auth"));
+        assert!(c.flight_begin("auth"), "a settled flight re-elects");
+        drop_client(url);
+    }
+
+    #[tokio::test]
+    async fn flight_follower_waits_for_the_leader() {
+        let url = "flight-test-wait";
+        let c = ensure_slot(url);
+        assert!(c.flight_begin("auth"));
+        let settler = {
+            let c = c.clone();
+            tokio::spawn(async move {
+                tokio::time::sleep(std::time::Duration::from_millis(60)).await;
+                c.resolve("auth", Value::Str("late".to_string()));
+            })
+        };
+        let started = std::time::Instant::now();
+        let got = ws_await_flight(&flight_handle(url, "auth", false)).await;
+        assert_eq!(got, Value::Str("late".to_string()));
+        assert!(started.elapsed() >= std::time::Duration::from_millis(50), "waited for the leader");
+        settler.await.unwrap();
+        drop_client(url);
+    }
+
+    #[tokio::test]
+    async fn a_leader_never_blocks_on_its_own_flight() {
+        // A venue can take the lead and then find it has nothing to do — bitget
+        // re-`authenticate`s on an already-subscribed client. Its trailing
+        // `await future` must return, not wait for a settle that never comes.
+        let url = "flight-test-leader";
+        let c = ensure_slot(url);
+        let led = c.flight_begin("authenticated");
+        assert!(led);
+        let started = std::time::Instant::now();
+        assert_eq!(
+            ws_await_flight(&flight_handle(url, "authenticated", led)).await,
+            Value::Null
+        );
+        assert!(started.elapsed() < std::time::Duration::from_millis(200), "returned at once");
+        // Having led once and settled, the value is still there for a re-await.
+        c.resolve("authenticated", Value::Bool(true));
+        let led2 = c.flight_begin("authenticated");
+        assert_eq!(
+            ws_await_flight(&flight_handle(url, "authenticated", led2)).await,
+            Value::Bool(true),
+            "a re-lead with no new work reports the last value"
+        );
+        drop_client(url);
+    }
+
+    #[tokio::test]
+    async fn flight_handle_without_a_flight_returns_null() {
+        // Never-opened flight: return rather than hang, the value the caller
+        // wanted is already in the venue's own cache.
+        let url = "flight-test-missing";
+        ensure_slot(url);
+        assert_eq!(ws_await_flight(&flight_handle(url, "nope", false)).await, Value::Null);
+        drop_client(url);
+    }
+
+    /// The transpiled follower test, `messageHash in client.futures`.
+    fn in_op_futures(c: &Arc<ClientState>, hash: &str) -> bool {
+        !matches!(
+            crate::get_value(&c.futures_value(), &Value::Str(hash.to_string())),
+            Value::Null
+        )
     }
 
     #[tokio::test]

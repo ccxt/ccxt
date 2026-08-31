@@ -515,23 +515,76 @@ fn key_str(key: &Value) -> String {
     stringify_param(key)
 }
 
-// ── deferred coroutine (`spawn`) queue ───────────────────────────────────────
+// ── deferred coroutine (`spawn` / `delay`) queue ─────────────────────────────
 // JS `this.spawn(this.method, ...args)` backgrounds a coroutine. We can't truly
 // background it (it needs `&mut self`, held by the WS drive loop), so `spawn`
 // records the (method-name, args) and the drive loop (`ws_run`) drains and runs
-// them inline right after each `handle_message`. The transpiler already lowers
-// the method reference to a dispatchable name string. The queue is thread-local:
-// `spawn` is only ever called from inside a handler running synchronously on the
-// drive-loop task, and the loop drains it before its next `.await`, so entries
-// never cross venues/tasks.
+// them inline. The transpiler already lowers the method reference to a
+// dispatchable name string.
+/// A queued coroutine. `due_at` is `None` for `spawn` (run at the next drain)
+/// and `Some(instant)` for `delay` (run at the first drain at or after it —
+/// the drive loop bounds its socket read by the earliest deadline so a timer
+/// fires even on a silent stream).
+///
+/// The queue is thread-local, so a coroutine is only ever run by the drive loop
+/// that queued it. That holds because a `watch` drive loop and the venue code
+/// feeding it are one task, and tokio only migrates a task when another worker
+/// steals it — measured as not happening for this loop. A long-deadline item
+/// (a 20-minute `keepAliveListenKey`) now sits here across many iterations
+/// rather than being drained immediately, so if a future change contends the
+/// runtime hard enough to provoke stealing, this queue is the thing to move to
+/// a task-local.
+struct QueuedSpawn {
+    method: String,
+    args: Vec<Value>,
+    due_at: Option<std::time::Instant>,
+}
+
 thread_local! {
-    static SPAWN_QUEUE: std::cell::RefCell<Vec<(String, Vec<Value>)>> =
+    static SPAWN_QUEUE: std::cell::RefCell<Vec<QueuedSpawn>> =
         std::cell::RefCell::new(Vec::new());
 }
 
-/// Take everything queued by `spawn` since the last drain.
+/// Take everything queued by `spawn`, plus every `delay` whose deadline has
+/// passed. Items still waiting on their deadline stay queued.
 pub(crate) fn drain_spawn_queue() -> Vec<(String, Vec<Value>)> {
-    SPAWN_QUEUE.with(|q| std::mem::take(&mut *q.borrow_mut()))
+    let now = std::time::Instant::now();
+    SPAWN_QUEUE.with(|q| {
+        let mut q = q.borrow_mut();
+        let mut due = Vec::new();
+        let mut pending = Vec::new();
+        for item in std::mem::take(&mut *q) {
+            if item.due_at.map(|t| t <= now).unwrap_or(true) {
+                due.push((item.method, item.args));
+            } else {
+                pending.push(item);
+            }
+        }
+        *q = pending;
+        due
+    })
+}
+
+/// How long until the earliest not-yet-due `delay` fires, or `None` when
+/// nothing is waiting on a deadline. The WS drive loop uses this to bound its
+/// read, so a timer still fires on a stream that has gone quiet.
+pub(crate) fn next_spawn_due() -> Option<std::time::Duration> {
+    let now = std::time::Instant::now();
+    SPAWN_QUEUE.with(|q| {
+        q.borrow()
+            .iter()
+            .filter_map(|i| i.due_at)
+            .min()
+            .map(|t| t.saturating_duration_since(now))
+    })
+}
+
+/// Await a WS single-flight handle (what `client.future ()` /
+/// `client.reusable_future ()` return). Re-exported here because the generated
+/// venue files reach the base through `crate::exchange_stubs::…`, a path that
+/// resolves in both `ccxt-base` and `ccxt-pro`.
+pub async fn ws_await_flight(handle: &Value) -> Value {
+    crate::pro::ws_client::ws_await_flight(handle).await
 }
 
 /// Queue an async WS handler for the drive loop to run. The sync
@@ -539,7 +592,25 @@ pub(crate) fn drain_spawn_queue() -> Vec<(String, Vec<Value>)> {
 /// `handle_order_book_snapshot`), so it enqueues it here; `ws_run` drains and
 /// dispatches it asynchronously right after the current `handle_message`.
 pub fn enqueue_spawn(name: &str, args: Vec<Value>) {
-    SPAWN_QUEUE.with(|q| q.borrow_mut().push((name.to_string(), args)));
+    SPAWN_QUEUE.with(|q| q.borrow_mut().push(QueuedSpawn {
+        method: name.to_string(),
+        args,
+        due_at: None,
+    }));
+}
+
+/// Queue a coroutine to run no earlier than `ms` from now — the scheduling half
+/// of `delay`. Used for the venues' periodic self-rescheduling loops
+/// (`keepAliveListenKey`, token refresh, …), which must fire on their own
+/// cadence rather than on the next inbound frame.
+pub fn enqueue_spawn_after(name: &str, args: Vec<Value>, ms: i64) {
+    let due_at = std::time::Instant::now()
+        + std::time::Duration::from_millis(ms.max(0) as u64);
+    SPAWN_QUEUE.with(|q| q.borrow_mut().push(QueuedSpawn {
+        method: name.to_string(),
+        args,
+        due_at: Some(due_at),
+    }));
 }
 
 impl Exchange {
@@ -929,18 +1000,20 @@ impl Exchange {
         // args = [ method_name, ...call_args ]; queue it for the drive loop.
         if let Some(Value::Str(name)) = args.get(0) {
             let call_args: Vec<Value> = args.get(1..).map(|s| s.to_vec()).unwrap_or_default();
-            SPAWN_QUEUE.with(|q| q.borrow_mut().push((name.clone(), call_args)));
+            enqueue_spawn(name, call_args);
         }
         Value::Null
     }
-    pub async fn delay(&mut self, _ms: Value, args: &[Value]) -> Value {
+    pub async fn delay(&mut self, ms: Value, args: &[Value]) -> Value {
         // `delay(ms, method, ...args)` schedules a coroutine after a warm-up
-        // delay (bitvavo's snapshot fetch, htx's resync retry). We can't truly
-        // sleep-then-run without &mut self, so queue it like `spawn` — the drive
-        // loop runs it after the current handle_message. The delay is elided.
+        // delay (bitvavo's snapshot fetch, htx's resync retry) or on a long
+        // period (binance's `keepAliveListenKey`, every 20 min). We can't sleep
+        // and then call it — that needs &mut self — so queue it with its
+        // deadline; the WS drive loop bounds its socket read by the earliest
+        // deadline and runs the coroutine when it comes due.
         if let Some(Value::Str(name)) = args.get(0) {
             let call_args: Vec<Value> = args.get(1..).map(|s| s.to_vec()).unwrap_or_default();
-            enqueue_spawn(name, call_args);
+            enqueue_spawn_after(name, call_args, ms.as_f64().unwrap_or(0.0) as i64);
         }
         Value::Null
     }
@@ -2974,4 +3047,41 @@ pub(crate) fn synthesize_currencies_from_markets(markets: &Value, precision_mode
         .map(|(k, v)| (k, Value::Map(v)))
         .collect();
     Value::Map(result)
+}
+
+#[cfg(test)]
+mod spawn_queue_tests {
+    use super::*;
+
+    // `delay(ms, method, …)` schedules a coroutine on a real deadline —
+    // binance's `keepAliveListenKey` re-arms itself every 20 min this way.
+    // Regression cover for the original stub, which elided `ms` entirely and
+    // ran the coroutine on the next inbound frame instead.
+    #[test]
+    fn delayed_spawns_wait_for_their_deadline() {
+        // Not yet due: held back, and reported as the next deadline.
+        enqueue_spawn_after("keep_alive_listen_key", vec![], 10_000);
+        assert!(drain_spawn_queue().is_empty(), "not due yet");
+        let due_in = next_spawn_due().expect("a deadline is pending");
+        assert!(due_in > std::time::Duration::from_secs(9));
+
+        // An undelayed spawn still runs on the next drain, and does not
+        // disturb the queued deadline.
+        enqueue_spawn("handle_order_book_snapshot", vec![]);
+        let batch = drain_spawn_queue();
+        assert_eq!(batch.len(), 1);
+        assert_eq!(batch[0].0, "handle_order_book_snapshot");
+        assert!(next_spawn_due().is_some(), "the delayed item is still queued");
+    }
+
+    #[test]
+    fn spawns_run_once_their_deadline_passes() {
+        enqueue_spawn_after("keep_alive_listen_key", vec![], 1);
+        std::thread::sleep(std::time::Duration::from_millis(5));
+        assert_eq!(next_spawn_due(), Some(std::time::Duration::ZERO));
+        let batch = drain_spawn_queue();
+        assert_eq!(batch.len(), 1);
+        assert_eq!(batch[0].0, "keep_alive_listen_key");
+        assert!(next_spawn_due().is_none(), "queue drained");
+    }
 }

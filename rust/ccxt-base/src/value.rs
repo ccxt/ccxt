@@ -258,16 +258,38 @@ impl Value {
     pub fn resolve(&self, args: &[Value]) -> Value {
         crate::pro::ws_client::value_resolve(self, args)
     }
-    /// `client.future(messageHash)` — TS returns a Future for the hash. The
-    /// Rust `watch` drives synchronously (it polls `take_settled`), so the
-    /// future object itself is unused; return the hash so any `.then`-style
-    /// chaining in transpiled code still has a Value to work with.
+    /// `client.future(messageHash)` — TS's atomic check-and-insert: opens a
+    /// single-flight for the hash (or joins the open one) and hands back a
+    /// handle. Registering is the whole point — it is what makes a concurrent
+    /// caller's `messageHash in client.futures` test true, so only one of them
+    /// does the work (venue `authenticate` leader election). Await the handle
+    /// with `exchange_stubs::ws_await_flight`; the transpiler emits that
+    /// wherever the TS source awaits.
     pub fn future(&self, args: &[Value]) -> Value {
-        args.get(0).cloned().unwrap_or(Value::Null)
+        self.open_flight(args.get(0).cloned().unwrap_or(Value::Null))
     }
-    /// `client.reusable_future(messageHash)` — shared Future per hash; same
-    /// synchronous-drive treatment as `future`.
-    pub fn reusable_future(&self, msg_hash: Value) -> Value { msg_hash }
+    /// `client.reusable_future(messageHash)` — shared flight per hash, i.e. the
+    /// same registry and handle as `future`.
+    pub fn reusable_future(&self, msg_hash: Value) -> Value {
+        self.open_flight(msg_hash)
+    }
+    /// Shared body of `future` / `reusable_future`: open-or-join the flight on
+    /// the client this handle names, and return a handle to it. A non-client
+    /// receiver (or a non-string hash) degrades to the old pass-the-hash-back
+    /// behaviour so unrelated transpiled code keeps compiling.
+    fn open_flight(&self, msg_hash: Value) -> Value {
+        let hash = match &msg_hash {
+            Value::Str(h) => h.clone(),
+            _ => return msg_hash,
+        };
+        match crate::pro::ws_client::url_of(self) {
+            Some(url) => {
+                let led = crate::pro::ws_client::begin_flight(&url, &hash);
+                crate::pro::ws_client::flight_handle(&url, &hash, led)
+            }
+            None => msg_hash,
+        }
+    }
     /// Field accessor: `cache.hashmap` — same as the WS Cache marker's
     /// hashmap sub-dict. Some transpiled WS code reads this directly
     /// via the JS field-access syntax rather than going through

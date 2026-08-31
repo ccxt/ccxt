@@ -582,6 +582,69 @@ class RustTranspilerBuilder {
         return result;
     }
 
+    /**
+     * Lower the two ways transpiled WS code awaits a single-flight (the
+     * `authenticate` leader election every venue copied from binance, see
+     * https://github.com/ccxt/ccxt/issues/29393) onto the runtime's flight
+     * registry:
+     *
+     *   `await client.future (h)`  → `client.future(&[h])` + a lost `.await`
+     *                                (the Value stub is sync, so
+     *                                `stripAwaitFromMethods` drops it)
+     *   `await future`             → `get_value(&future, "await")`
+     *                                (await-on-a-local has no Rust lowering)
+     *
+     * Both become `crate::exchange_stubs::ws_await_flight(&<handle>).await`,
+     * which waits on the flight the `future ()` / `reusableFuture ()` call
+     * opened. Without this the follower never waits and the leader's trailing
+     * await is a no-op, so every caller races ahead of the credential the
+     * flight is fetching.
+     *
+     * Runs AFTER `serializeAwaitedSpawns`, which claims the await-on-value
+     * sites belonging to inlined spawns (kucoin's `negotiate`); whatever it
+     * leaves behind is a real client flight handle.
+     */
+    lowerAwaitedFlights(content: string): string {
+        // 1. `<ident>.future(…).await` / `<ident>.reusable_future(…).await`.
+        let out = '';
+        let i = 0;
+        while (i < content.length) {
+            const m = /(\b[a-zA-Z_][a-zA-Z0-9_]*)\.(future|reusable_future)\(/.exec(content.slice(i));
+            if (!m) { out += content.slice(i); break; }
+            const callStart = i + m.index;
+            const openParen = callStart + m[0].length - 1;
+            // Balance-parse the argument list.
+            let depth = 0, j = openParen, inStr = false, esc = false;
+            for (; j < content.length; j++) {
+                const c = content[j];
+                if (esc) { esc = false; continue; }
+                if (c === '\\' && inStr) { esc = true; continue; }
+                if (c === '"') { inStr = !inStr; continue; }
+                if (inStr) continue;
+                if (c === '(') depth++;
+                else if (c === ')') { depth--; if (depth === 0) break; }
+            }
+            if (j >= content.length) { out += content.slice(i); break; }
+            const callEnd = j + 1;
+            const tail = content.slice(callEnd);
+            const awaitMatch = tail.match(/^\s*\.await\b/);
+            out += content.slice(i, callStart);
+            const call = content.slice(callStart, callEnd);
+            if (awaitMatch) {
+                out += `crate::exchange_stubs::ws_await_flight(&${call}).await`;
+                i = callEnd + awaitMatch[0].length;
+            } else {
+                out += call;
+                i = callEnd;
+            }
+        }
+        // 2. Whatever await-on-value is left is a flight handle held in a local.
+        return out.replace(
+            /get_value\(&(\w+),\s*&(?:crate::)?Value::Str\("await"\.to_string\(\)\)\)/g,
+            'crate::exchange_stubs::ws_await_flight(&$1).await',
+        );
+    }
+
     // JS builds a subscribe request by aliasing a local array into a dict
     // literal and then mutating the array: `const args = []; const req = {
     // 'params': args }; ... args.push(x); ... this.watch(url, hash, req)`.
@@ -5864,6 +5927,7 @@ ${arms.join('\n')}
         content = this.rewriteInlineFieldAppends(content);
         content = this.writeBackAliasedArrayMutations(content);
         content = this.serializeAwaitedSpawns(content);
+        content = this.lowerAwaitedFlights(content);
         // Propagate async-ness through the call graph: keep iterating
         // mark-async-if-body-awaits + append-await-to-callers until fixed.
         {
