@@ -177,6 +177,95 @@
                     "takeProfitPrice": null,
                     "stopLossPrice": null
                 }
+            },
+            {
+                "description": "Spot post only limit buy whose echo carries the plain GTC code, the order type is what pins postOnly",
+                "method": "createOrder",
+                "input": [
+                    "LTC/USDT",
+                    "limit",
+                    "buy",
+                    0.1,
+                    50,
+                    {
+                        "postOnly": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "msg": "Success",
+                    "data": {
+                        "orderId": 145264847,
+                        "bOrderListId": 0,
+                        "clientId": "5ff3bc6f66f85c469fbg9a180d781e28",
+                        "bOrderId": 35247500,
+                        "symbol": "LTC_USDT",
+                        "symbolType": 1,
+                        "side": 0,
+                        "type": 7,
+                        "price": "50",
+                        "origQty": "0.1",
+                        "origQuoteQty": "5.00",
+                        "executedQty": "0.00000000",
+                        "executedPrice": "0",
+                        "executedQuoteQty": "0.00",
+                        "timeInForce": 1,
+                        "stopPrice": 0,
+                        "icebergQty": "0",
+                        "status": 0,
+                        "createTime": 1662710994848
+                    },
+                    "timestamp": 1662710994975
+                },
+                "parsedResponse": {
+                    "info": {
+                        "orderId": 145264847,
+                        "bOrderListId": 0,
+                        "clientId": "5ff3bc6f66f85c469fbg9a180d781e28",
+                        "bOrderId": 35247500,
+                        "symbol": "LTC_USDT",
+                        "symbolType": 1,
+                        "side": 0,
+                        "type": 7,
+                        "price": "50",
+                        "origQty": "0.1",
+                        "origQuoteQty": "5.00",
+                        "executedQty": "0.00000000",
+                        "executedPrice": "0",
+                        "executedQuoteQty": "0.00",
+                        "timeInForce": 1,
+                        "stopPrice": 0,
+                        "icebergQty": "0",
+                        "status": 0,
+                        "createTime": 1662710994848
+                    },
+                    "id": "145264847",
+                    "clientOrderId": "5ff3bc6f66f85c469fbg9a180d781e28",
+                    "timestamp": 1662710994848,
+                    "datetime": "2022-09-09T08:09:54.848Z",
+                    "lastTradeTimestamp": null,
+                    "symbol": "LTC/USDT",
+                    "type": "limit",
+                    "timeInForce": "GTC",
+                    "postOnly": true,
+                    "reduceOnly": null,
+                    "side": "buy",
+                    "price": 50,
+                    "triggerPrice": null,
+                    "amount": 0.1,
+                    "cost": 0,
+                    "average": null,
+                    "filled": 0,
+                    "remaining": 0.1,
+                    "status": "open",
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "lastUpdateTimestamp": null,
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
             }
         ],
         "fetchMarkets": [

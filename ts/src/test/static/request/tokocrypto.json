@@ -270,6 +270,22 @@
                     }
                 ],
                 "output": "timestamp=1788185807145&symbol=LTC_USDT&type=4&side=1&quantity=0.1&price=50&stopPrice=45&timeInForce=2&recvWindow=5000&signature=802d00840b994974de61ebadf27e2547f313ed4e20051b85f14d0eef2fa1550f"
+            },
+            {
+                "description": "Spot market sell with a redundant IOC time in force, which the order type already implies",
+                "method": "createOrder",
+                "url": "https://www.tokocrypto.com/open/v1/orders",
+                "input": [
+                    "ADA/USDT",
+                    "market",
+                    "sell",
+                    85,
+                    null,
+                    {
+                        "timeInForce": "IOC"
+                    }
+                ],
+                "output": "timestamp=1788186951022&symbol=ADA_USDT&type=2&side=1&quantity=85&recvWindow=5000&signature=f26dbf4c0f2b158edf5aa494c620be6c948f1f904ec3babf868189c11208e226"
             }
         ],
         "createMarketBuyOrderWithCost": [
