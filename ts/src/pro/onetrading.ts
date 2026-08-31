@@ -624,15 +624,15 @@ export default class onetrading extends onetradingRest {
         //         "price": "13333.33"
         //     }
         //
-        const datetime = this.safeString (order, 'time');
+        const timestamp = this.parse8601 (this.safeString (order, 'time'));
         const marketId = this.safeString (order, 'instrument_code');
         const symbol = this.safeSymbol (marketId, market, '_');
         return this.safeOrder ({
             'id': this.safeString (order, 'order_id'),
             'clientOrderId': this.safeString (order, 'client_id'),
             'info': order,
-            'timestamp': this.parse8601 (datetime),
-            'datetime': datetime,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': undefined,
@@ -988,7 +988,7 @@ export default class onetrading extends onetradingRest {
         const updateType = this.safeString (update, 'type');
         if (updateType === 'ORDER_REJECTED' || updateType === 'ORDER_CLOSED' || updateType === 'STOP_ORDER_TRIGGERED') {
             const orderId = this.safeString (update, 'order_id');
-            const datetime = this.safeString2 (update, 'time', 'timestamp');
+            const timestamp = this.parse8601 (this.safeString2 (update, 'time', 'timestamp'));
             const previousOrderArray = this.filterByArray (this.orders, 'id', orderId, false);
             const previousOrder = this.safeValue (previousOrderArray, 0, {});
             symbol = previousOrder['symbol'];
@@ -1001,8 +1001,8 @@ export default class onetrading extends onetradingRest {
                 'id': orderId,
                 'symbol': symbol,
                 'status': status,
-                'timestamp': this.parse8601 (datetime),
-                'datetime': datetime,
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
             };
             orders.append (orderObject);
         } else {
