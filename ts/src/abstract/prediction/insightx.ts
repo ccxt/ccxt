@@ -5,18 +5,18 @@
 
 // -------------------------------------------------------------------------------
 
-import { implicitReturnType } from '../../base/types.js';
+import { Dict, List } from '../../base/types.js';
 import { default as _Exchange } from '../../base/PredictionExchange.js';
 
 interface Exchange {
-    insightxPublicGetWalletTipInfo (params?: {}): Promise<implicitReturnType>;
-    insightxPublicGetPredictV2Markets (params?: {}): Promise<implicitReturnType>;
-    insightxPublicGetPredictV2Market (params?: {}): Promise<implicitReturnType>;
-    insightxPublicPostWalletConnect (params?: {}): Promise<implicitReturnType>;
-    insightxPrivateGetPredictV2Position (params?: {}): Promise<implicitReturnType>;
-    insightxPrivateGetPredictV2Orders (params?: {}): Promise<implicitReturnType>;
-    insightxPrivatePostPredictV2PlaceOrder (params?: {}): Promise<implicitReturnType>;
-    insightxPrivatePostPredictV2CancelOrder (params?: {}): Promise<implicitReturnType>;
+    insightxPublicGetWalletTipInfo (params?: {}): Promise<Dict | List>;
+    insightxPublicGetPredictV2Markets (params?: {}): Promise<Dict | List>;
+    insightxPublicGetPredictV2Market (params?: {}): Promise<Dict | List>;
+    insightxPublicPostWalletConnect (params?: {}): Promise<Dict | List>;
+    insightxPrivateGetPredictV2Position (params?: {}): Promise<Dict | List>;
+    insightxPrivateGetPredictV2Orders (params?: {}): Promise<Dict | List>;
+    insightxPrivatePostPredictV2PlaceOrder (params?: {}): Promise<Dict | List>;
+    insightxPrivatePostPredictV2CancelOrder (params?: {}): Promise<Dict | List>;
 }
 abstract class Exchange extends _Exchange {}
 
