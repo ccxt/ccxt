@@ -5999,7 +5999,7 @@ func (this *BingxCore) ParseDepositAddress(depositAddress any, optionalArgs ...a
 	var currencyId any = this.SafeString(depositAddress, "coin")
 	currency = this.SafeCurrency(currencyId, currency)
 	var code any = GetValue(currency, "code")
-	var address any = this.SafeString(depositAddress, "addressWithPrefix")
+	var address any = this.SafeString2(depositAddress, "addressWithPrefix", "address")
 	var networkId any = this.SafeString(depositAddress, "network")
 	var networkCode any = this.NetworkIdToCode(networkId, code)
 	// despite its name the addressWithPrefix field sometimes arrives without
