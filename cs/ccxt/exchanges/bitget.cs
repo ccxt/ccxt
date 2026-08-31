@@ -4594,7 +4594,7 @@ public partial class bitget : Exchange
             { "address", this.safeString(transaction, "toAddress") },
             { "addressTo", this.safeString(transaction, "toAddress") },
             { "amount", this.parseNumber(amountString) },
-            { "type", this.safeString(transaction, "type") },
+            { "type", this.parseTransactionType(this.safeString(transaction, "type")) },
             { "currency", code },
             { "status", this.parseTransactionStatus(status) },
             { "updated", this.safeInteger2(transaction, "uTime", "updatedTime") },
@@ -4605,6 +4605,15 @@ public partial class bitget : Exchange
             { "internal", null },
             { "fee", fee },
         };
+    }
+
+    public virtual object parseTransactionType(object type)
+    {
+        // the wire says withdraw, and a unified transaction says withdrawal
+        object types = new Dictionary<string, object>() {
+            { "withdraw", "withdrawal" },
+        };
+        return this.safeString(types, ((string)type), type);
     }
 
     public virtual object parseTransactionStatus(object status)
