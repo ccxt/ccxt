@@ -1785,14 +1785,14 @@ export default class zebpay extends Exchange {
         //    }
         //
         const leverage = this.safeNumber (position, 'leverage');
-        const datetime = this.safeString (position, 'datetime');
+        const timestamp = this.parse8601 (this.safeString (position, 'datetime'));
         const marketId = this.safeString (position, 'symbol');
         market = this.safeMarket (marketId, market);
         return {
             'info': position,
             'symbol': marketId,
-            'timestamp': this.parse8601 (datetime),
-            'datetime': datetime,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'initialMargin': this.safeNumber (position, 'initialMargin'),
             'initialMarginPercentage': undefined,
             'maintenanceMargin': undefined,
