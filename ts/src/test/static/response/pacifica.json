@@ -526,6 +526,179 @@
                 }
             }
         ],
+        "fetchMyTrades": [
+            {
+                "description": "Fetch my trades without symbol, each row resolves its own market",
+                "method": "fetchMyTrades",
+                "input": [],
+                "httpResponse": {
+                    "success": true,
+                    "data": [
+                        {
+                            "history_id": 19329805,
+                            "order_id": 241146147,
+                            "client_order_id": null,
+                            "symbol": "BTC",
+                            "amount": "0.002",
+                            "price": "87768",
+                            "entry_price": "87700",
+                            "fee": "0.070214",
+                            "pnl": "0",
+                            "event_type": "fulfill_taker",
+                            "side": "open_long",
+                            "created_at": 1769554008249,
+                            "cause": "normal"
+                        },
+                        {
+                            "history_id": 19329801,
+                            "order_id": 241146148,
+                            "client_order_id": null,
+                            "symbol": "SOL",
+                            "amount": "0.1",
+                            "price": "141.35",
+                            "entry_price": "141.20",
+                            "fee": "0.00212",
+                            "pnl": "-0.015",
+                            "event_type": "fulfill_maker",
+                            "side": "close_short",
+                            "created_at": 1769554008100,
+                            "cause": "normal"
+                        }
+                    ],
+                    "error": null,
+                    "code": null
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "history_id": 19329801,
+                            "order_id": 241146148,
+                            "client_order_id": null,
+                            "symbol": "SOL",
+                            "amount": "0.1",
+                            "price": "141.35",
+                            "entry_price": "141.20",
+                            "fee": "0.00212",
+                            "pnl": "-0.015",
+                            "event_type": "fulfill_maker",
+                            "side": "close_short",
+                            "created_at": 1769554008100,
+                            "cause": "normal"
+                        },
+                        "timestamp": 1769554008100,
+                        "datetime": "2026-01-27T22:46:48.100Z",
+                        "symbol": "SOL/USDC:USDC",
+                        "id": "19329801",
+                        "order": "241146148",
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": "maker",
+                        "price": 141.35,
+                        "amount": 0.1,
+                        "cost": 14.135,
+                        "fee": {
+                            "cost": 0.00212,
+                            "currency": "USDC"
+                        },
+                        "fees": [
+                            {
+                                "cost": 0.00212,
+                                "currency": "USDC"
+                            }
+                        ]
+                    },
+                    {
+                        "info": {
+                            "history_id": 19329805,
+                            "order_id": 241146147,
+                            "client_order_id": null,
+                            "symbol": "BTC",
+                            "amount": "0.002",
+                            "price": "87768",
+                            "entry_price": "87700",
+                            "fee": "0.070214",
+                            "pnl": "0",
+                            "event_type": "fulfill_taker",
+                            "side": "open_long",
+                            "created_at": 1769554008249,
+                            "cause": "normal"
+                        },
+                        "timestamp": 1769554008249,
+                        "datetime": "2026-01-27T22:46:48.249Z",
+                        "symbol": "BTC/USDC:USDC",
+                        "id": "19329805",
+                        "order": "241146147",
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": "taker",
+                        "price": 87768,
+                        "amount": 0.002,
+                        "cost": 175.536,
+                        "fee": {
+                            "cost": 0.070214,
+                            "currency": "USDC"
+                        },
+                        "fees": [
+                            {
+                                "cost": 0.070214,
+                                "currency": "USDC"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "Fetch recent public trades, payload carries no symbol",
+                "method": "fetchTrades",
+                "input": ["BTC/USDC:USDC"],
+                "httpResponse": {
+                    "success": true,
+                    "data": [
+                        {
+                            "event_type": "fulfill_taker",
+                            "price": "104721",
+                            "amount": "0.0001",
+                            "side": "close_long",
+                            "cause": "normal",
+                            "created_at": 1765006315306
+                        }
+                    ],
+                    "error": null,
+                    "code": null,
+                    "last_order_id": 1557404170
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "event_type": "fulfill_taker",
+                            "price": "104721",
+                            "amount": "0.0001",
+                            "side": "close_long",
+                            "cause": "normal",
+                            "created_at": 1765006315306
+                        },
+                        "timestamp": 1765006315306,
+                        "datetime": "2025-12-06T07:31:55.306Z",
+                        "symbol": "BTC/USDC:USDC",
+                        "id": null,
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": null,
+                        "price": 104721,
+                        "amount": 0.0001,
+                        "cost": 10.4721,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    }
+                ]
+            }
+        ],
         "createOrder": [
             {
                 "description": "Stop (trigger) buy order",
