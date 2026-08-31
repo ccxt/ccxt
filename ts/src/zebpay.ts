@@ -1310,6 +1310,21 @@ export default class zebpay extends Exchange {
         return this.parseOrder (responseData, market);
     }
 
+    parseOrderStatus (status: Str) {
+        // partially filled is open, and filled is closed
+        const statuses: Dict = {
+            'FILLED': 'closed',
+            'PARTIALLY_FILLED': 'open',
+            'OPEN': 'open',
+            'NEW': 'open',
+            'CANCELLED': 'canceled',
+            'CANCELED': 'canceled',
+            'REJECTED': 'rejected',
+            'EXPIRED': 'expired',
+        };
+        return this.safeString (statuses, status as string, status);
+    }
+
     override parseOrder (order: Dict, market: Market = undefined): Order {
         //
         //      {
@@ -1331,15 +1346,15 @@ export default class zebpay extends Exchange {
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
-        const type = this.safeString (order, 'type');
+        const type = this.safeStringLower (order, 'type');
         const timestamp = this.safeNumber (order, 'timestamp');
         const datetime = this.iso8601 (timestamp);
         const price = this.safeString (order, 'price');
-        const side = this.safeString (order, 'side');
+        const side = this.safeStringLower (order, 'side');
         const amount = this.safeString (order, 'amount');
         const clientOrderId = this.safeString (order, 'clientOrderId');
         const timeInForce = this.safeString (order, 'timeInForce');
-        const status = this.safeStringLower (order, 'status');
+        const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const orderId = this.safeString (order, 'orderId');
         const parsedOrder = this.safeOrder ({
             'id': orderId,
