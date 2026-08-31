@@ -1,5 +1,7 @@
 {
     "exchange": "perpl",
+    "apiKey": "key",
+    "secret": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
     "skipKeys": [],
     "options": {},
     "methods": {
@@ -676,6 +678,82 @@
                         "interval": "2580s"
                     }
                 ]
+            }
+        ],
+        "createOrderWs": [
+            {
+                "description": "create limit order over private websocket",
+                "input": [
+                    "BTC/AUSD:AUSD",
+                    "limit",
+                    "buy",
+                    0.1,
+                    60000,
+                    { "leverage": 2 }
+                ],
+                "url": "wss://app.perpl.xyz/ws/v1/trading",
+                "messages": [
+                    { "mt": 19, "sn": 1, "as": [ { "in": 1, "id": 42, "lfr": 1000, "b": "100000000", "lb": "0" } ] },
+                    { "mt": 3, "sid": 100, "cid": 1, "status": { "code": 0 } },
+                    { "mt": 24, "at": { "b": 55563772, "t": 1787288849000 }, "d": [ { "at": { "b": 55563772, "t": 1787288849000 }, "c": { "t": 1787288848000 }, "rq": 1001, "mkt": 1, "acc": 42, "oid": 789012, "st": 1, "t": 1, "p": 600000, "os": 10000, "fs": 0, "f": "0", "fl": 0, "lv": 200 } ] }
+                ],
+                "sentSkipKeys": [ "timestamp", "nonce", "signature" ],
+                "sentMessages": [
+                    { "mt": 29, "chain_id": 143, "api_key": "key", "timestamp": "volatile", "nonce": "volatile", "signature": "volatile" },
+                    { "mt": 22, "sn": 1, "rq": 1001, "mkt": 1, "acc": 42, "t": 1, "p": 600000, "s": 10000, "fl": 0, "lv": 200, "lb": 0 }
+                ],
+                "parsedResponse": {
+                    "info": { "at": { "b": 55563772, "t": 1787288849000 }, "c": { "t": 1787288848000 }, "rq": 1001, "mkt": 1, "acc": 42, "oid": 789012, "st": 1, "t": 1, "p": 600000, "os": 10000, "fs": 0, "f": "0", "fl": 0, "lv": 200 },
+                    "id": "789012", "clientOrderId": "1001", "timestamp": 1787288848000, "datetime": "2026-08-21T05:07:28.000Z", "lastTradeTimestamp": null, "lastUpdateTimestamp": 1787288849000,
+                    "symbol": "BTC/AUSD:AUSD", "type": "limit", "timeInForce": "GTC", "postOnly": false, "reduceOnly": false, "side": "buy", "price": 60000, "triggerPrice": null,
+                    "amount": 0.1, "cost": 0, "average": null, "filled": 0, "remaining": 0.1, "status": "open", "fee": { "cost": 0, "currency": "AUSD" }, "trades": [], "fees": [ { "cost": 0, "currency": "AUSD" } ], "stopPrice": null, "takeProfitPrice": null, "stopLossPrice": null
+                }
+            }
+        ],
+        "cancelOrderWs": [
+            {
+                "description": "cancel order over private websocket",
+                "input": [ "789012", "BTC/AUSD:AUSD" ],
+                "url": "wss://app.perpl.xyz/ws/v1/trading",
+                "messages": [
+                    { "mt": 19, "sn": 1, "as": [ { "in": 1, "id": 42, "lfr": 1000, "b": "100000000", "lb": "0" } ] },
+                    { "mt": 3, "sid": 100, "cid": 1, "status": { "code": 0 } },
+                    { "mt": 24, "at": { "b": 55563773, "t": 1787288850000 }, "d": [ { "at": { "b": 55563773, "t": 1787288850000 }, "c": { "t": 1787288848000 }, "rq": 1001, "mkt": 1, "acc": 42, "oid": 789012, "st": 5, "t": 1, "p": 600000, "os": 10000, "fs": 0, "f": "0", "fl": 0, "lv": 200 } ] }
+                ],
+                "sentSkipKeys": [ "timestamp", "nonce", "signature" ],
+                "sentMessages": [
+                    { "mt": 29, "chain_id": 143, "api_key": "key", "timestamp": "volatile", "nonce": "volatile", "signature": "volatile" },
+                    { "mt": 22, "sn": 1, "rq": 1001, "mkt": 1, "acc": 42, "oid": 789012, "t": 5, "s": 0, "fl": 0, "lv": 0, "lb": 0 }
+                ],
+                "parsedResponse": {
+                    "info": { "at": { "b": 55563773, "t": 1787288850000 }, "c": { "t": 1787288848000 }, "rq": 1001, "mkt": 1, "acc": 42, "oid": 789012, "st": 5, "t": 1, "p": 600000, "os": 10000, "fs": 0, "f": "0", "fl": 0, "lv": 200 },
+                    "id": "789012", "clientOrderId": "1001", "timestamp": 1787288848000, "datetime": "2026-08-21T05:07:28.000Z", "lastTradeTimestamp": null, "lastUpdateTimestamp": 1787288850000,
+                    "symbol": "BTC/AUSD:AUSD", "type": "limit", "timeInForce": "GTC", "postOnly": false, "reduceOnly": false, "side": "buy", "price": 60000, "triggerPrice": null,
+                    "amount": 0.1, "cost": 0, "average": null, "filled": 0, "remaining": 0.1, "status": "canceled", "fee": { "cost": 0, "currency": "AUSD" }, "trades": [], "fees": [ { "cost": 0, "currency": "AUSD" } ], "stopPrice": null, "takeProfitPrice": null, "stopLossPrice": null
+                }
+            }
+        ],
+        "editOrderWs": [
+            {
+                "description": "edit order over private websocket",
+                "input": [ "789012", "BTC/AUSD:AUSD", "limit", "buy", 0.2, 61000, { "leverage": 2 } ],
+                "url": "wss://app.perpl.xyz/ws/v1/trading",
+                "messages": [
+                    { "mt": 19, "sn": 1, "as": [ { "in": 1, "id": 42, "lfr": 1000, "b": "100000000", "lb": "0" } ] },
+                    { "mt": 3, "sid": 100, "cid": 1, "status": { "code": 0 } },
+                    { "mt": 24, "at": { "b": 55563774, "t": 1787288851000 }, "d": [ { "at": { "b": 55563774, "t": 1787288851000 }, "c": { "t": 1787288847000 }, "rq": 1001, "mkt": 1, "acc": 42, "oid": 789012, "st": 5, "t": 1, "p": 600000, "os": 10000, "fs": 0, "f": "0", "fl": 0, "lv": 200 }, { "at": { "b": 55563774, "t": 1787288851000 }, "c": { "t": 1787288848000 }, "rq": 1001, "mkt": 1, "acc": 42, "oid": 789013, "st": 1, "t": 1, "p": 610000, "os": 20000, "fs": 0, "f": "0", "fl": 0, "lv": 200 } ] }
+                ],
+                "sentSkipKeys": [ "timestamp", "nonce", "signature" ],
+                "sentMessages": [
+                    { "mt": 29, "chain_id": 143, "api_key": "key", "timestamp": "volatile", "nonce": "volatile", "signature": "volatile" },
+                    { "mt": 22, "sn": 1, "rq": 1001, "mkt": 1, "acc": 42, "t": 7, "p": 610000, "s": 20000, "fl": 0, "lv": 200, "lb": 0, "oid": 789012 }
+                ],
+                "parsedResponse": {
+                    "info": { "at": { "b": 55563774, "t": 1787288851000 }, "c": { "t": 1787288848000 }, "rq": 1001, "mkt": 1, "acc": 42, "oid": 789013, "st": 1, "t": 1, "p": 610000, "os": 20000, "fs": 0, "f": "0", "fl": 0, "lv": 200 },
+                    "id": "789013", "clientOrderId": "1001", "timestamp": 1787288848000, "datetime": "2026-08-21T05:07:28.000Z", "lastTradeTimestamp": null, "lastUpdateTimestamp": 1787288851000,
+                    "symbol": "BTC/AUSD:AUSD", "type": "limit", "timeInForce": "GTC", "postOnly": false, "reduceOnly": false, "side": "buy", "price": 61000, "triggerPrice": null,
+                    "amount": 0.2, "cost": 0, "average": null, "filled": 0, "remaining": 0.2, "status": "open", "fee": { "cost": 0, "currency": "AUSD" }, "trades": [], "fees": [ { "cost": 0, "currency": "AUSD" } ], "stopPrice": null, "takeProfitPrice": null, "stopLossPrice": null
+                }
             }
         ],
         "unWatchTrades": [

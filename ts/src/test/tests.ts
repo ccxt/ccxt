@@ -1996,6 +1996,16 @@ class testMainClass {
                 // ohlcvs) and request-id counters survive between watch calls
                 // and would leak state across entries otherwise
                 const exchange = this.initOfflineExchange (exchangeName, true);
+                const apiKey = exchange.safeString (exchangeData, 'apiKey');
+                const secret = exchange.safeString (exchangeData, 'secret');
+                if (!exchange.isEmptyString (apiKey)) {
+                    // c# and java to string requirement
+                    exchange.apiKey = (apiKey as string).toString ();
+                }
+                if (!exchange.isEmptyString (secret)) {
+                    // c# and java to string requirement
+                    exchange.secret = (secret as string).toString ();
+                }
                 const isDisabled = exchange.safeBool (result, 'disabled', false);
                 if (isDisabled) {
                     continue;
