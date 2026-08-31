@@ -1393,10 +1393,12 @@ export default class p2b extends Exchange {
             const errorCode = this.safeString (response, 'errorCode');
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
-            if (code < 400) {
+            const codeAsString = code.toString ();
+            if ((code < 400) || !(codeAsString in this.httpExceptions)) {
+                // an error envelope must always throw — also for statuses the http-status handler has no entry for
                 throw new ExchangeError (feedback);
             }
-            // unmapped codes on error statuses fall through to the default http-status handler
+            // unmapped codes on the remaining error statuses fall through to the default http-status handler
         }
         return undefined;
     }
