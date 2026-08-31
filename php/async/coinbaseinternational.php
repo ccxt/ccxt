@@ -2018,6 +2018,9 @@ class coinbaseinternational extends Exchange {
 
     public function parse_order_status(?string $status) {
         $statuses = array(
+            // order_status carries WORKING and DONE; the other keys are event_type
+            // values, which the same payload reports in its own field
+            'WORKING' => 'open',
             'NEW' => 'open',
             'PARTIAL_FILLED' => 'open',
             'FILLED' => 'closed',

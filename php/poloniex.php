@@ -3380,7 +3380,9 @@ class poloniex extends Exchange {
         for ($i = 0; $i < count($data); $i++) {
             $entry = $data[$i];
             $marketId = $this->safe_string($entry, 'symbol');
-            $marginMode = $this->safe_string($entry, 'mgnMode');
+            // mgnMode arrives upper case; parseOrder and parsePosition read the
+            // same field with safeStringLower
+            $marginMode = $this->safe_string_lower($entry, 'mgnMode');
             $lever = $this->safe_integer($entry, 'lever');
             $posSide = $this->safe_string($entry, 'posSide');
             if ($posSide === 'LONG') {
