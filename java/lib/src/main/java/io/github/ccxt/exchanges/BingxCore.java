@@ -5901,7 +5901,7 @@ public class BingxCore extends BingxApi
         Object currencyId = this.safeString(depositAddress, "coin");
         currency = this.safeCurrency(currencyId, currency);
         Object code = Helpers.GetValue(currency, "code");
-        Object address = this.safeString(depositAddress, "addressWithPrefix");
+        Object address = this.safeString2(depositAddress, "addressWithPrefix", "address");
         Object networkId = this.safeString(depositAddress, "network");
         Object networkCode = this.networkIdToCode(networkId, code);
         // despite its name the addressWithPrefix field sometimes arrives without
