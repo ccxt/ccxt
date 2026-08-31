@@ -693,8 +693,10 @@ export default class insightx extends Exchange {
         }
         const request: Dict = {
             'page': page,
-            'size': pageSize,
         };
+        if (pageSize !== undefined) {
+            request['size'] = pageSize;
+        }
         await this.handleToken ();
         let outcomeObj: any = undefined;
         if (outcome !== undefined) {

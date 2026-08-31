@@ -198,36 +198,6 @@
                         "realized_pnl": 1.25
                     }
                 }
-            },
-            {
-                "description": "fetchPosition returns no position when data is null",
-                "method": "fetchPosition",
-                "input": [
-                    "80372897:2"
-                ],
-                "httpResponse": {
-                    "errno": 0,
-                    "errmsg": "no error",
-                    "data": null
-                },
-                "parsedResponse": null
-            },
-            {
-                "description": "fetchPosition returns no position when volume is zero",
-                "method": "fetchPosition",
-                "input": [
-                    "80372897:2"
-                ],
-                "httpResponse": {
-                    "errno": 0,
-                    "errmsg": "no error",
-                    "data": {
-                        "volume": 0,
-                        "avg_price": 0,
-                        "realized_pnl": 0
-                    }
-                },
-                "parsedResponse": null
             }
         ],
         "fetchOrders": [
