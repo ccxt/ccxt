@@ -330,7 +330,7 @@ class p2b extends Exchange {
 
     public function fetch_markets($params = array()): array {
         /**
-         * retrieves data on all $markets for bigone
+         * retrieves data on all $markets for p2b
          *
          * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#$markets
          *
@@ -435,7 +435,7 @@ class p2b extends Exchange {
         /**
          * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
          *
-         * @see https://futures-docs.poloniex.com/#get-real-time-ticker-of-all-$symbols
+         * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#tickers
          *
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1195,7 +1195,7 @@ class p2b extends Exchange {
 
     public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
-         * fetches information on multiple closed $orders made by the user, the time between $since and $params["untnil"] cannot be longer than 24 hours
+         * fetches information on multiple closed $orders made by the user, the time between $since and $params["until"] cannot be longer than 24 hours
          *
          * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#$orders-history-by-$market
          *

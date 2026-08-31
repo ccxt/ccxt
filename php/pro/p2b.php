@@ -73,7 +73,7 @@ class p2b extends \ccxt\async\p2b {
     private function do_subscribe(string $name, string $messageHash, mixed $request, $params = array()) {
         /**
          * @ignore
-         * Connects to a websocket channel
+         * connects to a websocket channel
          * @param {string} $name name of the channel
          * @param {string} $messageHash string to look up in handler
          * @param {stringarray()|float[]} $request endpoint parameters
