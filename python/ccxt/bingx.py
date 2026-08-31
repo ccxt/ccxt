@@ -5204,6 +5204,7 @@ class bingx(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch deposits for
         :param int [limit]: the maximum number of deposits structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: the latest time in ms to fetch deposits for
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         if self.markets is None:
@@ -5217,7 +5218,8 @@ class bingx(Exchange, ImplicitAPI):
         if since is not None:
             request['startTime'] = since
         if limit is not None:
-            request['limit'] = limit  # default 1000
+            request['limit'] = min(limit, 1000)  # api maximum 1000
+        request, params = self.handle_until_option('endTime', request, params)
         response = self.spotV3PrivateGetCapitalDepositHisrec(self.extend(request, params))
         #
         #    [
@@ -5248,6 +5250,7 @@ class bingx(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch withdrawals for
         :param int [limit]: the maximum number of withdrawals structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: the latest time in ms to fetch withdrawals for
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         if self.markets is None:
@@ -5261,7 +5264,8 @@ class bingx(Exchange, ImplicitAPI):
         if since is not None:
             request['startTime'] = since
         if limit is not None:
-            request['limit'] = limit  # default 1000
+            request['limit'] = min(limit, 1000)  # api maximum 1000
+        request, params = self.handle_until_option('endTime', request, params)
         response = self.spotV3PrivateGetCapitalWithdrawHistory(self.extend(request, params))
         #
         #    [
