@@ -1278,7 +1278,7 @@
 							"inverse": null,
 							"contractSize": null,
 							"expiry": 4089884400000,
-							"expiryDatetime": "2099-08-08T15:00:00Z",
+							"expiryDatetime": "2099-08-08T15:00:00.000Z",
 							"strike": null,
 							"optionType": null,
 							"taker": 0.07,
