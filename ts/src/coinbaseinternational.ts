@@ -583,7 +583,7 @@ export default class coinbaseinternational extends Exchange {
         //       "event_time":"2024-02-10T16:00:00Z"
         //    }
         //
-        const fundingDatetime = this.safeString2 (contract, 'event_time', 'time');
+        const fundingTimestamp = this.parse8601 (this.safeString2 (contract, 'event_time', 'time'));
         return {
             'info': contract,
             'symbol': this.safeSymbol (undefined, market),
@@ -591,11 +591,11 @@ export default class coinbaseinternational extends Exchange {
             'indexPrice': undefined,
             'interestRate': undefined,
             'estimatedSettlePrice': undefined,
-            'timestamp': this.parse8601 (fundingDatetime),
-            'datetime': fundingDatetime,
+            'timestamp': fundingTimestamp,
+            'datetime': this.iso8601 (fundingTimestamp),
             'fundingRate': this.safeNumber (contract, 'funding_rate'),
-            'fundingTimestamp': this.parse8601 (fundingDatetime),
-            'fundingDatetime': fundingDatetime,
+            'fundingTimestamp': fundingTimestamp,
+            'fundingDatetime': this.iso8601 (fundingTimestamp),
             'nextFundingRate': undefined,
             'nextFundingTimestamp': undefined,
             'nextFundingDatetime': undefined,
@@ -1238,7 +1238,7 @@ export default class coinbaseinternational extends Exchange {
         //        "idem":"8e471d77-4208-45a8-9e5b-f3bd8a2c1fc3"
         //    }
         // const transactionType = this.safeString (transaction, 'type');
-        const datetime = this.safeString (transaction, 'updated_at');
+        const timestamp = this.parse8601 (this.safeString (transaction, 'updated_at'));
         const fromPorfolio = this.safeDict (transaction, 'from_portfolio', {});
         const addressFrom = this.safeStringN (transaction, [ 'from_address', 'from_cb_account', this.safeStringN (fromPorfolio, [ 'id', 'uuid', 'name' ]), 'from_counterparty_id' ]);
         const toPorfolio = this.safeDict (transaction, 'from_portfolio', {});
@@ -1248,8 +1248,8 @@ export default class coinbaseinternational extends Exchange {
             'info': transaction,
             'id': this.safeString (transaction, 'transfer_uuid'),
             'txid': this.safeString (transaction, 'transaction_uuid'),
-            'timestamp': this.parse8601 (datetime),
-            'datetime': datetime,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'network': this.networkIdToCode (this.safeString (transaction, 'network_name'), code),
             'address': undefined, // TODO check if withdraw or deposit and populate
             'addressTo': addressTo,
@@ -1261,7 +1261,7 @@ export default class coinbaseinternational extends Exchange {
             'amount': this.safeNumber (transaction, 'amount'),
             'currency': this.safeCurrencyCode (this.safeString (transaction, 'asset'), currency),
             'status': this.parseTransactionStatus (this.safeString (transaction, 'status')),
-            'updated': this.parse8601 (datetime),
+            'updated': timestamp,
             'fee': {
                 'cost': undefined,
                 'currency': undefined,
@@ -1303,13 +1303,13 @@ export default class coinbaseinternational extends Exchange {
         //    }
         //
         const marketId = this.safeString (trade, 'symbol');
-        const datetime = this.safeString (trade, 'event_time');
+        const timestamp = this.parse8601 (this.safeString (trade, 'event_time'));
         return this.safeTrade ({
             'info': trade,
             'id': this.safeString2 (trade, 'fill_id', 'exec_id'),
             'order': this.safeString (trade, 'order_id'),
-            'timestamp': this.parse8601 (datetime),
-            'datetime': datetime,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'symbol': this.safeSymbol (marketId, market),
             'type': undefined,
             'side': this.safeStringLower (trade, 'side'),
@@ -1630,12 +1630,12 @@ export default class coinbaseinternational extends Exchange {
         //        "timestamp":"2024-02-10T16:07:39.454Z"
         //    }
         //
-        const datetime = this.safeString (ticker, 'timestamp');
+        const timestamp = this.parse8601 (this.safeString (ticker, 'timestamp'));
         return this.safeTicker ({
             'info': ticker,
             'symbol': this.safeSymbol (undefined, market),
-            'timestamp': this.parse8601 (datetime),
-            'datetime': datetime,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'bid': this.safeNumber (ticker, 'best_bid_price'),
             'bidVolume': this.safeNumber (ticker, 'best_bid_size'),
             'ask': this.safeNumber (ticker, 'best_ask_price'),
@@ -1901,13 +1901,13 @@ export default class coinbaseinternational extends Exchange {
                 'cost': feeCost,
             };
         }
-        const datetime = this.safeString2 (order, 'submit_time', 'event_time');
+        const timestamp = this.parse8601 (this.safeString2 (order, 'submit_time', 'event_time'));
         return this.safeOrder ({
             'info': order,
             'id': this.safeString (order, 'order_id'),
             'clientOrderId': this.safeString (order, 'client_order_id'),
-            'timestamp': this.parse8601 (datetime),
-            'datetime': datetime,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
             'symbol': this.safeSymbol (marketId, market),
             'type': this.parseOrderType (this.safeString (order, 'type')),
