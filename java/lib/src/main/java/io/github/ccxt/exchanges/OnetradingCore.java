@@ -1390,16 +1390,17 @@ public class OnetradingCore extends OnetradingApi
     public Object parseOrderStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
-            put( "FILLED", "open" );
+            put( "OPEN", "open" );
+            put( "BOOKED", "open" );
+            put( "FILL", "open" );
+            put( "MOVED", "open" );
             put( "FILLED_FULLY", "closed" );
             put( "FILLED_CLOSED", "canceled" );
             put( "FILLED_REJECTED", "rejected" );
-            put( "OPEN", "open" );
-            put( "REJECTED", "rejected" );
-            put( "CLOSED", "canceled" );
-            put( "FAILED", "failed" );
-            put( "STOP_TRIGGERED", "triggered" );
-            put( "DONE", "closed" );
+            put( "CANCELLED", "canceled" );
+            put( "INSUFFICIENT_FUNDS", "rejected" );
+            put( "INSUFFICIENT_LIQUIDITY", "rejected" );
+            put( "RISK_FAILED_OVER_MAX_POSITION", "rejected" );
         }};
         return this.safeString(statuses, status, status);
     }
@@ -1477,8 +1478,7 @@ public class OnetradingCore extends OnetradingApi
         Object id = this.safeString(rawOrder, "order_id");
         Object clientOrderId = this.safeString(rawOrder, "client_id");
         Object timestamp = this.parse8601(this.safeString(rawOrder, "time"));
-        Object rawStatus = this.parseOrderStatus(this.safeString(rawOrder, "status"));
-        Object status = this.parseOrderStatus(rawStatus);
+        Object status = this.parseOrderStatus(this.safeString(rawOrder, "status"));
         Object marketId = this.safeString(rawOrder, "instrument_code");
         Object symbol = this.safeSymbol(marketId, market, "_");
         Object price = this.safeString(rawOrder, "price");
@@ -1497,7 +1497,7 @@ public class OnetradingCore extends OnetradingApi
             put( "datetime", OnetradingCore.this.iso8601(timestamp) );
             put( "lastTradeTimestamp", null );
             put( "symbol", symbol );
-            put( "type", OnetradingCore.this.parseOrderType(type) );
+            put( "type", type );
             put( "timeInForce", timeInForce );
             put( "postOnly", postOnly );
             put( "side", side );
@@ -1513,14 +1513,6 @@ public class OnetradingCore extends OnetradingApi
         }}, market);
     }
 
-    public Object parseOrderType(Object type)
-    {
-        Object types = new java.util.HashMap<String, Object>() {{
-            put( "booked", "limit" );
-        }};
-        return this.safeString(types, ((String)type), type);
-    }
-
     public Object parseTimeInForce(Object timeInForce)
     {
         Object timeInForces = new java.util.HashMap<String, Object>() {{
@@ -1528,6 +1520,7 @@ public class OnetradingCore extends OnetradingApi
             put( "GOOD_TILL_TIME", "GTT" );
             put( "IMMEDIATE_OR_CANCELLED", "IOC" );
             put( "FILL_OR_KILL", "FOK" );
+            put( "POST_ONLY", "PO" );
         }};
         return this.safeString(timeInForces, timeInForce, timeInForce);
     }

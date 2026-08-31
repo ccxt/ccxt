@@ -7891,6 +7891,58 @@
                 ]
             }
         ],
+        "fetchBidsAsks": [
+            {
+                "description": "linear swap bids and asks for one symbol",
+                "method": "fetchBidsAsks",
+                "input": [
+                    [
+                        "BTC/USDT:USDT"
+                    ]
+                ],
+                "httpResponse": {
+                    "symbol": "BTCUSDT",
+                    "bidPrice": "21321.90",
+                    "bidQty": "33.592",
+                    "askPrice": "21322.00",
+                    "askQty": "1.427",
+                    "time": 1673899207538
+                },
+                "parsedResponse": {
+                    "BTC/USDT:USDT": {
+                        "symbol": "BTC/USDT:USDT",
+                        "timestamp": 1673899207538,
+                        "datetime": "2023-01-16T20:00:07.538Z",
+                        "high": null,
+                        "low": null,
+                        "bid": 21321.9,
+                        "bidVolume": 33.592,
+                        "ask": 21322,
+                        "askVolume": 1.427,
+                        "vwap": null,
+                        "open": null,
+                        "close": null,
+                        "last": null,
+                        "previousClose": null,
+                        "change": null,
+                        "percentage": null,
+                        "average": null,
+                        "baseVolume": null,
+                        "quoteVolume": null,
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "info": {
+                            "symbol": "BTCUSDT",
+                            "bidPrice": "21321.90",
+                            "bidQty": "33.592",
+                            "askPrice": "21322.00",
+                            "askQty": "1.427",
+                            "time": 1673899207538
+                        }
+                    }
+                }
+            }
+        ],
         "fetchTicker": [
             {
                 "description": "public spot ticker",

@@ -2475,7 +2475,7 @@ func (this *ApexCore) ParsePosition(position any, optionalArgs ...any) any {
 		"info":                        position,
 		"id":                          this.SafeString(position, "id"),
 		"symbol":                      symbol,
-		"entryPrice":                  this.SafeString(position, "entryPrice"),
+		"entryPrice":                  this.SafeNumber(position, "entryPrice"),
 		"markPrice":                   nil,
 		"notional":                    nil,
 		"collateral":                  nil,

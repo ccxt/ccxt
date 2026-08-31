@@ -7637,6 +7637,138 @@
                 "disabledRS": true
             }
         ],
+        "fetchPositions": [
+            {
+                "description": "a position, which no case reached before",
+                "method": "fetchPositions",
+                "input": [],
+                "httpResponse": {
+                    "data": {
+                        "positions": [
+                            {
+                                "symbol": "BTC-USDT",
+                                "status": "",
+                                "side": "LONG",
+                                "size": "0.000",
+                                "entryPrice": "0.00",
+                                "exitPrice": "",
+                                "createdAt": 1690366452416,
+                                "updatedTime": 1690366452416,
+                                "fee": "0.000000",
+                                "fundingFee": "0.000000",
+                                "lightNumbers": "",
+                                "customInitialMarginRate": "0"
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "symbol": "BTC-USDT",
+                            "status": "",
+                            "side": "LONG",
+                            "size": "0.000",
+                            "entryPrice": "0.00",
+                            "exitPrice": "",
+                            "createdAt": 1690366452416,
+                            "updatedTime": 1690366452416,
+                            "fee": "0.000000",
+                            "fundingFee": "0.000000",
+                            "lightNumbers": "",
+                            "customInitialMarginRate": "0"
+                        },
+                        "id": null,
+                        "symbol": "BTC/USDT:USDT",
+                        "entryPrice": 0,
+                        "markPrice": null,
+                        "notional": null,
+                        "collateral": null,
+                        "unrealizedPnl": null,
+                        "side": "long",
+                        "contracts": 0,
+                        "contractSize": 0.001,
+                        "timestamp": 1690366452416,
+                        "datetime": "2023-07-26T10:14:12.416Z",
+                        "hedged": null,
+                        "maintenanceMargin": null,
+                        "maintenanceMarginPercentage": null,
+                        "initialMargin": null,
+                        "initialMarginPercentage": null,
+                        "leverage": 20,
+                        "liquidationPrice": null,
+                        "marginRatio": null,
+                        "marginMode": null,
+                        "percentage": null
+                    }
+                ]
+            },
+            {
+                "description": "a position whose margin rate drives the leverage",
+                "method": "fetchPositions",
+                "input": [],
+                "httpResponse": {
+                    "data": {
+                        "positions": [
+                            {
+                                "symbol": "BTC-USDT",
+                                "status": "",
+                                "side": "LONG",
+                                "size": "1.500",
+                                "entryPrice": "64000.00",
+                                "exitPrice": "",
+                                "createdAt": 1690366452416,
+                                "updatedTime": 1690366452416,
+                                "fee": "0.000000",
+                                "fundingFee": "0.000000",
+                                "lightNumbers": "",
+                                "customInitialMarginRate": "0.1"
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "symbol": "BTC-USDT",
+                            "status": "",
+                            "side": "LONG",
+                            "size": "1.500",
+                            "entryPrice": "64000.00",
+                            "exitPrice": "",
+                            "createdAt": 1690366452416,
+                            "updatedTime": 1690366452416,
+                            "fee": "0.000000",
+                            "fundingFee": "0.000000",
+                            "lightNumbers": "",
+                            "customInitialMarginRate": "0.1"
+                        },
+                        "id": null,
+                        "symbol": "BTC/USDT:USDT",
+                        "entryPrice": 64000,
+                        "markPrice": null,
+                        "notional": null,
+                        "collateral": null,
+                        "unrealizedPnl": null,
+                        "side": "long",
+                        "contracts": 1.5,
+                        "contractSize": 0.001,
+                        "timestamp": 1690366452416,
+                        "datetime": "2023-07-26T10:14:12.416Z",
+                        "hedged": null,
+                        "maintenanceMargin": null,
+                        "maintenanceMarginPercentage": null,
+                        "initialMargin": null,
+                        "initialMarginPercentage": null,
+                        "leverage": 10,
+                        "liquidationPrice": null,
+                        "marginRatio": null,
+                        "marginMode": null,
+                        "percentage": null
+                    }
+                ]
+            }
+        ],
         "fetchOHLCV": [
             {
                 "description": "since & limit",

@@ -1309,16 +1309,17 @@ public partial class onetrading : Exchange
     public virtual object parseOrderStatus(object status)
     {
         object statuses = new Dictionary<string, object>() {
-            { "FILLED", "open" },
+            { "OPEN", "open" },
+            { "BOOKED", "open" },
+            { "FILL", "open" },
+            { "MOVED", "open" },
             { "FILLED_FULLY", "closed" },
             { "FILLED_CLOSED", "canceled" },
             { "FILLED_REJECTED", "rejected" },
-            { "OPEN", "open" },
-            { "REJECTED", "rejected" },
-            { "CLOSED", "canceled" },
-            { "FAILED", "failed" },
-            { "STOP_TRIGGERED", "triggered" },
-            { "DONE", "closed" },
+            { "CANCELLED", "canceled" },
+            { "INSUFFICIENT_FUNDS", "rejected" },
+            { "INSUFFICIENT_LIQUIDITY", "rejected" },
+            { "RISK_FAILED_OVER_MAX_POSITION", "rejected" },
         };
         return this.safeString(statuses, status, status);
     }
@@ -1395,8 +1396,7 @@ public partial class onetrading : Exchange
         object id = this.safeString(rawOrder, "order_id");
         object clientOrderId = this.safeString(rawOrder, "client_id");
         object timestamp = this.parse8601(this.safeString(rawOrder, "time"));
-        object rawStatus = this.parseOrderStatus(this.safeString(rawOrder, "status"));
-        object status = this.parseOrderStatus(rawStatus);
+        object status = this.parseOrderStatus(this.safeString(rawOrder, "status"));
         object marketId = this.safeString(rawOrder, "instrument_code");
         object symbol = this.safeSymbol(marketId, market, "_");
         object price = this.safeString(rawOrder, "price");
@@ -1415,7 +1415,7 @@ public partial class onetrading : Exchange
             { "datetime", this.iso8601(timestamp) },
             { "lastTradeTimestamp", null },
             { "symbol", symbol },
-            { "type", this.parseOrderType(type) },
+            { "type", type },
             { "timeInForce", timeInForce },
             { "postOnly", postOnly },
             { "side", side },
@@ -1431,14 +1431,6 @@ public partial class onetrading : Exchange
         }, market);
     }
 
-    public virtual object parseOrderType(object type)
-    {
-        object types = new Dictionary<string, object>() {
-            { "booked", "limit" },
-        };
-        return this.safeString(types, ((string)type), type);
-    }
-
     public virtual object parseTimeInForce(object timeInForce)
     {
         object timeInForces = new Dictionary<string, object>() {
@@ -1446,6 +1438,7 @@ public partial class onetrading : Exchange
             { "GOOD_TILL_TIME", "GTT" },
             { "IMMEDIATE_OR_CANCELLED", "IOC" },
             { "FILL_OR_KILL", "FOK" },
+            { "POST_ONLY", "PO" },
         };
         return this.safeString(timeInForces, timeInForce, timeInForce);
     }

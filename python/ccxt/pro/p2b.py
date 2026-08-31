@@ -67,7 +67,7 @@ class p2b(ccxt.async_support.p2b):
     async def subscribe(self, name: str, messageHash: str, request: object, params={}):
         """
  @ignore
-        Connects to a websocket channel
+        connects to a websocket channel
         :param str name: name of the channel
         :param str messageHash: string to look up in handler
         :param str[]|float[] request: endpoint parameters

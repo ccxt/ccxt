@@ -3212,6 +3212,37 @@
         ],
         "fetchBidsAsks": [
             {
+                "description": "Fetch Bids Asks linear swap with one symbol",
+                "method": "fetchBidsAsks",
+                "url": "https://fapi.binance.com/fapi/v1/ticker/bookTicker?symbol=BTCUSDT",
+                "input": [
+                    [
+                        "BTC/USDT:USDT"
+                    ]
+                ]
+            },
+            {
+                "description": "Fetch Bids Asks inverse swap with one symbol",
+                "method": "fetchBidsAsks",
+                "url": "https://dapi.binance.com/dapi/v1/ticker/bookTicker?symbol=BTCUSD_PERP",
+                "input": [
+                    [
+                        "BTC/USD:BTC"
+                    ]
+                ]
+            },
+            {
+                "description": "Fetch Bids Asks linear swap with several symbols",
+                "method": "fetchBidsAsks",
+                "url": "https://fapi.binance.com/fapi/v1/ticker/bookTicker",
+                "input": [
+                    [
+                        "BTC/USDT:USDT",
+                        "ETH/USDT:USDT"
+                    ]
+                ]
+            },
+            {
                 "description": "Fetch Bids Asks spot with array of symbols",
                 "method": "fetchBidsAsks",
                 "url": "https://testnet.binance.vision/api/v3/ticker/bookTicker?symbols=%5B%22BTCUSDT%22%2C%22LTCUSDT%22%5D",

@@ -1783,9 +1783,15 @@ public class ToobitCore extends ToobitApi
 
     public Object parseBidAskCustom(Object ticker)
     {
+        // 's' is the exchange id and 't' a millisecond integer, the pair parseTicker
+        // reads through safeMarket and safeInteger. The caller filters on a unified symbol.
+        Object marketId = this.safeString(ticker, "s");
+        Object market = this.safeMarket(marketId);
+        Object timestamp = this.safeInteger(ticker, "t");
         return new java.util.HashMap<String, Object>() {{
-            put( "timestamp", ToobitCore.this.safeString(ticker, "t") );
-            put( "symbol", ToobitCore.this.safeString(ticker, "s") );
+            put( "timestamp", timestamp );
+            put( "datetime", ToobitCore.this.iso8601(timestamp) );
+            put( "symbol", Helpers.GetValue(market, "symbol") );
             put( "bid", ToobitCore.this.safeNumber(ticker, "b") );
             put( "bidVolume", ToobitCore.this.safeNumber(ticker, "bq") );
             put( "ask", ToobitCore.this.safeNumber(ticker, "a") );
