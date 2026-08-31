@@ -1136,15 +1136,19 @@ export default class toobit extends toobitRest {
             newPositions.push (position);
             cache.append (position);
         }
+        // no local may be named `positions` in this method: build/transpile.ts
+        // appends `$` to every local name wherever it appears, string literals
+        // included, so a local `positions` rewrites the hash prefix below to
+        // ':$positions::' and find_message_hashes () matches nothing in PHP
         const messageHashes = this.findMessageHashes (client, accountType + ':positions::');
         for (let i = 0; i < messageHashes.length; i++) {
             const messageHash = messageHashes[i];
             const parts = messageHash.split ('::');
             const symbolsString = parts[1];
             const symbols = symbolsString.split (',');
-            const positions = this.filterByArray (newPositions, 'symbol', symbols, false);
-            if (!this.isEmpty (positions)) {
-                client.resolve (positions, messageHash);
+            const filtered = this.filterByArray (newPositions, 'symbol', symbols, false);
+            if (!this.isEmpty (filtered)) {
+                client.resolve (filtered, messageHash);
             }
         }
         client.resolve (newPositions, accountType + ':positions');
