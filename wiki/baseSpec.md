@@ -504,6 +504,7 @@ cancel multiple orders
 * [bingx](/exchanges/bingx.md#cancelorders)
 * [bitfinex](/exchanges/bitfinex.md#cancelorders)
 * [bitget](/exchanges/bitget.md#cancelorders)
+* [bithumb](/exchanges/bithumb.md#cancelorders)
 * [bitmex](/exchanges/bitmex.md#cancelorders)
 * [bitopro](/exchanges/bitopro.md#cancelorders)
 * [bitso](/exchanges/bitso.md#cancelorders)
@@ -886,6 +887,7 @@ create a currency deposit address
 
 ##### Supported exchanges
 * [bitfinex](/exchanges/bitfinex.md#createdepositaddress)
+* [bithumb](/exchanges/bithumb.md#createdepositaddress)
 * [coinbase](/exchanges/coinbase.md#createdepositaddress)
 * [coinbaseexchange](/exchanges/coinbaseexchange.md#createdepositaddress)
 * [coinbaseinternational](/exchanges/coinbaseinternational.md#createdepositaddress)
@@ -966,6 +968,7 @@ create a market buy order by providing the symbol and cost
 * [binance](/exchanges/binance.md#createmarketbuyorderwithcost)
 * [bingx](/exchanges/bingx.md#createmarketbuyorderwithcost)
 * [bitget](/exchanges/bitget.md#createmarketbuyorderwithcost)
+* [bithumb](/exchanges/bithumb.md#createmarketbuyorderwithcost)
 * [bitrue](/exchanges/bitrue.md#createmarketbuyorderwithcost)
 * [bittrade](/exchanges/bittrade.md#createmarketbuyorderwithcost)
 * [bybit](/exchanges/bybit.md#createmarketbuyorderwithcost)
@@ -1215,6 +1218,7 @@ create a list of trade orders
 * [bingx](/exchanges/bingx.md#createorders)
 * [bitfinex](/exchanges/bitfinex.md#createorders)
 * [bitget](/exchanges/bitget.md#createorders)
+* [bithumb](/exchanges/bithumb.md#createorders)
 * [blofin](/exchanges/blofin.md#createorders)
 * [bybit](/exchanges/bybit.md#createorders)
 * [bydfi](/exchanges/bydfi.md#createorders)
@@ -1451,15 +1455,15 @@ create a trade order that is executed as a TWAP order over a specified duration.
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified symbol of the market to create an order in |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
-| amount | <code>float</code> | Yes | how much of currency you want to trade in units of base currency |
+| amount | <code>float</code> | Yes | how much of currency you want to trade in units of base currency, only required for sale |
 | duration | <code>int</code> | Yes | the duration of the TWAP order in milliseconds |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.randomize | <code>bool</code> | No | whether to randomize the time intervals of the TWAP order slices (default is false, meaning equal intervals) |
-| params.reduceOnly | <code>bool</code> | No | true or false whether the order is reduce-only |
-| params.expiresAfter | <code>int</code> | No | time in ms after which the twap order expires |
-| params.vaultAddress | <code>string</code> | No | the vault address for order |
+| params.frequency | <code>string</code> | Yes | required order interval in seconds, 15, 20, 30, 60 or 120 |
+| params.price | <code>string</code> | No | order price, required for purchase |
+| params.generation | <code>int</code> | No | *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2 |
 
 ##### Supported exchanges
+* [bithumb](/exchanges/bithumb.md#createtwaporder)
 * [hyperliquid](/exchanges/hyperliquid.md#createtwaporder)
 
 ---
@@ -2181,6 +2185,7 @@ fetches information on multiple canceled orders made by the user
 * [binance](/exchanges/binance.md#fetchcanceledorders)
 * [bingx](/exchanges/bingx.md#fetchcanceledorders)
 * [bitget](/exchanges/bitget.md#fetchcanceledorders)
+* [bithumb](/exchanges/bithumb.md#fetchcanceledorders)
 * [bitteam](/exchanges/bitteam.md#fetchcanceledorders)
 * [blockchaincom](/exchanges/blockchaincom.md#fetchcanceledorders)
 * [bullish](/exchanges/bullish.md#fetchcanceledorders)
@@ -2251,6 +2256,7 @@ fetches information on multiple closed orders made by the user
 * [bitfinex](/exchanges/bitfinex.md#fetchclosedorders)
 * [bitflyer](/exchanges/bitflyer.md#fetchclosedorders)
 * [bitget](/exchanges/bitget.md#fetchclosedorders)
+* [bithumb](/exchanges/bithumb.md#fetchclosedorders)
 * [bitmex](/exchanges/bitmex.md#fetchclosedorders)
 * [bitopro](/exchanges/bitopro.md#fetchclosedorders)
 * [bitrue](/exchanges/bitrue.md#fetchclosedorders)
@@ -2713,10 +2719,13 @@ fetch information on a deposit
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | id | <code>string</code> | Yes | deposit id |
-| code | <code>string</code> | Yes | bitso does not support filtering by currency code and will ignore this argument |
+| code | <code>string</code> | Yes | unified currency code |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.txid | <code>string</code> | No | the transaction id for the deposit |
+| params.generation | <code>int</code> | No | *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2 |
 
 ##### Supported exchanges
+* [bithumb](/exchanges/bithumb.md#fetchdeposit)
 * [bitso](/exchanges/bitso.md#fetchdeposit)
 * [blockchaincom](/exchanges/blockchaincom.md#fetchdeposit)
 * [coinbase](/exchanges/coinbase.md#fetchdeposit)
@@ -2751,6 +2760,7 @@ fetch the deposit address for a currency associated with this account
 * [bitbns](/exchanges/bitbns.md#fetchdepositaddress)
 * [bitfinex](/exchanges/bitfinex.md#fetchdepositaddress)
 * [bitget](/exchanges/bitget.md#fetchdepositaddress)
+* [bithumb](/exchanges/bithumb.md#fetchdepositaddress)
 * [bitmex](/exchanges/bitmex.md#fetchdepositaddress)
 * [bitso](/exchanges/bitso.md#fetchdepositaddress)
 * [bitstamp](/exchanges/bitstamp.md#fetchdepositaddress)
@@ -2807,9 +2817,10 @@ fetch deposit addresses for multiple currencies (when available)
 | --- | --- | --- | --- |
 | codes | <code>Array&lt;string&gt;</code> | No | list of unified currency codes, default is undefined (all currencies) |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.accountId | <code>string</code> | No | account ID to fetch deposit addresses for |
+| params.generation | <code>int</code> | No | *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2 |
 
 ##### Supported exchanges
+* [bithumb](/exchanges/bithumb.md#fetchdepositaddresses)
 * [coinbase](/exchanges/coinbase.md#fetchdepositaddresses)
 * [coinone](/exchanges/coinone.md#fetchdepositaddresses)
 * [deepcoin](/exchanges/deepcoin.md#fetchdepositaddresses)
@@ -2992,6 +3003,7 @@ fetch all deposits made to an account
 * [bitbns](/exchanges/bitbns.md#fetchdeposits)
 * [bitflyer](/exchanges/bitflyer.md#fetchdeposits)
 * [bitget](/exchanges/bitget.md#fetchdeposits)
+* [bithumb](/exchanges/bithumb.md#fetchdeposits)
 * [bitopro](/exchanges/bitopro.md#fetchdeposits)
 * [bitrue](/exchanges/bitrue.md#fetchdeposits)
 * [bitso](/exchanges/bitso.md#fetchdeposits)
@@ -5189,6 +5201,7 @@ fetches information on multiple orders made by the user
 * [binance](/exchanges/binance.md#fetchorders)
 * [bingx](/exchanges/bingx.md#fetchorders)
 * [bitflyer](/exchanges/bitflyer.md#fetchorders)
+* [bithumb](/exchanges/bithumb.md#fetchorders)
 * [bitmex](/exchanges/bitmex.md#fetchorders)
 * [bitopro](/exchanges/bitopro.md#fetchorders)
 * [bitteam](/exchanges/bitteam.md#fetchorders)
@@ -6698,15 +6711,37 @@ fetch data on a currency withdrawal via the withdrawal id
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | id | <code>string</code> | Yes | withdrawal id |
-| code | <code>string</code> | Yes | unified currency code of the currency withdrawn, default is undefined |
+| code | <code>string</code> | No | the currency code |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.txid | <code>string</code> | No | the transaction id for the withdrawal |
+| params.generation | <code>int</code> | No | *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2 |
 
 ##### Supported exchanges
+* [bithumb](/exchanges/bithumb.md#fetchwithdrawal)
 * [bitopro](/exchanges/bitopro.md#fetchwithdrawal)
 * [blockchaincom](/exchanges/blockchaincom.md#fetchwithdrawal)
 * [hollaex](/exchanges/hollaex.md#fetchwithdrawal)
 * [okx](/exchanges/okx.md#fetchwithdrawal)
 * [upbit](/exchanges/upbit.md#fetchwithdrawal)
+
+---
+
+<a name="fetchWithdrawalWhitelist" id="fetchwithdrawalwhitelist"></a>
+
+## fetchWithdrawalWhitelist
+fetch a list of allowed withdrawal addresses
+
+**Kind**: instance   
+**Returns**: <code>Array&lt;object&gt;</code> - a list response from the exchange
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.generation | <code>int</code> | No | *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2 |
+
+##### Supported exchanges
+* [bithumb](/exchanges/bithumb.md#fetchwithdrawalwhitelist)
 
 ---
 
@@ -6735,6 +6770,7 @@ fetch all withdrawals made from an account
 * [bitbns](/exchanges/bitbns.md#fetchwithdrawals)
 * [bitflyer](/exchanges/bitflyer.md#fetchwithdrawals)
 * [bitget](/exchanges/bitget.md#fetchwithdrawals)
+* [bithumb](/exchanges/bithumb.md#fetchwithdrawals)
 * [bitopro](/exchanges/bitopro.md#fetchwithdrawals)
 * [bitrue](/exchanges/bitrue.md#fetchwithdrawals)
 * [bitstamp](/exchanges/bitstamp.md#fetchwithdrawals)
