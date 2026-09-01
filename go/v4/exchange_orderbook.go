@@ -44,6 +44,13 @@ func strOrNil(s string) any {
 	return s
 }
 
+func int64OrNil(v *int64) any {
+	if v == nil {
+		return nil
+	}
+	return *v
+}
+
 func createOb(Obtype string) OrderBookInterface {
 	switch strings.ToLower(Obtype) {
 	case "counted":
@@ -63,7 +70,7 @@ func (this *WsOrderBook) ToMap() map[string]any {
 	result := map[string]any{
 		"asks":      this.Asks.GetDataCopy(),
 		"bids":      this.Bids.GetDataCopy(),
-		"timestamp": this.Timestamp,
+		"timestamp": int64OrNil(this.Timestamp),
 		"datetime":  this.Datetime,
 		"nonce":     this.Nonce,
 		"symbol":    strOrNil(this.Symbol),
@@ -383,7 +390,7 @@ func (this *CountedOrderBook) ToMap() map[string]any {
 	return map[string]any{
 		"asks":      this.Asks.GetDataCopy(),
 		"bids":      this.Bids.GetDataCopy(),
-		"timestamp": this.Timestamp,
+		"timestamp": int64OrNil(this.Timestamp),
 		"datetime":  this.Datetime,
 		"nonce":     this.Nonce,
 		"symbol":    strOrNil(this.Symbol),
@@ -429,7 +436,7 @@ func (this *IndexedOrderBook) ToMap() map[string]any {
 	return map[string]any{
 		"asks":      this.Asks.GetDataCopy(),
 		"bids":      this.Bids.GetDataCopy(),
-		"timestamp": this.Timestamp,
+		"timestamp": int64OrNil(this.Timestamp),
 		"datetime":  this.Datetime,
 		"nonce":     this.Nonce,
 		"symbol":    strOrNil(this.Symbol),
