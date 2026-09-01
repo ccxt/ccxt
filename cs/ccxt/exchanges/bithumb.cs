@@ -11,7 +11,7 @@ public partial class bithumb : Exchange
             { "id", "bithumb" },
             { "name", "Bithumb" },
             { "countries", new List<object>() {"KR"} },
-            { "rateLimit", 500 },
+            { "rateLimit", 50 },
             { "pro", true },
             { "has", new Dictionary<string, object>() {
                 { "CORS", true },
@@ -181,10 +181,10 @@ public partial class bithumb : Exchange
                             { "cost", 1 },
                         } },
                         { "trade/place", new Dictionary<string, object>() {
-                            { "cost", 1 },
+                            { "cost", 5 },
                         } },
                         { "trade/cancel", new Dictionary<string, object>() {
-                            { "cost", 1 },
+                            { "cost", 5 },
                         } },
                         { "trade/btc_withdrawal", new Dictionary<string, object>() {
                             { "cost", 1 },
@@ -196,13 +196,13 @@ public partial class bithumb : Exchange
                             { "cost", 1 },
                         } },
                         { "trade/market_buy", new Dictionary<string, object>() {
-                            { "cost", 1 },
+                            { "cost", 5 },
                         } },
                         { "trade/market_sell", new Dictionary<string, object>() {
-                            { "cost", 1 },
+                            { "cost", 5 },
                         } },
                         { "trade/stop_limit", new Dictionary<string, object>() {
-                            { "cost", 1 },
+                            { "cost", 5 },
                         } },
                     } },
                 } },
