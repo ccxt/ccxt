@@ -137,6 +137,14 @@ pub trait DerivedExchange {
     fn parse_prediction_order(&self, _order: Value, _market: Value) -> Value { Value::Null }
     fn parse_prediction_position(&self, _position: Value, _market: Value) -> Value { Value::Null }
     // ── signers / error handlers ─────────────────────────────────────────
+    /// `nonce()` — the request timestamp. The base default is `seconds()`, but
+    /// 47 venues override it (binance: `milliseconds() - timeDifference`), and
+    /// without a slot here the override is invisible to any caller that reaches
+    /// the base through a trait method — notably a pro Core, which finds
+    /// `ExchangeBase::nonce` at deref step 0 and never looks at the REST
+    /// parent's inherent one. Binance spot then signs its ws-api subscribe with
+    /// a seconds timestamp and the venue answers -1130.
+    fn nonce(&self) -> Value { Value::Null }
     fn sign(&self, _path: Value, _api: Value, _method: Value, _params: Value, _headers: Value, _body: Value) -> Value { Value::Null }
     fn handle_errors(&self, _code: Value, _reason: Value, _url: Value, _method: Value, _headers: Value, _body: Value, _response: Value, _request_headers: Value, _request_body: Value) -> Value { Value::Null }
 }

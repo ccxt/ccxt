@@ -4886,7 +4886,7 @@ class RustTranspilerBuilder {
             'parse_margin_modification', 'parse_account', 'parse_fee',
             'parse_fees', 'parse_my_trade', 'parse_settlement',
             // signers and request-builders
-            'sign', 'handle_errors',
+            'sign', 'handle_errors', 'nonce',
             // fetch endpoints — overridden per-exchange
             'fetch_markets', 'fetch_currencies', 'fetch_ticker',
             'fetch_tickers', 'fetch_trades', 'fetch_ohlcv',
@@ -5215,6 +5215,11 @@ class RustTranspilerBuilder {
      */
     traitMethodSignatures(): Record<string, string[]> {
         return {
+            // Zero-arg slot: the base default is `seconds()` and venues override
+            // it with milliseconds. Needs the slot so a pro Core (which binds
+            // `self.nonce()` to the base trait method, not the REST parent's
+            // inherent override) still reaches the override.
+            nonce:                      [],
             parse_ticker:               ['ticker', 'market'],
             parse_trade:                ['trade', 'market'],
             parse_order:                ['order', 'market'],

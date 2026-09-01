@@ -207,6 +207,9 @@ impl BinanceCore {
 }
 
 impl crate::exchange::DerivedExchange for BinanceCore {
+    fn nonce(&self, ) -> crate::Value {
+        crate::exchange::DerivedExchange::nonce(&self.parent)
+    }
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::parse_ticker(&self.parent, ticker, market)
     }
