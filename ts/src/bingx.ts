@@ -1207,7 +1207,7 @@ export default class bingx extends Exchange {
             request['endTime'] = until;
         } else if ((market['inverse'] === true) && (since !== undefined)) {
             const duration = this.parseTimeframe (timeframe) * 1000;
-            request['endTime'] = since + (duration * requestLimit);
+            request['endTime'] = this.sum (since, duration * requestLimit);
         }
         let response: Dict;
         if (market['spot'] === true) {
