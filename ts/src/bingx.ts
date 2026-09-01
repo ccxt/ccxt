@@ -3050,7 +3050,7 @@ export default class bingx extends Exchange {
      * @method
      * @name bingx#createMarketOrderWithCost
      * @description create a market order by providing the symbol, side and cost
-     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} symbol unified symbol of the market to create an order in, inverse (Coin-M) markets are not supported
      * @param {string} side 'buy' or 'sell'
      * @param {float} cost how much you want to trade in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -6670,6 +6670,9 @@ export default class bingx extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
+        if (market['inverse'] === true) {
+            throw new NotSupported (this.id + ' editOrder() is not supported for inverse swap markets');
+        }
         const request = this.createOrderRequest (symbol, type, side, amount, price, params);
         request['cancelOrderId'] = id;
         request['cancelReplaceMode'] = 'STOP_ON_FAILURE';
