@@ -433,6 +433,7 @@ class BaseExchange {
         'paymium',
         'phemex',
         'poloniex',
+        'revolutx',
         'tokocrypto',
         'toobit',
         'upbit',
