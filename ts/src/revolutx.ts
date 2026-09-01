@@ -1062,12 +1062,12 @@ export default class revolutx extends Exchange {
         const request: Dict = {
             'venue_order_id': id,
         };
-        await this.privateDelete10OrdersVenueOrderId (this.extend (request, params));
-        return {
+        const response = await this.privateDelete10OrdersVenueOrderId (this.extend (request, params));
+        return this.safeOrder ({
+            'info': response,
             'id': id,
             'status': 'canceled',
-            'info': undefined,
-        } as Order;
+        });
     }
 
     /**

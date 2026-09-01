@@ -1226,8 +1226,32 @@
                 "httpResponse": {},
                 "parsedResponse": {
                     "id": "7a52e92e-8639-4fe1-abaa-68d3a2d5234b",
+                    "clientOrderId": null,
+                    "symbol": null,
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "side": null,
+                    "amount": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "cost": null,
+                    "filled": null,
+                    "remaining": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
                     "status": "canceled",
-                    "info": null
+                    "average": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "info": {}
                 }
             }
         ],
