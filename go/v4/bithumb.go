@@ -18,7 +18,7 @@ func (this *BithumbCore) Describe() any {
 		"id":        "bithumb",
 		"name":      "Bithumb",
 		"countries": []any{"KR"},
-		"rateLimit": 500,
+		"rateLimit": 50,
 		"pro":       true,
 		"has": map[string]any{
 			"CORS":                                   true,
@@ -188,10 +188,10 @@ func (this *BithumbCore) Describe() any {
 						"cost": 1,
 					},
 					"trade/place": map[string]any{
-						"cost": 1,
+						"cost": 5,
 					},
 					"trade/cancel": map[string]any{
-						"cost": 1,
+						"cost": 5,
 					},
 					"trade/btc_withdrawal": map[string]any{
 						"cost": 1,
@@ -203,13 +203,13 @@ func (this *BithumbCore) Describe() any {
 						"cost": 1,
 					},
 					"trade/market_buy": map[string]any{
-						"cost": 1,
+						"cost": 5,
 					},
 					"trade/market_sell": map[string]any{
-						"cost": 1,
+						"cost": 5,
 					},
 					"trade/stop_limit": map[string]any{
-						"cost": 1,
+						"cost": 5,
 					},
 				},
 			},
