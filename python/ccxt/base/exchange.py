@@ -1333,6 +1333,8 @@ class BaseExchange(object):
         elif isinstance(timestamp, bool):
             return None
         elif isinstance(timestamp, float):
+            if not math.isfinite(timestamp):
+                return None
             timestamp = math.floor(timestamp)
         if not isinstance(timestamp, int) or timestamp < 0 or timestamp > 8640000000000000:
             return None

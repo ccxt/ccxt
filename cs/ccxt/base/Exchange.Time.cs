@@ -83,16 +83,21 @@ public partial class BaseExchange
                 return null;
             }
         }
-        Int64 startdatetime;
+        double milliseconds;
         try
         {
-            // non-integer numbers are floored (e.g. 514862627559.9 -> 514862627559)
-            startdatetime = (Int64)Math.Floor(Convert.ToDouble(ts, System.Globalization.CultureInfo.InvariantCulture));
+            milliseconds = Convert.ToDouble(ts, System.Globalization.CultureInfo.InvariantCulture);
         }
         catch (Exception e)
         {
             return null;
         }
+        if (double.IsNaN(milliseconds) || double.IsInfinity(milliseconds))
+        {
+            return null;
+        }
+        // non-integer numbers are floored (e.g. 514862627559.9 -> 514862627559)
+        Int64 startdatetime = (Int64)Math.Floor(milliseconds);
         if (startdatetime < 0 || startdatetime > 8640000000000000L)
         {
             return null;

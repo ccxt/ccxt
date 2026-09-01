@@ -1107,6 +1107,10 @@ class BaseExchange {
             return null;
         }
         if (is_float($timestamp)) {
+            // reject NaN / +-INF (and out-of-range magnitudes) before the lossy int cast
+            if (!is_finite($timestamp) || $timestamp < 0 || $timestamp > 8640000000000000) {
+                return null;
+            }
             $timestamp = (int) floor($timestamp);
         }
         else if (is_string($timestamp)) {
