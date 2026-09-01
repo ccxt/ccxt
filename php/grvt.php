@@ -1278,10 +1278,13 @@ class grvt extends Exchange {
         //
         $marketId = $this->safe_string($rawItem, 'instrument');
         $ts = $this->safe_integer_product($rawItem, 'funding_time', 0.000001);
+        // the api documents funding_rate in percentage points, and a unified
+        // fundingRate is a fraction, with the Manual's examples reading 0.000072
+        $rate = $this->safe_string($rawItem, 'funding_rate');
         return array(
             'info' => $rawItem,
             'symbol' => $this->safe_symbol($marketId, $market),
-            'fundingRate' => $this->safe_number($rawItem, 'funding_rate'),
+            'fundingRate' => $this->parse_number(Precise::string_div($rate, '100')),
             'timestamp' => $ts,
             'datetime' => $this->iso8601($ts),
         );

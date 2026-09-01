@@ -916,6 +916,12 @@ abstract class bingx extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function account_v1_private_get_account_apirestrictions($params = array()) {
+        return $this->request('account/apiRestrictions', array('account', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function account_v1_private_get_allaccountbalance($params = array()) {
         return $this->request('allAccountBalance', array('account', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
     }
@@ -2034,6 +2040,12 @@ abstract class bingx extends \ccxt\async\Exchange {
      */
     public function accountV1PrivateGetAccountApiPermissions($params = array()) {
         return $this->request('account/apiPermissions', array('account', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function accountV1PrivateGetAccountApiRestrictions($params = array()) {
+        return $this->request('account/apiRestrictions', array('account', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
