@@ -461,6 +461,7 @@ class bingx(Exchange, ImplicitAPI):
                                 'uid': {'cost': 1},
                                 'apiKey/query': {'cost': 2},
                                 'account/apiPermissions': {'cost': 5},
+                                'account/apiRestrictions': {'cost': 5},
                                 'allAccountBalance': {'cost': 2},
                             },
                             'post': {
@@ -1063,6 +1064,8 @@ class bingx(Exchange, ImplicitAPI):
             isActive = True  # swap active
         elif (self.safe_bool(market, 'apiStateSell') is True) and (self.safe_bool(market, 'apiStateBuy') is True) and (self.safe_string(market, 'status') == '1'):
             isActive = True  # spot active
+        elif checkIsInverse and (self.safe_string(market, 'status') == '1'):
+            isActive = True  # inverse swap active
         isInverse = None if (spot) else checkIsInverse
         isLinear = None if (spot) else checkIsLinear
         minAmount = None
@@ -5175,7 +5178,7 @@ class bingx(Exchange, ImplicitAPI):
         currencyId = self.safe_string(depositAddress, 'coin')
         currency = self.safe_currency(currencyId, currency)
         code = currency['code']
-        address = self.safe_string(depositAddress, 'addressWithPrefix')
+        address = self.safe_string_2(depositAddress, 'addressWithPrefix', 'address')
         networkId = self.safe_string(depositAddress, 'network')
         networkCode = self.network_id_to_code(networkId, code)
         # despite its name the addressWithPrefix field sometimes arrives without
@@ -5204,6 +5207,7 @@ class bingx(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch deposits for
         :param int [limit]: the maximum number of deposits structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: the latest time in ms to fetch deposits for
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         if self.markets is None:
@@ -5217,7 +5221,8 @@ class bingx(Exchange, ImplicitAPI):
         if since is not None:
             request['startTime'] = since
         if limit is not None:
-            request['limit'] = limit  # default 1000
+            request['limit'] = min(limit, 1000)  # api maximum 1000
+        request, params = self.handle_until_option('endTime', request, params)
         response = self.spotV3PrivateGetCapitalDepositHisrec(self.extend(request, params))
         #
         #    [
@@ -5248,6 +5253,7 @@ class bingx(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch withdrawals for
         :param int [limit]: the maximum number of withdrawals structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: the latest time in ms to fetch withdrawals for
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         if self.markets is None:
@@ -5261,7 +5267,8 @@ class bingx(Exchange, ImplicitAPI):
         if since is not None:
             request['startTime'] = since
         if limit is not None:
-            request['limit'] = limit  # default 1000
+            request['limit'] = min(limit, 1000)  # api maximum 1000
+        request, params = self.handle_until_option('endTime', request, params)
         response = self.spotV3PrivateGetCapitalWithdrawHistory(self.extend(request, params))
         #
         #    [
@@ -6665,7 +6672,8 @@ class bingx(Exchange, ImplicitAPI):
                 type = 'api/asset'
             version = section[2]
             access = section[3]
-        if path != 'account/apiPermissions':
+        flatAccountPaths = ['account/apiPermissions', 'account/apiRestrictions']
+        if not self.in_array(path, flatAccountPaths):
             if type == 'spot' and version == 'v3':
                 url += '/api'
             else:

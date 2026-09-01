@@ -23,7 +23,7 @@ public class BithumbCore extends BithumbApi
             put( "id", "bithumb" );
             put( "name", "Bithumb" );
             put( "countries", new java.util.ArrayList<Object>(java.util.Arrays.asList("KR")) );
-            put( "rateLimit", 500 );
+            put( "rateLimit", 8.334 );
             put( "pro", true );
             put( "has", new java.util.HashMap<String, Object>() {{
                 put( "CORS", true );
@@ -37,13 +37,18 @@ public class BithumbCore extends BithumbApi
                 put( "borrowIsolatedMargin", false );
                 put( "borrowMargin", false );
                 put( "cancelOrder", true );
+                put( "cancelOrders", true );
                 put( "closeAllPositions", false );
                 put( "closePosition", false );
+                put( "createDepositAddress", true );
+                put( "createMarketBuyOrderWithCost", true );
                 put( "createMarketOrder", true );
                 put( "createOrder", true );
+                put( "createOrders", true );
                 put( "createOrderWithTakeProfitAndStopLoss", false );
                 put( "createOrderWithTakeProfitAndStopLossWs", false );
                 put( "createReduceOnlyOrder", false );
+                put( "createTwapOrder", true );
                 put( "fetchBalance", true );
                 put( "fetchBorrowInterest", false );
                 put( "fetchBorrowRate", false );
@@ -51,9 +56,15 @@ public class BithumbCore extends BithumbApi
                 put( "fetchBorrowRateHistory", false );
                 put( "fetchBorrowRates", false );
                 put( "fetchBorrowRatesPerSymbol", false );
+                put( "fetchCanceledOrders", true );
+                put( "fetchClosedOrders", true );
                 put( "fetchCrossBorrowRate", false );
                 put( "fetchCrossBorrowRates", false );
                 put( "fetchCurrencies", false );
+                put( "fetchDeposit", true );
+                put( "fetchDepositAddress", true );
+                put( "fetchDepositAddresses", true );
+                put( "fetchDeposits", true );
                 put( "fetchFundingHistory", false );
                 put( "fetchFundingInterval", false );
                 put( "fetchFundingIntervals", false );
@@ -89,6 +100,7 @@ public class BithumbCore extends BithumbApi
                 put( "fetchOptionChain", false );
                 put( "fetchOrder", true );
                 put( "fetchOrderBook", true );
+                put( "fetchOrders", true );
                 put( "fetchPosition", false );
                 put( "fetchPositionHistory", false );
                 put( "fetchPositionMode", false );
@@ -104,6 +116,9 @@ public class BithumbCore extends BithumbApi
                 put( "fetchTransfer", false );
                 put( "fetchTransfers", false );
                 put( "fetchVolatilityHistory", false );
+                put( "fetchWithdrawal", true );
+                put( "fetchWithdrawals", true );
+                put( "fetchWithdrawalWhitelist", true );
                 put( "reduceMargin", false );
                 put( "repayCrossMargin", false );
                 put( "repayIsolatedMargin", false );
@@ -118,7 +133,7 @@ public class BithumbCore extends BithumbApi
             put( "urls", new java.util.HashMap<String, Object>() {{
                 put( "logo", "https://github.com/user-attachments/assets/c9e0eefb-4777-46b9-8f09-9d7f7c4af82d" );
                 put( "api", new java.util.HashMap<String, Object>() {{
-                    put( "public", "https://api.{hostname}/public" );
+                    put( "public", "https://api.{hostname}" );
                     put( "private", "https://api.{hostname}" );
                 }} );
                 put( "www", "https://www.bithumb.com" );
@@ -128,48 +143,134 @@ public class BithumbCore extends BithumbApi
             put( "api", new java.util.HashMap<String, Object>() {{
                 put( "public", new java.util.HashMap<String, Object>() {{
                     put( "get", new java.util.HashMap<String, Object>() {{
-                        put( "ticker/ALL_{quoteId}", new java.util.HashMap<String, Object>() {{
+                        put( "public/ticker/ALL_{quoteId}", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "ticker/{baseId}_{quoteId}", new java.util.HashMap<String, Object>() {{
+                        put( "public/ticker/{baseId}_{quoteId}", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "orderbook/ALL_{quoteId}", new java.util.HashMap<String, Object>() {{
+                        put( "public/orderbook/ALL_{quoteId}", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "orderbook/{baseId}_{quoteId}", new java.util.HashMap<String, Object>() {{
+                        put( "public/orderbook/{baseId}_{quoteId}", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "transaction_history/{baseId}_{quoteId}", new java.util.HashMap<String, Object>() {{
+                        put( "public/transaction_history/{baseId}_{quoteId}", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "network-info", new java.util.HashMap<String, Object>() {{
+                        put( "public/network-info", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "assetsstatus/multichain/ALL", new java.util.HashMap<String, Object>() {{
+                        put( "public/assetsstatus/multichain/ALL", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "assetsstatus/multichain/{currency}", new java.util.HashMap<String, Object>() {{
+                        put( "public/assetsstatus/multichain/{currency}", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "withdraw/minimum/ALL", new java.util.HashMap<String, Object>() {{
+                        put( "public/withdraw/minimum/ALL", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "withdraw/minimum/{currency}", new java.util.HashMap<String, Object>() {{
+                        put( "public/withdraw/minimum/{currency}", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "assetsstatus/ALL", new java.util.HashMap<String, Object>() {{
+                        put( "public/assetsstatus/ALL", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "assetsstatus/{baseId}", new java.util.HashMap<String, Object>() {{
+                        put( "public/assetsstatus/{baseId}", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "candlestick/{baseId}_{quoteId}/{interval}", new java.util.HashMap<String, Object>() {{
+                        put( "public/candlestick/{baseId}_{quoteId}/{interval}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/market/all", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/candles/minutes/{unit}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/candles/days", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/candles/weeks", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/candles/months", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/trades/ticks", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/ticker", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/orderbook", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/market/virtual_asset_warning", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/notices", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v2/fee/inout/{currency}", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                     }} );
                 }} );
                 put( "private", new java.util.HashMap<String, Object>() {{
+                    put( "get", new java.util.HashMap<String, Object>() {{
+                        put( "v1/accounts", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/orders/chance", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/orders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/twap", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/withdraws", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/withdraws/krw", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/withdraw", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/withdraws/chance", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/withdraws/coin_addresses", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/deposits", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/deposits/krw", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/deposit", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/deposits/coin_addresses", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/deposits/coin_address", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/status/wallet", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/api_keys", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                    }} );
                     put( "post", new java.util.HashMap<String, Object>() {{
                         put( "info/account", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
@@ -193,10 +294,10 @@ public class BithumbCore extends BithumbApi
                             put( "cost", 1 );
                         }} );
                         put( "trade/place", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
+                            put( "cost", 5 );
                         }} );
                         put( "trade/cancel", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
+                            put( "cost", 5 );
                         }} );
                         put( "trade/btc_withdrawal", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
@@ -214,6 +315,41 @@ public class BithumbCore extends BithumbApi
                             put( "cost", 1 );
                         }} );
                         put( "trade/stop_limit", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v2/orders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v2/orders/batch", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 6 );
+                        }} );
+                        put( "v2/orders/cancel", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 6 );
+                        }} );
+                        put( "v1/twap", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/withdraws/coin", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/withdraws/krw", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/deposits/generate_coin_address", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/deposits/krw", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                    }} );
+                    put( "delete", new java.util.HashMap<String, Object>() {{
+                        put( "v2/order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/twap", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/withdraws/coin", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                     }} );
@@ -238,9 +374,34 @@ public class BithumbCore extends BithumbApi
                         put( "takeProfitPrice", false );
                         put( "attachedStopLossTakeProfit", null );
                         put( "timeInForce", new java.util.HashMap<String, Object>() {{
-                            put( "IOC", false );
-                            put( "FOK", false );
-                            put( "PO", false );
+                            put( "GTC", true );
+                            put( "IOC", true );
+                            put( "FOK", true );
+                            put( "PO", true );
+                            put( "GTD", false );
+                        }} );
+                        put( "hedged", false );
+                        put( "trailing", false );
+                        put( "leverage", false );
+                        put( "marketBuyRequiresPrice", true );
+                        put( "marketBuyByCost", true );
+                        put( "selfTradePrevention", false );
+                        put( "iceberg", false );
+                    }} );
+                    put( "createOrders", new java.util.HashMap<String, Object>() {{
+                        put( "max", 20 );
+                        put( "marginMode", false );
+                        put( "triggerPrice", false );
+                        put( "triggerPriceType", null );
+                        put( "triggerDirection", false );
+                        put( "stopLossPrice", false );
+                        put( "takeProfitPrice", false );
+                        put( "attachedStopLossTakeProfit", null );
+                        put( "timeInForce", new java.util.HashMap<String, Object>() {{
+                            put( "GTC", true );
+                            put( "IOC", true );
+                            put( "FOK", true );
+                            put( "PO", true );
                             put( "GTD", false );
                         }} );
                         put( "hedged", false );
@@ -251,25 +412,48 @@ public class BithumbCore extends BithumbApi
                         put( "selfTradePrevention", false );
                         put( "iceberg", false );
                     }} );
-                    put( "createOrders", null );
                     put( "fetchMyTrades", null );
                     put( "fetchOrder", new java.util.HashMap<String, Object>() {{
                         put( "marginMode", false );
                         put( "trigger", false );
                         put( "trailing", false );
-                        put( "symbolRequired", true );
+                        put( "symbolRequired", false );
                     }} );
                     put( "fetchOpenOrders", new java.util.HashMap<String, Object>() {{
                         put( "marginMode", false );
-                        put( "limit", 1000 );
+                        put( "limit", 100 );
                         put( "trigger", false );
                         put( "trailing", false );
-                        put( "symbolRequired", true );
+                        put( "symbolRequired", false );
                     }} );
-                    put( "fetchOrders", null );
-                    put( "fetchClosedOrders", null );
+                    put( "fetchOrders", new java.util.HashMap<String, Object>() {{
+                        put( "marginMode", false );
+                        put( "limit", 100 );
+                        put( "daysBack", 0 );
+                        put( "untilDays", 0 );
+                        put( "trigger", false );
+                        put( "trailing", false );
+                        put( "symbolRequired", false );
+                    }} );
+                    put( "fetchCanceledOrders", new java.util.HashMap<String, Object>() {{
+                        put( "marginMode", false );
+                        put( "limit", 100 );
+                        put( "trigger", false );
+                        put( "trailing", false );
+                        put( "symbolRequired", false );
+                    }} );
+                    put( "fetchClosedOrders", new java.util.HashMap<String, Object>() {{
+                        put( "marginMode", false );
+                        put( "limit", 100 );
+                        put( "daysBack", 0 );
+                        put( "daysBackCanceled", 0 );
+                        put( "untilDays", 0 );
+                        put( "trigger", false );
+                        put( "trailing", false );
+                        put( "symbolRequired", false );
+                    }} );
                     put( "fetchOHLCV", new java.util.HashMap<String, Object>() {{
-                        put( "limit", 1000 );
+                        put( "limit", 200 );
                     }} );
                 }} );
                 put( "swap", new java.util.HashMap<String, Object>() {{
@@ -282,6 +466,7 @@ public class BithumbCore extends BithumbApi
                 }} );
             }} );
             put( "exceptions", new java.util.HashMap<String, Object>() {{
+                put( "400", BadRequest.class );
                 put( "Bad Request(SSL)", BadRequest.class );
                 put( "Bad Request(Bad Method)", BadRequest.class );
                 put( "Bad Request.(Auth Data)", AuthenticationError.class );
@@ -295,33 +480,36 @@ public class BithumbCore extends BithumbApi
                 put( "5600", ExchangeError.class );
                 put( "Unknown Error", ExchangeError.class );
                 put( "After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions", ExchangeError.class );
+                put( "Missing request parameter error. Check the required parameters!", BadRequest.class );
             }} );
             put( "timeframes", new java.util.HashMap<String, Object>() {{
-                put( "1m", "1m" );
-                put( "3m", "3m" );
-                put( "5m", "5m" );
-                put( "10m", "10m" );
-                put( "30m", "30m" );
-                put( "1h", "1h" );
-                put( "6h", "6h" );
-                put( "12h", "12h" );
-                put( "1d", "24h" );
+                put( "1m", 1 );
+                put( "3m", 3 );
+                put( "5m", 5 );
+                put( "10m", 10 );
+                put( "15m", 15 );
+                put( "30m", 30 );
+                put( "1h", 60 );
+                put( "4h", 240 );
             }} );
             put( "options", new java.util.HashMap<String, Object>() {{
+                put( "generation", 2 );
+                put( "fetchTickersGeneration2MaxMarketIdsPerRequest", 300 );
+                put( "createMarketBuyOrderRequiresPrice", true );
                 put( "quoteCurrencies", new java.util.HashMap<String, Object>() {{
-                    put( "BTC", new java.util.HashMap<String, Object>() {{
-                        put( "limits", new java.util.HashMap<String, Object>() {{
-                            put( "cost", new java.util.HashMap<String, Object>() {{
-                                put( "min", 0.0002 );
-                                put( "max", 100 );
-                            }} );
-                        }} );
-                    }} );
                     put( "KRW", new java.util.HashMap<String, Object>() {{
                         put( "limits", new java.util.HashMap<String, Object>() {{
                             put( "cost", new java.util.HashMap<String, Object>() {{
                                 put( "min", 500 );
                                 put( "max", 5000000000L );
+                            }} );
+                        }} );
+                    }} );
+                    put( "BTC", new java.util.HashMap<String, Object>() {{
+                        put( "limits", new java.util.HashMap<String, Object>() {{
+                            put( "cost", new java.util.HashMap<String, Object>() {{
+                                put( "min", 0.0002 );
+                                put( "max", 100 );
                             }} );
                         }} );
                     }} );
@@ -353,12 +541,26 @@ public class BithumbCore extends BithumbApi
         return this.decimalToPrecision(amount, TRUNCATE, Helpers.GetValue(Helpers.GetValue(market, "precision"), "amount"), DECIMAL_PLACES);
     }
 
+    public Object getGen2MarketId(Object market)
+    {
+        Object marketId = this.safeString(market, "id");
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(marketId, null))) && Helpers.isTrue((Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(marketId, "-"), 0)))))
+        {
+            return marketId;
+        }
+        Object quoteId = this.safeString2(market, "quoteId", "quote");
+        Object baseId = this.safeString2(market, "baseId", "base");
+        return Helpers.add(Helpers.add(quoteId, "-"), baseId);
+    }
+
     /**
      * @method
      * @name bithumb#fetchMarkets
      * @description retrieves data on all markets for bithumb
      * @see https://apidocs.bithumb.com/v1.2.0/reference/%ED%98%84%EC%9E%AC%EA%B0%80-%EC%A0%95%EB%B3%B4-%EC%A1%B0%ED%9A%8C-all
+     * @see https://apidocs.bithumb.com/reference/%EA%B1%B0%EB%9E%98-%EB%8C%80%EC%83%81-%EB%AA%A9%EB%A1%9D-%EC%A1%B0%ED%9A%8C
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @returns {object[]} an array of objects representing market data
      */
     public java.util.concurrent.CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
@@ -368,55 +570,59 @@ public class BithumbCore extends BithumbApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object quoteCurrencies = this.safeDict(this.options, "quoteCurrencies", new java.util.HashMap<String, Object>() {{}});
-            Object quotes = Helpers.objectKeys(quoteCurrencies);
-            Object promises = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(quotes)); i++)
+            Object request = new java.util.HashMap<String, Object>() {{}};
+            Object generation = null;
+            var generationparametersVariable = this.handleOptionAndParams(parameters, "fetchMarkets", "generation", 2);
+            generation = ((java.util.List<Object>) generationparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
+            if (Helpers.isTrue(Helpers.isEqual(generation, 2)))
             {
-                final Object finalI = i;
-                Object request = new java.util.HashMap<String, Object>() {{
-                    put( "quoteId", Helpers.GetValue(quotes, finalI) );
-                }};
-                ((java.util.List<Object>)promises).add(this.publicGetTickerALLQuoteId(this.extend(request, parameters)));
-            }
-            Object results = (Helpers.promiseAll(promises)).join();
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(quotes)); i++)
-            {
-                Object quote = Helpers.GetValue(quotes, i);
-                Object quoteId = quote;
-                Object response = Helpers.GetValue(results, i);
-                Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-                Object extension = this.safeDict(quoteCurrencies, quote, new java.util.HashMap<String, Object>() {{}});
-                Object currencyIds = Helpers.objectKeys(data);
-                for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(currencyIds)); j++)
+                Helpers.addElementToObject(request, "isDetails", true);
+                Object response = (this.publicGetV1MarketAll(this.extend(request, parameters))).join();
+                //
+                //     [
+                //         {
+                //             "market": "KRW-BTC",
+                //             "korean_name": "비트코인",
+                //             "english_name": "Bitcoin",
+                //             "market_warning": "NONE"
+                //         },
+                //     ]
+                //
+                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
                 {
-                    Object currencyId = Helpers.GetValue(currencyIds, j);
-                    if (Helpers.isTrue(Helpers.isEqual(currencyId, "date")))
+                    Object entry = Helpers.GetValue(response, i);
+                    Object marketId = this.safeString(entry, "market");
+                    Object baseId = null;
+                    Object quoteId = null;
+                    Object base = null;
+                    Object quote = null;
+                    if (Helpers.isTrue(!Helpers.isEqual(marketId, null)))
+                    {
+                        Object parts = Helpers.split(marketId, "-");
+                        // to match gen 1, the quoteId is the first currency derived from the market id
+                        baseId = Helpers.GetValue(parts, 1);
+                        quoteId = Helpers.GetValue(parts, 0);
+                        base = this.safeCurrencyCode(baseId);
+                        quote = this.safeCurrencyCode(quoteId);
+                    }
+                    if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(base, null))) || Helpers.isTrue((Helpers.isEqual(quote, null)))))
                     {
                         continue;
                     }
-                    Object market = Helpers.GetValue(data, currencyId);
-                    Object base = this.safeCurrencyCode(currencyId);
-                    Object active = true;
-                    if (Helpers.isTrue(Helpers.isArray(market)))
-                    {
-                        Object numElements = Helpers.getArrayLength(market);
-                        if (Helpers.isTrue(Helpers.isEqual(numElements, 0)))
-                        {
-                            active = false;
-                        }
-                    }
-                    final Object finalCurrencyId = currencyId;
+    final Object finalMarketId = marketId;
                     final Object finalBase = base;
-                    final Object finalActive = active;
-                    Object entry = this.deepExtend(new java.util.HashMap<String, Object>() {{
-                        put( "id", finalCurrencyId );
-                        put( "symbol", Helpers.add(Helpers.add(finalBase, "/"), quote) );
+                    final Object finalQuote = quote;
+                    final Object finalBaseId = baseId;
+                    final Object finalQuoteId = quoteId;
+                                    ((java.util.List<Object>)result).add(new java.util.HashMap<String, Object>() {{
+                        put( "id", finalMarketId );
+                        put( "symbol", Helpers.add(Helpers.add(finalBase, "/"), finalQuote) );
                         put( "base", finalBase );
-                        put( "quote", quote );
+                        put( "quote", finalQuote );
                         put( "settle", null );
-                        put( "baseId", finalCurrencyId );
-                        put( "quoteId", quoteId );
+                        put( "baseId", finalBaseId );
+                        put( "quoteId", finalQuoteId );
                         put( "settleId", null );
                         put( "type", "spot" );
                         put( "spot", true );
@@ -424,13 +630,13 @@ public class BithumbCore extends BithumbApi
                         put( "swap", false );
                         put( "future", false );
                         put( "option", false );
-                        put( "active", finalActive );
+                        put( "active", true );
                         put( "contract", false );
                         put( "linear", null );
                         put( "inverse", null );
                         put( "contractSize", null );
                         put( "expiry", null );
-                        put( "expiryDateTime", null );
+                        put( "expiryDatetime", null );
                         put( "strike", null );
                         put( "optionType", null );
                         put( "precision", new java.util.HashMap<String, Object>() {{
@@ -450,12 +656,105 @@ public class BithumbCore extends BithumbApi
                                 put( "min", null );
                                 put( "max", null );
                             }} );
-                            put( "cost", new java.util.HashMap<String, Object>() {{}} );
+                            put( "cost", new java.util.HashMap<String, Object>() {{
+                                put( "min", null );
+                                put( "max", null );
+                            }} );
                         }} );
                         put( "created", null );
-                        put( "info", market );
-                    }}, extension);
-                    ((java.util.List<Object>)result).add(entry);
+                        put( "info", entry );
+                    }});
+                }
+            } else
+            {
+                Object quoteCurrencies = this.safeDict(this.options, "quoteCurrencies", new java.util.HashMap<String, Object>() {{}});
+                Object quotes = Helpers.objectKeys(quoteCurrencies);
+                Object promises = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(quotes)); i++)
+                {
+                    Helpers.addElementToObject(request, "quoteId", Helpers.GetValue(quotes, i));
+                    ((java.util.List<Object>)promises).add(this.publicGetPublicTickerALLQuoteId(this.extend(request, parameters)));
+                }
+                Object results = (Helpers.promiseAll(promises)).join();
+                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(quotes)); i++)
+                {
+                    Object quote = Helpers.GetValue(quotes, i);
+                    Object quoteId = quote;
+                    Object response = Helpers.GetValue(results, i);
+                    Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+                    Object extension = this.safeDict(quoteCurrencies, quote, new java.util.HashMap<String, Object>() {{}});
+                    Object currencyIds = Helpers.objectKeys(data);
+                    for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(currencyIds)); j++)
+                    {
+                        Object currencyId = Helpers.GetValue(currencyIds, j);
+                        if (Helpers.isTrue(Helpers.isEqual(currencyId, "date")))
+                        {
+                            continue;
+                        }
+                        Object market = Helpers.GetValue(data, currencyId);
+                        Object base = this.safeCurrencyCode(currencyId);
+                        Object active = true;
+                        if (Helpers.isTrue(Helpers.isArray(market)))
+                        {
+                            Object numElements = Helpers.getArrayLength(market);
+                            if (Helpers.isTrue(Helpers.isEqual(numElements, 0)))
+                            {
+                                active = false;
+                            }
+                        }
+                        final Object finalCurrencyId = currencyId;
+                        final Object finalBase = base;
+                        final Object finalQuote = quote;
+                        final Object finalQuoteId = quoteId;
+                        final Object finalActive = active;
+                        Object entry = this.deepExtend(new java.util.HashMap<String, Object>() {{
+                            put( "id", finalCurrencyId );
+                            put( "symbol", Helpers.add(Helpers.add(finalBase, "/"), finalQuote) );
+                            put( "base", finalBase );
+                            put( "quote", finalQuote );
+                            put( "settle", null );
+                            put( "baseId", finalCurrencyId );
+                            put( "quoteId", finalQuoteId );
+                            put( "settleId", null );
+                            put( "type", "spot" );
+                            put( "spot", true );
+                            put( "margin", false );
+                            put( "swap", false );
+                            put( "future", false );
+                            put( "option", false );
+                            put( "active", finalActive );
+                            put( "contract", false );
+                            put( "linear", null );
+                            put( "inverse", null );
+                            put( "contractSize", null );
+                            put( "expiry", null );
+                            put( "expiryDatetime", null );
+                            put( "strike", null );
+                            put( "optionType", null );
+                            put( "precision", new java.util.HashMap<String, Object>() {{
+                                put( "amount", Helpers.parseInt("4") );
+                                put( "price", Helpers.parseInt("4") );
+                            }} );
+                            put( "limits", new java.util.HashMap<String, Object>() {{
+                                put( "leverage", new java.util.HashMap<String, Object>() {{
+                                    put( "min", null );
+                                    put( "max", null );
+                                }} );
+                                put( "amount", new java.util.HashMap<String, Object>() {{
+                                    put( "min", null );
+                                    put( "max", null );
+                                }} );
+                                put( "price", new java.util.HashMap<String, Object>() {{
+                                    put( "min", null );
+                                    put( "max", null );
+                                }} );
+                                put( "cost", new java.util.HashMap<String, Object>() {{}} );
+                            }} );
+                            put( "created", null );
+                            put( "info", market );
+                        }}, extension);
+                        ((java.util.List<Object>)result).add(entry);
+                    }
                 }
             }
             return result;
@@ -465,21 +764,65 @@ public class BithumbCore extends BithumbApi
 
     public Object parseBalance(Object response)
     {
+        //
+        // generation 1
+        //
+        //     {
+        //         "status": "0000",
+        //         "data": {
+        //             "total_krw": "51026.000000",
+        //             "in_use_krw": "0.00000000",
+        //             "available_krw": "51026.00000000",
+        //         }
+        //     }
+        //
+        // generation 2
+        //
+        //     [
+        //         {
+        //             "currency": "KRW",
+        //             "balance": "51026",
+        //             "locked": "0",
+        //             "avg_buy_price": "0",
+        //             "avg_buy_price_modified": false,
+        //             "unit_currency": "KRW"
+        //         },
+        //     ]
+        //
         Object result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
         }};
         Object balances = this.safeDict(response, "data");
-        Object codes = Helpers.objectKeys(this.currencies);
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(codes)); i++)
+        if (Helpers.isTrue(!Helpers.isEqual(balances, null)))
         {
-            Object code = Helpers.GetValue(codes, i);
-            Object account = this.account();
-            Object currency = this.currency(code);
-            Object lowerCurrencyId = this.safeStringLower(currency, "id");
-            Helpers.addElementToObject(account, "total", this.safeString(balances, Helpers.add("total_", lowerCurrencyId)));
-            Helpers.addElementToObject(account, "used", this.safeString(balances, Helpers.add("in_use_", lowerCurrencyId)));
-            Helpers.addElementToObject(account, "free", this.safeString(balances, Helpers.add("available_", lowerCurrencyId)));
-            Helpers.addElementToObject(result, code, account);
+            Object codes = Helpers.objectKeys(this.currencies);
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(codes)); i++)
+            {
+                Object code = Helpers.GetValue(codes, i);
+                Object account = this.account();
+                Object currency = this.currency(code);
+                Object lowerCurrencyId = this.safeStringLower(currency, "id");
+                Helpers.addElementToObject(account, "total", this.safeString(balances, Helpers.add("total_", lowerCurrencyId)));
+                Helpers.addElementToObject(account, "used", this.safeString(balances, Helpers.add("in_use_", lowerCurrencyId)));
+                Helpers.addElementToObject(account, "free", this.safeString(balances, Helpers.add("available_", lowerCurrencyId)));
+                Helpers.addElementToObject(result, code, account);
+            }
+        } else
+        {
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
+            {
+                Object entry = Helpers.GetValue(response, i);
+                Object account = this.account();
+                Object currencyId = this.safeString(entry, "currency");
+                Object code = this.safeCurrencyCode(currencyId);
+                if (Helpers.isTrue(Helpers.isEqual(code, null)))
+                {
+                    continue;
+                }
+                Helpers.addElementToObject(account, "free", this.safeString(entry, "balance"));
+                Helpers.addElementToObject(account, "used", this.safeString(entry, "locked"));
+                Helpers.addElementToObject(result, code, account);
+            }
         }
         return this.safeBalance(result);
     }
@@ -489,7 +832,9 @@ public class BithumbCore extends BithumbApi
      * @name bithumb#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://apidocs.bithumb.com/v1.2.0/reference/%EB%B3%B4%EC%9C%A0%EC%9E%90%EC%82%B0-%EC%A1%B0%ED%9A%8C
+     * @see https://apidocs.bithumb.com/reference/%EC%A0%84%EC%B2%B4-%EC%9E%90%EC%82%B0-%EC%A1%B0%ED%9A%8C
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchBalance(Object... optionalArgs)
@@ -502,10 +847,21 @@ public class BithumbCore extends BithumbApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{
-                put( "currency", "ALL" );
-            }};
-            Object response = (this.privatePostInfoBalance(this.extend(request, parameters))).join();
+            Object generation = null;
+            var generationparametersVariable = this.handleOptionAndParams(parameters, "fetchBalance", "generation", 2);
+            generation = ((java.util.List<Object>) generationparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
+            Object response = null;
+            if (Helpers.isTrue(Helpers.isEqual(generation, 2)))
+            {
+                response = (this.privateGetV1Accounts(parameters)).join();
+            } else
+            {
+                Object request = new java.util.HashMap<String, Object>() {{
+                    put( "currency", "ALL" );
+                }};
+                response = (this.privatePostInfoBalance(this.extend(request, parameters))).join();
+            }
             return this.parseBalance(response);
         });
 
@@ -516,9 +872,11 @@ public class BithumbCore extends BithumbApi
      * @name bithumb#fetchOrderBook
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://apidocs.bithumb.com/v1.2.0/reference/%ED%98%B8%EA%B0%80-%EC%A0%95%EB%B3%B4-%EC%A1%B0%ED%9A%8C
+     * @see https://apidocs.bithumb.com/reference/%ED%98%B8%EA%B0%80-%EC%A1%B0%ED%9A%8C
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
@@ -532,38 +890,90 @@ public class BithumbCore extends BithumbApi
             {
                 (this.loadMarkets()).join();
             }
+            Object generation = null;
+            var generationparametersVariable = this.handleOptionAndParams(parameters, "fetchOrderBook", "generation", 2);
+            generation = ((java.util.List<Object>) generationparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
             Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
-                put( "baseId", Helpers.GetValue(market, "baseId") );
-                put( "quoteId", Helpers.GetValue(market, "quoteId") );
-            }};
-            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+            Object request = new java.util.HashMap<String, Object>() {{}};
+            Object response = null;
+            Object data = null;
+            Object timestamp = null;
+            if (Helpers.isTrue(Helpers.isEqual(generation, 2)))
             {
-                Helpers.addElementToObject(request, "count", limit); // default 30, max 30
+                Helpers.addElementToObject(request, "markets", this.getGen2MarketId(market));
+                response = (this.publicGetV1Orderbook(this.extend(request, parameters))).join();
+                //
+                //     [
+                //         {
+                //             "market": "BTC-USDC",
+                //             "timestamp": 1782807920105,
+                //             "total_ask_size": 40322.8585,
+                //             "total_bid_size": 174206.4577,
+                //             "orderbook_units": [
+                //                 {
+                //                     "ask_price": 0.00001687,
+                //                     "bid_price": 0.0000168,
+                //                     "ask_size": 155,
+                //                     "bid_size": 41.6666
+                //                 },
+                //             ]
+                //         }
+                //     ]
+                //
+                Object result = this.safeDict(response, 0, new java.util.HashMap<String, Object>() {{}});
+                timestamp = this.safeInteger(result, "timestamp");
+                Object orderBookUnits = this.safeList(result, "orderbook_units", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                Object bids = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+                Object asks = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orderBookUnits)); i++)
+                {
+                    Object entry = Helpers.GetValue(orderBookUnits, i);
+                    ((java.util.List<Object>)bids).add(new java.util.HashMap<String, Object>() {{
+                        put( "price", BithumbCore.this.safeString(entry, "bid_price") );
+                        put( "quantity", BithumbCore.this.safeString(entry, "bid_size") );
+                    }});
+                    ((java.util.List<Object>)asks).add(new java.util.HashMap<String, Object>() {{
+                        put( "price", BithumbCore.this.safeString(entry, "ask_price") );
+                        put( "quantity", BithumbCore.this.safeString(entry, "ask_size") );
+                    }});
+                }
+                data = new java.util.HashMap<String, Object>() {{
+                    put( "bids", bids );
+                    put( "asks", asks );
+                }};
+            } else
+            {
+                Helpers.addElementToObject(request, "baseId", Helpers.GetValue(market, "baseId"));
+                Helpers.addElementToObject(request, "quoteId", Helpers.GetValue(market, "quoteId"));
+                if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+                {
+                    Helpers.addElementToObject(request, "count", limit); // default 30, max 30
+                }
+                response = (this.publicGetPublicOrderbookBaseIdQuoteId(this.extend(request, parameters))).join();
+                //
+                //     {
+                //         "status":"0000",
+                //         "data":{
+                //             "timestamp":"1587621553942",
+                //             "payment_currency":"KRW",
+                //             "order_currency":"BTC",
+                //             "bids":[
+                //                 {"price":"8652000","quantity":"0.0043"},
+                //                 {"price":"8651000","quantity":"0.0049"},
+                //                 {"price":"8650000","quantity":"8.4791"},
+                //             ],
+                //             "asks":[
+                //                 {"price":"8654000","quantity":"0.119"},
+                //                 {"price":"8655000","quantity":"0.254"},
+                //                 {"price":"8658000","quantity":"0.119"},
+                //             ]
+                //         }
+                //     }
+                //
+                data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+                timestamp = this.safeInteger(data, "timestamp");
             }
-            Object response = (this.publicGetOrderbookBaseIdQuoteId(this.extend(request, parameters))).join();
-            //
-            //     {
-            //         "status":"0000",
-            //         "data":{
-            //             "timestamp":"1587621553942",
-            //             "payment_currency":"KRW",
-            //             "order_currency":"BTC",
-            //             "bids":[
-            //                 {"price":"8652000","quantity":"0.0043"},
-            //                 {"price":"8651000","quantity":"0.0049"},
-            //                 {"price":"8650000","quantity":"8.4791"},
-            //             ],
-            //             "asks":[
-            //                 {"price":"8654000","quantity":"0.119"},
-            //                 {"price":"8655000","quantity":"0.254"},
-            //                 {"price":"8658000","quantity":"0.119"},
-            //             ]
-            //         }
-            //     }
-            //
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object timestamp = this.safeInteger(data, "timestamp");
             return this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity");
         });
 
@@ -572,7 +982,7 @@ public class BithumbCore extends BithumbApi
     public Object parseTicker(Object ticker, Object... optionalArgs)
     {
         //
-        // fetchTicker, fetchTickers
+        // generation 1: fetchTicker, fetchTickers
         //
         //     {
         //         "opening_price":"227100",
@@ -589,33 +999,130 @@ public class BithumbCore extends BithumbApi
         //         "date":"1587710327264", // fetchTickers inject this
         //     }
         //
+        // generation 2: fetchTicker, fetchTickers
+        //
+        //     {
+        //         "market": "BTC-USDC",
+        //         "trade_date": "20260701",
+        //         "trade_time": "233533",
+        //         "trade_date_kst": "20260702",
+        //         "trade_time_kst": "083533",
+        //         "trade_timestamp": 1782981333650,
+        //         "opening_price": 0.00001667,
+        //         "high_price": 0.00001667,
+        //         "low_price": 0.00001645,
+        //         "trade_price": 0.00001659,
+        //         "prev_closing_price": 0.00001673,
+        //         "change": "FALL",
+        //         "change_price": 1.4E-7,
+        //         "change_rate": 0.0084,
+        //         "signed_change_price": -1.4E-7,
+        //         "signed_change_rate": -0.0084,
+        //         "trade_volume": 1.43724182,
+        //         "acc_trade_price": 0.77934383561689,
+        //         "acc_trade_price_24h": 1.76373410121466379999997512,
+        //         "acc_trade_volume": 47175.3220805,
+        //         "acc_trade_volume_24h": 104565.90238645676844763,
+        //         "highest_52_week_price": 0.00006592,
+        //         "highest_52_week_date": "2025-11-05",
+        //         "lowest_52_week_price": 0.00000782,
+        //         "lowest_52_week_date": "2026-02-22",
+        //         "timestamp": 1782981333650
+        //     }
+        //
+        // generation 2: watchTicker
+        //
+        //     {
+        //         "type": "ticker",
+        //         "code": "KRW-BTC",
+        //         "opening_price": 94223000,
+        //         "high_price": 95465000,
+        //         "low_price": 93601000,
+        //         "trade_price": 95299000,
+        //         "prev_closing_price": 94201000,
+        //         "change": "RISE",
+        //         "change_price": 1098000,
+        //         "signed_change_price": 1098000,
+        //         "change_rate": 0.01165593,
+        //         "signed_change_rate": 0.01165593,
+        //         "trade_volume": 0.0094,
+        //         "acc_trade_volume": 151.44914647,
+        //         "acc_trade_volume_24h": 310.44065227,
+        //         "acc_trade_price": 14330306973.41015,
+        //         "acc_trade_price_24h": 29226371799.56915,
+        //         "trade_date": "20260710",
+        //         "trade_time": "124548",
+        //         "trade_timestamp": 1783655148303,
+        //         "ask_bid": "BID",
+        //         "acc_ask_volume": 52.30413928,
+        //         "acc_bid_volume": 99.14500719,
+        //         "highest_52_week_price": 179734000,
+        //         "highest_52_week_date": "2025-10-09",
+        //         "lowest_52_week_price": 81110000,
+        //         "lowest_52_week_date": "2026-02-06",
+        //         "market_state": "ACTIVE",
+        //         "is_trading_suspended": false,
+        //         "delisting_date": "",
+        //         "market_warning": "NONE",
+        //         "timestamp": 1783655148485,
+        //         "stream_type": "REALTIME"
+        //     }
+        //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(ticker, "date");
-        Object symbol = this.safeSymbol(null, market);
+        Object timestamp = this.safeInteger2(ticker, "date", "trade_timestamp");
+        Object marketId = this.safeString(ticker, "market");
+        Object symbol = this.safeSymbol(marketId, market);
+        Object close = this.safeString2(ticker, "closing_price", "trade_price");
+        Object change = this.safeString2(ticker, "signed_change_price", "change_price");
+        Object percentage = this.safeString2(ticker, "signed_change_rate", "change_rate");
         Object open = this.safeString(ticker, "opening_price");
-        Object close = this.safeString(ticker, "closing_price");
-        Object baseVolume = this.safeString(ticker, "units_traded_24H");
-        Object quoteVolume = this.safeString(ticker, "acc_trade_value_24H");
+        Object nonZeroOpen = this.omitZero(open);
+        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(marketId, null))) && Helpers.isTrue((!Helpers.isEqual(nonZeroOpen, null)))) && Helpers.isTrue((!Helpers.isEqual(close, null)))))
+        {
+            Object computedChange = Precise.stringSub(close, open);
+            // Some v2 payloads return signed_change_price as 0 while open/last imply a non-zero move.
+            if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(change, null))) && Helpers.isTrue(Precise.stringEq(change, "0"))) && !Helpers.isTrue(Precise.stringEq(computedChange, "0"))))
+            {
+                change = computedChange;
+                percentage = null;
+            }
+        }
+        Object high = this.safeString2(ticker, "max_price", "high_price");
+        Object low = this.safeString2(ticker, "min_price", "low_price");
+        // Some generation 2 ticker payloads can contain inconsistent high/low versus last.
+        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(close, null))) && Helpers.isTrue((!Helpers.isEqual(high, null)))) && Helpers.isTrue(Precise.stringGt(close, high))))
+        {
+            high = close;
+        }
+        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(close, null))) && Helpers.isTrue((!Helpers.isEqual(low, null)))) && Helpers.isTrue(Precise.stringLt(close, low))))
+        {
+            low = close;
+        }
+        final Object finalHigh = high;
+        final Object finalLow = low;
+        final Object finalClose = close;
+        final Object finalChange = change;
+        final Object finalPercentage = percentage;
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
             put( "datetime", BithumbCore.this.iso8601(timestamp) );
-            put( "high", BithumbCore.this.safeString(ticker, "max_price") );
-            put( "low", BithumbCore.this.safeString(ticker, "min_price") );
+            put( "high", finalHigh );
+            put( "low", finalLow );
             put( "bid", BithumbCore.this.safeString(ticker, "buy_price") );
-            put( "bidVolume", null );
+            put( "bidVolume", BithumbCore.this.safeString(ticker, "acc_bid_volume") );
             put( "ask", BithumbCore.this.safeString(ticker, "sell_price") );
-            put( "askVolume", null );
+            put( "askVolume", BithumbCore.this.safeString(ticker, "acc_ask_volume") );
             put( "vwap", null );
             put( "open", open );
-            put( "close", close );
-            put( "last", close );
-            put( "previousClose", null );
-            put( "change", null );
-            put( "percentage", null );
+            put( "close", finalClose );
+            put( "last", finalClose );
+            put( "previousClose", BithumbCore.this.safeString(ticker, "prev_closing_price") );
+            put( "change", finalChange );
+            put( "percentage", finalPercentage );
             put( "average", null );
-            put( "baseVolume", baseVolume );
-            put( "quoteVolume", quoteVolume );
+            put( "baseVolume", BithumbCore.this.safeString2(ticker, "units_traded_24H", "acc_trade_volume_24h") );
+            put( "quoteVolume", BithumbCore.this.safeString2(ticker, "acc_trade_value_24H", "acc_trade_price_24h") );
             put( "info", ticker );
         }}, market);
     }
@@ -625,8 +1132,10 @@ public class BithumbCore extends BithumbApi
      * @name bithumb#fetchTickers
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
      * @see https://apidocs.bithumb.com/v1.2.0/reference/%ED%98%84%EC%9E%AC%EA%B0%80-%EC%A0%95%EB%B3%B4-%EC%A1%B0%ED%9A%8C-all
+     * @see https://apidocs.bithumb.com/reference/%ED%98%84%EC%9E%AC%EA%B0%80-%EC%A1%B0%ED%9A%8C
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
@@ -640,57 +1149,196 @@ public class BithumbCore extends BithumbApi
             {
                 (this.loadMarkets()).join();
             }
+            Object generation = null;
+            var generationparametersVariable = this.handleOptionAndParams(parameters, "fetchTickers", "generation", 2);
+            generation = ((java.util.List<Object>) generationparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
+            Object request = new java.util.HashMap<String, Object>() {{}};
             Object result = new java.util.HashMap<String, Object>() {{}};
-            Object quoteCurrencies = this.safeDict(this.options, "quoteCurrencies", new java.util.HashMap<String, Object>() {{}});
-            Object quotes = Helpers.objectKeys(quoteCurrencies);
-            Object promises = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(quotes)); i++)
+            if (Helpers.isTrue(Helpers.isEqual(generation, 2)))
             {
-                final Object finalI = i;
-                Object request = new java.util.HashMap<String, Object>() {{
-                    put( "quoteId", Helpers.GetValue(quotes, finalI) );
-                }};
-                ((java.util.List<Object>)promises).add(this.publicGetTickerALLQuoteId(this.extend(request, parameters)));
-            }
-            Object responses = (Helpers.promiseAll(promises)).join();
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(quotes)); i++)
-            {
-                Object quote = Helpers.GetValue(quotes, i);
-                Object response = Helpers.GetValue(responses, i);
-                //
-                //     {
-                //         "status":"0000",
-                //         "data":{
-                //             "BTC":{
-                //                 "opening_price":"9045000",
-                //                 "closing_price":"9132000",
-                //                 "min_price":"8938000",
-                //                 "max_price":"9168000",
-                //                 "units_traded":"4619.79967497",
-                //                 "acc_trade_value":"42021363832.5187",
-                //                 "prev_closing_price":"9041000",
-                //                 "units_traded_24H":"8793.5045804",
-                //                 "acc_trade_value_24H":"78933458515.4962",
-                //                 "fluctate_24H":"530000",
-                //                 "fluctate_rate_24H":"6.16"
-                //             },
-                //             "date":"1587710878669"
-                //         }
-                //     }
-                //
-                Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-                Object timestamp = this.safeInteger(data, "date");
-                Object tickers = this.omit(data, "date");
-                Object currencyIds = Helpers.objectKeys(tickers);
-                for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(currencyIds)); j++)
+                // Bithumb v2 ticker payloads are inconsistent for all-market calls,
+                // so we aggregate 300 markets per request only when symbols are not provided.
+                Object marketIds = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+                Object symbolsForMarketIds = ((Helpers.isTrue((Helpers.isEqual(symbols, null))))) ? this.symbols : symbols;
+                Object symbolsForMarketIdsLength = Helpers.getArrayLength(symbolsForMarketIds);
+                for (var i = 0; Helpers.isLessThan(i, symbolsForMarketIdsLength); i++)
                 {
-                    Object currencyId = Helpers.GetValue(currencyIds, j);
-                    Object ticker = Helpers.GetValue(data, currencyId);
-                    Object base = this.safeCurrencyCode(currencyId);
-                    Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
-                    Object market = this.safeMarket(symbol);
-                    Helpers.addElementToObject(ticker, "date", timestamp);
-                    Helpers.addElementToObject(result, symbol, this.parseTicker(ticker, market));
+                    Object market = this.market(Helpers.GetValue(symbolsForMarketIds, i));
+                    ((java.util.List<Object>)marketIds).add(this.getGen2MarketId(market));
+                }
+                Object marketIdsLength = Helpers.getArrayLength(marketIds);
+                if (Helpers.isTrue(Helpers.isEqual(marketIdsLength, 0)))
+                {
+                    return result;
+                }
+                Object marketIdsChunks = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+                Object promises = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+                if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
+                {
+                    Helpers.addElementToObject(request, "markets", String.join((String)",", (java.util.List<String>)marketIds));
+                    ((java.util.List<Object>)marketIdsChunks).add(marketIds);
+                    ((java.util.List<Object>)promises).add(this.publicGetV1Ticker(this.extend(request, parameters)));
+                } else
+                {
+                    Object maxMarketIdsPerRequest = this.safeInteger(this.options, "fetchTickersGeneration2MaxMarketIdsPerRequest", 300);
+                    if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(maxMarketIdsPerRequest, null))) || Helpers.isTrue((Helpers.isLessThan(maxMarketIdsPerRequest, 1)))))
+                    {
+                        maxMarketIdsPerRequest = 300;
+                    }
+                    Object marketIdsChunk = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+                    for (var i = 0; Helpers.isLessThan(i, marketIdsLength); i++)
+                    {
+                        ((java.util.List<Object>)marketIdsChunk).add(Helpers.GetValue(marketIds, i));
+                        Object marketIdsChunkLength = Helpers.getArrayLength(marketIdsChunk);
+                        Object isLastMarketId = (Helpers.isEqual(i, (Helpers.subtract(marketIdsLength, 1))));
+                        if (Helpers.isTrue(Helpers.isTrue((Helpers.isGreaterThanOrEqual(marketIdsChunkLength, maxMarketIdsPerRequest))) || Helpers.isTrue(isLastMarketId)))
+                        {
+                            ((java.util.List<Object>)marketIdsChunks).add(marketIdsChunk);
+                            Helpers.addElementToObject(request, "markets", String.join((String)",", (java.util.List<String>)marketIdsChunk));
+                            ((java.util.List<Object>)promises).add(this.publicGetV1Ticker(this.extend(request, parameters)));
+                            marketIdsChunk = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+                        }
+                    }
+                }
+                //
+                //     [
+                //         {
+                //             "market": "BTC-USDC",
+                //             "trade_date": "20260701",
+                //             "trade_time": "233533",
+                //             "trade_date_kst": "20260702",
+                //             "trade_time_kst": "083533",
+                //             "trade_timestamp": 1782981333650,
+                //             "opening_price": 0.00001667,
+                //             "high_price": 0.00001667,
+                //             "low_price": 0.00001645,
+                //             "trade_price": 0.00001659,
+                //             "prev_closing_price": 0.00001673,
+                //             "change": "FALL",
+                //             "change_price": 1.4E-7,
+                //             "change_rate": 0.0084,
+                //             "signed_change_price": -1.4E-7,
+                //             "signed_change_rate": -0.0084,
+                //             "trade_volume": 1.43724182,
+                //             "acc_trade_price": 0.77934383561689,
+                //             "acc_trade_price_24h": 1.76373410121466379999997512,
+                //             "acc_trade_volume": 47175.3220805,
+                //             "acc_trade_volume_24h": 104565.90238645676844763,
+                //             "highest_52_week_price": 0.00006592,
+                //             "highest_52_week_date": "2025-11-05",
+                //             "lowest_52_week_price": 0.00000782,
+                //             "lowest_52_week_date": "2026-02-22",
+                //             "timestamp": 1782981333650
+                //         },
+                //     ]
+                //
+                Object responses = (Helpers.promiseAll(promises)).join();
+                Object responsesLength = Helpers.getArrayLength(responses);
+                for (var i = 0; Helpers.isLessThan(i, responsesLength); i++)
+                {
+                    Object response = Helpers.GetValue(responses, i);
+                    if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(this.isDictionary(response)) && Helpers.isTrue((Helpers.inOp(response, "data")))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(response, "data"), null)))))
+                    {
+                        response = Helpers.GetValue(response, "data");
+                    }
+                    Object expectedMarketId = null;
+                    Object marketIdsChunk = this.safeList(marketIdsChunks, i, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                    Object firstMarketId = this.safeString(marketIdsChunk, 0);
+                    if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(firstMarketId, null))) && Helpers.isTrue((Helpers.isEqual(this.safeString(marketIdsChunk, 1), null)))))
+                    {
+                        expectedMarketId = firstMarketId;
+                    }
+                    Object tickers = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+                    if (Helpers.isTrue(Helpers.isArray(response)))
+                    {
+                        tickers = response;
+                    } else if (Helpers.isTrue(this.isDictionary(response)))
+                    {
+                        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.inOp(response, "market"))) || Helpers.isTrue((Helpers.inOp(response, "trade_date")))) || Helpers.isTrue((Helpers.inOp(response, "trade_timestamp")))))
+                        {
+                            tickers = new java.util.ArrayList<Object>(java.util.Arrays.asList(response));
+                        } else
+                        {
+                            Object ids = Helpers.objectKeys(response);
+                            for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(ids)); j++)
+                            {
+                                Object id = Helpers.GetValue(ids, j);
+                                Object ticker = this.safeDict(response, id);
+                                if (Helpers.isTrue(!Helpers.isEqual(ticker, null)))
+                                {
+                                    Helpers.addElementToObject(ticker, "market", this.safeString(ticker, "market", id));
+                                    ((java.util.List<Object>)tickers).add(ticker);
+                                }
+                            }
+                        }
+                    }
+                    for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(tickers)); j++)
+                    {
+                        Object entry = Helpers.GetValue(tickers, j);
+                        Object marketId = this.safeString(entry, "market", expectedMarketId);
+                        if (Helpers.isTrue(Helpers.isEqual(marketId, null)))
+                        {
+                            continue;
+                        }
+                        Object market = this.safeMarket(marketId);
+                        Object symbol = this.safeSymbol(marketId, market);
+                        if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
+                        {
+                            continue;
+                        }
+                        Helpers.addElementToObject(result, symbol, this.parseTicker(entry, market));
+                    }
+                }
+            } else
+            {
+                Object quoteCurrencies = this.safeDict(this.options, "quoteCurrencies", new java.util.HashMap<String, Object>() {{}});
+                Object quotes = Helpers.objectKeys(quoteCurrencies);
+                if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
+                {
+                    Object requiredQuotes = new java.util.HashMap<String, Object>() {{}};
+                    for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
+                    {
+                        Object symbol = Helpers.GetValue(symbols, i);
+                        Object market = this.market(symbol);
+                        Object quoteId = this.safeString(market, "quoteId");
+                        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(quoteId, null))) && Helpers.isTrue((Helpers.inOp(quoteCurrencies, quoteId)))))
+                        {
+                            Helpers.addElementToObject(requiredQuotes, quoteId, true);
+                        }
+                    }
+                    Object requiredQuoteIds = Helpers.objectKeys(requiredQuotes);
+                    Object populatedQuotes = this.safeString(requiredQuoteIds, 0);
+                    if (Helpers.isTrue(!Helpers.isEqual(populatedQuotes, null)))
+                    {
+                        quotes = requiredQuoteIds;
+                    }
+                }
+                Object promises = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(quotes)); i++)
+                {
+                    Helpers.addElementToObject(request, "quoteId", Helpers.GetValue(quotes, i));
+                    ((java.util.List<Object>)promises).add(this.publicGetPublicTickerALLQuoteId(this.extend(request, parameters)));
+                }
+                Object responses = (Helpers.promiseAll(promises)).join();
+                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(quotes)); i++)
+                {
+                    Object quote = Helpers.GetValue(quotes, i);
+                    Object response = Helpers.GetValue(responses, i);
+                    Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+                    Object timestamp = this.safeInteger(data, "date");
+                    Object tickers = this.omit(data, "date");
+                    Object currencyIds = Helpers.objectKeys(tickers);
+                    for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(currencyIds)); j++)
+                    {
+                        Object currencyId = Helpers.GetValue(currencyIds, j);
+                        Object ticker = Helpers.GetValue(data, currencyId);
+                        Object base = this.safeCurrencyCode(currencyId);
+                        Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
+                        Object market = this.safeMarket(symbol);
+                        Helpers.addElementToObject(ticker, "date", timestamp);
+                        Helpers.addElementToObject(result, symbol, this.parseTicker(ticker, market));
+                    }
                 }
             }
             return this.filterByArrayTickers(result, "symbol", symbols);
@@ -703,8 +1351,10 @@ public class BithumbCore extends BithumbApi
      * @name bithumb#fetchTicker
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @see https://apidocs.bithumb.com/v1.2.0/reference/%ED%98%84%EC%9E%AC%EA%B0%80-%EC%A0%95%EB%B3%B4-%EC%A1%B0%ED%9A%8C
+     * @see https://apidocs.bithumb.com/reference/%ED%98%84%EC%9E%AC%EA%B0%80-%EC%A1%B0%ED%9A%8C
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchTicker(Object symbol, Object... optionalArgs)
@@ -717,32 +1367,77 @@ public class BithumbCore extends BithumbApi
             {
                 (this.loadMarkets()).join();
             }
+            Object generation = null;
+            var generationparametersVariable = this.handleOptionAndParams(parameters, "fetchTicker", "generation", 2);
+            generation = ((java.util.List<Object>) generationparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
             Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
-                put( "baseId", Helpers.GetValue(market, "baseId") );
-                put( "quoteId", Helpers.GetValue(market, "quoteId") );
-            }};
-            Object response = (this.publicGetTickerBaseIdQuoteId(this.extend(request, parameters))).join();
-            //
-            //     {
-            //         "status":"0000",
-            //         "data":{
-            //             "opening_price":"227100",
-            //             "closing_price":"228400",
-            //             "min_price":"222300",
-            //             "max_price":"230000",
-            //             "units_traded":"82618.56075337",
-            //             "acc_trade_value":"18767376138.6031",
-            //             "prev_closing_price":"227100",
-            //             "units_traded_24H":"151871.13484676",
-            //             "acc_trade_value_24H":"34247610416.8974",
-            //             "fluctate_24H":"8700",
-            //             "fluctate_rate_24H":"3.96",
-            //             "date":"1587710327264"
-            //         }
-            //     }
-            //
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            Object request = new java.util.HashMap<String, Object>() {{}};
+            Object response = null;
+            Object data = new java.util.HashMap<String, Object>() {{}};
+            if (Helpers.isTrue(Helpers.isEqual(generation, 2)))
+            {
+                Helpers.addElementToObject(request, "markets", this.getGen2MarketId(market));
+                response = (this.publicGetV1Ticker(this.extend(request, parameters))).join();
+                //
+                //     [
+                //         {
+                //             "market": "BTC-USDC",
+                //             "trade_date": "20260701",
+                //             "trade_time": "233533",
+                //             "trade_date_kst": "20260702",
+                //             "trade_time_kst": "083533",
+                //             "trade_timestamp": 1782981333650,
+                //             "opening_price": 0.00001667,
+                //             "high_price": 0.00001667,
+                //             "low_price": 0.00001645,
+                //             "trade_price": 0.00001659,
+                //             "prev_closing_price": 0.00001673,
+                //             "change": "FALL",
+                //             "change_price": 1.4E-7,
+                //             "change_rate": 0.0084,
+                //             "signed_change_price": -1.4E-7,
+                //             "signed_change_rate": -0.0084,
+                //             "trade_volume": 1.43724182,
+                //             "acc_trade_price": 0.77934383561689,
+                //             "acc_trade_price_24h": 1.76373410121466379999997512,
+                //             "acc_trade_volume": 47175.3220805,
+                //             "acc_trade_volume_24h": 104565.90238645676844763,
+                //             "highest_52_week_price": 0.00006592,
+                //             "highest_52_week_date": "2025-11-05",
+                //             "lowest_52_week_price": 0.00000782,
+                //             "lowest_52_week_date": "2026-02-22",
+                //             "timestamp": 1782981333650
+                //         },
+                //     ]
+                //
+                data = this.safeDict(response, 0, new java.util.HashMap<String, Object>() {{}});
+            } else
+            {
+                Helpers.addElementToObject(request, "baseId", Helpers.GetValue(market, "baseId"));
+                Helpers.addElementToObject(request, "quoteId", Helpers.GetValue(market, "quoteId"));
+                response = (this.publicGetPublicTickerBaseIdQuoteId(this.extend(request, parameters))).join();
+                //
+                //     {
+                //         "status":"0000",
+                //         "data":{
+                //             "opening_price":"227100",
+                //             "closing_price":"228400",
+                //             "min_price":"222300",
+                //             "max_price":"230000",
+                //             "units_traded":"82618.56075337",
+                //             "acc_trade_value":"18767376138.6031",
+                //             "prev_closing_price":"227100",
+                //             "units_traded_24H":"151871.13484676",
+                //             "acc_trade_value_24H":"34247610416.8974",
+                //             "fluctate_24H":"8700",
+                //             "fluctate_rate_24H":"3.96",
+                //             "date":"1587710327264"
+                //         }
+                //     }
+                //
+                data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            }
             return this.parseTicker(data, market);
         });
 
@@ -750,6 +1445,8 @@ public class BithumbCore extends BithumbApi
 
     public Object parseOHLCV(Object ohlcv, Object... optionalArgs)
     {
+        //
+        // generation 1
         //
         //     [
         //         1576823400000, // 기준 시간
@@ -760,8 +1457,32 @@ public class BithumbCore extends BithumbApi
         //         "15.41503692" // 거래량
         //     ]
         //
+        // generation 2
+        //
+        //     {
+        //         "market": "BTC-USDC",
+        //         "candle_date_time_utc": "2026-07-02T08:59:00",
+        //         "candle_date_time_kst": "2026-07-02T17:59:00",
+        //         "opening_price": 0.0000165,
+        //         "high_price": 0.0000165,
+        //         "low_price": 0.0000165,
+        //         "trade_price": 0.0000165,
+        //         "timestamp": 1782982784329,
+        //         "candle_acc_trade_price": 0.001155,
+        //         "candle_acc_trade_volume": 70,
+        //         "unit": 1
+        //     }
+        //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        return new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 5)));
+        Object timestamp = null;
+        if (Helpers.isTrue(Helpers.isArray(ohlcv)))
+        {
+            timestamp = this.safeInteger2(ohlcv, 0, "timestamp");
+        } else
+        {
+            timestamp = this.parse8601(this.safeString2(ohlcv, "candle_date_time_utc", "candle_date_time_kst"));
+        }
+        return new java.util.ArrayList<Object>(java.util.Arrays.asList(timestamp, this.safeNumber2(ohlcv, 1, "opening_price"), this.safeNumber2(ohlcv, 3, "high_price"), this.safeNumber2(ohlcv, 4, "low_price"), this.safeNumber2(ohlcv, 2, "trade_price"), this.safeNumber2(ohlcv, 5, "candle_acc_trade_volume")));
     }
 
     /**
@@ -769,11 +1490,16 @@ public class BithumbCore extends BithumbApi
      * @name bithumb#fetchOHLCV
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @see https://apidocs.bithumb.com/v1.2.0/reference/candlestick-rest-api
+     * @see https://apidocs.bithumb.com/reference/%EB%B6%84minute-%EC%BA%94%EB%93%A4-%EC%A1%B0%ED%9A%8C
+     * @see https://apidocs.bithumb.com/reference/%EC%9D%BCday-%EC%BA%94%EB%93%A4-%EC%A1%B0%ED%9A%8C
+     * @see https://apidocs.bithumb.com/reference/%EC%A3%BCweek-%EC%BA%94%EB%93%A4-%EC%A1%B0%ED%9A%8C
+     * @see https://apidocs.bithumb.com/reference/%EC%9B%94month-%EC%BA%94%EB%93%A4-%EC%A1%B0%ED%9A%8C
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOHLCV(Object symbol, Object... optionalArgs)
@@ -789,37 +1515,102 @@ public class BithumbCore extends BithumbApi
             {
                 (this.loadMarkets()).join();
             }
+            Object generation = null;
+            var generationparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "generation", 2);
+            generation = ((java.util.List<Object>) generationparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
             Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
-                put( "baseId", Helpers.GetValue(market, "baseId") );
-                put( "quoteId", Helpers.GetValue(market, "quoteId") );
-                put( "interval", BithumbCore.this.safeString(BithumbCore.this.timeframes, timeframe, timeframe) );
-            }};
-            Object response = (this.publicGetCandlestickBaseIdQuoteIdInterval(this.extend(request, parameters))).join();
-            //
-            //     {
-            //         "status": "0000",
-            //         "data": {
-            //             [
-            //                 1576823400000, // 기준 시간
-            //                 "8284000", // 시가
-            //                 "8286000", // 종가
-            //                 "8289000", // 고가
-            //                 "8276000", // 저가
-            //                 "15.41503692" // 거래량
-            //             ],
-            //             [
-            //                 1576824000000, // 기준 시간
-            //                 "8284000", // 시가
-            //                 "8281000", // 종가
-            //                 "8289000", // 고가
-            //                 "8275000", // 저가
-            //                 "6.19584467" // 거래량
-            //             ],
-            //         }
-            //     }
-            //
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object request = new java.util.HashMap<String, Object>() {{}};
+            Object response = null;
+            Object data = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            if (Helpers.isTrue(Helpers.isEqual(generation, 2)))
+            {
+                Helpers.addElementToObject(request, "market", this.getGen2MarketId(market));
+                if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+                {
+                    Helpers.addElementToObject(request, "count", limit);
+                }
+                if (Helpers.isTrue(Helpers.isEqual(timeframe, "1d")))
+                {
+                    response = (this.publicGetV1CandlesDays(this.extend(request, parameters))).join();
+                } else if (Helpers.isTrue(Helpers.isEqual(timeframe, "1w")))
+                {
+                    response = (this.publicGetV1CandlesWeeks(this.extend(request, parameters))).join();
+                } else if (Helpers.isTrue(Helpers.isEqual(timeframe, "1M")))
+                {
+                    response = (this.publicGetV1CandlesMonths(this.extend(request, parameters))).join();
+                } else
+                {
+                    Object timeframeInteger = this.safeInteger(this.timeframes, timeframe);
+                    if (Helpers.isTrue(Helpers.isEqual(timeframeInteger, null)))
+                    {
+                        throw new BadRequest((String)Helpers.add(Helpers.add(this.id, " fetchOHLCV() unsupported timeframe "), timeframe)) ;
+                    }
+                    Helpers.addElementToObject(request, "unit", timeframeInteger);
+                    response = (this.publicGetV1CandlesMinutesUnit(this.extend(request, parameters))).join();
+                }
+                //
+                //     [
+                //         {
+                //             "market": "BTC-USDC",
+                //             "candle_date_time_utc": "2026-07-02T08:59:00",
+                //             "candle_date_time_kst": "2026-07-02T17:59:00",
+                //             "opening_price": 0.0000165,
+                //             "high_price": 0.0000165,
+                //             "low_price": 0.0000165,
+                //             "trade_price": 0.0000165,
+                //             "timestamp": 1782982784329,
+                //             "candle_acc_trade_price": 0.001155,
+                //             "candle_acc_trade_volume": 70,
+                //             "unit": 1
+                //         },
+                //     ]
+                //
+                data = response;
+            } else
+            {
+                Object legacyTimeframes = new java.util.HashMap<String, Object>() {{
+                    put( "1m", "1m" );
+                    put( "3m", "3m" );
+                    put( "5m", "5m" );
+                    put( "10m", "10m" );
+                    put( "30m", "30m" );
+                    put( "1h", "1h" );
+                    put( "6h", "6h" );
+                    put( "12h", "12h" );
+                    put( "1d", "24h" );
+                    put( "1w", "1w" );
+                    put( "1M", "1mm" );
+                }};
+                Helpers.addElementToObject(request, "interval", this.safeString(legacyTimeframes, timeframe, timeframe));
+                Helpers.addElementToObject(request, "baseId", Helpers.GetValue(market, "baseId"));
+                Helpers.addElementToObject(request, "quoteId", Helpers.GetValue(market, "quoteId"));
+                response = (this.publicGetPublicCandlestickBaseIdQuoteIdInterval(this.extend(request, parameters))).join();
+                //
+                //     {
+                //         "status": "0000",
+                //         "data": {
+                //             [
+                //                 1576823400000, // 기준 시간
+                //                 "8284000", // 시가
+                //                 "8286000", // 종가
+                //                 "8289000", // 고가
+                //                 "8276000", // 저가
+                //                 "15.41503692" // 거래량
+                //             ],
+                //             [
+                //                 1576824000000, // 기준 시간
+                //                 "8284000", // 시가
+                //                 "8281000", // 종가
+                //                 "8289000", // 고가
+                //                 "8275000", // 저가
+                //                 "6.19584467" // 거래량
+                //             ],
+                //         }
+                //     }
+                //
+                data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            }
             return this.parseOHLCVs(data, market, timeframe, since, limit);
         });
 
@@ -828,7 +1619,7 @@ public class BithumbCore extends BithumbApi
     public Object parseTrade(Object trade, Object... optionalArgs)
     {
         //
-        // fetchTrades (public)
+        // generation 1: fetchTrades (public)
         //
         //     {
         //         "transaction_date":"2020-04-23 22:21:46",
@@ -838,7 +1629,7 @@ public class BithumbCore extends BithumbApi
         //         "total":"108337"
         //     }
         //
-        // fetchOrder (private)
+        // generation 1: fetchOrder (private)
         //
         //     {
         //         "transaction_date": "1572497603902030",
@@ -849,9 +1640,44 @@ public class BithumbCore extends BithumbApi
         //         "total": "43005"
         //     }
         //
+        // generation 2: fetchTrades
+        //
+        //     {
+        //         "market": "BTC-USDC",
+        //         "trade_date_utc": "2026-07-02",
+        //         "trade_time_utc": "08:41:10",
+        //         "timestamp": "1782981670705",
+        //         "trade_price": "0.00001646",
+        //         "trade_volume": "42.0335581",
+        //         "prev_closing_price": "0.00001673",
+        //         "change_price": "-2.7E-7",
+        //         "ask_bid": "ASK",
+        //         "sequential_id": "17829816707050000"
+        //     }
+        //
+        // generation 2: watchTrades
+        //
+        //     {
+        //         "type": "trade",
+        //         "code": "KRW-BTC",
+        //         "trade_price": 95539000,
+        //         "trade_volume": 0.00022664,
+        //         "ask_bid": "ASK",
+        //         "prev_closing_price": 94201000,
+        //         "change": "RISE",
+        //         "change_price": 1338000,
+        //         "trade_date": "2026-07-10",
+        //         "trade_time": "13:39:41",
+        //         "trade_timestamp": 1783658381138,
+        //         "sequential_id": "862683813820523888",
+        //         "timestamp": 1783658381398,
+        //         "stream_type": "REALTIME"
+        //     }
+        //
         // a workaround for their bug in date format, hours are not 0-padded
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = null;
+        Object timestamp = this.safeInteger(trade, "timestamp");
+        Object isGenerationTwo = (!Helpers.isEqual(timestamp, null));
         Object transactionDatetime = this.safeString(trade, "transaction_date");
         if (Helpers.isTrue(!Helpers.isEqual(transactionDatetime, null)))
         {
@@ -871,17 +1697,31 @@ public class BithumbCore extends BithumbApi
                 timestamp = this.safeIntegerProduct(trade, "transaction_date", 0.001);
             }
         }
-        if (Helpers.isTrue(!Helpers.isEqual(timestamp, null)))
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(timestamp, null))) && Helpers.isTrue((!Helpers.isTrue(isGenerationTwo)))))
         {
             timestamp = Helpers.subtract(timestamp, Helpers.multiply(9, 3600000)); // they report UTC + 9 hours, server in Korean timezone
         }
         Object type = null;
-        Object side = this.safeString(trade, "type");
-        side = ((Helpers.isTrue((Helpers.isEqual(side, "ask"))))) ? "sell" : "buy";
-        Object id = this.safeString(trade, "cont_no");
-        market = this.safeMarket(null, market);
-        Object priceString = this.safeString(trade, "price");
-        Object amountString = this.fixCommaNumber(this.safeString2(trade, "units_traded", "units"));
+        Object side = this.safeStringLower2(trade, "ask_bid", "type");
+        if (Helpers.isTrue(Helpers.isEqual(side, "bid")))
+        {
+            side = "buy";
+        } else if (Helpers.isTrue(Helpers.isEqual(side, "ask")))
+        {
+            side = "sell";
+        } else
+        {
+            side = null;
+        }
+        Object id = this.safeString2(trade, "cont_no", "sequential_id");
+        Object marketId = this.safeString(trade, "market");
+        market = this.safeMarket(marketId, market);
+        Object priceString = this.safeString2(trade, "price", "trade_price");
+        Object amountString = this.safeString(trade, "trade_volume");
+        if (Helpers.isTrue(Helpers.isEqual(amountString, null)))
+        {
+            amountString = this.fixCommaNumber(this.safeString2(trade, "units_traded", "units"));
+        }
         Object costString = this.safeString(trade, "total");
         Object fee = null;
         Object feeCostString = this.safeString(trade, "fee");
@@ -898,6 +1738,7 @@ public class BithumbCore extends BithumbApi
         final Object finalTimestamp = timestamp;
         final Object finalMarket = market;
         final Object finalSide = side;
+        final Object finalAmountString = amountString;
         final Object finalFee = fee;
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "id", id );
@@ -910,7 +1751,7 @@ public class BithumbCore extends BithumbApi
             put( "side", finalSide );
             put( "takerOrMaker", null );
             put( "price", priceString );
-            put( "amount", amountString );
+            put( "amount", finalAmountString );
             put( "cost", costString );
             put( "fee", finalFee );
         }}, market);
@@ -921,10 +1762,12 @@ public class BithumbCore extends BithumbApi
      * @name bithumb#fetchTrades
      * @description get the list of most recent trades for a particular symbol
      * @see https://apidocs.bithumb.com/v1.2.0/reference/%EC%B5%9C%EA%B7%BC-%EC%B2%B4%EA%B2%B0-%EB%82%B4%EC%97%AD
+     * @see https://apidocs.bithumb.com/reference/%EC%B2%B4%EA%B2%B0-%EB%82%B4%EC%97%AD-%EC%A1%B0%ED%9A%8C
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
@@ -939,34 +1782,258 @@ public class BithumbCore extends BithumbApi
             {
                 (this.loadMarkets()).join();
             }
+            Object generation = null;
+            var generationparametersVariable = this.handleOptionAndParams(parameters, "fetchTrades", "generation", 2);
+            generation = ((java.util.List<Object>) generationparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
             Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
-                put( "baseId", Helpers.GetValue(market, "baseId") );
-                put( "quoteId", Helpers.GetValue(market, "quoteId") );
-            }};
+            Object request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
-                Helpers.addElementToObject(request, "count", limit); // default 20, max 100
+                Helpers.addElementToObject(request, "count", limit);
             }
-            Object response = (this.publicGetTransactionHistoryBaseIdQuoteId(this.extend(request, parameters))).join();
+            Object response = null;
+            Object data = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            if (Helpers.isTrue(Helpers.isEqual(generation, 2)))
+            {
+                Helpers.addElementToObject(request, "market", this.getGen2MarketId(market));
+                response = (this.publicGetV1TradesTicks(this.extend(request, parameters))).join();
+                //
+                //     [
+                //         {
+                //             "market": "BTC-USDC",
+                //             "trade_date_utc": "2026-07-02",
+                //             "trade_time_utc": "08:41:10",
+                //             "timestamp": "1782981670705",
+                //             "trade_price": "0.00001646",
+                //             "trade_volume": "42.0335581",
+                //             "prev_closing_price": "0.00001673",
+                //             "change_price": "-2.7E-7",
+                //             "ask_bid": "ASK",
+                //             "sequential_id": "17829816707050000"
+                //         }
+                //     ]
+                //
+                data = response;
+            } else
+            {
+                Helpers.addElementToObject(request, "baseId", Helpers.GetValue(market, "baseId"));
+                Helpers.addElementToObject(request, "quoteId", Helpers.GetValue(market, "quoteId"));
+                response = (this.publicGetPublicTransactionHistoryBaseIdQuoteId(this.extend(request, parameters))).join();
+                //
+                //     {
+                //         "status":"0000",
+                //         "data":[
+                //             {
+                //                 "transaction_date":"2020-04-23 22:21:46",
+                //                 "type":"ask",
+                //                 "units_traded":"0.0125",
+                //                 "price":"8667000",
+                //                 "total":"108337"
+                //             },
+                //         ]
+                //     }
+                //
+                data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            }
+            return this.parseTrades(data, market, since, limit);
+        });
+
+    }
+
+    /**
+     * @method
+     * @name bithumb#createOrders
+     * @description create a list of trade orders, only available for the generation 2 API
+     * @see https://apidocs.bithumb.com/reference/%EB%8B%A4%EA%B1%B4-%EC%A3%BC%EB%AC%B8-%EC%9A%94%EC%B2%AD
+     * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.timeInForce] supports 'IOC', 'FOK', and 'PO'
+     * @param {bool} [params.postOnly] true or false
+     * @param {string} [params.clientOrderId] the clientOrderId of the order
+     * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public java.util.concurrent.CompletableFuture<Object> createOrders(Object orders, Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
+            Object generation = null;
+            var generationparametersVariable = this.handleOptionAndParams(parameters, "createOrders", "generation", 2);
+            generation = ((java.util.List<Object>) generationparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
+            if (Helpers.isTrue(!Helpers.isEqual(generation, 2)))
+            {
+                throw new BadRequest((String)Helpers.add(this.id, " createOrders is only supported for the generation 2 API")) ;
+            }
+            Object ordersCount = Helpers.getArrayLength(orders);
+            if (Helpers.isTrue(Helpers.isEqual(ordersCount, 0)))
+            {
+                throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrders() requires a non-empty orders array")) ;
+            }
+            Object ordersRequests = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object orderSymbols = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
+            {
+                Object rawOrder = Helpers.GetValue(orders, i);
+                Object symbol = this.safeString(rawOrder, "symbol");
+                if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
+                {
+                    throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrders() requires each order to have a symbol")) ;
+                }
+                ((java.util.List<Object>)orderSymbols).add(symbol);
+                Object type = this.safeString(rawOrder, "type");
+                if (Helpers.isTrue(Helpers.isEqual(type, null)))
+                {
+                    throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrders() requires each order to have a type")) ;
+                }
+                Object side = this.safeString(rawOrder, "side");
+                if (Helpers.isTrue(Helpers.isEqual(side, null)))
+                {
+                    throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrders() requires each order to have a side")) ;
+                }
+                Object amount = this.safeValue(rawOrder, "amount");
+                Object price = this.safeValue(rawOrder, "price");
+                Object orderParams = this.safeDict(rawOrder, "params", new java.util.HashMap<String, Object>() {{}});
+                Object orderRequest = this.createOrderRequest(symbol, type, side, amount, price, orderParams);
+                ((java.util.List<Object>)ordersRequests).add(orderRequest);
+            }
+            orderSymbols = this.marketSymbols(orderSymbols, null, false, true, true);
+            Object market = this.market(Helpers.GetValue(orderSymbols, 0));
+            Object request = new java.util.HashMap<String, Object>() {{
+                put( "batch_orders", ordersRequests );
+            }};
+            Object response = (this.privatePostV2OrdersBatch(this.extend(request, parameters))).join();
             //
             //     {
-            //         "status":"0000",
-            //         "data":[
+            //         "batch_orders_response": [
             //             {
-            //                 "transaction_date":"2020-04-23 22:21:46",
-            //                 "type":"ask",
-            //                 "units_traded":"0.0125",
-            //                 "price":"8667000",
-            //                 "total":"108337"
+            //                 "order_id": "C0101000003152500274",
+            //                 "market": "KRW-BTC",
+            //                 "side": "bid",
+            //                 "order_type": "limit",
+            //                 "created_at": "2026-07-04T15:49:24+09:00",
+            //                 "stp_type": "cancel_taker"
             //             },
             //         ]
             //     }
             //
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            return this.parseTrades(data, market, since, limit);
+            Object data = this.safeList(response, "batch_orders_response", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            return this.parseOrders(data, market);
         });
 
+    }
+
+    public Object createOrderRequest(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    {
+        /**
+        * @method
+        * @ignore
+        * @name bithumb#createOrderRequest
+        * @description helper function to build the request *for generation 2 createOrder and createOrders only*
+        * @param {string} symbol unified symbol of the market to create an order in
+        * @param {string} type 'market' or 'limit'
+        * @param {string} side 'buy' or 'sell'
+        * @param {float} amount how much you want to trade in units of the base currency
+        * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} request to be sent to the exchange
+        */
+        Object price = Helpers.getArg(optionalArgs, 0, null);
+        Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+        Object market = this.market(symbol);
+        Object request = new java.util.HashMap<String, Object>() {{
+            put( "market", BithumbCore.this.getGen2MarketId(market) );
+        }};
+        Object sideRequest = null;
+        if (Helpers.isTrue(Helpers.isEqual(side, "buy")))
+        {
+            sideRequest = "bid";
+        } else if (Helpers.isTrue(Helpers.isEqual(side, "sell")))
+        {
+            sideRequest = "ask";
+        } else
+        {
+            throw new InvalidOrder((String)Helpers.add(Helpers.add(this.id, " createOrder() invalid side "), side)) ;
+        }
+        Helpers.addElementToObject(request, "side", sideRequest);
+        Object timeInForce = this.safeString2(parameters, "timeInForce", "time_in_force");
+        if (Helpers.isTrue(Helpers.isEqual(timeInForce, null)))
+        {
+            timeInForce = "GTC";
+        } else
+        {
+            parameters = this.omit(parameters, "timeInForce");
+        }
+        Object postOnly = false;
+        var postOnlyparametersVariable = this.handlePostOnly(Helpers.isEqual(type, "market"), false, parameters);
+        postOnly = ((java.util.List<Object>) postOnlyparametersVariable).get(0);
+        parameters = ((java.util.List<Object>) postOnlyparametersVariable).get(1);
+        if (Helpers.isTrue(Helpers.isTrue(postOnly) || Helpers.isTrue((Helpers.isEqual(timeInForce, "PO")))))
+        {
+            Helpers.addElementToObject(request, "time_in_force", "post_only");
+            parameters = this.omit(parameters, "postOnly");
+        } else if (Helpers.isTrue(Helpers.isEqual(timeInForce, "FOK")))
+        {
+            Helpers.addElementToObject(request, "time_in_force", "fok");
+        } else if (Helpers.isTrue(Helpers.isEqual(timeInForce, "IOC")))
+        {
+            Helpers.addElementToObject(request, "time_in_force", "ioc");
+        }
+        if (Helpers.isTrue(Helpers.isEqual(type, "limit")))
+        {
+            Helpers.addElementToObject(request, "price", this.priceToPrecision(symbol, price));
+            Helpers.addElementToObject(request, "volume", this.amountToPrecision(symbol, amount));
+            Helpers.addElementToObject(request, "order_type", "limit");
+        } else
+        {
+            Object typeRequest = null;
+            if (Helpers.isTrue(Helpers.isEqual(side, "buy")))
+            {
+                typeRequest = "price";
+                // for market buy it requires the amount of quote currency to spend
+                Object cost = this.safeString(parameters, "cost");
+                parameters = this.omit(parameters, "cost");
+                Object createMarketBuyOrderRequiresPrice = true;
+                var createMarketBuyOrderRequiresPriceparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                createMarketBuyOrderRequiresPrice = ((java.util.List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0);
+                parameters = ((java.util.List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(1);
+                if (Helpers.isTrue(createMarketBuyOrderRequiresPrice))
+                {
+                    if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(price, null))) && Helpers.isTrue((Helpers.isEqual(cost, null)))))
+                    {
+                        throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
+                    } else
+                    {
+                        Object amountString = this.numberToString(amount);
+                        Object priceString = this.numberToString(price);
+                        cost = Precise.stringMul(amountString, priceString);
+                    }
+                } else
+                {
+                    cost = ((Helpers.isTrue((Helpers.isEqual(cost, null))))) ? this.numberToString(amount) : cost;
+                }
+                Helpers.addElementToObject(request, "price", this.priceToPrecision(symbol, cost));
+            } else
+            {
+                Helpers.addElementToObject(request, "volume", this.amountToPrecision(symbol, amount));
+                typeRequest = "market";
+            }
+            Helpers.addElementToObject(request, "order_type", typeRequest);
+        }
+        Object clientOrderId = this.safeString2(parameters, "clientOrderId", "client_order_id");
+        if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
+        {
+            Helpers.addElementToObject(request, "client_order_id", clientOrderId);
+            parameters = this.omit(parameters, "clientOrderId");
+        }
+        return this.extend(request, parameters);
     }
 
     /**
@@ -976,12 +2043,19 @@ public class BithumbCore extends BithumbApi
      * @see https://apidocs.bithumb.com/v1.2.0/reference/%EC%A7%80%EC%A0%95%EA%B0%80-%EC%A3%BC%EB%AC%B8%ED%95%98%EA%B8%B0
      * @see https://apidocs.bithumb.com/v1.2.0/reference/%EC%8B%9C%EC%9E%A5%EA%B0%80-%EB%A7%A4%EC%88%98%ED%95%98%EA%B8%B0
      * @see https://apidocs.bithumb.com/v1.2.0/reference/%EC%8B%9C%EC%9E%A5%EA%B0%80-%EB%A7%A4%EB%8F%84%ED%95%98%EA%B8%B0
+     * @see https://apidocs.bithumb.com/reference/%EC%A3%BC%EB%AC%B8-%EC%9A%94%EC%B2%AD
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
      * @param {float} amount how much of currency you want to trade in units of base currency
-     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.timeInForce] supports 'IOC', 'FOK', and 'PO'
+     * @param {bool} [params.postOnly] true or false
+     * @param {string} [params.clientOrderId] the clientOrderId of the order
+     * @param {string} [params.cost] *generation 2 only* optional cost parameter for market buy orders instead of setting the price, must also set createMarketBuyOrderRequiresPrice to false
+     * @param {bool} [params.createMarketBuyOrderRequiresPrice] *generation 2 only* set to false if passing a cost param or using cost in the amount argument, defaults to true
+     * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> createOrder(Object symbol, Object type2, Object side2, Object amount, Object... optionalArgs)
@@ -997,24 +2071,42 @@ public class BithumbCore extends BithumbApi
             {
                 (this.loadMarkets()).join();
             }
+            Object generation = null;
+            var generationparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "generation", 2);
+            generation = ((java.util.List<Object>) generationparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
+            Object request = new java.util.HashMap<String, Object>() {{}};
             Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
-                put( "order_currency", Helpers.GetValue(market, "id") );
-                put( "payment_currency", Helpers.GetValue(market, "quote") );
-                put( "units", amount );
-            }};
             Object response = null;
-            if (Helpers.isTrue(Helpers.isEqual(type, "limit")))
+            if (Helpers.isTrue(Helpers.isEqual(generation, 2)))
             {
-                Helpers.addElementToObject(request, "price", price);
-                Helpers.addElementToObject(request, "type", ((Helpers.isTrue((Helpers.isEqual(side, "buy"))))) ? "bid" : "ask");
-                response = (this.privatePostTradePlace(this.extend(request, parameters))).join();
-            } else if (Helpers.isTrue(Helpers.isEqual(side, "buy")))
-            {
-                response = (this.privatePostTradeMarketBuy(this.extend(request, parameters))).join();
+                request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
+                response = (this.privatePostV2Orders(request)).join();
             } else
             {
-                response = (this.privatePostTradeMarketSell(this.extend(request, parameters))).join();
+                Helpers.addElementToObject(request, "order_currency", Helpers.GetValue(market, "base"));
+                Helpers.addElementToObject(request, "payment_currency", Helpers.GetValue(market, "quote"));
+                Helpers.addElementToObject(request, "units", this.amountToPrecision(symbol, amount));
+                if (Helpers.isTrue(Helpers.isEqual(type, "limit")))
+                {
+                    Helpers.addElementToObject(request, "price", this.priceToPrecision(symbol, price));
+                    Object typeRequest = null;
+                    if (Helpers.isTrue(Helpers.isEqual(side, "buy")))
+                    {
+                        typeRequest = "bid";
+                    } else
+                    {
+                        typeRequest = "ask";
+                    }
+                    Helpers.addElementToObject(request, "type", typeRequest);
+                    response = (this.privatePostTradePlace(this.extend(request, parameters))).join();
+                } else if (Helpers.isTrue(Helpers.isEqual(side, "buy")))
+                {
+                    response = (this.privatePostTradeMarketBuy(this.extend(request, parameters))).join();
+                } else
+                {
+                    response = (this.privatePostTradeMarketSell(this.extend(request, parameters))).join();
+                }
             }
             Object id = this.safeString(response, "order_id");
             if (Helpers.isTrue(Helpers.isEqual(id, null)))
@@ -1025,13 +2117,114 @@ public class BithumbCore extends BithumbApi
             final Object finalType = type;
             final Object finalSide = side;
             final Object finalId = id;
-            return this.safeOrder(new java.util.HashMap<String, Object>() {{
+            return this.extend(this.parseOrder(response, market), new java.util.HashMap<String, Object>() {{
                 put( "info", finalResponse );
                 put( "symbol", symbol );
                 put( "type", finalType );
                 put( "side", finalSide );
                 put( "id", finalId );
-            }}, market);
+            }});
+        });
+
+    }
+
+    /**
+     * @method
+     * @name bithumb#createMarketBuyOrderWithCost
+     * @description create a market buy order by providing the symbol and cost
+     * @see https://apidocs.bithumb.com/reference/%EC%A3%BC%EB%AC%B8-%EC%9A%94%EC%B2%AD
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {float} cost how much you want to trade in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public java.util.concurrent.CompletableFuture<Object> createMarketBuyOrderWithCost(Object symbol, Object cost, Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
+            Object generation = null;
+            var generationparametersVariable = this.handleOptionAndParams(parameters, "createMarketBuyOrderWithCost", "generation", 2);
+            generation = ((java.util.List<Object>) generationparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
+            if (Helpers.isTrue(!Helpers.isEqual(generation, 2)))
+            {
+                throw new BadRequest((String)Helpers.add(this.id, " createMarketBuyOrderWithCost() is only supported for the generation 2 API")) ;
+            }
+            Helpers.addElementToObject(parameters, "createMarketBuyOrderRequiresPrice", false);
+            return (this.createOrder(symbol, "market", "buy", cost, null, parameters)).join();
+        });
+
+    }
+
+    /**
+     * @method
+     * @name bithumb#createTwapOrder
+     * @description create a trade order that is executed as a TWAP order over a specified duration.
+     * @see https://apidocs.bithumb.com/reference/twap-%EC%A3%BC%EB%AC%B8-%EC%9A%94%EC%B2%AD
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency, only required for sale
+     * @param {int} duration the duration of the TWAP order in milliseconds
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} params.frequency required order interval in seconds, 15, 20, 30, 60 or 120
+     * @param {string} [params.price] order price, required for purchase
+     * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public java.util.concurrent.CompletableFuture<Object> createTwapOrder(Object symbol, Object side2, Object amount2, Object duration, Object... optionalArgs)
+    {
+        final Object side3 = side2;
+        final Object amount3 = amount2;
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+            Object side = side3;
+            Object amount = amount3;
+            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
+            Object generation = null;
+            var generationparametersVariable = this.handleOptionAndParams(parameters, "createTwapOrder", "generation", 2);
+            generation = ((java.util.List<Object>) generationparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
+            if (Helpers.isTrue(!Helpers.isEqual(generation, 2)))
+            {
+                throw new BadRequest((String)Helpers.add(this.id, " createTwapOrder() is only supported for the generation 2 API")) ;
+            }
+            Object market = this.market(symbol);
+            Object durationString = this.numberToString(duration);
+            Object durationSeconds = Precise.stringDiv(durationString, "1000");
+            Object request = new java.util.HashMap<String, Object>() {{
+                put( "market", BithumbCore.this.getGen2MarketId(market) );
+                put( "duration", durationSeconds );
+            }};
+            if (Helpers.isTrue(!Helpers.isEqual(amount, null)))
+            {
+                Helpers.addElementToObject(request, "volume", this.amountToPrecision(symbol, amount)); // required for sale
+            }
+            Object sideRequest = null;
+            if (Helpers.isTrue(Helpers.isEqual(side, "buy")))
+            {
+                sideRequest = "bid";
+            } else
+            {
+                sideRequest = "ask";
+            }
+            Helpers.addElementToObject(request, "side", sideRequest);
+            Object response = (this.privatePostV1Twap(this.extend(request, parameters))).join();
+            //
+            //     {
+            //         "algo_order_id": "019f3ed7-4f92-7179-beee-84b4c71e53fa"
+            //     }
+            //
+            return this.parseOrder(response, market);
         });
 
     }
@@ -1041,9 +2234,15 @@ public class BithumbCore extends BithumbApi
      * @name bithumb#fetchOrder
      * @description fetches information on an order made by the user
      * @see https://apidocs.bithumb.com/v1.2.0/reference/%EA%B1%B0%EB%9E%98-%EC%A3%BC%EB%AC%B8%EB%82%B4%EC%97%AD-%EC%83%81%EC%84%B8-%EC%A1%B0%ED%9A%8C
+     * @see https://apidocs.bithumb.com/reference/%EA%B0%9C%EB%B3%84-%EC%A3%BC%EB%AC%B8-%EC%A1%B0%ED%9A%8C
+     * @see https://apidocs.bithumb.com/reference/twap-%EC%A3%BC%EB%AC%B8%EB%82%B4%EC%97%AD-%EC%A1%B0%ED%9A%8C
      * @param {string} id order id
-     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {string} [symbol] unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] the clientOrderId of the order, alternative to using the order id
+     * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
+     * @param {bool} [params.twap] *generation 2 only* if you want to fetch a generation 2 twap order
+     * @param {string} [params.state] *generation 2 only* the order state, either wait, watch, done, or cancel. For twap either progress (default), done, or cancel
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOrder(Object id, Object... optionalArgs)
@@ -1053,53 +2252,147 @@ public class BithumbCore extends BithumbApi
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
-            {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrder() requires a symbol argument")) ;
-            }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            Object generation = null;
+            var generationparametersVariable = this.handleOptionAndParams(parameters, "fetchOrder", "generation", 2);
+            generation = ((java.util.List<Object>) generationparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
+            Object market = null;
+            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+            {
+                market = this.market(symbol);
+            }
+            Object twap = this.safeBool(parameters, "twap", false);
+            parameters = this.omit(parameters, "twap");
+            Object request = new java.util.HashMap<String, Object>() {{}};
+            Object response = null;
+            Object data = null;
+            if (Helpers.isTrue(Helpers.isEqual(generation, 2)))
+            {
+                if (Helpers.isTrue(twap))
+                {
+                    if (Helpers.isTrue(!Helpers.isEqual(market, null)))
+                    {
+                        Helpers.addElementToObject(request, "market", this.getGen2MarketId(market));
+                    }
+                    Helpers.addElementToObject(request, "uuids", new java.util.ArrayList<Object>(java.util.Arrays.asList(id)));
+                    response = (this.privateGetV1Twap(this.extend(request, parameters))).join();
+                    //
+                    //     {
+                    //         "has_next": false,
+                    //         "next_key": null,
+                    //         "orders": [
+                    //             {
+                    //                 "uuid": "019f3ed7-4f92-7179-beee-84b4c71e53fa",
+                    //                 "side": "bid",
+                    //                 "price": "92500000",
+                    //                 "state": "progress",
+                    //                 "market": "KRW-BTC",
+                    //                 "created_at": "2025-12-04T10:00:00+09:00",
+                    //                 "volume": "1.0",
+                    //                 "total_order_count": 60,
+                    //                 "total_trades_count": 10,
+                    //                 "progress_count": 25,
+                    //                 "total_executed_amount": "2312500000",
+                    //                 "total_executed_volume": "0.25",
+                    //                 "avg_trade_price": "92500000.000",
+                    //                 "wallet_id": "0000000000-00-0000"
+                    //             },
+                    //         ]
+                    //     }
+                    //
+                    Object orders = this.safeList(response, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                    data = this.safeDict(orders, 0, new java.util.HashMap<String, Object>() {{}});
+                } else
+                {
+                    Object clientOrderId = this.safeString2(parameters, "clientOrderId", "client_order_id");
+                    if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
+                    {
+                        Helpers.addElementToObject(request, "client_order_id", clientOrderId);
+                        parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId")));
+                    } else
+                    {
+                        Helpers.addElementToObject(request, "uuid", id);
+                    }
+                    response = (this.privateGetV1Order(this.extend(request, parameters))).join();
+                    //
+                    //     {
+                    //         "uuid": "C0101000003152406454",
+                    //         "side": "bid",
+                    //         "ord_type": "limit",
+                    //         "price": "9500000",
+                    //         "state": "wait",
+                    //         "market": "KRW-BTC",
+                    //         "created_at": "2026-07-04T15:05:46+09:00",
+                    //         "volume": "0.001",
+                    //         "remaining_volume": "0.001",
+                    //         "reserved_fee": "23.75",
+                    //         "remaining_fee": "23.75",
+                    //         "paid_fee": "0",
+                    //         "locked": "9524.75",
+                    //         "executed_volume": "0",
+                    //         "executed_funds": "0",
+                    //         "trades_count": 0,
+                    //         "stp_type": "cancel_taker",
+                    //         "trades": []
+                    //     }
+                    //
+                    data = response;
+                }
+            } else
+            {
+                if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
+                {
+                    throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrder() requires a symbol argument")) ;
+                }
+                Object marketDefined = market;
+                Object base = this.safeString(marketDefined, "base");
+                Object quote = this.safeString(marketDefined, "quote");
+                if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(base, null))) || Helpers.isTrue((Helpers.isEqual(quote, null)))))
+                {
+                    throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrder() requires a market with defined base and quote")) ;
+                }
+                Helpers.addElementToObject(request, "order_id", id);
+                Helpers.addElementToObject(request, "order_currency", base);
+                Helpers.addElementToObject(request, "payment_currency", quote);
+                response = (this.privatePostInfoOrderDetail(this.extend(request, parameters))).join();
+                //
+                //     {
+                //         "status": "0000",
+                //         "data": {
+                //             "order_date": "1603161798539254",
+                //             "type": "ask",
+                //             "order_status": "Cancel",
+                //             "order_currency": "BTC",
+                //             "payment_currency": "KRW",
+                //             "watch_price": "0",
+                //             "order_price": "13344000",
+                //             "order_qty": "0.0125",
+                //             "cancel_date": "1603161803809993",
+                //             "cancel_type": "사용자취소",
+                //             "contract": [
+                //                 {
+                //                     "transaction_date": "1603161799976383",
+                //                     "price": "13344000",
+                //                     "units": "0.0015",
+                //                     "fee_currency": "KRW",
+                //                     "fee": "0",
+                //                     "total": "20016"
+                //                 }
+                //             ],
+                //         }
+                //     }
+                //
+                data = this.safeDict(response, "data");
+            }
+            Object orderData = new java.util.HashMap<String, Object>() {{
                 put( "order_id", id );
-                put( "count", 1 );
-                put( "order_currency", Helpers.GetValue(market, "base") );
-                put( "payment_currency", Helpers.GetValue(market, "quote") );
             }};
-            Object response = (this.privatePostInfoOrderDetail(this.extend(request, parameters))).join();
-            //
-            //     {
-            //         "status": "0000",
-            //         "data": {
-            //             "order_date": "1603161798539254",
-            //             "type": "ask",
-            //             "order_status": "Cancel",
-            //             "order_currency": "BTC",
-            //             "payment_currency": "KRW",
-            //             "watch_price": "0",
-            //             "order_price": "13344000",
-            //             "order_qty": "0.0125",
-            //             "cancel_date": "1603161803809993",
-            //             "cancel_type": "사용자취소",
-            //             "contract": [
-            //                 {
-            //                     "transaction_date": "1603161799976383",
-            //                     "price": "13344000",
-            //                     "units": "0.0015",
-            //                     "fee_currency": "KRW",
-            //                     "fee": "0",
-            //                     "total": "20016"
-            //                 }
-            //             ],
-            //         }
-            //     }
-            //
-            Object data = this.safeDict(response, "data");
-            return this.parseOrder(this.extend(data, new java.util.HashMap<String, Object>() {{
-                put( "order_id", id );
-            }}), market);
+            Object parsedOrder = this.extend(data, orderData);
+            return this.parseOrder(parsedOrder, market);
         });
 
     }
@@ -1110,6 +2403,11 @@ public class BithumbCore extends BithumbApi
             put( "Pending", "open" );
             put( "Completed", "closed" );
             put( "Cancel", "canceled" );
+            put( "wait", "open" );
+            put( "watch", "open" );
+            put( "done", "closed" );
+            put( "cancel", "canceled" );
+            put( "progress", "open" );
         }};
         return this.safeString(statuses, ((String)status), status);
     }
@@ -1118,7 +2416,7 @@ public class BithumbCore extends BithumbApi
     {
         //
         //
-        // fetchOrder
+        // generation 1: fetchOrder
         //
         //     {
         //         "transaction_date": "1572497603668315",
@@ -1143,32 +2441,145 @@ public class BithumbCore extends BithumbApi
         //         ]
         //     }
         //
-        // fetchOpenOrders
+        // generation 1: fetchOpenOrders
         //
         //     {
         //         "order_currency": "BTC",
         //         "payment_currency": "KRW",
-        //         "order_id": "C0101000007408440032",
-        //         "order_date": "1571728739360570",
+        //         "order_id": "C0101000003152294086",
+        //         "order_date": "1783141846061516",
         //         "type": "bid",
-        //         "units": "5.0",
-        //         "units_remaining": "5.0",
-        //         "price": "501000",
+        //         "watch_price": "0",
+        //         "units": "0.001",
+        //         "units_remaining": "0.001",
+        //         "price": "9500000",
+        //         "stp_type": "cancel_taker"
+        //     }
+        //
+        // generation 1: cancelOrder
+        //
+        //     {
+        //         "status": "0000"
+        //     }
+        //
+        // generation 2: createOrder, createOrders
+        //
+        //     {
+        //         "order_id": "C0101000003152350309",
+        //         "market": "KRW-BTC",
+        //         "side": "bid",
+        //         "order_type": "limit",
+        //         "created_at": "2026-07-04T14:39:04+09:00",
+        //         "stp_type": "cancel_taker"
+        //     }
+        //
+        // generation 2: fetchOrder, fetchOrders, fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders
+        //
+        //     {
+        //         "uuid": "C0101000003152406454",
+        //         "side": "bid",
+        //         "ord_type": "limit",
+        //         "price": "9500000",
+        //         "state": "wait",
+        //         "market": "KRW-BTC",
+        //         "created_at": "2026-07-04T15:05:46+09:00",
+        //         "volume": "0.001",
+        //         "remaining_volume": "0.001",
+        //         "reserved_fee": "23.75",
+        //         "remaining_fee": "23.75",
+        //         "paid_fee": "0",
+        //         "locked": "9524.75",
+        //         "executed_volume": "0",
+        //         "executed_funds": "0",
+        //         "trades_count": 0,
+        //         "stp_type": "cancel_taker",
+        //         "trades": []
+        //     }
+        //
+        // generation 2: cancelOrder, cancelOrders
+        //
+        //     {
+        //         "order_id": "C0101000003152350309",
+        //         "created_at": "2026-07-04T14:39:04+09:00"
+        //     }
+        //
+        // generation 2: createTwapOrder, twap cancelOrder
+        //
+        //     {
+        //         "algo_order_id": "019f3ed7-4f92-7179-beee-84b4c71e53fa"
+        //     }
+        //
+        // generation 2: twap fetchOrder, fetchOrders, fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders
+        //
+        //     {
+        //         "uuid": "019f3ed7-4f92-7179-beee-84b4c71e53fa",
+        //         "side": "bid",
+        //         "price": "92500000",
+        //         "state": "progress",
+        //         "market": "KRW-BTC",
+        //         "created_at": "2025-12-03T09:00:00+09:00",
+        //         "volume": "1.0",
+        //         "total_order_count": 60,
+        //         "total_trades_count": 10,
+        //         "progress_count": 25,
+        //         "total_executed_amount": "2312500000",
+        //         "total_executed_volume": "0.25",
+        //         "avg_trade_price": "92500000.000",
+        //         "wallet_id": "0000000000-00-0000",
+        //         "canceled_at": "2025-12-03T09:15:00+09:00",
+        //         "cancel_type": "user"
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeIntegerProduct(order, "order_date", 0.001);
-        Object sideProperty = this.safeString2(order, "type", "side");
-        Object side = ((Helpers.isTrue((Helpers.isEqual(sideProperty, "bid"))))) ? "buy" : "sell";
-        Object status = this.parseOrderStatus(this.safeString(order, "order_status"));
-        Object price = this.safeString2(order, "order_price", "price");
-        Object type = "limit";
-        if (Helpers.isTrue(Precise.stringEquals(price, "0")))
+        Object datetime = this.safeString(order, "created_at");
+        Object timestamp = null;
+        if (Helpers.isTrue(!Helpers.isEqual(datetime, null)))
         {
-            type = "market";
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getIndexOf(datetime, "+09:00"), Helpers.opNeg(1))))
+            {
+                Object normalized = Helpers.replace((String)datetime, (String)"+09:00", (String)"Z");
+                Object normalizedTimestamp = this.parse8601(normalized);
+                if (Helpers.isTrue(!Helpers.isEqual(normalizedTimestamp, null)))
+                {
+                    timestamp = Helpers.subtract(normalizedTimestamp, Helpers.multiply(9, 3600000));
+                } else
+                {
+                    timestamp = this.parse8601(datetime);
+                }
+            } else
+            {
+                timestamp = this.parse8601(datetime);
+            }
+        } else
+        {
+            timestamp = this.safeIntegerProduct(order, "order_date", 0.001);
+            datetime = this.iso8601(timestamp);
         }
-        Object amount = this.fixCommaNumber(this.safeString2(order, "order_qty", "units"));
-        Object remaining = this.fixCommaNumber(this.safeString(order, "units_remaining"));
+        Object sideProperty = this.safeString2(order, "type", "side");
+        Object side = null;
+        if (Helpers.isTrue(Helpers.isEqual(sideProperty, "bid")))
+        {
+            side = "buy";
+        } else if (Helpers.isTrue(Helpers.isEqual(sideProperty, "ask")))
+        {
+            side = "sell";
+        }
+        Object status = this.parseOrderStatus(this.safeString2(order, "order_status", "state"));
+        Object price = this.safeString2(order, "order_price", "price");
+        Object type = this.safeString2(order, "order_type", "ord_type");
+        Object progressCount = this.safeString(order, "progress_count");
+        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(type, null))) && Helpers.isTrue((!Helpers.isEqual(price, null)))) && Helpers.isTrue((Helpers.isEqual(progressCount, null)))))
+        {
+            if (Helpers.isTrue(Precise.stringEquals(price, "0")))
+            {
+                type = "market";
+            } else
+            {
+                type = "limit";
+            }
+        }
+        Object amount = this.fixCommaNumber(this.safeStringN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("order_qty", "units", "volume"))));
+        Object remaining = this.fixCommaNumber(this.safeString2(order, "units_remaining", "remaining_volume"));
         if (Helpers.isTrue(Helpers.isEqual(remaining, null)))
         {
             if (Helpers.isTrue(Helpers.isEqual(status, "closed")))
@@ -1190,36 +2601,68 @@ public class BithumbCore extends BithumbApi
         }
         if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
         {
-            market = this.safeMarket(null, market);
+            Object marketId = this.safeString(order, "market");
+            market = this.safeMarket(marketId, market);
             symbol = Helpers.GetValue(market, "symbol");
         }
-        Object id = this.safeString(order, "order_id");
-        Object rawTrades = this.safeList(order, "contract", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object id = this.safeStringN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("order_id", "uuid", "algo_order_id")));
+        Object rawTrades = this.safeList2(order, "contract", "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object feeCost = this.safeNumber(order, "reserved_fee");
+        Object fee = null;
+        if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
+        {
+            Object currency = null;
+            if (Helpers.isTrue(!Helpers.isEqual(market, null)))
+            {
+                currency = Helpers.GetValue(market, "quote");
+            }
+            final Object finalCurrency = currency;
+            final Object finalFeeCost = feeCost;
+            fee = new java.util.HashMap<String, Object>() {{
+                put( "currency", finalCurrency );
+                put( "cost", finalFeeCost );
+                put( "rate", null );
+            }};
+        }
+        Object postOnly = null;
+        Object timeInForce = this.safeStringUpper(order, "time_in_force");
+        if (Helpers.isTrue(Helpers.isEqual(timeInForce, "POST_ONLY")))
+        {
+            timeInForce = "PO";
+            postOnly = true;
+        }
+        final Object finalTimestamp = timestamp;
+        final Object finalDatetime = datetime;
         final Object finalSymbol = symbol;
         final Object finalType = type;
+        final Object finalTimeInForce = timeInForce;
+        final Object finalPostOnly = postOnly;
+        final Object finalSide = side;
+        final Object finalPrice = price;
         final Object finalRemaining = remaining;
         final Object finalStatus = status;
+        final Object finalFee = fee;
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "info", order );
             put( "id", id );
-            put( "clientOrderId", null );
-            put( "timestamp", timestamp );
-            put( "datetime", BithumbCore.this.iso8601(timestamp) );
+            put( "clientOrderId", BithumbCore.this.safeString(order, "client_order_id") );
+            put( "timestamp", finalTimestamp );
+            put( "datetime", finalDatetime );
             put( "lastTradeTimestamp", null );
             put( "symbol", finalSymbol );
             put( "type", finalType );
-            put( "timeInForce", null );
-            put( "postOnly", null );
-            put( "side", side );
-            put( "price", price );
+            put( "timeInForce", finalTimeInForce );
+            put( "postOnly", finalPostOnly );
+            put( "side", finalSide );
+            put( "price", finalPrice );
             put( "triggerPrice", null );
             put( "amount", amount );
             put( "cost", null );
-            put( "average", null );
+            put( "average", BithumbCore.this.safeNumber(order, "avg_trade_price") );
             put( "filled", null );
             put( "remaining", finalRemaining );
             put( "status", finalStatus );
-            put( "fee", null );
+            put( "fee", finalFee );
             put( "trades", rawTrades );
         }}, market);
     }
@@ -1229,10 +2672,15 @@ public class BithumbCore extends BithumbApi
      * @name bithumb#fetchOpenOrders
      * @description fetch all unfilled currently open orders
      * @see https://apidocs.bithumb.com/v1.2.0/reference/%EA%B1%B0%EB%9E%98-%EC%A3%BC%EB%AC%B8%EB%82%B4%EC%97%AD-%EC%A1%B0%ED%9A%8C
-     * @param {string} symbol unified market symbol
+     * @see https://apidocs.bithumb.com/reference/%EC%A3%BC%EB%AC%B8-%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EC%A1%B0%ED%9A%8C
+     * @see https://apidocs.bithumb.com/reference/twap-%EC%A3%BC%EB%AC%B8%EB%82%B4%EC%97%AD-%EC%A1%B0%ED%9A%8C
+     * @param {string} [symbol] unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of open order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
+     * @param {bool} [params.twap] *generation 2 only* if you want to fetch generation 2 twap orders
+     * @param {string} [params.state] *generation 2 only* the order state, either wait, watch, done, or cancel. For twap either progress (default), done, or cancel
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOpenOrders(Object... optionalArgs)
@@ -1244,49 +2692,235 @@ public class BithumbCore extends BithumbApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
-            {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOpenOrders() requires a symbol argument")) ;
-            }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            if (Helpers.isTrue(Helpers.isEqual(limit, null)))
+            Object generation = null;
+            var generationparametersVariable = this.handleOptionAndParams(parameters, "fetchOpenOrders", "generation", 2);
+            generation = ((java.util.List<Object>) generationparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
+            Object request = new java.util.HashMap<String, Object>() {{}};
+            Object market = null;
+            Object response = null;
+            if (Helpers.isTrue(Helpers.isEqual(generation, 2)))
             {
-                limit = 100;
-            }
-            final Object finalLimit = limit;
-            Object request = new java.util.HashMap<String, Object>() {{
-                put( "count", finalLimit );
-                put( "order_currency", Helpers.GetValue(market, "base") );
-                put( "payment_currency", Helpers.GetValue(market, "quote") );
-            }};
-            if (Helpers.isTrue(!Helpers.isEqual(since, null)))
+                Object twap = this.safeBool(parameters, "twap", false);
+                if (Helpers.isTrue(twap))
+                {
+                    Helpers.addElementToObject(parameters, "state", "progress");
+                } else
+                {
+                    Helpers.addElementToObject(parameters, "state", "wait");
+                }
+                Object orders = (this.fetchOrders(symbol, since, limit, parameters)).join();
+                return this.filterBySinceLimit(orders, since, limit);
+            } else
             {
-                Helpers.addElementToObject(request, "after", since);
+                if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
+                {
+                    throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOpenOrders() requires a symbol argument")) ;
+                }
+                market = this.market(symbol);
+                if (Helpers.isTrue(!Helpers.isEqual(since, null)))
+                {
+                    Helpers.addElementToObject(request, "after", since);
+                }
+                if (Helpers.isTrue(Helpers.isEqual(limit, null)))
+                {
+                    limit = 100;
+                }
+                Helpers.addElementToObject(request, "count", limit);
+                Helpers.addElementToObject(request, "order_currency", Helpers.GetValue(market, "base"));
+                Helpers.addElementToObject(request, "payment_currency", Helpers.GetValue(market, "quote"));
+                response = (this.privatePostInfoOrders(this.extend(request, parameters))).join();
             }
-            Object response = (this.privatePostInfoOrders(this.extend(request, parameters))).join();
-            //
-            //     {
-            //         "status": "0000",
-            //         "data": [
-            //             {
-            //                 "order_currency": "BTC",
-            //                 "payment_currency": "KRW",
-            //                 "order_id": "C0101000007408440032",
-            //                 "order_date": "1571728739360570",
-            //                 "type": "bid",
-            //                 "units": "5.0",
-            //                 "units_remaining": "5.0",
-            //                 "price": "501000",
-            //             }
-            //         ]
-            //     }
-            //
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOrders(data, market, since, limit);
+        });
+
+    }
+
+    /**
+     * @method
+     * @name bithumb#fetchOrders
+     * @description fetches information on multiple orders made by the user
+     * @see https://apidocs.bithumb.com/reference/%EC%A3%BC%EB%AC%B8-%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EC%A1%B0%ED%9A%8C
+     * @see https://apidocs.bithumb.com/reference/twap-%EC%A3%BC%EB%AC%B8%EB%82%B4%EC%97%AD-%EC%A1%B0%ED%9A%8C
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string[]} [params.clientOrderIds] an array of client order ids
+     * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
+     * @param {bool} [params.twap] *generation 2 only* if you want to fetch generation 2 twap orders
+     * @param {string} [params.state] *generation 2 only* the order state, either wait, watch, done, or cancel. For twap either progress (default), done, or cancel
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public java.util.concurrent.CompletableFuture<Object> fetchOrders(Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object symbol = Helpers.getArg(optionalArgs, 0, null);
+            Object since = Helpers.getArg(optionalArgs, 1, null);
+            Object limit = Helpers.getArg(optionalArgs, 2, null);
+            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
+            Object generation = null;
+            var generationparametersVariable = this.handleOptionAndParams(parameters, "fetchOrders", "generation", 2);
+            generation = ((java.util.List<Object>) generationparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
+            if (Helpers.isTrue(!Helpers.isEqual(generation, 2)))
+            {
+                throw new BadRequest((String)Helpers.add(this.id, " fetchOrders is only supported for the generation 2 API")) ;
+            }
+            Object request = new java.util.HashMap<String, Object>() {{}};
+            Object twap = this.safeBool(parameters, "twap", false);
+            parameters = this.omit(parameters, "twap");
+            if (!Helpers.isTrue(twap))
+            {
+                Object clientOrderIds = this.safeList2(parameters, "client_order_ids", "clientOrderIds");
+                if (Helpers.isTrue(!Helpers.isEqual(clientOrderIds, null)))
+                {
+                    Helpers.addElementToObject(request, "client_order_ids", clientOrderIds);
+                    parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderIds")));
+                }
+            }
+            Object market = null;
+            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+            {
+                market = this.market(symbol);
+                Helpers.addElementToObject(request, "market", this.getGen2MarketId(market));
+            }
+            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+            {
+                Helpers.addElementToObject(request, "limit", limit);
+            }
+            Object response = null;
+            Object data = null;
+            if (Helpers.isTrue(twap))
+            {
+                response = (this.privateGetV1Twap(this.extend(request, parameters))).join();
+                //
+                //     {
+                //         "has_next": false,
+                //         "next_key": null,
+                //         "orders": [
+                //             {
+                //                 "uuid": "019f3ed7-4f92-7179-beee-84b4c71e53fa",
+                //                 "side": "bid",
+                //                 "price": "92500000",
+                //                 "state": "progress",
+                //                 "market": "KRW-BTC",
+                //                 "created_at": "2025-12-04T10:00:00+09:00",
+                //                 "volume": "1.0",
+                //                 "total_order_count": 60,
+                //                 "total_trades_count": 10,
+                //                 "progress_count": 25,
+                //                 "total_executed_amount": "2312500000",
+                //                 "total_executed_volume": "0.25",
+                //                 "avg_trade_price": "92500000.000",
+                //                 "wallet_id": "0000000000-00-0000"
+                //             },
+                //         ]
+                //     }
+                //
+                data = this.safeList(response, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            } else
+            {
+                response = (this.privateGetV1Orders(this.extend(request, parameters))).join();
+                //
+                //     [
+                //         {
+                //             "uuid": "C0101000003152406454",
+                //             "side": "bid",
+                //             "ord_type": "limit",
+                //             "price": "9500000",
+                //             "state": "wait",
+                //             "market": "KRW-BTC",
+                //             "created_at": "2026-07-04T15:05:46+09:00",
+                //             "volume": "0.001",
+                //             "remaining_volume": "0.001",
+                //             "reserved_fee": "23.75",
+                //             "remaining_fee": "23.75",
+                //             "paid_fee": "0",
+                //             "locked": "9524.75",
+                //             "executed_volume": "0",
+                //             "executed_funds": "0",
+                //             "trades_count": 0,
+                //             "stp_type": "cancel_taker"
+                //         }
+                //     ]
+                //
+                data = response;
+            }
+            return this.parseOrders(data, market, since, limit);
+        });
+
+    }
+
+    /**
+     * @method
+     * @name bithumb#fetchClosedOrders
+     * @description fetches information on multiple closed orders made by the user
+     * @see https://apidocs.bithumb.com/reference/%EC%A3%BC%EB%AC%B8-%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EC%A1%B0%ED%9A%8C
+     * @see https://apidocs.bithumb.com/reference/twap-%EC%A3%BC%EB%AC%B8%EB%82%B4%EC%97%AD-%EC%A1%B0%ED%9A%8C
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string[]} [params.clientOrderIds] an array of client order ids
+     * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
+     * @param {bool} [params.twap] if you want to fetch generation 2 twap orders
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public java.util.concurrent.CompletableFuture<Object> fetchClosedOrders(Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object symbol = Helpers.getArg(optionalArgs, 0, null);
+            Object since = Helpers.getArg(optionalArgs, 1, null);
+            Object limit = Helpers.getArg(optionalArgs, 2, null);
+            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Helpers.addElementToObject(parameters, "state", "done");
+            Object orders = (this.fetchOrders(symbol, since, limit, parameters)).join();
+            return this.filterBySinceLimit(orders, since, limit);
+        });
+
+    }
+
+    /**
+     * @method
+     * @name bithumb#fetchCanceledOrders
+     * @description fetches information on multiple canceled orders made by the user
+     * @see https://apidocs.bithumb.com/reference/%EC%A3%BC%EB%AC%B8-%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EC%A1%B0%ED%9A%8C
+     * @see https://apidocs.bithumb.com/reference/twap-%EC%A3%BC%EB%AC%B8%EB%82%B4%EC%97%AD-%EC%A1%B0%ED%9A%8C
+     * @param {string} symbol unified market symbol of the market the orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string[]} [params.clientOrderIds] an array of client order ids
+     * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
+     * @param {bool} [params.twap] if you want to fetch generation 2 twap orders
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public java.util.concurrent.CompletableFuture<Object> fetchCanceledOrders(Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object symbol = Helpers.getArg(optionalArgs, 0, null);
+            Object since = Helpers.getArg(optionalArgs, 1, null);
+            Object limit = Helpers.getArg(optionalArgs, 2, null);
+            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Helpers.addElementToObject(parameters, "state", "cancel");
+            Object orders = (this.fetchOrders(symbol, since, limit, parameters)).join();
+            return this.filterBySinceLimit(orders, since, limit);
         });
 
     }
@@ -1296,9 +2930,14 @@ public class BithumbCore extends BithumbApi
      * @name bithumb#cancelOrder
      * @description cancels an open order
      * @see https://apidocs.bithumb.com/v1.2.0/reference/%EC%A3%BC%EB%AC%B8-%EC%B7%A8%EC%86%8C%ED%95%98%EA%B8%B0
+     * @see https://apidocs.bithumb.com/reference/%EC%A3%BC%EB%AC%B8-%EC%B7%A8%EC%86%8C-%EC%A0%91%EC%88%98
+     * @see https://apidocs.bithumb.com/reference/twap-%EC%A3%BC%EB%AC%B8-%EC%B7%A8%EC%86%8C
      * @param {string} id order id
-     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {string} [symbol] unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] the clientOrderId of the order, alternative to using the order id
+     * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
+     * @param {bool} [params.twap] if you want to cancel a generation 2 twap order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> cancelOrder(Object id, Object... optionalArgs)
@@ -1308,34 +2947,147 @@ public class BithumbCore extends BithumbApi
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
+                (this.loadMarkets()).join();
             }
-            Object side_in_params = (Helpers.inOp(parameters, "side"));
-            if (!Helpers.isTrue(side_in_params))
+            Object generation = null;
+            var generationparametersVariable = this.handleOptionAndParams(parameters, "cancelOrder", "generation", 2);
+            generation = ((java.util.List<Object>) generationparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
+            Object market = null;
+            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a `side` parameter (sell or buy)")) ;
+                market = this.market(symbol);
             }
-            Object market = this.market(symbol);
-            Object side = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(parameters, "side"), "buy"))))) ? "bid" : "ask";
-            parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("side", "currency")));
-            // https://github.com/ccxt/ccxt/issues/6771
-            Object request = new java.util.HashMap<String, Object>() {{
-                put( "order_id", id );
-                put( "type", side );
-                put( "order_currency", Helpers.GetValue(market, "base") );
-                put( "payment_currency", Helpers.GetValue(market, "quote") );
-            }};
-            Object response = (this.privatePostTradeCancel(this.extend(request, parameters))).join();
-            //
-            //    {
-            //       'status': 'string',
-            //    }
-            //
-            return this.safeOrder(new java.util.HashMap<String, Object>() {{
-                put( "info", response );
+            Object request = new java.util.HashMap<String, Object>() {{}};
+            Object response = null;
+            Object twap = this.safeBool(parameters, "twap", false);
+            parameters = this.omit(parameters, "twap");
+            if (Helpers.isTrue(twap))
+            {
+                Helpers.addElementToObject(request, "algo_order_id", id);
+            } else
+            {
+                Object clientOrderId = this.safeString2(parameters, "clientOrderId", "client_order_id");
+                if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(generation, 2))) && Helpers.isTrue((!Helpers.isEqual(clientOrderId, null)))))
+                {
+                    Helpers.addElementToObject(request, "client_order_id", clientOrderId);
+                    parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId")));
+                } else
+                {
+                    Helpers.addElementToObject(request, "order_id", id);
+                }
+            }
+            if (Helpers.isTrue(Helpers.isEqual(generation, 2)))
+            {
+                if (Helpers.isTrue(twap))
+                {
+                    response = (this.privateDeleteV1Twap(this.extend(request, parameters))).join();
+                } else
+                {
+                    response = (this.privateDeleteV2Order(this.extend(request, parameters))).join();
+                }
+            } else
+            {
+                if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
+                {
+                    throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
+                }
+                Object marketDefined = market;
+                Object base = this.safeString(marketDefined, "base");
+                Object quote = this.safeString(marketDefined, "quote");
+                if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(base, null))) || Helpers.isTrue((Helpers.isEqual(quote, null)))))
+                {
+                    throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a market with defined base and quote")) ;
+                }
+                Object side_in_params = (Helpers.inOp(parameters, "side"));
+                if (!Helpers.isTrue(side_in_params))
+                {
+                    throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a `side` parameter (sell or buy)")) ;
+                }
+                Object side = null;
+                if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(parameters, "side"), "buy")))
+                {
+                    side = "bid";
+                } else
+                {
+                    side = "ask";
+                }
+                parameters = this.omit(parameters, "side");
+                // https://github.com/ccxt/ccxt/issues/6771
+                Helpers.addElementToObject(request, "type", side);
+                Helpers.addElementToObject(request, "order_currency", base);
+                Helpers.addElementToObject(request, "payment_currency", quote);
+                response = (this.privatePostTradeCancel(this.extend(request, parameters))).join();
+            }
+            return this.extend(this.parseOrder(response, market), new java.util.HashMap<String, Object>() {{
+                put( "id", id );
             }});
+        });
+
+    }
+
+    /**
+     * @method
+     * @name bithumb#cancelOrders
+     * @description cancel multiple orders
+     * @see https://apidocs.bithumb.com/reference/%EB%8B%A4%EA%B1%B4-%EC%A3%BC%EB%AC%B8-%EC%B7%A8%EC%86%8C-%EC%A0%91%EC%88%98
+     * @param {string[]} ids order ids
+     * @param {string} [symbol] unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string[]} [params.clientOrderIds] alternative to ids, array of client order ids
+     * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public java.util.concurrent.CompletableFuture<Object> cancelOrders(Object ids, Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object symbol = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
+            Object generation = null;
+            var generationparametersVariable = this.handleOptionAndParams(parameters, "cancelOrders", "generation", 2);
+            generation = ((java.util.List<Object>) generationparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
+            if (Helpers.isTrue(!Helpers.isEqual(generation, 2)))
+            {
+                throw new BadRequest((String)Helpers.add(this.id, " cancelOrders is only supported for the generation 2 API")) ;
+            }
+            Object market = null;
+            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+            {
+                market = this.market(symbol);
+            }
+            Object request = new java.util.HashMap<String, Object>() {{}};
+            Object clientOrderIds = this.safeList2(parameters, "client_order_ids", "clientOrderIds");
+            if (Helpers.isTrue(!Helpers.isEqual(clientOrderIds, null)))
+            {
+                Helpers.addElementToObject(request, "client_order_ids", clientOrderIds);
+                parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderIds")));
+            } else
+            {
+                Helpers.addElementToObject(request, "order_ids", ids);
+            }
+            Object response = (this.privatePostV2OrdersCancel(this.extend(request, parameters))).join();
+            //
+            //     {
+            //         "success": [
+            //             {
+            //                 "order_id": "C0101000003152500274",
+            //                 "created_at":"2026-07-04T15:49:24+09:00"
+            //             },
+            //         ],
+            //         "fail": []
+            //     }
+            //
+            Object data = this.safeList(response, "success", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            return this.parseOrders(data, market);
         });
 
     }
@@ -1359,11 +3111,25 @@ public class BithumbCore extends BithumbApi
      * @name bithumb#withdraw
      * @description make a withdrawal
      * @see https://apidocs.bithumb.com/v1.2.0/reference/%EC%BD%94%EC%9D%B8-%EC%B6%9C%EA%B8%88%ED%95%98%EA%B8%B0-%EA%B0%9C%EC%9D%B8
+     * @see https://apidocs.bithumb.com/reference/%EA%B0%80%EC%83%81-%EC%9E%90%EC%82%B0-%EC%B6%9C%EA%B8%88-%EC%9A%94%EC%B2%AD
+     * @see https://apidocs.bithumb.com/reference/%EC%9B%90%ED%99%94-%EC%B6%9C%EA%B8%88-%EC%9A%94%EC%B2%AD
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
+     * @param {string} tag the secondary withdrawal destination address
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
+     * @param {string} [params.network] the blockchain network to withdraw on, for example BTC or DASH
+     * @param {string} [params.destination] secondary address destination for specific currencies, can alternatively use the tag argument
+     * @param {string} [params.exchange_name] withdrawal exchange name
+     * @param {string} [params.receiver_type] either personal or corporation
+     * @param {string} [params.ko_name] *generation 1 only* the receiver name in korean
+     * @param {string} [params.en_name] *generation 1 only* the receiver name in english
+     * @param {string} [params.receiver_ko_name] *generation 2 only* the personal receiver name in korean
+     * @param {string} [params.receiver_en_name] *generation 2 only* the personal receiver name in english
+     * @param {string} [params.receiver_corp_ko_name] *generation 2 only* the corporation receiver name in korean
+     * @param {string} [params.receiver_corp_en_name] *generation 2 only* the corporation receiver name in english
+     * @param {string} [params.two_factor_type] *generation 2 KRW withdraw only* the two factor type, for example kakao
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> withdraw(Object code2, Object amount, Object address, Object... optionalArgs)
@@ -1373,35 +3139,102 @@ public class BithumbCore extends BithumbApi
             Object code = code3;
             Object tag = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
-            tag = ((java.util.List<Object>) tagparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) tagparametersVariable).get(1);
-            this.checkAddress(address);
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
+            Object generation = null;
+            var generationparametersVariable = this.handleOptionAndParams(parameters, "withdraw", "generation", 2);
+            generation = ((java.util.List<Object>) generationparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
+            var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
+            tag = ((java.util.List<Object>) tagparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) tagparametersVariable).get(1);
+            this.checkAddress(address);
+            Object network = this.safeString2(parameters, "network", "net_type");
+            parameters = this.omit(parameters, "network");
             Object currency = this.currency(code);
-            Object request = new java.util.HashMap<String, Object>() {{
-                put( "units", amount );
-                put( "address", address );
-                put( "currency", Helpers.GetValue(currency, "id") );
-            }};
+            Object request = new java.util.HashMap<String, Object>() {{}};
+            Object response = null;
+            Object destinationRequest = null;
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(code, "XRP")) || Helpers.isTrue(Helpers.isEqual(code, "XMR"))) || Helpers.isTrue(Helpers.isEqual(code, "EOS"))) || Helpers.isTrue(Helpers.isEqual(code, "STEEM"))) || Helpers.isTrue(Helpers.isEqual(code, "TON"))))
             {
-                Object destination = this.safeString(parameters, "destination");
+                Object destination = this.safeString2(parameters, "destination", "secondary_address");
+                parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("destination", "secondary_address")));
                 if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(tag, null))) && Helpers.isTrue((Helpers.isEqual(destination, null)))))
                 {
                     throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), code), " withdraw() requires a tag argument or an extra destination param")) ;
                 } else if (Helpers.isTrue(!Helpers.isEqual(tag, null)))
                 {
-                    Helpers.addElementToObject(request, "destination", tag);
+                    destinationRequest = tag;
+                } else
+                {
+                    destinationRequest = destination;
                 }
             }
-            Object response = (this.privatePostTradeBtcWithdrawal(this.extend(request, parameters))).join();
-            //
-            // { "status" : "0000"}
-            //
+            Object receiverType = this.safeString2(parameters, "receiver_type", "cust_type_cd");
+            parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("receiver_type", "cust_type_cd")));
+            if (Helpers.isTrue(Helpers.isEqual(generation, 2)))
+            {
+                if (Helpers.isTrue(Helpers.isEqual(code, "KRW")))
+                {
+                    Object twoFactorType = this.safeString(parameters, "two_factor_type");
+                    if (Helpers.isTrue(Helpers.isEqual(twoFactorType, null)))
+                    {
+                        throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), code), " withdraw() requires a two_factor_type parameter for withdrawing KRW")) ;
+                    }
+                    Object krwRequest = new java.util.HashMap<String, Object>() {{
+                        put( "amount", BithumbCore.this.numberToString(amount) );
+                    }}; // KRW withdraw only accepts amount and two_factor_type parameters
+                    response = (this.privatePostV1WithdrawsKrw(this.extend(krwRequest, parameters))).join();
+                } else
+                {
+                    if (Helpers.isTrue(Helpers.isEqual(network, null)))
+                    {
+                        throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), code), " withdraw() requires a network parameter")) ;
+                    }
+                    Helpers.addElementToObject(request, "address", address);
+                    Helpers.addElementToObject(request, "currency", Helpers.GetValue(currency, "id"));
+                    Helpers.addElementToObject(request, "net_type", network);
+                    Helpers.addElementToObject(request, "amount", this.numberToString(amount));
+                    if (Helpers.isTrue(!Helpers.isEqual(destinationRequest, null)))
+                    {
+                        Helpers.addElementToObject(request, "secondary_address", destinationRequest);
+                    }
+                    if (Helpers.isTrue(!Helpers.isEqual(receiverType, null)))
+                    {
+                        Helpers.addElementToObject(request, "receiver_type", receiverType);
+                    }
+                    response = (this.privatePostV1WithdrawsCoin(this.extend(request, parameters))).join();
+                }
+            } else
+            {
+                Helpers.addElementToObject(request, "address", address);
+                Helpers.addElementToObject(request, "currency", Helpers.GetValue(currency, "id"));
+                Helpers.addElementToObject(request, "units", amount);
+                if (Helpers.isTrue(!Helpers.isEqual(network, null)))
+                {
+                    Helpers.addElementToObject(request, "net_type", network);
+                }
+                if (Helpers.isTrue(!Helpers.isEqual(destinationRequest, null)))
+                {
+                    Helpers.addElementToObject(request, "destination", destinationRequest);
+                }
+                if (Helpers.isTrue(!Helpers.isEqual(receiverType, null)))
+                {
+                    if (Helpers.isTrue(Helpers.isEqual(receiverType, "corporation")))
+                    {
+                        Helpers.addElementToObject(request, "cust_type_cd", "Corporation 02");
+                    } else if (Helpers.isTrue(Helpers.isEqual(receiverType, "personal")))
+                    {
+                        Helpers.addElementToObject(request, "cust_type_cd", "Individual 01");
+                    } else
+                    {
+                        Helpers.addElementToObject(request, "cust_type_cd", receiverType);
+                    }
+                }
+                response = (this.privatePostTradeBtcWithdrawal(this.extend(request, parameters))).join();
+            }
             return this.parseTransaction(response, currency);
         });
 
@@ -1410,34 +3243,620 @@ public class BithumbCore extends BithumbApi
     public Object parseTransaction(Object transaction, Object... optionalArgs)
     {
         //
-        // withdraw
+        // generation 1: withdraw
         //
-        //     { "status" : "0000"}
+        //     {"status": "0000"}
+        //
+        // generation 2: withdraw, fetchWithdrawal, fetchWithdrawals, fetchDeposit, fetchDeposits
+        //
+        //     {
+        //         "type": "withdraw",
+        //         "uuid": "200377211",
+        //         "currency": "BTC",
+        //         "net_type": "BTC",
+        //         "state": "processing",
+        //         "created_at": "2024-07-14T14:54:24+09:00",
+        //         "done_at": null,
+        //         "amount": "0.00010000",
+        //         "fee": "0",
+        //         "krw_amount": "8400",
+        //         "transaction_type": null,
+        //         "txid": null
+        //     }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        currency = this.safeCurrency(null, currency);
+        Object type = this.safeString(transaction, "type");
+        Object currencyId = this.safeString(transaction, "currency");
+        currency = this.safeCurrency(currencyId, currency);
+        Object datetime = this.safeString(transaction, "created_at");
+        Object timestamp = this.parse8601(datetime);
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(datetime, null))) && Helpers.isTrue((Helpers.isGreaterThan(Helpers.getIndexOf(datetime, "+09:00"), Helpers.opNeg(1))))))
+        {
+            Object normalized = Helpers.replace((String)datetime, (String)"+09:00", (String)"Z");
+            Object normalizedTimestamp = this.parse8601(normalized);
+            if (Helpers.isTrue(!Helpers.isEqual(normalizedTimestamp, null)))
+            {
+                timestamp = Helpers.subtract(normalizedTimestamp, Helpers.multiply(9, 3600000));
+            }
+        }
+        final Object finalTimestamp = timestamp;
+        final Object finalDatetime = datetime;
         final Object finalCurrency = currency;
         return new java.util.HashMap<String, Object>() {{
-            put( "id", null );
-            put( "txid", null );
-            put( "timestamp", null );
-            put( "datetime", null );
-            put( "network", null );
+            put( "id", BithumbCore.this.safeString(transaction, "uuid") );
+            put( "txid", BithumbCore.this.safeString(transaction, "txid") );
+            put( "timestamp", finalTimestamp );
+            put( "datetime", finalDatetime );
+            put( "network", BithumbCore.this.safeString(transaction, "net_type") );
             put( "addressFrom", null );
             put( "address", null );
             put( "addressTo", null );
-            put( "amount", null );
-            put( "type", null );
+            put( "amount", BithumbCore.this.safeNumber(transaction, "amount") );
+            put( "type", type );
             put( "currency", Helpers.GetValue(finalCurrency, "code") );
-            put( "status", null );
+            put( "status", BithumbCore.this.parseTransactionStatusByType(BithumbCore.this.safeString(transaction, "state"), type) );
             put( "updated", null );
             put( "tagFrom", null );
             put( "tag", null );
             put( "tagTo", null );
             put( "comment", null );
             put( "internal", null );
-            put( "fee", null );
+            put( "fee", new java.util.HashMap<String, Object>() {{
+                put( "currency", null );
+                put( "cost", BithumbCore.this.safeNumber(transaction, "fee") );
+                put( "rate", null );
+            }} );
             put( "info", transaction );
+        }};
+    }
+
+    public Object parseTransactionStatusByType(Object status, Object... optionalArgs)
+    {
+        Object type = Helpers.getArg(optionalArgs, 0, null);
+        if (Helpers.isTrue(Helpers.isEqual(type, null)))
+        {
+            return status;
+        }
+        Object statusesByType = new java.util.HashMap<String, Object>() {{
+            put( "deposit", new java.util.HashMap<String, Object>() {{
+                put( "DEPOSIT_PROCESSING", "pending" );
+                put( "DEPOSIT_ACCEPTED", "ok" );
+                put( "DEPOSIT_CANCELLED", "canceled" );
+                put( "PROCESSING", "pending" );
+                put( "ACCEPTED", "ok" );
+                put( "CANCELLED", "canceled" );
+            }} );
+            put( "withdraw", new java.util.HashMap<String, Object>() {{
+                put( "processing", "pending" );
+                put( "done", "ok" );
+                put( "cancelled", "canceled" );
+                put( "PROCESSING", "pending" );
+                put( "DONE", "ok" );
+                put( "CANCELLED", "canceled" );
+            }} );
+        }};
+        Object statuses = this.safeDict(statusesByType, ((String)type), new java.util.HashMap<String, Object>() {{}});
+        return this.safeString(statuses, status, status);
+    }
+
+    /**
+     * @method
+     * @name bithumb#fetchWithdrawalWhitelist
+     * @description fetch a list of allowed withdrawal addresses
+     * @see https://apidocs.bithumb.com/reference/%EC%B6%9C%EA%B8%88-%ED%97%88%EC%9A%A9-%EC%A3%BC%EC%86%8C-%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EC%A1%B0%ED%9A%8C
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
+     * @returns {object[]} a list response from the exchange
+     */
+    public java.util.concurrent.CompletableFuture<Object> fetchWithdrawalWhitelist(Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
+            Object generation = null;
+            var generationparametersVariable = this.handleOptionAndParams(parameters, "fetchWithdrawalWhitelist", "generation", 2);
+            generation = ((java.util.List<Object>) generationparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
+            if (Helpers.isTrue(!Helpers.isEqual(generation, 2)))
+            {
+                throw new BadRequest((String)Helpers.add(this.id, " fetchWithdrawalWhitelist() is only supported for the generation 2 API")) ;
+            }
+            Object response = (this.privateGetV1WithdrawsCoinAddresses(parameters)).join();
+            //
+            //     [
+            //         {
+            //             "currency": "BTC",
+            //             "wallet_state": "working",
+            //             "block_state": "normal",
+            //             "block_height": 852086,
+            //             "block_updated_at": "2024-07-14T13:43:57+09:00",
+            //             "block_elapsed_minutes": 2,
+            //             "net_type": "BTC",
+            //             "network_name": "Bitcoin"
+            //         },
+            //     ]
+            //
+            return response;
+        });
+
+    }
+
+    /**
+     * @method
+     * @name bithumb#fetchWithdrawal
+     * @description fetch data on a currency withdrawal via the withdrawal id
+     * @see https://apidocs.bithumb.com/reference/%EA%B0%9C%EB%B3%84-%EC%B6%9C%EA%B8%88-%EC%A1%B0%ED%9A%8C
+     * @param {string} id withdrawal id
+     * @param {string} [code] the currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.txid] the transaction id for the withdrawal
+     * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    public java.util.concurrent.CompletableFuture<Object> fetchWithdrawal(Object id2, Object... optionalArgs)
+    {
+        final Object id3 = id2;
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+            Object id = id3;
+            Object code = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
+            Object generation = null;
+            var generationparametersVariable = this.handleOptionAndParams(parameters, "fetchWithdrawal", "generation", 2);
+            generation = ((java.util.List<Object>) generationparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
+            if (Helpers.isTrue(!Helpers.isEqual(generation, 2)))
+            {
+                throw new BadRequest((String)Helpers.add(this.id, " fetchWithdrawal() is only supported for the generation 2 API")) ;
+            }
+            if (Helpers.isTrue(Helpers.isEqual(code, null)))
+            {
+                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchWithdrawal() requires a code argument")) ;
+            }
+            Object currency = this.currency(code);
+            Object request = new java.util.HashMap<String, Object>() {{
+                put( "currency", Helpers.GetValue(currency, "id") );
+            }};
+            if (Helpers.isTrue(!Helpers.isEqual(id, null)))
+            {
+                Helpers.addElementToObject(request, "uuid", id);
+            }
+            Object response = (this.privateGetV1Withdraw(this.extend(request, parameters))).join();
+            //
+            //     {
+            //         "type": "withdraw",
+            //         "uuid": "200377211",
+            //         "currency": "BTC",
+            //         "net_type": "BTC",
+            //         "state": "processing",
+            //         "created_at": "2024-07-14T14:54:24+09:00",
+            //         "done_at": null,
+            //         "amount": "0.00010000",
+            //         "fee": "0",
+            //         "transaction_type": null,
+            //         "txid": null
+            //     }
+            //
+            return this.parseTransaction(response, currency);
+        });
+
+    }
+
+    /**
+     * @method
+     * @name bithumb#fetchWithdrawals
+     * @description fetch all withdrawals made from an account
+     * @see https://apidocs.bithumb.com/reference/%EC%B6%9C%EA%B8%88-%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EC%A1%B0%ED%9A%8C
+     * @see https://apidocs.bithumb.com/reference/%EC%9B%90%ED%99%94-%EC%B6%9C%EA%B8%88-%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EC%A1%B0%ED%9A%8C
+     * @param {string} [code] unified currency code
+     * @param {int} [since] the earliest time in ms to fetch withdrawals for
+     * @param {int} [limit] the maximum number of withdrawals to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
+     * @param {int} [params.page] the number of pages to return, default is 1
+     * @param {string} [params.state] the withdrawal state, either PROCESSING, DONE or CANCELLED
+     * @param {string} [params.order_by] either asc or desc, desc is the default
+     * @param {string[]} [params.uuids] an array of uuid strings
+     * @param {string[]} [params.txids] an array of txid strings
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    public java.util.concurrent.CompletableFuture<Object> fetchWithdrawals(Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object code = Helpers.getArg(optionalArgs, 0, null);
+            Object since = Helpers.getArg(optionalArgs, 1, null);
+            Object limit = Helpers.getArg(optionalArgs, 2, null);
+            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
+            Object generation = null;
+            var generationparametersVariable = this.handleOptionAndParams(parameters, "fetchWithdrawals", "generation", 2);
+            generation = ((java.util.List<Object>) generationparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
+            if (Helpers.isTrue(!Helpers.isEqual(generation, 2)))
+            {
+                throw new BadRequest((String)Helpers.add(this.id, " fetchWithdrawals() is only supported for the generation 2 API")) ;
+            }
+            Object request = new java.util.HashMap<String, Object>() {{}};
+            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+            {
+                Helpers.addElementToObject(request, "limit", limit);
+            }
+            Object response = null;
+            Object currency = null;
+            if (Helpers.isTrue(Helpers.isEqual(code, "KRW")))
+            {
+                currency = this.currency(code);
+                response = (this.privateGetV1WithdrawsKrw(this.extend(request, parameters))).join();
+            } else
+            {
+                if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+                {
+                    currency = this.currency(code);
+                    Helpers.addElementToObject(request, "currency", Helpers.GetValue(currency, "id"));
+                }
+                response = (this.privateGetV1Withdraws(this.extend(request, parameters))).join();
+            }
+            //
+            //     [
+            //         {
+            //             "type": "withdraw",
+            //             "uuid": "200377211",
+            //             "currency": "BTC",
+            //             "net_type": "BTC",
+            //             "state": "processing",
+            //             "created_at": "2024-07-14T14:54:24+09:00",
+            //             "done_at": null,
+            //             "amount": "0.00010000",
+            //             "fee": "0",
+            //             "transaction_type": null,
+            //             "txid": null
+            //         }
+            //     ]
+            //
+            return this.parseTransactions(response, currency, since, limit);
+        });
+
+    }
+
+    /**
+     * @method
+     * @name bithumb#fetchDeposit
+     * @description fetch information on a deposit
+     * @see https://apidocs.bithumb.com/reference/%EA%B0%9C%EB%B3%84-%EC%9E%85%EA%B8%88-%EC%A1%B0%ED%9A%8C
+     * @param {string} id deposit id
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.txid] the transaction id for the deposit
+     * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    public java.util.concurrent.CompletableFuture<Object> fetchDeposit(Object id2, Object... optionalArgs)
+    {
+        final Object id3 = id2;
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+            Object id = id3;
+            Object code = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
+            Object generation = null;
+            var generationparametersVariable = this.handleOptionAndParams(parameters, "fetchDeposit", "generation", 2);
+            generation = ((java.util.List<Object>) generationparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
+            if (Helpers.isTrue(!Helpers.isEqual(generation, 2)))
+            {
+                throw new BadRequest((String)Helpers.add(this.id, " fetchDeposit() is only supported for the generation 2 API")) ;
+            }
+            if (Helpers.isTrue(Helpers.isEqual(code, null)))
+            {
+                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchDeposit() requires a code argument")) ;
+            }
+            Object currency = this.currency(code);
+            Object request = new java.util.HashMap<String, Object>() {{
+                put( "currency", Helpers.GetValue(currency, "id") );
+            }};
+            if (Helpers.isTrue(!Helpers.isEqual(id, null)))
+            {
+                Helpers.addElementToObject(request, "uuid", id);
+            }
+            Object response = (this.privateGetV1Deposit(this.extend(request, parameters))).join();
+            //
+            //     {
+            //         "type": "deposit",
+            //         "uuid": "200377211",
+            //         "currency": "BTC",
+            //         "net_type": "BTC",
+            //         "state": "DEPOSIT_ACCEPTED",
+            //         "created_at": "2024-07-14T14:54:24+09:00",
+            //         "done_at": null,
+            //         "amount": "0.00010000",
+            //         "fee": "0",
+            //         "transaction_type": null,
+            //         "txid": null
+            //     }
+            //
+            return this.parseTransaction(response, currency);
+        });
+
+    }
+
+    /**
+     * @method
+     * @name bithumb#fetchDeposits
+     * @description fetch all deposits made to an account
+     * @see https://apidocs.bithumb.com/reference/%EC%9E%85%EA%B8%88-%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EC%A1%B0%ED%9A%8C
+     * @see https://apidocs.bithumb.com/reference/%EC%9B%90%ED%99%94-%EC%9E%85%EA%B8%88-%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EC%A1%B0%ED%9A%8C
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch deposits for
+     * @param {int} [limit] the maximum number of deposits to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
+     * @param {int} [params.page] the number of pages to return, default is 1
+     * @param {string} [params.state] the deposit state, for KRW, PROCESSING, ACCEPTED or CANCELLED, for others, DEPOSIT_PROCESSING, DEPOSIT_ACCEPTED, DEPOSIT_CANCELLED
+     * @param {string} [params.order_by] either asc or desc, desc is the default
+     * @param {string[]} [params.uuids] an array of uuid strings
+     * @param {string[]} [params.txids] an array of txid strings
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    public java.util.concurrent.CompletableFuture<Object> fetchDeposits(Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object code = Helpers.getArg(optionalArgs, 0, null);
+            Object since = Helpers.getArg(optionalArgs, 1, null);
+            Object limit = Helpers.getArg(optionalArgs, 2, null);
+            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
+            Object generation = null;
+            var generationparametersVariable = this.handleOptionAndParams(parameters, "fetchDeposits", "generation", 2);
+            generation = ((java.util.List<Object>) generationparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
+            if (Helpers.isTrue(!Helpers.isEqual(generation, 2)))
+            {
+                throw new BadRequest((String)Helpers.add(this.id, " fetchDeposits() is only supported for the generation 2 API")) ;
+            }
+            Object request = new java.util.HashMap<String, Object>() {{}};
+            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+            {
+                Helpers.addElementToObject(request, "limit", limit);
+            }
+            Object response = null;
+            Object currency = null;
+            if (Helpers.isTrue(Helpers.isEqual(code, "KRW")))
+            {
+                currency = this.currency(code);
+                response = (this.privateGetV1DepositsKrw(this.extend(request, parameters))).join();
+            } else
+            {
+                if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+                {
+                    currency = this.currency(code);
+                    Helpers.addElementToObject(request, "currency", Helpers.GetValue(currency, "id"));
+                }
+                response = (this.privateGetV1Deposits(this.extend(request, parameters))).join();
+            }
+            //
+            //     [
+            //         {
+            //             "type": "deposit",
+            //             "uuid": "200377211",
+            //             "currency": "BTC",
+            //             "net_type": "BTC",
+            //             "state": "DEPOSIT_ACCEPTED",
+            //             "created_at": "2024-07-14T14:54:24+09:00",
+            //             "done_at": null,
+            //             "amount": "0.00010000",
+            //             "fee": "0",
+            //             "transaction_type": null,
+            //             "txid": null
+            //         }
+            //     ]
+            //
+            return this.parseTransactions(response, currency, since, limit);
+        });
+
+    }
+
+    /**
+     * @method
+     * @name bithumb#createDepositAddress
+     * @description create a currency deposit address
+     * @see https://apidocs.bithumb.com/reference/%EC%9E%85%EA%B8%88-%EC%A3%BC%EC%86%8C-%EC%83%9D%EC%84%B1-%EC%9A%94%EC%B2%AD
+     * @param {string} code unified currency code of the currency for the deposit address
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
+     * @param {string} [params.network] the blockchain network to create a deposit address on
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+     */
+    public java.util.concurrent.CompletableFuture<Object> createDepositAddress(Object code, Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
+            Object generation = null;
+            var generationparametersVariable = this.handleOptionAndParams(parameters, "createDepositAddress", "generation", 2);
+            generation = ((java.util.List<Object>) generationparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
+            if (Helpers.isTrue(!Helpers.isEqual(generation, 2)))
+            {
+                throw new BadRequest((String)Helpers.add(this.id, " createDepositAddress() is only supported for the generation 2 API")) ;
+            }
+            Object currency = this.currency(code);
+            Object request = new java.util.HashMap<String, Object>() {{
+                put( "currency", Helpers.GetValue(currency, "id") );
+            }};
+            Object network = this.safeString2(parameters, "network", "net_type");
+            parameters = this.omit(parameters, "network");
+            if (Helpers.isTrue(Helpers.isEqual(network, null)))
+            {
+                throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), code), " createDepositAddress() requires a network parameter")) ;
+            }
+            Helpers.addElementToObject(request, "net_type", network);
+            Object response = (this.privatePostV1DepositsGenerateCoinAddress(this.extend(request, parameters))).join();
+            //
+            //     {
+            //         "currency": "BTC",
+            //         "net_type": "BTC",
+            //         "deposit_address": "195Y...rbJ3",
+            //         "secondary_address": null
+            //     }
+            //
+            return this.parseDepositAddress(response, currency);
+        });
+
+    }
+
+    /**
+     * @method
+     * @name bithumb#fetchDepositAddress
+     * @description fetch the deposit address for a currency associated with this account
+     * @see https://apidocs.bithumb.com/reference/%EA%B0%9C%EB%B3%84-%EC%9E%85%EA%B8%88-%EC%A3%BC%EC%86%8C-%EC%A1%B0%ED%9A%8C
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
+     * @param {string} [params.network] network for fetch deposit address
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+     */
+    public java.util.concurrent.CompletableFuture<Object> fetchDepositAddress(Object code, Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
+            Object generation = null;
+            var generationparametersVariable = this.handleOptionAndParams(parameters, "fetchDepositAddress", "generation", 2);
+            generation = ((java.util.List<Object>) generationparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
+            if (Helpers.isTrue(!Helpers.isEqual(generation, 2)))
+            {
+                throw new BadRequest((String)Helpers.add(this.id, " fetchDepositAddress() is only supported for the generation 2 API")) ;
+            }
+            Object currency = this.currency(code);
+            Object request = new java.util.HashMap<String, Object>() {{
+                put( "currency", Helpers.GetValue(currency, "id") );
+            }};
+            Object network = this.safeString2(parameters, "network", "net_type");
+            parameters = this.omit(parameters, "network");
+            if (Helpers.isTrue(Helpers.isEqual(network, null)))
+            {
+                throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), code), " fetchDepositAddress() requires a network parameter")) ;
+            }
+            Helpers.addElementToObject(request, "net_type", network);
+            Object response = (this.privateGetV1DepositsCoinAddress(this.extend(request, parameters))).join();
+            //
+            //     {
+            //         "currency": "BTC",
+            //         "net_type": "BTC",
+            //         "deposit_address": "195Y...rbJ3",
+            //         "secondary_address": null
+            //     }
+            //
+            return this.parseDepositAddress(response, currency);
+        });
+
+    }
+
+    /**
+     * @method
+     * @name bithumb#fetchDepositAddresses
+     * @description fetch deposit addresses for multiple currencies (when available)
+     * @see https://apidocs.bithumb.com/reference/%EC%A0%84%EC%B2%B4-%EC%9E%85%EA%B8%88-%EC%A3%BC%EC%86%8C-%EC%A1%B0%ED%9A%8C
+     * @param {string[]} [codes] list of unified currency codes, default is undefined (all currencies)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
+     * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by currency code
+     */
+    public java.util.concurrent.CompletableFuture<Object> fetchDepositAddresses(Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object codes = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
+            Object generation = null;
+            var generationparametersVariable = this.handleOptionAndParams(parameters, "fetchDepositAddresses", "generation", 2);
+            generation = ((java.util.List<Object>) generationparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
+            if (Helpers.isTrue(!Helpers.isEqual(generation, 2)))
+            {
+                throw new BadRequest((String)Helpers.add(this.id, " fetchDepositAddresses() is only supported for the generation 2 API")) ;
+            }
+            Object response = (this.privateGetV1DepositsCoinAddresses(parameters)).join();
+            //
+            //     [
+            //         {
+            //             "currency": "BTC",
+            //             "net_type": "BTC",
+            //             "deposit_address": "195Y...rbJ3",
+            //             "secondary_address": null
+            //         }
+            //     ]
+            //
+            return this.parseDepositAddresses(response, codes, false, new java.util.HashMap<String, Object>() {{}});
+        });
+
+    }
+
+    public Object parseDepositAddress(Object response, Object... optionalArgs)
+    {
+        //
+        // generation 2: createDepositAddress, fetchDepositAddress, fetchDepositAddresses
+        //
+        //     {
+        //         "currency": "BTC",
+        //         "net_type": "BTC",
+        //         "deposit_address": "195Y...rbJ3",
+        //         "secondary_address": null
+        //     }
+        //
+        Object currency = Helpers.getArg(optionalArgs, 0, null);
+        Object currencyId = this.safeString(response, "currency");
+        Object code = this.safeCurrencyCode(currencyId, currency);
+        Object address = this.safeString(response, "deposit_address");
+        if (Helpers.isTrue(Helpers.isEqual(address, null)))
+        {
+            throw new ExchangeError((String)Helpers.add(this.id, " parseDepositAddress() could not find deposit_address")) ;
+        }
+        this.checkAddress(address);
+        final Object finalAddress = address;
+        return new java.util.HashMap<String, Object>() {{
+            put( "info", response );
+            put( "currency", code );
+            put( "network", BithumbCore.this.safeString(response, "net_type") );
+            put( "address", finalAddress );
+            put( "tag", BithumbCore.this.safeString(response, "secondary_address") );
         }};
     }
 
@@ -1461,6 +3880,46 @@ public class BithumbCore extends BithumbApi
         return this.milliseconds();
     }
 
+    public Object urlencodeWithArrayBrackets(Object query)
+    {
+        Object keys = Helpers.objectKeys(query);
+        Object result = "";
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
+        {
+            Object key = Helpers.GetValue(keys, i);
+            Object value = Helpers.GetValue(query, key);
+            if (Helpers.isTrue(Helpers.isArray(value)))
+            {
+                Object encodedKey = Helpers.add(this.encodeURIComponent(key), "[]");
+                for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(value)); j++)
+                {
+                    Object item = Helpers.GetValue(value, j);
+                    Object valueString = this.safeString(value, j);
+                    if (Helpers.isTrue(Helpers.isEqual(valueString, null)))
+                    {
+                        valueString = this.json(item);
+                    }
+                    if (Helpers.isTrue(Helpers.isGreaterThan(((String)result).length(), 0)))
+                    {
+                        result = Helpers.add(result, "&");
+                    }
+                    result = Helpers.add(result, Helpers.add(Helpers.add(encodedKey, "="), this.encodeURIComponent(valueString)));
+                }
+            } else
+            {
+                if (Helpers.isTrue(Helpers.isGreaterThan(((String)result).length(), 0)))
+                {
+                    result = Helpers.add(result, "&");
+                }
+                Object encodedKey = this.encodeURIComponent(key);
+                Object valueString = this.safeString(query, key);
+                Object encodedValue = this.encodeURIComponent(valueString);
+                result = Helpers.add(result, Helpers.add(Helpers.add(encodedKey, "="), encodedValue));
+            }
+        }
+        return result;
+    }
+
     public Object sign(Object path, Object... optionalArgs)
     {
         Object api = Helpers.getArg(optionalArgs, 0, "public");
@@ -1471,40 +3930,80 @@ public class BithumbCore extends BithumbApi
         Object endpoint = Helpers.add("/", this.implodeParams(path, parameters));
         Object url = Helpers.add(this.implodeHostname(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), api)), endpoint);
         Object query = this.omit(parameters, this.extractParams(path));
+        Object queryKeys = Helpers.objectKeys(query);
+        Object queryKeysLength = Helpers.getArrayLength(queryKeys);
+        Object hasQuery = (Helpers.isGreaterThan(queryKeysLength, 0));
         if (Helpers.isTrue(Helpers.isEqual(api, "public")))
         {
-            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
+            if (Helpers.isTrue(hasQuery))
             {
                 url = Helpers.add(url, Helpers.add("?", this.urlencode(query)));
             }
         } else
         {
             this.checkRequiredCredentials();
-            final Object finalEndpoint = endpoint;
-            body = this.urlencode(this.extend(new java.util.HashMap<String, Object>() {{
-                put( "endpoint", finalEndpoint );
-            }}, query));
-            // bithumb verifies signatures with PHP http_build_query conventions, spaces must be '+'
-            Object bodyParts = Helpers.split(body, "%20");
-            body = String.join((String)"+", (java.util.List<String>)bodyParts);
-            Object nonce = String.valueOf(this.nonce());
-            Object auth = Helpers.add(Helpers.add(Helpers.add(Helpers.add(endpoint, "\\"), body), "\\"), nonce); // eslint-disable-line quotes
-            Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512());
-            Object signature64 = this.stringToBase64(signature);
-            headers = new java.util.HashMap<String, Object>() {{
-                put( "Accept", "application/json" );
-                put( "Content-Type", "application/x-www-form-urlencoded" );
-                put( "Api-Key", BithumbCore.this.apiKey );
-                put( "Api-Sign", signature64 );
-                put( "Api-Nonce", nonce );
-            }};
+            Object isVersionedApi = (Helpers.isTrue(((String)endpoint).startsWith(((String)"/v1/"))) || Helpers.isTrue(((String)endpoint).startsWith(((String)"/v2/"))));
+            if (Helpers.isTrue(isVersionedApi))
+            {
+                headers = new java.util.HashMap<String, Object>() {{
+                    put( "Accept", "application/json" );
+                }};
+                Object request = new java.util.HashMap<String, Object>() {{
+                    put( "access_key", BithumbCore.this.apiKey );
+                    put( "nonce", BithumbCore.this.uuid() );
+                    put( "timestamp", BithumbCore.this.milliseconds() );
+                }};
+                Object auth = null;
+                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(method, "GET"))) && Helpers.isTrue((!Helpers.isEqual(method, "DELETE")))))
+                {
+                    Helpers.addElementToObject(headers, "Content-Type", "application/json");
+                    if (Helpers.isTrue(hasQuery))
+                    {
+                        body = this.json(query);
+                        auth = this.urlencodeWithArrayBrackets(query);
+                    }
+                } else if (Helpers.isTrue(hasQuery))
+                {
+                    auth = this.urlencodeWithArrayBrackets(query);
+                    url = Helpers.add(url, Helpers.add("?", auth));
+                }
+                if (Helpers.isTrue(hasQuery))
+                {
+                    Object authString = ((Helpers.isTrue((Helpers.isEqual(auth, null))))) ? "" : auth;
+                    Helpers.addElementToObject(request, "query_hash", this.hash(this.encode(authString), sha512()));
+                    Helpers.addElementToObject(request, "query_hash_alg", "SHA512");
+                }
+                Object token = jwt(request, this.encode(this.secret), sha256());
+                Helpers.addElementToObject(headers, "Authorization", Helpers.add("Bearer ", token));
+            } else
+            {
+                final Object finalEndpoint = endpoint;
+                body = this.urlencode(this.extend(new java.util.HashMap<String, Object>() {{
+                    put( "endpoint", finalEndpoint );
+                }}, query));
+                // bithumb verifies signatures with PHP http_build_query conventions, spaces must be '+'
+                Object bodyParts = Helpers.split(body, "%20");
+                body = String.join((String)"+", (java.util.List<String>)bodyParts);
+                Object nonce = String.valueOf(this.nonce());
+                Object auth = Helpers.add(Helpers.add(Helpers.add(Helpers.add(endpoint, "\\"), body), "\\"), nonce); // eslint-disable-line quotes
+                Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512());
+                Object signature64 = this.stringToBase64(signature);
+                headers = new java.util.HashMap<String, Object>() {{
+                    put( "Accept", "application/json" );
+                    put( "Content-Type", "application/x-www-form-urlencoded" );
+                    put( "Api-Key", BithumbCore.this.apiKey );
+                    put( "Api-Sign", signature64 );
+                    put( "Api-Nonce", nonce );
+                }};
+            }
         }
         final Object finalUrl = url;
+        final Object finalMethod = method;
         final Object finalBody = body;
         final Object finalHeaders = headers;
         return new java.util.HashMap<String, Object>() {{
             put( "url", finalUrl );
-            put( "method", method );
+            put( "method", finalMethod );
             put( "body", finalBody );
             put( "headers", finalHeaders );
         }};
@@ -1516,8 +4015,29 @@ public class BithumbCore extends BithumbApi
         {
             return null;  // fallback to default error handler
         }
+        // generation 2:
+        //
+        //     {"error":{"name":400,"message":"Missing request parameter error. Check the required parameters!"}}
+        //
+        Object error = this.safeDict(response, "error");
+        if (Helpers.isTrue(!Helpers.isEqual(error, null)))
+        {
+            Object errorName = this.safeString(error, "name");
+            Object message = this.safeString(error, "message");
+            Object feedback = Helpers.add(Helpers.add(this.id, " "), message);
+            if (Helpers.isTrue(!Helpers.isEqual(errorName, null)))
+            {
+                this.throwExactlyMatchedException(this.exceptions, errorName, feedback);
+            }
+            if (Helpers.isTrue(!Helpers.isEqual(message, null)))
+            {
+                this.throwExactlyMatchedException(this.exceptions, message, feedback);
+            }
+            throw new ExchangeError((String)feedback) ;
+        }
         if (Helpers.isTrue(Helpers.inOp(response, "status")))
         {
+            // generation 1:
             //
             //     {"status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions"}
             //

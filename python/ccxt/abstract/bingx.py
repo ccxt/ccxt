@@ -155,6 +155,7 @@ class ImplicitAPI:
     account_v1_private_get_uid = accountV1PrivateGetUid = Entry[_Dict]('uid', ['account', 'v1', 'private'], 'GET', {'cost': 1})
     account_v1_private_get_apikey_query = accountV1PrivateGetApiKeyQuery = Entry[_Dict]('apiKey/query', ['account', 'v1', 'private'], 'GET', {'cost': 2})
     account_v1_private_get_account_apipermissions = accountV1PrivateGetAccountApiPermissions = Entry[_Dict]('account/apiPermissions', ['account', 'v1', 'private'], 'GET', {'cost': 5})
+    account_v1_private_get_account_apirestrictions = accountV1PrivateGetAccountApiRestrictions = Entry[_Dict]('account/apiRestrictions', ['account', 'v1', 'private'], 'GET', {'cost': 5})
     account_v1_private_get_allaccountbalance = accountV1PrivateGetAllAccountBalance = Entry[_Dict]('allAccountBalance', ['account', 'v1', 'private'], 'GET', {'cost': 2})
     account_v1_private_post_innertransfer_authorizesubaccount = accountV1PrivatePostInnerTransferAuthorizeSubAccount = Entry[_Dict]('innerTransfer/authorizeSubAccount', ['account', 'v1', 'private'], 'POST', {'cost': 1})
     account_transfer_v1_private_get_subaccount_asset_transferhistory = accountTransferV1PrivateGetSubAccountAssetTransferHistory = Entry[_Dict]('subAccount/asset/transferHistory', ['account', 'transfer', 'v1', 'private'], 'GET', {'cost': 1})

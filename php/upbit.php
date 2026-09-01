@@ -2243,7 +2243,7 @@ class upbit extends Exchange {
         //         }
         //     )
         //
-        return $this->parse_deposit_addresses($response, $codes);
+        return $this->parse_deposit_addresses($response, $codes, false);
     }
 
     public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {

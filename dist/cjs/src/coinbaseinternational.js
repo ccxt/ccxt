@@ -83,8 +83,8 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
-                'fetchMyBuys': true,
-                'fetchMySells': true,
+                'fetchMyBuys': false,
+                'fetchMySells': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterestHistory': false,
@@ -1894,6 +1894,9 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
     }
     parseOrderStatus(status) {
         const statuses = {
+            // order_status carries WORKING and DONE; the other keys are event_type
+            // values, which the same payload reports in its own field
+            'WORKING': 'open',
             'NEW': 'open',
             'PARTIAL_FILLED': 'open',
             'FILLED': 'closed',

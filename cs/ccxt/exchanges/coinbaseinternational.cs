@@ -74,8 +74,8 @@ public partial class coinbaseinternational : Exchange
                 { "fetchMarginMode", false },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", false },
-                { "fetchMyBuys", true },
-                { "fetchMySells", true },
+                { "fetchMyBuys", false },
+                { "fetchMySells", false },
                 { "fetchMyTrades", true },
                 { "fetchOHLCV", true },
                 { "fetchOpenInterestHistory", false },
@@ -2142,6 +2142,7 @@ public partial class coinbaseinternational : Exchange
     public virtual object parseOrderStatus(object status)
     {
         object statuses = new Dictionary<string, object>() {
+            { "WORKING", "open" },
             { "NEW", "open" },
             { "PARTIAL_FILLED", "open" },
             { "FILLED", "closed" },

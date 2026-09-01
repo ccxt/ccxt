@@ -381,6 +381,10 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]any) (
 		poloniexItf := NewPoloniexCore()
 		poloniexItf.Init(exchangeArgs)
 		return poloniexItf, true
+	case "revolutx":
+		revolutxItf := NewRevolutxCore()
+		revolutxItf.Init(exchangeArgs)
+		return revolutxItf, true
 	case "tokocrypto":
 		tokocryptoItf := NewTokocryptoCore()
 		tokocryptoItf.Init(exchangeArgs)

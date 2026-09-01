@@ -3731,6 +3731,42 @@
         ],
         "fetchDepositAddressesByNetwork": [
             {
+                "description": "usdt address without addressWithPrefix",
+                "method": "fetchDepositAddressesByNetwork",
+                "input": [
+                  "USDT"
+                ],
+                "httpResponse": {
+                  "code": "0",
+                  "timestamp": "1730886872514",
+                  "data": {
+                    "data": [
+                      {
+                        "coinId": "780",
+                        "coin": "USDT",
+                        "network": "TRC20",
+                        "address": "TabPi4x2hCN6DBKqAL86vdMRD7HxzcBnRf"
+                      }
+                    ],
+                    "total": "1"
+                  }
+                },
+                "parsedResponse": {
+                  "TRC20": {
+                    "info": {
+                      "coinId": "780",
+                      "coin": "USDT",
+                      "network": "TRC20",
+                      "address": "TabPi4x2hCN6DBKqAL86vdMRD7HxzcBnRf"
+                    },
+                    "currency": "USDT",
+                    "network": "TRC20",
+                    "address": "TabPi4x2hCN6DBKqAL86vdMRD7HxzcBnRf",
+                    "tag": null
+                  }
+                }
+            },
+            {
                 "description": "usdt addresses with prefix",
                 "method": "fetchDepositAddressesByNetwork",
                 "input": [

@@ -754,6 +754,9 @@ public class BingxCore extends BingxApi
                                 put( "account/apiPermissions", new java.util.HashMap<String, Object>() {{
                                     put( "cost", 5 );
                                 }} );
+                                put( "account/apiRestrictions", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
                                 put( "allAccountBalance", new java.util.HashMap<String, Object>() {{
                                     put( "cost", 2 );
                                 }} );
@@ -1487,6 +1490,9 @@ public class BingxCore extends BingxApi
         } else if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(this.safeBool(market, "apiStateSell"), true))) && Helpers.isTrue((Helpers.isEqual(this.safeBool(market, "apiStateBuy"), true)))) && Helpers.isTrue((Helpers.isEqual(this.safeString(market, "status"), "1")))))
         {
             isActive = true; // spot active
+        } else if (Helpers.isTrue(Helpers.isTrue(checkIsInverse) && Helpers.isTrue((Helpers.isEqual(this.safeString(market, "status"), "1")))))
+        {
+            isActive = true; // inverse swap active
         }
         Object isInverse = ((Helpers.isTrue((spot)))) ? null : checkIsInverse;
         Object isLinear = ((Helpers.isTrue((spot)))) ? null : checkIsLinear;
@@ -5901,7 +5907,7 @@ public class BingxCore extends BingxApi
         Object currencyId = this.safeString(depositAddress, "coin");
         currency = this.safeCurrency(currencyId, currency);
         Object code = Helpers.GetValue(currency, "code");
-        Object address = this.safeString(depositAddress, "addressWithPrefix");
+        Object address = this.safeString2(depositAddress, "addressWithPrefix", "address");
         Object networkId = this.safeString(depositAddress, "network");
         Object networkCode = this.networkIdToCode(networkId, code);
         // despite its name the addressWithPrefix field sometimes arrives without
@@ -5935,6 +5941,7 @@ public class BingxCore extends BingxApi
      * @param {int} [since] the earliest time in ms to fetch deposits for
      * @param {int} [limit] the maximum number of deposits structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch deposits for
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchDeposits(Object... optionalArgs)
@@ -5963,8 +5970,11 @@ public class BingxCore extends BingxApi
             }
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
-                Helpers.addElementToObject(request, "limit", limit); // default 1000
+                Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, 1000)); // api maximum 1000
             }
+            var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
+            request = ((java.util.List<Object>) requestparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             Object response = (this.spotV3PrivateGetCapitalDepositHisrec(this.extend(request, parameters))).join();
             //
             //    [
@@ -5997,6 +6007,7 @@ public class BingxCore extends BingxApi
      * @param {int} [since] the earliest time in ms to fetch withdrawals for
      * @param {int} [limit] the maximum number of withdrawals structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch withdrawals for
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchWithdrawals(Object... optionalArgs)
@@ -6025,8 +6036,11 @@ public class BingxCore extends BingxApi
             }
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
-                Helpers.addElementToObject(request, "limit", limit); // default 1000
+                Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, 1000)); // api maximum 1000
             }
+            var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
+            request = ((java.util.List<Object>) requestparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             Object response = (this.spotV3PrivateGetCapitalWithdrawHistory(this.extend(request, parameters))).join();
             //
             //    [
@@ -7536,7 +7550,8 @@ final Object finalMarket = market;
             version = Helpers.GetValue(section, 2);
             access = Helpers.GetValue(section, 3);
         }
-        if (Helpers.isTrue(!Helpers.isEqual(path, "account/apiPermissions")))
+        Object flatAccountPaths = new java.util.ArrayList<Object>(java.util.Arrays.asList("account/apiPermissions", "account/apiRestrictions"));
+        if (!Helpers.isTrue(this.inArray(path, flatAccountPaths)))
         {
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(type, "spot")) && Helpers.isTrue(Helpers.isEqual(version, "v3"))))
             {

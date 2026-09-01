@@ -449,6 +449,7 @@ class bingx extends bingx$1["default"] {
                                 'uid': { 'cost': 1 },
                                 'apiKey/query': { 'cost': 2 },
                                 'account/apiPermissions': { 'cost': 5 },
+                                'account/apiRestrictions': { 'cost': 5 },
                                 'allAccountBalance': { 'cost': 2 },
                             },
                             'post': {
@@ -1060,6 +1061,9 @@ class bingx extends bingx$1["default"] {
         }
         else if ((this.safeBool(market, 'apiStateSell') === true) && (this.safeBool(market, 'apiStateBuy') === true) && (this.safeString(market, 'status') === '1')) {
             isActive = true; // spot active
+        }
+        else if (checkIsInverse && (this.safeString(market, 'status') === '1')) {
+            isActive = true; // inverse swap active
         }
         const isInverse = (spot) ? undefined : checkIsInverse;
         const isLinear = (spot) ? undefined : checkIsLinear;
@@ -5467,7 +5471,7 @@ class bingx extends bingx$1["default"] {
         const currencyId = this.safeString(depositAddress, 'coin');
         currency = this.safeCurrency(currencyId, currency);
         const code = currency['code'];
-        let address = this.safeString(depositAddress, 'addressWithPrefix');
+        let address = this.safeString2(depositAddress, 'addressWithPrefix', 'address');
         const networkId = this.safeString(depositAddress, 'network');
         const networkCode = this.networkIdToCode(networkId, code);
         // despite its name the addressWithPrefix field sometimes arrives without
@@ -5497,13 +5501,14 @@ class bingx extends bingx$1["default"] {
      * @param {int} [since] the earliest time in ms to fetch deposits for
      * @param {int} [limit] the maximum number of deposits structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch deposits for
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const request = {};
+        let request = {};
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency(code);
@@ -5513,8 +5518,9 @@ class bingx extends bingx$1["default"] {
             request['startTime'] = since;
         }
         if (limit !== undefined) {
-            request['limit'] = limit; // default 1000
+            request['limit'] = Math.min(limit, 1000); // api maximum 1000
         }
+        [request, params] = this.handleUntilOption('endTime', request, params);
         const response = await this.spotV3PrivateGetCapitalDepositHisrec(this.extend(request, params));
         //
         //    [
@@ -5544,13 +5550,14 @@ class bingx extends bingx$1["default"] {
      * @param {int} [since] the earliest time in ms to fetch withdrawals for
      * @param {int} [limit] the maximum number of withdrawals structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch withdrawals for
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const request = {};
+        let request = {};
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency(code);
@@ -5560,8 +5567,9 @@ class bingx extends bingx$1["default"] {
             request['startTime'] = since;
         }
         if (limit !== undefined) {
-            request['limit'] = limit; // default 1000
+            request['limit'] = Math.min(limit, 1000); // api maximum 1000
         }
+        [request, params] = this.handleUntilOption('endTime', request, params);
         const response = await this.spotV3PrivateGetCapitalWithdrawHistory(this.extend(request, params));
         //
         //    [
@@ -7063,7 +7071,8 @@ class bingx extends bingx$1["default"] {
             version = section[2];
             access = section[3];
         }
-        if (path !== 'account/apiPermissions') {
+        const flatAccountPaths = ['account/apiPermissions', 'account/apiRestrictions'];
+        if (!this.inArray(path, flatAccountPaths)) {
             if (type === 'spot' && version === 'v3') {
                 url += '/api';
             }

@@ -2754,7 +2754,7 @@ public class UpbitCore extends UpbitApi
             //         }
             //     ]
             //
-            return this.parseDepositAddresses(response, codes);
+            return this.parseDepositAddresses(response, codes, false);
         });
 
     }

@@ -86,8 +86,8 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
                 put( "fetchMarginMode", false );
                 put( "fetchMarkets", true );
                 put( "fetchMarkOHLCV", false );
-                put( "fetchMyBuys", true );
-                put( "fetchMySells", true );
+                put( "fetchMyBuys", false );
+                put( "fetchMySells", false );
                 put( "fetchMyTrades", true );
                 put( "fetchOHLCV", true );
                 put( "fetchOpenInterestHistory", false );
@@ -2322,6 +2322,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
     public Object parseOrderStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
+            put( "WORKING", "open" );
             put( "NEW", "open" );
             put( "PARTIAL_FILLED", "open" );
             put( "FILLED", "closed" );

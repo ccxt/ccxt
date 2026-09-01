@@ -428,7 +428,7 @@ export default class paymium extends Exchange {
         //         }
         //     ]
         //
-        return this.parseDepositAddresses (response, codes);
+        return this.parseDepositAddresses (response, codes, false);
     }
 
     override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {

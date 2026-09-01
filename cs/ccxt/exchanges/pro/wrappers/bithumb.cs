@@ -11,6 +11,7 @@ public partial class bithumb
     /// </summary>
     /// <remarks>
     /// See <see href="https://apidocs.bithumb.com/v1.2.0/reference/%EB%B9%97%EC%8D%B8-%EA%B1%B0%EB%9E%98%EC%86%8C-%EC%A0%95%EB%B3%B4-%EC%88%98%EC%8B%A0"/>  <br/>
+    /// See <see href="https://apidocs.bithumb.com/reference/%ED%98%84%EC%9E%AC%EA%B0%80-ticker"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -18,9 +19,21 @@ public partial class bithumb
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.tickTypes</term>
+    /// <description>
+    /// string : generation 1 only, the tick type to subscribe to, '24H' by default (30M, 1H, 12H, 24H, MID)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.generation</term>
+    /// <description>
+    /// int : if you want to use the API generation 1 or 2, default is 2
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}.</returns>
+    /// <returns> <term>object</term> a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure} indexed by market symbols.</returns>
     public async Task<Tickers> WatchTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.watchTickers(symbols, parameters);

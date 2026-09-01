@@ -386,9 +386,10 @@ func (this *Onetrading) FetchOrder(id string, options ...FetchOrderOptions) (Ord
  * @description fetch all unfilled currently open orders
  * @see https://docs.onetrading.com/rest/trading/get-orders
  * @param {string} symbol unified market symbol
- * @param {int} [since] the earliest time in ms to fetch open orders for
+ * @param {int} [since] the earliest time in ms to fetch open orders for, the maximum window between since and until is 30 days
  * @param {int} [limit] the maximum number of  open orders structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.until] timestamp in ms of the latest entry to fetch
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Onetrading) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, error) {
@@ -419,9 +420,10 @@ func (this *Onetrading) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Or
  * @description fetches information on multiple closed orders made by the user
  * @see https://docs.onetrading.com/rest/trading/get-orders
  * @param {string} symbol unified market symbol of the market orders were made in
- * @param {int} [since] the earliest time in ms to fetch orders for
+ * @param {int} [since] the earliest time in ms to fetch orders for, the maximum window between since and until is 30 days
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.until] timestamp in ms of the latest entry to fetch
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Onetrading) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Order, error) {
@@ -486,9 +488,10 @@ func (this *Onetrading) FetchOrderTrades(id string, options ...FetchOrderTradesO
  * @description fetch all trades made by the user
  * @see https://docs.onetrading.com/rest/trading/get-trades
  * @param {string} symbol unified market symbol
- * @param {int} [since] the earliest time in ms to fetch trades for
+ * @param {int} [since] the earliest time in ms to fetch trades for, the maximum window between since and until is 30 days, when until is omitted the exchange defaults to 7 days after since
  * @param {int} [limit] the maximum number of trades structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.until] timestamp in ms of the latest entry to fetch
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *Onetrading) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, error) {

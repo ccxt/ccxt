@@ -635,6 +635,7 @@ class tokocrypto(Exchange, ImplicitAPI):
                     '3211': InvalidOrder,  # {"code":3211,"msg":"The total volume must be greater than 10","timestamp":1662739358179}
                     '3207': InvalidOrder,  # {"code":3207,"msg":"The price cannot be lower than 12.18","timestamp":1662739502856}
                     '3218': OrderNotFound,  # {"code":3218,"msg":"Order does not exist","timestamp":1662739749275}
+                    '1106': BadRequest,  # {"code":1106,"msg":"Incorrect Page number"} — an order book limit outside the 5, 10, 20, 50, 100, 500, 1000 ladder
                 },
                 'broad': {
                     'has no operation privilege': PermissionDenied,
@@ -907,23 +908,23 @@ class tokocrypto(Exchange, ImplicitAPI):
 
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
-        :param int [limit]: the maximum amount of order book entries to return
+        :param int [limit]: the maximum amount of order book entries to return, symbol type 3 markets accept 5, 10, 20, 50, 100, 500 or 1000 only
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        request = {}
+        request = {
+            'symbol': self.get_market_id_by_type(market),
+        }
         if limit is not None:
             request['limit'] = limit  # default 100, max 5000, see https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md#order-book
         response: dict
-        if market['quote'] == 'USDT':
-            request['symbol'] = self.safe_string(market, 'baseId', '') + self.safe_string(market, 'quoteId', '')
-            response = self.binanceGetDepth(self.extend(request, params))
-        else:
-            request['symbol'] = market['id']
+        if self.is_native_market(market):
             response = self.publicGetOpenV1MarketDepth(self.extend(request, params))
+        else:
+            response = self.binanceGetDepth(self.extend(request, params))
         #
         # future
         #
@@ -1124,10 +1125,8 @@ class tokocrypto(Exchange, ImplicitAPI):
         # the venue routes market data by the symbol type reported by fetchMarkets,
         # not by the quote currency: type 1 markets are served by the binance host
         # with the underscore-less id, every other type by open/v1 with the raw id
-        marketInfo = self.safe_dict(market, 'info', {})
-        symbolType = self.safe_string(marketInfo, 'type')
-        if symbolType != '1':
-            request['symbol'] = market['id']
+        request['symbol'] = self.get_market_id_by_type(market)
+        if self.is_native_market(market):
             if limit is not None:
                 request['limit'] = limit
             # open/v1/market/trades answers an empty list for every market, the
@@ -1156,7 +1155,6 @@ class tokocrypto(Exchange, ImplicitAPI):
             data = self.safe_dict(responseInner, 'data', {})
             list = self.safe_list(data, 'list', [])
             return self.parse_trades(list, market, since, limit)
-        request['symbol'] = self.safe_string(market, 'baseId', '') + self.safe_string(market, 'quoteId', '')
         if limit is not None:
             request['limit'] = limit  # default = 500, maximum = 1000
         defaultMethod = 'binanceGetTrades'
@@ -1306,6 +1304,9 @@ class tokocrypto(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
+        # the binance backed host is the only source of 24hr statistics, so the
+        # result omits the native markets instead of raising for them, unlike
+        # the single symbol fetchTicker
         response = self.binanceGetTicker24hr(params)
         if not isinstance(response, list):
             # a user-supplied symbol param makes the endpoint answer a single
@@ -1314,10 +1315,31 @@ class tokocrypto(Exchange, ImplicitAPI):
             return self.parse_tickers([response], symbols)
         return self.parse_tickers(response, symbols)
 
-    def get_market_id_by_type(self, market: object):
-        if market['quote'] == 'USDT':
-            return market['baseId'] + market['quoteId']
-        return market['id']
+    def is_native_market(self, market: Market) -> bool:
+        """
+ @ignore
+        whether a market is served by the tokocrypto native endpoints instead of the binance backed host
+        :param dict market: a unified market structure
+        :returns boolean: True when the symbol type of the market is known and is not 1
+        """
+        marketInfo = self.safe_dict(market, 'info', {})
+        symbolType = self.safe_string(marketInfo, 'type')
+        # a market with an unknown symbol type falls back to the binance backed
+        # host, the route that answers with data for every symbol type 1 market
+        # and errors out loudly for the others, whereas open/v1 would answer an
+        # empty list for them
+        return(symbolType is not None) and (symbolType != '1')
+
+    def get_market_id_by_type(self, market: Market) -> Str:
+        """
+ @ignore
+        the market id spelling expected by the host that serves the market
+        :param dict market: a unified market structure
+        :returns str: the raw market id for native markets, the id without the underscore separator otherwise
+        """
+        if self.is_native_market(market):
+            return self.safe_string(market, 'id')
+        return self.safe_string(market, 'baseId', '') + self.safe_string(market, 'quoteId', '')
 
     def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
@@ -1332,8 +1354,10 @@ class tokocrypto(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
+        if self.is_native_market(market):
+            raise NotSupported(self.id + ' fetchTicker() does not support ' + symbol + ' yet, the venue serves 24hr ticker statistics only for its binance backed markets')
         request = {
-            'symbol': self.safe_string(market, 'baseId', '') + self.safe_string(market, 'quoteId', ''),
+            'symbol': self.get_market_id_by_type(market),
         }
         response = self.binanceGetTicker24hr(self.extend(request, params))
         if isinstance(response, list):
@@ -1440,10 +1464,10 @@ class tokocrypto(Exchange, ImplicitAPI):
         if until is not None:
             request['endTime'] = until
         response = None
-        if market['quote'] == 'USDT':
-            response = self.binanceGetKlines(self.extend(request, params))
-        else:
+        if self.is_native_market(market):
             response = self.publicGetOpenV1MarketKlines(self.extend(request, params))
+        else:
+            response = self.binanceGetKlines(self.extend(request, params))
         #
         # binanceGetKlines
         #
@@ -1454,6 +1478,17 @@ class tokocrypto(Exchange, ImplicitAPI):
         #     ]
         #
         # publicGetOpenV1MarketKlines
+        #
+        #     {
+        #         "code": 0,
+        #         "msg": "Success",
+        #         "data": [
+        #             [1787817600000,"521.00","537.00","521.00","537.00","1188.29000000",1787821199999,"632572.93",9,"1027.29000000","548331.93","0"],
+        #         ],
+        #         "timestamp": 1787822924930
+        #     }
+        #
+        # publicGetOpenV1MarketKlines, legacy envelope
         #
         #     {
         #         "code": 0,
@@ -1470,8 +1505,12 @@ class tokocrypto(Exchange, ImplicitAPI):
         if isinstance(response, list):
             data = response
         else:
-            responseData = self.safe_dict(response, 'data', {})
-            data = self.safe_list(responseData, 'list', [])
+            dataList = self.safe_list(response, 'data')
+            if dataList is not None:
+                data = dataList
+            else:
+                dataDict = self.safe_dict(response, 'data', {})
+                data = self.safe_list(dataDict, 'list', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
     def fetch_balance(self, params={}) -> Balances:
