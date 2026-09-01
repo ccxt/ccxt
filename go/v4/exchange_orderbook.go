@@ -114,14 +114,19 @@ func NewWsOrderBook(snapshot any, depth any) *WsOrderBook {
 	// Sanitize snapshot to ensure asks and bids are always [][]float64
 	asks, bids := getAsksBids(snapshot)
 	snapshotMap := snapshot.(map[string]any)
-	timestamp, _ := SafeInt64(snapshotMap, "timestamp", nil).(*int64)
+	var timestamp *int64
+	var datetime any
+	if ts, ok := SafeInt64(snapshotMap, "timestamp", nil).(int64); ok {
+		timestamp = &ts
+		datetime = Iso8601(ts)
+	}
 
 	return &WsOrderBook{
 		Cache:     SafeValue(snapshotMap, "cache", []any{}),
 		Asks:      NewAsks(asks, depth),
 		Bids:      NewBids(bids, depth),
 		Timestamp: timestamp,
-		Datetime:  Iso8601(timestamp),
+		Datetime:  datetime,
 		Nonce:     SafeInteger(snapshotMap, "nonce", nil),
 		Symbol:    SafeString(snapshotMap, "symbol", "").(string),
 	}
@@ -148,8 +153,10 @@ func (this *WsOrderBook) Update(snapshot any) any {
 	}
 
 	if timestamp, ok := snapshot.(map[string]any)["timestamp"]; ok {
-		this.Timestamp = timestamp.(int64)
-		this.Datetime = Iso8601(timestamp.(int64))
+		if ts, ok2 := timestamp.(int64); ok2 {
+			this.Timestamp = &ts
+			this.Datetime = Iso8601(ts)
+		}
 	}
 
 	return this.Reset(snapshot)
@@ -182,9 +189,9 @@ func (this *WsOrderBook) Reset(optionalArgs ...any) any {
 		this.Bids.StoreArray(bid)
 	}
 	this.Nonce = SafeInteger(snapshotMap, "nonce", nil)
-	if timestamp, ok := SafeInt64(snapshotMap, "timestamp", nil).(*int64); ok {
-		this.Timestamp = timestamp
-		this.Datetime = Iso8601(this.Timestamp)
+	if ts, ok := SafeInt64(snapshotMap, "timestamp", nil).(int64); ok {
+		this.Timestamp = &ts
+		this.Datetime = Iso8601(ts)
 	}
 	this.Symbol = SafeString(snapshotMap, "symbol", "").(string)
 	this.Outcome = SafeString(snapshotMap, "outcome", nil)
@@ -212,8 +219,8 @@ func (this *WsOrderBook) String() string {
 		result.WriteString(fmt.Sprintf(" Symbol:%s", this.Symbol))
 	}
 
-	if this.Timestamp != 0 {
-		result.WriteString(fmt.Sprintf(" Timestamp:%d", this.Timestamp))
+	if this.Timestamp != nil {
+		result.WriteString(fmt.Sprintf(" Timestamp:%d", *this.Timestamp))
 	}
 
 	if this.Datetime != nil {
@@ -352,7 +359,12 @@ func NewCountedOrderBook(snapshot any, depth any) *CountedOrderBook {
 	// Sanitize snapshot to ensure asks and bids are always [][]float64
 	asks, bids := getIndexedAsksBids(snapshot)
 	snapshotMap := snapshot.(map[string]any)
-	timestamp, _ := SafeInt64(snapshotMap, "timestamp", nil).(*int64)
+	var timestamp *int64
+	var datetime any
+	if ts, ok := SafeInt64(snapshotMap, "timestamp", nil).(int64); ok {
+		timestamp = &ts
+		datetime = Iso8601(ts)
+	}
 
 	return &CountedOrderBook{
 		WsOrderBook: &WsOrderBook{
@@ -360,7 +372,7 @@ func NewCountedOrderBook(snapshot any, depth any) *CountedOrderBook {
 			Asks:      NewCountedAsks(asks, depth),
 			Bids:      NewCountedBids(bids, depth),
 			Timestamp: timestamp,
-			Datetime:  Iso8601(timestamp),
+			Datetime:  datetime,
 			Nonce:     SafeInteger(snapshotMap, "nonce", nil),
 			Symbol:    SafeString(snapshotMap, "symbol", "").(string),
 		},
@@ -393,7 +405,12 @@ func NewIndexedOrderBook(snapshot any, depth any) *IndexedOrderBook {
 	// Sanitize snapshot to ensure asks and bids are always [][]float64
 	asks, bids := getIndexedAsksBids(snapshot)
 	snapshotMap := snapshot.(map[string]any)
-	timestamp, _ := SafeInt64(snapshotMap, "timestamp", nil).(*int64)
+	var timestamp *int64
+	var datetime any
+	if ts, ok := SafeInt64(snapshotMap, "timestamp", nil).(int64); ok {
+		timestamp = &ts
+		datetime = Iso8601(ts)
+	}
 
 	return &IndexedOrderBook{
 		WsOrderBook: &WsOrderBook{
@@ -401,7 +418,7 @@ func NewIndexedOrderBook(snapshot any, depth any) *IndexedOrderBook {
 			Asks:      NewIndexedAsks(asks, depth),
 			Bids:      NewIndexedBids(bids, depth),
 			Timestamp: timestamp,
-			Datetime:  Iso8601(timestamp),
+			Datetime:  datetime,
 			Nonce:     SafeInteger(snapshotMap, "nonce", nil),
 			Symbol:    SafeString(snapshotMap, "symbol", "").(string),
 		},
