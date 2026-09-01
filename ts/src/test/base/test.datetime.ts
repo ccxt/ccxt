@@ -23,10 +23,9 @@ function testIso8601 () {
     assert (exchange.iso8601 ('') === undefined);
     assert (exchange.iso8601 ('a') === undefined);
     assert (exchange.iso8601 ({}) === undefined);
-    // NB: the asserts below are restricted to positive integer timestamps within
-    // 1970-9999 — the only input range where all language implementations agree
-    // (python/php/go return empty values for non-integer inputs, use different
-    // extended-year formats above 9999, and go treats 0 as out-of-range)
+    // NB: every assert below must hold byte-for-byte in every language
+    // (js / python / php / c# / go). timestamps stay within the year 1970-9999
+    // range, the only range where all the native date implementations agree.
     // 1ms after epoch is asserted above
     assert (exchange.iso8601 (1000) === '1970-01-01T00:00:01.000Z');
     assert (exchange.iso8601 (1001) === '1970-01-01T00:00:01.001Z');
@@ -61,34 +60,18 @@ function testIso8601 () {
     assert (exchange.iso8601 (4107499200000) === '2100-02-28T12:00:00.000Z');
     assert (exchange.iso8601 (4107585600000) === '2100-03-01T12:00:00.000Z');
     // others
-    // zero timestamp is valid in JS (go returns nil for ts <= 0)
-    assert (exchange.iso8601 (0) === '1970-01-01T00:00:00.000Z', 'Invalid value :' + exchange.iso8601 (0));
-    // string inputs are parsed with parseInt (python returns None)
-    assert (exchange.iso8601 ('1755432123456') === '2025-08-17T12:02:03.456Z', 'Invalid value :' + exchange.iso8601 ('1755432123456'));
-    assert (exchange.iso8601 ('123abc') === '1970-01-01T00:00:00.123Z', 'Invalid value :' + exchange.iso8601 ('123abc'));
-    // float inputs are floored (python/php return None/null)
-    assert (exchange.iso8601 (514862627559.9) === '1986-04-26T01:23:47.559Z', 'Invalid value :' + exchange.iso8601 (514862627559.9));
+    // zero is a valid timestamp
+    assert (exchange.iso8601 (0) === '1970-01-01T00:00:00.000Z');
+    // plain-integer strings are accepted
+    assert (exchange.iso8601 ('1755432123456') === '2025-08-17T12:02:03.456Z');
+    // strings that are not a plain integer are rejected
+    assert (exchange.iso8601 ('123abc') === undefined);
+    // non-integer numbers are floored
+    assert (exchange.iso8601 (514862627559.9) === '1986-04-26T01:23:47.559Z');
     // last representable millisecond of year 9999
-    assert (exchange.iso8601 (253402300799999) === '9999-12-31T23:59:59.999Z', 'Invalid value :' + exchange.iso8601 (253402300799999));    // extended years above 9999 use the '+YYYYYY' format, byte-identical to
-    // new Date (ms).toISOString () — python returns None, php/go drop the '+'
-    assert (exchange.iso8601 (253402300800000) === '+010000-01-01T00:00:00.000Z', 'Invalid value :' + exchange.iso8601 (253402300800000));
-    assert (exchange.iso8601 (253402300800001) === '+010000-01-01T00:00:00.001Z', 'Invalid value :' + exchange.iso8601 (253402300800001));
-    assert (exchange.iso8601 (8640000000000000) === '+275760-09-13T00:00:00.000Z', 'Invalid value :' + exchange.iso8601 (8640000000000000));
-    // one millisecond above the maximum valid Date range yields undefined
-    assert (exchange.iso8601 (8640000000000001) === undefined, 'Invalid value :' + exchange.iso8601 (8640000000000001));
-    // sanity: the extended-year and fast paths agree with the native formatter
-    for (let t = 253402300700000; t < 253402301000000; t += 13337) {
-        assert (exchange.iso8601 (t) === new Date (t).toISOString (), 'Invalid value :' + exchange.iso8601 (t) + ' !== ' + new Date (t).toISOString ());
-    }
-    for (let t = 8630000000000000; t <= 8640000000000000; t += 333333337) {
-        assert (exchange.iso8601 (t) === new Date (t).toISOString (), 'Invalid value :' + exchange.iso8601 (t) + ' !== ' + new Date (t).toISOString ());
-    }
-    // modern-range sweep: guards the iso8601Years lookup table and the
-    // month-day math in the common (non-extended-year) fast path
-    // 1230768000000 = 2009-01-01T00:00:00.000Z, 2051222400000 = 2035-01-01T00:00:00.000Z
-    for (let t = 1230768000000; t < 2051222400000; t += 987654321) {
-        assert (exchange.iso8601 (t) === new Date (t).toISOString (), 'Invalid value :' + exchange.iso8601 (t) + ' !== ' + new Date (t).toISOString ());
-    }
+    assert (exchange.iso8601 (253402300799999) === '9999-12-31T23:59:59.999Z');
+    // one millisecond past the maximum supported range yields undefined
+    assert (exchange.iso8601 (8640000000000001) === undefined);
 }
 
 function testParse8601 () {

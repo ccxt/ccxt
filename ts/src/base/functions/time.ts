@@ -75,11 +75,12 @@ const iso8601 = (timestamp) => {
     let _timestampNumber = undefined;
     if (typeof timestamp === 'number') {
         _timestampNumber = Math.floor (timestamp);
-    } else {
+    } else if ((typeof timestamp === 'string') && timestamp.match (/^[0-9]+$/)) {
+        // only plain-integer strings are accepted, e.g. '1755432123456' (not '123abc' or '')
         _timestampNumber = parseInt (timestamp, 10);
     }
-    // undefined, null and lots of nasty non-numeric values yield NaN
-    if (Number.isNaN (_timestampNumber) || _timestampNumber < 0) {
+    // undefined, null and lots of nasty non-numeric values are rejected here
+    if ((_timestampNumber === undefined) || Number.isNaN (_timestampNumber) || _timestampNumber < 0) {
         return undefined;
     }
     // values above 8.64e15 (100,000,000 days) are outside the supported Date range

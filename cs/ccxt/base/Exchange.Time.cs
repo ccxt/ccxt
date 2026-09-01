@@ -75,22 +75,37 @@ public partial class BaseExchange
         {
             return null;
         }
+        if (ts is string s)
+        {
+            // only plain-integer strings are accepted, e.g. "1755432123456" (not "123abc" or "")
+            if (!System.Text.RegularExpressions.Regex.IsMatch(s, "^[0-9]+$"))
+            {
+                return null;
+            }
+        }
         Int64 startdatetime;
         try
         {
-            startdatetime = Convert.ToInt64(ts);
+            // non-integer numbers are floored (e.g. 514862627559.9 -> 514862627559)
+            startdatetime = (Int64)Math.Floor(Convert.ToDouble(ts, System.Globalization.CultureInfo.InvariantCulture));
         }
         catch (Exception e)
         {
             return null;
         }
-        if (startdatetime < 0)
+        if (startdatetime < 0 || startdatetime > 8640000000000000L)
         {
             return null;
         }
-        var date = (new DateTime(1970, 1, 1)).AddMilliseconds(startdatetime);
-        return date.ToString("yyyy-MM-ddTHH:mm:ss.fffZ");
-
+        try
+        {
+            var date = (new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).AddMilliseconds(startdatetime);
+            return date.ToString("yyyy-MM-ddTHH:mm:ss.fffZ", System.Globalization.CultureInfo.InvariantCulture);
+        }
+        catch (Exception e)
+        {
+            return null;
+        }
     }
 
     public string iso8601(object ts = null)

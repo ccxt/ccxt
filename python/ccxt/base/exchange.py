@@ -1325,14 +1325,22 @@ class BaseExchange(object):
 
     @staticmethod
     def iso8601(timestamp=None):
-        if timestamp is None:
+        if isinstance(timestamp, str):
+            # only plain-integer strings are accepted, e.g. '1755432123456' (not '123abc' or '')
+            if re.match(r'^[0-9]+$', timestamp) is None:
+                return None
+            timestamp = int(timestamp)
+        elif isinstance(timestamp, bool):
             return None
-        if not isinstance(timestamp, int) or timestamp < 0:
+        elif isinstance(timestamp, float):
+            timestamp = math.floor(timestamp)
+        if not isinstance(timestamp, int) or timestamp < 0 or timestamp > 8640000000000000:
             return None
         try:
-            utc = datetime.datetime.fromtimestamp(timestamp // 1000, datetime.timezone.utc)
-            return f"{utc.year:04d}-{utc.month:02d}-{utc.day:02d}T{utc.hour:02d}:{utc.minute:02d}:{utc.second:02d}.{timestamp % 1000:03d}Z"
-        except (TypeError, OverflowError, OSError):
+            seconds, milliseconds = divmod(timestamp, 1000)
+            utc = datetime.datetime(1970, 1, 1, tzinfo=datetime.timezone.utc) + datetime.timedelta(seconds=seconds)
+            return f"{utc.year:04d}-{utc.month:02d}-{utc.day:02d}T{utc.hour:02d}:{utc.minute:02d}:{utc.second:02d}.{milliseconds:03d}Z"
+        except (TypeError, OverflowError, OSError, ValueError):
             return None
 
     @staticmethod

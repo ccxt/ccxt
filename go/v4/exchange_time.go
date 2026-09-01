@@ -3,6 +3,7 @@ package ccxt
 import (
 	"math"
 	"reflect"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -89,31 +90,38 @@ func (this *BaseExchange) ParseDate(datetime2 any) any {
 	return timestamp
 }
 
+// iso8601PlainIntegerRegex matches a string consisting only of ASCII digits,
+// mirroring the /^[0-9]+$/ guard used by the other language implementations.
+var iso8601PlainIntegerRegex = regexp.MustCompile("^[0-9]+$")
+
 // Iso8601 converts a timestamp to an ISO 8601 formatted string.
 func Iso8601(ts2 any) any {
 	if ts2 == nil {
 		return nil
 	}
+	// reject non-numeric strings (e.g. "123abc" or "") up front; a plain-integer
+	// string like "1755432123456" is still parsed by ParseInt below
+	if s, ok := ts2.(string); ok {
+		if !iso8601PlainIntegerRegex.MatchString(s) {
+			return nil
+		}
+	}
 
-	// if IsNumber(ts) {
 	ts := ParseInt(ts2)
 
 	if ts == math.MinInt64 {
 		return nil
 	}
-	// }
-	// startdatetime, err := strconv.ParseInt(fmt.Sprintf("%v", ts), 10, 64)
-	// if err != nil || startdatetime < 0 {
-	// 	return nil
-	// }
-	startdatetime := ts
-
-	if startdatetime <= 0 {
+	// negative values and anything past 8.64e15 ms are outside the supported range
+	if ts < 0 || ts > 8640000000000000 {
 		return nil
 	}
 
-	// Convert timestamp to time and set to UTC
-	date := time.Unix(0, startdatetime*int64(time.Millisecond)).UTC()
+	// split into whole seconds + leftover milliseconds so the nanosecond argument
+	// of time.Unix never overflows int64 for large (year 9999) timestamps
+	seconds := ts / 1000
+	milliseconds := ts % 1000
+	date := time.Unix(seconds, milliseconds*int64(time.Millisecond)).UTC()
 	return date.Format("2006-01-02T15:04:05.000Z")
 }
 
