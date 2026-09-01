@@ -3253,7 +3253,7 @@ export default class bithumb extends Exchange {
         //         }
         //     ]
         //
-        return this.parseDepositAddresses (response, codes, true, {});
+        return this.parseDepositAddresses (response, codes, false, {});
     }
 
     override parseDepositAddress (response: any, currency: Currency = undefined): DepositAddress {

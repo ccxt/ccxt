@@ -10,7 +10,7 @@
                 "httpResponse": [
                     {
                         "market": "BTC-USDC",
-                        "korean_name": "유에스디코인",
+                        "korean_name": "\uc720\uc5d0\uc2a4\ub514\ucf54\uc778",
                         "english_name": "USD Coin",
                         "market_warning": "NONE"
                     }
@@ -65,7 +65,7 @@
                         "created": null,
                         "info": {
                             "market": "BTC-USDC",
-                            "korean_name": "유에스디코인",
+                            "korean_name": "\uc720\uc5d0\uc2a4\ub514\ucf54\uc778",
                             "english_name": "USD Coin",
                             "market_warning": "NONE"
                         }
@@ -222,19 +222,19 @@
                         "total": 0.00035978
                     },
                     "ETC": {
-                        "free": 0.00005215,
+                        "free": 5.215e-05,
                         "used": 0,
-                        "total": 0.00005215
+                        "total": 5.215e-05
                     },
                     "XRP": {
-                        "free": 0.000049,
+                        "free": 4.9e-05,
                         "used": 0,
-                        "total": 0.000049
+                        "total": 4.9e-05
                     },
                     "BTG": {
-                        "free": 0.00002485,
+                        "free": 2.485e-05,
                         "used": 0,
-                        "total": 0.00002485
+                        "total": 2.485e-05
                     },
                     "BCD": {
                         "free": 0.0002485,
@@ -242,9 +242,9 @@
                         "total": 0.0002485
                     },
                     "SGB": {
-                        "free": 0.0000074,
+                        "free": 7.4e-06,
                         "used": 0,
-                        "total": 0.0000074
+                        "total": 7.4e-06
                     },
                     "FF": {
                         "free": 32,
@@ -254,11 +254,11 @@
                     "free": {
                         "KRW": 24624.0572,
                         "BTC": 0.00035978,
-                        "ETC": 0.00005215,
-                        "XRP": 0.000049,
-                        "BTG": 0.00002485,
+                        "ETC": 5.215e-05,
+                        "XRP": 4.9e-05,
+                        "BTG": 2.485e-05,
                         "BCD": 0.0002485,
-                        "SGB": 0.0000074,
+                        "SGB": 7.4e-06,
                         "FF": 32
                     },
                     "used": {
@@ -274,11 +274,11 @@
                     "total": {
                         "KRW": 24624.0572,
                         "BTC": 0.00035978,
-                        "ETC": 0.00005215,
-                        "XRP": 0.000049,
-                        "BTG": 0.00002485,
+                        "ETC": 5.215e-05,
+                        "XRP": 4.9e-05,
+                        "BTG": 2.485e-05,
                         "BCD": 0.0002485,
-                        "SGB": 0.0000074,
+                        "SGB": 7.4e-06,
                         "FF": 32
                     }
                 }
@@ -335,29 +335,29 @@
                     "symbol": "USDC/BTC",
                     "bids": [
                         [
-                            0.00001683,
+                            1.683e-05,
                             304
                         ],
                         [
-                            0.00001682,
+                            1.682e-05,
                             1100
                         ],
                         [
-                            0.00001646,
+                            1.646e-05,
                             38754.3138
                         ]
                     ],
                     "asks": [
                         [
-                            0.00001692,
+                            1.692e-05,
                             392
                         ],
                         [
-                            0.00001725,
+                            1.725e-05,
                             49.7087
                         ],
                         [
-                            0.00001726,
+                            1.726e-05,
                             18.8916
                         ]
                     ],
@@ -640,8 +640,8 @@
                         "close": 0.0284,
                         "last": 0.0284,
                         "previousClose": 0.0283,
-                        "change": 1e-8,
-                        "percentage": 0.0000352112800039,
+                        "change": 1e-08,
+                        "percentage": 3.52112800039e-05,
                         "average": 0.028399995,
                         "baseVolume": 31.937484680212666,
                         "quoteVolume": 0.9070788794886807,
@@ -666,20 +666,20 @@
                         "symbol": "USDC/BTC",
                         "timestamp": 1783982741858,
                         "datetime": "2026-07-13T22:45:41.858Z",
-                        "high": 0.00001602,
-                        "low": 0.00001602,
+                        "high": 1.602e-05,
+                        "low": 1.602e-05,
                         "bid": null,
                         "bidVolume": null,
                         "ask": null,
                         "askVolume": null,
-                        "vwap": 0.000015960101753623,
-                        "open": 0.00001602,
-                        "close": 0.00001602,
-                        "last": 0.00001602,
-                        "previousClose": 0.00001602,
+                        "vwap": 1.5960101753623e-05,
+                        "open": 1.602e-05,
+                        "close": 1.602e-05,
+                        "last": 1.602e-05,
+                        "previousClose": 1.602e-05,
                         "change": 0,
                         "percentage": 0,
-                        "average": 0.00001602,
+                        "average": 1.602e-05,
                         "baseVolume": 1416.12157546,
                         "quoteVolume": 0.0226014444398438,
                         "info": {
@@ -724,9 +724,9 @@
                         "trade_price": 0.00121122,
                         "prev_closing_price": 0.00120506,
                         "change": "RISE",
-                        "change_price": 0.00000616,
+                        "change_price": 6.16e-06,
                         "change_rate": 0.0051,
-                        "signed_change_price": 0.00000616,
+                        "signed_change_price": 6.16e-06,
                         "signed_change_rate": 0.0051,
                         "trade_volume": 0.68443679,
                         "acc_trade_price": 1.3995330617854027,
@@ -784,7 +784,7 @@
                         "close": 0.00121122,
                         "last": 0.00121122,
                         "previousClose": 0.00120506,
-                        "change": 0.00000616,
+                        "change": 6.16e-06,
                         "percentage": 0.0051,
                         "average": 0.001206945,
                         "baseVolume": 1552.998634298482,
@@ -802,9 +802,9 @@
                             "trade_price": 0.00121122,
                             "prev_closing_price": 0.00120506,
                             "change": "RISE",
-                            "change_price": 0.00000616,
+                            "change_price": 6.16e-06,
                             "change_rate": 0.0051,
-                            "signed_change_price": 0.00000616,
+                            "signed_change_price": 6.16e-06,
                             "signed_change_rate": 0.0051,
                             "trade_volume": 0.68443679,
                             "acc_trade_price": 1.3995330617854027,
@@ -905,20 +905,20 @@
                     "symbol": "USDC/BTC",
                     "timestamp": 1782981878834,
                     "datetime": "2026-07-02T08:44:38.834Z",
-                    "high": 0.00001667,
-                    "low": 0.00001645,
+                    "high": 1.667e-05,
+                    "low": 1.645e-05,
                     "bid": null,
                     "bidVolume": null,
                     "ask": null,
                     "askVolume": null,
-                    "vwap": 0.000016676068263434,
-                    "open": 0.00001667,
-                    "close": 0.00001661,
-                    "last": 0.00001661,
-                    "previousClose": 0.00001673,
-                    "change": -6e-8,
+                    "vwap": 1.6676068263434e-05,
+                    "open": 1.667e-05,
+                    "close": 1.661e-05,
+                    "last": 1.661e-05,
+                    "previousClose": 1.673e-05,
+                    "change": -6e-08,
                     "percentage": -0.3599280143971205,
-                    "average": 0.00001664,
+                    "average": 1.664e-05,
                     "baseVolume": 121913.59932542354,
                     "quoteVolume": 2.033039504591706,
                     "info": {
@@ -959,9 +959,9 @@
                         "trade_price": 0.00121122,
                         "prev_closing_price": 0.00120506,
                         "change": "RISE",
-                        "change_price": 0.00000616,
+                        "change_price": 6.16e-06,
                         "change_rate": 0.0051,
-                        "signed_change_price": 0.00000616,
+                        "signed_change_price": 6.16e-06,
                         "signed_change_rate": 0.0051,
                         "trade_volume": 0.68443679,
                         "acc_trade_price": 1.3995330617854027,
@@ -990,7 +990,7 @@
                     "close": 0.00121122,
                     "last": 0.00121122,
                     "previousClose": 0.00120506,
-                    "change": 0.00000616,
+                    "change": 6.16e-06,
                     "percentage": 0.0051,
                     "average": 0.001206945,
                     "baseVolume": 1552.998634298482,
@@ -1008,9 +1008,9 @@
                         "trade_price": 0.00121122,
                         "prev_closing_price": 0.00120506,
                         "change": "RISE",
-                        "change_price": 0.00000616,
+                        "change_price": 6.16e-06,
                         "change_rate": 0.0051,
-                        "signed_change_price": 0.00000616,
+                        "signed_change_price": 6.16e-06,
                         "signed_change_rate": 0.0051,
                         "trade_volume": 0.68443679,
                         "acc_trade_price": 1.3995330617854027,
@@ -1081,26 +1081,26 @@
                 "parsedResponse": [
                     [
                         1782981600000,
-                        0.00001661,
-                        0.00001661,
-                        0.00001646,
-                        0.00001646,
+                        1.661e-05,
+                        1.661e-05,
+                        1.646e-05,
+                        1.646e-05,
                         54.29395547314269
                     ],
                     [
                         1782981660000,
-                        0.00001661,
-                        0.00001661,
-                        0.00001646,
-                        0.00001661,
+                        1.661e-05,
+                        1.661e-05,
+                        1.646e-05,
+                        1.661e-05,
                         66.1154365
                     ],
                     [
                         1782982740000,
-                        0.0000165,
-                        0.0000165,
-                        0.0000165,
-                        0.0000165,
+                        1.65e-05,
+                        1.65e-05,
+                        1.65e-05,
+                        1.65e-05,
                         70
                     ]
                 ]
@@ -1204,7 +1204,7 @@
                         "candle_acc_trade_price": 0.0005998022792587,
                         "candle_acc_trade_volume": 0.51119725,
                         "prev_closing_price": 0.00117491,
-                        "change_price": -2.6e-7,
+                        "change_price": -2.6e-07,
                         "change_rate": -0.0002212935
                     },
                     {
@@ -1219,7 +1219,7 @@
                         "candle_acc_trade_price": 1.4919570704076126,
                         "candle_acc_trade_volume": 1259.49455826,
                         "prev_closing_price": 0.00118571,
-                        "change_price": -0.0000108,
+                        "change_price": -1.08e-05,
                         "change_rate": -0.0091084667
                     },
                     {
@@ -1234,7 +1234,7 @@
                         "candle_acc_trade_price": 0.2422734902344966,
                         "candle_acc_trade_volume": 203.60180984,
                         "prev_closing_price": 0.00119361,
-                        "change_price": -0.0000079,
+                        "change_price": -7.9e-06,
                         "change_rate": -0.0066185773
                     }
                 ],
@@ -1475,7 +1475,7 @@
                         "type": null,
                         "side": "sell",
                         "takerOrMaker": null,
-                        "price": 0.00001646,
+                        "price": 1.646e-05,
                         "amount": 42.0335581,
                         "cost": 0.00069187,
                         "fee": {
@@ -1500,7 +1500,7 @@
                         "type": null,
                         "side": "buy",
                         "takerOrMaker": null,
-                        "price": 0.00001661,
+                        "price": 1.661e-05,
                         "amount": 12.0409392,
                         "cost": 0.0002,
                         "fee": {
@@ -1525,7 +1525,7 @@
                         "type": null,
                         "side": "sell",
                         "takerOrMaker": null,
-                        "price": 0.0000165,
+                        "price": 1.65e-05,
                         "amount": 70,
                         "cost": 0.001155,
                         "fee": {
@@ -1636,7 +1636,7 @@
                         "takerOrMaker": null,
                         "price": 0.001205,
                         "amount": 0.0600833,
-                        "cost": 0.0000724003765,
+                        "cost": 7.24003765e-05,
                         "fee": {
                             "cost": null,
                             "currency": null
@@ -4607,7 +4607,7 @@
                         "addressFrom": null,
                         "address": null,
                         "addressTo": null,
-                        "amount": 0.0000582,
+                        "amount": 5.82e-05,
                         "type": "deposit",
                         "currency": "BTC",
                         "status": "ok",
@@ -4825,8 +4825,8 @@
                         "secondary_address": null
                     }
                 ],
-                "parsedResponse": {
-                    "BTC": {
+                "parsedResponse": [
+                    {
                         "info": {
                             "currency": "BTC",
                             "net_type": "BTC",
@@ -4838,7 +4838,7 @@
                         "address": "195Y...rbJ3",
                         "tag": null
                     }
-                }
+                ]
             }
         ],
         "createTwapOrder": [
