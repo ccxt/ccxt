@@ -462,6 +462,7 @@ class bingx(Exchange, ImplicitAPI):
                                 'uid': {'cost': 1},
                                 'apiKey/query': {'cost': 2},
                                 'account/apiPermissions': {'cost': 5},
+                                'account/apiRestrictions': {'cost': 5},
                                 'allAccountBalance': {'cost': 2},
                             },
                             'post': {
@@ -6672,7 +6673,8 @@ class bingx(Exchange, ImplicitAPI):
                 type = 'api/asset'
             version = section[2]
             access = section[3]
-        if path != 'account/apiPermissions':
+        flatAccountPaths = ['account/apiPermissions', 'account/apiRestrictions']
+        if not self.in_array(path, flatAccountPaths):
             if type == 'spot' and version == 'v3':
                 url += '/api'
             else:

@@ -90,12 +90,12 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privatePostInfoOrders` | POST | `info/orders` | 1 |
 | `privatePostInfoUserTransactions` | POST | `info/user_transactions` | 1 |
 | `privatePostInfoOrderDetail` | POST | `info/order_detail` | 1 |
-| `privatePostTradePlace` | POST | `trade/place` | 1 |
-| `privatePostTradeCancel` | POST | `trade/cancel` | 1 |
+| `privatePostTradePlace` | POST | `trade/place` | 5 |
+| `privatePostTradeCancel` | POST | `trade/cancel` | 5 |
 | `privatePostTradeBtcWithdrawal` | POST | `trade/btc_withdrawal` | 1 |
 | `privatePostTradeKrwDeposit` | POST | `trade/krw_deposit` | 1 |
 | `privatePostTradeKrwWithdrawal` | POST | `trade/krw_withdrawal` | 1 |
-| `privatePostTradeMarketBuy` | POST | `trade/market_buy` | 1 |
-| `privatePostTradeMarketSell` | POST | `trade/market_sell` | 1 |
-| `privatePostTradeStopLimit` | POST | `trade/stop_limit` | 1 |
+| `privatePostTradeMarketBuy` | POST | `trade/market_buy` | 5 |
+| `privatePostTradeMarketSell` | POST | `trade/market_sell` | 5 |
+| `privatePostTradeStopLimit` | POST | `trade/stop_limit` | 5 |
 

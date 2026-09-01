@@ -377,7 +377,7 @@ public class OnetradingCore extends OnetradingApi
                         put( "marginMode", false );
                         put( "limit", 100 );
                         put( "daysBack", 100000 );
-                        put( "untilDays", 100000 );
+                        put( "untilDays", 30 );
                         put( "symbolRequired", false );
                     }} );
                     put( "fetchOrder", new java.util.HashMap<String, Object>() {{
@@ -389,6 +389,7 @@ public class OnetradingCore extends OnetradingApi
                     put( "fetchOpenOrders", new java.util.HashMap<String, Object>() {{
                         put( "marginMode", false );
                         put( "limit", 100 );
+                        put( "untilDays", 30 );
                         put( "trigger", false );
                         put( "trailing", false );
                         put( "symbolRequired", false );
@@ -399,7 +400,7 @@ public class OnetradingCore extends OnetradingApi
                         put( "limit", 100 );
                         put( "daysBack", 100000 );
                         put( "daysBackCanceled", Helpers.divide(1, 12) );
-                        put( "untilDays", 100000 );
+                        put( "untilDays", 30 );
                         put( "trigger", false );
                         put( "trailing", false );
                         put( "symbolRequired", false );
@@ -1821,9 +1822,10 @@ public class OnetradingCore extends OnetradingApi
      * @description fetch all unfilled currently open orders
      * @see https://docs.onetrading.com/rest/trading/get-orders
      * @param {string} symbol unified market symbol
-     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [since] the earliest time in ms to fetch open orders for, the maximum window between since and until is 30 days
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest entry to fetch
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOpenOrders(Object... optionalArgs)
@@ -1848,12 +1850,13 @@ public class OnetradingCore extends OnetradingApi
             }
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
-                Object to = this.safeString(parameters, "to");
-                if (Helpers.isTrue(Helpers.isEqual(to, null)))
-                {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOpenOrders() requires a \"to\" iso8601 string param with the since argument is specified, max range is 100 days")) ;
-                }
                 Helpers.addElementToObject(request, "from", this.iso8601(since));
+            }
+            Object until = this.safeInteger(parameters, "until");
+            if (Helpers.isTrue(!Helpers.isEqual(until, null)))
+            {
+                parameters = this.omit(parameters, "until");
+                Helpers.addElementToObject(request, "to", this.iso8601(until));
             }
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
@@ -1951,9 +1954,10 @@ public class OnetradingCore extends OnetradingApi
      * @description fetches information on multiple closed orders made by the user
      * @see https://docs.onetrading.com/rest/trading/get-orders
      * @param {string} symbol unified market symbol of the market orders were made in
-     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [since] the earliest time in ms to fetch orders for, the maximum window between since and until is 30 days
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest entry to fetch
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchClosedOrders(Object... optionalArgs)
@@ -2053,9 +2057,10 @@ public class OnetradingCore extends OnetradingApi
      * @description fetch all trades made by the user
      * @see https://docs.onetrading.com/rest/trading/get-trades
      * @param {string} symbol unified market symbol
-     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [since] the earliest time in ms to fetch trades for, the maximum window between since and until is 30 days, when until is omitted the exchange defaults to 7 days after since
      * @param {int} [limit] the maximum number of trades structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest entry to fetch
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchMyTrades(Object... optionalArgs)
@@ -2080,12 +2085,13 @@ public class OnetradingCore extends OnetradingApi
             }
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
-                Object to = this.safeString(parameters, "to");
-                if (Helpers.isTrue(Helpers.isEqual(to, null)))
-                {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchMyTrades() requires a \"to\" iso8601 string param with the since argument is specified, max range is 100 days")) ;
-                }
                 Helpers.addElementToObject(request, "from", this.iso8601(since));
+            }
+            Object until = this.safeInteger(parameters, "until");
+            if (Helpers.isTrue(!Helpers.isEqual(until, null)))
+            {
+                parameters = this.omit(parameters, "until");
+                Helpers.addElementToObject(request, "to", this.iso8601(until));
             }
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
