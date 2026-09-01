@@ -736,6 +736,9 @@ export default class bingx extends Exchange {
                 'defaultForInverse': {
                     'extends': 'defaultForLinear',
                     'createOrders': undefined,
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
                     'fetchMyTrades': {
                         'limit': 1000,
                         'daysBack': undefined,
@@ -1170,7 +1173,7 @@ export default class bingx extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
-     * @param {int} [limit] the maximum amount of candles to fetch (max 1440)
+     * @param {int} [limit] the maximum amount of candles to fetch (max 1000 for inverse swaps, 1440 otherwise)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
@@ -1180,17 +1183,17 @@ export default class bingx extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
+        const market = this.market (symbol);
+        const maxLimit = (market['inverse'] === true) ? 1000 : 1440;
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 1440) as OHLCV[];
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimit) as OHLCV[];
         }
-        const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
         };
         request['interval'] = this.safeString (this.timeframes, timeframe, timeframe);
-        const maxLimit = 1440;
         const requestLimit = (limit === undefined) ? 500 : Math.min (limit, maxLimit);
         if (since !== undefined) {
             request['startTime'] = Math.max (since - 1, 0);

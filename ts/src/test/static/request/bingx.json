@@ -1829,7 +1829,7 @@
             {
                 "description": "inverse swap ohlcv bounds since and caps limit",
                 "method": "fetchOHLCV",
-                "url": "https://open-api.bingx.com/openApi/cswap/v1/market/klines?endTime=1720159200000&interval=1m&limit=1440&startTime=1720072799999&symbol=BTC-USD&timestamp=1720124710777",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/market/klines?endTime=1720132800000&interval=1m&limit=1000&startTime=1720072799999&symbol=BTC-USD&timestamp=1720124710777",
                 "input": [
                   "BTC/USD:BTC",
                   "1m",
