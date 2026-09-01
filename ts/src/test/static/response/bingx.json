@@ -7,7 +7,7 @@
             {
                 "description": "active Coin-M contract metadata",
                 "method": "fetchInverseSwapMarkets",
-                "input": [],
+                "input": [ {} ],
                 "httpResponse": {
                     "code": 0,
                     "msg": "",
