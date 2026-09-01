@@ -754,6 +754,9 @@ public class BingxCore extends BingxApi
                                 put( "account/apiPermissions", new java.util.HashMap<String, Object>() {{
                                     put( "cost", 5 );
                                 }} );
+                                put( "account/apiRestrictions", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
                                 put( "allAccountBalance", new java.util.HashMap<String, Object>() {{
                                     put( "cost", 2 );
                                 }} );
@@ -1487,6 +1490,9 @@ public class BingxCore extends BingxApi
         } else if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(this.safeBool(market, "apiStateSell"), true))) && Helpers.isTrue((Helpers.isEqual(this.safeBool(market, "apiStateBuy"), true)))) && Helpers.isTrue((Helpers.isEqual(this.safeString(market, "status"), "1")))))
         {
             isActive = true; // spot active
+        } else if (Helpers.isTrue(Helpers.isTrue(checkIsInverse) && Helpers.isTrue((Helpers.isEqual(this.safeString(market, "status"), "1")))))
+        {
+            isActive = true; // inverse swap active
         }
         Object isInverse = ((Helpers.isTrue((spot)))) ? null : checkIsInverse;
         Object isLinear = ((Helpers.isTrue((spot)))) ? null : checkIsLinear;
@@ -7544,7 +7550,8 @@ final Object finalMarket = market;
             version = Helpers.GetValue(section, 2);
             access = Helpers.GetValue(section, 3);
         }
-        if (Helpers.isTrue(!Helpers.isEqual(path, "account/apiPermissions")))
+        Object flatAccountPaths = new java.util.ArrayList<Object>(java.util.Arrays.asList("account/apiPermissions", "account/apiRestrictions"));
+        if (!Helpers.isTrue(this.inArray(path, flatAccountPaths)))
         {
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(type, "spot")) && Helpers.isTrue(Helpers.isEqual(version, "v3"))))
             {

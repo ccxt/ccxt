@@ -23,7 +23,7 @@ public class BithumbCore extends BithumbApi
             put( "id", "bithumb" );
             put( "name", "Bithumb" );
             put( "countries", new java.util.ArrayList<Object>(java.util.Arrays.asList("KR")) );
-            put( "rateLimit", 500 );
+            put( "rateLimit", 50 );
             put( "pro", true );
             put( "has", new java.util.HashMap<String, Object>() {{
                 put( "CORS", true );
@@ -193,10 +193,10 @@ public class BithumbCore extends BithumbApi
                             put( "cost", 1 );
                         }} );
                         put( "trade/place", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
+                            put( "cost", 5 );
                         }} );
                         put( "trade/cancel", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
+                            put( "cost", 5 );
                         }} );
                         put( "trade/btc_withdrawal", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
@@ -208,13 +208,13 @@ public class BithumbCore extends BithumbApi
                             put( "cost", 1 );
                         }} );
                         put( "trade/market_buy", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
+                            put( "cost", 5 );
                         }} );
                         put( "trade/market_sell", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
+                            put( "cost", 5 );
                         }} );
                         put( "trade/stop_limit", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
+                            put( "cost", 5 );
                         }} );
                     }} );
                 }} );
