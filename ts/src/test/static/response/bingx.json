@@ -5,7 +5,7 @@
     "methods": {
         "fetchInverseSwapMarkets": [
             {
-                "description": "inactive Coin-M contract metadata",
+                "description": "active Coin-M contract metadata",
                 "method": "fetchInverseSwapMarkets",
                 "input": [],
                 "httpResponse": {
@@ -18,7 +18,7 @@
                             "minTickSize": "100",
                             "minTradeValue": "100",
                             "minQty": "1.00000000",
-                            "status": "0",
+                            "status": "1",
                             "timeOnline": "1710738000000",
                             "displayName": "BTC-USD"
                         }
@@ -42,7 +42,7 @@
                         "future": false,
                         "option": false,
                         "index": null,
-                        "active": false,
+                        "active": true,
                         "contract": true,
                         "linear": false,
                         "inverse": true,
@@ -87,7 +87,7 @@
                             "minTickSize": "100",
                             "minTradeValue": "100",
                             "minQty": "1.00000000",
-                            "status": "0",
+                            "status": "1",
                             "timeOnline": "1710738000000",
                             "displayName": "BTC-USD"
                         },
