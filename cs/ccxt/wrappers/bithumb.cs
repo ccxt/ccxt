@@ -11,11 +11,18 @@ public partial class bithumb
     /// </summary>
     /// <remarks>
     /// See <see href="https://apidocs.bithumb.com/v1.2.0/reference/%ED%98%84%EC%9E%AC%EA%B0%80-%EC%A0%95%EB%B3%B4-%EC%A1%B0%ED%9A%8C-all"/>  <br/>
+    /// See <see href="https://apidocs.bithumb.com/reference/%EA%B1%B0%EB%9E%98-%EB%8C%80%EC%83%81-%EB%AA%A9%EB%A1%9D-%EC%A1%B0%ED%9A%8C"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.generation</term>
+    /// <description>
+    /// int : if you want to use the API generation 1 or 2, default is 2
     /// </description>
     /// </item>
     /// </list>
@@ -31,11 +38,18 @@ public partial class bithumb
     /// </summary>
     /// <remarks>
     /// See <see href="https://apidocs.bithumb.com/v1.2.0/reference/%EB%B3%B4%EC%9C%A0%EC%9E%90%EC%82%B0-%EC%A1%B0%ED%9A%8C"/>  <br/>
+    /// See <see href="https://apidocs.bithumb.com/reference/%EC%A0%84%EC%B2%B4-%EC%9E%90%EC%82%B0-%EC%A1%B0%ED%9A%8C"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.generation</term>
+    /// <description>
+    /// int : if you want to use the API generation 1 or 2, default is 2
     /// </description>
     /// </item>
     /// </list>
@@ -51,6 +65,7 @@ public partial class bithumb
     /// </summary>
     /// <remarks>
     /// See <see href="https://apidocs.bithumb.com/v1.2.0/reference/%ED%98%B8%EA%B0%80-%EC%A0%95%EB%B3%B4-%EC%A1%B0%ED%9A%8C"/>  <br/>
+    /// See <see href="https://apidocs.bithumb.com/reference/%ED%98%B8%EA%B0%80-%EC%A1%B0%ED%9A%8C"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -62,6 +77,12 @@ public partial class bithumb
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.generation</term>
+    /// <description>
+    /// int : if you want to use the API generation 1 or 2, default is 2
     /// </description>
     /// </item>
     /// </list>
@@ -77,11 +98,18 @@ public partial class bithumb
     /// </summary>
     /// <remarks>
     /// See <see href="https://apidocs.bithumb.com/v1.2.0/reference/%ED%98%84%EC%9E%AC%EA%B0%80-%EC%A0%95%EB%B3%B4-%EC%A1%B0%ED%9A%8C-all"/>  <br/>
+    /// See <see href="https://apidocs.bithumb.com/reference/%ED%98%84%EC%9E%AC%EA%B0%80-%EC%A1%B0%ED%9A%8C"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.generation</term>
+    /// <description>
+    /// int : if you want to use the API generation 1 or 2, default is 2
     /// </description>
     /// </item>
     /// </list>
@@ -91,5 +119,88 @@ public partial class bithumb
     {
         var res = await this.fetchTickers(symbols, parameters);
         return new Tickers(res);
+    }
+    /// <summary>
+    /// helper function to build the request *for generation 2 createOrder and createOrders only*
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// <item>
+    /// <term>price</term>
+    /// <description>
+    /// float : the price that the order is to be fulfilled, in units of the quote currency
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> request to be sent to the exchange.</returns>
+    public Dictionary<string, object> CreateOrderRequest(string symbol, string type, string side, double amount, double? price = null, Dictionary<string, object> parameters = null)
+    {
+        var res = this.createOrderRequest(symbol, type, side, amount, price, parameters);
+        return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
+    /// cancel multiple orders
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://apidocs.bithumb.com/reference/%EB%8B%A4%EA%B1%B4-%EC%A3%BC%EB%AC%B8-%EC%B7%A8%EC%86%8C-%EC%A0%91%EC%88%98"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified market symbol
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.generation</term>
+    /// <description>
+    /// int : *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
+    public async Task<List<Order>> CancelOrders(List<string> ids, string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.cancelOrders(ids, symbol, parameters);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+    }
+    /// <summary>
+    /// fetch a list of allowed withdrawal addresses
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://apidocs.bithumb.com/reference/%EC%B6%9C%EA%B8%88-%ED%97%88%EC%9A%A9-%EC%A3%BC%EC%86%8C-%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EC%A1%B0%ED%9A%8C"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.generation</term>
+    /// <description>
+    /// int : *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list response from the exchange.</returns>
+    public async Task<Dictionary<string, object>> FetchWithdrawalWhitelist(Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchWithdrawalWhitelist(parameters);
+        return ((Dictionary<string, object>)res);
     }
 }
