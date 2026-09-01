@@ -552,7 +552,7 @@ public class PaymiumCore extends PaymiumApi
             //         }
             //     ]
             //
-            return this.parseDepositAddresses(response, codes);
+            return this.parseDepositAddresses(response, codes, false);
         });
 
     }
