@@ -131,13 +131,13 @@ abstract class bithumb extends \ccxt\async\Exchange {
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_post_trade_place($params = array()) {
-        return $this->request('trade/place', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('trade/place', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_post_trade_cancel($params = array()) {
-        return $this->request('trade/cancel', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('trade/cancel', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -161,19 +161,19 @@ abstract class bithumb extends \ccxt\async\Exchange {
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_post_trade_market_buy($params = array()) {
-        return $this->request('trade/market_buy', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('trade/market_buy', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_post_trade_market_sell($params = array()) {
-        return $this->request('trade/market_sell', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('trade/market_sell', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_post_trade_stop_limit($params = array()) {
-        return $this->request('trade/stop_limit', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('trade/stop_limit', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -299,13 +299,13 @@ abstract class bithumb extends \ccxt\async\Exchange {
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privatePostTradePlace($params = array()) {
-        return $this->request('trade/place', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('trade/place', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privatePostTradeCancel($params = array()) {
-        return $this->request('trade/cancel', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('trade/cancel', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -329,18 +329,18 @@ abstract class bithumb extends \ccxt\async\Exchange {
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privatePostTradeMarketBuy($params = array()) {
-        return $this->request('trade/market_buy', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('trade/market_buy', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privatePostTradeMarketSell($params = array()) {
-        return $this->request('trade/market_sell', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('trade/market_sell', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privatePostTradeStopLimit($params = array()) {
-        return $this->request('trade/stop_limit', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('trade/stop_limit', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
 }

@@ -1063,6 +1063,8 @@ class bingx(Exchange, ImplicitAPI):
             isActive = True  # swap active
         elif (self.safe_bool(market, 'apiStateSell') is True) and (self.safe_bool(market, 'apiStateBuy') is True) and (self.safe_string(market, 'status') == '1'):
             isActive = True  # spot active
+        elif checkIsInverse and (self.safe_string(market, 'status') == '1'):
+            isActive = True  # inverse swap active
         isInverse = None if (spot) else checkIsInverse
         isLinear = None if (spot) else checkIsLinear
         minAmount = None
