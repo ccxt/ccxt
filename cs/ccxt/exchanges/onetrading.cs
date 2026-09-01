@@ -365,7 +365,7 @@ public partial class onetrading : Exchange
                         { "marginMode", false },
                         { "limit", 100 },
                         { "daysBack", 100000 },
-                        { "untilDays", 100000 },
+                        { "untilDays", 30 },
                         { "symbolRequired", false },
                     } },
                     { "fetchOrder", new Dictionary<string, object>() {
@@ -377,6 +377,7 @@ public partial class onetrading : Exchange
                     { "fetchOpenOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "limit", 100 },
+                        { "untilDays", 30 },
                         { "trigger", false },
                         { "trailing", false },
                         { "symbolRequired", false },
@@ -387,7 +388,7 @@ public partial class onetrading : Exchange
                         { "limit", 100 },
                         { "daysBack", 100000 },
                         { "daysBackCanceled", divide(1, 12) },
-                        { "untilDays", 100000 },
+                        { "untilDays", 30 },
                         { "trigger", false },
                         { "trailing", false },
                         { "symbolRequired", false },
@@ -1309,16 +1310,17 @@ public partial class onetrading : Exchange
     public virtual object parseOrderStatus(object status)
     {
         object statuses = new Dictionary<string, object>() {
-            { "FILLED", "open" },
+            { "OPEN", "open" },
+            { "BOOKED", "open" },
+            { "FILL", "open" },
+            { "MOVED", "open" },
             { "FILLED_FULLY", "closed" },
             { "FILLED_CLOSED", "canceled" },
             { "FILLED_REJECTED", "rejected" },
-            { "OPEN", "open" },
-            { "REJECTED", "rejected" },
-            { "CLOSED", "canceled" },
-            { "FAILED", "failed" },
-            { "STOP_TRIGGERED", "triggered" },
-            { "DONE", "closed" },
+            { "CANCELLED", "canceled" },
+            { "INSUFFICIENT_FUNDS", "rejected" },
+            { "INSUFFICIENT_LIQUIDITY", "rejected" },
+            { "RISK_FAILED_OVER_MAX_POSITION", "rejected" },
         };
         return this.safeString(statuses, status, status);
     }
@@ -1395,8 +1397,7 @@ public partial class onetrading : Exchange
         object id = this.safeString(rawOrder, "order_id");
         object clientOrderId = this.safeString(rawOrder, "client_id");
         object timestamp = this.parse8601(this.safeString(rawOrder, "time"));
-        object rawStatus = this.parseOrderStatus(this.safeString(rawOrder, "status"));
-        object status = this.parseOrderStatus(rawStatus);
+        object status = this.parseOrderStatus(this.safeString(rawOrder, "status"));
         object marketId = this.safeString(rawOrder, "instrument_code");
         object symbol = this.safeSymbol(marketId, market, "_");
         object price = this.safeString(rawOrder, "price");
@@ -1415,7 +1416,7 @@ public partial class onetrading : Exchange
             { "datetime", this.iso8601(timestamp) },
             { "lastTradeTimestamp", null },
             { "symbol", symbol },
-            { "type", this.parseOrderType(type) },
+            { "type", type },
             { "timeInForce", timeInForce },
             { "postOnly", postOnly },
             { "side", side },
@@ -1431,14 +1432,6 @@ public partial class onetrading : Exchange
         }, market);
     }
 
-    public virtual object parseOrderType(object type)
-    {
-        object types = new Dictionary<string, object>() {
-            { "booked", "limit" },
-        };
-        return this.safeString(types, ((string)type), type);
-    }
-
     public virtual object parseTimeInForce(object timeInForce)
     {
         object timeInForces = new Dictionary<string, object>() {
@@ -1446,6 +1439,7 @@ public partial class onetrading : Exchange
             { "GOOD_TILL_TIME", "GTT" },
             { "IMMEDIATE_OR_CANCELLED", "IOC" },
             { "FILL_OR_KILL", "FOK" },
+            { "POST_ONLY", "PO" },
         };
         return this.safeString(timeInForces, timeInForce, timeInForce);
     }
@@ -1712,9 +1706,10 @@ public partial class onetrading : Exchange
      * @description fetch all unfilled currently open orders
      * @see https://docs.onetrading.com/rest/trading/get-orders
      * @param {string} symbol unified market symbol
-     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [since] the earliest time in ms to fetch open orders for, the maximum window between since and until is 30 days
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest entry to fetch
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<List<ccxt.Order>> FetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
@@ -1733,12 +1728,13 @@ public partial class onetrading : Exchange
         }
         if (isTrue(!isEqual(since, null)))
         {
-            object to = this.safeString(parameters, "to");
-            if (isTrue(isEqual(to, null)))
-            {
-                throw new ArgumentsRequired ((string)add(this.id, " fetchOpenOrders() requires a \"to\" iso8601 string param with the since argument is specified, max range is 100 days")) ;
-            }
             ((IDictionary<string,object>)request)["from"] = this.iso8601(since);
+        }
+        object until = this.safeInteger(parameters, "until");
+        if (isTrue(!isEqual(until, null)))
+        {
+            parameters = this.omit(parameters, "until");
+            ((IDictionary<string,object>)request)["to"] = this.iso8601(until);
         }
         if (isTrue(!isEqual(limit, null)))
         {
@@ -1834,9 +1830,10 @@ public partial class onetrading : Exchange
      * @description fetches information on multiple closed orders made by the user
      * @see https://docs.onetrading.com/rest/trading/get-orders
      * @param {string} symbol unified market symbol of the market orders were made in
-     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [since] the earliest time in ms to fetch orders for, the maximum window between since and until is 30 days
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest entry to fetch
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<List<ccxt.Order>> FetchClosedOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
@@ -1920,9 +1917,10 @@ public partial class onetrading : Exchange
      * @description fetch all trades made by the user
      * @see https://docs.onetrading.com/rest/trading/get-trades
      * @param {string} symbol unified market symbol
-     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [since] the earliest time in ms to fetch trades for, the maximum window between since and until is 30 days, when until is omitted the exchange defaults to 7 days after since
      * @param {int} [limit] the maximum number of trades structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest entry to fetch
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     public async override Task<List<ccxt.Trade>> FetchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
@@ -1941,12 +1939,13 @@ public partial class onetrading : Exchange
         }
         if (isTrue(!isEqual(since, null)))
         {
-            object to = this.safeString(parameters, "to");
-            if (isTrue(isEqual(to, null)))
-            {
-                throw new ArgumentsRequired ((string)add(this.id, " fetchMyTrades() requires a \"to\" iso8601 string param with the since argument is specified, max range is 100 days")) ;
-            }
             ((IDictionary<string,object>)request)["from"] = this.iso8601(since);
+        }
+        object until = this.safeInteger(parameters, "until");
+        if (isTrue(!isEqual(until, null)))
+        {
+            parameters = this.omit(parameters, "until");
+            ((IDictionary<string,object>)request)["to"] = this.iso8601(until);
         }
         if (isTrue(!isEqual(limit, null)))
         {

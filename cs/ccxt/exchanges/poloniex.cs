@@ -3813,7 +3813,9 @@ public partial class poloniex : Exchange
         {
             object entry = getValue(data, i);
             marketId = this.safeString(entry, "symbol");
-            marginMode = this.safeString(entry, "mgnMode");
+            // mgnMode arrives upper case; parseOrder and parsePosition read the
+            // same field with safeStringLower
+            marginMode = this.safeStringLower(entry, "mgnMode");
             object lever = this.safeInteger(entry, "lever");
             object posSide = this.safeString(entry, "posSide");
             if (isTrue(isEqual(posSide, "LONG")))

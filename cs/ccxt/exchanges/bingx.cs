@@ -742,6 +742,9 @@ public partial class bingx : Exchange
                                 { "account/apiPermissions", new Dictionary<string, object>() {
                                     { "cost", 5 },
                                 } },
+                                { "account/apiRestrictions", new Dictionary<string, object>() {
+                                    { "cost", 5 },
+                                } },
                                 { "allAccountBalance", new Dictionary<string, object>() {
                                     { "cost", 2 },
                                 } },
@@ -1449,6 +1452,9 @@ public partial class bingx : Exchange
         } else if (isTrue(isTrue(isTrue((isEqual(this.safeBool(market, "apiStateSell"), true))) && isTrue((isEqual(this.safeBool(market, "apiStateBuy"), true)))) && isTrue((isEqual(this.safeString(market, "status"), "1")))))
         {
             isActive = true; // spot active
+        } else if (isTrue(isTrue(checkIsInverse) && isTrue((isEqual(this.safeString(market, "status"), "1")))))
+        {
+            isActive = true; // inverse swap active
         }
         object isInverse = ((bool) isTrue((spot))) ? null : checkIsInverse;
         object isLinear = ((bool) isTrue((spot))) ? null : checkIsLinear;
@@ -5598,7 +5604,7 @@ public partial class bingx : Exchange
         object currencyId = this.safeString(depositAddress, "coin");
         currency = this.safeCurrency(currencyId, currency);
         object code = getValue(currency, "code");
-        object address = this.safeString(depositAddress, "addressWithPrefix");
+        object address = this.safeString2(depositAddress, "addressWithPrefix", "address");
         object networkId = this.safeString(depositAddress, "network");
         object networkCode = this.networkIdToCode(networkId, code);
         // despite its name the addressWithPrefix field sometimes arrives without
@@ -5631,6 +5637,7 @@ public partial class bingx : Exchange
      * @param {int} [since] the earliest time in ms to fetch deposits for
      * @param {int} [limit] the maximum number of deposits structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch deposits for
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async override Task<List<ccxt.Transaction>> FetchDeposits(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
@@ -5653,8 +5660,11 @@ public partial class bingx : Exchange
         }
         if (isTrue(!isEqual(limit, null)))
         {
-            ((IDictionary<string,object>)request)["limit"] = limit; // default 1000
+            ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 1000); // api maximum 1000
         }
+        var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
+        request = ((IList<object>)requestparametersVariable)[0];
+        parameters = ((IList<object>)requestparametersVariable)[1];
         object response = await this.spotV3PrivateGetCapitalDepositHisrec(this.extend(request, parameters));
         //
         //    [
@@ -5685,6 +5695,7 @@ public partial class bingx : Exchange
      * @param {int} [since] the earliest time in ms to fetch withdrawals for
      * @param {int} [limit] the maximum number of withdrawals structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch withdrawals for
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async override Task<List<ccxt.Transaction>> FetchWithdrawals(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
@@ -5707,8 +5718,11 @@ public partial class bingx : Exchange
         }
         if (isTrue(!isEqual(limit, null)))
         {
-            ((IDictionary<string,object>)request)["limit"] = limit; // default 1000
+            ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 1000); // api maximum 1000
         }
+        var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
+        request = ((IList<object>)requestparametersVariable)[0];
+        parameters = ((IList<object>)requestparametersVariable)[1];
         object response = await this.spotV3PrivateGetCapitalWithdrawHistory(this.extend(request, parameters));
         //
         //    [
@@ -7087,7 +7101,8 @@ public partial class bingx : Exchange
             version = getValue(section, 2);
             access = getValue(section, 3);
         }
-        if (isTrue(!isEqual(path, "account/apiPermissions")))
+        object flatAccountPaths = new List<object>() {"account/apiPermissions", "account/apiRestrictions"};
+        if (!isTrue(this.inArray(path, flatAccountPaths)))
         {
             if (isTrue(isTrue(isEqual(type, "spot")) && isTrue(isEqual(version, "v3"))))
             {

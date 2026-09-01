@@ -2209,7 +2209,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
             put( "contracts", BybitCore.this.safeNumber2(liquidation, "size", "v") );
             put( "contractSize", BybitCore.this.safeNumber(finalMarket, "contractSize") );
             put( "price", BybitCore.this.safeNumber2(liquidation, "price", "p") );
-            put( "side", BybitCore.this.safeStringLower(liquidation, "side", "S") );
+            put( "side", BybitCore.this.safeStringLower2(liquidation, "side", "S") );
             put( "baseValue", null );
             put( "quoteValue", null );
             put( "timestamp", timestamp );

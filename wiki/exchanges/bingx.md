@@ -1096,6 +1096,7 @@ fetch all deposits made to an account
 | since | <code>int</code> | No | the earliest time in ms to fetch deposits for |
 | limit | <code>int</code> | No | the maximum number of deposits structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | the latest time in ms to fetch deposits for |
 
 
 ```javascript
@@ -1119,6 +1120,7 @@ fetch all withdrawals made from an account
 | since | <code>int</code> | No | the earliest time in ms to fetch withdrawals for |
 | limit | <code>int</code> | No | the maximum number of withdrawals structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | the latest time in ms to fetch withdrawals for |
 
 
 ```javascript

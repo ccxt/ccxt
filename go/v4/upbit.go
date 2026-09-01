@@ -2795,7 +2795,7 @@ func (this *UpbitCore) fetchDepositAddressesBody(ch chan any, optionalArgs ...an
 	//         }
 	//     ]
 	//
-	ch <- this.ParseDepositAddresses(response, codes)
+	ch <- this.ParseDepositAddresses(response, codes, false)
 	return nil
 }
 func (this *UpbitCore) ParseDepositAddress(depositAddress any, optionalArgs ...any) any {

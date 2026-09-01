@@ -3194,6 +3194,9 @@ ${caseStatements.join('\n')}
                 [/binaryMessage.ByteLength/gm, 'GetValue(binaryMessage, "byteLength")'], // idex tmp fix
                 [/ToString\((precise\w*)\)/gm, "$1.ToString()"],
                 [/<\-callDynamically/gm, '<-this.CallDynamically'],
+                // bare dynamic calls (e.g. an implicit-api call pushed into a promises array)
+                // are emitted without the receiver - route them through the exported helper too
+                [/callDynamically\(/gm, 'this.CallDynamically('],
                 [/toFixed/gm, 'ToFixed'],
                 [/throwDynamicException/gm, 'ThrowDynamicException'],
                 // for-loops initialized from a transpiled (any-typed) variable need a

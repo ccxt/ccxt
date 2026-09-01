@@ -930,6 +930,8 @@ public class AlpacaCore extends AlpacaApi
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @param {int} [params.paginationCalls] the maximum number of requests while following next_page_token, default 10 — when the cap is reached the result is silently truncated to the pages already fetched, so raise it for long ranges, 10 requests cover roughly 30 days of 1h candles
      * @param {string} [params.loc] crypto location, default: us
      * @param {string} [params.method] method, default: marketPublicGetV1beta3CryptoLocBars
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
@@ -951,6 +953,14 @@ public class AlpacaCore extends AlpacaApi
             Object marketId = Helpers.GetValue(market, "id");
             Object loc = this.safeString(parameters, "loc", "us");
             Object method = this.safeString(parameters, "method", "marketPublicGetV1beta3CryptoLocBars");
+            Object paginate = false;
+            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
+            paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
+            Object paginationCalls = 10;
+            var paginationCallsparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "paginationCalls", 10);
+            paginationCalls = ((java.util.List<Object>) paginationCallsparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) paginationCallsparametersVariable).get(1);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbols", marketId );
                 put( "loc", loc );
@@ -1006,6 +1016,30 @@ public class AlpacaCore extends AlpacaApi
                 //
                 Object bars = this.safeDict(response, "bars", new java.util.HashMap<String, Object>() {{}});
                 ohlcvs = this.safeList(bars, marketId, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                if (Helpers.isTrue(paginate))
+                {
+                    // the endpoint answers with a server-sized page plus a next_page_token regardless of the requested limit
+                    Object pageToken = this.safeString(response, "next_page_token");
+                    for (var i = 1; Helpers.isLessThan(i, paginationCalls); i++)
+                    {
+                        Object ohlcvsLength = Helpers.getArrayLength(ohlcvs);
+                        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(pageToken, null))) || Helpers.isTrue((Helpers.isTrue((!Helpers.isEqual(limit, null))) && Helpers.isTrue((Helpers.isGreaterThanOrEqual(ohlcvsLength, limit)))))))
+                        {
+                            break;
+                        }
+                        Helpers.addElementToObject(request, "page_token", pageToken);
+                        response = (this.marketPublicGetV1beta3CryptoLocBars(this.extend(request, parameters))).join();
+                        bars = this.safeDict(response, "bars", new java.util.HashMap<String, Object>() {{}});
+                        Object page = this.safeList(bars, marketId, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                        Object pageLength = Helpers.getArrayLength(page);
+                        if (Helpers.isTrue(Helpers.isEqual(pageLength, 0)))
+                        {
+                            break;
+                        }
+                        ohlcvs = this.arrayConcat(ohlcvs, page);
+                        pageToken = this.safeString(response, "next_page_token");
+                    }
+                }
             } else if (Helpers.isTrue(Helpers.isEqual(method, "marketPublicGetV1beta3CryptoLocLatestBars")))
             {
                 Object response = (this.marketPublicGetV1beta3CryptoLocLatestBars(this.extend(request, parameters))).join();

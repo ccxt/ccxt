@@ -1557,7 +1557,7 @@ class hollaex(Exchange, ImplicitAPI):
         #
         wallet = self.safe_value(response, 'wallet', [])
         addresses = wallet if (network is None) else self.filter_by(wallet, 'network', network)
-        return self.parse_deposit_addresses(addresses, codes)
+        return self.parse_deposit_addresses(addresses, codes, False)
 
     def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """

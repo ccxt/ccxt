@@ -1692,9 +1692,15 @@ public partial class toobit : Exchange
 
     public virtual object parseBidAskCustom(object ticker)
     {
+        // 's' is the exchange id and 't' a millisecond integer, the pair parseTicker
+        // reads through safeMarket and safeInteger. The caller filters on a unified symbol.
+        object marketId = this.safeString(ticker, "s");
+        object market = this.safeMarket(marketId);
+        object timestamp = this.safeInteger(ticker, "t");
         return new Dictionary<string, object>() {
-            { "timestamp", this.safeString(ticker, "t") },
-            { "symbol", this.safeString(ticker, "s") },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "symbol", getValue(market, "symbol") },
             { "bid", this.safeNumber(ticker, "b") },
             { "bidVolume", this.safeNumber(ticker, "bq") },
             { "ask", this.safeNumber(ticker, "a") },

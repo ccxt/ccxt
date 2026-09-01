@@ -443,6 +443,7 @@ class bingx extends Exchange {
                                 'uid' => array( 'cost' => 1 ),
                                 'apiKey/query' => array( 'cost' => 2 ),
                                 'account/apiPermissions' => array( 'cost' => 5 ),
+                                'account/apiRestrictions' => array( 'cost' => 5 ),
                                 'allAccountBalance' => array( 'cost' => 2 ),
                             ),
                             'post' => array(
@@ -1060,6 +1061,8 @@ class bingx extends Exchange {
             $isActive = true; // $swap active
         } elseif (($this->safe_bool($market, 'apiStateSell') === true) && ($this->safe_bool($market, 'apiStateBuy') === true) && ($this->safe_string($market, 'status') === '1')) {
             $isActive = true; // $spot active
+        } elseif ($checkIsInverse && ($this->safe_string($market, 'status') === '1')) {
+            $isActive = true; // inverse $swap active
         }
         $isInverse = ($spot) ? null : $checkIsInverse;
         $isLinear = ($spot) ? null : $checkIsLinear;
@@ -5411,7 +5414,7 @@ class bingx extends Exchange {
         $currencyId = $this->safe_string($depositAddress, 'coin');
         $currency = $this->safe_currency($currencyId, $currency);
         $code = $currency['code'];
-        $address = $this->safe_string($depositAddress, 'addressWithPrefix');
+        $address = $this->safe_string_2($depositAddress, 'addressWithPrefix', 'address');
         $networkId = $this->safe_string($depositAddress, 'network');
         $networkCode = $this->network_id_to_code($networkId, $code);
         // despite its name the addressWithPrefix field sometimes arrives without
@@ -5443,6 +5446,7 @@ class bingx extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch deposits for
          * @param {int} [$limit] the maximum number of deposits structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] the latest time in ms to fetch deposits for
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
         if ($this->markets === null) {
@@ -5459,8 +5463,9 @@ class bingx extends Exchange {
             $request['startTime'] = $since;
         }
         if ($limit !== null) {
-            $request['limit'] = $limit; // default 1000
+            $request['limit'] = min($limit, 1000); // api maximum 1000
         }
+        list($request, $params) = $this->handle_until_option('endTime', $request, $params);
         $response = $this->spotV3PrivateGetCapitalDepositHisrec($this->extend($request, $params));
         //
         //    array(
@@ -5492,6 +5497,7 @@ class bingx extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch withdrawals for
          * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] the latest time in ms to fetch withdrawals for
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
         if ($this->markets === null) {
@@ -5508,8 +5514,9 @@ class bingx extends Exchange {
             $request['startTime'] = $since;
         }
         if ($limit !== null) {
-            $request['limit'] = $limit; // default 1000
+            $request['limit'] = min($limit, 1000); // api maximum 1000
         }
+        list($request, $params) = $this->handle_until_option('endTime', $request, $params);
         $response = $this->spotV3PrivateGetCapitalWithdrawHistory($this->extend($request, $params));
         //
         //    array(
@@ -7012,7 +7019,8 @@ class bingx extends Exchange {
             $version = $section[2];
             $access = $section[3];
         }
-        if ($path !== 'account/apiPermissions') {
+        $flatAccountPaths = array( 'account/apiPermissions', 'account/apiRestrictions' );
+        if (!$this->in_array($path, $flatAccountPaths)) {
             if ($type === 'spot' && $version === 'v3') {
                 $url .= '/api';
             } else {

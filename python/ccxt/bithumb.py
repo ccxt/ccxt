@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bithumb import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, MarketInterface
+from ccxt.base.types import Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, MarketInterface
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -28,7 +28,7 @@ class bithumb(Exchange, ImplicitAPI):
             'id': 'bithumb',
             'name': 'Bithumb',
             'countries': ['KR'],  # South Korea
-            'rateLimit': 500,
+            'rateLimit': 8.334,  # 120 requests per second, docs allow 140-150 but 120 is recommended
             'pro': True,
             'has': {
                 'CORS': True,
@@ -42,13 +42,18 @@ class bithumb(Exchange, ImplicitAPI):
                 'borrowIsolatedMargin': False,
                 'borrowMargin': False,
                 'cancelOrder': True,
+                'cancelOrders': True,
                 'closeAllPositions': False,
                 'closePosition': False,
+                'createDepositAddress': True,
+                'createMarketBuyOrderWithCost': True,
                 'createMarketOrder': True,
                 'createOrder': True,
+                'createOrders': True,
                 'createOrderWithTakeProfitAndStopLoss': False,
                 'createOrderWithTakeProfitAndStopLossWs': False,
                 'createReduceOnlyOrder': False,
+                'createTwapOrder': True,
                 'fetchBalance': True,
                 'fetchBorrowInterest': False,
                 'fetchBorrowRate': False,
@@ -56,9 +61,15 @@ class bithumb(Exchange, ImplicitAPI):
                 'fetchBorrowRateHistory': False,
                 'fetchBorrowRates': False,
                 'fetchBorrowRatesPerSymbol': False,
+                'fetchCanceledOrders': True,
+                'fetchClosedOrders': True,
                 'fetchCrossBorrowRate': False,
                 'fetchCrossBorrowRates': False,
                 'fetchCurrencies': False,
+                'fetchDeposit': True,
+                'fetchDepositAddress': True,
+                'fetchDepositAddresses': True,
+                'fetchDeposits': True,
                 'fetchFundingHistory': False,
                 'fetchFundingInterval': False,
                 'fetchFundingIntervals': False,
@@ -94,6 +105,7 @@ class bithumb(Exchange, ImplicitAPI):
                 'fetchOptionChain': False,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
+                'fetchOrders': True,
                 'fetchPosition': False,
                 'fetchPositionHistory': False,
                 'fetchPositionMode': False,
@@ -109,6 +121,9 @@ class bithumb(Exchange, ImplicitAPI):
                 'fetchTransfer': False,
                 'fetchTransfers': False,
                 'fetchVolatilityHistory': False,
+                'fetchWithdrawal': True,
+                'fetchWithdrawals': True,
+                'fetchWithdrawalWhitelist': True,
                 'reduceMargin': False,
                 'repayCrossMargin': False,
                 'repayIsolatedMargin': False,
@@ -123,7 +138,7 @@ class bithumb(Exchange, ImplicitAPI):
             'urls': {
                 'logo': 'https://github.com/user-attachments/assets/c9e0eefb-4777-46b9-8f09-9d7f7c4af82d',
                 'api': {
-                    'public': 'https://api.{hostname}/public',
+                    'public': 'https://api.{hostname}',
                     'private': 'https://api.{hostname}',
                 },
                 'www': 'https://www.bithumb.com',
@@ -133,23 +148,57 @@ class bithumb(Exchange, ImplicitAPI):
             'api': {
                 'public': {
                     'get': {
-                        'ticker/ALL_{quoteId}': {'cost': 1},
-                        'ticker/{baseId}_{quoteId}': {'cost': 1},
-                        'orderbook/ALL_{quoteId}': {'cost': 1},
-                        'orderbook/{baseId}_{quoteId}': {'cost': 1},
-                        'transaction_history/{baseId}_{quoteId}': {'cost': 1},
-                        'network-info': {'cost': 1},
-                        'assetsstatus/multichain/ALL': {'cost': 1},
-                        'assetsstatus/multichain/{currency}': {'cost': 1},
-                        'withdraw/minimum/ALL': {'cost': 1},
-                        'withdraw/minimum/{currency}': {'cost': 1},
-                        'assetsstatus/ALL': {'cost': 1},
-                        'assetsstatus/{baseId}': {'cost': 1},
-                        'candlestick/{baseId}_{quoteId}/{interval}': {'cost': 1},
+                        # API 1.0
+                        'public/ticker/ALL_{quoteId}': {'cost': 1},
+                        'public/ticker/{baseId}_{quoteId}': {'cost': 1},
+                        'public/orderbook/ALL_{quoteId}': {'cost': 1},
+                        'public/orderbook/{baseId}_{quoteId}': {'cost': 1},
+                        'public/transaction_history/{baseId}_{quoteId}': {'cost': 1},
+                        'public/network-info': {'cost': 1},
+                        'public/assetsstatus/multichain/ALL': {'cost': 1},
+                        'public/assetsstatus/multichain/{currency}': {'cost': 1},
+                        'public/withdraw/minimum/ALL': {'cost': 1},
+                        'public/withdraw/minimum/{currency}': {'cost': 1},
+                        'public/assetsstatus/ALL': {'cost': 1},
+                        'public/assetsstatus/{baseId}': {'cost': 1},
+                        'public/candlestick/{baseId}_{quoteId}/{interval}': {'cost': 1},
+                        # API 2.0
+                        'v1/market/all': {'cost': 1},
+                        'v1/candles/minutes/{unit}': {'cost': 1},
+                        'v1/candles/days': {'cost': 1},
+                        'v1/candles/weeks': {'cost': 1},
+                        'v1/candles/months': {'cost': 1},
+                        'v1/trades/ticks': {'cost': 1},
+                        'v1/ticker': {'cost': 1},
+                        'v1/orderbook': {'cost': 1},
+                        'v1/market/virtual_asset_warning': {'cost': 1},
+                        'v1/notices': {'cost': 1},
+                        'v2/fee/inout/{currency}': {'cost': 1},
                     },
                 },
                 'private': {
+                    'get': {
+                        # API 2.0
+                        'v1/accounts': {'cost': 1},
+                        'v1/orders/chance': {'cost': 1},
+                        'v1/order': {'cost': 1},
+                        'v1/orders': {'cost': 1},
+                        'v1/twap': {'cost': 1},
+                        'v1/withdraws': {'cost': 1},
+                        'v1/withdraws/krw': {'cost': 1},
+                        'v1/withdraw': {'cost': 1},
+                        'v1/withdraws/chance': {'cost': 1},
+                        'v1/withdraws/coin_addresses': {'cost': 1},
+                        'v1/deposits': {'cost': 1},
+                        'v1/deposits/krw': {'cost': 1},
+                        'v1/deposit': {'cost': 1},
+                        'v1/deposits/coin_addresses': {'cost': 1},
+                        'v1/deposits/coin_address': {'cost': 1},
+                        'v1/status/wallet': {'cost': 1},
+                        'v1/api_keys': {'cost': 1},
+                    },
                     'post': {
+                        # API 1.0
                         'info/account': {'cost': 1},
                         'info/balance': {'cost': 1},
                         'info/wallet_address': {'cost': 1},
@@ -157,14 +206,29 @@ class bithumb(Exchange, ImplicitAPI):
                         'info/orders': {'cost': 1},
                         'info/user_transactions': {'cost': 1},
                         'info/order_detail': {'cost': 1},
-                        'trade/place': {'cost': 1},
-                        'trade/cancel': {'cost': 1},
+                        'trade/place': {'cost': 5},
+                        'trade/cancel': {'cost': 5},
                         'trade/btc_withdrawal': {'cost': 1},
                         'trade/krw_deposit': {'cost': 1},
                         'trade/krw_withdrawal': {'cost': 1},
                         'trade/market_buy': {'cost': 1},
                         'trade/market_sell': {'cost': 1},
                         'trade/stop_limit': {'cost': 1},
+                        # API 2.0
+                        'v2/orders': {'cost': 1},
+                        'v2/orders/batch': {'cost': 6},  # max 20 requests per second
+                        'v2/orders/cancel': {'cost': 6},  # max 20 requests per second
+                        'v1/twap': {'cost': 1},
+                        'v1/withdraws/coin': {'cost': 1},
+                        'v1/withdraws/krw': {'cost': 1},
+                        'v1/deposits/generate_coin_address': {'cost': 1},
+                        'v1/deposits/krw': {'cost': 1},
+                    },
+                    'delete': {
+                        # API 2.0
+                        'v2/order': {'cost': 1},
+                        'v1/twap': {'cost': 1},
+                        'v1/withdraws/coin': {'cost': 1},
                     },
                 },
             },
@@ -175,7 +239,6 @@ class bithumb(Exchange, ImplicitAPI):
                 },
             },
             'precisionMode': SIGNIFICANT_DIGITS,
-            # todo: update to v2 apis
             'features': {
                 'spot': {
                     'sandbox': False,
@@ -188,9 +251,34 @@ class bithumb(Exchange, ImplicitAPI):
                         'takeProfitPrice': False,
                         'attachedStopLossTakeProfit': None,
                         'timeInForce': {
-                            'IOC': False,
-                            'FOK': False,
-                            'PO': False,
+                            'GTC': True,
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': True,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'trailing': False,
+                        'leverage': False,
+                        'marketBuyRequiresPrice': True,
+                        'marketBuyByCost': True,
+                        'selfTradePrevention': False,
+                        'iceberg': False,
+                    },
+                    'createOrders': {
+                        'max': 20,
+                        'marginMode': False,
+                        'triggerPrice': False,
+                        'triggerPriceType': None,
+                        'triggerDirection': False,
+                        'stopLossPrice': False,
+                        'takeProfitPrice': False,
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'GTC': True,
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': True,
                             'GTD': False,
                         },
                         'hedged': False,
@@ -201,25 +289,48 @@ class bithumb(Exchange, ImplicitAPI):
                         'selfTradePrevention': False,
                         'iceberg': False,
                     },
-                    'createOrders': None,
                     'fetchMyTrades': None,
                     'fetchOrder': {
                         'marginMode': False,
                         'trigger': False,
                         'trailing': False,
-                        'symbolRequired': True,
+                        'symbolRequired': False,
                     },
                     'fetchOpenOrders': {
                         'marginMode': False,
-                        'limit': 1000,
+                        'limit': 100,
                         'trigger': False,
                         'trailing': False,
-                        'symbolRequired': True,
+                        'symbolRequired': False,
                     },
-                    'fetchOrders': None,
-                    'fetchClosedOrders': None,
+                    'fetchOrders': {
+                        'marginMode': False,
+                        'limit': 100,
+                        'daysBack': 0,
+                        'untilDays': 0,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchCanceledOrders': {
+                        'marginMode': False,
+                        'limit': 100,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': False,
+                        'limit': 100,
+                        'daysBack': 0,
+                        'daysBackCanceled': 0,
+                        'untilDays': 0,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
                     'fetchOHLCV': {
-                        'limit': 1000,
+                        'limit': 200,
                     },
                 },
                 'swap': {
@@ -232,6 +343,7 @@ class bithumb(Exchange, ImplicitAPI):
                 },
             },
             'exceptions': {
+                '400': BadRequest,
                 'Bad Request(SSL)': BadRequest,
                 'Bad Request(Bad Method)': BadRequest,
                 'Bad Request.(Auth Data)': AuthenticationError,  # {"status": "5100", "message": "Bad Request.(Auth Data)"}
@@ -245,33 +357,38 @@ class bithumb(Exchange, ImplicitAPI):
                 '5600': ExchangeError,
                 'Unknown Error': ExchangeError,
                 'After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions': ExchangeError,  # {"status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions"}
+                'Missing request parameter error. Check the required parameters!': BadRequest,
             },
             'timeframes': {
-                '1m': '1m',
-                '3m': '3m',
-                '5m': '5m',
-                '10m': '10m',
-                '30m': '30m',
-                '1h': '1h',
-                '6h': '6h',
-                '12h': '12h',
-                '1d': '24h',
+                '1m': 1,
+                '3m': 3,
+                '5m': 5,
+                '10m': 10,
+                '15m': 15,
+                '30m': 30,
+                '1h': 60,
+                '4h': 240,
             },
             'options': {
+                'generation': 2,  # either API generation 1 or 2
+                # Bithumb v2 ticker endpoint returns HTTP 414 when the `markets` query string is too long.
+                # Keep self conservative to reduce requests while staying below URL-length limits.
+                'fetchTickersGeneration2MaxMarketIdsPerRequest': 300,
+                'createMarketBuyOrderRequiresPrice': True,
                 'quoteCurrencies': {
-                    'BTC': {
-                        'limits': {
-                            'cost': {
-                                'min': 0.0002,
-                                'max': 100,
-                            },
-                        },
-                    },
                     'KRW': {
                         'limits': {
                             'cost': {
                                 'min': 500,
                                 'max': 5000000000,
+                            },
+                        },
+                    },
+                    'BTC': {
+                        'limits': {
+                            'cost': {
+                                'min': 0.0002,
+                                'max': 100,
                             },
                         },
                     },
@@ -294,85 +411,65 @@ class bithumb(Exchange, ImplicitAPI):
         market = self.market(symbol)
         return self.decimal_to_precision(amount, TRUNCATE, market['precision']['amount'], DECIMAL_PLACES)
 
+    def get_gen2_market_id(self, market: Market) -> str:
+        marketId = self.safe_string(market, 'id')
+        if (marketId is not None) and (marketId.find('-') >= 0):
+            return marketId
+        quoteId = self.safe_string_2(market, 'quoteId', 'quote')
+        baseId = self.safe_string_2(market, 'baseId', 'base')
+        return quoteId + '-' + baseId
+
     def fetch_markets(self, params={}) -> list[Market]:
         """
         retrieves data on all markets for bithumb
 
         https://apidocs.bithumb.com/v1.2.0/reference/%ED%98%84%EC%9E%AC%EA%B0%80-%EC%A0%95%EB%B3%B4-%EC%A1%B0%ED%9A%8C-all
+        https://apidocs.bithumb.com/reference/%EA%B1%B0%EB%9E%98-%EB%8C%80%EC%83%81-%EB%AA%A9%EB%A1%9D-%EC%A1%B0%ED%9A%8C
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.generation]: if you want to use the API generation 1 or 2, default is 2
         :returns dict[]: an array of objects representing market data
         """
         result = []
-        quoteCurrencies = self.safe_dict(self.options, 'quoteCurrencies', {})
-        quotes = list(quoteCurrencies.keys())
-        promises = []
-        for i in range(0, len(quotes)):
-            request = {
-                'quoteId': quotes[i],
-            }
-            promises.append(self.publicGetTickerALLQuoteId(self.extend(request, params)))
+        request = {}
+        generation = None
+        generation, params = self.handle_option_and_params(params, 'fetchMarkets', 'generation', 2)
+        if generation == 2:
+            request['isDetails'] = True
+            response = self.publicGetV1MarketAll(self.extend(request, params))
             #
-            #    {
-            #        "status": "0000",
-            #        "data": {
-            #            "ETH": {
-            #                "opening_price": "0.05153399",
-            #                "closing_price": "0.05145144",
-            #                "min_price": "0.05145144",
-            #                "max_price": "0.05160781",
-            #                "units_traded": "6.541124172077830855",
-            #                "acc_trade_value": "0.33705472498492329997697755",
-            #                "prev_closing_price": "0.0515943",
-            #                "units_traded_24H": "43.368879902677400513",
-            #                "acc_trade_value_24H": "2.24165339555398079994373342",
-            #                "fluctate_24H": "-0.00018203",
-            #                "fluctate_rate_24H": "-0.35"
-            #            },
-            #            "XRP": {
-            #                "opening_price": "0.00000918",
-            #                "closing_price": "0.0000092",
-            #                "min_price": "0.00000918",
-            #                "max_price": "0.0000092",
-            #                "units_traded": "6516.949363",
-            #                "acc_trade_value": "0.0598792533602796",
-            #                "prev_closing_price": "0.00000916",
-            #                "units_traded_24H": "229161.50354738",
-            #                "acc_trade_value_24H": "2.0446589371637117",
-            #                "fluctate_24H": "0.00000049",
-            #                "fluctate_rate_24H": "5.63"
-            #            },
-            #            ...
-            #            "date": "1721675913145"
-            #        }
-            #    }
+            #     [
+            #         {
+            #             "market": "KRW-BTC",
+            #             "korean_name": "비트코인",
+            #             "english_name": "Bitcoin",
+            #             "market_warning": "NONE"
+            #         },
+            #     ]
             #
-        results = promises
-        for i in range(0, len(quotes)):
-            quote = quotes[i]
-            quoteId = quote
-            response = results[i]
-            data = self.safe_dict(response, 'data', {})
-            extension = self.safe_dict(quoteCurrencies, quote, {})
-            currencyIds = list(data.keys())
-            for j in range(0, len(currencyIds)):
-                currencyId = currencyIds[j]
-                if currencyId == 'date':
+            for i in range(0, len(response)):
+                entry = response[i]
+                marketId = self.safe_string(entry, 'market')
+                baseId = None
+                quoteId = None
+                base = None
+                quote = None
+                if marketId is not None:
+                    parts = marketId.split('-')
+                    # to match gen 1, the quoteId is the first currency derived from the market id
+                    baseId = parts[1]
+                    quoteId = parts[0]
+                    base = self.safe_currency_code(baseId)
+                    quote = self.safe_currency_code(quoteId)
+                if (base is None) or (quote is None):
                     continue
-                market = data[currencyId]
-                base = self.safe_currency_code(currencyId)
-                active = True
-                if isinstance(market, list):
-                    numElements = len(market)
-                    if numElements == 0:
-                        active = False
-                entry = self.deep_extend({
-                    'id': currencyId,
+                result.append({
+                    'id': marketId,
                     'symbol': base + '/' + quote,
                     'base': base,
                     'quote': quote,
                     'settle': None,
-                    'baseId': currencyId,
+                    'baseId': baseId,
                     'quoteId': quoteId,
                     'settleId': None,
                     'type': 'spot',
@@ -381,13 +478,13 @@ class bithumb(Exchange, ImplicitAPI):
                     'swap': False,
                     'future': False,
                     'option': False,
-                    'active': active,
+                    'active': True,
                     'contract': False,
                     'linear': None,
                     'inverse': None,
                     'contractSize': None,
                     'expiry': None,
-                    'expiryDateTime': None,
+                    'expiryDatetime': None,
                     'strike': None,
                     'optionType': None,
                     'precision': {
@@ -407,27 +504,174 @@ class bithumb(Exchange, ImplicitAPI):
                             'min': None,
                             'max': None,
                         },
-                        'cost': {},  # set via options
+                        'cost': {
+                            'min': None,
+                            'max': None,
+                        },
                     },
                     'created': None,
-                    'info': market,
-                }, extension)
-                result.append(entry)
+                    'info': entry,
+                })
+        else:
+            quoteCurrencies = self.safe_dict(self.options, 'quoteCurrencies', {})
+            quotes = list(quoteCurrencies.keys())
+            promises = []
+            for i in range(0, len(quotes)):
+                request['quoteId'] = quotes[i]
+                promises.append(self.publicGetPublicTickerALLQuoteId(self.extend(request, params)))
+                #
+                #    {
+                #        "status": "0000",
+                #        "data": {
+                #            "ETH": {
+                #                "opening_price": "0.05153399",
+                #                "closing_price": "0.05145144",
+                #                "min_price": "0.05145144",
+                #                "max_price": "0.05160781",
+                #                "units_traded": "6.541124172077830855",
+                #                "acc_trade_value": "0.33705472498492329997697755",
+                #                "prev_closing_price": "0.0515943",
+                #                "units_traded_24H": "43.368879902677400513",
+                #                "acc_trade_value_24H": "2.24165339555398079994373342",
+                #                "fluctate_24H": "-0.00018203",
+                #                "fluctate_rate_24H": "-0.35"
+                #            },
+                #            "XRP": {
+                #                "opening_price": "0.00000918",
+                #                "closing_price": "0.0000092",
+                #                "min_price": "0.00000918",
+                #                "max_price": "0.0000092",
+                #                "units_traded": "6516.949363",
+                #                "acc_trade_value": "0.0598792533602796",
+                #                "prev_closing_price": "0.00000916",
+                #                "units_traded_24H": "229161.50354738",
+                #                "acc_trade_value_24H": "2.0446589371637117",
+                #                "fluctate_24H": "0.00000049",
+                #                "fluctate_rate_24H": "5.63"
+                #            },
+                #            ...
+                #            "date": "1721675913145"
+                #        }
+                #    }
+                #
+            results = promises
+            for i in range(0, len(quotes)):
+                quote = quotes[i]
+                quoteId = quote
+                response = results[i]
+                data = self.safe_dict(response, 'data', {})
+                extension = self.safe_dict(quoteCurrencies, quote, {})
+                currencyIds = list(data.keys())
+                for j in range(0, len(currencyIds)):
+                    currencyId = currencyIds[j]
+                    if currencyId == 'date':
+                        continue
+                    market = data[currencyId]
+                    base = self.safe_currency_code(currencyId)
+                    active = True
+                    if isinstance(market, list):
+                        numElements = len(market)
+                        if numElements == 0:
+                            active = False
+                    entry = self.deep_extend({
+                        'id': currencyId,
+                        'symbol': base + '/' + quote,
+                        'base': base,
+                        'quote': quote,
+                        'settle': None,
+                        'baseId': currencyId,
+                        'quoteId': quoteId,
+                        'settleId': None,
+                        'type': 'spot',
+                        'spot': True,
+                        'margin': False,
+                        'swap': False,
+                        'future': False,
+                        'option': False,
+                        'active': active,
+                        'contract': False,
+                        'linear': None,
+                        'inverse': None,
+                        'contractSize': None,
+                        'expiry': None,
+                        'expiryDatetime': None,
+                        'strike': None,
+                        'optionType': None,
+                        'precision': {
+                            'amount': int('4'),
+                            'price': int('4'),
+                        },
+                        'limits': {
+                            'leverage': {
+                                'min': None,
+                                'max': None,
+                            },
+                            'amount': {
+                                'min': None,
+                                'max': None,
+                            },
+                            'price': {
+                                'min': None,
+                                'max': None,
+                            },
+                            'cost': {},  # set via options
+                        },
+                        'created': None,
+                        'info': market,
+                    }, extension)
+                    result.append(entry)
         return result
 
     def parse_balance(self, response: object) -> Balances:
+        #
+        # generation 1
+        #
+        #     {
+        #         "status": "0000",
+        #         "data": {
+        #             "total_krw": "51026.000000",
+        #             "in_use_krw": "0.00000000",
+        #             "available_krw": "51026.00000000",
+        #         }
+        #     }
+        #
+        # generation 2
+        #
+        #     [
+        #         {
+        #             "currency": "KRW",
+        #             "balance": "51026",
+        #             "locked": "0",
+        #             "avg_buy_price": "0",
+        #             "avg_buy_price_modified": False,
+        #             "unit_currency": "KRW"
+        #         },
+        #     ]
+        #
         result = {'info': response}
         balances = self.safe_dict(response, 'data')
-        codes = list(self.currencies.keys())
-        for i in range(0, len(codes)):
-            code = codes[i]
-            account = self.account()
-            currency = self.currency(code)
-            lowerCurrencyId = self.safe_string_lower(currency, 'id')
-            account['total'] = self.safe_string(balances, 'total_' + lowerCurrencyId)
-            account['used'] = self.safe_string(balances, 'in_use_' + lowerCurrencyId)
-            account['free'] = self.safe_string(balances, 'available_' + lowerCurrencyId)
-            result[code] = account
+        if balances is not None:
+            codes = list(self.currencies.keys())
+            for i in range(0, len(codes)):
+                code = codes[i]
+                account = self.account()
+                currency = self.currency(code)
+                lowerCurrencyId = self.safe_string_lower(currency, 'id')
+                account['total'] = self.safe_string(balances, 'total_' + lowerCurrencyId)
+                account['used'] = self.safe_string(balances, 'in_use_' + lowerCurrencyId)
+                account['free'] = self.safe_string(balances, 'available_' + lowerCurrencyId)
+                result[code] = account
+        else:
+            for i in range(0, len(response)):
+                entry = response[i]
+                account = self.account()
+                currencyId = self.safe_string(entry, 'currency')
+                code = self.safe_currency_code(currencyId)
+                if code is None:
+                    continue
+                account['free'] = self.safe_string(entry, 'balance')
+                account['used'] = self.safe_string(entry, 'locked')
+                result[code] = account
         return self.safe_balance(result)
 
     def fetch_balance(self, params={}) -> Balances:
@@ -435,16 +679,46 @@ class bithumb(Exchange, ImplicitAPI):
         query for balance and get the amount of funds available for trading or funds locked in orders
 
         https://apidocs.bithumb.com/v1.2.0/reference/%EB%B3%B4%EC%9C%A0%EC%9E%90%EC%82%B0-%EC%A1%B0%ED%9A%8C
+        https://apidocs.bithumb.com/reference/%EC%A0%84%EC%B2%B4-%EC%9E%90%EC%82%B0-%EC%A1%B0%ED%9A%8C
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.generation]: if you want to use the API generation 1 or 2, default is 2
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         if self.markets is None:
             self.load_markets()
-        request = {
-            'currency': 'ALL',
-        }
-        response = self.privatePostInfoBalance(self.extend(request, params))
+        generation = None
+        generation, params = self.handle_option_and_params(params, 'fetchBalance', 'generation', 2)
+        response = None
+        if generation == 2:
+            response = self.privateGetV1Accounts(params)
+            #
+            #     [
+            #         {
+            #             "currency": "KRW",
+            #             "balance": "51026",
+            #             "locked": "0",
+            #             "avg_buy_price": "0",
+            #             "avg_buy_price_modified": False,
+            #             "unit_currency": "KRW"
+            #         },
+            #     ]
+            #
+        else:
+            request = {
+                'currency': 'ALL',
+            }
+            response = self.privatePostInfoBalance(self.extend(request, params))
+            #
+            #     {
+            #         "status": "0000",
+            #         "data": {
+            #             "total_krw": "51026.000000",
+            #             "in_use_krw": "0.00000000",
+            #             "available_krw": "51026.00000000",
+            #         }
+            #     }
+            #
         return self.parse_balance(response)
 
     def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
@@ -452,49 +726,96 @@ class bithumb(Exchange, ImplicitAPI):
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
         https://apidocs.bithumb.com/v1.2.0/reference/%ED%98%B8%EA%B0%80-%EC%A0%95%EB%B3%B4-%EC%A1%B0%ED%9A%8C
+        https://apidocs.bithumb.com/reference/%ED%98%B8%EA%B0%80-%EC%A1%B0%ED%9A%8C
 
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.generation]: if you want to use the API generation 1 or 2, default is 2
         :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             self.load_markets()
+        generation = None
+        generation, params = self.handle_option_and_params(params, 'fetchOrderBook', 'generation', 2)
         market = self.market(symbol)
-        request = {
-            'baseId': market['baseId'],
-            'quoteId': market['quoteId'],
-        }
-        if limit is not None:
-            request['count'] = limit  # default 30, max 30
-        response = self.publicGetOrderbookBaseIdQuoteId(self.extend(request, params))
-        #
-        #     {
-        #         "status":"0000",
-        #         "data":{
-        #             "timestamp":"1587621553942",
-        #             "payment_currency":"KRW",
-        #             "order_currency":"BTC",
-        #             "bids":[
-        #                 {"price":"8652000","quantity":"0.0043"},
-        #                 {"price":"8651000","quantity":"0.0049"},
-        #                 {"price":"8650000","quantity":"8.4791"},
-        #             ],
-        #             "asks":[
-        #                 {"price":"8654000","quantity":"0.119"},
-        #                 {"price":"8655000","quantity":"0.254"},
-        #                 {"price":"8658000","quantity":"0.119"},
-        #             ]
-        #         }
-        #     }
-        #
-        data = self.safe_dict(response, 'data', {})
-        timestamp = self.safe_integer(data, 'timestamp')
+        request = {}
+        response = None
+        data = None
+        timestamp = None
+        if generation == 2:
+            request['markets'] = self.get_gen2_market_id(market)
+            response = self.publicGetV1Orderbook(self.extend(request, params))
+            #
+            #     [
+            #         {
+            #             "market": "BTC-USDC",
+            #             "timestamp": 1782807920105,
+            #             "total_ask_size": 40322.8585,
+            #             "total_bid_size": 174206.4577,
+            #             "orderbook_units": [
+            #                 {
+            #                     "ask_price": 0.00001687,
+            #                     "bid_price": 0.0000168,
+            #                     "ask_size": 155,
+            #                     "bid_size": 41.6666
+            #                 },
+            #             ]
+            #         }
+            #     ]
+            #
+            result = self.safe_dict(response, 0, {})
+            timestamp = self.safe_integer(result, 'timestamp')
+            orderBookUnits = self.safe_list(result, 'orderbook_units', [])
+            bids = []
+            asks = []
+            for i in range(0, len(orderBookUnits)):
+                entry = orderBookUnits[i]
+                bids.append({
+                    'price': self.safe_string(entry, 'bid_price'),
+                    'quantity': self.safe_string(entry, 'bid_size'),
+                })
+                asks.append({
+                    'price': self.safe_string(entry, 'ask_price'),
+                    'quantity': self.safe_string(entry, 'ask_size'),
+                })
+            data = {
+                'bids': bids,
+                'asks': asks,
+            }
+        else:
+            request['baseId'] = market['baseId']
+            request['quoteId'] = market['quoteId']
+            if limit is not None:
+                request['count'] = limit  # default 30, max 30
+            response = self.publicGetPublicOrderbookBaseIdQuoteId(self.extend(request, params))
+            #
+            #     {
+            #         "status":"0000",
+            #         "data":{
+            #             "timestamp":"1587621553942",
+            #             "payment_currency":"KRW",
+            #             "order_currency":"BTC",
+            #             "bids":[
+            #                 {"price":"8652000","quantity":"0.0043"},
+            #                 {"price":"8651000","quantity":"0.0049"},
+            #                 {"price":"8650000","quantity":"8.4791"},
+            #             ],
+            #             "asks":[
+            #                 {"price":"8654000","quantity":"0.119"},
+            #                 {"price":"8655000","quantity":"0.254"},
+            #                 {"price":"8658000","quantity":"0.119"},
+            #             ]
+            #         }
+            #     }
+            #
+            data = self.safe_dict(response, 'data', {})
+            timestamp = self.safe_integer(data, 'timestamp')
         return self.parse_order_book(data, symbol, timestamp, 'bids', 'asks', 'price', 'quantity')
 
     def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
-        # fetchTicker, fetchTickers
+        # generation 1: fetchTicker, fetchTickers
         #
         #     {
         #         "opening_price":"227100",
@@ -511,32 +832,116 @@ class bithumb(Exchange, ImplicitAPI):
         #         "date":"1587710327264",  # fetchTickers inject self
         #     }
         #
-        timestamp = self.safe_integer(ticker, 'date')
-        symbol = self.safe_symbol(None, market)
+        # generation 2: fetchTicker, fetchTickers
+        #
+        #     {
+        #         "market": "BTC-USDC",
+        #         "trade_date": "20260701",
+        #         "trade_time": "233533",
+        #         "trade_date_kst": "20260702",
+        #         "trade_time_kst": "083533",
+        #         "trade_timestamp": 1782981333650,
+        #         "opening_price": 0.00001667,
+        #         "high_price": 0.00001667,
+        #         "low_price": 0.00001645,
+        #         "trade_price": 0.00001659,
+        #         "prev_closing_price": 0.00001673,
+        #         "change": "FALL",
+        #         "change_price": 1.4E-7,
+        #         "change_rate": 0.0084,
+        #         "signed_change_price": -1.4E-7,
+        #         "signed_change_rate": -0.0084,
+        #         "trade_volume": 1.43724182,
+        #         "acc_trade_price": 0.77934383561689,
+        #         "acc_trade_price_24h": 1.76373410121466379999997512,
+        #         "acc_trade_volume": 47175.3220805,
+        #         "acc_trade_volume_24h": 104565.90238645676844763,
+        #         "highest_52_week_price": 0.00006592,
+        #         "highest_52_week_date": "2025-11-05",
+        #         "lowest_52_week_price": 0.00000782,
+        #         "lowest_52_week_date": "2026-02-22",
+        #         "timestamp": 1782981333650
+        #     }
+        #
+        # generation 2: watchTicker
+        #
+        #     {
+        #         "type": "ticker",
+        #         "code": "KRW-BTC",
+        #         "opening_price": 94223000,
+        #         "high_price": 95465000,
+        #         "low_price": 93601000,
+        #         "trade_price": 95299000,
+        #         "prev_closing_price": 94201000,
+        #         "change": "RISE",
+        #         "change_price": 1098000,
+        #         "signed_change_price": 1098000,
+        #         "change_rate": 0.01165593,
+        #         "signed_change_rate": 0.01165593,
+        #         "trade_volume": 0.0094,
+        #         "acc_trade_volume": 151.44914647,
+        #         "acc_trade_volume_24h": 310.44065227,
+        #         "acc_trade_price": 14330306973.41015,
+        #         "acc_trade_price_24h": 29226371799.56915,
+        #         "trade_date": "20260710",
+        #         "trade_time": "124548",
+        #         "trade_timestamp": 1783655148303,
+        #         "ask_bid": "BID",
+        #         "acc_ask_volume": 52.30413928,
+        #         "acc_bid_volume": 99.14500719,
+        #         "highest_52_week_price": 179734000,
+        #         "highest_52_week_date": "2025-10-09",
+        #         "lowest_52_week_price": 81110000,
+        #         "lowest_52_week_date": "2026-02-06",
+        #         "market_state": "ACTIVE",
+        #         "is_trading_suspended": False,
+        #         "delisting_date": "",
+        #         "market_warning": "NONE",
+        #         "timestamp": 1783655148485,
+        #         "stream_type": "REALTIME"
+        #     }
+        #
+        timestamp = self.safe_integer_2(ticker, 'date', 'trade_timestamp')
+        marketId = self.safe_string(ticker, 'market')
+        symbol = self.safe_symbol(marketId, market)
+        close = self.safe_string_2(ticker, 'closing_price', 'trade_price')
+        change = self.safe_string_2(ticker, 'signed_change_price', 'change_price')
+        percentage = self.safe_string_2(ticker, 'signed_change_rate', 'change_rate')
         open = self.safe_string(ticker, 'opening_price')
-        close = self.safe_string(ticker, 'closing_price')
-        baseVolume = self.safe_string(ticker, 'units_traded_24H')
-        quoteVolume = self.safe_string(ticker, 'acc_trade_value_24H')
+        nonZeroOpen = self.omit_zero(open)
+        if (marketId is not None) and (nonZeroOpen is not None) and (close is not None):
+            computedChange = Precise.string_sub(close, open)
+            # Some v2 payloads return signed_change_price while open/last imply a non-zero move.
+            if (change is not None) and Precise.string_eq(change, '0') and not Precise.string_eq(computedChange, '0'):
+                change = computedChange
+                percentage = None
+        high = self.safe_string_2(ticker, 'max_price', 'high_price')
+        low = self.safe_string_2(ticker, 'min_price', 'low_price')
+        # Some generation 2 ticker payloads can contain inconsistent high/low versus last.
+        if (close is not None) and (high is not None) and Precise.string_gt(close, high):
+            high = close
+        if (close is not None) and (low is not None) and Precise.string_lt(close, low):
+            low = close
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_string(ticker, 'max_price'),
-            'low': self.safe_string(ticker, 'min_price'),
+            'high': high,
+            'low': low,
             'bid': self.safe_string(ticker, 'buy_price'),
-            'bidVolume': None,
+            'bidVolume': self.safe_string(ticker, 'acc_bid_volume'),
             'ask': self.safe_string(ticker, 'sell_price'),
-            'askVolume': None,
+            'askVolume': self.safe_string(ticker, 'acc_ask_volume'),
             'vwap': None,
             'open': open,
             'close': close,
             'last': close,
-            'previousClose': None,
-            'change': None,
-            'percentage': None,
+            'previousClose': self.safe_string(ticker, 'prev_closing_price'),
+            'change': change,
+            'percentage': percentage,
             'average': None,
-            'baseVolume': baseVolume,
-            'quoteVolume': quoteVolume,
+            'baseVolume': self.safe_string_2(ticker, 'units_traded_24H', 'acc_trade_volume_24h'),
+            'quoteVolume': self.safe_string_2(ticker, 'acc_trade_value_24H', 'acc_trade_price_24h'),
             'info': ticker,
         }, market)
 
@@ -545,59 +950,174 @@ class bithumb(Exchange, ImplicitAPI):
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
         https://apidocs.bithumb.com/v1.2.0/reference/%ED%98%84%EC%9E%AC%EA%B0%80-%EC%A0%95%EB%B3%B4-%EC%A1%B0%ED%9A%8C-all
+        https://apidocs.bithumb.com/reference/%ED%98%84%EC%9E%AC%EA%B0%80-%EC%A1%B0%ED%9A%8C
 
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.generation]: if you want to use the API generation 1 or 2, default is 2
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
         if self.markets is None:
             self.load_markets()
+        generation = None
+        generation, params = self.handle_option_and_params(params, 'fetchTickers', 'generation', 2)
+        request = {}
         result = {}
-        quoteCurrencies = self.safe_dict(self.options, 'quoteCurrencies', {})
-        quotes = list(quoteCurrencies.keys())
-        promises = []
-        for i in range(0, len(quotes)):
-            request = {
-                'quoteId': quotes[i],
-            }
-            promises.append(self.publicGetTickerALLQuoteId(self.extend(request, params)))
-        responses = promises
-        for i in range(0, len(quotes)):
-            quote = quotes[i]
-            response = responses[i]
+        if generation == 2:
+            # Bithumb v2 ticker payloads are inconsistent for all-market calls,
+            # so we aggregate 300 markets per request only when symbols are not provided.
+            marketIds = []
+            symbolsForMarketIds = self.symbols if (symbols is None) else symbols
+            symbolsForMarketIdsLength = len(symbolsForMarketIds)
+            for i in range(0, symbolsForMarketIdsLength):
+                market = self.market(symbolsForMarketIds[i])
+                marketIds.append(self.get_gen2_market_id(market))
+            marketIdsLength = len(marketIds)
+            if marketIdsLength == 0:
+                return result
+            marketIdsChunks = []
+            promises = []
+            if symbols is not None:
+                request['markets'] = ','.join(marketIds)
+                marketIdsChunks.append(marketIds)
+                promises.append(self.publicGetV1Ticker(self.extend(request, params)))
+            else:
+                maxMarketIdsPerRequest = self.safe_integer(self.options, 'fetchTickersGeneration2MaxMarketIdsPerRequest', 300)
+                if (maxMarketIdsPerRequest is None) or (maxMarketIdsPerRequest < 1):
+                    maxMarketIdsPerRequest = 300
+                marketIdsChunk = []
+                for i in range(0, marketIdsLength):
+                    marketIdsChunk.append(marketIds[i])
+                    marketIdsChunkLength = len(marketIdsChunk)
+                    isLastMarketId = (i == (marketIdsLength - 1))
+                    if (marketIdsChunkLength >= maxMarketIdsPerRequest) or isLastMarketId:
+                        marketIdsChunks.append(marketIdsChunk)
+                        request['markets'] = ','.join(marketIdsChunk)
+                        promises.append(self.publicGetV1Ticker(self.extend(request, params)))
+                        marketIdsChunk = []
             #
-            #     {
-            #         "status":"0000",
-            #         "data":{
-            #             "BTC":{
-            #                 "opening_price":"9045000",
-            #                 "closing_price":"9132000",
-            #                 "min_price":"8938000",
-            #                 "max_price":"9168000",
-            #                 "units_traded":"4619.79967497",
-            #                 "acc_trade_value":"42021363832.5187",
-            #                 "prev_closing_price":"9041000",
-            #                 "units_traded_24H":"8793.5045804",
-            #                 "acc_trade_value_24H":"78933458515.4962",
-            #                 "fluctate_24H":"530000",
-            #                 "fluctate_rate_24H":"6.16"
-            #             },
-            #             "date":"1587710878669"
-            #         }
-            #     }
+            #     [
+            #         {
+            #             "market": "BTC-USDC",
+            #             "trade_date": "20260701",
+            #             "trade_time": "233533",
+            #             "trade_date_kst": "20260702",
+            #             "trade_time_kst": "083533",
+            #             "trade_timestamp": 1782981333650,
+            #             "opening_price": 0.00001667,
+            #             "high_price": 0.00001667,
+            #             "low_price": 0.00001645,
+            #             "trade_price": 0.00001659,
+            #             "prev_closing_price": 0.00001673,
+            #             "change": "FALL",
+            #             "change_price": 1.4E-7,
+            #             "change_rate": 0.0084,
+            #             "signed_change_price": -1.4E-7,
+            #             "signed_change_rate": -0.0084,
+            #             "trade_volume": 1.43724182,
+            #             "acc_trade_price": 0.77934383561689,
+            #             "acc_trade_price_24h": 1.76373410121466379999997512,
+            #             "acc_trade_volume": 47175.3220805,
+            #             "acc_trade_volume_24h": 104565.90238645676844763,
+            #             "highest_52_week_price": 0.00006592,
+            #             "highest_52_week_date": "2025-11-05",
+            #             "lowest_52_week_price": 0.00000782,
+            #             "lowest_52_week_date": "2026-02-22",
+            #             "timestamp": 1782981333650
+            #         },
+            #     ]
             #
-            data = self.safe_dict(response, 'data', {})
-            timestamp = self.safe_integer(data, 'date')
-            tickers = self.omit(data, 'date')
-            currencyIds = list(tickers.keys())
-            for j in range(0, len(currencyIds)):
-                currencyId = currencyIds[j]
-                ticker = data[currencyId]
-                base = self.safe_currency_code(currencyId)
-                symbol = base + '/' + quote
-                market = self.safe_market(symbol)
-                ticker['date'] = timestamp
-                result[symbol] = self.parse_ticker(ticker, market)
+            responses = promises
+            responsesLength = len(responses)
+            for i in range(0, responsesLength):
+                response = responses[i]
+                if self.is_dictionary(response) and ('data' in response) and (response['data'] is not None):
+                    response = response['data']
+                expectedMarketId = None
+                marketIdsChunk = self.safe_list(marketIdsChunks, i, [])
+                firstMarketId = self.safe_string(marketIdsChunk, 0)
+                if (firstMarketId is not None) and (self.safe_string(marketIdsChunk, 1) is None):
+                    expectedMarketId = firstMarketId
+                tickers = []
+                if isinstance(response, list):
+                    tickers = response
+                elif self.is_dictionary(response):
+                    if ('market' in response) or ('trade_date' in response) or ('trade_timestamp' in response):
+                        tickers = [response]
+                    else:
+                        ids = list(response.keys())
+                        for j in range(0, len(ids)):
+                            id = ids[j]
+                            ticker = self.safe_dict(response, id)
+                            if ticker is not None:
+                                ticker['market'] = self.safe_string(ticker, 'market', id)
+                                tickers.append(ticker)
+                for j in range(0, len(tickers)):
+                    entry = tickers[j]
+                    marketId = self.safe_string(entry, 'market', expectedMarketId)
+                    if marketId is None:
+                        continue
+                    market = self.safe_market(marketId)
+                    symbol = self.safe_symbol(marketId, market)
+                    if symbol is None:
+                        continue
+                    result[symbol] = self.parse_ticker(entry, market)
+        else:
+            quoteCurrencies = self.safe_dict(self.options, 'quoteCurrencies', {})
+            quotes = list(quoteCurrencies.keys())
+            if symbols is not None:
+                requiredQuotes = {}
+                for i in range(0, len(symbols)):
+                    symbol = symbols[i]
+                    market = self.market(symbol)
+                    quoteId = self.safe_string(market, 'quoteId')
+                    if (quoteId is not None) and (quoteId in quoteCurrencies):
+                        requiredQuotes[quoteId] = True
+                requiredQuoteIds = list(requiredQuotes.keys())
+                populatedQuotes = self.safe_string(requiredQuoteIds, 0)
+                if populatedQuotes is not None:
+                    quotes = requiredQuoteIds
+            promises = []
+            for i in range(0, len(quotes)):
+                request['quoteId'] = quotes[i]
+                promises.append(self.publicGetPublicTickerALLQuoteId(self.extend(request, params)))
+                #
+                #     {
+                #         "status":"0000",
+                #         "data":{
+                #             "BTC":{
+                #                 "opening_price":"9045000",
+                #                 "closing_price":"9132000",
+                #                 "min_price":"8938000",
+                #                 "max_price":"9168000",
+                #                 "units_traded":"4619.79967497",
+                #                 "acc_trade_value":"42021363832.5187",
+                #                 "prev_closing_price":"9041000",
+                #                 "units_traded_24H":"8793.5045804",
+                #                 "acc_trade_value_24H":"78933458515.4962",
+                #                 "fluctate_24H":"530000",
+                #                 "fluctate_rate_24H":"6.16"
+                #             },
+                #             "date":"1587710878669"
+                #         }
+                #     }
+                #
+            responses = promises
+            for i in range(0, len(quotes)):
+                quote = quotes[i]
+                response = responses[i]
+                data = self.safe_dict(response, 'data', {})
+                timestamp = self.safe_integer(data, 'date')
+                tickers = self.omit(data, 'date')
+                currencyIds = list(tickers.keys())
+                for j in range(0, len(currencyIds)):
+                    currencyId = currencyIds[j]
+                    ticker = data[currencyId]
+                    base = self.safe_currency_code(currencyId)
+                    symbol = base + '/' + quote
+                    market = self.safe_market(symbol)
+                    ticker['date'] = timestamp
+                    result[symbol] = self.parse_ticker(ticker, market)
         return self.filter_by_array_tickers(result, 'symbol', symbols)
 
     def fetch_ticker(self, symbol: str, params={}) -> Ticker:
@@ -605,42 +1125,86 @@ class bithumb(Exchange, ImplicitAPI):
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
         https://apidocs.bithumb.com/v1.2.0/reference/%ED%98%84%EC%9E%AC%EA%B0%80-%EC%A0%95%EB%B3%B4-%EC%A1%B0%ED%9A%8C
+        https://apidocs.bithumb.com/reference/%ED%98%84%EC%9E%AC%EA%B0%80-%EC%A1%B0%ED%9A%8C
 
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.generation]: if you want to use the API generation 1 or 2, default is 2
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         if self.markets is None:
             self.load_markets()
+        generation = None
+        generation, params = self.handle_option_and_params(params, 'fetchTicker', 'generation', 2)
         market = self.market(symbol)
-        request = {
-            'baseId': market['baseId'],
-            'quoteId': market['quoteId'],
-        }
-        response = self.publicGetTickerBaseIdQuoteId(self.extend(request, params))
-        #
-        #     {
-        #         "status":"0000",
-        #         "data":{
-        #             "opening_price":"227100",
-        #             "closing_price":"228400",
-        #             "min_price":"222300",
-        #             "max_price":"230000",
-        #             "units_traded":"82618.56075337",
-        #             "acc_trade_value":"18767376138.6031",
-        #             "prev_closing_price":"227100",
-        #             "units_traded_24H":"151871.13484676",
-        #             "acc_trade_value_24H":"34247610416.8974",
-        #             "fluctate_24H":"8700",
-        #             "fluctate_rate_24H":"3.96",
-        #             "date":"1587710327264"
-        #         }
-        #     }
-        #
-        data = self.safe_dict(response, 'data', {})
+        request = {}
+        response = None
+        data = {}
+        if generation == 2:
+            request['markets'] = self.get_gen2_market_id(market)
+            response = self.publicGetV1Ticker(self.extend(request, params))
+            #
+            #     [
+            #         {
+            #             "market": "BTC-USDC",
+            #             "trade_date": "20260701",
+            #             "trade_time": "233533",
+            #             "trade_date_kst": "20260702",
+            #             "trade_time_kst": "083533",
+            #             "trade_timestamp": 1782981333650,
+            #             "opening_price": 0.00001667,
+            #             "high_price": 0.00001667,
+            #             "low_price": 0.00001645,
+            #             "trade_price": 0.00001659,
+            #             "prev_closing_price": 0.00001673,
+            #             "change": "FALL",
+            #             "change_price": 1.4E-7,
+            #             "change_rate": 0.0084,
+            #             "signed_change_price": -1.4E-7,
+            #             "signed_change_rate": -0.0084,
+            #             "trade_volume": 1.43724182,
+            #             "acc_trade_price": 0.77934383561689,
+            #             "acc_trade_price_24h": 1.76373410121466379999997512,
+            #             "acc_trade_volume": 47175.3220805,
+            #             "acc_trade_volume_24h": 104565.90238645676844763,
+            #             "highest_52_week_price": 0.00006592,
+            #             "highest_52_week_date": "2025-11-05",
+            #             "lowest_52_week_price": 0.00000782,
+            #             "lowest_52_week_date": "2026-02-22",
+            #             "timestamp": 1782981333650
+            #         },
+            #     ]
+            #
+            data = self.safe_dict(response, 0, {})
+        else:
+            request['baseId'] = market['baseId']
+            request['quoteId'] = market['quoteId']
+            response = self.publicGetPublicTickerBaseIdQuoteId(self.extend(request, params))
+            #
+            #     {
+            #         "status":"0000",
+            #         "data":{
+            #             "opening_price":"227100",
+            #             "closing_price":"228400",
+            #             "min_price":"222300",
+            #             "max_price":"230000",
+            #             "units_traded":"82618.56075337",
+            #             "acc_trade_value":"18767376138.6031",
+            #             "prev_closing_price":"227100",
+            #             "units_traded_24H":"151871.13484676",
+            #             "acc_trade_value_24H":"34247610416.8974",
+            #             "fluctate_24H":"8700",
+            #             "fluctate_rate_24H":"3.96",
+            #             "date":"1587710327264"
+            #         }
+            #     }
+            #
+            data = self.safe_dict(response, 'data', {})
         return self.parse_ticker(data, market)
 
     def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
+        #
+        # generation 1
         #
         #     [
         #         1576823400000,  # 기준 시간
@@ -651,13 +1215,34 @@ class bithumb(Exchange, ImplicitAPI):
         #         "15.41503692"  # 거래량
         #     ]
         #
+        # generation 2
+        #
+        #     {
+        #         "market": "BTC-USDC",
+        #         "candle_date_time_utc": "2026-07-02T08:59:00",
+        #         "candle_date_time_kst": "2026-07-02T17:59:00",
+        #         "opening_price": 0.0000165,
+        #         "high_price": 0.0000165,
+        #         "low_price": 0.0000165,
+        #         "trade_price": 0.0000165,
+        #         "timestamp": 1782982784329,
+        #         "candle_acc_trade_price": 0.001155,
+        #         "candle_acc_trade_volume": 70,
+        #         "unit": 1
+        #     }
+        #
+        timestamp = None
+        if isinstance(ohlcv, list):
+            timestamp = self.safe_integer_2(ohlcv, 0, 'timestamp')
+        else:
+            timestamp = self.parse8601(self.safe_string_2(ohlcv, 'candle_date_time_utc', 'candle_date_time_kst'))
         return [
-            self.safe_integer(ohlcv, 0),
-            self.safe_number(ohlcv, 1),
-            self.safe_number(ohlcv, 3),
-            self.safe_number(ohlcv, 4),
-            self.safe_number(ohlcv, 2),
-            self.safe_number(ohlcv, 5),
+            timestamp,
+            self.safe_number_2(ohlcv, 1, 'opening_price'),
+            self.safe_number_2(ohlcv, 3, 'high_price'),
+            self.safe_number_2(ohlcv, 4, 'low_price'),
+            self.safe_number_2(ohlcv, 2, 'trade_price'),
+            self.safe_number_2(ohlcv, 5, 'candle_acc_trade_volume'),
         ]
 
     def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
@@ -665,52 +1250,108 @@ class bithumb(Exchange, ImplicitAPI):
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
         https://apidocs.bithumb.com/v1.2.0/reference/candlestick-rest-api
+        https://apidocs.bithumb.com/reference/%EB%B6%84minute-%EC%BA%94%EB%93%A4-%EC%A1%B0%ED%9A%8C
+        https://apidocs.bithumb.com/reference/%EC%9D%BCday-%EC%BA%94%EB%93%A4-%EC%A1%B0%ED%9A%8C
+        https://apidocs.bithumb.com/reference/%EC%A3%BCweek-%EC%BA%94%EB%93%A4-%EC%A1%B0%ED%9A%8C
+        https://apidocs.bithumb.com/reference/%EC%9B%94month-%EC%BA%94%EB%93%A4-%EC%A1%B0%ED%9A%8C
 
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.generation]: if you want to use the API generation 1 or 2, default is 2
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         if self.markets is None:
             self.load_markets()
+        generation = None
+        generation, params = self.handle_option_and_params(params, 'fetchOHLCV', 'generation', 2)
         market = self.market(symbol)
-        request = {
-            'baseId': market['baseId'],
-            'quoteId': market['quoteId'],
-            'interval': self.safe_string(self.timeframes, timeframe, timeframe),
-        }
-        response = self.publicGetCandlestickBaseIdQuoteIdInterval(self.extend(request, params))
-        #
-        #     {
-        #         "status": "0000",
-        #         "data": {
-        #             [
-        #                 1576823400000,  # 기준 시간
-        #                 "8284000",  # 시가
-        #                 "8286000",  # 종가
-        #                 "8289000",  # 고가
-        #                 "8276000",  # 저가
-        #                 "15.41503692"  # 거래량
-        #             ],
-        #             [
-        #                 1576824000000,  # 기준 시간
-        #                 "8284000",  # 시가
-        #                 "8281000",  # 종가
-        #                 "8289000",  # 고가
-        #                 "8275000",  # 저가
-        #                 "6.19584467"  # 거래량
-        #             ],
-        #         }
-        #     }
-        #
-        data = self.safe_list(response, 'data', [])
+        request = {}
+        response = None
+        data = []
+        if generation == 2:
+            request['market'] = self.get_gen2_market_id(market)
+            if limit is not None:
+                request['count'] = limit
+            if timeframe == '1d':
+                response = self.publicGetV1CandlesDays(self.extend(request, params))
+            elif timeframe == '1w':
+                response = self.publicGetV1CandlesWeeks(self.extend(request, params))
+            elif timeframe == '1M':
+                response = self.publicGetV1CandlesMonths(self.extend(request, params))
+            else:
+                timeframeInteger = self.safe_integer(self.timeframes, timeframe)
+                if timeframeInteger is None:
+                    raise BadRequest(self.id + ' fetchOHLCV() unsupported timeframe ' + timeframe)
+                request['unit'] = timeframeInteger
+                response = self.publicGetV1CandlesMinutesUnit(self.extend(request, params))
+            #
+            #     [
+            #         {
+            #             "market": "BTC-USDC",
+            #             "candle_date_time_utc": "2026-07-02T08:59:00",
+            #             "candle_date_time_kst": "2026-07-02T17:59:00",
+            #             "opening_price": 0.0000165,
+            #             "high_price": 0.0000165,
+            #             "low_price": 0.0000165,
+            #             "trade_price": 0.0000165,
+            #             "timestamp": 1782982784329,
+            #             "candle_acc_trade_price": 0.001155,
+            #             "candle_acc_trade_volume": 70,
+            #             "unit": 1
+            #         },
+            #     ]
+            #
+            data = response
+        else:
+            legacyTimeframes = {
+                '1m': '1m',
+                '3m': '3m',
+                '5m': '5m',
+                '10m': '10m',
+                '30m': '30m',
+                '1h': '1h',
+                '6h': '6h',
+                '12h': '12h',
+                '1d': '24h',
+                '1w': '1w',
+                '1M': '1mm',
+            }
+            request['interval'] = self.safe_string(legacyTimeframes, timeframe, timeframe)
+            request['baseId'] = market['baseId']
+            request['quoteId'] = market['quoteId']
+            response = self.publicGetPublicCandlestickBaseIdQuoteIdInterval(self.extend(request, params))
+            #
+            #     {
+            #         "status": "0000",
+            #         "data": {
+            #             [
+            #                 1576823400000,  # 기준 시간
+            #                 "8284000",  # 시가
+            #                 "8286000",  # 종가
+            #                 "8289000",  # 고가
+            #                 "8276000",  # 저가
+            #                 "15.41503692"  # 거래량
+            #             ],
+            #             [
+            #                 1576824000000,  # 기준 시간
+            #                 "8284000",  # 시가
+            #                 "8281000",  # 종가
+            #                 "8289000",  # 고가
+            #                 "8275000",  # 저가
+            #                 "6.19584467"  # 거래량
+            #             ],
+            #         }
+            #     }
+            #
+            data = self.safe_list(response, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
-        # fetchTrades(public)
+        # generation 1: fetchTrades(public)
         #
         #     {
         #         "transaction_date":"2020-04-23 22:21:46",
@@ -720,7 +1361,7 @@ class bithumb(Exchange, ImplicitAPI):
         #         "total":"108337"
         #     }
         #
-        # fetchOrder(private)
+        # generation 1: fetchOrder(private)
         #
         #     {
         #         "transaction_date": "1572497603902030",
@@ -731,8 +1372,43 @@ class bithumb(Exchange, ImplicitAPI):
         #         "total": "43005"
         #     }
         #
+        # generation 2: fetchTrades
+        #
+        #     {
+        #         "market": "BTC-USDC",
+        #         "trade_date_utc": "2026-07-02",
+        #         "trade_time_utc": "08:41:10",
+        #         "timestamp": "1782981670705",
+        #         "trade_price": "0.00001646",
+        #         "trade_volume": "42.0335581",
+        #         "prev_closing_price": "0.00001673",
+        #         "change_price": "-2.7E-7",
+        #         "ask_bid": "ASK",
+        #         "sequential_id": "17829816707050000"
+        #     }
+        #
+        # generation 2: watchTrades
+        #
+        #     {
+        #         "type": "trade",
+        #         "code": "KRW-BTC",
+        #         "trade_price": 95539000,
+        #         "trade_volume": 0.00022664,
+        #         "ask_bid": "ASK",
+        #         "prev_closing_price": 94201000,
+        #         "change": "RISE",
+        #         "change_price": 1338000,
+        #         "trade_date": "2026-07-10",
+        #         "trade_time": "13:39:41",
+        #         "trade_timestamp": 1783658381138,
+        #         "sequential_id": "862683813820523888",
+        #         "timestamp": 1783658381398,
+        #         "stream_type": "REALTIME"
+        #     }
+        #
         # a workaround for their bug in date format, hours are not 0-padded
-        timestamp = None
+        timestamp = self.safe_integer(trade, 'timestamp')
+        isGenerationTwo = (timestamp is not None)
         transactionDatetime = self.safe_string(trade, 'transaction_date')
         if transactionDatetime is not None:
             parts = transactionDatetime.split(' ')
@@ -745,15 +1421,23 @@ class bithumb(Exchange, ImplicitAPI):
                 timestamp = self.parse8601(transactionDate + ' ' + transactionTime)
             else:
                 timestamp = self.safe_integer_product(trade, 'transaction_date', 0.001)
-        if timestamp is not None:
+        if (timestamp is not None) and (not isGenerationTwo):
             timestamp -= 9 * 3600000  # they report UTC + 9 hours, server in Korean timezone
         type = None
-        side = self.safe_string(trade, 'type')
-        side = 'sell' if (side == 'ask') else 'buy'
-        id = self.safe_string(trade, 'cont_no')
-        market = self.safe_market(None, market)
-        priceString = self.safe_string(trade, 'price')
-        amountString = self.fix_comma_number(self.safe_string_2(trade, 'units_traded', 'units'))
+        side = self.safe_string_lower_2(trade, 'ask_bid', 'type')
+        if side == 'bid':
+            side = 'buy'
+        elif side == 'ask':
+            side = 'sell'
+        else:
+            side = None
+        id = self.safe_string_2(trade, 'cont_no', 'sequential_id')
+        marketId = self.safe_string(trade, 'market')
+        market = self.safe_market(marketId, market)
+        priceString = self.safe_string_2(trade, 'price', 'trade_price')
+        amountString = self.safe_string(trade, 'trade_volume')
+        if amountString is None:
+            amountString = self.fix_comma_number(self.safe_string_2(trade, 'units_traded', 'units'))
         costString = self.safe_string(trade, 'total')
         fee = None
         feeCostString = self.safe_string(trade, 'fee')
@@ -785,39 +1469,201 @@ class bithumb(Exchange, ImplicitAPI):
         get the list of most recent trades for a particular symbol
 
         https://apidocs.bithumb.com/v1.2.0/reference/%EC%B5%9C%EA%B7%BC-%EC%B2%B4%EA%B2%B0-%EB%82%B4%EC%97%AD
+        https://apidocs.bithumb.com/reference/%EC%B2%B4%EA%B2%B0-%EB%82%B4%EC%97%AD-%EC%A1%B0%ED%9A%8C
 
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.generation]: if you want to use the API generation 1 or 2, default is 2
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         if self.markets is None:
             self.load_markets()
+        generation = None
+        generation, params = self.handle_option_and_params(params, 'fetchTrades', 'generation', 2)
         market = self.market(symbol)
-        request = {
-            'baseId': market['baseId'],
-            'quoteId': market['quoteId'],
-        }
+        request = {}
         if limit is not None:
-            request['count'] = limit  # default 20, max 100
-        response = self.publicGetTransactionHistoryBaseIdQuoteId(self.extend(request, params))
+            request['count'] = limit
+        response = None
+        data = []
+        if generation == 2:
+            request['market'] = self.get_gen2_market_id(market)
+            response = self.publicGetV1TradesTicks(self.extend(request, params))
+            #
+            #     [
+            #         {
+            #             "market": "BTC-USDC",
+            #             "trade_date_utc": "2026-07-02",
+            #             "trade_time_utc": "08:41:10",
+            #             "timestamp": "1782981670705",
+            #             "trade_price": "0.00001646",
+            #             "trade_volume": "42.0335581",
+            #             "prev_closing_price": "0.00001673",
+            #             "change_price": "-2.7E-7",
+            #             "ask_bid": "ASK",
+            #             "sequential_id": "17829816707050000"
+            #         }
+            #     ]
+            #
+            data = response
+        else:
+            request['baseId'] = market['baseId']
+            request['quoteId'] = market['quoteId']
+            response = self.publicGetPublicTransactionHistoryBaseIdQuoteId(self.extend(request, params))
+            #
+            #     {
+            #         "status":"0000",
+            #         "data":[
+            #             {
+            #                 "transaction_date":"2020-04-23 22:21:46",
+            #                 "type":"ask",
+            #                 "units_traded":"0.0125",
+            #                 "price":"8667000",
+            #                 "total":"108337"
+            #             },
+            #         ]
+            #     }
+            #
+            data = self.safe_list(response, 'data', [])
+        return self.parse_trades(data, market, since, limit)
+
+    def create_orders(self, orders: list[OrderRequest], params={}) -> list[Order]:
+        """
+        create a list of trade orders, only available for the generation 2 API
+
+        https://apidocs.bithumb.com/reference/%EB%8B%A4%EA%B1%B4-%EC%A3%BC%EB%AC%B8-%EC%9A%94%EC%B2%AD
+
+        :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.timeInForce]: supports 'IOC', 'FOK', and 'PO'
+        :param bool [params.postOnly]: True or False
+        :param str [params.clientOrderId]: the clientOrderId of the order
+        :param int [params.generation]: *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        generation = None
+        generation, params = self.handle_option_and_params(params, 'createOrders', 'generation', 2)
+        if generation != 2:
+            raise BadRequest(self.id + ' createOrders is only supported for the generation 2 API')
+        ordersCount = len(orders)
+        if ordersCount == 0:
+            raise ArgumentsRequired(self.id + ' createOrders() requires a non-empty orders array')
+        ordersRequests = []
+        orderSymbols = []
+        for i in range(0, len(orders)):
+            rawOrder = orders[i]
+            symbol = self.safe_string(rawOrder, 'symbol')
+            if symbol is None:
+                raise ArgumentsRequired(self.id + ' createOrders() requires each order to have a symbol')
+            orderSymbols.append(symbol)
+            type = self.safe_string(rawOrder, 'type')
+            if type is None:
+                raise ArgumentsRequired(self.id + ' createOrders() requires each order to have a type')
+            side = self.safe_string(rawOrder, 'side')
+            if side is None:
+                raise ArgumentsRequired(self.id + ' createOrders() requires each order to have a side')
+            amount = self.safe_value(rawOrder, 'amount')
+            price = self.safe_value(rawOrder, 'price')
+            orderParams = self.safe_dict(rawOrder, 'params', {})
+            orderRequest = self.create_order_request(symbol, type, side, amount, price, orderParams)
+            ordersRequests.append(orderRequest)
+        orderSymbols = self.market_symbols(orderSymbols, None, False, True, True)
+        market = self.market(orderSymbols[0])
+        request = {
+            'batch_orders': ordersRequests,
+        }
+        response = self.privatePostV2OrdersBatch(self.extend(request, params))
         #
         #     {
-        #         "status":"0000",
-        #         "data":[
+        #         "batch_orders_response": [
         #             {
-        #                 "transaction_date":"2020-04-23 22:21:46",
-        #                 "type":"ask",
-        #                 "units_traded":"0.0125",
-        #                 "price":"8667000",
-        #                 "total":"108337"
+        #                 "order_id": "C0101000003152500274",
+        #                 "market": "KRW-BTC",
+        #                 "side": "bid",
+        #                 "order_type": "limit",
+        #                 "created_at": "2026-07-04T15:49:24+09:00",
+        #                 "stp_type": "cancel_taker"
         #             },
         #         ]
         #     }
         #
-        data = self.safe_list(response, 'data', [])
-        return self.parse_trades(data, market, since, limit)
+        data = self.safe_list(response, 'batch_orders_response', [])
+        return self.parse_orders(data, market)
+
+    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+        """
+ @ignore
+        helper function to build the request *for generation 2 createOrder and createOrders only*
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much you want to trade in units of the base currency
+        :param float [price]: the price that the order is to be fulfilled, in units of the quote currency
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: request to be sent to the exchange
+        """
+        market = self.market(symbol)
+        request = {
+            'market': self.get_gen2_market_id(market),
+        }
+        sideRequest = None
+        if side == 'buy':
+            sideRequest = 'bid'
+        elif side == 'sell':
+            sideRequest = 'ask'
+        else:
+            raise InvalidOrder(self.id + ' createOrder() invalid side ' + side)
+        request['side'] = sideRequest
+        timeInForce = self.safe_string_2(params, 'timeInForce', 'time_in_force')
+        if timeInForce is None:
+            timeInForce = 'GTC'
+        else:
+            params = self.omit(params, 'timeInForce')
+        postOnly = False
+        postOnly, params = self.handle_post_only(type == 'market', False, params)
+        if postOnly or (timeInForce == 'PO'):
+            request['time_in_force'] = 'post_only'
+            params = self.omit(params, 'postOnly')
+        elif timeInForce == 'FOK':
+            request['time_in_force'] = 'fok'
+        elif timeInForce == 'IOC':
+            request['time_in_force'] = 'ioc'
+        if type == 'limit':
+            request['price'] = self.price_to_precision(symbol, price)
+            request['volume'] = self.amount_to_precision(symbol, amount)
+            request['order_type'] = 'limit'
+        else:
+            typeRequest = None
+            if side == 'buy':
+                typeRequest = 'price'
+                # for market buy it requires the amount of quote currency to spend
+                cost = self.safe_string(params, 'cost')
+                params = self.omit(params, 'cost')
+                createMarketBuyOrderRequiresPrice = True
+                createMarketBuyOrderRequiresPrice, params = self.handle_option_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
+                if createMarketBuyOrderRequiresPrice:
+                    if (price is None) and (cost is None):
+                        raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend in the amount argument')
+                    else:
+                        amountString = self.number_to_string(amount)
+                        priceString = self.number_to_string(price)
+                        cost = Precise.string_mul(amountString, priceString)
+                else:
+                    cost = self.number_to_string(amount) if (cost is None) else cost
+                request['price'] = self.price_to_precision(symbol, cost)
+            else:
+                request['volume'] = self.amount_to_precision(symbol, amount)
+                typeRequest = 'market'
+            request['order_type'] = typeRequest
+        clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_order_id')
+        if clientOrderId is not None:
+            request['client_order_id'] = clientOrderId
+            params = self.omit(params, 'clientOrderId')
+        return self.extend(request, params)
 
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
@@ -826,108 +1672,297 @@ class bithumb(Exchange, ImplicitAPI):
         https://apidocs.bithumb.com/v1.2.0/reference/%EC%A7%80%EC%A0%95%EA%B0%80-%EC%A3%BC%EB%AC%B8%ED%95%98%EA%B8%B0
         https://apidocs.bithumb.com/v1.2.0/reference/%EC%8B%9C%EC%9E%A5%EA%B0%80-%EB%A7%A4%EC%88%98%ED%95%98%EA%B8%B0
         https://apidocs.bithumb.com/v1.2.0/reference/%EC%8B%9C%EC%9E%A5%EA%B0%80-%EB%A7%A4%EB%8F%84%ED%95%98%EA%B8%B0
+        https://apidocs.bithumb.com/reference/%EC%A3%BC%EB%AC%B8-%EC%9A%94%EC%B2%AD
 
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.timeInForce]: supports 'IOC', 'FOK', and 'PO'
+        :param bool [params.postOnly]: True or False
+        :param str [params.clientOrderId]: the clientOrderId of the order
+        :param str [params.cost]: *generation 2 only* optional cost parameter for market buy orders instead of setting the price, must also set createMarketBuyOrderRequiresPrice to False
+        :param bool [params.createMarketBuyOrderRequiresPrice]: *generation 2 only* set to False if passing a cost param or using cost in the amount argument, defaults to True
+        :param int [params.generation]: if you want to use the API generation 1 or 2, default is 2
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if self.markets is None:
             self.load_markets()
+        generation = None
+        generation, params = self.handle_option_and_params(params, 'createOrder', 'generation', 2)
+        request = {}
         market = self.market(symbol)
-        request = {
-            'order_currency': market['id'],
-            'payment_currency': market['quote'],
-            'units': amount,
-        }
         response = None
-        if type == 'limit':
-            request['price'] = price
-            request['type'] = 'bid' if (side == 'buy') else 'ask'
-            response = self.privatePostTradePlace(self.extend(request, params))
-        elif side == 'buy':
-            response = self.privatePostTradeMarketBuy(self.extend(request, params))
+        if generation == 2:
+            request = self.create_order_request(symbol, type, side, amount, price, params)
+            response = self.privatePostV2Orders(request)
+            #
+            #     {
+            #         "order_id": "C0101000003152350309",
+            #         "market": "KRW-BTC",
+            #         "side": "bid",
+            #         "order_type": "limit",
+            #         "created_at": "2026-07-04T14:39:04+09:00",
+            #         "stp_type": "cancel_taker"
+            #     }
+            #
         else:
-            response = self.privatePostTradeMarketSell(self.extend(request, params))
+            request['order_currency'] = market['base']
+            request['payment_currency'] = market['quote']
+            request['units'] = self.amount_to_precision(symbol, amount)
+            if type == 'limit':
+                request['price'] = self.price_to_precision(symbol, price)
+                typeRequest = None
+                if side == 'buy':
+                    typeRequest = 'bid'
+                else:
+                    typeRequest = 'ask'
+                request['type'] = typeRequest
+                response = self.privatePostTradePlace(self.extend(request, params))
+            elif side == 'buy':
+                response = self.privatePostTradeMarketBuy(self.extend(request, params))
+            else:
+                response = self.privatePostTradeMarketSell(self.extend(request, params))
+            #
+            #     {
+            #         "status": "0000",
+            #         "order_id": "C0101000003152294086"
+            #     }
+            #
         id = self.safe_string(response, 'order_id')
         if id is None:
             raise InvalidOrder(self.id + ' createOrder() did not return an order id')
-        return self.safe_order({
+        return self.extend(self.parse_order(response, market), {
             'info': response,
             'symbol': symbol,
             'type': type,
             'side': side,
             'id': id,
-        }, market)
+        })
+
+    def create_market_buy_order_with_cost(self, symbol: str, cost: float, params: dict = {}):
+        """
+        create a market buy order by providing the symbol and cost
+
+        https://apidocs.bithumb.com/reference/%EC%A3%BC%EB%AC%B8-%EC%9A%94%EC%B2%AD
+
+        :param str symbol: unified symbol of the market to create an order in
+        :param float cost: how much you want to trade in units of the quote currency
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.generation]: *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        generation = None
+        generation, params = self.handle_option_and_params(params, 'createMarketBuyOrderWithCost', 'generation', 2)
+        if generation != 2:
+            raise BadRequest(self.id + ' createMarketBuyOrderWithCost() is only supported for the generation 2 API')
+        params['createMarketBuyOrderRequiresPrice'] = False
+        return self.create_order(symbol, 'market', 'buy', cost, None, params)
+
+    def create_twap_order(self, symbol: str, side: OrderSide, amount: float, duration: float, params={}) -> Order:
+        """
+        create a trade order that is executed TWAP order over a specified duration.
+
+        https://apidocs.bithumb.com/reference/twap-%EC%A3%BC%EB%AC%B8-%EC%9A%94%EC%B2%AD
+
+        :param str symbol: unified symbol of the market to create an order in
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency, only required for sale
+        :param int duration: the duration of the TWAP order in milliseconds
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str params['frequency']: required order interval in seconds, 15, 20, 30, 60 or 120
+        :param str [params.price]: order price, required for purchase
+        :param int [params.generation]: *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        generation = None
+        generation, params = self.handle_option_and_params(params, 'createTwapOrder', 'generation', 2)
+        if generation != 2:
+            raise BadRequest(self.id + ' createTwapOrder() is only supported for the generation 2 API')
+        market = self.market(symbol)
+        durationString = self.number_to_string(duration)
+        durationSeconds = Precise.string_div(durationString, '1000')
+        request = {
+            'market': self.get_gen2_market_id(market),
+            'duration': durationSeconds,
+        }
+        if amount is not None:
+            request['volume'] = self.amount_to_precision(symbol, amount)  # required for sale
+        sideRequest = None
+        if side == 'buy':
+            sideRequest = 'bid'
+        else:
+            sideRequest = 'ask'
+        request['side'] = sideRequest
+        response = self.privatePostV1Twap(self.extend(request, params))
+        #
+        #     {
+        #         "algo_order_id": "019f3ed7-4f92-7179-beee-84b4c71e53fa"
+        #     }
+        #
+        return self.parse_order(response, market)
 
     def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
 
         https://apidocs.bithumb.com/v1.2.0/reference/%EA%B1%B0%EB%9E%98-%EC%A3%BC%EB%AC%B8%EB%82%B4%EC%97%AD-%EC%83%81%EC%84%B8-%EC%A1%B0%ED%9A%8C
+        https://apidocs.bithumb.com/reference/%EA%B0%9C%EB%B3%84-%EC%A3%BC%EB%AC%B8-%EC%A1%B0%ED%9A%8C
+        https://apidocs.bithumb.com/reference/twap-%EC%A3%BC%EB%AC%B8%EB%82%B4%EC%97%AD-%EC%A1%B0%ED%9A%8C
 
         :param str id: order id
-        :param str symbol: unified symbol of the market the order was made in
+        :param str [symbol]: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.clientOrderId]: the clientOrderId of the order, alternative to using the order id
+        :param int [params.generation]: if you want to use the API generation 1 or 2, default is 2
+        :param bool [params.twap]: *generation 2 only* if you want to fetch a generation 2 twap order
+        :param str [params.state]: *generation 2 only* the order state, either wait, watch, done, or cancel. For twap either progress(default), done, or cancel
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         if self.markets is None:
             self.load_markets()
-        market = self.market(symbol)
-        request = {
+        generation = None
+        generation, params = self.handle_option_and_params(params, 'fetchOrder', 'generation', 2)
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        twap = self.safe_bool(params, 'twap', False)
+        params = self.omit(params, 'twap')
+        request = {}
+        response = None
+        data = None
+        if generation == 2:
+            if twap:
+                if market is not None:
+                    request['market'] = self.get_gen2_market_id(market)
+                request['uuids'] = [id]
+                response = self.privateGetV1Twap(self.extend(request, params))
+                #
+                #     {
+                #         "has_next": False,
+                #         "next_key": null,
+                #         "orders": [
+                #             {
+                #                 "uuid": "019f3ed7-4f92-7179-beee-84b4c71e53fa",
+                #                 "side": "bid",
+                #                 "price": "92500000",
+                #                 "state": "progress",
+                #                 "market": "KRW-BTC",
+                #                 "created_at": "2025-12-04T10:00:00+09:00",
+                #                 "volume": "1.0",
+                #                 "total_order_count": 60,
+                #                 "total_trades_count": 10,
+                #                 "progress_count": 25,
+                #                 "total_executed_amount": "2312500000",
+                #                 "total_executed_volume": "0.25",
+                #                 "avg_trade_price": "92500000.000",
+                #                 "wallet_id": "0000000000-00-0000"
+                #             },
+                #         ]
+                #     }
+                #
+                orders = self.safe_list(response, 'orders', [])
+                data = self.safe_dict(orders, 0, {})
+            else:
+                clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_order_id')
+                if clientOrderId is not None:
+                    request['client_order_id'] = clientOrderId
+                    params = self.omit(params, ['clientOrderId'])
+                else:
+                    request['uuid'] = id
+                response = self.privateGetV1Order(self.extend(request, params))
+                #
+                #     {
+                #         "uuid": "C0101000003152406454",
+                #         "side": "bid",
+                #         "ord_type": "limit",
+                #         "price": "9500000",
+                #         "state": "wait",
+                #         "market": "KRW-BTC",
+                #         "created_at": "2026-07-04T15:05:46+09:00",
+                #         "volume": "0.001",
+                #         "remaining_volume": "0.001",
+                #         "reserved_fee": "23.75",
+                #         "remaining_fee": "23.75",
+                #         "paid_fee": "0",
+                #         "locked": "9524.75",
+                #         "executed_volume": "0",
+                #         "executed_funds": "0",
+                #         "trades_count": 0,
+                #         "stp_type": "cancel_taker",
+                #         "trades": []
+                #     }
+                #
+                data = response
+        else:
+            if symbol is None:
+                raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
+            marketDefined = market
+            base = self.safe_string(marketDefined, 'base')
+            quote = self.safe_string(marketDefined, 'quote')
+            if (base is None) or (quote is None):
+                raise ArgumentsRequired(self.id + ' fetchOrder() requires a market with defined base and quote')
+            request['order_id'] = id
+            request['order_currency'] = base
+            request['payment_currency'] = quote
+            response = self.privatePostInfoOrderDetail(self.extend(request, params))
+            #
+            #     {
+            #         "status": "0000",
+            #         "data": {
+            #             "order_date": "1603161798539254",
+            #             "type": "ask",
+            #             "order_status": "Cancel",
+            #             "order_currency": "BTC",
+            #             "payment_currency": "KRW",
+            #             "watch_price": "0",
+            #             "order_price": "13344000",
+            #             "order_qty": "0.0125",
+            #             "cancel_date": "1603161803809993",
+            #             "cancel_type": "사용자취소",
+            #             "contract": [
+            #                 {
+            #                     "transaction_date": "1603161799976383",
+            #                     "price": "13344000",
+            #                     "units": "0.0015",
+            #                     "fee_currency": "KRW",
+            #                     "fee": "0",
+            #                     "total": "20016"
+            #                 }
+            #             ],
+            #         }
+            #     }
+            #
+            data = self.safe_dict(response, 'data')
+        orderData = {
             'order_id': id,
-            'count': 1,
-            'order_currency': market['base'],
-            'payment_currency': market['quote'],
         }
-        response = self.privatePostInfoOrderDetail(self.extend(request, params))
-        #
-        #     {
-        #         "status": "0000",
-        #         "data": {
-        #             "order_date": "1603161798539254",
-        #             "type": "ask",
-        #             "order_status": "Cancel",
-        #             "order_currency": "BTC",
-        #             "payment_currency": "KRW",
-        #             "watch_price": "0",
-        #             "order_price": "13344000",
-        #             "order_qty": "0.0125",
-        #             "cancel_date": "1603161803809993",
-        #             "cancel_type": "사용자취소",
-        #             "contract": [
-        #                 {
-        #                     "transaction_date": "1603161799976383",
-        #                     "price": "13344000",
-        #                     "units": "0.0015",
-        #                     "fee_currency": "KRW",
-        #                     "fee": "0",
-        #                     "total": "20016"
-        #                 }
-        #             ],
-        #         }
-        #     }
-        #
-        data = self.safe_dict(response, 'data')
-        return self.parse_order(self.extend(data, {'order_id': id}), market)
+        parsedOrder = self.extend(data, orderData)
+        return self.parse_order(parsedOrder, market)
 
     def parse_order_status(self, status: Str):
         statuses = {
             'Pending': 'open',
             'Completed': 'closed',
             'Cancel': 'canceled',
+            'wait': 'open',
+            'watch': 'open',
+            'done': 'closed',
+            'cancel': 'canceled',
+            'progress': 'open',
         }
         return self.safe_string(statuses, status, status)
 
     def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         #
-        # fetchOrder
+        # generation 1: fetchOrder
         #
         #     {
         #         "transaction_date": "1572497603668315",
@@ -952,29 +1987,127 @@ class bithumb(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        # fetchOpenOrders
+        # generation 1: fetchOpenOrders
         #
         #     {
         #         "order_currency": "BTC",
         #         "payment_currency": "KRW",
-        #         "order_id": "C0101000007408440032",
-        #         "order_date": "1571728739360570",
+        #         "order_id": "C0101000003152294086",
+        #         "order_date": "1783141846061516",
         #         "type": "bid",
-        #         "units": "5.0",
-        #         "units_remaining": "5.0",
-        #         "price": "501000",
+        #         "watch_price": "0",
+        #         "units": "0.001",
+        #         "units_remaining": "0.001",
+        #         "price": "9500000",
+        #         "stp_type": "cancel_taker"
         #     }
         #
-        timestamp = self.safe_integer_product(order, 'order_date', 0.001)
+        # generation 1: cancelOrder
+        #
+        #     {
+        #         "status": "0000"
+        #     }
+        #
+        # generation 2: createOrder, createOrders
+        #
+        #     {
+        #         "order_id": "C0101000003152350309",
+        #         "market": "KRW-BTC",
+        #         "side": "bid",
+        #         "order_type": "limit",
+        #         "created_at": "2026-07-04T14:39:04+09:00",
+        #         "stp_type": "cancel_taker"
+        #     }
+        #
+        # generation 2: fetchOrder, fetchOrders, fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders
+        #
+        #     {
+        #         "uuid": "C0101000003152406454",
+        #         "side": "bid",
+        #         "ord_type": "limit",
+        #         "price": "9500000",
+        #         "state": "wait",
+        #         "market": "KRW-BTC",
+        #         "created_at": "2026-07-04T15:05:46+09:00",
+        #         "volume": "0.001",
+        #         "remaining_volume": "0.001",
+        #         "reserved_fee": "23.75",
+        #         "remaining_fee": "23.75",
+        #         "paid_fee": "0",
+        #         "locked": "9524.75",
+        #         "executed_volume": "0",
+        #         "executed_funds": "0",
+        #         "trades_count": 0,
+        #         "stp_type": "cancel_taker",
+        #         "trades": []
+        #     }
+        #
+        # generation 2: cancelOrder, cancelOrders
+        #
+        #     {
+        #         "order_id": "C0101000003152350309",
+        #         "created_at": "2026-07-04T14:39:04+09:00"
+        #     }
+        #
+        # generation 2: createTwapOrder, twap cancelOrder
+        #
+        #     {
+        #         "algo_order_id": "019f3ed7-4f92-7179-beee-84b4c71e53fa"
+        #     }
+        #
+        # generation 2: twap fetchOrder, fetchOrders, fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders
+        #
+        #     {
+        #         "uuid": "019f3ed7-4f92-7179-beee-84b4c71e53fa",
+        #         "side": "bid",
+        #         "price": "92500000",
+        #         "state": "progress",
+        #         "market": "KRW-BTC",
+        #         "created_at": "2025-12-03T09:00:00+09:00",
+        #         "volume": "1.0",
+        #         "total_order_count": 60,
+        #         "total_trades_count": 10,
+        #         "progress_count": 25,
+        #         "total_executed_amount": "2312500000",
+        #         "total_executed_volume": "0.25",
+        #         "avg_trade_price": "92500000.000",
+        #         "wallet_id": "0000000000-00-0000",
+        #         "canceled_at": "2025-12-03T09:15:00+09:00",
+        #         "cancel_type": "user"
+        #     }
+        #
+        datetime = self.safe_string(order, 'created_at')
+        timestamp = None
+        if datetime is not None:
+            if datetime.find('+09:00') > -1:
+                normalized = datetime.replace('+09:00', 'Z')
+                normalizedTimestamp = self.parse8601(normalized)
+                if normalizedTimestamp is not None:
+                    timestamp = normalizedTimestamp - 9 * 3600000
+                else:
+                    timestamp = self.parse8601(datetime)
+            else:
+                timestamp = self.parse8601(datetime)
+        else:
+            timestamp = self.safe_integer_product(order, 'order_date', 0.001)
+            datetime = self.iso8601(timestamp)
         sideProperty = self.safe_string_2(order, 'type', 'side')
-        side = 'buy' if (sideProperty == 'bid') else 'sell'
-        status = self.parse_order_status(self.safe_string(order, 'order_status'))
+        side = None
+        if sideProperty == 'bid':
+            side = 'buy'
+        elif sideProperty == 'ask':
+            side = 'sell'
+        status = self.parse_order_status(self.safe_string_2(order, 'order_status', 'state'))
         price = self.safe_string_2(order, 'order_price', 'price')
-        type = 'limit'
-        if Precise.string_equals(price, '0'):
-            type = 'market'
-        amount = self.fix_comma_number(self.safe_string_2(order, 'order_qty', 'units'))
-        remaining = self.fix_comma_number(self.safe_string(order, 'units_remaining'))
+        type = self.safe_string_2(order, 'order_type', 'ord_type')
+        progressCount = self.safe_string(order, 'progress_count')
+        if (type is None) and (price is not None) and (progressCount is None):
+            if Precise.string_equals(price, '0'):
+                type = 'market'
+            else:
+                type = 'limit'
+        amount = self.fix_comma_number(self.safe_string_n(order, ['order_qty', 'units', 'volume']))
+        remaining = self.fix_comma_number(self.safe_string_2(order, 'units_remaining', 'remaining_volume'))
         if remaining is None:
             if status == 'closed':
                 remaining = '0'
@@ -988,116 +2121,377 @@ class bithumb(Exchange, ImplicitAPI):
         if (base is not None) and (quote is not None):
             symbol = base + '/' + quote
         if symbol is None:
-            market = self.safe_market(None, market)
+            marketId = self.safe_string(order, 'market')
+            market = self.safe_market(marketId, market)
             symbol = market['symbol']
-        id = self.safe_string(order, 'order_id')
-        rawTrades = self.safe_list(order, 'contract', [])
+        id = self.safe_string_n(order, ['order_id', 'uuid', 'algo_order_id'])
+        rawTrades = self.safe_list_2(order, 'contract', 'trades', [])
+        feeCost = self.safe_number(order, 'reserved_fee')
+        fee = None
+        if feeCost is not None:
+            currency = None
+            if market is not None:
+                currency = market['quote']
+            fee = {
+                'currency': currency,
+                'cost': feeCost,
+                'rate': None,
+            }
+        postOnly = None
+        timeInForce = self.safe_string_upper(order, 'time_in_force')
+        if timeInForce == 'POST_ONLY':
+            timeInForce = 'PO'
+            postOnly = True
         return self.safe_order({
             'info': order,
             'id': id,
-            'clientOrderId': None,
+            'clientOrderId': self.safe_string(order, 'client_order_id'),
             'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'datetime': datetime,
             'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': type,
-            'timeInForce': None,
-            'postOnly': None,
+            'timeInForce': timeInForce,
+            'postOnly': postOnly,
             'side': side,
             'price': price,
             'triggerPrice': None,
             'amount': amount,
             'cost': None,
-            'average': None,
+            'average': self.safe_number(order, 'avg_trade_price'),
             'filled': None,
             'remaining': remaining,
             'status': status,
-            'fee': None,
+            'fee': fee,
             'trades': rawTrades,
         }, market)
 
-    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
         https://apidocs.bithumb.com/v1.2.0/reference/%EA%B1%B0%EB%9E%98-%EC%A3%BC%EB%AC%B8%EB%82%B4%EC%97%AD-%EC%A1%B0%ED%9A%8C
+        https://apidocs.bithumb.com/reference/%EC%A3%BC%EB%AC%B8-%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EC%A1%B0%ED%9A%8C
+        https://apidocs.bithumb.com/reference/twap-%EC%A3%BC%EB%AC%B8%EB%82%B4%EC%97%AD-%EC%A1%B0%ED%9A%8C
 
-        :param str symbol: unified market symbol
+        :param str [symbol]: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of open order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.generation]: if you want to use the API generation 1 or 2, default is 2
+        :param bool [params.twap]: *generation 2 only* if you want to fetch generation 2 twap orders
+        :param str [params.state]: *generation 2 only* the order state, either wait, watch, done, or cancel. For twap either progress(default), done, or cancel
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
         if self.markets is None:
             self.load_markets()
-        market = self.market(symbol)
-        if limit is None:
-            limit = 100
-        request = {
-            'count': limit,
-            'order_currency': market['base'],
-            'payment_currency': market['quote'],
-        }
-        if since is not None:
-            request['after'] = since
-        response = self.privatePostInfoOrders(self.extend(request, params))
-        #
-        #     {
-        #         "status": "0000",
-        #         "data": [
-        #             {
-        #                 "order_currency": "BTC",
-        #                 "payment_currency": "KRW",
-        #                 "order_id": "C0101000007408440032",
-        #                 "order_date": "1571728739360570",
-        #                 "type": "bid",
-        #                 "units": "5.0",
-        #                 "units_remaining": "5.0",
-        #                 "price": "501000",
-        #             }
-        #         ]
-        #     }
-        #
+        generation = None
+        generation, params = self.handle_option_and_params(params, 'fetchOpenOrders', 'generation', 2)
+        request = {}
+        market = None
+        response = None
+        if generation == 2:
+            twap = self.safe_bool(params, 'twap', False)
+            if twap:
+                params['state'] = 'progress'
+            else:
+                params['state'] = 'wait'
+            orders = self.fetch_orders(symbol, since, limit, params)
+            return self.filter_by_since_limit(orders, since, limit)
+        else:
+            if symbol is None:
+                raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
+            market = self.market(symbol)
+            if since is not None:
+                request['after'] = since
+            if limit is None:
+                limit = 100
+            request['count'] = limit
+            request['order_currency'] = market['base']
+            request['payment_currency'] = market['quote']
+            response = self.privatePostInfoOrders(self.extend(request, params))
+            #
+            #     {
+            #         "status": "0000",
+            #         "data": [
+            #             {
+            #                 "order_currency": "BTC",
+            #                 "payment_currency": "KRW",
+            #                 "order_id": "C0101000003152294086",
+            #                 "order_date": "1783141846061516",
+            #                 "type": "bid",
+            #                 "watch_price": "0",
+            #                 "units": "0.001",
+            #                 "units_remaining": "0.001",
+            #                 "price": "9500000",
+            #                 "stp_type": "cancel_taker"
+            #             }
+            #         ]
+            #     }
+            #
         data = self.safe_list(response, 'data', [])
         return self.parse_orders(data, market, since, limit)
+
+    def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+        """
+        fetches information on multiple orders made by the user
+
+        https://apidocs.bithumb.com/reference/%EC%A3%BC%EB%AC%B8-%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EC%A1%B0%ED%9A%8C
+        https://apidocs.bithumb.com/reference/twap-%EC%A3%BC%EB%AC%B8%EB%82%B4%EC%97%AD-%EC%A1%B0%ED%9A%8C
+
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int [since]: the earliest time in ms to fetch orders for
+        :param int [limit]: the maximum number of order structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str[] [params.clientOrderIds]: an array of client order ids
+        :param int [params.generation]: *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
+        :param bool [params.twap]: *generation 2 only* if you want to fetch generation 2 twap orders
+        :param str [params.state]: *generation 2 only* the order state, either wait, watch, done, or cancel. For twap either progress(default), done, or cancel
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        generation = None
+        generation, params = self.handle_option_and_params(params, 'fetchOrders', 'generation', 2)
+        if generation != 2:
+            raise BadRequest(self.id + ' fetchOrders is only supported for the generation 2 API')
+        request = {}
+        twap = self.safe_bool(params, 'twap', False)
+        params = self.omit(params, 'twap')
+        if not twap:
+            clientOrderIds = self.safe_list_2(params, 'client_order_ids', 'clientOrderIds')
+            if clientOrderIds is not None:
+                request['client_order_ids'] = clientOrderIds
+                params = self.omit(params, ['clientOrderIds'])
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['market'] = self.get_gen2_market_id(market)
+        if limit is not None:
+            request['limit'] = limit
+        response = None
+        data = None
+        if twap:
+            response = self.privateGetV1Twap(self.extend(request, params))
+            #
+            #     {
+            #         "has_next": False,
+            #         "next_key": null,
+            #         "orders": [
+            #             {
+            #                 "uuid": "019f3ed7-4f92-7179-beee-84b4c71e53fa",
+            #                 "side": "bid",
+            #                 "price": "92500000",
+            #                 "state": "progress",
+            #                 "market": "KRW-BTC",
+            #                 "created_at": "2025-12-04T10:00:00+09:00",
+            #                 "volume": "1.0",
+            #                 "total_order_count": 60,
+            #                 "total_trades_count": 10,
+            #                 "progress_count": 25,
+            #                 "total_executed_amount": "2312500000",
+            #                 "total_executed_volume": "0.25",
+            #                 "avg_trade_price": "92500000.000",
+            #                 "wallet_id": "0000000000-00-0000"
+            #             },
+            #         ]
+            #     }
+            #
+            data = self.safe_list(response, 'orders', [])
+        else:
+            response = self.privateGetV1Orders(self.extend(request, params))
+            #
+            #     [
+            #         {
+            #             "uuid": "C0101000003152406454",
+            #             "side": "bid",
+            #             "ord_type": "limit",
+            #             "price": "9500000",
+            #             "state": "wait",
+            #             "market": "KRW-BTC",
+            #             "created_at": "2026-07-04T15:05:46+09:00",
+            #             "volume": "0.001",
+            #             "remaining_volume": "0.001",
+            #             "reserved_fee": "23.75",
+            #             "remaining_fee": "23.75",
+            #             "paid_fee": "0",
+            #             "locked": "9524.75",
+            #             "executed_volume": "0",
+            #             "executed_funds": "0",
+            #             "trades_count": 0,
+            #             "stp_type": "cancel_taker"
+            #         }
+            #     ]
+            #
+            data = response
+        return self.parse_orders(data, market, since, limit)
+
+    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
+        """
+        fetches information on multiple closed orders made by the user
+
+        https://apidocs.bithumb.com/reference/%EC%A3%BC%EB%AC%B8-%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EC%A1%B0%ED%9A%8C
+        https://apidocs.bithumb.com/reference/twap-%EC%A3%BC%EB%AC%B8%EB%82%B4%EC%97%AD-%EC%A1%B0%ED%9A%8C
+
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int [since]: the earliest time in ms to fetch orders for
+        :param int [limit]: the maximum number of order structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str[] [params.clientOrderIds]: an array of client order ids
+        :param int [params.generation]: *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
+        :param bool [params.twap]: if you want to fetch generation 2 twap orders
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
+        """
+        params['state'] = 'done'
+        orders = self.fetch_orders(symbol, since, limit, params)
+        return self.filter_by_since_limit(orders, since, limit)
+
+    def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
+        """
+        fetches information on multiple canceled orders made by the user
+
+        https://apidocs.bithumb.com/reference/%EC%A3%BC%EB%AC%B8-%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EC%A1%B0%ED%9A%8C
+        https://apidocs.bithumb.com/reference/twap-%EC%A3%BC%EB%AC%B8%EB%82%B4%EC%97%AD-%EC%A1%B0%ED%9A%8C
+
+        :param str symbol: unified market symbol of the market the orders were made in
+        :param int [since]: the earliest time in ms to fetch orders for
+        :param int [limit]: the maximum number of order structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str[] [params.clientOrderIds]: an array of client order ids
+        :param int [params.generation]: *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
+        :param bool [params.twap]: if you want to fetch generation 2 twap orders
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
+        """
+        params['state'] = 'cancel'
+        orders = self.fetch_orders(symbol, since, limit, params)
+        return self.filter_by_since_limit(orders, since, limit)
 
     def cancel_order(self, id: str, symbol: Str = None, params: dict = {}):
         """
         cancels an open order
 
         https://apidocs.bithumb.com/v1.2.0/reference/%EC%A3%BC%EB%AC%B8-%EC%B7%A8%EC%86%8C%ED%95%98%EA%B8%B0
+        https://apidocs.bithumb.com/reference/%EC%A3%BC%EB%AC%B8-%EC%B7%A8%EC%86%8C-%EC%A0%91%EC%88%98
+        https://apidocs.bithumb.com/reference/twap-%EC%A3%BC%EB%AC%B8-%EC%B7%A8%EC%86%8C
 
         :param str id: order id
-        :param str symbol: unified symbol of the market the order was made in
+        :param str [symbol]: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.clientOrderId]: the clientOrderId of the order, alternative to using the order id
+        :param int [params.generation]: if you want to use the API generation 1 or 2, default is 2
+        :param bool [params.twap]: if you want to cancel a generation 2 twap order
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
-        side_in_params = ('side' in params)
-        if not side_in_params:
-            raise ArgumentsRequired(self.id + ' cancelOrder() requires a `side` parameter(sell or buy)')
-        market = self.market(symbol)
-        side = 'bid' if (params['side'] == 'buy') else 'ask'
-        params = self.omit(params, ['side', 'currency'])
-        # https://github.com/ccxt/ccxt/issues/6771
-        request = {
-            'order_id': id,
-            'type': side,
-            'order_currency': market['base'],
-            'payment_currency': market['quote'],
-        }
-        response = self.privatePostTradeCancel(self.extend(request, params))
-        #
-        #    {
-        #       'status': 'string',
-        #    }
-        #
-        return self.safe_order({
-            'info': response,
+        if self.markets is None:
+            self.load_markets()
+        generation = None
+        generation, params = self.handle_option_and_params(params, 'cancelOrder', 'generation', 2)
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        request = {}
+        response = None
+        twap = self.safe_bool(params, 'twap', False)
+        params = self.omit(params, 'twap')
+        if twap:
+            request['algo_order_id'] = id
+        else:
+            clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_order_id')
+            if (generation == 2) and (clientOrderId is not None):
+                request['client_order_id'] = clientOrderId
+                params = self.omit(params, ['clientOrderId'])
+            else:
+                request['order_id'] = id
+        if generation == 2:
+            if twap:
+                response = self.privateDeleteV1Twap(self.extend(request, params))
+                #
+                #     {
+                #         "algo_order_id": "TWAP-A01B02C03D04E05F06"
+                #     }
+                #
+            else:
+                response = self.privateDeleteV2Order(self.extend(request, params))
+                #
+                #     {
+                #         "order_id": "C0101000003152350309",
+                #         "created_at": "2026-07-04T14:39:04+09:00"
+                #     }
+                #
+        else:
+            if symbol is None:
+                raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
+            marketDefined = market
+            base = self.safe_string(marketDefined, 'base')
+            quote = self.safe_string(marketDefined, 'quote')
+            if (base is None) or (quote is None):
+                raise ArgumentsRequired(self.id + ' cancelOrder() requires a market with defined base and quote')
+            side_in_params = ('side' in params)
+            if not side_in_params:
+                raise ArgumentsRequired(self.id + ' cancelOrder() requires a `side` parameter(sell or buy)')
+            side = None
+            if params['side'] == 'buy':
+                side = 'bid'
+            else:
+                side = 'ask'
+            params = self.omit(params, 'side')
+            # https://github.com/ccxt/ccxt/issues/6771
+            request['type'] = side
+            request['order_currency'] = base
+            request['payment_currency'] = quote
+            response = self.privatePostTradeCancel(self.extend(request, params))
+            #
+            #     {
+            #         "status": "0000"
+            #     }
+            #
+        return self.extend(self.parse_order(response, market), {
+            'id': id,
         })
+
+    def cancel_orders(self, ids: list[str], symbol: Str = None, params={}) -> list[Order]:
+        """
+        cancel multiple orders
+
+        https://apidocs.bithumb.com/reference/%EB%8B%A4%EA%B1%B4-%EC%A3%BC%EB%AC%B8-%EC%B7%A8%EC%86%8C-%EC%A0%91%EC%88%98
+
+        :param str[] ids: order ids
+        :param str [symbol]: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str[] [params.clientOrderIds]: alternative to ids, array of client order ids
+        :param int [params.generation]: *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        generation = None
+        generation, params = self.handle_option_and_params(params, 'cancelOrders', 'generation', 2)
+        if generation != 2:
+            raise BadRequest(self.id + ' cancelOrders is only supported for the generation 2 API')
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        request = {}
+        clientOrderIds = self.safe_list_2(params, 'client_order_ids', 'clientOrderIds')
+        if clientOrderIds is not None:
+            request['client_order_ids'] = clientOrderIds
+            params = self.omit(params, ['clientOrderIds'])
+        else:
+            request['order_ids'] = ids
+        response = self.privatePostV2OrdersCancel(self.extend(request, params))
+        #
+        #     {
+        #         "success": [
+        #             {
+        #                 "order_id": "C0101000003152500274",
+        #                 "created_at":"2026-07-04T15:49:24+09:00"
+        #             },
+        #         ],
+        #         "fail": []
+        #     }
+        #
+        data = self.safe_list(response, 'success', [])
+        return self.parse_orders(data, market)
 
     def cancel_unified_order(self, order: Order, params={}) -> Order:
         request = {
@@ -1110,64 +2504,559 @@ class bithumb(Exchange, ImplicitAPI):
         make a withdrawal
 
         https://apidocs.bithumb.com/v1.2.0/reference/%EC%BD%94%EC%9D%B8-%EC%B6%9C%EA%B8%88%ED%95%98%EA%B8%B0-%EA%B0%9C%EC%9D%B8
+        https://apidocs.bithumb.com/reference/%EA%B0%80%EC%83%81-%EC%9E%90%EC%82%B0-%EC%B6%9C%EA%B8%88-%EC%9A%94%EC%B2%AD
+        https://apidocs.bithumb.com/reference/%EC%9B%90%ED%99%94-%EC%B6%9C%EA%B8%88-%EC%9A%94%EC%B2%AD
 
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str tag:
+        :param str tag: the secondary withdrawal destination address
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.generation]: if you want to use the API generation 1 or 2, default is 2
+        :param str [params.network]: the blockchain network to withdraw on, for example BTC or DASH
+        :param str [params.destination]: secondary address destination for specific currencies, can alternatively use the tag argument
+        :param str [params.exchange_name]: withdrawal exchange name
+        :param str [params.receiver_type]: either personal or corporation
+        :param str [params.ko_name]: *generation 1 only* the receiver name in korean
+        :param str [params.en_name]: *generation 1 only* the receiver name in english
+        :param str [params.receiver_ko_name]: *generation 2 only* the personal receiver name in korean
+        :param str [params.receiver_en_name]: *generation 2 only* the personal receiver name in english
+        :param str [params.receiver_corp_ko_name]: *generation 2 only* the corporation receiver name in korean
+        :param str [params.receiver_corp_en_name]: *generation 2 only* the corporation receiver name in english
+        :param str [params.two_factor_type]: *generation 2 KRW withdraw only* the two factor type, for example kakao
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        tag, params = self.handle_withdraw_tag_and_params(tag, params)
-        self.check_address(address)
         if self.markets is None:
             self.load_markets()
+        generation = None
+        generation, params = self.handle_option_and_params(params, 'withdraw', 'generation', 2)
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
+        self.check_address(address)
+        network = self.safe_string_2(params, 'network', 'net_type')
+        params = self.omit(params, 'network')
         currency = self.currency(code)
-        request = {
-            'units': amount,
-            'address': address,
-            'currency': currency['id'],
-        }
+        request = {}
+        response = None
+        destinationRequest = None
         if code == 'XRP' or code == 'XMR' or code == 'EOS' or code == 'STEEM' or code == 'TON':
-            destination = self.safe_string(params, 'destination')
+            destination = self.safe_string_2(params, 'destination', 'secondary_address')
+            params = self.omit(params, ['destination', 'secondary_address'])
             if (tag is None) and (destination is None):
                 raise ArgumentsRequired(self.id + ' ' + code + ' withdraw() requires a tag argument or an extra destination param')
             elif tag is not None:
-                request['destination'] = tag
-        response = self.privatePostTradeBtcWithdrawal(self.extend(request, params))
-        #
-        # {"status" : "0000"}
-        #
+                destinationRequest = tag
+            else:
+                destinationRequest = destination
+        receiverType = self.safe_string_2(params, 'receiver_type', 'cust_type_cd')
+        params = self.omit(params, ['receiver_type', 'cust_type_cd'])
+        if generation == 2:
+            if code == 'KRW':
+                twoFactorType = self.safe_string(params, 'two_factor_type')
+                if twoFactorType is None:
+                    raise ArgumentsRequired(self.id + ' ' + code + ' withdraw() requires a two_factor_type parameter for withdrawing KRW')
+                krwRequest = {'amount': self.number_to_string(amount)}  # KRW withdraw only accepts amount and two_factor_type parameters
+                response = self.privatePostV1WithdrawsKrw(self.extend(krwRequest, params))
+            else:
+                if network is None:
+                    raise ArgumentsRequired(self.id + ' ' + code + ' withdraw() requires a network parameter')
+                request['address'] = address
+                request['currency'] = currency['id']
+                request['net_type'] = network
+                request['amount'] = self.number_to_string(amount)
+                if destinationRequest is not None:
+                    request['secondary_address'] = destinationRequest
+                if receiverType is not None:
+                    request['receiver_type'] = receiverType
+                response = self.privatePostV1WithdrawsCoin(self.extend(request, params))
+            #
+            #     {
+            #         "type": "withdraw",
+            #         "uuid": "200377211",
+            #         "currency": "BTC",
+            #         "net_type": "BTC",
+            #         "state": "processing",
+            #         "created_at": "2024-07-14T14:54:24+09:00",
+            #         "done_at": null,
+            #         "amount": "0.00010000",
+            #         "fee": "0",
+            #         "krw_amount": "8400",
+            #         "transaction_type": null,
+            #         "txid": null
+            #     }
+            #
+        else:
+            request['address'] = address
+            request['currency'] = currency['id']
+            request['units'] = amount
+            if network is not None:
+                request['net_type'] = network
+            if destinationRequest is not None:
+                request['destination'] = destinationRequest
+            if receiverType is not None:
+                if receiverType == 'corporation':
+                    request['cust_type_cd'] = 'Corporation 02'
+                elif receiverType == 'personal':
+                    request['cust_type_cd'] = 'Individual 01'
+                else:
+                    request['cust_type_cd'] = receiverType
+            response = self.privatePostTradeBtcWithdrawal(self.extend(request, params))
+            #
+            #     {
+            #         "status": "0000"
+            #     }
+            #
         return self.parse_transaction(response, currency)
 
     def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
-        # withdraw
+        # generation 1: withdraw
         #
-        #     {"status" : "0000"}
+        #     {"status": "0000"}
         #
-        currency = self.safe_currency(None, currency)
+        # generation 2: withdraw, fetchWithdrawal, fetchWithdrawals, fetchDeposit, fetchDeposits
+        #
+        #     {
+        #         "type": "withdraw",
+        #         "uuid": "200377211",
+        #         "currency": "BTC",
+        #         "net_type": "BTC",
+        #         "state": "processing",
+        #         "created_at": "2024-07-14T14:54:24+09:00",
+        #         "done_at": null,
+        #         "amount": "0.00010000",
+        #         "fee": "0",
+        #         "krw_amount": "8400",
+        #         "transaction_type": null,
+        #         "txid": null
+        #     }
+        #
+        type = self.safe_string(transaction, 'type')
+        currencyId = self.safe_string(transaction, 'currency')
+        currency = self.safe_currency(currencyId, currency)
+        datetime = self.safe_string(transaction, 'created_at')
+        timestamp = self.parse8601(datetime)
+        if (datetime is not None) and (datetime.find('+09:00') > -1):
+            normalized = datetime.replace('+09:00', 'Z')
+            normalizedTimestamp = self.parse8601(normalized)
+            if normalizedTimestamp is not None:
+                timestamp = normalizedTimestamp - 9 * 3600000
         return {
-            'id': None,
-            'txid': None,
-            'timestamp': None,
-            'datetime': None,
-            'network': None,
+            'id': self.safe_string(transaction, 'uuid'),
+            'txid': self.safe_string(transaction, 'txid'),
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'network': self.safe_string(transaction, 'net_type'),
             'addressFrom': None,
             'address': None,
             'addressTo': None,
-            'amount': None,
-            'type': None,
+            'amount': self.safe_number(transaction, 'amount'),
+            'type': type,
             'currency': currency['code'],
-            'status': None,
+            'status': self.parse_transaction_status_by_type(self.safe_string(transaction, 'state'), type),
             'updated': None,
             'tagFrom': None,
             'tag': None,
             'tagTo': None,
             'comment': None,
             'internal': None,
-            'fee': None,
+            'fee': {
+                'currency': None,
+                'cost': self.safe_number(transaction, 'fee'),
+                'rate': None,
+            },
             'info': transaction,
+        }
+
+    def parse_transaction_status_by_type(self, status: Str, type: Str = None) -> Str:
+        if type is None:
+            return status
+        statusesByType = {
+            'deposit': {
+                'DEPOSIT_PROCESSING': 'pending',
+                'DEPOSIT_ACCEPTED': 'ok',
+                'DEPOSIT_CANCELLED': 'canceled',
+                'PROCESSING': 'pending',
+                'ACCEPTED': 'ok',
+                'CANCELLED': 'canceled',
+            },
+            'withdraw': {
+                'processing': 'pending',
+                'done': 'ok',
+                'cancelled': 'canceled',
+                'PROCESSING': 'pending',
+                'DONE': 'ok',
+                'CANCELLED': 'canceled',
+            },
+        }
+        statuses = self.safe_dict(statusesByType, type, {})
+        return self.safe_string(statuses, status, status)
+
+    def fetch_withdrawal_whitelist(self, params={}) -> object:
+        """
+        fetch a list of allowed withdrawal addresses
+
+        https://apidocs.bithumb.com/reference/%EC%B6%9C%EA%B8%88-%ED%97%88%EC%9A%A9-%EC%A3%BC%EC%86%8C-%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EC%A1%B0%ED%9A%8C
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.generation]: *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
+        :returns dict[]: a list response from the exchange
+        """
+        if self.markets is None:
+            self.load_markets()
+        generation = None
+        generation, params = self.handle_option_and_params(params, 'fetchWithdrawalWhitelist', 'generation', 2)
+        if generation != 2:
+            raise BadRequest(self.id + ' fetchWithdrawalWhitelist() is only supported for the generation 2 API')
+        response = self.privateGetV1WithdrawsCoinAddresses(params)
+        #
+        #     [
+        #         {
+        #             "currency": "BTC",
+        #             "wallet_state": "working",
+        #             "block_state": "normal",
+        #             "block_height": 852086,
+        #             "block_updated_at": "2024-07-14T13:43:57+09:00",
+        #             "block_elapsed_minutes": 2,
+        #             "net_type": "BTC",
+        #             "network_name": "Bitcoin"
+        #         },
+        #     ]
+        #
+        return response
+
+    def fetch_withdrawal(self, id: str, code: Str = None, params={}):
+        """
+        fetch data on a currency withdrawal via the withdrawal id
+
+        https://apidocs.bithumb.com/reference/%EA%B0%9C%EB%B3%84-%EC%B6%9C%EA%B8%88-%EC%A1%B0%ED%9A%8C
+
+        :param str id: withdrawal id
+        :param str [code]: the currency code
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.txid]: the transaction id for the withdrawal
+        :param int [params.generation]: *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
+        :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        generation = None
+        generation, params = self.handle_option_and_params(params, 'fetchWithdrawal', 'generation', 2)
+        if generation != 2:
+            raise BadRequest(self.id + ' fetchWithdrawal() is only supported for the generation 2 API')
+        if code is None:
+            raise ArgumentsRequired(self.id + ' fetchWithdrawal() requires a code argument')
+        currency = self.currency(code)
+        request = {
+            'currency': currency['id'],
+        }
+        if id is not None:
+            request['uuid'] = id
+        response = self.privateGetV1Withdraw(self.extend(request, params))
+        #
+        #     {
+        #         "type": "withdraw",
+        #         "uuid": "200377211",
+        #         "currency": "BTC",
+        #         "net_type": "BTC",
+        #         "state": "processing",
+        #         "created_at": "2024-07-14T14:54:24+09:00",
+        #         "done_at": null,
+        #         "amount": "0.00010000",
+        #         "fee": "0",
+        #         "transaction_type": null,
+        #         "txid": null
+        #     }
+        #
+        return self.parse_transaction(response, currency)
+
+    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
+        """
+        fetch all withdrawals made from an account
+
+        https://apidocs.bithumb.com/reference/%EC%B6%9C%EA%B8%88-%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EC%A1%B0%ED%9A%8C
+        https://apidocs.bithumb.com/reference/%EC%9B%90%ED%99%94-%EC%B6%9C%EA%B8%88-%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EC%A1%B0%ED%9A%8C
+
+        :param str [code]: unified currency code
+        :param int [since]: the earliest time in ms to fetch withdrawals for
+        :param int [limit]: the maximum number of withdrawals to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.generation]: *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
+        :param int [params.page]: the number of pages to return, default is 1
+        :param str [params.state]: the withdrawal state, either PROCESSING, DONE or CANCELLED
+        :param str [params.order_by]: either asc or desc, desc is the default
+        :param str[] [params.uuids]: an array of uuid strings
+        :param str[] [params.txids]: an array of txid strings
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        generation = None
+        generation, params = self.handle_option_and_params(params, 'fetchWithdrawals', 'generation', 2)
+        if generation != 2:
+            raise BadRequest(self.id + ' fetchWithdrawals() is only supported for the generation 2 API')
+        request = {}
+        if limit is not None:
+            request['limit'] = limit
+        response = None
+        currency = None
+        if code == 'KRW':
+            currency = self.currency(code)
+            response = self.privateGetV1WithdrawsKrw(self.extend(request, params))
+        else:
+            if code is not None:
+                currency = self.currency(code)
+                request['currency'] = currency['id']
+            response = self.privateGetV1Withdraws(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             "type": "withdraw",
+        #             "uuid": "200377211",
+        #             "currency": "BTC",
+        #             "net_type": "BTC",
+        #             "state": "processing",
+        #             "created_at": "2024-07-14T14:54:24+09:00",
+        #             "done_at": null,
+        #             "amount": "0.00010000",
+        #             "fee": "0",
+        #             "transaction_type": null,
+        #             "txid": null
+        #         }
+        #     ]
+        #
+        return self.parse_transactions(response, currency, since, limit)
+
+    def fetch_deposit(self, id: str, code: Str = None, params={}):
+        """
+        fetch information on a deposit
+
+        https://apidocs.bithumb.com/reference/%EA%B0%9C%EB%B3%84-%EC%9E%85%EA%B8%88-%EC%A1%B0%ED%9A%8C
+
+        :param str id: deposit id
+        :param str code: unified currency code
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.txid]: the transaction id for the deposit
+        :param int [params.generation]: *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
+        :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        generation = None
+        generation, params = self.handle_option_and_params(params, 'fetchDeposit', 'generation', 2)
+        if generation != 2:
+            raise BadRequest(self.id + ' fetchDeposit() is only supported for the generation 2 API')
+        if code is None:
+            raise ArgumentsRequired(self.id + ' fetchDeposit() requires a code argument')
+        currency = self.currency(code)
+        request = {
+            'currency': currency['id'],
+        }
+        if id is not None:
+            request['uuid'] = id
+        response = self.privateGetV1Deposit(self.extend(request, params))
+        #
+        #     {
+        #         "type": "deposit",
+        #         "uuid": "200377211",
+        #         "currency": "BTC",
+        #         "net_type": "BTC",
+        #         "state": "DEPOSIT_ACCEPTED",
+        #         "created_at": "2024-07-14T14:54:24+09:00",
+        #         "done_at": null,
+        #         "amount": "0.00010000",
+        #         "fee": "0",
+        #         "transaction_type": null,
+        #         "txid": null
+        #     }
+        #
+        return self.parse_transaction(response, currency)
+
+    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
+        """
+        fetch all deposits made to an account
+
+        https://apidocs.bithumb.com/reference/%EC%9E%85%EA%B8%88-%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EC%A1%B0%ED%9A%8C
+        https://apidocs.bithumb.com/reference/%EC%9B%90%ED%99%94-%EC%9E%85%EA%B8%88-%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EC%A1%B0%ED%9A%8C
+
+        :param str code: unified currency code
+        :param int [since]: the earliest time in ms to fetch deposits for
+        :param int [limit]: the maximum number of deposits to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.generation]: *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
+        :param int [params.page]: the number of pages to return, default is 1
+        :param str [params.state]: the deposit state, for KRW, PROCESSING, ACCEPTED or CANCELLED, for others, DEPOSIT_PROCESSING, DEPOSIT_ACCEPTED, DEPOSIT_CANCELLED
+        :param str [params.order_by]: either asc or desc, desc is the default
+        :param str[] [params.uuids]: an array of uuid strings
+        :param str[] [params.txids]: an array of txid strings
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        generation = None
+        generation, params = self.handle_option_and_params(params, 'fetchDeposits', 'generation', 2)
+        if generation != 2:
+            raise BadRequest(self.id + ' fetchDeposits() is only supported for the generation 2 API')
+        request = {}
+        if limit is not None:
+            request['limit'] = limit
+        response = None
+        currency = None
+        if code == 'KRW':
+            currency = self.currency(code)
+            response = self.privateGetV1DepositsKrw(self.extend(request, params))
+        else:
+            if code is not None:
+                currency = self.currency(code)
+                request['currency'] = currency['id']
+            response = self.privateGetV1Deposits(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             "type": "deposit",
+        #             "uuid": "200377211",
+        #             "currency": "BTC",
+        #             "net_type": "BTC",
+        #             "state": "DEPOSIT_ACCEPTED",
+        #             "created_at": "2024-07-14T14:54:24+09:00",
+        #             "done_at": null,
+        #             "amount": "0.00010000",
+        #             "fee": "0",
+        #             "transaction_type": null,
+        #             "txid": null
+        #         }
+        #     ]
+        #
+        return self.parse_transactions(response, currency, since, limit)
+
+    def create_deposit_address(self, code: str, params={}) -> DepositAddress:
+        """
+        create a currency deposit address
+
+        https://apidocs.bithumb.com/reference/%EC%9E%85%EA%B8%88-%EC%A3%BC%EC%86%8C-%EC%83%9D%EC%84%B1-%EC%9A%94%EC%B2%AD
+
+        :param str code: unified currency code of the currency for the deposit address
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.generation]: *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
+        :param str [params.network]: the blockchain network to create a deposit address on
+        :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        generation = None
+        generation, params = self.handle_option_and_params(params, 'createDepositAddress', 'generation', 2)
+        if generation != 2:
+            raise BadRequest(self.id + ' createDepositAddress() is only supported for the generation 2 API')
+        currency = self.currency(code)
+        request = {
+            'currency': currency['id'],
+        }
+        network = self.safe_string_2(params, 'network', 'net_type')
+        params = self.omit(params, 'network')
+        if network is None:
+            raise ArgumentsRequired(self.id + ' ' + code + ' createDepositAddress() requires a network parameter')
+        request['net_type'] = network
+        response = self.privatePostV1DepositsGenerateCoinAddress(self.extend(request, params))
+        #
+        #     {
+        #         "currency": "BTC",
+        #         "net_type": "BTC",
+        #         "deposit_address": "195Y...rbJ3",
+        #         "secondary_address": null
+        #     }
+        #
+        return self.parse_deposit_address(response, currency)
+
+    def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
+        """
+        fetch the deposit address for a currency associated with self account
+
+        https://apidocs.bithumb.com/reference/%EA%B0%9C%EB%B3%84-%EC%9E%85%EA%B8%88-%EC%A3%BC%EC%86%8C-%EC%A1%B0%ED%9A%8C
+
+        :param str code: unified currency code
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.generation]: *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
+        :param str [params.network]: network for fetch deposit address
+        :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        generation = None
+        generation, params = self.handle_option_and_params(params, 'fetchDepositAddress', 'generation', 2)
+        if generation != 2:
+            raise BadRequest(self.id + ' fetchDepositAddress() is only supported for the generation 2 API')
+        currency = self.currency(code)
+        request = {
+            'currency': currency['id'],
+        }
+        network = self.safe_string_2(params, 'network', 'net_type')
+        params = self.omit(params, 'network')
+        if network is None:
+            raise ArgumentsRequired(self.id + ' ' + code + ' fetchDepositAddress() requires a network parameter')
+        request['net_type'] = network
+        response = self.privateGetV1DepositsCoinAddress(self.extend(request, params))
+        #
+        #     {
+        #         "currency": "BTC",
+        #         "net_type": "BTC",
+        #         "deposit_address": "195Y...rbJ3",
+        #         "secondary_address": null
+        #     }
+        #
+        return self.parse_deposit_address(response, currency)
+
+    def fetch_deposit_addresses(self, codes: Strings = None, params={}) -> list[DepositAddress]:
+        """
+        fetch deposit addresses for multiple currencies(when available)
+
+        https://apidocs.bithumb.com/reference/%EC%A0%84%EC%B2%B4-%EC%9E%85%EA%B8%88-%EC%A3%BC%EC%86%8C-%EC%A1%B0%ED%9A%8C
+
+        :param str[] [codes]: list of unified currency codes, default is None(all currencies)
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.generation]: *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
+        :returns dict: a dictionary of `address structures <https://docs.ccxt.com/?id=address-structure>` indexed by currency code
+        """
+        if self.markets is None:
+            self.load_markets()
+        generation = None
+        generation, params = self.handle_option_and_params(params, 'fetchDepositAddresses', 'generation', 2)
+        if generation != 2:
+            raise BadRequest(self.id + ' fetchDepositAddresses() is only supported for the generation 2 API')
+        response = self.privateGetV1DepositsCoinAddresses(params)
+        #
+        #     [
+        #         {
+        #             "currency": "BTC",
+        #             "net_type": "BTC",
+        #             "deposit_address": "195Y...rbJ3",
+        #             "secondary_address": null
+        #         }
+        #     ]
+        #
+        return self.parse_deposit_addresses(response, codes, False, {})
+
+    def parse_deposit_address(self, response: object, currency: Currency = None) -> DepositAddress:
+        #
+        # generation 2: createDepositAddress, fetchDepositAddress, fetchDepositAddresses
+        #
+        #     {
+        #         "currency": "BTC",
+        #         "net_type": "BTC",
+        #         "deposit_address": "195Y...rbJ3",
+        #         "secondary_address": null
+        #     }
+        #
+        currencyId = self.safe_string(response, 'currency')
+        code = self.safe_currency_code(currencyId, currency)
+        address = self.safe_string(response, 'deposit_address')
+        if address is None:
+            raise ExchangeError(self.id + ' parseDepositAddress() could not find deposit_address')
+        self.check_address(address)
+        return {
+            'info': response,
+            'currency': code,
+            'network': self.safe_string(response, 'net_type'),
+            'address': address,
+            'tag': self.safe_string(response, 'secondary_address'),
         }
 
     def fix_comma_number(self, numberStr: object):
@@ -1182,38 +3071,107 @@ class bithumb(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
+    def urlencode_with_array_brackets(self, query: dict):
+        keys = list(query.keys())
+        result = ''
+        for i in range(0, len(keys)):
+            key = keys[i]
+            value = query[key]
+            if isinstance(value, list):
+                encodedKey = self.encode_uri_component(key) + '[]'
+                for j in range(0, len(value)):
+                    item = value[j]
+                    valueString = self.safe_string(value, j)
+                    if valueString is None:
+                        valueString = self.json(item)
+                    if len(result) > 0:
+                        result += '&'
+                    result += encodedKey + '=' + self.encode_uri_component(valueString)
+            else:
+                if len(result) > 0:
+                    result += '&'
+                encodedKey = self.encode_uri_component(key)
+                valueString = self.safe_string(query, key)
+                encodedValue = self.encode_uri_component(valueString)
+                result += encodedKey + '=' + encodedValue
+        return result
+
     def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         endpoint = '/' + self.implode_params(path, params)
         url = self.implode_hostname(self.urls['api'][api]) + endpoint
         query = self.omit(params, self.extract_params(path))
+        queryKeys = list(query.keys())
+        queryKeysLength = len(queryKeys)
+        hasQuery = (queryKeysLength > 0)
         if api == 'public':
-            if len(query) > 0:
+            if hasQuery:
                 url += '?' + self.urlencode(query)
         else:
             self.check_required_credentials()
-            body = self.urlencode(self.extend({
-                'endpoint': endpoint,
-            }, query))
-            # bithumb verifies signatures with PHP http_build_query conventions, spaces must be '+'
-            bodyParts = body.split('%20')
-            body = '+'.join(bodyParts)
-            nonce = str(self.nonce())
-            auth = endpoint + "\0" + body + "\0" + nonce  # eslint-disable-line quotes
-            signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha512)
-            signature64 = self.string_to_base64(signature)
-            headers = {
-                'Accept': 'application/json',
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'Api-Key': self.apiKey,
-                'Api-Sign': signature64,
-                'Api-Nonce': nonce,
-            }
+            isVersionedApi = (endpoint.startswith('/v1/') or endpoint.startswith('/v2/'))
+            if isVersionedApi:
+                headers = {
+                    'Accept': 'application/json',
+                }
+                request = {
+                    'access_key': self.apiKey,
+                    'nonce': self.uuid(),
+                    'timestamp': self.milliseconds(),
+                }
+                auth = None
+                if (method != 'GET') and (method != 'DELETE'):
+                    headers['Content-Type'] = 'application/json'
+                    if hasQuery:
+                        body = self.json(query)
+                        auth = self.urlencode_with_array_brackets(query)
+                elif hasQuery:
+                    auth = self.urlencode_with_array_brackets(query)
+                    url += '?' + auth
+                if hasQuery:
+                    authString = '' if (auth is None) else auth
+                    request['query_hash'] = self.hash(self.encode(authString), 'sha512')
+                    request['query_hash_alg'] = 'SHA512'
+                token = self.jwt(request, self.encode(self.secret), 'sha256')
+                headers['Authorization'] = 'Bearer ' + token
+            else:
+                body = self.urlencode(self.extend({
+                    'endpoint': endpoint,
+                }, query))
+                # bithumb verifies signatures with PHP http_build_query conventions, spaces must be '+'
+                bodyParts = body.split('%20')
+                body = '+'.join(bodyParts)
+                nonce = str(self.nonce())
+                auth = endpoint + "\0" + body + "\0" + nonce  # eslint-disable-line quotes
+                signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha512)
+                signature64 = self.string_to_base64(signature)
+                headers = {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'Api-Key': self.apiKey,
+                    'Api-Sign': signature64,
+                    'Api-Nonce': nonce,
+                }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:
             return None  # fallback to default error handler
+        # generation 2:
+        #
+        #     {"error":{"name":400,"message":"Missing request parameter error. Check the required parameters!"}}
+        #
+        error = self.safe_dict(response, 'error')
+        if error is not None:
+            errorName = self.safe_string(error, 'name')
+            message = self.safe_string(error, 'message')
+            feedback = self.id + ' ' + message
+            if errorName is not None:
+                self.throw_exactly_matched_exception(self.exceptions, errorName, feedback)
+            if message is not None:
+                self.throw_exactly_matched_exception(self.exceptions, message, feedback)
+            raise ExchangeError(feedback)
         if 'status' in response:
+            # generation 1:
             #
             #     {"status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions"}
             #

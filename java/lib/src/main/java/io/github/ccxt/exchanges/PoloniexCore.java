@@ -4071,7 +4071,9 @@ public class PoloniexCore extends PoloniexApi
         {
             Object entry = Helpers.GetValue(data, i);
             marketId = this.safeString(entry, "symbol");
-            marginMode = this.safeString(entry, "mgnMode");
+            // mgnMode arrives upper case; parseOrder and parsePosition read the
+            // same field with safeStringLower
+            marginMode = this.safeStringLower(entry, "mgnMode");
             Object lever = this.safeInteger(entry, "lever");
             Object posSide = this.safeString(entry, "posSide");
             if (Helpers.isTrue(Helpers.isEqual(posSide, "LONG")))

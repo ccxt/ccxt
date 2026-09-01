@@ -2816,24 +2816,33 @@ class bitget(Exchange, ImplicitAPI):
         fetch all deposits made to an account
 
         https://www.bitget.com/api-doc/spot/account/Get-Deposit-Record
+        https://www.bitget.com/api-doc/uta/account/deposit/Get-Deposit-Records
 
         :param str code: unified currency code
-        :param int [since]: the earliest time in ms to fetch deposits for
+        :param int [since]: the earliest time in ms to fetch deposits for, the window between since and until must not exceed 30 days for uta accounts
         :param int [limit]: the maximum number of deposits structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: end time in milliseconds
-        :param str [params.idLessThan]: return records with id less than the provided value
+        :param str [params.idLessThan]: *non-uta only* return records with id less than the provided value
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         if self.markets is None:
             await self.load_markets()
+        uta = None
+        uta, params = await self.handle_uta_and_params(params, 'fetchDeposits', False)
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchDeposits', 'paginate')
         if paginate:
+            if uta is True:
+                return await self.fetch_paginated_call_cursor('fetchDeposits', None, since, limit, params, 'orderId', 'cursor', None, 100)
             return await self.fetch_paginated_call_cursor('fetchDeposits', None, since, limit, params, 'idLessThan', 'idLessThan', None, 100)
         if since is None:
-            since = self.milliseconds() - 7776000000  # 90 days
+            if uta is True:
+                since = self.milliseconds() - 2592000000  # uta allows a window of 30 days at most
+            else:
+                since = self.milliseconds() - 7776000000  # 90 days
         request = {
             'startTime': since,
             'endTime': self.milliseconds(),
@@ -2845,7 +2854,11 @@ class bitget(Exchange, ImplicitAPI):
         if limit is not None:
             request['limit'] = limit
         request, params = self.handle_until_option('endTime', request, params)
-        response = await self.privateSpotGetV2SpotWalletDepositRecords(self.extend(request, params))
+        response = None
+        if uta is True:
+            response = await self.privateUtaGetV3AccountDepositRecords(self.extend(request, params))
+        else:
+            response = await self.privateSpotGetV2SpotWalletDepositRecords(self.extend(request, params))
         #
         #     {
         #         "code": "00000",
@@ -2869,6 +2882,31 @@ class bitget(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
+        # uta
+        #
+        #     {
+        #         "code": "00000",
+        #         "msg": "success",
+        #         "requestTime": 1787918939871,
+        #         "data": [
+        #             {
+        #                 "orderId": "1477183242218870001",
+        #                 "recordId": "0999e9fc8dfa7d65e5a9e3d7b9c9c9cf7c283621442dd0be6feb502b89545e95",
+        #                 "coin": "USDT",
+        #                 "type": "deposit",
+        #                 "size": "30",
+        #                 "status": "success",
+        #                 "toAddress": "TKtjsywjRu4HechtABGJBVhkDJtwYcMVfc",
+        #                 "dest": "on_chain",
+        #                 "chain": "TRC20",
+        #                 "createdTime": "1787913850359",
+        #                 "updatedTime": "1787913880178",
+        #                 "fromAddress": "TFcWfiw5p5DDZ6vi6Bktf7yK1asRYLpN33",
+        #                 "clientOid": null
+        #             }
+        #         ]
+        #     }
+        #
         rawTransactions = self.safe_list(response, 'data', [])
         return self.parse_transactions(rawTransactions, None, since, limit)
 
@@ -2877,6 +2915,7 @@ class bitget(Exchange, ImplicitAPI):
         make a withdrawal
 
         https://www.bitget.com/api-doc/spot/account/Wallet-Withdrawal
+        https://www.bitget.com/api-doc/uta/account/withdrawal/
 
         :param str code: unified currency code
         :param float amount: the amount to withdraw
@@ -2884,6 +2923,7 @@ class bitget(Exchange, ImplicitAPI):
         :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.chain]: the blockchain network the withdrawal is taking place on
+        :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         self.check_address(address)
@@ -2893,6 +2933,8 @@ class bitget(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' withdraw() requires a "network" parameter')
         if self.markets is None:
             await self.load_markets()
+        uta = None
+        uta, params = await self.handle_uta_and_params(params, 'withdraw', False)
         currency = self.currency(code)
         networkId = self.network_code_to_id(networkCode, code)
         request = {
@@ -2904,7 +2946,11 @@ class bitget(Exchange, ImplicitAPI):
         }
         if tag is not None:
             request['tag'] = tag
-        response = await self.privateSpotPostV2SpotWalletWithdrawal(self.extend(request, params))
+        response = None
+        if uta is True:
+            response = await self.privateUtaPostV3AccountWithdrawal(self.extend(request, params))
+        else:
+            response = await self.privateSpotPostV2SpotWalletWithdrawal(self.extend(request, params))
         #
         #     {
         #          "code":"00000",
@@ -2935,27 +2981,36 @@ class bitget(Exchange, ImplicitAPI):
         fetch all withdrawals made from an account
 
         https://www.bitget.com/api-doc/spot/account/Get-Withdraw-Record
+        https://www.bitget.com/api-doc/uta/account/withdrawal/Get-Withdrawal-Records
 
         :param str code: unified currency code
-        :param int [since]: the earliest time in ms to fetch withdrawals for
+        :param int [since]: the earliest time in ms to fetch withdrawals for, the window between since and until must not exceed 30 days for uta accounts
         :param int [limit]: the maximum number of withdrawals structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: end time in milliseconds
-        :param str [params.idLessThan]: return records with id less than the provided value
+        :param str [params.idLessThan]: *non-uta only* return records with id less than the provided value
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         if self.markets is None:
             await self.load_markets()
+        uta = None
+        uta, params = await self.handle_uta_and_params(params, 'fetchWithdrawals', False)
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchWithdrawals', 'paginate')
         if paginate:
+            if uta is True:
+                return await self.fetch_paginated_call_cursor('fetchWithdrawals', None, since, limit, params, 'orderId', 'cursor', None, 100)
             return await self.fetch_paginated_call_cursor('fetchWithdrawals', None, since, limit, params, 'idLessThan', 'idLessThan', None, 100)
         currency = None
         if code is not None:
             currency = self.currency(code)
         if since is None:
-            since = self.milliseconds() - 7776000000  # 90 days
+            if uta is True:
+                since = self.milliseconds() - 2592000000  # uta allows a window of 30 days at most
+            else:
+                since = self.milliseconds() - 7776000000  # 90 days
         request = {
             'startTime': since,
             'endTime': self.milliseconds(),
@@ -2965,7 +3020,11 @@ class bitget(Exchange, ImplicitAPI):
         request, params = self.handle_until_option('endTime', request, params)
         if limit is not None:
             request['limit'] = limit
-        response = await self.privateSpotGetV2SpotWalletWithdrawalRecords(self.extend(request, params))
+        response = None
+        if uta is True:
+            response = await self.privateUtaGetV3AccountWithdrawalRecords(self.extend(request, params))
+        else:
+            response = await self.privateSpotGetV2SpotWalletWithdrawalRecords(self.extend(request, params))
         #
         #     {
         #         "code": "00000",
@@ -2988,6 +3047,33 @@ class bitget(Exchange, ImplicitAPI):
         #                 "fromAddress": null,
         #                 "cTime": "1694131668281",
         #                 "uTime": "1694131680247"
+        #             }
+        #         ]
+        #     }
+        #
+        # uta
+        #
+        #     {
+        #         "code": "00000",
+        #         "msg": "success",
+        #         "requestTime": 1787918941219,
+        #         "data": [
+        #             {
+        #                 "orderId": "1477203433330230002",
+        #                 "recordId": "855182adcdbf968e6c0854de1d9ef04f9542ae27337f87ccbe2f6d1e995ec01b",
+        #                 "coin": "USDT",
+        #                 "type": "withdraw",
+        #                 "size": "30",
+        #                 "status": "success",
+        #                 "toAddress": "TFcWfiw5p5DDZ6vi6Bktf7yK1asRYLpN33",
+        #                 "dest": "on_chain",
+        #                 "chain": "TRC20",
+        #                 "createdTime": "1787918664295",
+        #                 "updatedTime": "1787918826202",
+        #                 "fromAddress": "TU8P3KLsV7YhkUvF9nWxjigMqv2c2mqNC9",
+        #                 "fee": "-1.5",
+        #                 "confirm": "5",
+        #                 "clientOid": null
         #             }
         #         ]
         #     }
@@ -3034,12 +3120,25 @@ class bitget(Exchange, ImplicitAPI):
         #         "uTime": "1694131680247"
         #     }
         #
+        # fetchDeposits & fetchWithdrawals uta rows use the same fields, except
+        #
+        #     {
+        #         "recordId": "63dbe57f0f0a5f6d3e74ff1b07e4c4f5332b96fec74c14190a52e0cea1726364",
+        #         "createdTime": "1787913850359",
+        #         "updatedTime": "1787913880178"
+        #     }
+        #
         currencyId = self.safe_string(transaction, 'coin')
         code = self.safe_currency_code(currencyId, currency)
-        timestamp = self.safe_integer(transaction, 'cTime')
+        timestamp = self.safe_integer_2(transaction, 'cTime', 'createdTime')
         networkId = self.safe_string(transaction, 'chain')
         status = self.safe_string(transaction, 'status')
         tag = self.safe_string(transaction, 'tag')
+        txid = self.safe_string(transaction, 'tradeId')
+        if txid is None:
+            dest = self.safe_string(transaction, 'dest')
+            if dest == 'on_chain':
+                txid = self.safe_string(transaction, 'recordId')  # uta on-chain rows expose the tx hash
         feeCostString = self.safe_string(transaction, 'fee')
         feeCostAbsString = None
         if feeCostString is not None:
@@ -3052,7 +3151,7 @@ class bitget(Exchange, ImplicitAPI):
         return {
             'id': self.safe_string(transaction, 'orderId'),
             'info': transaction,
-            'txid': self.safe_string(transaction, 'tradeId'),
+            'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'network': self.network_id_to_code(networkId, code),
@@ -3060,10 +3159,10 @@ class bitget(Exchange, ImplicitAPI):
             'address': self.safe_string(transaction, 'toAddress'),
             'addressTo': self.safe_string(transaction, 'toAddress'),
             'amount': self.parse_number(amountString),
-            'type': self.safe_string(transaction, 'type'),
+            'type': self.parse_transaction_type(self.safe_string(transaction, 'type')),
             'currency': code,
             'status': self.parse_transaction_status(status),
-            'updated': self.safe_integer(transaction, 'uTime'),
+            'updated': self.safe_integer_2(transaction, 'uTime', 'updatedTime'),
             'tagFrom': None,
             'tag': tag,
             'tagTo': tag,
@@ -3072,12 +3171,21 @@ class bitget(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
+    def parse_transaction_type(self, type: Str):
+        # the wire says withdraw, and a unified transaction says withdrawal
+        types = {
+            'withdraw': 'withdrawal',
+        }
+        return self.safe_string(types, type, type)
+
     def parse_transaction_status(self, status: Str):
         statuses = {
             'success': 'ok',
             'Pending': 'pending',
+            'pending': 'pending',
             'pending_review': 'pending',
             'pending_review_fail': 'failed',
+            'fail': 'failed',
             'reject': 'failed',
         }
         return self.safe_string(statuses, status, status)
@@ -3087,13 +3195,17 @@ class bitget(Exchange, ImplicitAPI):
         fetch the deposit address for a currency associated with self account
 
         https://www.bitget.com/api-doc/spot/account/Get-Deposit-Address
+        https://www.bitget.com/api-doc/uta/account/deposit/Get-Deposit-Address
 
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
         :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
         if self.markets is None:
             await self.load_markets()
+        uta = None
+        uta, params = await self.handle_uta_and_params(params, 'fetchDepositAddress', False)
         networkCode = None
         networkCode, params = self.handle_network_code_and_params(params)
         currency = self.currency(code)
@@ -3102,7 +3214,11 @@ class bitget(Exchange, ImplicitAPI):
         }
         if networkCode is not None:
             request['chain'] = self.network_code_to_id(networkCode, code)
-        response = await self.privateSpotGetV2SpotWalletDepositAddress(self.extend(request, params))
+        response = None
+        if uta is True:
+            response = await self.privateUtaGetV3AccountDepositAddress(self.extend(request, params))
+        else:
+            response = await self.privateSpotGetV2SpotWalletDepositAddress(self.extend(request, params))
         #
         #     {
         #         "code": "00000",
