@@ -10,6 +10,17 @@ import (
 // 	cache []any
 // }
 
+// orderBookDatetime mirrors the JS OrderBook guard `if (this.timestamp)`:
+// SafeInt64(..., 0) collapses an absent timestamp to 0, so without this guard a
+// snapshot with no timestamp would get datetime "1970-01-01T00:00:00.000Z"
+// instead of nil (regression once Iso8601(0) became a valid value).
+func orderBookDatetime(timestamp int64) any {
+	if timestamp == 0 {
+		return nil
+	}
+	return Iso8601(timestamp)
+}
+
 type OrderBookInterface interface {
 	Limit() any
 	Update(snapshot any) any
@@ -121,7 +132,7 @@ func NewWsOrderBook(snapshot any, depth any) *WsOrderBook {
 		Asks:      NewAsks(asks, depth),
 		Bids:      NewBids(bids, depth),
 		Timestamp: timestamp,
-		Datetime:  Iso8601(timestamp),
+		Datetime:  orderBookDatetime(timestamp),
 		Nonce:     SafeInteger(snapshotMap, "nonce", nil),
 		Symbol:    SafeString(snapshotMap, "symbol", "").(string),
 	}
@@ -183,7 +194,7 @@ func (this *WsOrderBook) Reset(optionalArgs ...any) any {
 	}
 	this.Nonce = SafeInteger(snapshotMap, "nonce", nil)
 	this.Timestamp = SafeInt64(snapshotMap, "timestamp", 0).(int64)
-	this.Datetime = Iso8601(this.Timestamp)
+	this.Datetime = orderBookDatetime(this.Timestamp)
 	this.Symbol = SafeString(snapshotMap, "symbol", "").(string)
 	this.Outcome = SafeString(snapshotMap, "outcome", nil)
 	this.OutcomeId = SafeString(snapshotMap, "outcomeId", nil)
@@ -358,7 +369,7 @@ func NewCountedOrderBook(snapshot any, depth any) *CountedOrderBook {
 			Asks:      NewCountedAsks(asks, depth),
 			Bids:      NewCountedBids(bids, depth),
 			Timestamp: timestamp,
-			Datetime:  Iso8601(timestamp),
+			Datetime:  orderBookDatetime(timestamp),
 			Nonce:     SafeInteger(snapshotMap, "nonce", nil),
 			Symbol:    SafeString(snapshotMap, "symbol", "").(string),
 		},
@@ -399,7 +410,7 @@ func NewIndexedOrderBook(snapshot any, depth any) *IndexedOrderBook {
 			Asks:      NewIndexedAsks(asks, depth),
 			Bids:      NewIndexedBids(bids, depth),
 			Timestamp: timestamp,
-			Datetime:  Iso8601(timestamp),
+			Datetime:  orderBookDatetime(timestamp),
 			Nonce:     SafeInteger(snapshotMap, "nonce", nil),
 			Symbol:    SafeString(snapshotMap, "symbol", "").(string),
 		},
