@@ -8,6 +8,15 @@
     ],
     "outputType": "urlencoded",
     "methods": {
+        "accountV1PrivateGetAccountApiRestrictions": [
+            {
+                "description": "fetch API key restrictions",
+                "method": "accountV1PrivateGetAccountApiRestrictions",
+                "url": "https://open-api.bingx.com/openApi/v1/account/apiRestrictions?timestamp=1769192577322&signature=cb79b63f775ebb592910f320f38c5e2bbf36a8eaac8619e948b017710fb9e1d2",
+                "input": [],
+                "output": null
+            }
+        ],
         "fetchFundingHistory": [
             {
                 "description": "fetchFundingHistory",
