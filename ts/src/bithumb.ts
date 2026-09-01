@@ -21,7 +21,7 @@ export default class bithumb extends Exchange {
             'id': 'bithumb',
             'name': 'Bithumb',
             'countries': [ 'KR' ], // South Korea
-            'rateLimit': 500,
+            'rateLimit': 8.334, // 120 requests per second, docs allow 140-150 but 120 is recommended
             'pro': true,
             'has': {
                 'CORS': true,
@@ -209,8 +209,8 @@ export default class bithumb extends Exchange {
                         'trade/stop_limit': { 'cost': 1 } as Endpoint<Dict>,
                         // API 2.0
                         'v2/orders': { 'cost': 1 } as Endpoint<Dict>,
-                        'v2/orders/batch': { 'cost': 1 } as Endpoint<Dict>,
-                        'v2/orders/cancel': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/orders/batch': { 'cost': 6 } as Endpoint<Dict>, // max 20 requests per second
+                        'v2/orders/cancel': { 'cost': 6 } as Endpoint<Dict>, // max 20 requests per second
                         'v1/twap': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/withdraws/coin': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/withdraws/krw': { 'cost': 1 } as Endpoint<Dict>,
@@ -1808,7 +1808,6 @@ export default class bithumb extends Exchange {
             request['order_currency'] = market['base'];
             request['payment_currency'] = market['quote'];
             request['units'] = this.amountToPrecision (symbol, amount);
-            let method = 'privatePostTradePlace';
             if (type === 'limit') {
                 request['price'] = this.priceToPrecision (symbol, price);
                 let typeRequest = undefined;
