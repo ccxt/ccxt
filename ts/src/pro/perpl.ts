@@ -2,12 +2,12 @@
 
 import { ed25519 } from '@noble/curves/ed25519.js';
 import perplRest from '../perpl.js';
-import { ArgumentsRequired, AuthenticationError, BadRequest, ExchangeError } from '../base/errors.js';
+import { ArgumentsRequired, AuthenticationError, BadRequest, ExchangeError, InvalidNonce } from '../base/errors.js';
 import Precise from '../base/Precise.js';
 import Client from '../base/ws/Client.js';
-import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
+import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { eddsa } from '../base/functions/crypto.js';
-import type { Dict, FundingRate, FundingRates, Int, Market, Num, OHLCV, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import type { Dict, FundingRate, FundingRates, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -20,16 +20,19 @@ export default class perpl extends perplRest {
                 'createMarketOrderWs': true,
                 'createOrderWs': true,
                 'editOrderWs': true,
+                'unWatchOrderBook': true,
+                'unWatchOrderBookForSymbols': true,
                 'unWatchOHLCV': true,
                 'unWatchTrades': true,
                 'watchBalance': false,
                 'watchFundingRate': true,
                 'watchFundingRates': true,
-                'watchMyTrades': false,
+                'watchMyTrades': true,
                 'watchOHLCV': true,
-                'watchOrderBook': false,
-                'watchOrders': false,
-                'watchPositions': false,
+                'watchOrderBook': true,
+                'watchOrderBookForSymbols': true,
+                'watchOrders': true,
+                'watchPositions': true,
                 'watchTicker': true,
                 'watchTickers': true,
                 'watchTrades': true,
@@ -336,6 +339,246 @@ export default class perpl extends perplRest {
             'signature': signature,
         };
         return await this.watch (url, messageHash, this.extend (request, params), messageHash);
+    }
+
+    /**
+     * @method
+     * @name perpl#watchOrderBook
+     * @description watches information on open orders with bid and ask prices and volumes
+     * @see https://github.com/PerplFoundation/api-docs/blob/main/websocket.md#order-book-messages
+     * @param {string} symbol unified symbol of the market to watch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {OrderBook} an [order book structure]{@link https://docs.ccxt.com/#/?id=order-book-structure}
+     */
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        return await this.watchOrderBookForSymbols ([ symbol ], limit, params);
+    }
+
+    /**
+     * @method
+     * @name perpl#watchOrderBookForSymbols
+     * @description watches information on open orders with bid and ask prices and volumes for multiple markets
+     * @see https://github.com/PerplFoundation/api-docs/blob/main/websocket.md#subscribing
+     * @see https://github.com/PerplFoundation/api-docs/blob/main/websocket.md#order-book-messages
+     * @param {string[]} symbols unified symbols of the markets to watch the order books for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {OrderBook} an [order book structure]{@link https://docs.ccxt.com/#/?id=order-book-structure}
+     */
+    override async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
+        await this.loadMarkets ();
+        const symbolsLength = symbols.length;
+        if (symbolsLength === 0) {
+            throw new ArgumentsRequired (this.id + ' watchOrderBookForSymbols() requires a non-empty array of symbols');
+        }
+        symbols = this.marketSymbols (symbols, undefined, false, true, true);
+        const subscriptions: Dict[] = [];
+        const messageHashes: string[] = [];
+        const streams: Dict = {};
+        for (let i = 0; i < symbols.length; i++) {
+            const market = this.market (symbols[i]);
+            const symbol = market['symbol'];
+            const stream = 'order-book@' + market['id'];
+            const messageHash = 'orderbook:' + symbol;
+            subscriptions.push ({
+                'stream': stream,
+                'subscribe': true,
+            });
+            messageHashes.push (messageHash);
+            streams[stream] = {
+                'stream': stream,
+                'symbol': symbol,
+                'messageHash': messageHash,
+                'limit': limit,
+                'type': 'orderbook',
+            };
+        }
+        const url = this.urls['api']['ws']['public'];
+        const request: Dict = {
+            'mt': 5,
+            'subs': subscriptions,
+        };
+        const subscription: Dict = {
+            'streams': streams,
+            'messageHashes': messageHashes,
+            'type': 'orderbook',
+        };
+        const orderbook = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes, subscription);
+        return orderbook.limit ();
+    }
+
+    /**
+     * @method
+     * @name perpl#unWatchOrderBook
+     * @description stops watching the order book for a market
+     * @see https://github.com/PerplFoundation/api-docs/blob/main/websocket.md#subscribing
+     * @param {string} symbol unified symbol of the market to stop watching the order book for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} an unsubscription confirmation
+     */
+    override async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
+        return await this.unWatchOrderBookForSymbols ([ symbol ], params);
+    }
+
+    /**
+     * @method
+     * @name perpl#unWatchOrderBookForSymbols
+     * @description stops watching the order books for multiple markets
+     * @see https://github.com/PerplFoundation/api-docs/blob/main/websocket.md#subscribing
+     * @param {string[]} symbols unified symbols of the markets to stop watching the order books for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} an unsubscription confirmation
+     */
+    override async unWatchOrderBookForSymbols (symbols: string[], params = {}): Promise<any> {
+        await this.loadMarkets ();
+        const symbolsLength = symbols.length;
+        if (symbolsLength === 0) {
+            throw new ArgumentsRequired (this.id + ' unWatchOrderBookForSymbols() requires a non-empty array of symbols');
+        }
+        symbols = this.marketSymbols (symbols, undefined, false, true, true);
+        const url = this.urls['api']['ws']['public'];
+        const client = this.client (url);
+        const clientSubscriptionKeys = Object.keys (client.subscriptions);
+        const subscriptions: Dict[] = [];
+        const messageHashes: string[] = [];
+        const streams: Dict = {};
+        for (let i = 0; i < symbols.length; i++) {
+            const market = this.market (symbols[i]);
+            const symbol = market['symbol'];
+            const stream = 'order-book@' + market['id'];
+            const subMessageHash = 'orderbook:' + symbol;
+            const messageHash = 'unsubscribe:' + subMessageHash;
+            let sid: Str = undefined;
+            for (let j = 0; j < clientSubscriptionKeys.length; j++) {
+                const currentSubscription = this.safeDict (client.subscriptions, clientSubscriptionKeys[j]);
+                if ((currentSubscription !== undefined) && (this.safeString (currentSubscription, 'stream') === stream)) {
+                    sid = this.safeString (currentSubscription, 'sid');
+                    break;
+                }
+            }
+            subscriptions.push ({
+                'stream': stream,
+                'subscribe': false,
+            });
+            messageHashes.push (messageHash);
+            streams[stream] = {
+                'stream': stream,
+                'symbol': symbol,
+                'messageHash': messageHash,
+                'subMessageHash': subMessageHash,
+                'unsubscribe': true,
+                'sid': sid,
+                'type': 'orderbook',
+            };
+        }
+        const request: Dict = {
+            'mt': 5,
+            'subs': subscriptions,
+        };
+        const subscription: Dict = {
+            'streams': streams,
+            'messageHashes': messageHashes,
+            'unsubscribe': true,
+            'type': 'orderbook',
+        };
+        return await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes, subscription);
+    }
+
+    /**
+     * @method
+     * @name perpl#watchOrders
+     * @description watches information on multiple orders made by the user
+     * @see https://github.com/PerplFoundation/api-docs/blob/main/websocket.md#initial-snapshots
+     * @see https://github.com/PerplFoundation/api-docs/blob/main/websocket.md#order-updates-mt-24
+     * @param {string} [symbol] unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        await this.loadMarkets ();
+        let messageHash = 'orders';
+        if (symbol !== undefined) {
+            symbol = this.symbol (symbol);
+            messageHash += ':' + symbol;
+        }
+        const url = this.urls['api']['ws']['private'];
+        const future = this.watch (url, messageHash, undefined, messageHash, {
+            'messageHash': messageHash,
+            'type': 'orders',
+        });
+        await this.authenticate ();
+        const orders = await future;
+        if (this.newUpdates) {
+            limit = orders.getLimit (symbol, limit);
+        }
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+    }
+
+    /**
+     * @method
+     * @name perpl#watchPositions
+     * @description watches all open positions
+     * @see https://github.com/PerplFoundation/api-docs/blob/main/websocket.md#initial-snapshots
+     * @see https://github.com/PerplFoundation/api-docs/blob/main/websocket.md#position-updates-mt-27
+     * @param {string[]} [symbols] unified market symbols
+     * @param {int} [since] the earliest time in ms to fetch positions for
+     * @param {int} [limit] the maximum number of position structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
+    override async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, false, true, true);
+        let messageHash = 'positions';
+        if ((symbols !== undefined) && !this.isEmpty (symbols)) {
+            messageHash += '::' + symbols.join (',');
+        }
+        const url = this.urls['api']['ws']['private'];
+        const future = this.watch (url, messageHash, undefined, messageHash, {
+            'messageHash': messageHash,
+            'symbols': symbols,
+            'type': 'positions',
+        });
+        await this.authenticate ();
+        const positions = await future;
+        if (this.newUpdates) {
+            return this.filterBySymbolsSinceLimit (positions, symbols, since, limit, true);
+        }
+        return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit, true);
+    }
+
+    /**
+     * @method
+     * @name perpl#watchMyTrades
+     * @description watches information on multiple trades made by the user
+     * @see https://github.com/PerplFoundation/api-docs/blob/main/websocket.md#fill-updates-mt-25
+     * @param {string} [symbol] unified market symbol of the market trades were made in
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trade structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
+    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        await this.loadMarkets ();
+        let messageHash = 'myTrades';
+        if (symbol !== undefined) {
+            symbol = this.symbol (symbol);
+            messageHash += ':' + symbol;
+        }
+        const url = this.urls['api']['ws']['private'];
+        const future = this.watch (url, messageHash, undefined, messageHash, {
+            'messageHash': messageHash,
+            'type': 'myTrades',
+        });
+        await this.authenticate ();
+        const trades = await future;
+        if (this.newUpdates) {
+            limit = trades.getLimit (symbol, limit);
+        }
+        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
     /**
@@ -680,10 +923,19 @@ export default class perpl extends perplRest {
             for (let j = 0; j < clientSubscriptionKeys.length; j++) {
                 const subscriptionKey = clientSubscriptionKeys[j];
                 const currentSubscription = this.safeDict (client.subscriptions, subscriptionKey);
-                if ((currentSubscription !== undefined) && (this.safeString (currentSubscription, 'stream') === stream)) {
-                    const currentIsUnsubscription = this.safeBool (currentSubscription, 'unsubscribe', false);
-                    if (currentIsUnsubscription || (subscription === undefined)) {
-                        subscription = currentSubscription;
+                if (currentSubscription !== undefined) {
+                    let matchingSubscription: Dict | undefined = undefined;
+                    if (this.safeString (currentSubscription, 'stream') === stream) {
+                        matchingSubscription = currentSubscription;
+                    } else {
+                        const streams = this.safeDict (currentSubscription, 'streams', {});
+                        matchingSubscription = this.safeDict (streams, stream);
+                    }
+                    if (matchingSubscription !== undefined) {
+                        const currentIsUnsubscription = this.safeBool (matchingSubscription, 'unsubscribe', false);
+                        if (currentIsUnsubscription || (subscription === undefined)) {
+                            subscription = matchingSubscription;
+                        }
                     }
                 }
             }
@@ -725,6 +977,8 @@ export default class perpl extends perplRest {
                     if ((timeframe !== undefined) && (timeframe in this.ohlcvs[symbol])) {
                         delete this.ohlcvs[symbol][timeframe];
                     }
+                } else if ((subscriptionType === 'orderbook') && (symbol !== undefined) && (symbol in this.orderbooks)) {
+                    delete this.orderbooks[symbol];
                 }
             } else {
                 const sid = this.safeString (response, 'sid');
@@ -924,6 +1178,174 @@ export default class perpl extends perplRest {
         client.resolve (stored, messageHash);
     }
 
+    handleOrderBook (client: Client, message: Dict) {
+        //
+        //     {
+        //         "mt": 16,
+        //         "sid": 11,
+        //         "at": { "b": 97001268, "t": 1787037821000 },
+        //         "bid": [ { "p": 642516, "s": 40566, "o": 3 } ],
+        //         "ask": [ { "p": 642517, "s": 0, "o": 0 } ]
+        //     }
+        //
+        const sid = this.safeString (message, 'sid');
+        const subscription = this.safeDict (client.subscriptions, sid, {});
+        const symbol = this.safeString (subscription, 'symbol');
+        if (symbol === undefined) {
+            return;
+        }
+        const market = this.market (symbol);
+        const pricePrecision = this.numberToString (market['precision']['price']);
+        const amountPrecision = this.numberToString (market['precision']['amount']);
+        const rawBids = this.safeList (message, 'bid', []);
+        const rawAsks = this.safeList (message, 'ask', []);
+        const bids: any[] = [];
+        const asks: any[] = [];
+        for (let i = 0; i < rawBids.length; i++) {
+            const rawBid = this.safeDict (rawBids, i, {});
+            const price = Precise.stringMul (this.safeString (rawBid, 'p'), pricePrecision);
+            const orderCount = this.safeInteger (rawBid, 'o');
+            const amount = (orderCount === 0) ? '0' : Precise.stringMul (this.safeString (rawBid, 's'), amountPrecision);
+            bids.push ([ this.parseNumber (price), this.parseNumber (amount) ]);
+        }
+        for (let i = 0; i < rawAsks.length; i++) {
+            const rawAsk = this.safeDict (rawAsks, i, {});
+            const price = Precise.stringMul (this.safeString (rawAsk, 'p'), pricePrecision);
+            const orderCount = this.safeInteger (rawAsk, 'o');
+            const amount = (orderCount === 0) ? '0' : Precise.stringMul (this.safeString (rawAsk, 's'), amountPrecision);
+            asks.push ([ this.parseNumber (price), this.parseNumber (amount) ]);
+        }
+        const at = this.safeDict (message, 'at', {});
+        const timestamp = this.safeInteger (at, 't');
+        const nonce = this.safeInteger (at, 'b');
+        const messageType = this.safeInteger (message, 'mt');
+        if ((messageType === 15) || !(symbol in this.orderbooks)) {
+            const limit = this.safeInteger (subscription, 'limit');
+            const snapshot: Dict = {
+                'symbol': symbol,
+                'bids': bids,
+                'asks': asks,
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+                'nonce': nonce,
+            };
+            this.orderbooks[symbol] = this.orderBook (snapshot, limit);
+        } else {
+            const storedOrderbook = this.orderbooks[symbol];
+            this.handleDeltas (storedOrderbook['bids'], bids);
+            this.handleDeltas (storedOrderbook['asks'], asks);
+            storedOrderbook['timestamp'] = timestamp;
+            storedOrderbook['datetime'] = this.iso8601 (timestamp);
+            storedOrderbook['nonce'] = nonce;
+        }
+        const orderbook = this.orderbooks[symbol];
+        const messageHash = this.safeString (subscription, 'messageHash');
+        client.resolve (orderbook, messageHash);
+    }
+
+    override handleDelta (bookside: any, delta: any) {
+        bookside.storeArray (delta);
+    }
+
+    handleOrders (client: Client, message: Dict) {
+        //
+        //     {
+        //         "mt": 23,
+        //         "at": { "b": 55563772, "t": 1787288849000 },
+        //         "d": [ { "rq": 1001, "mkt": 1, "acc": 42, "oid": 789012, "st": 1, "t": 1, "p": 600000, "os": 10000, "fs": 0, "f": "0", "fl": 0, "lv": 200 } ]
+        //     }
+        //
+        const messageType = this.safeInteger (message, 'mt');
+        if ((this.orders === undefined) || (messageType === 23)) {
+            const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+            this.orders = new ArrayCacheBySymbolById (limit);
+        }
+        const orders = this.orders;
+        const data = this.safeList (message, 'd', []);
+        for (let i = 0; i < data.length; i++) {
+            const rawOrder = this.safeDict (data, i, {});
+            orders.append (this.parseOrder (rawOrder));
+        }
+        const messageHashes = this.findMessageHashes (client, 'orders:');
+        for (let i = 0; i < messageHashes.length; i++) {
+            client.resolve (orders, messageHashes[i]);
+        }
+        client.resolve (orders, 'orders');
+    }
+
+    handleMyTrades (client: Client, message: Dict) {
+        //
+        //     {
+        //         "mt": 25,
+        //         "at": { "b": 97001267, "t": 1787037820000 },
+        //         "d": [ { "at": { "b": 97001267, "t": 1787037820000, "tx": 3, "txid": "0x1234", "l": 7 }, "mkt": 1, "acc": 42, "oid": 123456, "t": 1, "l": 2, "p": 642517, "s": 40566, "f": "17731" } ]
+        //     }
+        //
+        if (this.myTrades === undefined) {
+            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            this.myTrades = new ArrayCacheBySymbolById (limit);
+        }
+        const trades = this.myTrades;
+        const data = this.safeList (message, 'd', []);
+        for (let i = 0; i < data.length; i++) {
+            const rawTrade = this.safeDict (data, i, {});
+            trades.append (this.parseTrade (rawTrade));
+        }
+        const messageHashes = this.findMessageHashes (client, 'myTrades:');
+        for (let i = 0; i < messageHashes.length; i++) {
+            client.resolve (trades, messageHashes[i]);
+        }
+        client.resolve (trades, 'myTrades');
+    }
+
+    handlePositions (client: Client, message: Dict) {
+        //
+        //     {
+        //         "mt": 27,
+        //         "at": { "b": 55570000, "t": 1787636835000 },
+        //         "d": [ { "mkt": 1, "acc": 42, "pid": 123456, "rq": 789012, "oid": 345678, "st": 1, "sr": 21, "sd": 1, "c": "80026664", "ep": 751164, "s": 1591, "fee": "824621", "efs": 93442, "lv": 1500, "cpnl": "353202", "dpnl": "0", "fnd": "0", "xfs": 0, "ots": {} } ]
+        //     }
+        //
+        const messageType = this.safeInteger (message, 'mt');
+        if ((this.positions === undefined) || (messageType === 26)) {
+            this.positions = new ArrayCacheBySymbolBySide ();
+        }
+        const positions = this.positions;
+        const newPositions: Position[] = [];
+        const data = this.safeList (message, 'd', []);
+        for (let i = 0; i < data.length; i++) {
+            const rawPosition = this.safeDict (data, i, {});
+            const position = this.parsePosition (rawPosition);
+            newPositions.push (position);
+            positions.append (position);
+        }
+        const result = (messageType === 26) ? positions : newPositions;
+        const messageHashes = this.findMessageHashes (client, 'positions::');
+        for (let i = 0; i < messageHashes.length; i++) {
+            client.resolve (result, messageHashes[i]);
+        }
+        client.resolve (result, 'positions');
+    }
+
+    handleHeartbeat (client: Client, message: Dict) {
+        //
+        //     { "mt": 100, "sn": 2, "h": 97001268 }
+        //
+        const previousSequence = this.safeInteger (client.subscriptions, 'wsLastSequence');
+        const sequence = this.safeInteger (message, 'sn');
+        if ((previousSequence === undefined) || (sequence === undefined)) {
+            return;
+        }
+        const expectedSequence = this.sum (previousSequence, 1);
+        if (sequence !== expectedSequence) {
+            const error = new InvalidNonce (this.id + ' private websocket sequence gap, expected ' + this.numberToString (expectedSequence) + ' but received ' + this.numberToString (sequence));
+            client.reset (error);
+            // client.close ();
+            return;
+        }
+        client.subscriptions['wsLastSequence'] = sequence;
+    }
+
     handleWalletSnapshot (client: Client, message: Dict) {
         //
         //     {
@@ -934,6 +1356,7 @@ export default class perpl extends perplRest {
         //
         const accounts = this.safeList (message, 'as', []);
         client.subscriptions['wsAccounts'] = accounts;
+        client.subscriptions['wsLastSequence'] = this.safeInteger (message, 'sn');
         const lastRequestIds: Dict = {};
         for (let i = 0; i < accounts.length; i++) {
             const account = this.safeDict (accounts, i, {});
@@ -1090,14 +1513,25 @@ export default class perpl extends perplRest {
             this.handleFundingRates (client, message);
         } else if ((messageType === 11) || (messageType === 12)) {
             this.handleOHLCV (client, message);
+        } else if ((messageType === 15) || (messageType === 16)) {
+            this.handleOrderBook (client, message);
         } else if ((messageType === 17) || (messageType === 18)) {
             this.handleTrades (client, message);
         } else if (messageType === 19) {
             this.handleWalletSnapshot (client, message);
         } else if (messageType === 21) {
             this.handleAccountUpdate (client, message);
+        } else if (messageType === 23) {
+            this.handleOrders (client, message);
         } else if (messageType === 24) {
+            this.handleOrders (client, message);
             this.handleOrdersUpdate (client, message);
+        } else if (messageType === 25) {
+            this.handleMyTrades (client, message);
+        } else if ((messageType === 26) || (messageType === 27)) {
+            this.handlePositions (client, message);
+        } else if (messageType === 100) {
+            this.handleHeartbeat (client, message);
         }
     }
 }
