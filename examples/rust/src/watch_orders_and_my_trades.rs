@@ -29,8 +29,18 @@ use std::collections::HashSet;
 use std::time::{Duration, Instant};
 
 /// How long a single `watch_*` await is allowed to block before handing the
-/// turn to the other channel.
+/// turn to the other channel, once that channel is up.
 const SLICE: Duration = Duration::from_secs(2);
+
+/// Budget for a channel's FIRST call, which does the work the round-robin
+/// slice must not race: authenticate (a REST listenKey round-trip, or a signed
+/// ws-api subscribe), open the socket, send the subscribe frame. Cancelling
+/// that at 2s doesn't just retry — it can abort `authenticate` after it has
+/// taken the single-flight lead but before it settles, and the next call then
+/// joins a flight nobody is flying. A timeout at this budget means the stream
+/// is up and the account is simply idle, which is reported rather than
+/// swallowed, so a channel that never came up can't masquerade as a quiet one.
+const CONNECT_BUDGET: Duration = Duration::from_secs(30);
 
 fn creds() -> Option<(String, String)> {
     match (
@@ -80,15 +90,22 @@ async fn run(secs: u64) {
     let mut seen_orders: HashSet<String> = HashSet::new();
     let mut seen_trades: HashSet<String> = HashSet::new();
     let (mut order_updates, mut trade_updates) = (0u64, 0u64);
+    // Each channel gets CONNECT_BUDGET until its first call comes back, then
+    // drops to the round-robin SLICE.
+    let (mut orders_up, mut trades_up) = (false, false);
 
     let deadline = Instant::now() + Duration::from_secs(secs);
     while Instant::now() < deadline {
-        let slice = SLICE.min(deadline.saturating_duration_since(Instant::now()));
-        if slice.is_zero() {
+        let remaining = deadline.saturating_duration_since(Instant::now());
+        let budget = if orders_up { SLICE } else { CONNECT_BUDGET }.min(remaining);
+        if budget.is_zero() {
             break;
         }
+        // Only call it a subscribe timeout if the channel actually got its
+        // full budget — a short run window ending early is not a failure.
+        let full_budget = budget == CONNECT_BUDGET;
 
-        match tokio::time::timeout(slice, ex.watch_orders(None, None, None, Params::none())).await {
+        match tokio::time::timeout(budget, ex.watch_orders(None, None, None, Params::none())).await {
             Ok(Ok(orders)) => {
                 for o in &orders {
                     let key = format!(
@@ -119,16 +136,24 @@ async fn run(secs: u64) {
                 }
             }
             Ok(Err(e)) => println!("[order] error [{}] {}", e.kind, e.message),
+            Err(_) if !orders_up && full_budget => {
+                println!("[order] subscribed, no events yet");
+            }
             // Nothing on this channel within the slice — give the other a turn.
             Err(_) => {}
         }
-
-        let slice = SLICE.min(deadline.saturating_duration_since(Instant::now()));
-        if slice.is_zero() {
-            break;
+        if !orders_up && full_budget {
+            orders_up = true;
         }
 
-        match tokio::time::timeout(slice, ex.watch_my_trades(None, None, None, Params::none()))
+        let remaining = deadline.saturating_duration_since(Instant::now());
+        let budget = if trades_up { SLICE } else { CONNECT_BUDGET }.min(remaining);
+        if budget.is_zero() {
+            break;
+        }
+        let full_budget = budget == CONNECT_BUDGET;
+
+        match tokio::time::timeout(budget, ex.watch_my_trades(None, None, None, Params::none()))
             .await
         {
             Ok(Ok(trades)) => {
@@ -155,13 +180,23 @@ async fn run(secs: u64) {
                 }
             }
             Ok(Err(e)) => println!("[trade] error [{}] {}", e.kind, e.message),
+            Err(_) if !trades_up && full_budget => {
+                println!("[trade] subscribed, no events yet");
+            }
             Err(_) => {}
+        }
+        if !trades_up && full_budget {
+            trades_up = true;
         }
     }
 
     println!("\ndone: {order_updates} order updates, {trade_updates} trades");
     if order_updates == 0 && trade_updates == 0 {
-        println!("(no account activity in the window — place or fill an order to see output)");
+        if orders_up || trades_up {
+            println!("(subscribed fine — no account activity in the window; place or fill an order to see output)");
+        } else {
+            println!("(neither stream came up — see the errors above)");
+        }
     }
 }
 
