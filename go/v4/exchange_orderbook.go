@@ -26,7 +26,7 @@ type WsOrderBook struct {
 	Cache     any            `json:"-"`
 	Asks      IOrderBookSide `json:"asks"`
 	Bids      IOrderBookSide `json:"bids"`
-	Timestamp int64          `json:"timestamp"`
+	Timestamp *int64         `json:"timestamp"`
 	Datetime  any            `json:"datetime"`
 	Nonce     any            `json:"nonce"`
 	Symbol    string         `json:"symbol"`
@@ -114,7 +114,7 @@ func NewWsOrderBook(snapshot any, depth any) *WsOrderBook {
 	// Sanitize snapshot to ensure asks and bids are always [][]float64
 	asks, bids := getAsksBids(snapshot)
 	snapshotMap := snapshot.(map[string]any)
-	timestamp := SafeInt64(snapshotMap, "timestamp", 0).(int64)
+	timestamp, _ := SafeInt64(snapshotMap, "timestamp", nil).(*int64)
 
 	return &WsOrderBook{
 		Cache:     SafeValue(snapshotMap, "cache", []any{}),
@@ -182,8 +182,10 @@ func (this *WsOrderBook) Reset(optionalArgs ...any) any {
 		this.Bids.StoreArray(bid)
 	}
 	this.Nonce = SafeInteger(snapshotMap, "nonce", nil)
-	this.Timestamp = SafeInt64(snapshotMap, "timestamp", nil).(int64)
-	this.Datetime = Iso8601(this.Timestamp)
+	if timestamp, ok := SafeInt64(snapshotMap, "timestamp", nil).(*int64); ok {
+		this.Timestamp = timestamp
+		this.Datetime = Iso8601(this.Timestamp)
+	}
 	this.Symbol = SafeString(snapshotMap, "symbol", "").(string)
 	this.Outcome = SafeString(snapshotMap, "outcome", nil)
 	this.OutcomeId = SafeString(snapshotMap, "outcomeId", nil)
@@ -350,7 +352,7 @@ func NewCountedOrderBook(snapshot any, depth any) *CountedOrderBook {
 	// Sanitize snapshot to ensure asks and bids are always [][]float64
 	asks, bids := getIndexedAsksBids(snapshot)
 	snapshotMap := snapshot.(map[string]any)
-	timestamp := SafeInt64(snapshotMap, "timestamp", 0).(int64)
+	timestamp, _ := SafeInt64(snapshotMap, "timestamp", nil).(*int64)
 
 	return &CountedOrderBook{
 		WsOrderBook: &WsOrderBook{
@@ -391,7 +393,7 @@ func NewIndexedOrderBook(snapshot any, depth any) *IndexedOrderBook {
 	// Sanitize snapshot to ensure asks and bids are always [][]float64
 	asks, bids := getIndexedAsksBids(snapshot)
 	snapshotMap := snapshot.(map[string]any)
-	timestamp := SafeInt64(snapshotMap, "timestamp", 0).(int64)
+	timestamp, _ := SafeInt64(snapshotMap, "timestamp", nil).(*int64)
 
 	return &IndexedOrderBook{
 		WsOrderBook: &WsOrderBook{
