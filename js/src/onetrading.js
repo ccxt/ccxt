@@ -1229,16 +1229,17 @@ export default class onetrading extends Exchange {
     }
     parseOrderStatus(status) {
         const statuses = {
-            'FILLED': 'open',
+            'OPEN': 'open',
+            'BOOKED': 'open',
+            'FILL': 'open',
+            'MOVED': 'open',
             'FILLED_FULLY': 'closed',
             'FILLED_CLOSED': 'canceled',
             'FILLED_REJECTED': 'rejected',
-            'OPEN': 'open',
-            'REJECTED': 'rejected',
-            'CLOSED': 'canceled',
-            'FAILED': 'failed',
-            'STOP_TRIGGERED': 'triggered',
-            'DONE': 'closed',
+            'CANCELLED': 'canceled',
+            'INSUFFICIENT_FUNDS': 'rejected',
+            'INSUFFICIENT_LIQUIDITY': 'rejected',
+            'RISK_FAILED_OVER_MAX_POSITION': 'rejected',
         };
         return this.safeString(statuses, status, status);
     }
@@ -1313,8 +1314,7 @@ export default class onetrading extends Exchange {
         const id = this.safeString(rawOrder, 'order_id');
         const clientOrderId = this.safeString(rawOrder, 'client_id');
         const timestamp = this.parse8601(this.safeString(rawOrder, 'time'));
-        const rawStatus = this.parseOrderStatus(this.safeString(rawOrder, 'status'));
-        const status = this.parseOrderStatus(rawStatus);
+        const status = this.parseOrderStatus(this.safeString(rawOrder, 'status'));
         const marketId = this.safeString(rawOrder, 'instrument_code');
         const symbol = this.safeSymbol(marketId, market, '_');
         const price = this.safeString(rawOrder, 'price');
@@ -1333,7 +1333,7 @@ export default class onetrading extends Exchange {
             'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
-            'type': this.parseOrderType(type),
+            'type': type,
             'timeInForce': timeInForce,
             'postOnly': postOnly,
             'side': side,
@@ -1349,18 +1349,13 @@ export default class onetrading extends Exchange {
             'trades': rawTrades,
         }, market);
     }
-    parseOrderType(type) {
-        const types = {
-            'booked': 'limit',
-        };
-        return this.safeString(types, type, type);
-    }
     parseTimeInForce(timeInForce) {
         const timeInForces = {
             'GOOD_TILL_CANCELLED': 'GTC',
             'GOOD_TILL_TIME': 'GTT',
             'IMMEDIATE_OR_CANCELLED': 'IOC',
             'FILL_OR_KILL': 'FOK',
+            'POST_ONLY': 'PO',
         };
         return this.safeString(timeInForces, timeInForce, timeInForce);
     }

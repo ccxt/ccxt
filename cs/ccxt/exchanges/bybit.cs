@@ -3064,7 +3064,7 @@ public partial class bybit : Exchange
                         { "max", this.safeNumber(priceFilter, "maxPrice") },
                     } },
                     { "cost", new Dictionary<string, object>() {
-                        { "min", null },
+                        { "min", ((bool) isTrue(linear)) ? this.safeNumber(lotSizeFilter, "minNotionalValue") : null },
                         { "max", null },
                     } },
                 } },

@@ -1424,16 +1424,17 @@ func (this *OnetradingCore) fetchBalanceBody(ch chan any, optionalArgs ...any) a
 }
 func (this *OnetradingCore) ParseOrderStatus(status any) any {
 	var statuses map[string]any = map[string]any{
-		"FILLED":          "open",
-		"FILLED_FULLY":    "closed",
-		"FILLED_CLOSED":   "canceled",
-		"FILLED_REJECTED": "rejected",
-		"OPEN":            "open",
-		"REJECTED":        "rejected",
-		"CLOSED":          "canceled",
-		"FAILED":          "failed",
-		"STOP_TRIGGERED":  "triggered",
-		"DONE":            "closed",
+		"OPEN":                          "open",
+		"BOOKED":                        "open",
+		"FILL":                          "open",
+		"MOVED":                         "open",
+		"FILLED_FULLY":                  "closed",
+		"FILLED_CLOSED":                 "canceled",
+		"FILLED_REJECTED":               "rejected",
+		"CANCELLED":                     "canceled",
+		"INSUFFICIENT_FUNDS":            "rejected",
+		"INSUFFICIENT_LIQUIDITY":        "rejected",
+		"RISK_FAILED_OVER_MAX_POSITION": "rejected",
 	}
 	return this.SafeString(statuses, status, status)
 }
@@ -1510,8 +1511,7 @@ func (this *OnetradingCore) ParseOrder(order any, optionalArgs ...any) any {
 	var id any = this.SafeString(rawOrder, "order_id")
 	var clientOrderId any = this.SafeString(rawOrder, "client_id")
 	var timestamp any = this.Parse8601(this.SafeString(rawOrder, "time"))
-	var rawStatus any = this.ParseOrderStatus(this.SafeString(rawOrder, "status"))
-	var status any = this.ParseOrderStatus(rawStatus)
+	var status any = this.ParseOrderStatus(this.SafeString(rawOrder, "status"))
 	var marketId any = this.SafeString(rawOrder, "instrument_code")
 	var symbol any = this.SafeSymbol(marketId, market, "_")
 	var price any = this.SafeString(rawOrder, "price")
@@ -1530,7 +1530,7 @@ func (this *OnetradingCore) ParseOrder(order any, optionalArgs ...any) any {
 		"datetime":           this.Iso8601(timestamp),
 		"lastTradeTimestamp": nil,
 		"symbol":             symbol,
-		"type":               this.ParseOrderType(typeVar),
+		"type":               typeVar,
 		"timeInForce":        timeInForce,
 		"postOnly":           postOnly,
 		"side":               side,
@@ -1545,18 +1545,13 @@ func (this *OnetradingCore) ParseOrder(order any, optionalArgs ...any) any {
 		"trades":             rawTrades,
 	}, market)
 }
-func (this *OnetradingCore) ParseOrderType(typeVar any) any {
-	var types map[string]any = map[string]any{
-		"booked": "limit",
-	}
-	return this.SafeString(types, typeVar, typeVar)
-}
 func (this *OnetradingCore) ParseTimeInForce(timeInForce any) any {
 	var timeInForces map[string]any = map[string]any{
 		"GOOD_TILL_CANCELLED":    "GTC",
 		"GOOD_TILL_TIME":         "GTT",
 		"IMMEDIATE_OR_CANCELLED": "IOC",
 		"FILL_OR_KILL":           "FOK",
+		"POST_ONLY":              "PO",
 	}
 	return this.SafeString(timeInForces, timeInForce, timeInForce)
 }
@@ -1589,8 +1584,8 @@ func (this *OnetradingCore) createOrderBody(ch chan any, symbol any, typeVar any
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes140112 := (<-this.LoadMarkets())
-		PanicOnError(retRes140112)
+		retRes139512 := (<-this.LoadMarkets())
+		PanicOnError(retRes139512)
 	}
 	var market any = this.Market(symbol)
 	var uppercaseType string = ToUpper(typeVar)
@@ -1677,8 +1672,8 @@ func (this *OnetradingCore) cancelOrderBody(ch chan any, id any, optionalArgs ..
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes147812 := (<-this.LoadMarkets())
-		PanicOnError(retRes147812)
+		retRes147212 := (<-this.LoadMarkets())
+		PanicOnError(retRes147212)
 	}
 	var clientOrderId any = this.SafeString2(params, "clientOrderId", "client_id")
 	params = this.Omit(params, []any{"clientOrderId", "client_id"})
@@ -1731,8 +1726,8 @@ func (this *OnetradingCore) cancelAllOrdersBody(ch chan any, optionalArgs ...any
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes151312 := (<-this.LoadMarkets())
-		PanicOnError(retRes151312)
+		retRes150712 := (<-this.LoadMarkets())
+		PanicOnError(retRes150712)
 	}
 	var request map[string]any = map[string]any{}
 	if IsTrue(!IsEqual(symbol, nil)) {
@@ -1778,8 +1773,8 @@ func (this *OnetradingCore) cancelOrdersBody(ch chan any, ids any, optionalArgs 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes154112 := (<-this.LoadMarkets())
-		PanicOnError(retRes154112)
+		retRes153512 := (<-this.LoadMarkets())
+		PanicOnError(retRes153512)
 	}
 	var request map[string]any = map[string]any{
 		"ids": Join(ids, ","),
@@ -1824,8 +1819,8 @@ func (this *OnetradingCore) fetchOrderBody(ch chan any, id any, optionalArgs ...
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes156812 := (<-this.LoadMarkets())
-		PanicOnError(retRes156812)
+		retRes156212 := (<-this.LoadMarkets())
+		PanicOnError(retRes156212)
 	}
 	var request map[string]any = map[string]any{
 		"order_id": id,
@@ -1908,8 +1903,8 @@ func (this *OnetradingCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes163112 := (<-this.LoadMarkets())
-		PanicOnError(retRes163112)
+		retRes162512 := (<-this.LoadMarkets())
+		PanicOnError(retRes162512)
 	}
 	var request map[string]any = map[string]any{}
 	var market any = nil
@@ -2046,9 +2041,9 @@ func (this *OnetradingCore) fetchClosedOrdersBody(ch chan any, optionalArgs ...a
 		"with_cancelled_and_rejected": true,
 	}
 
-	retRes175715 := (<-this.FetchOpenOrders(symbol, since, limit, this.Extend(request, params)))
-	PanicOnError(retRes175715)
-	ch <- retRes175715
+	retRes175115 := (<-this.FetchOpenOrders(symbol, since, limit, this.Extend(request, params)))
+	PanicOnError(retRes175115)
+	ch <- retRes175115
 	return nil
 }
 
@@ -2082,8 +2077,8 @@ func (this *OnetradingCore) fetchOrderTradesBody(ch chan any, id any, optionalAr
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes177412 := (<-this.LoadMarkets())
-		PanicOnError(retRes177412)
+		retRes176812 := (<-this.LoadMarkets())
+		PanicOnError(retRes176812)
 	}
 	var request map[string]any = map[string]any{
 		"order_id": id,
@@ -2163,8 +2158,8 @@ func (this *OnetradingCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes183612 := (<-this.LoadMarkets())
-		PanicOnError(retRes183612)
+		retRes183012 := (<-this.LoadMarkets())
+		PanicOnError(retRes183012)
 	}
 	var request map[string]any = map[string]any{}
 	var market any = nil

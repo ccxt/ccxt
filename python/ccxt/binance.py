@@ -895,7 +895,7 @@ class binance(Exchange, ImplicitAPI):
                         'premiumIndex': {'cost': 1},
                         'ticker/24hr': {'cost': 1, 'noSymbol': 40},
                         'ticker/price': {'cost': 1, 'noSymbol': 2},
-                        'ticker/bookTicker': {'cost': 1, 'noSymbol': 2},
+                        'ticker/bookTicker': {'cost': 2, 'noSymbol': 5},
                         'openInterest': {'cost': 1},
                         'indexInfo': {'cost': 1},
                         'assetIndex': {'cost': 1, 'noSymbol': 10},
@@ -4620,20 +4620,26 @@ class binance(Exchange, ImplicitAPI):
         type, params = self.handle_market_type_and_params('fetchBidsAsks', market, params)
         subType = None
         subType, params = self.handle_sub_type_and_params('fetchBidsAsks', market, params)
+        request = {}
+        if (symbols is not None) and (self.is_linear(type, subType) or self.is_inverse(type, subType)):
+            symbolsLength = len(symbols)
+            if symbolsLength == 1:
+                request['symbol'] = self.market_id(symbols[0])
         response = None
         if type == 'option':
             response = self.eapiPublicGetTicker(params)
         elif self.is_linear(type, subType):
-            response = self.fapiPublicGetTickerBookTicker(params)
+            response = self.fapiPublicGetTickerBookTicker(self.extend(request, params))
         elif self.is_inverse(type, subType):
-            response = self.dapiPublicGetTickerBookTicker(params)
+            response = self.dapiPublicGetTickerBookTicker(self.extend(request, params))
         elif type == 'spot':
-            request = {}
             if symbols is not None:
                 request['symbols'] = self.json(self.market_ids(symbols))
             response = self.publicGetTickerBookTicker(self.extend(request, params))
         else:
             raise NotSupported(self.id + ' fetchBidsAsks() does not support ' + type + ' markets yet')
+        if not isinstance(response, list):
+            response = [response]
         return self.parse_tickers(response, symbols)
 
     def fetch_last_prices(self, symbols: Strings = None, params={}):

@@ -1210,16 +1210,17 @@ class onetrading(Exchange, ImplicitAPI):
 
     def parse_order_status(self, status: Str):
         statuses = {
-            'FILLED': 'open',
+            'OPEN': 'open',
+            'BOOKED': 'open',
+            'FILL': 'open',
+            'MOVED': 'open',
             'FILLED_FULLY': 'closed',
             'FILLED_CLOSED': 'canceled',
             'FILLED_REJECTED': 'rejected',
-            'OPEN': 'open',
-            'REJECTED': 'rejected',
-            'CLOSED': 'canceled',
-            'FAILED': 'failed',
-            'STOP_TRIGGERED': 'triggered',
-            'DONE': 'closed',
+            'CANCELLED': 'canceled',
+            'INSUFFICIENT_FUNDS': 'rejected',
+            'INSUFFICIENT_LIQUIDITY': 'rejected',
+            'RISK_FAILED_OVER_MAX_POSITION': 'rejected',
         }
         return self.safe_string(statuses, status, status)
 
@@ -1294,8 +1295,7 @@ class onetrading(Exchange, ImplicitAPI):
         id = self.safe_string(rawOrder, 'order_id')
         clientOrderId = self.safe_string(rawOrder, 'client_id')
         timestamp = self.parse8601(self.safe_string(rawOrder, 'time'))
-        rawStatus = self.parse_order_status(self.safe_string(rawOrder, 'status'))
-        status = self.parse_order_status(rawStatus)
+        status = self.parse_order_status(self.safe_string(rawOrder, 'status'))
         marketId = self.safe_string(rawOrder, 'instrument_code')
         symbol = self.safe_symbol(marketId, market, '_')
         price = self.safe_string(rawOrder, 'price')
@@ -1314,7 +1314,7 @@ class onetrading(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
             'symbol': symbol,
-            'type': self.parse_order_type(type),
+            'type': type,
             'timeInForce': timeInForce,
             'postOnly': postOnly,
             'side': side,
@@ -1330,18 +1330,13 @@ class onetrading(Exchange, ImplicitAPI):
             'trades': rawTrades,
         }, market)
 
-    def parse_order_type(self, type: Str):
-        types = {
-            'booked': 'limit',
-        }
-        return self.safe_string(types, type, type)
-
     def parse_time_in_force(self, timeInForce: Str):
         timeInForces = {
             'GOOD_TILL_CANCELLED': 'GTC',
             'GOOD_TILL_TIME': 'GTT',
             'IMMEDIATE_OR_CANCELLED': 'IOC',
             'FILL_OR_KILL': 'FOK',
+            'POST_ONLY': 'PO',
         }
         return self.safe_string(timeInForces, timeInForce, timeInForce)
 

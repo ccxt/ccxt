@@ -111,7 +111,6 @@ export default class onetrading extends Exchange {
     fetchBalance(params?: {}): Promise<Balances>;
     parseOrderStatus(status: Str): Str;
     parseOrder(order: Dict, market?: Market): Order;
-    parseOrderType(type: Str): Str;
     parseTimeInForce(timeInForce: Str): Str;
     /**
      * @method
