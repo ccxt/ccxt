@@ -117,6 +117,13 @@ name = "multi_sub"
 path = "src/multi_sub.rs"
 required-features = ["ws"]
 
+# watchOrders + watchMyTrades at once: both private channels off one user-data
+# stream and one authentication.
+[[bin]]
+name = "watch_orders_and_my_trades"
+path = "src/watch_orders_and_my_trades.rs"
+required-features = ["ws"]
+
 # Live watch_order_book CPU benchmark (5s tick report).
 [[bin]]
 name = "ob_live_bench"
