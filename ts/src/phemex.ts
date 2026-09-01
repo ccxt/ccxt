@@ -2323,13 +2323,17 @@ export default class phemex extends Exchange {
         const types: Dict = {
             '1': 'market',
             '2': 'limit',
-            '3': 'stop',
-            '4': 'stopLimit',
+            // a unified order type is market or limit, and the trigger lives in
+            // triggerPrice, so a code maps to the type its order becomes once
+            // triggered. the numeric and the string encodings of one order have
+            // to agree: 3 is Stop and 4 and 9 are StopLimit
+            '3': 'market',
+            '4': 'limit',
             '5': 'market',
             '6': 'limit',
             '7': 'market',
             '8': 'market',
-            '9': 'stopLimit',
+            '9': 'limit',
             '10': 'market',
             'Limit': 'limit',
             'Market': 'market',
