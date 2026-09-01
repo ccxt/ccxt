@@ -63,7 +63,7 @@ export default class revolutx extends Exchange {
                 '4w': 40320,
             },
             'urls': {
-                'logo': 'https://raw.githubusercontent.com/revolut-engineering/revolut-x-api/master/assets/icon.png',
+                'logo': 'https://github.com/user-attachments/assets/594ab1a5-3985-4f79-89f4-c40ef7c33867',
                 'api': {
                     'public': 'https://revx.revolut.com/api',
                     'private': 'https://revx.revolut.com/api',
