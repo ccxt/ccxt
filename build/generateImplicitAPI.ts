@@ -2,6 +2,7 @@ import ccxt, { Dict, Exchange } from '../ts/ccxt.js';
 import fs from 'fs';
 import { writeFile, unlink } from 'fs/promises';
 import log from 'ololog'
+import { buildTagFor } from './goBuildTags.js';
 
 // ---------------------------------------------------------------------------
 // Read declared Endpoint<Returns> shapes from describe().api leaves via the
@@ -1020,7 +1021,7 @@ function createCSharpHeader(exchange: Exchange, parent: string){
 function createGoHeader(exchange: Exchange, parent: string){
     const namespace = isPrediction ? 'package ccxtprediction' : 'package ccxt'
     storedParents[exchange.id] = parent;
-    storedGoMethods[exchange.id] = [ getPreamble(), namespace, ''];
+    storedGoMethods[exchange.id] = [buildTagFor(exchange.id), '', getPreamble(), namespace, ''];
 }
 
 // -------------------------------------------------------------------------
