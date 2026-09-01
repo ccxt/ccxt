@@ -23,9 +23,8 @@ function testIso8601 () {
     assert (exchange.iso8601 ('') === undefined);
     assert (exchange.iso8601 ('a') === undefined);
     assert (exchange.iso8601 ({}) === undefined);
-    // NB: every assert below must hold byte-for-byte in every language
-    // (js / python / php / c# / go). timestamps stay within the year 1970-9999
-    // range, the only range where all the native date implementations agree.
+    // NB: every assert below must hold byte-for-byte in every language. Timestamps stay within the
+    // year 1970-9999 range, the only range where all the native date implementations agree.
     // 1ms after epoch is asserted above
     assert (exchange.iso8601 (1000) === '1970-01-01T00:00:01.000Z');
     assert (exchange.iso8601 (1001) === '1970-01-01T00:00:01.001Z');
