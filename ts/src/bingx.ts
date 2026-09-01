@@ -4456,6 +4456,7 @@ export default class bingx extends Exchange {
      * @param {number} timeout time in milliseconds, 0 represents cancel the timer
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.type] spot or swap market
+     * @param {string} [params.subType] 'linear' or 'inverse' (default is 'linear'), 'inverse' is not supported
      * @returns {object} the api result
      */
     override async cancelAllOrdersAfter (timeout: Int, params = {}) {
@@ -4470,6 +4471,11 @@ export default class bingx extends Exchange {
         let response: Dict;
         let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('cancelAllOrdersAfter', undefined, params);
+        let subType: SubType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('cancelAllOrdersAfter', undefined, params);
+        if ((type === 'swap') && (subType === 'inverse')) {
+            throw new NotSupported (this.id + ' cancelAllOrdersAfter() is not supported for inverse swap markets');
+        }
         if (type === 'spot') {
             response = await this.spotV1PrivatePostTradeCancelAllAfter (this.extend (request, params));
         } else if (type === 'swap') {
