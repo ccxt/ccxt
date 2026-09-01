@@ -874,7 +874,7 @@ export default class binance extends Exchange {
                         'premiumIndex': { 'cost': 1 } as Endpoint<List>,
                         'ticker/24hr': { 'cost': 1, 'noSymbol': 40 } as Endpoint<Dict | List>,
                         'ticker/price': { 'cost': 1, 'noSymbol': 2 } as Endpoint<Dict | List>,
-                        'ticker/bookTicker': { 'cost': 1, 'noSymbol': 2 } as Endpoint<List>,
+                        'ticker/bookTicker': { 'cost': 2, 'noSymbol': 5 } as Endpoint<Dict | List>,
                         'openInterest': { 'cost': 1 } as Endpoint<Dict>,
                         'indexInfo': { 'cost': 1 } as Endpoint<List>,
                         'assetIndex': { 'cost': 1, 'noSymbol': 10 } as Endpoint<Dict>,
@@ -4734,21 +4734,30 @@ export default class binance extends Exchange {
         [ type, params ] = this.handleMarketTypeAndParams ('fetchBidsAsks', market, params);
         let subType: SubType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchBidsAsks', market, params);
+        const request: Dict = {};
+        if ((symbols !== undefined) && (this.isLinear (type, subType) || this.isInverse (type, subType))) {
+            const symbolsLength = symbols.length;
+            if (symbolsLength === 1) {
+                request['symbol'] = this.marketId (symbols[0]);
+            }
+        }
         let response: NullableDict = undefined;
         if (type === 'option') {
             response = await this.eapiPublicGetTicker (params);
         } else if (this.isLinear (type, subType)) {
-            response = await this.fapiPublicGetTickerBookTicker (params);
+            response = await this.fapiPublicGetTickerBookTicker (this.extend (request, params));
         } else if (this.isInverse (type, subType)) {
-            response = await this.dapiPublicGetTickerBookTicker (params);
+            response = await this.dapiPublicGetTickerBookTicker (this.extend (request, params));
         } else if (type === 'spot') {
-            const request: Dict = {};
             if (symbols !== undefined) {
                 request['symbols'] = this.json (this.marketIds (symbols));
             }
             response = await this.publicGetTickerBookTicker (this.extend (request, params));
         } else {
             throw new NotSupported (this.id + ' fetchBidsAsks() does not support ' + type + ' markets yet');
+        }
+        if (!Array.isArray (response)) {
+            response = [ response ];
         }
         return this.parseTickers (response, symbols);
     }

@@ -339,7 +339,7 @@ class p2b(Exchange, ImplicitAPI):
 
     async def fetch_markets(self, params={}) -> list[Market]:
         """
-        retrieves data on all markets for bigone
+        retrieves data on all markets for p2b
 
         https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#markets
 
@@ -442,7 +442,7 @@ class p2b(Exchange, ImplicitAPI):
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
-        https://futures-docs.poloniex.com/#get-real-time-ticker-of-all-symbols
+        https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#tickers
 
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1158,7 +1158,7 @@ class p2b(Exchange, ImplicitAPI):
 
     async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
-        fetches information on multiple closed orders made by the user, the time between since and params["untnil"] cannot be longer than 24 hours
+        fetches information on multiple closed orders made by the user, the time between since and params["until"] cannot be longer than 24 hours
 
         https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#orders-history-by-market
 

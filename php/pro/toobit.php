@@ -1078,6 +1078,7 @@ class toobit extends \ccxt\async\toobit {
             Async\await($this->load_markets());
         }
         Async\await($this->authenticate());
+        $type = 'swap'; // the only account $type that carries positions here
         $messageHash = '';
         if (!$this->is_empty($symbols)) {
             $symbols = $this->market_symbols($symbols);
@@ -1086,13 +1087,13 @@ class toobit extends \ccxt\async\toobit {
             }
             $messageHash = '::' . implode(',', $symbols);
         }
+        $messageHash = $type . ':positions' . $messageHash;
         $url = $this->get_user_stream_url();
         $client = $this->client($url);
-        Async\await($this->authenticate($url));
-        $this->set_positions_cache($client, $symbols);
-        $cache = $this->positions;
+        $this->set_positions_cache($client, $type, $symbols);
+        $cache = $this->safe_value($this->positions, $type);
         if ($cache === null) {
-            $snapshot = Async\await($client->future('fetchPositionsSnapshot'));
+            $snapshot = Async\await($client->future($type . ':fetchPositionsSnapshot'));
             return $this->filter_by_symbols_since_limit($snapshot, $symbols, $since, $limit, true);
         }
         $newPositions = Async\await($this->watch($url, $messageHash, null, $messageHash));
@@ -1169,8 +1170,7 @@ class toobit extends \ccxt\async\toobit {
         //     }
         // )
         //
-        $subscriptions = is_array($client->subscriptions) ? array_keys($client->subscriptions) : array();
-        $accountType = $subscriptions[0];
+        $accountType = 'swap';
         if ($this->positions === null) {
             $this->positions = array();
         }
@@ -1178,9 +1178,14 @@ class toobit extends \ccxt\async\toobit {
             $this->positions[$accountType] = new ArrayCacheBySymbolBySide();
         }
         $cache = $this->positions[$accountType];
+        // handleMessage's fallback dispatches one item at a time
+        $rawPositions = $message;
+        if ((gettype($message) !== 'array' || array_keys($message) !== array_keys(array_keys($message)))) {
+            $rawPositions = array( $message );
+        }
         $newPositions = array();
-        for ($i = 0; $i < count($message); $i++) {
-            $rawPosition = $message[$i];
+        for ($i = 0; $i < count($rawPositions); $i++) {
+            $rawPosition = $rawPositions[$i];
             $position = $this->parse_ws_position($rawPosition);
             $timestamp = $this->safe_integer($rawPosition, 'E');
             $position['timestamp'] = $timestamp;
@@ -1188,15 +1193,19 @@ class toobit extends \ccxt\async\toobit {
             $newPositions[] = $position;
             $cache->append($position);
         }
-        $messageHashes = $this->find_message_hashes($client, $accountType . ':$positions::');
+        // no local may be named `positions` in this method => build/transpile.ts
+        // appends `$` to every local name wherever it appears, string literals
+        // included, so a local `positions` rewrites the hash prefix below to
+        // ':$positions::' and find_message_hashes () matches nothing in PHP
+        $messageHashes = $this->find_message_hashes($client, $accountType . ':positions::');
         for ($i = 0; $i < count($messageHashes); $i++) {
             $messageHash = $messageHashes[$i];
             $parts = explode('::', $messageHash);
             $symbolsString = $parts[1];
             $symbols = explode(',', $symbolsString);
-            $positions = $this->filter_by_array($newPositions, 'symbol', $symbols, false);
-            if (!$this->is_empty($positions)) {
-                $client->resolve($positions, $messageHash);
+            $filtered = $this->filter_by_array($newPositions, 'symbol', $symbols, false);
+            if (!$this->is_empty($filtered)) {
+                $client->resolve($filtered, $messageHash);
             }
         }
         $client->resolve($newPositions, $accountType . ':positions');
@@ -1237,34 +1246,59 @@ class toobit extends \ccxt\async\toobit {
     }
 
     private function do_authenticate($params = array()) {
-        $client = $this->client($this->get_user_stream_url());
-        $messageHash = 'authenticated';
-        $future = $client->reusableFuture($messageHash);
-        $authenticated = $this->safe_value($client->subscriptions, $messageHash);
-        if ($authenticated === null) {
+        $time = $this->milliseconds();
+        $lastAuthenticatedTime = $this->safe_integer($this->options['ws'], 'lastAuthenticatedTime', 0);
+        $listenKeyRefreshRate = $this->safe_integer($this->options['ws'], 'listenKeyRefreshRate', 1200000);
+        $delay = $this->sum($listenKeyRefreshRate, 10000);
+        if ($time - $lastAuthenticatedTime > $delay) {
             $this->check_required_credentials();
-            $time = $this->milliseconds();
-            $lastAuthenticatedTime = $this->safe_integer($this->options['ws'], 'lastAuthenticatedTime', 0);
-            $listenKeyRefreshRate = $this->safe_integer($this->options['ws'], 'listenKeyRefreshRate', 1200000);
-            $delay = $this->sum($listenKeyRefreshRate, 10000);
-            if ($time - $lastAuthenticatedTime > $delay) {
-                try {
-                    $client->subscriptions[$messageHash] = true;
-                    $response = Async\await($this->privatePostApiV1UserDataStream($params));
-                    $this->options['ws']['listenKey'] = $this->safe_string($response, 'listenKey');
-                    $this->options['ws']['lastAuthenticatedTime'] = $time;
-                    $future->resolve(true);
-                    $this->delay($listenKeyRefreshRate, array($this, 'keep_alive_listen_key'), $params);
-                } catch (Exception $e) {
-                    $err = new AuthenticationError($this->id . ' ' . $this->exception_message($e));
-                    $client->reject($err, $messageHash);
-                    if (is_array($client->subscriptions) && array_key_exists($messageHash ?? '', $client->subscriptions)) {
-                        unset($client->subscriptions[$messageHash]);
-                    }
-                }
+            // single-flight leader election on a never-dialed $client, see
+            // https://github.com/ccxt/ccxt/issues/29393. the election used to
+            // run on $this->client($this->get_user_stream_url()), but that url
+            // embeds the $listenKey it is about to mint, so the $client the
+            // flight registers on is not the $client the next caller looks at:
+            // the cold call elected on .../ws/null and every later call
+            // landed on .../ws/<key> with an empty subscriptions map, found
+            // the key still fresh, skipped the fetch and hung on a $future
+            // nobody resolves. $client->futures is the registry => $client->future()
+            // is the atomic check-and-insert and $client->resolve() /
+            // $client->reject() settle and remove the entry under the same lock
+            // in every port
+            $messageHash = 'authenticate';
+            $client = $this->client('authenticationFlights');
+            if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
+                // a flight is already in progress - wake when the leader
+                // settles it => the $listenKey is then in the bucket
+                Async\await($client->future($messageHash));
+                return;
             }
+            // reusableFuture (), not $future () - the two match in
+            // js/py/php/cs/java, but go's Client.Future () yields a channel
+            // that the trailing suspension point below would panic on
+            $future = $client->reusableFuture($messageHash);
+            try {
+                $response = Async\await($this->privatePostApiV1UserDataStream($params));
+                $listenKey = $this->safe_string($response, 'listenKey');
+                if ($listenKey === null) {
+                    // reject instead of caching an empty credential, so waiters
+                    // retry rather than dial .../ws/null for 20 minutes
+                    throw new AuthenticationError($this->id . ' authenticate() received an empty listenKey');
+                }
+                $this->options['ws']['listenKey'] = $listenKey;
+                $this->options['ws']['lastAuthenticatedTime'] = $time;
+                $this->delay($listenKeyRefreshRate, array($this, 'keep_alive_listen_key'), $params);
+                // settle the flight => $client->resolve() removes the $future from
+                // $client->futures and wakes every waiter
+                $client->resolve($listenKey, $messageHash);
+            } catch (Exception $e) {
+                // reject the flight - waiters throw and the next caller re-leads.
+                // no rethrow here, the trailing suspension point rethrows to this
+                // caller AND attaches the handler an alone leader needs
+                $err = new AuthenticationError($this->id . ' ' . $this->exception_message($e));
+                $client->reject($err, $messageHash);
+            }
+            Async\await($future);
         }
-        return Async\await($future);
     }
 
     public function keep_alive_listen_key($params = array()) {

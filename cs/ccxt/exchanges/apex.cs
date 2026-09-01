@@ -2178,7 +2178,7 @@ public partial class apex : Exchange
             { "info", position },
             { "id", this.safeString(position, "id") },
             { "symbol", symbol },
-            { "entryPrice", this.safeString(position, "entryPrice") },
+            { "entryPrice", this.safeNumber(position, "entryPrice") },
             { "markPrice", null },
             { "notional", null },
             { "collateral", null },

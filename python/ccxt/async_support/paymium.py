@@ -408,7 +408,7 @@ class paymium(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        return self.parse_deposit_addresses(response, codes)
+        return self.parse_deposit_addresses(response, codes, False)
 
     def parse_deposit_address(self, depositAddress: object, currency: Currency = None) -> DepositAddress:
         #

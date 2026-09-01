@@ -7,7 +7,7 @@ namespace ccxt;
 public partial class p2b
 {
     /// <summary>
-    /// retrieves data on all markets for bigone
+    /// retrieves data on all markets for p2b
     /// </summary>
     /// <remarks>
     /// See <see href="https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#markets"/>  <br/>
@@ -30,7 +30,7 @@ public partial class p2b
     /// fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://futures-docs.poloniex.com/#get-real-time-ticker-of-all-symbols"/>  <br/>
+    /// See <see href="https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#tickers"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

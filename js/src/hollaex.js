@@ -1592,7 +1592,7 @@ export default class hollaex extends Exchange {
         //
         const wallet = this.safeValue(response, 'wallet', []);
         const addresses = (network === undefined) ? wallet : this.filterBy(wallet, 'network', network);
-        return this.parseDepositAddresses(addresses, codes);
+        return this.parseDepositAddresses(addresses, codes, false);
     }
     /**
      * @method

@@ -4256,13 +4256,15 @@ final Object finalMinNotional = minNotional;
      * @name bitget#fetchDeposits
      * @description fetch all deposits made to an account
      * @see https://www.bitget.com/api-doc/spot/account/Get-Deposit-Record
+     * @see https://www.bitget.com/api-doc/uta/account/deposit/Get-Deposit-Records
      * @param {string} code unified currency code
-     * @param {int} [since] the earliest time in ms to fetch deposits for
+     * @param {int} [since] the earliest time in ms to fetch deposits for, the window between since and until must not exceed 30 days for uta accounts
      * @param {int} [limit] the maximum number of deposits structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] end time in milliseconds
-     * @param {string} [params.idLessThan] return records with id less than the provided value
+     * @param {string} [params.idLessThan] *non-uta only* return records with id less than the provided value
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchDeposits(Object... optionalArgs)
@@ -4278,17 +4280,31 @@ final Object finalMinNotional = minNotional;
             {
                 (this.loadMarkets()).join();
             }
+            Object uta = null;
+            var utaparametersVariable = (this.handleUTAAndParams(parameters, "fetchDeposits", false)).join();
+            uta = ((java.util.List<Object>) utaparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) utaparametersVariable).get(1);
             Object paginate = false;
             var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchDeposits", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
             {
+                if (Helpers.isTrue(Helpers.isEqual(uta, true)))
+                {
+                    return (this.fetchPaginatedCallCursor("fetchDeposits", null, since, limit, parameters, "orderId", "cursor", null, 100)).join();
+                }
                 return (this.fetchPaginatedCallCursor("fetchDeposits", null, since, limit, parameters, "idLessThan", "idLessThan", null, 100)).join();
             }
             if (Helpers.isTrue(Helpers.isEqual(since, null)))
             {
-                since = Helpers.subtract(this.milliseconds(), 7776000000L); // 90 days
+                if (Helpers.isTrue(Helpers.isEqual(uta, true)))
+                {
+                    since = Helpers.subtract(this.milliseconds(), 2592000000L); // uta allows a window of 30 days at most
+                } else
+                {
+                    since = Helpers.subtract(this.milliseconds(), 7776000000L); // 90 days
+                }
             }
             final Object finalSince = since;
             Object request = new java.util.HashMap<String, Object>() {{
@@ -4308,7 +4324,14 @@ final Object finalMinNotional = minNotional;
             var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            Object response = (this.privateSpotGetV2SpotWalletDepositRecords(this.extend(request, parameters))).join();
+            Object response = null;
+            if (Helpers.isTrue(Helpers.isEqual(uta, true)))
+            {
+                response = (this.privateUtaGetV3AccountDepositRecords(this.extend(request, parameters))).join();
+            } else
+            {
+                response = (this.privateSpotGetV2SpotWalletDepositRecords(this.extend(request, parameters))).join();
+            }
             //
             //     {
             //         "code": "00000",
@@ -4332,6 +4355,31 @@ final Object finalMinNotional = minNotional;
             //         ]
             //     }
             //
+            // uta
+            //
+            //     {
+            //         "code": "00000",
+            //         "msg": "success",
+            //         "requestTime": 1787918939871,
+            //         "data": [
+            //             {
+            //                 "orderId": "1477183242218870001",
+            //                 "recordId": "0999e9fc8dfa7d65e5a9e3d7b9c9c9cf7c283621442dd0be6feb502b89545e95",
+            //                 "coin": "USDT",
+            //                 "type": "deposit",
+            //                 "size": "30",
+            //                 "status": "success",
+            //                 "toAddress": "TKtjsywjRu4HechtABGJBVhkDJtwYcMVfc",
+            //                 "dest": "on_chain",
+            //                 "chain": "TRC20",
+            //                 "createdTime": "1787913850359",
+            //                 "updatedTime": "1787913880178",
+            //                 "fromAddress": "TFcWfiw5p5DDZ6vi6Bktf7yK1asRYLpN33",
+            //                 "clientOid": null
+            //             }
+            //         ]
+            //     }
+            //
             Object rawTransactions = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTransactions(rawTransactions, null, since, limit);
         });
@@ -4343,12 +4391,14 @@ final Object finalMinNotional = minNotional;
      * @name bitget#withdraw
      * @description make a withdrawal
      * @see https://www.bitget.com/api-doc/spot/account/Wallet-Withdrawal
+     * @see https://www.bitget.com/api-doc/uta/account/withdrawal/
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
      * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.chain] the blockchain network the withdrawal is taking place on
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> withdraw(Object code, Object amount, Object address, Object... optionalArgs)
@@ -4371,6 +4421,10 @@ final Object finalMinNotional = minNotional;
             {
                 (this.loadMarkets()).join();
             }
+            Object uta = null;
+            var utaparametersVariable = (this.handleUTAAndParams(parameters, "withdraw", false)).join();
+            uta = ((java.util.List<Object>) utaparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) utaparametersVariable).get(1);
             Object currency = this.currency(code);
             Object networkId = this.networkCodeToId(networkCode, code);
             final Object finalNetworkCode = networkCode;
@@ -4385,7 +4439,14 @@ final Object finalMinNotional = minNotional;
             {
                 Helpers.addElementToObject(request, "tag", tag);
             }
-            Object response = (this.privateSpotPostV2SpotWalletWithdrawal(this.extend(request, parameters))).join();
+            Object response = null;
+            if (Helpers.isTrue(Helpers.isEqual(uta, true)))
+            {
+                response = (this.privateUtaPostV3AccountWithdrawal(this.extend(request, parameters))).join();
+            } else
+            {
+                response = (this.privateSpotPostV2SpotWalletWithdrawal(this.extend(request, parameters))).join();
+            }
             //
             //     {
             //          "code":"00000",
@@ -4421,13 +4482,15 @@ final Object finalMinNotional = minNotional;
      * @name bitget#fetchWithdrawals
      * @description fetch all withdrawals made from an account
      * @see https://www.bitget.com/api-doc/spot/account/Get-Withdraw-Record
+     * @see https://www.bitget.com/api-doc/uta/account/withdrawal/Get-Withdrawal-Records
      * @param {string} code unified currency code
-     * @param {int} [since] the earliest time in ms to fetch withdrawals for
+     * @param {int} [since] the earliest time in ms to fetch withdrawals for, the window between since and until must not exceed 30 days for uta accounts
      * @param {int} [limit] the maximum number of withdrawals structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] end time in milliseconds
-     * @param {string} [params.idLessThan] return records with id less than the provided value
+     * @param {string} [params.idLessThan] *non-uta only* return records with id less than the provided value
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchWithdrawals(Object... optionalArgs)
@@ -4443,12 +4506,20 @@ final Object finalMinNotional = minNotional;
             {
                 (this.loadMarkets()).join();
             }
+            Object uta = null;
+            var utaparametersVariable = (this.handleUTAAndParams(parameters, "fetchWithdrawals", false)).join();
+            uta = ((java.util.List<Object>) utaparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) utaparametersVariable).get(1);
             Object paginate = false;
             var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchWithdrawals", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
             {
+                if (Helpers.isTrue(Helpers.isEqual(uta, true)))
+                {
+                    return (this.fetchPaginatedCallCursor("fetchWithdrawals", null, since, limit, parameters, "orderId", "cursor", null, 100)).join();
+                }
                 return (this.fetchPaginatedCallCursor("fetchWithdrawals", null, since, limit, parameters, "idLessThan", "idLessThan", null, 100)).join();
             }
             Object currency = null;
@@ -4458,7 +4529,13 @@ final Object finalMinNotional = minNotional;
             }
             if (Helpers.isTrue(Helpers.isEqual(since, null)))
             {
-                since = Helpers.subtract(this.milliseconds(), 7776000000L); // 90 days
+                if (Helpers.isTrue(Helpers.isEqual(uta, true)))
+                {
+                    since = Helpers.subtract(this.milliseconds(), 2592000000L); // uta allows a window of 30 days at most
+                } else
+                {
+                    since = Helpers.subtract(this.milliseconds(), 7776000000L); // 90 days
+                }
             }
             final Object finalSince = since;
             Object request = new java.util.HashMap<String, Object>() {{
@@ -4476,7 +4553,14 @@ final Object finalMinNotional = minNotional;
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.privateSpotGetV2SpotWalletWithdrawalRecords(this.extend(request, parameters))).join();
+            Object response = null;
+            if (Helpers.isTrue(Helpers.isEqual(uta, true)))
+            {
+                response = (this.privateUtaGetV3AccountWithdrawalRecords(this.extend(request, parameters))).join();
+            } else
+            {
+                response = (this.privateSpotGetV2SpotWalletWithdrawalRecords(this.extend(request, parameters))).join();
+            }
             //
             //     {
             //         "code": "00000",
@@ -4499,6 +4583,33 @@ final Object finalMinNotional = minNotional;
             //                 "fromAddress": null,
             //                 "cTime": "1694131668281",
             //                 "uTime": "1694131680247"
+            //             }
+            //         ]
+            //     }
+            //
+            // uta
+            //
+            //     {
+            //         "code": "00000",
+            //         "msg": "success",
+            //         "requestTime": 1787918941219,
+            //         "data": [
+            //             {
+            //                 "orderId": "1477203433330230002",
+            //                 "recordId": "855182adcdbf968e6c0854de1d9ef04f9542ae27337f87ccbe2f6d1e995ec01b",
+            //                 "coin": "USDT",
+            //                 "type": "withdraw",
+            //                 "size": "30",
+            //                 "status": "success",
+            //                 "toAddress": "TFcWfiw5p5DDZ6vi6Bktf7yK1asRYLpN33",
+            //                 "dest": "on_chain",
+            //                 "chain": "TRC20",
+            //                 "createdTime": "1787918664295",
+            //                 "updatedTime": "1787918826202",
+            //                 "fromAddress": "TU8P3KLsV7YhkUvF9nWxjigMqv2c2mqNC9",
+            //                 "fee": "-1.5",
+            //                 "confirm": "5",
+            //                 "clientOid": null
             //             }
             //         ]
             //     }
@@ -4549,13 +4660,30 @@ final Object finalMinNotional = minNotional;
         //         "uTime": "1694131680247"
         //     }
         //
+        // fetchDeposits & fetchWithdrawals uta rows use the same fields, except
+        //
+        //     {
+        //         "recordId": "63dbe57f0f0a5f6d3e74ff1b07e4c4f5332b96fec74c14190a52e0cea1726364",
+        //         "createdTime": "1787913850359",
+        //         "updatedTime": "1787913880178"
+        //     }
+        //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Object currencyId = this.safeString(transaction, "coin");
         Object code = this.safeCurrencyCode(currencyId, currency);
-        Object timestamp = this.safeInteger(transaction, "cTime");
+        Object timestamp = this.safeInteger2(transaction, "cTime", "createdTime");
         Object networkId = this.safeString(transaction, "chain");
         Object status = this.safeString(transaction, "status");
         Object tag = this.safeString(transaction, "tag");
+        Object txid = this.safeString(transaction, "tradeId");
+        if (Helpers.isTrue(Helpers.isEqual(txid, null)))
+        {
+            Object dest = this.safeString(transaction, "dest");
+            if (Helpers.isTrue(Helpers.isEqual(dest, "on_chain")))
+            {
+                txid = this.safeString(transaction, "recordId"); // uta on-chain rows expose the tx hash as recordId
+            }
+        }
         Object feeCostString = this.safeString(transaction, "fee");
         Object feeCostAbsString = null;
         if (Helpers.isTrue(!Helpers.isEqual(feeCostString, null)))
@@ -4573,12 +4701,13 @@ final Object finalMinNotional = minNotional;
             }};
             amountString = Precise.stringSub(amountString, feeCostAbsString);
         }
+        final Object finalTxid = txid;
         final Object finalAmountString = amountString;
         final Object finalFee = fee;
         return new java.util.HashMap<String, Object>() {{
             put( "id", BitgetCore.this.safeString(transaction, "orderId") );
             put( "info", transaction );
-            put( "txid", BitgetCore.this.safeString(transaction, "tradeId") );
+            put( "txid", finalTxid );
             put( "timestamp", timestamp );
             put( "datetime", BitgetCore.this.iso8601(timestamp) );
             put( "network", BitgetCore.this.networkIdToCode(networkId, code) );
@@ -4586,10 +4715,10 @@ final Object finalMinNotional = minNotional;
             put( "address", BitgetCore.this.safeString(transaction, "toAddress") );
             put( "addressTo", BitgetCore.this.safeString(transaction, "toAddress") );
             put( "amount", BitgetCore.this.parseNumber(finalAmountString) );
-            put( "type", BitgetCore.this.safeString(transaction, "type") );
+            put( "type", BitgetCore.this.parseTransactionType(BitgetCore.this.safeString(transaction, "type")) );
             put( "currency", code );
             put( "status", BitgetCore.this.parseTransactionStatus(status) );
-            put( "updated", BitgetCore.this.safeInteger(transaction, "uTime") );
+            put( "updated", BitgetCore.this.safeInteger2(transaction, "uTime", "updatedTime") );
             put( "tagFrom", null );
             put( "tag", tag );
             put( "tagTo", tag );
@@ -4599,13 +4728,24 @@ final Object finalMinNotional = minNotional;
         }};
     }
 
+    public Object parseTransactionType(Object type)
+    {
+        // the wire says withdraw, and a unified transaction says withdrawal
+        Object types = new java.util.HashMap<String, Object>() {{
+            put( "withdraw", "withdrawal" );
+        }};
+        return this.safeString(types, ((String)type), type);
+    }
+
     public Object parseTransactionStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "success", "ok" );
             put( "Pending", "pending" );
+            put( "pending", "pending" );
             put( "pending_review", "pending" );
             put( "pending_review_fail", "failed" );
+            put( "fail", "failed" );
             put( "reject", "failed" );
         }};
         return this.safeString(statuses, ((String)status), status);
@@ -4616,8 +4756,10 @@ final Object finalMinNotional = minNotional;
      * @name bitget#fetchDepositAddress
      * @description fetch the deposit address for a currency associated with this account
      * @see https://www.bitget.com/api-doc/spot/account/Get-Deposit-Address
+     * @see https://www.bitget.com/api-doc/uta/account/deposit/Get-Deposit-Address
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchDepositAddress(Object code, Object... optionalArgs)
@@ -4630,6 +4772,10 @@ final Object finalMinNotional = minNotional;
             {
                 (this.loadMarkets()).join();
             }
+            Object uta = null;
+            var utaparametersVariable = (this.handleUTAAndParams(parameters, "fetchDepositAddress", false)).join();
+            uta = ((java.util.List<Object>) utaparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) utaparametersVariable).get(1);
             Object networkCode = null;
             var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
             networkCode = ((java.util.List<Object>) networkCodeparametersVariable).get(0);
@@ -4642,7 +4788,14 @@ final Object finalMinNotional = minNotional;
             {
                 Helpers.addElementToObject(request, "chain", this.networkCodeToId(networkCode, code));
             }
-            Object response = (this.privateSpotGetV2SpotWalletDepositAddress(this.extend(request, parameters))).join();
+            Object response = null;
+            if (Helpers.isTrue(Helpers.isEqual(uta, true)))
+            {
+                response = (this.privateUtaGetV3AccountDepositAddress(this.extend(request, parameters))).join();
+            } else
+            {
+                response = (this.privateSpotGetV2SpotWalletDepositAddress(this.extend(request, parameters))).join();
+            }
             //
             //     {
             //         "code": "00000",

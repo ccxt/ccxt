@@ -2045,6 +2045,172 @@
                     "takeProfitPrice": null,
                     "stopLossPrice": null
                 }
+            },
+            {
+                "description": "symbol perp reduce-only sell close",
+                "method": "fetchOrder",
+                "input": [
+                    "2037002207614807297",
+                    "ETH/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "time": "1757565585984",
+                    "updateTime": "1757565586012",
+                    "orderId": "2037002207614807297",
+                    "clientOrderId": "d0d5b0f6-2f1e-4b0e-9c7a-6f6a1f0f4d21",
+                    "symbol": "ETH-SWAP-USDT",
+                    "price": "5000",
+                    "leverage": "50",
+                    "origQty": "1",
+                    "executedQty": "1",
+                    "executeQty": "1",
+                    "avgPrice": "5000.5",
+                    "marginLocked": "0",
+                    "type": "LIMIT",
+                    "side": "SELL_CLOSE",
+                    "timeInForce": "GTC",
+                    "status": "FILLED",
+                    "priceType": "INPUT",
+                    "triggerType": "0",
+                    "fallType": "0",
+                    "activeStatus": "0"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "time": "1757565585984",
+                        "updateTime": "1757565586012",
+                        "orderId": "2037002207614807297",
+                        "clientOrderId": "d0d5b0f6-2f1e-4b0e-9c7a-6f6a1f0f4d21",
+                        "symbol": "ETH-SWAP-USDT",
+                        "price": "5000",
+                        "leverage": "50",
+                        "origQty": "1",
+                        "executedQty": "1",
+                        "executeQty": "1",
+                        "avgPrice": "5000.5",
+                        "marginLocked": "0",
+                        "type": "LIMIT",
+                        "side": "SELL_CLOSE",
+                        "timeInForce": "GTC",
+                        "status": "FILLED",
+                        "priceType": "INPUT",
+                        "triggerType": "0",
+                        "fallType": "0",
+                        "activeStatus": "0"
+                    },
+                    "id": "2037002207614807297",
+                    "clientOrderId": "d0d5b0f6-2f1e-4b0e-9c7a-6f6a1f0f4d21",
+                    "timestamp": 1757565585984,
+                    "datetime": "2025-09-11T04:39:45.984Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": 1757565586012,
+                    "status": "closed",
+                    "symbol": "ETH/USDT:USDT",
+                    "type": "limit",
+                    "timeInForce": "GTC",
+                    "postOnly": false,
+                    "side": "sell",
+                    "price": 5000,
+                    "triggerPrice": null,
+                    "cost": 50.005,
+                    "average": 5000.5,
+                    "amount": 1,
+                    "filled": 1,
+                    "remaining": 0,
+                    "trades": [],
+                    "fee": null,
+                    "marginMode": null,
+                    "reduceOnly": true,
+                    "leverage": null,
+                    "hedged": null,
+                    "fees": [],
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            },
+            {
+                "description": "symbol perp reduce-only buy close",
+                "method": "fetchOrder",
+                "input": [
+                    "2037002207614807298",
+                    "ETH/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "time": "1757565585984",
+                    "updateTime": "1757565586012",
+                    "orderId": "2037002207614807298",
+                    "clientOrderId": "d0d5b0f6-2f1e-4b0e-9c7a-6f6a1f0f4d22",
+                    "symbol": "ETH-SWAP-USDT",
+                    "price": "5000",
+                    "leverage": "50",
+                    "origQty": "1",
+                    "executedQty": "1",
+                    "executeQty": "1",
+                    "avgPrice": "4999.5",
+                    "marginLocked": "0",
+                    "type": "LIMIT",
+                    "side": "BUY_CLOSE",
+                    "timeInForce": "GTC",
+                    "status": "FILLED",
+                    "priceType": "INPUT",
+                    "triggerType": "0",
+                    "fallType": "0",
+                    "activeStatus": "0"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "time": "1757565585984",
+                        "updateTime": "1757565586012",
+                        "orderId": "2037002207614807298",
+                        "clientOrderId": "d0d5b0f6-2f1e-4b0e-9c7a-6f6a1f0f4d22",
+                        "symbol": "ETH-SWAP-USDT",
+                        "price": "5000",
+                        "leverage": "50",
+                        "origQty": "1",
+                        "executedQty": "1",
+                        "executeQty": "1",
+                        "avgPrice": "4999.5",
+                        "marginLocked": "0",
+                        "type": "LIMIT",
+                        "side": "BUY_CLOSE",
+                        "timeInForce": "GTC",
+                        "status": "FILLED",
+                        "priceType": "INPUT",
+                        "triggerType": "0",
+                        "fallType": "0",
+                        "activeStatus": "0"
+                    },
+                    "id": "2037002207614807298",
+                    "clientOrderId": "d0d5b0f6-2f1e-4b0e-9c7a-6f6a1f0f4d22",
+                    "timestamp": 1757565585984,
+                    "datetime": "2025-09-11T04:39:45.984Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": 1757565586012,
+                    "status": "closed",
+                    "symbol": "ETH/USDT:USDT",
+                    "type": "limit",
+                    "timeInForce": "GTC",
+                    "postOnly": false,
+                    "side": "buy",
+                    "price": 5000,
+                    "triggerPrice": null,
+                    "cost": 49.995,
+                    "average": 4999.5,
+                    "amount": 1,
+                    "filled": 1,
+                    "remaining": 0,
+                    "trades": [],
+                    "fee": null,
+                    "marginMode": null,
+                    "reduceOnly": true,
+                    "leverage": null,
+                    "hedged": null,
+                    "fees": [],
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
             }
         ],
         "fetchTicker": [
@@ -2341,7 +2507,25 @@
                         "t": "1757452146378"
                     }
                 ],
-                "parsedResponse": {}
+                "parsedResponse": {
+                    "BTC/USDT:USDT": {
+                        "timestamp": 1757452146378,
+                        "datetime": "2025-09-09T21:09:06.378Z",
+                        "symbol": "BTC/USDT:USDT",
+                        "bid": 111534.2,
+                        "bidVolume": 13327,
+                        "ask": 111534.3,
+                        "askVolume": 41509,
+                        "info": {
+                            "s": "BTC-SWAP-USDT",
+                            "b": "111534.2",
+                            "bq": "13327",
+                            "a": "111534.3",
+                            "aq": "41509",
+                            "t": "1757452146378"
+                        }
+                    }
+                }
             },
             {
                 "description": "fetchBidsAsks symbol spot",
@@ -2361,7 +2545,25 @@
                         "t": "1757451755045"
                     }
                 ],
-                "parsedResponse": {}
+                "parsedResponse": {
+                    "BTC/USDT": {
+                        "timestamp": 1757451755045,
+                        "datetime": "2025-09-09T21:02:35.045Z",
+                        "symbol": "BTC/USDT",
+                        "bid": 111433.04,
+                        "bidVolume": 5.212862,
+                        "ask": 111433.05,
+                        "askVolume": 4.212823,
+                        "info": {
+                            "s": "BTCUSDT",
+                            "b": "111433.04",
+                            "bq": "5.212862",
+                            "a": "111433.05",
+                            "aq": "4.212823",
+                            "t": "1757451755045"
+                        }
+                    }
+                }
             },
             {
                 "description": "fetchBidsAsks no args",
@@ -2387,7 +2589,8 @@
                 ],
                 "parsedResponse": {
                     "GRDRUSDT": {
-                        "timestamp": "1757451438940",
+                        "timestamp": 1757451438940,
+                        "datetime": "2025-09-09T20:57:18.940Z",
                         "symbol": "GRDRUSDT",
                         "bid": 0,
                         "bidVolume": 0,
@@ -2403,7 +2606,8 @@
                         }
                     },
                     "DOGEIUSDT": {
-                        "timestamp": "1757451561717",
+                        "timestamp": 1757451561717,
+                        "datetime": "2025-09-09T20:59:21.717Z",
                         "symbol": "DOGEIUSDT",
                         "bid": 3.2e-8,
                         "bidVolume": 156562500,

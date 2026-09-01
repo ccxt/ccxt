@@ -3348,7 +3348,9 @@ class poloniex extends poloniex$1["default"] {
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             marketId = this.safeString(entry, 'symbol');
-            marginMode = this.safeString(entry, 'mgnMode');
+            // mgnMode arrives upper case; parseOrder and parsePosition read the
+            // same field with safeStringLower
+            marginMode = this.safeStringLower(entry, 'mgnMode');
             const lever = this.safeInteger(entry, 'lever');
             const posSide = this.safeString(entry, 'posSide');
             if (posSide === 'LONG') {

@@ -1866,7 +1866,7 @@ class apex(Exchange, ImplicitAPI):
             'info': position,
             'id': self.safe_string(position, 'id'),
             'symbol': symbol,
-            'entryPrice': self.safe_string(position, 'entryPrice'),
+            'entryPrice': self.safe_number(position, 'entryPrice'),
             'markPrice': None,
             'notional': None,
             'collateral': None,

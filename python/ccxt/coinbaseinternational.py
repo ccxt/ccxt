@@ -89,8 +89,8 @@ class coinbaseinternational(Exchange, ImplicitAPI):
                 'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
-                'fetchMyBuys': True,
-                'fetchMySells': True,
+                'fetchMyBuys': False,
+                'fetchMySells': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenInterestHistory': False,
@@ -1824,6 +1824,9 @@ class coinbaseinternational(Exchange, ImplicitAPI):
 
     def parse_order_status(self, status: Str):
         statuses = {
+            # order_status carries WORKING and DONE; the other keys are event_type
+            # values, which the same payload reports in its own field
+            'WORKING': 'open',
             'NEW': 'open',
             'PARTIAL_FILLED': 'open',
             'FILLED': 'closed',

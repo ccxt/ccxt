@@ -2003,7 +2003,7 @@ func (this *HollaexCore) fetchDepositAddressesBody(ch chan any, optionalArgs ...
 	var wallet any = this.SafeValue(response, "wallet", []any{})
 	var addresses any = Ternary(IsTrue((IsEqual(network, nil))), wallet, this.FilterBy(wallet, "network", network))
 
-	ch <- this.ParseDepositAddresses(addresses, codes)
+	ch <- this.ParseDepositAddresses(addresses, codes, false)
 	return nil
 }
 
