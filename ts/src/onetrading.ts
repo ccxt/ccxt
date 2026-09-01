@@ -594,7 +594,7 @@ export default class onetrading extends Exchange {
             'swap': isPerp,
             'future': isFuture,
             'option': false,
-            'active': (state === 'ACTIVE') || (state === 'POST_ONLY'), // POST_ONLY markets accept maker orders
+            'active': (state === 'ACTIVE') || (state === 'POST_ONLY'), // POST_ONLY markets accept maker orders and reject taker orders — deliberately flagged tradeable rather than hidden, ccxt has no partial-trading flag
             'contract': isContract,
             'linear': isContract ? true : undefined,
             'inverse': isContract ? false : undefined,
