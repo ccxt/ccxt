@@ -1170,7 +1170,7 @@ export default class bingx extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
-     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch (max 1440)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
@@ -1190,16 +1190,21 @@ export default class bingx extends Exchange {
             'symbol': market['id'],
         };
         request['interval'] = this.safeString (this.timeframes, timeframe, timeframe);
+        const maxLimit = 1440;
+        const requestLimit = (limit === undefined) ? 500 : Math.min (limit, maxLimit);
         if (since !== undefined) {
             request['startTime'] = Math.max (since - 1, 0);
         }
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = requestLimit;
         }
         const until = this.safeInteger2 (params, 'until', 'endTime');
         if (until !== undefined) {
             params = this.omit (params, [ 'until' ]);
             request['endTime'] = until;
+        } else if ((market['inverse'] === true) && (since !== undefined)) {
+            const duration = this.parseTimeframe (timeframe) * 1000;
+            request['endTime'] = since + (duration * requestLimit);
         }
         let response: Dict;
         if (market['spot'] === true) {

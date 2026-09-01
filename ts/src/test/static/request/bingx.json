@@ -1786,11 +1786,33 @@
                 ]
             },
             {
+                "description": "spot ohlcv caps limit",
+                "method": "fetchOHLCV",
+                "url": "https://open-api.bingx.com/openApi/spot/v1/market/kline?interval=1m&limit=1440&symbol=BTC-USDT&timeZone=0&timestamp=1709992986762",
+                "input": [
+                    "BTC/USDT",
+                    "1m",
+                    null,
+                    1500
+                ]
+            },
+            {
                 "description": "swap ohlcv",
                 "method": "fetchOHLCV",
                 "url": "https://open-api.bingx.com/openApi/swap/v3/quote/klines?interval=1m&symbol=BTC-USDT&timestamp=1709992987069",
                 "input": [
                     "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "swap ohlcv caps limit",
+                "method": "fetchOHLCV",
+                "url": "https://open-api.bingx.com/openApi/swap/v3/quote/klines?interval=1m&limit=1440&symbol=BTC-USDT&timestamp=1709992987069",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1m",
+                    null,
+                    1500
                 ]
             },
             {
@@ -1802,6 +1824,27 @@
                   "1m",
                   null,
                   3
+                ]
+            },
+            {
+                "description": "inverse swap ohlcv bounds since and caps limit",
+                "method": "fetchOHLCV",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/market/klines?endTime=1720159200000&interval=1m&limit=1440&startTime=1720072799999&symbol=BTC-USD&timestamp=1720124710777",
+                "input": [
+                  "BTC/USD:BTC",
+                  "1m",
+                  1720072800000,
+                  1500
+                ]
+            },
+            {
+                "description": "inverse swap ohlcv bounds since with default limit",
+                "method": "fetchOHLCV",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/market/klines?endTime=1720102800000&interval=1m&startTime=1720072799999&symbol=BTC-USD&timestamp=1720124710777",
+                "input": [
+                  "BTC/USD:BTC",
+                  "1m",
+                  1720072800000
                 ]
             }
         ],
