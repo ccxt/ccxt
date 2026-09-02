@@ -157,3 +157,8 @@ required-features = ["ws"]
 [[bin]]
 name = "multi_exchange_ohlcv_chart"
 path = "src/multi_exchange_ohlcv_chart.rs"
+
+[[bin]]
+name = "binance-with-proxy"
+path = "src/binance_with_proxy.rs"
+required-features = ["ws"]

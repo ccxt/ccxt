@@ -736,6 +736,12 @@ impl Exchange {
         if let Some(v) = safe_string(cfg, "accountId",     None) { self.accountId     = Value::Str(v); }
         if let Some(v) = safe_string(cfg, "httpProxy",     None) { self.httpProxy     = Value::Str(v); }
         if let Some(v) = safe_string(cfg, "httpsProxy",    None) { self.httpsProxy    = Value::Str(v); }
+        if let Some(v) = safe_string(cfg, "socksProxy",    None) { self.socksProxy    = Value::Str(v); }
+        // WS proxies: the `watch*` transport dials these through an HTTP
+        // CONNECT tunnel. Without them here a config-supplied `wsProxy` set
+        // the field on nothing and the socket quietly went direct.
+        if let Some(v) = safe_string(cfg, "wsProxy",       None) { self.wsProxy       = Value::Str(v); }
+        if let Some(v) = safe_string(cfg, "wssProxy",      None) { self.wssProxy      = Value::Str(v); }
         if let Some(b) = crate::value::safe_bool(cfg, "verbose",         None) { self.verbose         = Value::Bool(b); }
         if let Some(b) = crate::value::safe_bool(cfg, "enableRateLimit", None) { self.enableRateLimit = Value::Bool(b); }
         // Pre-populated state (mirrors CCXT TS Exchange constructor):
@@ -1185,7 +1191,10 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
         subscribe_hashes: Vec<String>,
         subscription: Value,
     ) -> impl ::std::future::Future<Output = Value> + Send { async move {
-        let client = match crate::pro::ws_client::ensure_client(&url).await {
+        let __ws_proxy = [&self.wsProxy, &self.ws_proxy, &self.wssProxy]
+            .iter()
+            .find_map(|v| match v { Value::Str(s) if !s.is_empty() => Some(s.clone()), _ => None });
+        let client = match crate::pro::ws_client::ensure_client(&url, __ws_proxy).await {
             Ok(c) => c,
             Err(e) => panic!("{}", e),
         };

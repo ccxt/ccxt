@@ -452,7 +452,58 @@ pub fn value_sub_field_write(subref: &str, key: &str, val: Value) {
 
 /// Ensure a live connection to `url`, connecting (and spawning the reader /
 /// writer / keep-alive tasks) if needed. Idempotent per URL.
-pub async fn ensure_client(url: &str) -> Result<Arc<ClientState>, String> {
+/// Open an HTTP CONNECT tunnel to `proxy` and hand the raw stream to
+/// tungstenite. `connect_async` has no proxy support of its own, so a venue
+/// reached through `wsProxy` / `wssProxy` has to be dialed this way.
+async fn connect_via_proxy(
+    url: &str,
+    proxy: &str,
+) -> Result<tokio_tungstenite::WebSocketStream<
+        tokio_tungstenite::MaybeTlsStream<tokio::net::TcpStream>>, String> {
+    use tokio::io::{AsyncReadExt, AsyncWriteExt};
+    let target = url::Url::parse(url).map_err(|e| format!("[NetworkError] ws url {url}: {e}"))?;
+    let host = target.host_str().ok_or_else(|| format!("[NetworkError] ws url {url} has no host"))?;
+    let port = target.port_or_known_default().unwrap_or(443);
+    let p = url::Url::parse(proxy).map_err(|e| format!("[NetworkError] ws proxy {proxy}: {e}"))?;
+    let p_host = p.host_str().ok_or_else(|| format!("[NetworkError] ws proxy {proxy} has no host"))?;
+    let p_port = p.port_or_known_default().unwrap_or(8080);
+    let mut stream = tokio::net::TcpStream::connect((p_host, p_port))
+        .await
+        .map_err(|e| format!("[NetworkError] ws proxy connect {proxy}: {e}"))?;
+    let connect = format!(
+        "CONNECT {host}:{port} HTTP/1.1\r\nHost: {host}:{port}\r\nProxy-Connection: Keep-Alive\r\n\r\n"
+    );
+    stream
+        .write_all(connect.as_bytes())
+        .await
+        .map_err(|e| format!("[NetworkError] ws proxy CONNECT {proxy}: {e}"))?;
+    let mut head = Vec::new();
+    let mut byte = [0u8; 1];
+    while !head.ends_with(b"\r\n\r\n") {
+        let n = stream
+            .read(&mut byte)
+            .await
+            .map_err(|e| format!("[NetworkError] ws proxy CONNECT {proxy}: {e}"))?;
+        if n == 0 {
+            return Err(format!("[NetworkError] ws proxy {proxy} closed during CONNECT"));
+        }
+        head.push(byte[0]);
+        if head.len() > 8192 {
+            return Err(format!("[NetworkError] ws proxy {proxy} sent an oversized CONNECT reply"));
+        }
+    }
+    let status = String::from_utf8_lossy(&head);
+    let first = status.lines().next().unwrap_or_default();
+    if !first.contains(" 200") {
+        return Err(format!("[NetworkError] ws proxy {proxy} refused CONNECT: {first}"));
+    }
+    let (ws, _resp) = tokio_tungstenite::client_async_tls(url, stream)
+        .await
+        .map_err(|e| format!("[NetworkError] ws connect {url} via {proxy}: {e}"))?;
+    Ok(ws)
+}
+
+pub async fn ensure_client(url: &str, proxy: Option<String>) -> Result<Arc<ClientState>, String> {
     let state = ensure_slot(url);
     if *state.connected.lock().unwrap() {
         return Ok(state);
@@ -464,9 +515,15 @@ pub async fn ensure_client(url: &str) -> Result<Arc<ClientState>, String> {
     if *state.connected.lock().unwrap() {
         return Ok(state);
     }
-    let (ws, _resp) = tokio_tungstenite::connect_async(url)
-        .await
-        .map_err(|e| format!("[NetworkError] ws connect {url}: {e}"))?;
+    let ws = match proxy.as_deref().filter(|p| !p.is_empty()) {
+        Some(p) => connect_via_proxy(url, p).await?,
+        None => {
+            let (ws, _resp) = tokio_tungstenite::connect_async(url)
+                .await
+                .map_err(|e| format!("[NetworkError] ws connect {url}: {e}"))?;
+            ws
+        }
+    };
     let (mut write, mut read) = ws.split();
     let mut rx = state.pending_rx.lock().unwrap().take()
         .ok_or_else(|| format!("[NetworkError] ws {url} slot has no writer channel"))?;
@@ -883,7 +940,7 @@ mod tests {
     #[tokio::test]
     async fn transport_roundtrip() {
         let url = spawn_mock_server().await;
-        let client = ensure_client(&url).await.expect("connect");
+        let client = ensure_client(&url, None).await.expect("connect");
 
         // Send a subscribe frame once (idempotent per hash).
         assert!(client.subscribe_once("ticker:BTC/USDT", Value::Null));
