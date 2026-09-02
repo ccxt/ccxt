@@ -3285,7 +3285,11 @@ export default class bingx extends Exchange {
                         slRequest['price'] = this.parseToNumeric (this.priceToPrecision (symbol, slPrice));
                     }
                     const slQuantity = this.safeString (stopLossDict, 'quantity', stringifiedAmount);
-                    slRequest['quantity'] = this.parseToNumeric (this.amountToPrecision (symbol, slQuantity));
+                    let slQuantityRequest = this.parseToNumeric (slQuantity);
+                    if (!market['inverse']) {
+                        slQuantityRequest = this.parseToNumeric (this.amountToPrecision (symbol, slQuantity));
+                    }
+                    slRequest['quantity'] = slQuantityRequest;
                     request['stopLoss'] = this.json (slRequest);
                 }
                 if (hasTakeProfit) {
@@ -3302,7 +3306,11 @@ export default class bingx extends Exchange {
                         tpRequest['price'] = this.parseToNumeric (this.priceToPrecision (symbol, slPrice));
                     }
                     const tkQuantity = this.safeString (takeProfitDict, 'quantity', stringifiedAmount);
-                    tpRequest['quantity'] = this.parseToNumeric (this.amountToPrecision (symbol, tkQuantity));
+                    let tkQuantityRequest = this.parseToNumeric (tkQuantity);
+                    if (!market['inverse']) {
+                        tkQuantityRequest = this.parseToNumeric (this.amountToPrecision (symbol, tkQuantity));
+                    }
+                    tpRequest['quantity'] = tkQuantityRequest;
                     request['takeProfit'] = this.json (tpRequest);
                 }
             }
