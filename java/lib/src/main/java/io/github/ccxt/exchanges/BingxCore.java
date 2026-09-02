@@ -5648,17 +5648,23 @@ public class BingxCore extends BingxApi
                 put( "amount", BingxCore.this.currencyToPrecision(code, amount) );
             }};
             Object response = (this.apiAssetV1PrivatePostTransfer(this.extend(request, parameters))).join();
+            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            Object timestamp = this.safeInteger(response, "timestamp");
             //
             //     {
-            //         "tranId": 1933130865269936128,
-            //         "transferId": "1051450703949464903736"
+            //         "code": "0",
+            //         "timestamp": "1752202170686",
+            //         "data": {
+            //             "tranId": "1943502883135819776",
+            //             "transferId": "1051461075875997081703"
+            //         }
             //     }
             //
             return new java.util.HashMap<String, Object>() {{
                 put( "info", response );
-                put( "id", BingxCore.this.safeString(response, "transferId") );
-                put( "timestamp", null );
-                put( "datetime", null );
+                put( "id", BingxCore.this.safeString2(data, "transferId", "tranId") );
+                put( "timestamp", timestamp );
+                put( "datetime", BingxCore.this.iso8601(timestamp) );
                 put( "currency", code );
                 put( "amount", amount );
                 put( "fromAccount", fromAccount );
