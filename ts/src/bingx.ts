@@ -5240,17 +5240,23 @@ export default class bingx extends Exchange {
             'amount': this.currencyToPrecision (code, amount),
         };
         const response = await this.apiAssetV1PrivatePostTransfer (this.extend (request, params));
+        const data = this.safeDict (response, 'data', {});
+        const timestamp = this.safeInteger (response, 'timestamp');
         //
         //     {
-        //         "tranId": 1933130865269936128,
-        //         "transferId": "1051450703949464903736"
+        //         "code": "0",
+        //         "timestamp": "1752202170686",
+        //         "data": {
+        //             "tranId": "1943502883135819776",
+        //             "transferId": "1051461075875997081703"
+        //         }
         //     }
         //
         return {
             'info': response,
-            'id': this.safeString (response, 'transferId'),
-            'timestamp': undefined,
-            'datetime': undefined,
+            'id': this.safeString2 (data, 'transferId', 'tranId'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'currency': code,
             'amount': amount,
             'fromAccount': fromAccount,
