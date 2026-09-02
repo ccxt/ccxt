@@ -71,6 +71,10 @@ function testIso8601 () {
     assert (exchange.iso8601 (253402300799999) === '9999-12-31T23:59:59.999Z');
     // one millisecond past the maximum supported range yields undefined
     assert (exchange.iso8601 (8640000000000001) === undefined);
+    // absurdly large / non-finite magnitudes are rejected too. NaN/Infinity
+    // literals don't survive transpilation, but 1e300 does and it exercises the
+    // same > 8.64e15 guard in every port (incl. PHP's is_finite branch)
+    assert (exchange.iso8601 (1e300) === undefined);
 }
 
 function testParse8601 () {
