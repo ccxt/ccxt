@@ -228,6 +228,17 @@ function mapReturnType(name: string, tsReturn: string): { rustReturn: string, de
                 decode: v => `vec_from_value(&${v}, ${rustElem}::from_value)`,
             };
         }
+        if (elem === 'OHLCV') {
+            // `OHLCV` is `pub type OHLCV = [f64; 6]` — a fixed-size array
+            // alias, not a struct, so it needs its own decoder rather than
+            // `<T>::from_value`. Without this, fetchOHLCV (a core unified
+            // method) has no typed wrapper on any exchange and callers are
+            // pushed back to the Value-returning `call_raw`.
+            return {
+                rustReturn: 'Vec<OHLCV>',
+                decode: v => `match ${v} { Value::Arr(arr) => arr.iter().map(|c| { let mut out = [0.0f64; 6]; if let Value::Arr(fields) = c { for (i, slot) in out.iter_mut().enumerate() { if let Some(f) = fields.get(i).and_then(|x| x.as_f64()) { *slot = f; } } } out }).collect(), _ => Vec::new() }`,
+            };
+        }
         if (elem === 'string') {
             return {
                 rustReturn: 'Vec<String>',

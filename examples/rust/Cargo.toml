@@ -153,3 +153,7 @@ required-features = ["ws"]
 name = "watch_and_buy"
 path = "src/watch_and_buy.rs"
 required-features = ["ws"]
+
+[[bin]]
+name = "multi_exchange_ohlcv_chart"
+path = "src/multi_exchange_ohlcv_chart.rs"
