@@ -74,55 +74,6 @@ public partial class coinex
         var res = await this.fetchTradingFees(parameters);
         return new TradingFees(res);
     }
-    public async Task<Balances> FetchMarginBalance(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchMarginBalance(parameters);
-        return new Balances(res);
-    }
-    public async Task<Balances> FetchSpotBalance(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchSpotBalance(parameters);
-        return new Balances(res);
-    }
-    public async Task<Balances> FetchSwapBalance(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchSwapBalance(parameters);
-        return new Balances(res);
-    }
-    public async Task<Balances> FetchFinancialBalance(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchFinancialBalance(parameters);
-        return new Balances(res);
-    }
-    /// <summary>
-    /// query for balance and get the amount of funds available for trading or funds locked in orders
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.coinex.com/api/v2/assets/balance/http/get-spot-balance"/>  <br/>
-    /// See <see href="https://docs.coinex.com/api/v2/assets/balance/http/get-futures-balance"/>  <br/>
-    /// See <see href="https://docs.coinex.com/api/v2/assets/balance/http/get-marigin-balance"/>  <br/>
-    /// See <see href="https://docs.coinex.com/api/v2/assets/balance/http/get-financial-balance"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.type</term>
-    /// <description>
-    /// string : 'margin', 'swap', 'financial', or 'spot'
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}.</returns>
-    public async Task<Balances> FetchBalance(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchBalance(parameters);
-        return new Balances(res);
-    }
     public Dictionary<string, object> CreateOrderRequest(string symbol, string type, string side, double amount, double? price = null, Dictionary<string, object> parameters = null)
     {
         var res = this.createOrderRequest(symbol, type, side, amount, price, parameters);

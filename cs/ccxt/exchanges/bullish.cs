@@ -2757,7 +2757,7 @@ public partial class bullish : Exchange
      * @param {string} [params.code] unified currency code, default is undefined
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public async override Task<object> fetchBalance(object parameters = null)
+    public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await promiseAll(new List<object> {this.loadMarkets(), this.handleToken()});
@@ -2771,7 +2771,7 @@ public partial class bullish : Exchange
         {
             ((IDictionary<string,object>)request)["symbol"] = getValue(this.currency(code), "id");
             response = await this.privateGetV1AccountsAssetSymbol(this.extend(request, parameters));
-            return this.parseBalanceForSingleCurrency(response, code);
+            return ccxt.BaseExchange.ToBalances(this.parseBalanceForSingleCurrency(response, code));
         } else
         {
             response = await this.privateGetV1AccountsAsset(this.extend(request, parameters));
@@ -2791,7 +2791,7 @@ public partial class bullish : Exchange
             //         }, ...
             //     ]
             //
-            return this.parseBalance(response);
+            return ccxt.BaseExchange.ToBalances(this.parseBalance(response));
         }
     }
 

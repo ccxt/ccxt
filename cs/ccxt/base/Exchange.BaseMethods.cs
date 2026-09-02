@@ -4826,13 +4826,13 @@ public partial class BaseExchange
         }
     }
 
-    public async virtual Task<object> fetchBalance(object parameters = null)
+    public async virtual Task<ccxt.Balances> FetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchBalance() is not supported yet")) ;
     }
 
-    public async virtual Task<object> fetchBalanceWs(object parameters = null)
+    public async virtual Task<ccxt.Balances> FetchBalanceWs(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchBalanceWs() is not supported yet")) ;
@@ -4852,7 +4852,7 @@ public partial class BaseExchange
     public async virtual Task<ccxt.Balance> FetchPartialBalance(object part, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object balance = await this.fetchBalance(parameters);
+        object balance = ccxt.BaseExchange.FromBalances(await this.FetchBalance(parameters));
         return ccxt.BaseExchange.ToBalance(getValue(balance, part));
     }
 
@@ -5529,6 +5529,39 @@ public partial class BaseExchange
             { "used", null },
             { "total", null },
         };
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @description merges a per-market (isolated margin) account into a flat code-keyed balance dict, summing string fields when the code recurs across markets
+     * @param {object} result the code-keyed balance dict being built
+     * @param {string} code unified currency code
+     * @param {object} account a balance account with string free/used/total/debt
+     * @returns {object} result
+     */
+    public virtual object mergeBalanceAccount(object result, object code, object account)
+    {
+        if (!isTrue((inOp(result, code))))
+        {
+            ((IDictionary<string,object>)result)[(string)code] = account;
+            return result;
+        }
+        object fields = new List<object>() {"free", "used", "total", "debt"};
+        for (object i = 0; isLessThan(i, getArrayLength(fields)); postFixIncrement(ref i))
+        {
+            object field = getValue(fields, i);
+            object current = this.safeString(getValue(result, code), field);
+            object incoming = this.safeString(account, field);
+            if (isTrue(isEqual(current, null)))
+            {
+                ((IDictionary<string,object>)getValue(result, code))[(string)field] = incoming;
+            } else if (isTrue(!isEqual(incoming, null)))
+            {
+                ((IDictionary<string,object>)getValue(result, code))[(string)field] = Precise.stringAdd(current, incoming);
+            }
+        }
+        return result;
     }
 
     public virtual object commonCurrencyCode(object code)

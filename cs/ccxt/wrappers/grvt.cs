@@ -39,26 +39,6 @@ public partial class grvt
         return new OrderBook(res);
     }
     /// <summary>
-    /// query for account info
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://api-docs.grvt.io/trading_api/#sub-account-summary"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}.</returns>
-    public async Task<Balances> FetchBalance(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchBalance(parameters);
-        return new Balances(res);
-    }
-    /// <summary>
     /// transfer currency internally between wallets on the same account
     /// </summary>
     /// <remarks>

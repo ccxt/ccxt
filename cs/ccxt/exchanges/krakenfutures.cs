@@ -2893,7 +2893,7 @@ public partial class krakenfutures : Exchange
      * @param {string} [params.symbol] A unified market symbol, when assigned the balance for a trading market that matches the symbol is returned
      * @returns A [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public async override Task<object> fetchBalance(object parameters = null)
+    public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -3017,7 +3017,7 @@ public partial class krakenfutures : Exchange
         ((IDictionary<string,object>)balance)["info"] = response;
         ((IDictionary<string,object>)balance)["timestamp"] = this.parse8601(datetime);
         ((IDictionary<string,object>)balance)["datetime"] = datetime;
-        return balance;
+        return ccxt.BaseExchange.ToBalances(balance);
     }
 
     public override object parseBalance(object response)

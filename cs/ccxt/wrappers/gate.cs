@@ -130,62 +130,6 @@ public partial class gate
         var res = await this.fetchOrderBook(symbol, limit, parameters);
         return new OrderBook(res);
     }
-    /// <summary>
-    /// undefined
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#get-unified-account-information"/>  <br/>
-    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#list-spot-trading-accounts"/>  <br/>
-    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#margin-account-list"/>  <br/>
-    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#funding-account-list"/>  <br/>
-    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#get-futures-account"/>  <br/>
-    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#get-futures-account-2"/>  <br/>
-    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#query-account-information"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : exchange specific parameters
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.type</term>
-    /// <description>
-    /// string : spot, margin, swap or future, if not provided this.options['defaultType'] is used
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.settle</term>
-    /// <description>
-    /// string : 'btc' or 'usdt' - settle currency for perpetual swap and future - default="usdt" for swap and "btc" for future
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.marginMode</term>
-    /// <description>
-    /// string : 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.symbol</term>
-    /// <description>
-    /// string : margin only - unified ccxt symbol
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.unifiedAccount</term>
-    /// <description>
-    /// boolean : default false, set to true for fetching the unified account balance
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}.</returns>
-    public async Task<Balances> FetchBalance(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchBalance(parameters);
-        return new Balances(res);
-    }
     public List<Dictionary<string, object>> CreateOrdersRequest(List<OrderRequest> orders, Dictionary<string, object> parameters = null)
     {
         var res = this.createOrdersRequest(orders, parameters);

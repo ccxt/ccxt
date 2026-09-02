@@ -39,46 +39,6 @@ public partial class coinbase
         return ((Dictionary<string, object>)res);
     }
     /// <summary>
-    /// query for balance and get the amount of funds available for trading or funds locked in orders
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/accounts/list-accounts"/>  <br/>
-    /// See <see href="https://docs.cdp.coinbase.com/coinbase-app/track-apis/accounts"/>  <br/>
-    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/us-derivatives/get-futures-balance-summary"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.v3</term>
-    /// <description>
-    /// boolean : default false, set true to use v3 api endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.type</term>
-    /// <description>
-    /// string : "spot" (default) or "swap" or "future"
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.limit</term>
-    /// <description>
-    /// int : default 250, maximum number of accounts to return
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}.</returns>
-    public async Task<Balances> FetchBalance(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchBalance(parameters);
-        return new Balances(res);
-    }
-    /// <summary>
     /// cancel multiple orders
     /// </summary>
     /// <remarks>

@@ -153,42 +153,23 @@ const TYPED_CORES: Record<string, string> = {
     // TRUE, so it returns a dict keyed by symbol - not the Greeks[] the TS return
     // annotation claims. ToGreeksList then throws on a Dictionary.
     'fetchAmmOrders': 'List<PredictionOrder>',
-    // The dictionary-like container families (Balances, Tickers, MarginModes, Leverages,
-    // TradingFees, LeverageTiers, OpenInterests, FundingRates, CrossBorrowRates,
-    // IsolatedBorrowRates, DepositWithdrawFees) are NOT invertible - their constructors
-    // splat the payload into a Dictionary<string, T> that cannot be rebuilt. So the
-    // corresponding cores may only be typed when the wrapper conversion is their SOLE
-    // consumer. These all have real consuming call sites where the result lands in an
-    // `object` local and is then indexed / safeDict()ed - which silently returns null on
-    // a boxed struct - so they stay untyped:
-    //   fetchBalance / fetchBalanceWs   bydfi, weex, kucoin, toobit, hashkey, binance
-    //   fetchTickers / fetchTickersWs   bigone, poloniex, cex, nado, upbit, lbank + base fetchTicker
-    //   fetchMarkPrices                 base fetchMarkPrice
-    //   fetchMarginModes                woofipro, binance + base fetchMarginMode
-    //   fetchLeverages                  base fetchLeverage
-    //   fetchOpenInterests              hyperliquid, pacifica + base fetchOpenInterest
-    //   fetchLeverageTiers              btse, kucoin + base fetchMarketLeverageTiers
-    //   fetchTradingFees                hashkey, lbank + base fetchTradingFee
-    //   fetchFundingRates/Intervals     hyperliquid, lbank, whitebit + base fetchFundingRate
-    //   fetchCrossBorrowRates           base fetchCrossBorrowRate
-    //   fetchIsolatedBorrowRates        binance + base fetchIsolatedBorrowRate
-    //   fetchDepositWithdrawFees        base fetchDepositWithdrawFee
-    // Dropping those pulls their sub-cores with them, because a tail
-    // `return await this.fetchSwapBalance (params)` inside the now-untyped fetchBalance
-    // forwards a typed core with no From helper: fetchSpot/Swap/Margin/Financial/Contract/
-    // UtaBalance, fetchSpot/ContractTickers, fetchTickersV2/V3 are untyped for that reason.
-    // The set is a closed fixed point - verify with the closure check before adding a name.
-    // setLeverage is NOT typed either: on master its wrapper is cast-only
+    // The dictionary-like container families (Balances, Tickers, MarginModes, ...) splat the
+    // payload into a Dictionary<string, T>; their From* helpers write every entry back under
+    // its own key, so a consuming site (`object x = await this.fetchTickers(...)` then
+    // indexed / safeDict()ed) is funnelled through the reverse helper by typeCores. Every
+    // consumer must sit inside a method body typeCores visits: Task<object> AND void Task
+    // (loadBalanceSnapshot / loadPositionsSnapshot are void).
+    // setLeverage is NOT typed: on master its wrapper is cast-only
     // (Task<Dictionary<string, object>>), so typing it to Leverage would silently drop
     // every venue-specific key from the public C# return - an API regression, not a win.
+    'fetchBalance': 'Balances',
+    'fetchBalanceWs': 'Balances',
     'fetchBidsAsks': 'Tickers',
-    // Balances / TradingFees / LeverageTiers stay untyped: constructors are still not
-    // the identity for every venue. fetchBalance in particular is not always a flat
-    // Balances (kucoin isolated is a market-keyed nest). Top-level `debt` is now on
-    // the struct for the public wrapper; the core stays object so that nest survives.
+    // TradingFees / LeverageTiers stay untyped: constructors are still not the identity
+    // for every venue, so typing the core would make that wrapper loss live.
     //   TradingFees  TradingFeeInterface has no `tiers`, which cryptomus returns
     //   LeverageTiers `info = <whole source dict>` re-nests one level under comparison
-    // Typing those cores would make that latent wrapper loss live on the real call path.
+    'fetchContractBalance': 'Balances',
     'fetchContractTickers': 'Tickers',
     'fetchCrossBorrowRates': 'CrossBorrowRates',
     'fetchDepositWithdrawFees': 'DepositWithdrawFees',
@@ -246,6 +227,7 @@ const TYPED_CORES: Record<string, string> = {
     // 'fetchEvent' is deliberately absent: PredictionEvent.markets is List<PredictionMarket>,
     // which carries none of the unified market-interface keys (base/quote/spot/swap/precision
     // /limits/...) the fixtures store on each nested market. See fetchEvents below.
+    'fetchFinancialBalance': 'Balances',
     'fetchFreeBalance': 'Balance',
     'fetchFundingHistory': 'List<FundingHistory>',
     'fetchFundingInterval': 'FundingRate',
@@ -266,6 +248,7 @@ const TYPED_CORES: Record<string, string> = {
     'fetchLiquidations': 'List<Liquidation>',
     'fetchLongShortRatio': 'LongShortRatio',
     'fetchLongShortRatioHistory': 'List<LongShortRatio>',
+    'fetchMarginBalance': 'Balances',
     'fetchMarginAdjustmentHistory': 'List<MarginModification>',
     'fetchMarginMode': 'MarginMode',
     'fetchMarket': 'MarketInterface',
@@ -340,6 +323,7 @@ const TYPED_CORES: Record<string, string> = {
     // which need the plain dictionary — a boxed ccxt.OrderBook struct silently
     // produced an empty book (3 binance watchOrderBook static-ws failures).
     'fetchSettlements': 'List<PredictionSettlement>',
+    'fetchSpotBalance': 'Balances',
     'fetchSpotMarkets': 'List<MarketInterface>',
     'fetchSpotOHLCV': 'List<OHLCV>',
     'fetchSpotOrder': 'Order',
@@ -348,6 +332,7 @@ const TYPED_CORES: Record<string, string> = {
     'fetchSpotOrdersByStates': 'List<Order>',
     'fetchSpotOrdersByStatus': 'List<Order>',
     'fetchStatus': 'Status',
+    'fetchSwapBalance': 'Balances',
     'fetchSwapMarkets': 'List<MarketInterface>',
     'fetchTicker': 'Ticker',
     'fetchTicker2': 'Ticker',
@@ -375,6 +360,7 @@ const TYPED_CORES: Record<string, string> = {
     'fetchUTAOHLCV': 'List<OHLCV>',
     'fetchUnifiedOrder': 'Order',
     'fetchUsedBalance': 'Balance',
+    'fetchUtaBalance': 'Balances',
     'fetchUtaCanceledAndClosedOrders': 'List<Order>',
     'fetchUtaOrder': 'Order',
     'fetchUtaOrdersByStatus': 'List<Order>',
@@ -1618,7 +1604,9 @@ class NewTranspiler {
             return content;
         }
         const lines = content.split ('\n');
-        const sigRe = /^(\s*)public async (virtual|override) Task<object> (\w+)\(/;
+        // void `Task` bodies (loadBalanceSnapshot, loadPositionsSnapshot) are visited too: they
+        // consume typed cores into `object` locals and need the From* funnel like anyone else
+        const sigRe = /^(\s*)public async (virtual|override) Task(?:<object>)? (\w+)\(/;
         const typedCallRe = new RegExp ('^await this\\.(' + names.join ('|') + ')\\(');
         for (let i = 0; i < lines.length; i++) {
             const sig = sigRe.exec (lines[i]);
@@ -1626,7 +1614,8 @@ class NewTranspiler {
                 continue;
             }
             const [ , indent, modifier, methodName ] = sig;
-            const typedType = this.typedCoreType (methodName, predictionTier);
+            const isObjectTask = lines[i].indexOf (' Task<object> ') !== -1;
+            const typedType = isObjectTask ? this.typedCoreType (methodName, predictionTier) : '';
             const isTyped = typedType !== '';
             // the method body ends at its closing brace, which is the first line indented exactly
             // like the signature — brace counting is unusable here because generated bodies carry

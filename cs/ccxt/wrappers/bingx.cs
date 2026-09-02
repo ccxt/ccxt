@@ -55,41 +55,6 @@ public partial class bingx
         return new OrderBook(res);
     }
     /// <summary>
-    /// query for balance and get the amount of funds available for trading or funds locked in orders
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Spot/Account%20Endpoints/Query%20Assets"/>  <br/>
-    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Swap/Account%20Endpoints/Query%20account%20data"/>  <br/>
-    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Query%20Account%20Assets"/>  <br/>
-    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Account%20and%20Wallet/Fund%20Account/Query%20Assets"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.standard</term>
-    /// <description>
-    /// boolean : whether to fetch standard contract balances
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.type</term>
-    /// <description>
-    /// string : the type of balance to fetch (spot, swap, funding) default is `spot`
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}.</returns>
-    public async Task<Balances> FetchBalance(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchBalance(parameters);
-        return new Balances(res);
-    }
-    /// <summary>
     /// helper function to build request
     /// </summary>
     /// <remarks>

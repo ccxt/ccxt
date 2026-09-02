@@ -53,39 +53,6 @@ public partial class btse
         return new OrderBook(res);
     }
     /// <summary>
-    /// query for balance and get the amount of funds available for trading or funds locked in orders
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.btse.com/wallet/rest/get-user-assets/"/>  <br/>
-    /// See <see href="https://btsecom.github.io/docs/futuresV2_3/en/#query-wallet-balance"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.type</term>
-    /// <description>
-    /// string : wallet type, spot or swap, default is spot
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.wallet</term>
-    /// <description>
-    /// string : futures wallet name, CROSS@ by default, or ISOLATED@ followed by the market id with -USDT appended
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}.</returns>
-    public async Task<Balances> FetchBalance(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchBalance(parameters);
-        return new Balances(res);
-    }
-    /// <summary>
     /// retrieve information on the maximum leverage, for different trade sizes
     /// </summary>
     /// <remarks>

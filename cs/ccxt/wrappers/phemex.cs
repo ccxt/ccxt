@@ -33,40 +33,6 @@ public partial class phemex
         return new OrderBook(res);
     }
     /// <summary>
-    /// query for balance and get the amount of funds available for trading or funds locked in orders
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://phemex-docs.github.io/#query-wallets"/>  <br/>
-    /// See <see href="https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#query-account-positions"/>  <br/>
-    /// See <see href="https://phemex-docs.github.io/#query-trading-account-and-positions"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.type</term>
-    /// <description>
-    /// string : spot or swap
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.code</term>
-    /// <description>
-    /// string : *swap only* currency code of the balance to query (USD, USDT, etc), default is USDT
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}.</returns>
-    public async Task<Balances> FetchBalance(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchBalance(parameters);
-        return new Balances(res);
-    }
-    /// <summary>
     /// set margin mode to 'cross' or 'isolated'
     /// </summary>
     /// <remarks>

@@ -219,50 +219,6 @@ public partial class myriad
         return ((Dictionary<string, object>)res);
     }
     /// <summary>
-    /// fetches the wallet's on-chain collateral balance for the order-book network (USD1 on BNB Chain)
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.myriad.markets/builders/myriad-order-book/order-book-api"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.network_id</term>
-    /// <description>
-    /// string : the network id (defaults to options.defaultNetworkId, '56')
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.network</term>
-    /// <description>
-    /// string : alias for params.network_id
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.currency</term>
-    /// <description>
-    /// string : output balance currency code override, e.g. 'USDC' or 'USDT'
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.decimals</term>
-    /// <description>
-    /// int : for USDC and USDT it's 6, default is 18 for USD1
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a [balance structure](https://docs.ccxt.com/#/?id=balance-structure).</returns>
-    public async Task<Balances> FetchBalance(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchBalance(parameters);
-        return new Balances(res);
-    }
-    /// <summary>
     /// fetches the real order book for order-book markets, or synthesizes a one-level book from the AMM price otherwise
     /// </summary>
     /// <remarks>

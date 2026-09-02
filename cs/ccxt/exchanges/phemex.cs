@@ -2443,7 +2443,7 @@ public partial class phemex : Exchange
      * @param {string} [params.code] *swap only* currency code of the balance to query (USD, USDT, etc), default is USDT
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public async override Task<object> fetchBalance(object parameters = null)
+    public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2619,9 +2619,9 @@ public partial class phemex : Exchange
         //
         if (isTrue(isEqual(type, "swap")))
         {
-            return this.parseSwapBalance(response);
+            return ccxt.BaseExchange.ToBalances(this.parseSwapBalance(response));
         }
-        return this.parseSpotBalance(response);
+        return ccxt.BaseExchange.ToBalances(this.parseSpotBalance(response));
     }
 
     public virtual object parseOrderStatus(object status)

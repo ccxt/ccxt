@@ -94,51 +94,6 @@ public partial class bitget
         var res = await this.fetchTradingFees(parameters);
         return new TradingFees(res);
     }
-    /// <summary>
-    /// query for balance and get the amount of funds available for trading or funds locked in orders
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://www.bitget.com/api-doc/spot/account/Get-Account-Assets"/>  <br/>
-    /// See <see href="https://www.bitget.com/api-doc/contract/account/Get-Account-List"/>  <br/>
-    /// See <see href="https://www.bitget.com/api-doc/margin/cross/account/Get-Cross-Assets"/>  <br/>
-    /// See <see href="https://www.bitget.com/api-doc/margin/isolated/account/Get-Isolated-Assets"/>  <br/>
-    /// See <see href="https://bitgetlimited.github.io/apidoc/en/margin/#get-cross-assets"/>  <br/>
-    /// See <see href="https://bitgetlimited.github.io/apidoc/en/margin/#get-isolated-assets"/>  <br/>
-    /// See <see href="https://www.bitget.com/api-doc/uta/account/Get-Account"/>  <br/>
-    /// See <see href="https://www.bitget.com/api-doc/uta/account/Get-Account-Funding-Assets"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.productType</term>
-    /// <description>
-    /// string : *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.uta</term>
-    /// <description>
-    /// string : set to true for the unified trading account (uta), defaults to false
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.type</term>
-    /// <description>
-    /// string : 'funding' to fetch the uta funding-account assets (uta only, classic accounts route funding through 'spot')
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}.</returns>
-    public async Task<Balances> FetchBalance(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchBalance(parameters);
-        return new Balances(res);
-    }
     public Dictionary<string, object> CreateUtaOrderRequest(string symbol, string type, string side, double amount, double? price = null, Dictionary<string, object> parameters = null)
     {
         var res = this.createUtaOrderRequest(symbol, type, side, amount, price, parameters);

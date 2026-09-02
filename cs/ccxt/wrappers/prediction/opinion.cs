@@ -98,26 +98,6 @@ public partial class opinion
         return new PredictionOrderBook(res);
     }
     /// <summary>
-    /// fetches the authenticated user's quote-token balances
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.opinion.trade/developer-guide/opinion-open-api/quote-token"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a [balance structure](https://docs.ccxt.com/#/?id=balance-structure).</returns>
-    public async Task<Balances> FetchBalance(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchBalance(parameters);
-        return new Balances(res);
-    }
-    /// <summary>
     /// self-service creation of an Open API key linked to this.walletAddress via
     /// </summary>
     /// <remarks>

@@ -6,28 +6,6 @@ namespace ccxt;
 
 public partial class hitbtc
 {
-    /// <summary>
-    /// query for balance and get the amount of funds available for trading or funds locked in orders
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://api.hitbtc.com/#wallet-balance"/>  <br/>
-    /// See <see href="https://api.hitbtc.com/#get-spot-trading-balance"/>  <br/>
-    /// See <see href="https://api.hitbtc.com/#get-trading-balance"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}.</returns>
-    public async Task<Balances> FetchBalance(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchBalance(parameters);
-        return new Balances(res);
-    }
     public async Task<List<Transaction>> FetchTransactionsHelper(object types, object code, object since, object limit, object parameters)
     {
         var res = await this.fetchTransactionsHelper(types, code, since, limit, parameters);

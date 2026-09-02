@@ -1054,7 +1054,7 @@ public partial class cex : Exchange
      * @param {object} [params.account]  in case 'privatePostGetMyAccountStatusV3' is chosen, this can specify the account name (default is empty string)
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public async override Task<object> fetchBalance(object parameters = null)
+    public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object accountName = null;
@@ -1102,7 +1102,7 @@ public partial class cex : Exchange
             //
             accountBalance = this.safeDict(response, "data", new Dictionary<string, object>() {});
         }
-        return this.parseBalance(accountBalance);
+        return ccxt.BaseExchange.ToBalances(this.parseBalance(accountBalance));
     }
 
     public override object parseBalance(object response)

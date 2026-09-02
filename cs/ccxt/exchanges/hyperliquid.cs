@@ -1142,7 +1142,7 @@ public partial class hyperliquid : Exchange
      * @param {boolean} [params.enableUnifiedMargin] enable unified margin, CCXT tries to auto-detects this value but you can override it
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public async override Task<object> fetchBalance(object parameters = null)
+    public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
     {
         // if user provides a different address in params and does not provide the enableUnifiedMargin we assume we need to request the info again
         parameters ??= new Dictionary<string, object>();
@@ -1226,7 +1226,7 @@ public partial class hyperliquid : Exchange
                     ((IDictionary<string,object>)spotBalances)[(string)code] = account;
                 }
             }
-            return this.safeBalance(spotBalances);
+            return ccxt.BaseExchange.ToBalances(this.safeBalance(spotBalances));
         }
         object data = this.safeDict(response, "marginSummary", new Dictionary<string, object>() {});
         object usdcBalance = new Dictionary<string, object>() {
@@ -1246,7 +1246,7 @@ public partial class hyperliquid : Exchange
         object timestamp = this.safeInteger(response, "time");
         ((IDictionary<string,object>)result)["timestamp"] = timestamp;
         ((IDictionary<string,object>)result)["datetime"] = this.iso8601(timestamp);
-        return this.safeBalance(result);
+        return ccxt.BaseExchange.ToBalances(this.safeBalance(result));
     }
 
     /**

@@ -60,26 +60,6 @@ public partial class kalshi
         return new PredictionOrderBook(res);
     }
     /// <summary>
-    /// fetches the authenticated user's USD portfolio balance from kalshi
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://trading-api.readme.io/reference/getbalance"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a [balance structure](https://docs.ccxt.com/#/?id=balance-structure).</returns>
-    public async Task<Balances> FetchBalance(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchBalance(parameters);
-        return new Balances(res);
-    }
-    /// <summary>
     /// cancels all open orders on kalshi, optionally scoped to one outcome ticker
     /// </summary>
     /// <remarks>

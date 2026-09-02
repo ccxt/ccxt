@@ -105,38 +105,6 @@ public partial class krakenfutures
         return ((Dictionary<string, object>)res);
     }
     /// <summary>
-    /// Fetch the balance for a sub-account, all sub-account balances are inside 'info' in the response
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.kraken.com/api/docs/futures-api/trading/get-accounts"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : Exchange specific parameters
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.type</term>
-    /// <description>
-    /// string : The sub-account type to query the balance of, possible values include 'flex', 'cash'/'main'/'funding', or a market symbol * defaults to 'flex' *
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.symbol</term>
-    /// <description>
-    /// string : A unified market symbol, when assigned the balance for a trading market that matches the symbol is returned
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>undefined</term> undefined.</returns>
-    public async Task<Balances> FetchBalance(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchBalance(parameters);
-        return new Balances(res);
-    }
-    /// <summary>
     /// retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
     /// </summary>
     /// <remarks>

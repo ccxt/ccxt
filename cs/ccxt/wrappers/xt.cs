@@ -47,21 +47,6 @@ public partial class xt
         return new OrderBook(res);
     }
     /// <summary>
-    /// query for balance and get the amount of funds available for trading or funds locked in orders
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://doc.xt.com/docs/spot/Balance/GetBalances"/>  <br/>
-    /// See <see href="https://doc.xt.com/docs/futures/User/GetUserFunds"/>  <br/>
-    /// <list type="table">
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}.</returns>
-    public async Task<Balances> FetchBalance(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchBalance(parameters);
-        return new Balances(res);
-    }
-    /// <summary>
     /// cancel multiple orders
     /// </summary>
     /// <remarks>

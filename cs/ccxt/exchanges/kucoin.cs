@@ -9251,7 +9251,7 @@ public partial class kucoin : Exchange
      * @param {boolean} [params.uta] set to true for the unified trading account (uta) endpoint, defaults to false
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public async override Task<object> fetchBalance(object parameters = null)
+    public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -9264,7 +9264,7 @@ public partial class kucoin : Exchange
         parameters = ((IList<object>)utaparametersVariable)[1];
         if (isTrue(uta))
         {
-            return await this.fetchUtaBalance(parameters);
+            return await this.FetchUtaBalance(parameters);
         }
         object response = null;
         object request = new Dictionary<string, object>() {};
@@ -9283,7 +9283,7 @@ public partial class kucoin : Exchange
         parameters = this.omit(parameters, "type");
         if (isTrue(isEqual(type, "contract")))
         {
-            return await this.fetchContractBalance(parameters);
+            return await this.FetchContractBalance(parameters);
         }
         object hf = null;
         var hfparametersVariable = this.handleHfAndParams(parameters);
@@ -9407,22 +9407,18 @@ public partial class kucoin : Exchange
             for (object i = 0; isLessThan(i, getArrayLength(assets)); postFixIncrement(ref i))
             {
                 object entry = getValue(assets, i);
-                object marketId = this.safeString(entry, "symbol");
-                object symbol = this.safeSymbol(marketId, null, "_");
                 object bs = this.safeDict(entry, "baseAsset", new Dictionary<string, object>() {});
                 object quote = this.safeDict(entry, "quoteAsset", new Dictionary<string, object>() {});
                 object baseCode = this.safeCurrencyCode(this.safeString(bs, "currency"));
                 object quoteCode = this.safeCurrencyCode(this.safeString(quote, "currency"));
-                object subResult = new Dictionary<string, object>() {};
                 if (isTrue(!isEqual(baseCode, null)))
                 {
-                    ((IDictionary<string,object>)subResult)[(string)baseCode] = this.parseBalanceHelper(bs);
+                    this.mergeBalanceAccount(result, baseCode, this.parseBalanceHelper(bs));
                 }
                 if (isTrue(!isEqual(quoteCode, null)))
                 {
-                    ((IDictionary<string,object>)subResult)[(string)quoteCode] = this.parseBalanceHelper(quote);
+                    this.mergeBalanceAccount(result, quoteCode, this.parseBalanceHelper(quote));
                 }
-                ((IDictionary<string,object>)result)[(string)symbol] = this.safeBalance(subResult);
             }
         } else if (isTrue(cross))
         {
@@ -9460,12 +9456,7 @@ public partial class kucoin : Exchange
                 }
             }
         }
-        object returnType = result;
-        if (!isTrue(isolated))
-        {
-            returnType = this.safeBalance(result);
-        }
-        return returnType;
+        return ccxt.BaseExchange.ToBalances(this.safeBalance(result));
     }
 
     /**
@@ -9477,7 +9468,7 @@ public partial class kucoin : Exchange
      * @param {object} [params.code] the unified currency code to fetch the balance for, if not provided, the default .options['fetchBalance']['code'] will be used
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public async virtual Task<object> fetchContractBalance(object parameters = null)
+    public async virtual Task<ccxt.Balances> FetchContractBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -9528,7 +9519,7 @@ public partial class kucoin : Exchange
         {
             ((IDictionary<string,object>)result)[(string)currencyCode] = account;
         }
-        return this.safeBalance(result);
+        return ccxt.BaseExchange.ToBalances(this.safeBalance(result));
     }
 
     /**
@@ -9542,7 +9533,7 @@ public partial class kucoin : Exchange
      * @param {string} [params.marginMode] 'cross' or 'isolated', margin type for fetching margin balance, only applicable if type is margin (default is cross)
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public async virtual Task<object> fetchUtaBalance(object parameters = null)
+    public async virtual Task<ccxt.Balances> FetchUtaBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -9653,9 +9644,6 @@ public partial class kucoin : Exchange
             for (object i = 0; isLessThan(i, getArrayLength(accounts)); postFixIncrement(ref i))
             {
                 object entry = getValue(accounts, i);
-                object marketId = this.safeString(entry, "accountSubtype");
-                object symbol = this.safeSymbol(marketId, null, "-");
-                object subResult = new Dictionary<string, object>() {};
                 object currencies = this.safeList(entry, "currencies", new List<object>() {});
                 for (object j = 0; isLessThan(j, getArrayLength(currencies)); postFixIncrement(ref j))
                 {
@@ -9664,10 +9652,9 @@ public partial class kucoin : Exchange
                     object currencyCode = this.safeCurrencyCode(currencyId);
                     if (isTrue(!isEqual(currencyCode, null)))
                     {
-                        ((IDictionary<string,object>)subResult)[(string)currencyCode] = this.parseBalanceHelper(currencyEntry);
+                        this.mergeBalanceAccount(result, currencyCode, this.parseBalanceHelper(currencyEntry));
                     }
                 }
-                ((IDictionary<string,object>)result)[(string)symbol] = this.safeBalance(subResult);
             }
         } else
         {
@@ -9684,12 +9671,7 @@ public partial class kucoin : Exchange
                 }
             }
         }
-        object returnType = result;
-        if (!isTrue(isIsolated))
-        {
-            returnType = this.safeBalance(result);
-        }
-        return returnType;
+        return ccxt.BaseExchange.ToBalances(this.safeBalance(result));
     }
 
     /**

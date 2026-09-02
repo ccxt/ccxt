@@ -2211,7 +2211,7 @@ public partial class weex : Exchange
      * @param {string} [params.type] 'spot' or 'swap' (default is 'spot', in sandbox mode only 'swap' is available and is used by default)
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public async override Task<object> fetchBalance(object parameters = null)
+    public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object requestedType = this.safeString(parameters, "type");
@@ -2279,7 +2279,7 @@ public partial class weex : Exchange
                 response = await this.contractPrivateGetCapiV3AccountBalance(parameters);
             }
         }
-        return this.parseBalance(response);
+        return ccxt.BaseExchange.ToBalances(this.parseBalance(response));
     }
 
     public override object parseBalance(object response)

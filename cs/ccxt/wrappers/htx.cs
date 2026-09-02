@@ -149,48 +149,6 @@ public partial class htx
         return ((Dictionary<string, object>)res);
     }
     /// <summary>
-    /// query for balance and get the amount of funds available for trading or funds locked in orders
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://huobiapi.github.io/docs/spot/v1/en/#get-account-balance-of-a-specific-account"/>  <br/>
-    /// See <see href="https://www.htx.com/en-us/opend/newApiPages/?id=7ec4b429-7773-11ed-9966-0242ac110003"/>  <br/>
-    /// See <see href="https://huobiapi.github.io/docs/dm/v1/en/#query-asset-valuation"/>  <br/>
-    /// See <see href="https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-user-s-account-information"/>  <br/>
-    /// See <see href="https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19588469969"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.type</term>
-    /// <description>
-    /// string : spot, margin, future or swap
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.subType</term>
-    /// <description>
-    /// string : linear or inverse
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.multiAssetMode</term>
-    /// <description>
-    /// bool : set to true if you are using multi-asset mode for USDT-margined contracts
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}.</returns>
-    public async Task<Balances> FetchBalance(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchBalance(parameters);
-        return new Balances(res);
-    }
-    /// <summary>
     /// helper function to build request
     /// </summary>
     /// <remarks>

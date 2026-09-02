@@ -26,63 +26,6 @@ public partial class hyperliquid
         return (Int64)res;
     }
     /// <summary>
-    /// query for balance and get the amount of funds available for trading or funds locked in orders
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/spot#retrieve-a-users-token-balances"/>  <br/>
-    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-users-perpetuals-account-summary"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.user</term>
-    /// <description>
-    /// string : user address, will default to this.walletAddress if not provided
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.type</term>
-    /// <description>
-    /// string : wallet type, ['spot', 'swap'], defaults to swap
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.marginMode</term>
-    /// <description>
-    /// string : 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.dex</term>
-    /// <description>
-    /// string : for hip3 markets, the dex name, eg: 'xyz'
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.subAccountAddress</term>
-    /// <description>
-    /// string : sub account user address
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.enableUnifiedMargin</term>
-    /// <description>
-    /// boolean : enable unified margin, CCXT tries to auto-detects this value but you can override it
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}.</returns>
-    public async Task<Balances> FetchBalance(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchBalance(parameters);
-        return new Balances(res);
-    }
-    /// <summary>
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>

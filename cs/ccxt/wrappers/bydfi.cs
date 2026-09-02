@@ -150,45 +150,6 @@ public partial class bydfi
         var res = await this.setPositionMode(hedged, symbol, parameters);
         return ((Dictionary<string, object>)res);
     }
-    /// <summary>
-    /// query for balance and get the amount of funds available for trading or funds locked in orders
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://developers.bydfi.com/en/account#asset-inquiry"/>  <br/>
-    /// See <see href="https://developers.bydfi.com/en/futures/user#asset-query"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.account</term>
-    /// <description>
-    /// string : the type of account to fetch the balance for, either 'SPOT' or 'UMFUTURE'  or 'CMFUTURE'  or 'COPY'  or 'GRID'  or 'FUNDING' (default is 'SPOT')
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.wallet</term>
-    /// <description>
-    /// string : *swap only* The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.asset</term>
-    /// <description>
-    /// string : currency id for the balance to fetch
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}.</returns>
-    public async Task<Balances> FetchBalance(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchBalance(parameters);
-        return new Balances(res);
-    }
     public async Task<TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, Dictionary<string, object> parameters = null)
     {
         var res = await this.transfer(code, amount, fromAccount, toAccount, parameters);

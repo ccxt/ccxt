@@ -33,32 +33,6 @@ public partial class hyperliquid
         return new PredictionOrderBook(res);
     }
     /// <summary>
-    /// Fetches spot balance (outcomes use spot-like balance).
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/spot#retrieve-a-users-token-balances"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.user</term>
-    /// <description>
-    /// string : wallet address (defaults to this.walletAddress)
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>Balances</term> balance structure.</returns>
-    public async Task<Balances> FetchBalance(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchBalance(parameters);
-        return new Balances(res);
-    }
-    /// <summary>
     /// Groups outcome markets by their underlying (e.g. BTC_ABOVE_78213) into event structures. Each event contains both the YES and NO markets.
     /// </summary>
     /// <remarks>

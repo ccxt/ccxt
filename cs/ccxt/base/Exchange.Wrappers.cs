@@ -91,16 +91,6 @@ public partial class BaseExchange
         var res = await this.fetch2(path, api, method, parameters, headers, body, config);
         return ((Dictionary<string, object>)res);
     }
-    public async Task<Balances> FetchBalance(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchBalance(parameters);
-        return new Balances(res);
-    }
-    public async Task<Balances> FetchBalanceWs(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchBalanceWs(parameters);
-        return new Balances(res);
-    }
     public async Task<Dictionary<string, object>> FetchTransactionFee(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTransactionFee(code, parameters);

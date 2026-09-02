@@ -4358,7 +4358,7 @@ public partial class htx : Exchange
      * @param {bool} [params.multiAssetMode] set to true if you are using multi-asset mode for USDT-margined contracts
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public async override Task<object> fetchBalance(object parameters = null)
+    public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -4604,7 +4604,6 @@ public partial class htx : Exchange
                 for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
                 {
                     object entry = getValue(data, i);
-                    object symbol = this.safeSymbol(this.safeString(entry, "symbol"));
                     object balances = this.safeValue(entry, "list");
                     object subResult = new Dictionary<string, object>() {};
                     for (object j = 0; isLessThan(j, getArrayLength(balances)); postFixIncrement(ref j))
@@ -4617,8 +4616,14 @@ public partial class htx : Exchange
                             ((IDictionary<string,object>)subResult)[(string)code] = this.parseMarginBalanceHelper(balance, code, subResult);
                         }
                     }
-                    ((IDictionary<string,object>)result)[(string)symbol] = this.safeBalance(subResult);
+                    object subCodes = new List<object>(((IDictionary<string,object>)subResult).Keys);
+                    for (object j = 0; isLessThan(j, getArrayLength(subCodes)); postFixIncrement(ref j))
+                    {
+                        object subCode = getValue(subCodes, j);
+                        this.mergeBalanceAccount(result, subCode, getValue(subResult, subCode));
+                    }
                 }
+                result = this.safeBalance(result);
             } else
             {
                 object balances = this.safeValue(data, "list", new List<object>() {});
@@ -4651,7 +4656,7 @@ public partial class htx : Exchange
             }
             result = this.safeBalance(result);
         }
-        return result;
+        return ccxt.BaseExchange.ToBalances(result);
     }
 
     /**

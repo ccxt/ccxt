@@ -6,24 +6,5 @@ namespace ccxt.pro;
 public class  Cex: cex { public Cex(object args = null) : base(args) { } }
 public partial class cex
 {
-    /// <summary>
-    /// query for balance and get the amount of funds available for trading or funds locked in orders
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.cex.io/#ws-api-get-balance"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}.</returns>
-    public async Task<Balances> FetchBalanceWs(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchBalanceWs(parameters);
-        return new Balances(res);
-    }
+
 }

@@ -73,38 +73,6 @@ public partial class cex
         return new TradingFees(res);
     }
     /// <summary>
-    /// query for balance and get the amount of funds available for trading or funds locked in orders
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://trade.cex.io/docs/#rest-private-api-calls-account-status-v3"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.method</term>
-    /// <description>
-    /// object : 'privatePostGetMyWalletBalance' or 'privatePostGetMyAccountStatusV3'
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.account</term>
-    /// <description>
-    /// object :  in case 'privatePostGetMyAccountStatusV3' is chosen, this can specify the account name (default is empty string)
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}.</returns>
-    public async Task<Balances> FetchBalance(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchBalance(parameters);
-        return new Balances(res);
-    }
-    /// <summary>
     /// transfer currency internally between wallets on the same account
     /// </summary>
     /// <remarks>

@@ -3380,23 +3380,18 @@ export default class gate extends Exchange {
         for (let i = 0; i < (data as List).length; i++) {
             const entry = data[i];
             if (isolated) {
-                const marketId = this.safeString (entry, 'currency_pair');
-                const symbolInner = this.safeSymbol (marketId, undefined, '_', 'margin');
                 const base = this.safeValue (entry, 'base', {});
                 const quote = this.safeValue (entry, 'quote', {});
                 const baseCode = this.safeCurrencyCode (this.safeString (base, 'currency'));
                 const quoteCode = this.safeCurrencyCode (this.safeString (quote, 'currency'));
-                const subResult: Dict = {};
-                subResult[baseCode as string] = this.parseBalanceHelper (base);
-                subResult[quoteCode as string] = this.parseBalanceHelper (quote);
-                result[symbolInner] = this.safeBalance (subResult);
+                this.mergeBalanceAccount (result, baseCode as string, this.parseBalanceHelper (base));
+                this.mergeBalanceAccount (result, quoteCode as string, this.parseBalanceHelper (quote));
             } else {
                 const code = this.safeCurrencyCode (this.safeString (entry, 'currency'));
                 result[code as string] = this.parseBalanceHelper (entry);
             }
         }
-        const returnResult = isolated ? result : this.safeBalance (result);
-        return returnResult as Balances;
+        return this.safeBalance (result);
     }
 
     /**

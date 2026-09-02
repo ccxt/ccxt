@@ -71,26 +71,4 @@ public partial class binance
         var res = await this.watchMultiTickerHelper(methodName, channelName, symbols, parameters, isUnsubscribe);
         return ((Dictionary<string, object>)res);
     }
-    /// <summary>
-    /// fetch balance and get the amount of funds available for trading or funds locked in orders
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/account/websocket-api/Futures-Account-Balance"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/account-requests#account-information-user_data"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/account/websocket-api"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}.</returns>
-    public async Task<Balances> FetchBalanceWs(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchBalanceWs(parameters);
-        return new Balances(res);
-    }
 }

@@ -8262,20 +8262,16 @@ export default class kucoin extends Exchange {
             const assets = this.safeValue (data, 'assets', data);
             for (let i = 0; i < assets.length; i++) {
                 const entry = assets[i];
-                const marketId = this.safeString (entry, 'symbol');
-                const symbol = this.safeSymbol (marketId, undefined, '_');
                 const base = this.safeDict (entry, 'baseAsset', {});
                 const quote = this.safeDict (entry, 'quoteAsset', {});
                 const baseCode = this.safeCurrencyCode (this.safeString (base, 'currency'));
                 const quoteCode = this.safeCurrencyCode (this.safeString (quote, 'currency'));
-                const subResult: Dict = {};
                 if (baseCode !== undefined) {
-                    subResult[baseCode] = this.parseBalanceHelper (base);
+                    this.mergeBalanceAccount (result, baseCode, this.parseBalanceHelper (base));
                 }
                 if (quoteCode !== undefined) {
-                    subResult[quoteCode] = this.parseBalanceHelper (quote);
+                    this.mergeBalanceAccount (result, quoteCode, this.parseBalanceHelper (quote));
                 }
-                result[symbol] = this.safeBalance (subResult);
             }
         } else if (cross) {
             const data = this.safeDict (response, 'data', {});
@@ -8306,11 +8302,7 @@ export default class kucoin extends Exchange {
                 }
             }
         }
-        let returnType = result;
-        if (!isolated) {
-            returnType = this.safeBalance (result);
-        }
-        return returnType as Balances;
+        return this.safeBalance (result);
     }
 
     /**
@@ -8481,19 +8473,15 @@ export default class kucoin extends Exchange {
         if (isIsolated) {
             for (let i = 0; i < accounts.length; i++) {
                 const entry = accounts[i];
-                const marketId = this.safeString (entry, 'accountSubtype');
-                const symbol = this.safeSymbol (marketId, undefined, '-');
-                const subResult: Dict = {};
                 const currencies = this.safeList (entry, 'currencies', []);
                 for (let j = 0; j < currencies.length; j++) {
                     const currencyEntry = this.safeDict (currencies, j, {});
                     const currencyId = this.safeString (currencyEntry, 'currency');
                     const currencyCode = this.safeCurrencyCode (currencyId);
                     if (currencyCode !== undefined) {
-                        subResult[currencyCode] = this.parseBalanceHelper (currencyEntry);
+                        this.mergeBalanceAccount (result, currencyCode, this.parseBalanceHelper (currencyEntry));
                     }
                 }
-                result[symbol] = this.safeBalance (subResult);
             }
         } else {
             const firstAccount = this.safeDict (accounts, 0, {});
@@ -8507,11 +8495,7 @@ export default class kucoin extends Exchange {
                 }
             }
         }
-        let returnType = result;
-        if (!isIsolated) {
-            returnType = this.safeBalance (result);
-        }
-        return returnType as Balances;
+        return this.safeBalance (result);
     }
 
     /**

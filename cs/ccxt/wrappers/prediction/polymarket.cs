@@ -138,32 +138,6 @@ public partial class polymarket
         return (Int64)res;
     }
     /// <summary>
-    /// fetches the USDC collateral balance available for trading on the CLOB
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.polymarket.com/api-reference/trade/get-balance-allowance"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.signatureType</term>
-    /// <description>
-    /// int : 0=EOA, 1=POLY_PROXY, 2=GNOSIS_SAFE, 3=POLY_1271 (deposit wallet); defaults to options.signatureType
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a [balance structure](https://docs.ccxt.com/#/?id=balance-structure).</returns>
-    public async Task<Balances> FetchBalance(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchBalance(parameters);
-        return new Balances(res);
-    }
-    /// <summary>
     /// cancels all open orders on the CLOB, optionally scoped to one outcome token
     /// </summary>
     /// <remarks>

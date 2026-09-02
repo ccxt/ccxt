@@ -1900,7 +1900,7 @@ public partial class hashkey : Exchange
      * @param {string} [params.type] 'spot' or 'swap' - the type of the market to fetch balance for (default 'spot')
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public async override Task<object> fetchBalance(object parameters = null)
+    public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1929,7 +1929,7 @@ public partial class hashkey : Exchange
             //     ]
             //
             object balance = this.safeDict(response, 0, new Dictionary<string, object>() {});
-            return this.parseSwapBalance(balance);
+            return ccxt.BaseExchange.ToBalances(this.parseSwapBalance(balance));
         } else if (isTrue(isEqual(marketType, "spot")))
         {
             object response = await this.privateGetApiV1Account(this.extend(request, parameters));
@@ -1949,7 +1949,7 @@ public partial class hashkey : Exchange
             //         "userId": "1732885739572845312"
             //     }
             //
-            return this.parseBalance(response);
+            return ccxt.BaseExchange.ToBalances(this.parseBalance(response));
         } else
         {
             throw new NotSupported ((string)add(add(add(add(add(this.id, " "), methodName), "() is not supported for "), marketType), " type of markets")) ;

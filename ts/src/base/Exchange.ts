@@ -7273,6 +7273,34 @@ export class BaseExchange {
         };
     }
 
+    /**
+     * @ignore
+     * @method
+     * @description merges a per-market (isolated margin) account into a flat code-keyed balance dict, summing string fields when the code recurs across markets
+     * @param {object} result the code-keyed balance dict being built
+     * @param {string} code unified currency code
+     * @param {object} account a balance account with string free/used/total/debt
+     * @returns {object} result
+     */
+    mergeBalanceAccount (result: Dict, code: string, account: Dict): Dict {
+        if (!(code in result)) {
+            result[code] = account;
+            return result;
+        }
+        const fields = [ 'free', 'used', 'total', 'debt' ];
+        for (let i = 0; i < fields.length; i++) {
+            const field = fields[i];
+            const current = this.safeString (result[code], field);
+            const incoming = this.safeString (account, field);
+            if (current === undefined) {
+                result[code][field] = incoming;
+            } else if (incoming !== undefined) {
+                result[code][field] = Precise.stringAdd (current, incoming);
+            }
+        }
+        return result;
+    }
+
     commonCurrencyCode (code: string) {
         if (!this.substituteCommonCurrencyCodes) {
             return code;

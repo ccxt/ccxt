@@ -2772,7 +2772,7 @@ public partial class coinbase : Exchange
      * @param {int} [params.limit] default 250, maximum number of accounts to return
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public async override Task<object> fetchBalance(object parameters = null)
+    public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2872,7 +2872,7 @@ public partial class coinbase : Exchange
         //     }
         //
         ((IDictionary<string,object>)parameters)["type"] = marketType;
-        return this.parseCustomBalance(response, parameters);
+        return ccxt.BaseExchange.ToBalances(this.parseCustomBalance(response, parameters));
     }
 
     /**

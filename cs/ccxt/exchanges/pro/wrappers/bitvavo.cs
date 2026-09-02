@@ -68,24 +68,4 @@ public partial class bitvavo
         var res = await this.fetchCurrenciesWs(parameters);
         return new Currencies(res);
     }
-    /// <summary>
-    /// query for balance and get the amount of funds available for trading or funds locked in orders
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.bitvavo.com/#tag/Account/paths/~1balance/get"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}.</returns>
-    public async Task<Balances> FetchBalanceWs(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchBalanceWs(parameters);
-        return new Balances(res);
-    }
 }
