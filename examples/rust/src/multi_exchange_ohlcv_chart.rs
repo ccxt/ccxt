@@ -21,26 +21,27 @@ async fn fetch_series(id: &str, symbol: &str, marker: char) -> Option<Series> {
     let mut exchange: Box<dyn TypedExchange> = match from_id(id, None) {
         Some(e) => e,
         None => {
-            println!("{id:<10} unknown exchange id");
+            println!("{id:<18} unknown exchange id");
             return None;
         }
     };
+    let started = std::time::Instant::now();
     let candles: Vec<OHLCV> = match exchange
         .fetch_ohlcv(symbol, Some(TIMEFRAME), None, Some(LIMIT), Params::none())
         .await
     {
         Ok(c) => c,
         Err(e) => {
-            println!("{id:<10} [{}] {}", e.kind, e.message);
+            println!("{id:<18} [{}] {}", e.kind, e.message);
             return None;
         }
     };
     let closes: Vec<f64> = candles.iter().map(|candle| candle[4]).collect();
     if closes.is_empty() {
-        println!("{id:<10} no candles returned");
+        println!("{id:<18} no candles returned");
         return None;
     }
-    println!("{id:<10} {symbol:<10} {} candles", closes.len());
+    println!("{id:<18} {symbol:<10} {} candles in {} ms", closes.len(), started.elapsed().as_millis());
     Some(Series {
         id: id.to_string(),
         symbol: symbol.to_string(),
@@ -90,7 +91,7 @@ fn plot(series: &[Series], width: usize) {
 fn legend(series: &[Series], width: usize) {
     println!();
     println!(
-        "{:<3} {:<10} {:<10} {:>12} {:>12} {:>9}",
+        "{:<3} {:<18} {:<10} {:>12} {:>12} {:>9}",
         "", "exchange", "symbol", "first", "last", "change"
     );
     for s in series {
@@ -103,7 +104,7 @@ fn legend(series: &[Series], width: usize) {
             0.0
         };
         println!(
-            "{:<3} {:<10} {:<10} {:>12.2} {:>12.2} {:>8.2}%",
+            "{:<3} {:<18} {:<10} {:>12.2} {:>12.2} {:>8.2}%",
             s.marker, s.id, s.symbol, first, last, change
         );
     }
@@ -115,15 +116,20 @@ async fn run() {
         ("binance", "BTC/USDT"),
         ("okx", "BTC/USDT"),
         ("kraken", "BTC/USD"),
-        ("coinbase", "BTC/USD"),
+        ("coinbaseexchange", "BTC/USD"),
     ];
     println!("fetching {} candles of {TIMEFRAME}\n", LIMIT);
-    let mut series = Vec::new();
-    for (index, (id, symbol)) in targets.iter().enumerate() {
-        if let Some(s) = fetch_series(id, symbol, MARKERS[index % MARKERS.len()]).await {
-            series.push(s);
-        }
-    }
+    let started = std::time::Instant::now();
+    let pending = targets
+        .iter()
+        .enumerate()
+        .map(|(index, (id, symbol))| fetch_series(id, symbol, MARKERS[index % MARKERS.len()]));
+    let series: Vec<Series> = futures::future::join_all(pending)
+        .await
+        .into_iter()
+        .flatten()
+        .collect();
+    println!("\n{} of {} exchanges in {} ms", series.len(), targets.len(), started.elapsed().as_millis());
     if series.is_empty() {
         println!("\nno exchange returned candles");
         return;
