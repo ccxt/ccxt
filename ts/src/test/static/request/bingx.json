@@ -1119,11 +1119,29 @@
                 ]
             },
             {
-                "description": "Inverse swap fetch closed orders",
+                "description": "Linear swap fetch closed orders with filters",
                 "method": "fetchClosedOrders",
-                "url": "https://open-api.bingx.com/openApi/cswap/v1/trade/orderHistory?symbol=SOL-USD&timestamp=1721961756401&signature=e9cfa075457e0a4e8346e2dd32fa082cfb631ecaf87ca7ff414a1fe1096c5a8c",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/allOrders?endTime=1721961000000&limit=1000&startTime=1721960000000&symbol=LTC-USDT&timestamp=1699458294851&signature=d1622ab21a981576341cb05abaece32622e00a0b296c69e937e792c157e3e687",
                 "input": [
-                  "SOL/USD:SOL"
+                    "LTC/USDT:USDT",
+                    1721960000000,
+                    1500,
+                    {
+                        "until": 1721961000000
+                    }
+                ]
+            },
+            {
+                "description": "Inverse swap fetch closed orders with filters",
+                "method": "fetchClosedOrders",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/trade/orderHistory?endTime=1721961000000&limit=1000&startTime=1721960000000&symbol=SOL-USD&timestamp=1721961756401&signature=e9cfa075457e0a4e8346e2dd32fa082cfb631ecaf87ca7ff414a1fe1096c5a8c",
+                "input": [
+                    "SOL/USD:SOL",
+                    1721960000000,
+                    1500,
+                    {
+                        "until": 1721961000000
+                    }
                 ]
             },
             {

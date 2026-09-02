@@ -5030,7 +5030,7 @@ export default class bingx extends Exchange {
             await this.loadMarkets ();
         }
         let market: Market = undefined;
-        const request: Dict = {};
+        let request: Dict = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
@@ -5076,6 +5076,15 @@ export default class bingx extends Exchange {
         } else {
             const isTwapOrder = this.safeBool (params, 'twap', false);
             params = this.omit (params, 'twap');
+            if (!isTwapOrder) {
+                if (limit !== undefined) {
+                    request['limit'] = Math.min (limit, 1000);
+                }
+                if (since !== undefined) {
+                    request['startTime'] = since;
+                }
+                [ request, params ] = this.handleUntilOption ('endTime', request, params);
+            }
             if (isTwapOrder === true) {
                 request['pageIndex'] = 1;
                 request['pageSize'] = (limit === undefined) ? 100 : limit;
