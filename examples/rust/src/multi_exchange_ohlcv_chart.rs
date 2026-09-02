@@ -116,7 +116,7 @@ async fn run() {
         ("binance", "BTC/USDT"),
         ("okx", "BTC/USDT"),
         ("kraken", "BTC/USD"),
-        ("coinbaseexchange", "BTC/USD"),
+        ("bitstamp", "BTC/USD"),
     ];
     println!("fetching {} candles of {TIMEFRAME}\n", LIMIT);
     let started = std::time::Instant::now();
