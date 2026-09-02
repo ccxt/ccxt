@@ -95,7 +95,7 @@ func (this *WsOrderBook) GetValue(key string, defaultValue any) any {
 	case "bids":
 		return this.Bids
 	case "timestamp":
-		return this.Timestamp
+		return int64OrNil(this.Timestamp)
 	case "datetime":
 		return this.Datetime
 	case "symbol":
