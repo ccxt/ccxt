@@ -962,13 +962,12 @@ class BaseExchange(object):
 
     @staticmethod
     def safe_float_n(container, key_list, default_value=None):
-        if container is not None:
-            value = Exchange.get_object_value_from_key_list(container, key_list)
-            if value is not None:
-                try:
-                    return float(value)
-                except (ValueError):
-                    pass
+        value = Exchange.get_object_value_from_key_list(container, key_list)
+        if value is not None:
+            try:
+                return float(value)
+            except (ValueError, TypeError, OverflowError):
+                pass
         return default_value
 
     @staticmethod
