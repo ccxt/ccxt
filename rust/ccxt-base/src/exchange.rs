@@ -213,6 +213,11 @@ pub struct Exchange {
     pub rateLimiterAlgorithm:   Value,
     pub rollingWindowSize:      Value,
     pub tokenBucket:            Value,
+    /// The raw constructor config, kept so `initialize_properties` can merge it
+    /// over `describe()` the way Go's `InitParent` does
+    /// (`deepExtend(describe, userConfig)`) instead of relying on per-field
+    /// precedence guards in each Core's generated `init()`.
+    pub userConfig:             Value,
     pub verbose:                Value,
     pub isSandboxModeEnabled:   Value,
 
@@ -483,6 +488,7 @@ impl Exchange {
             rateLimiterAlgorithm: Value::Str("leakyBucket".to_string()),
             rollingWindowSize:    Value::Int(60_000),
             tokenBucket:          Value::Map(HashMap::new()),
+            userConfig:           Value::Null,
             verbose:              Value::Bool(false),
             isSandboxModeEnabled: Value::Bool(false),
 
@@ -613,15 +619,97 @@ impl Exchange {
 
             internals: Internals::default(),
         };
-        if let Some(cfg) = config { ex.apply_config(&cfg); }
-        // `afterConstruct()` (Exchange.ts) — builds `networksById`, the
-        // features table, `tokenBucket`, predefined markets and applies
-        // sandbox mode from `options.sandbox` / `options.testnet`. It is an
-        // `ExchangeBase` trait method now, so run it through a `BaseCore`
-        // (no overrides) and unwrap the mutated Exchange back out.
-        let mut __bc = BaseCore::new(ex);
-        crate::exchange_generated::ExchangeBase::after_construct(&mut __bc);
-        __bc.into_inner()
+        if let Some(cfg) = config {
+            ex.userConfig = cfg.clone();
+            ex.apply_config(&cfg);
+        }
+        // NOTE: `afterConstruct()` is deliberately NOT run here. In TS the
+        // constructor applies describe() and only then calls afterConstruct,
+        // so the bits it derives (networksById, the features table, the
+        // tokenBucket, the sandbox swap) see the venue's own values. Running
+        // it at this point — before the derived Core's describe() has been
+        // applied — is what made every venue throttle at the base 2000ms and
+        // forced a string of compensations in the generated `init()`. Each
+        // Core's `init()` now calls it last; a bare `Exchange` with no derived
+        // Core (base unit tests, `BaseCore`) calls `after_construct` itself.
+        ex
+    }
+
+    /// Apply a merged `describe()` + constructor-config map onto the typed
+    /// fields. The Rust counterpart of Go's `initializeProperties`
+    /// (`go/v4/exchange_options.go`) and of the TS constructor's
+    /// `deepExtend(this, describe(), userConfig)` — which Rust cannot do
+    /// directly because `Exchange` is a struct, not a dynamic object.
+    ///
+    /// Each Core's generated `init()` used to inline ~84 lines of this, which
+    /// is why every field carried its own precedence guard: config was applied
+    /// in `new()` BEFORE `describe()` ran, so `describe()` had to be stopped
+    /// from clobbering it. Here the config is merged over `describe()` first
+    /// (Go's `deepExtend(describe, userConfig)`), so last-write-wins is the
+    /// precedence rule and no guards are needed.
+    ///
+    /// Absent keys leave the base default in place — the equivalent of Go's
+    /// `SafeString(props, key, default)`.
+    pub fn initialize_properties(&mut self, described: Value) {
+        let props = if matches!(self.userConfig, Value::Null) {
+            described
+        } else {
+            crate::runtime::deep_merge_dict(&described, &self.userConfig.clone())
+        };
+        let get = |k: &str| crate::get_value(&props, &Value::Str(k.to_string()));
+        let assign = |field: &mut Value, v: Value| {
+            if !matches!(v, Value::Null) {
+                *field = v;
+            }
+        };
+        assign(&mut self.api, get("api"));
+        assign(&mut self.urls, get("urls"));
+        assign(&mut self.has, get("has"));
+        assign(&mut self.hostname, get("hostname"));
+        assign(&mut self.version, get("version"));
+        assign(&mut self.id, get("id"));
+        assign(&mut self.name, get("name"));
+        assign(&mut self.exceptions, get("exceptions"));
+        assign(&mut self.requiredCredentials, get("requiredCredentials"));
+        assign(&mut self.precisionMode, get("precisionMode"));
+        assign(&mut self.timeframes, get("timeframes"));
+        assign(&mut self.fees, get("fees"));
+        assign(&mut self.features, get("features"));
+        let rate_limit = get("rateLimit");
+        if matches!(rate_limit, Value::Int(_) | Value::Float(_)) {
+            self.rateLimit = rate_limit;
+        }
+        // `options` and `commonCurrencies` MERGE rather than replace: the base
+        // Exchange seeds defaults into both, and describe() only supplies the
+        // venue's additions.
+        if let Value::Dict(extra) = get("options") {
+            let mut merged = match &self.options {
+                Value::Dict(m) => (**m).clone(),
+                _ => HashMap::new(),
+            };
+            let extra = Arc::try_unwrap(extra).unwrap_or_else(|a| (*a).clone());
+            for (k, v) in extra { merged.insert(k, v); }
+            self.options = Value::Map(merged);
+        }
+        if let Value::Dict(extra) = get("commonCurrencies") {
+            let mut merged = match &self.commonCurrencies {
+                Value::Dict(m) => (**m).clone(),
+                _ => HashMap::new(),
+            };
+            let extra = Arc::try_unwrap(extra).unwrap_or_else(|a| (*a).clone());
+            for (k, v) in extra { merged.insert(k, v); }
+            self.commonCurrencies = Value::Map(merged);
+        }
+        // A venue whose describe() ships its own markets (the hard-coded ones)
+        // resolves load_markets without a network call. Guarded on markets not
+        // already being loaded, so config-injected markets win.
+        let described_markets = get("markets");
+        if matches!(&described_markets, Value::Dict(m) if !m.is_empty())
+            && matches!(self.markets, Value::Null)
+        {
+            self.set_markets_inline(described_markets);
+        }
+        self.build_implicit_api();
     }
 
     fn apply_config(&mut self, cfg: &Value) {

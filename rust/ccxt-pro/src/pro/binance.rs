@@ -24,193 +24,10 @@ impl BinanceCore {
         s
     }
 
-    /// One-shot setup: populates describe() data onto the inner Exchange and
-    /// builds the implicit API table. Idempotent — calling more than once is
-    /// safe.
-    ///
-    /// Dispatch is now fully static (review #1: pointer removal) — virtual
-    /// calls resolve through the DerivedExchange/ExchangeBase trait impls
-    /// on the concrete Core type, so there is no address to bind and init()
-    /// needs no self-referential setup. It runs safely while self is still a
-    /// movable local in new().
     pub fn init(&mut self) {
-        // Populate describe()-derived fields.
         let described = BinanceCore::describe(self);
-        self.api      = crate::get_value(&described, &crate::Value::Str("api".to_string()));
-        self.urls     = crate::get_value(&described, &crate::Value::Str("urls".to_string()));
-        self.has      = crate::get_value(&described, &crate::Value::Str("has".to_string()));
-        // rateLimit drives the throttle spacing. describe() usually declares a
-        // venue-specific value (binance 50ms, …); new() ran apply_config before
-        // init(), so a config-supplied rateLimit is already in place. Only fall
-        // back to describe()'s value when the field is still the base 2000ms
-        // default, so caller config keeps precedence (review #8 — init() used
-        // to drop describe().rateLimit, leaving every venue at 2000ms).
-        let __described_rate_limit = crate::get_value(&described, &crate::Value::Str("rateLimit".to_string()));
-        if matches!(__described_rate_limit, crate::Value::Int(_) | crate::Value::Float(_))
-            && matches!(self.rateLimit, crate::Value::Int(2000)) {
-            self.rateLimit = __described_rate_limit;
-            // The token bucket was already built by after_construct (inside
-            // Exchange::new), i.e. BEFORE the line above corrected rateLimit,
-            // so it carries refillRate = 1/2000 and the limiter spaces every
-            // venue at the base 2000ms rather than its declared rate - binance
-            // 40x too slow, kucoin 267x. TS has no such window: its constructor
-            // applies describe() first and only then runs initRestRateLimiter.
-            // Rebuild the bucket now that rateLimit is right. tokenBucket is
-            // reset first because initRestRateLimiter does extend(default,
-            // existing) and existing wins, so the stale refillRate would
-            // otherwise survive. Resetting loses nothing: no venue declares a
-            // tokenBucket in describe() and apply_config does not accept one,
-            // so the current value is only ever the stale default.
-            self.tokenBucket = crate::Value::Map(indexmap::IndexMap::new());
-            crate::exchange_generated::ExchangeBase::init_rest_rate_limiter(self);
-        }
-        // Merge describe() options INTO whatever apply_config (or
-        // earlier setup) already populated. Caller-supplied options
-        // (e.g. portfolioMargin via fixture) take precedence, then
-        // describe()'s defaults fill in any gaps.
-        let __described_options = crate::get_value(&described, &crate::Value::Str("options".to_string()));
-        // Capture the describe()'s explicit networksById BEFORE the merge
-        // — the merge below overlays the base Exchange's options (whose
-        // after_construct left an EMPTY networksById), which would
-        // otherwise clobber the manual mappings like binance BSC to BEP20.
-        let __described_networks_by_id = crate::get_value(&__described_options, &crate::Value::Str("networksById".to_string()));
-        if let (crate::Value::Dict(_), crate::Value::Dict(_)) =
-            (&self.options.clone(), &__described_options)
-        {
-            // Deep-extend (CCXT deepExtend): describe() defaults as the base,
-            // existing (config + parent REST describe) winning on leaf conflicts,
-            // nested dicts merged rather than replaced — so e.g. a pro Core's
-            // flat options.timeframes unions with the parent REST's nested one
-            // instead of one clobbering the other.
-            self.options = crate::runtime::deep_merge_dict(
-                &__described_options, &self.options.clone());
-        } else if !matches!(self.options, crate::Value::Dict(_)) {
-            self.options = __described_options;
-        }
-        // Derive options.networksById (CCXT's createNetworksByIdObject):
-        // start from the auto-inverted networks (generated), then overlay
-        // the describe()'s explicit networksById so manual mappings win —
-        // mirrors TS extend(generated, manual). Without the manual
-        // overlay, an exchange whose networks defines both BSC to BSC and
-        // BEP20 to BSC would invert to BSC to BSC (wrong) by iteration
-        // order instead of the intended BSC to BEP20.
-        if let crate::Value::Dict(opts_arc) = self.options.clone() {
-            let mut opts = std::sync::Arc::try_unwrap(opts_arc).unwrap_or_else(|a| (*a).clone());
-            let mut by_id: indexmap::IndexMap<String, crate::Value> = indexmap::IndexMap::new();
-            if let Some(crate::Value::Dict(networks)) = opts.get("networks") {
-                for (code, id) in networks.iter() {
-                    if let crate::Value::Str(id_s) = id {
-                        by_id.entry(id_s.clone())
-                             .or_insert_with(|| crate::Value::Str(code.clone()));
-                    }
-                }
-            }
-            if let crate::Value::Dict(manual) = &__described_networks_by_id {
-                for (k, v) in manual.iter() { by_id.insert(k.clone(), v.clone()); }
-            }
-            opts.insert("networksById".to_string(), crate::Value::Map(by_id));
-            self.options = crate::Value::Map(opts);
-        }
-        self.hostname = crate::get_value(&described, &crate::Value::Str("hostname".to_string()));
-        self.version  = crate::get_value(&described, &crate::Value::Str("version".to_string()));
-        self.id       = crate::get_value(&described, &crate::Value::Str("id".to_string()));
-        self.name     = crate::get_value(&described, &crate::Value::Str("name".to_string()));
-        self.exceptions = crate::get_value(&described, &crate::Value::Str("exceptions".to_string()));
-        // Only override the base-default requiredCredentials when the
-        // exchange's describe() actually provides them (super.describe()
-        // is stubbed, so most exchanges' describe() omits this).
-        { let __rc = crate::get_value(&described, &crate::Value::Str("requiredCredentials".to_string())); if !matches!(__rc, crate::Value::Null) { self.requiredCredentials = __rc; } }
-        // Merge describe()'s commonCurrencies over the base defaults so
-        // exchange-specific aliases (bitfinex UST to USDT, onetrading
-        // MIOTA to IOTA) reach commonCurrencyCode / safeCurrencyCode.
-        { let __cc = crate::get_value(&described, &crate::Value::Str("commonCurrencies".to_string())); if let crate::Value::Dict(extra) = __cc { let extra = std::sync::Arc::try_unwrap(extra).unwrap_or_else(|a| (*a).clone()); if let crate::Value::Dict(base) = &mut self.commonCurrencies { let base = std::sync::Arc::make_mut(base); for (k, v) in extra { base.insert(k, v); } } else { self.commonCurrencies = crate::Value::Map(extra); } } }
-        self.precisionMode = crate::get_value(&described, &crate::Value::Str("precisionMode".to_string()));
-        self.timeframes = crate::get_value(&described, &crate::Value::Str("timeframes".to_string()));
-        self.fees = crate::get_value(&described, &crate::Value::Str("fees".to_string()));
-        // `features` carries the describe() block that drives
-        // unified-method tests (e.g. `features.spot.fetchCurrencies.private`
-        // tells testFetchCurrencies to skip the length check). It's set
-        // after `Exchange::new` because `features_generator` (in
-        // `after_construct`) bails when `features == Null` — so we
-        // assign and re-run the generator here.
-        self.features = crate::get_value(&described, &crate::Value::Str("features".to_string()));
-        if !matches!(self.features, crate::Value::Null) {
-            self.features_generator();
-        }
-        // Markets and currencies may have been populated already by
-        // the constructor config (test runners pass them in via
-        // Exchange::new(Some(config-with-markets)) — same as CCXT TS).
-        // Don't reset them here.
-        // Apply hardcoded describe().markets. Venues like coincheck ship a
-        // static markets block and never fetchMarkets — CCXT sets this.markets
-        // from describe() at construction, and its base fetchMarkets just
-        // returns Object.values(this.markets). Mirror that here so loadMarkets
-        // resolves without a network fetch. Guarded on a non-empty describe()
-        // markets and an as-yet-unloaded self.markets, so fetch-based venues
-        // (empty describe markets) and config-injected markets are untouched.
-        {
-            let __described_markets = crate::get_value(&described, &crate::Value::Str("markets".to_string()));
-            if matches!(&__described_markets, crate::Value::Dict(mm) if !mm.is_empty())
-                && matches!(self.markets, crate::Value::Null)
-            {
-                let __markets_list = crate::runtime::object_values(&__described_markets);
-                <Self as crate::exchange_generated::ExchangeBase>::set_markets(self, __markets_list, &[crate::Value::Null]);
-            }
-        }
-        self.build_implicit_api();
-        // Sandbox routing, applied HERE and not earlier.
-        //
-        // `Exchange::new` runs `after_construct`, which is what TS uses to
-        // apply `options.sandbox` / `options.testnet`. At that point this
-        // Core's `describe()` has not run: `urls` is empty (so
-        // `set_sandbox_mode` has no `urls.test` to swap in) and the config's
-        // `options` have not been merged yet either. The assignments above
-        // then install the LIVE `urls` unconditionally, so any swap made
-        // earlier would be overwritten regardless.
-        //
-        // The net effect was that a sandbox-configured exchange silently
-        // talked to production. Re-apply the check now that `urls` is
-        // populated and `options` carries the constructor config. Mirrors
-        // TS: a venue with no `urls.test` raises NotSupported rather than
-        // quietly staying live.
-        {
-            let __sandbox = <Self as crate::exchange_generated::ExchangeBase>::safe_bool2(
-                self,
-                self.options.clone(),
-                crate::Value::Str("sandbox".to_string()),
-                crate::Value::Str("testnet".to_string()),
-                &[crate::Value::Bool(false)],
-            );
-            // Guard on the swap marker, NOT on `isSandboxModeEnabled`:
-            // `after_construct` already set that flag to true while failing to
-            // swap anything, so trusting it would skip the fix. `set_sandbox_mode`
-            // writes `urls.apiBackup` when it swaps, so its absence is the
-            // reliable "not applied yet" test — and makes this idempotent.
-            let __already_swapped = !matches!(
-                crate::runtime::get_value(
-                    &self.urls,
-                    &crate::Value::Str("apiBackup".to_string()),
-                ),
-                crate::Value::Null
-            );
-            // A transpiled describe() can emit `test: null` for a venue with
-            // no testnet. `set_sandbox_mode` only checks that the KEY exists,
-            // so it would swap `urls.api` to null and report success — require
-            // a real value instead.
-            let __has_test = !matches!(
-                crate::runtime::get_value(
-                    &self.urls,
-                    &crate::Value::Str("test".to_string()),
-                ),
-                crate::Value::Null
-            );
-            if matches!(__sandbox, crate::Value::Bool(true)) && !__already_swapped && __has_test {
-                <Self as crate::exchange_generated::ExchangeBase>::set_sandbox_mode(
-                    self,
-                    crate::Value::Bool(true),
-                );
-            }
-        }
+        self.initialize_properties(described);
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -1053,8 +870,8 @@ impl BinanceCore {
         }  else {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_55: bool = true;
-                while { if !__for_first_55 { i = add(&i, &Value::Int(1)); } __for_first_55 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+                let mut __for_first_0: bool = true;
+                while { if !__for_first_0 { i = add(&i, &Value::Int(1)); } __for_first_0 = false; is_less_than(&i, &get_array_length(&symbols)) } {
                 let mut market: Value = self.market(get_value(&symbols, &i));
                 append_to_array(&mut subscriptionHashes, add(&get_value(&market, &Value::Str("lowercaseId".to_string())), &Value::Str("@forceOrder".to_string())));
                 append_to_array(&mut messageHashes, add(&Value::Str("liquidations::".to_string()), &get_value(&symbols, &i)));
@@ -1311,8 +1128,8 @@ impl BinanceCore {
         if !is_true(&self.is_empty(symbols.clone())) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_56: bool = true;
-                while { if !__for_first_56 { i = add(&i, &Value::Int(1)); } __for_first_56 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+                let mut __for_first_1: bool = true;
+                while { if !__for_first_1 { i = add(&i, &Value::Int(1)); } __for_first_1 = false; is_less_than(&i, &get_array_length(&symbols)) } {
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut symbol: Value = get_value(&symbols, &i);
                 append_to_array(&mut messageHashes, add(&Value::Str("myLiquidations::".to_string()), &symbol));
@@ -1491,8 +1308,8 @@ impl BinanceCore {
         let mut messageHashes: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_57: bool = true;
-            while { if !__for_first_57 { i = add(&i, &Value::Int(1)); } __for_first_57 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_2: bool = true;
+            while { if !__for_first_2 { i = add(&i, &Value::Int(1)); } __for_first_2 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = self.market(symbol.clone());
@@ -1574,8 +1391,8 @@ impl BinanceCore {
         let mut messageHashes: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_58: bool = true;
-            while { if !__for_first_58 { i = add(&i, &Value::Int(1)); } __for_first_58 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_3: bool = true;
+            while { if !__for_first_3 { i = add(&i, &Value::Int(1)); } __for_first_3 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = self.market(symbol.clone());
@@ -1751,8 +1568,8 @@ impl BinanceCore {
             crate::set_value(&mut orderbook, &Value::Str("cache".to_string()), Value::List(vec![]));
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_59: bool = true;
-                while { if !__for_first_59 { i = add(&i, &Value::Int(1)); } __for_first_59 = false; is_less_than(&i, &get_array_length(&messages)) } {
+                let mut __for_first_4: bool = true;
+                while { if !__for_first_4 { i = add(&i, &Value::Int(1)); } __for_first_4 = false; is_less_than(&i, &get_array_length(&messages)) } {
                 let mut messageItem: Value = get_value(&messages, &i);
                 let mut messageItem: Value = get_value(&messages, &i);
                 let mut U: Value = self.safe_integer_k(messageItem.clone(), "U", &[]);
@@ -1800,8 +1617,8 @@ impl BinanceCore {
     pub fn handle_deltas(&self, mut bookside: Value, mut deltas: Value) {
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_60: bool = true;
-            while { if !__for_first_60 { i = add(&i, &Value::Int(1)); } __for_first_60 = false; is_less_than(&i, &get_array_length(&deltas)) } {
+            let mut __for_first_5: bool = true;
+            while { if !__for_first_5 { i = add(&i, &Value::Int(1)); } __for_first_5 = false; is_less_than(&i, &get_array_length(&deltas)) } {
             self.handle_delta(bookside.clone(), get_value(&deltas, &i));
         }
         }
@@ -1934,8 +1751,8 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         let mut limit: Value = self.safe_integer_k(subscription.clone(), "limit", &[defaultLimit.clone()]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_61: bool = true;
-            while { if !__for_first_61 { i = add(&i, &Value::Int(1)); } __for_first_61 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_6: bool = true;
+            while { if !__for_first_6 { i = add(&i, &Value::Int(1)); } __for_first_6 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             if is_true(&Value::Bool(in_op(&self.orderbooks, &symbol))) {
@@ -1987,8 +1804,8 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         let mut subMessageHashes: Value = self.safe_list_k(subscription.clone(), "subMessageHashes", &[Value::List(vec![])]);
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_62: bool = true;
-            while { if !__for_first_62 { j = add(&j, &Value::Int(1)); } __for_first_62 = false; is_less_than(&j, &get_array_length(&messageHashes)) } {
+            let mut __for_first_7: bool = true;
+            while { if !__for_first_7 { j = add(&j, &Value::Int(1)); } __for_first_7 = false; is_less_than(&j, &get_array_length(&messageHashes)) } {
             let mut unsubHash: Value = get_value(&messageHashes, &j);
             let mut unsubHash: Value = get_value(&messageHashes, &j);
             let mut subHash: Value = get_value(&subMessageHashes, &j);
@@ -2055,8 +1872,8 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             });
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_63: bool = true;
-                while { if !__for_first_63 { i = add(&i, &Value::Int(1)); } __for_first_63 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+                let mut __for_first_8: bool = true;
+                while { if !__for_first_8 { i = add(&i, &Value::Int(1)); } __for_first_8 = false; is_less_than(&i, &get_array_length(&symbols)) } {
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut market: Value = self.market(symbol.clone());
@@ -2073,8 +1890,8 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         }  else {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_64: bool = true;
-                while { if !__for_first_64 { i = add(&i, &Value::Int(1)); } __for_first_64 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+                let mut __for_first_9: bool = true;
+                while { if !__for_first_9 { i = add(&i, &Value::Int(1)); } __for_first_9 = false; is_less_than(&i, &get_array_length(&symbols)) } {
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut market: Value = self.market(symbol.clone());
@@ -2165,8 +1982,8 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             });
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_65: bool = true;
-                while { if !__for_first_65 { i = add(&i, &Value::Int(1)); } __for_first_65 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+                let mut __for_first_10: bool = true;
+                while { if !__for_first_10 { i = add(&i, &Value::Int(1)); } __for_first_10 = false; is_less_than(&i, &get_array_length(&symbols)) } {
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut market: Value = self.market(symbol.clone());
@@ -2184,8 +2001,8 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         }  else {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_66: bool = true;
-                while { if !__for_first_66 { i = add(&i, &Value::Int(1)); } __for_first_66 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+                let mut __for_first_11: bool = true;
+                while { if !__for_first_11 { i = add(&i, &Value::Int(1)); } __for_first_11 = false; is_less_than(&i, &get_array_length(&symbols)) } {
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut market: Value = self.market(symbol.clone());
@@ -2545,8 +2362,8 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             let mut stockMessageHashes: Value = Value::List(vec![]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_67: bool = true;
-                while { if !__for_first_67 { i = add(&i, &Value::Int(1)); } __for_first_67 = false; is_less_than(&i, &get_array_length(&symbolsAndTimeframes)) } {
+                let mut __for_first_12: bool = true;
+                while { if !__for_first_12 { i = add(&i, &Value::Int(1)); } __for_first_12 = false; is_less_than(&i, &get_array_length(&symbolsAndTimeframes)) } {
                 let mut stockSymAndTf: Value = get_value(&symbolsAndTimeframes, &i);
                 let mut stockSymAndTf: Value = get_value(&symbolsAndTimeframes, &i);
                 let mut stockSymbolString: Value = self.symbol(get_value(&stockSymAndTf, &Value::Int(0)));
@@ -2595,8 +2412,8 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         let mut messageHashes: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_68: bool = true;
-            while { if !__for_first_68 { i = add(&i, &Value::Int(1)); } __for_first_68 = false; is_less_than(&i, &get_array_length(&symbolsAndTimeframes)) } {
+            let mut __for_first_13: bool = true;
+            while { if !__for_first_13 { i = add(&i, &Value::Int(1)); } __for_first_13 = false; is_less_than(&i, &get_array_length(&symbolsAndTimeframes)) } {
             let mut symAndTf: Value = get_value(&symbolsAndTimeframes, &i);
             let mut symAndTf: Value = get_value(&symbolsAndTimeframes, &i);
             let mut symbolString: Value = get_value(&symAndTf, &Value::Int(0));
@@ -2691,8 +2508,8 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         let mut messageHashes: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_69: bool = true;
-            while { if !__for_first_69 { i = add(&i, &Value::Int(1)); } __for_first_69 = false; is_less_than(&i, &get_array_length(&symbolsAndTimeframes)) } {
+            let mut __for_first_14: bool = true;
+            while { if !__for_first_14 { i = add(&i, &Value::Int(1)); } __for_first_14 = false; is_less_than(&i, &get_array_length(&symbolsAndTimeframes)) } {
             let mut symAndTf: Value = get_value(&symbolsAndTimeframes, &i);
             let mut symAndTf: Value = get_value(&symbolsAndTimeframes, &i);
             let mut symbolString: Value = get_value(&symAndTf, &Value::Int(0));
@@ -3305,8 +3122,8 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             let mut stockMessageHashes: Value = Value::List(vec![]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_70: bool = true;
-                while { if !__for_first_70 { i = add(&i, &Value::Int(1)); } __for_first_70 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+                let mut __for_first_15: bool = true;
+                while { if !__for_first_15 { i = add(&i, &Value::Int(1)); } __for_first_15 = false; is_less_than(&i, &get_array_length(&symbols)) } {
                 let mut stockTicker: Value = self.get_stock_ticker_from_symbol(get_value(&symbols, &i));
                 append_to_array(&mut stockStreams, add(&stockTicker, &Value::Str("@quote".to_string())));
                 append_to_array(&mut stockMessageHashes, add(&Value::Str("stock:quote:".to_string()), &get_value(&symbols, &i)));
@@ -3397,8 +3214,8 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             });
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_71: bool = true;
-                while { if !__for_first_71 { i = add(&i, &Value::Int(1)); } __for_first_71 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+                let mut __for_first_16: bool = true;
+                while { if !__for_first_16 { i = add(&i, &Value::Int(1)); } __for_first_16 = false; is_less_than(&i, &get_array_length(&symbols)) } {
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut market: Value = self.market(symbol.clone());
@@ -3770,8 +3587,8 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_72: bool = true;
-            while { if !__for_first_72 { i = add(&i, &Value::Int(1)); } __for_first_72 = false; is_less_than(&i, &get_array_length(&rawTickers)) } {
+            let mut __for_first_17: bool = true;
+            while { if !__for_first_17 { i = add(&i, &Value::Int(1)); } __for_first_17 = false; is_less_than(&i, &get_array_length(&rawTickers)) } {
             let mut ticker: Value = get_value(&rawTickers, &i);
             let mut ticker: Value = get_value(&rawTickers, &i);
             let mut event: Value = self.safe_string_k(ticker.clone(), "e", &[]);
@@ -4319,8 +4136,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             let mut messageHashes: Value = object_keys(&get_value(&client, &Value::Str("futures".to_string())));
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_73: bool = true;
-                while { if !__for_first_73 { i = add(&i, &Value::Int(1)); } __for_first_73 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
+                let mut __for_first_18: bool = true;
+                while { if !__for_first_18 { i = add(&i, &Value::Int(1)); } __for_first_18 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
                 let mut messageHash: Value = get_value(&messageHashes, &i);
                 let mut messageHash: Value = get_value(&messageHashes, &i);
                 client.reject(&[Value::from(error.clone()), messageHash.clone()]);
@@ -4355,8 +4172,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_75: bool = true;
-            while { if !__for_first_75 { i = add(&i, &Value::Int(1)); } __for_first_75 = false; is_less_than(&i, &get_array_length(&clients)) } {
+            let mut __for_first_20: bool = true;
+            while { if !__for_first_20 { i = add(&i, &Value::Int(1)); } __for_first_20 = false; is_less_than(&i, &get_array_length(&clients)) } {
             let mut client: Value = get_value(&clients, &i);
             let mut client: Value = get_value(&clients, &i);
             let mut clientSubscriptions: Value = self.safe_dict_k(client.clone(), "subscriptions", &[Value::Map({
@@ -4366,8 +4183,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             let mut subscriptionKeys: Value = object_keys(&clientSubscriptions);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_74: bool = true;
-                while { if !__for_first_74 { j = add(&j, &Value::Int(1)); } __for_first_74 = false; is_less_than(&j, &get_array_length(&subscriptionKeys)) } {
+                let mut __for_first_19: bool = true;
+                while { if !__for_first_19 { j = add(&j, &Value::Int(1)); } __for_first_19 = false; is_less_than(&j, &get_array_length(&subscriptionKeys)) } {
                 let mut subscribeType: Value = get_value(&subscriptionKeys, &j);
                 let mut subscribeType: Value = get_value(&subscriptionKeys, &j);
                 if is_equal(&subscribeType, &type_var) {
@@ -4685,8 +4502,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut positions: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_76: bool = true;
-            while { if !__for_first_76 { i = add(&i, &Value::Int(1)); } __for_first_76 = false; is_less_than(&i, &get_array_length(&result)) } {
+            let mut __for_first_21: bool = true;
+            while { if !__for_first_21 { i = add(&i, &Value::Int(1)); } __for_first_21 = false; is_less_than(&i, &get_array_length(&result)) } {
             let mut parsed: Value = self.parent.parse_position_risk(get_value(&result, &i), &[]);
             let mut entryPrice: Value = self.safe_string_k(parsed.clone(), "entryPrice", &[]);
             if is_true(&(!is_equal(&entryPrice, &Value::Str("0".to_string())))) && is_true(&(!is_equal(&entryPrice, &Value::Str("0.0".to_string())))) && is_true(&(!is_equal(&entryPrice, &Value::Str("0.00000000".to_string())))) {
@@ -4867,8 +4684,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             }
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_77: bool = true;
-                while { if !__for_first_77 { i = add(&i, &Value::Int(1)); } __for_first_77 = false; is_less_than(&i, &get_array_length(&B)) } {
+                let mut __for_first_22: bool = true;
+                while { if !__for_first_22 { i = add(&i, &Value::Int(1)); } __for_first_22 = false; is_less_than(&i, &get_array_length(&B)) } {
                 let mut entry: Value = get_value(&B, &i);
                 let mut entry: Value = get_value(&B, &i);
                 let mut currencyId: Value = self.safe_string_k(entry.clone(), "a", &[]);
@@ -4894,8 +4711,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut accountType: Value = Value::Str("".to_string());
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_78: bool = true;
-            while { if !__for_first_78 { i = add(&i, &Value::Int(1)); } __for_first_78 = false; is_less_than(&i, &get_array_length(&subscriptions)) } {
+            let mut __for_first_23: bool = true;
+            while { if !__for_first_23 { i = add(&i, &Value::Int(1)); } __for_first_23 = false; is_less_than(&i, &get_array_length(&subscriptions)) } {
             let mut subscription: Value = get_value(&subscriptions, &i);
             let mut subscription: Value = get_value(&subscriptions, &i);
             if is_true(&(is_equal(&subscription, &Value::Str("spot".to_string())))) || is_true(&(is_equal(&subscription, &Value::Str("margin".to_string())))) || is_true(&(is_equal(&subscription, &Value::Str("future".to_string())))) || is_true(&(is_equal(&subscription, &Value::Str("delivery".to_string())))) || is_true(&(is_equal(&subscription, &Value::Str("option".to_string())))) {
@@ -5605,8 +5422,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut closedOrders: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_79: bool = true;
-            while { if !__for_first_79 { i = add(&i, &Value::Int(1)); } __for_first_79 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_24: bool = true;
+            while { if !__for_first_24 { i = add(&i, &Value::Int(1)); } __for_first_24 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut order: Value = get_value(&orders, &i);
             let mut order: Value = get_value(&orders, &i);
             if is_equal(&get_value(&order, &Value::Str("status".to_string())), &Value::Str("closed".to_string())) {
@@ -6232,8 +6049,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_80: bool = true;
-            while { if !__for_first_80 { i = add(&i, &Value::Int(1)); } __for_first_80 = false; is_less_than(&i, &get_array_length(&rates)) } {
+            let mut __for_first_25: bool = true;
+            while { if !__for_first_25 { i = add(&i, &Value::Int(1)); } __for_first_25 = false; is_less_than(&i, &get_array_length(&rates)) } {
             let mut rate: Value = self.safe_dict(rates.clone(), i.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -6325,8 +6142,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut orders: Value = self.safe_list_k(message.clone(), "o", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_82: bool = true;
-            while { if !__for_first_82 { i = add(&i, &Value::Int(1)); } __for_first_82 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_27: bool = true;
+            while { if !__for_first_27 { i = add(&i, &Value::Int(1)); } __for_first_27 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut order: Value = get_value(&orders, &i);
             let mut order: Value = get_value(&orders, &i);
             let mut fills: Value = self.safe_list_k(order.clone(), "fi", &[Value::List(vec![])]);
@@ -6363,8 +6180,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             self.handle_order(client.clone(), normalizedOrder.clone());
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_81: bool = true;
-                while { if !__for_first_81 { j = add(&j, &Value::Int(1)); } __for_first_81 = false; is_less_than(&j, &get_array_length(&fills)) } {
+                let mut __for_first_26: bool = true;
+                while { if !__for_first_26 { j = add(&j, &Value::Int(1)); } __for_first_26 = false; is_less_than(&j, &get_array_length(&fills)) } {
                 let mut fill: Value = get_value(&fills, &j);
                 let mut fill: Value = get_value(&fills, &j);
                 let mut isMaker: Value = Value::Bool(is_equal(&self.safe_string_k(fill.clone(), "m", &[]), &Value::Str("MAKER".to_string())));
@@ -6518,8 +6335,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut cache: Value = get_value(&self.positions, &type_var);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_83: bool = true;
-            while { if !__for_first_83 { i = add(&i, &Value::Int(1)); } __for_first_83 = false; is_less_than(&i, &get_array_length(&positions)) } {
+            let mut __for_first_28: bool = true;
+            while { if !__for_first_28 { i = add(&i, &Value::Int(1)); } __for_first_28 = false; is_less_than(&i, &get_array_length(&positions)) } {
             let mut position: Value = get_value(&positions, &i);
             let mut position: Value = get_value(&positions, &i);
             let mut contracts: Value = self.safe_number_k(position.clone(), "contracts", &[Value::Int(0)]);
@@ -6589,8 +6406,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut newPositions: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_84: bool = true;
-            while { if !__for_first_84 { i = add(&i, &Value::Int(1)); } __for_first_84 = false; is_less_than(&i, &get_array_length(&rawPositions)) } {
+            let mut __for_first_29: bool = true;
+            while { if !__for_first_29 { i = add(&i, &Value::Int(1)); } __for_first_29 = false; is_less_than(&i, &get_array_length(&rawPositions)) } {
             let mut rawPosition: Value = get_value(&rawPositions, &i);
             let mut rawPosition: Value = get_value(&rawPositions, &i);
             let mut position: Value = self.parse_ws_position(rawPosition.clone(), &[]);
@@ -6604,8 +6421,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut messageHashes: Value = self.find_message_hashes(client.clone(), add(&accountType, &Value::Str(":positions::".to_string())));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_85: bool = true;
-            while { if !__for_first_85 { i = add(&i, &Value::Int(1)); } __for_first_85 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
+            let mut __for_first_30: bool = true;
+            while { if !__for_first_30 { i = add(&i, &Value::Int(1)); } __for_first_30 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
             let mut messageHash: Value = get_value(&messageHashes, &i);
             let mut messageHash: Value = get_value(&messageHashes, &i);
             let mut parts: Value = split(&messageHash, &Value::Str("::".to_string()));
@@ -7032,8 +6849,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                             let mut insertNewFeeCurrency: Value = Value::Bool(true);
                             {
                                                                 let mut i: Value = Value::Int(0);
-                                let mut __for_first_86: bool = true;
-                                while { if !__for_first_86 { i = add(&i, &Value::Int(1)); } __for_first_86 = false; is_less_than(&i, &get_array_length(&fees)) } {
+                                let mut __for_first_31: bool = true;
+                                while { if !__for_first_31 { i = add(&i, &Value::Int(1)); } __for_first_31 = false; is_less_than(&i, &get_array_length(&fees)) } {
                                 let mut orderFee: Value = get_value(&fees, &i);
                                 let mut orderFee: Value = get_value(&fees, &i);
                                 if is_equal(&get_value(&orderFee, &Value::Str("currency".to_string())), &get_value(&tradeFee, &Value::Str("currency".to_string()))) {
@@ -7175,8 +6992,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut B: Value = self.safe_list_k(message.clone(), "B", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_87: bool = true;
-            while { if !__for_first_87 { i = add(&i, &Value::Int(1)); } __for_first_87 = false; is_less_than(&i, &get_array_length(&B)) } {
+            let mut __for_first_32: bool = true;
+            while { if !__for_first_32 { i = add(&i, &Value::Int(1)); } __for_first_32 = false; is_less_than(&i, &get_array_length(&B)) } {
             let mut entry: Value = get_value(&B, &i);
             let mut entry: Value = get_value(&B, &i);
             let mut currencyId: Value = self.safe_string_k(entry.clone(), "a", &[]);
@@ -7208,8 +7025,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut newPositions: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_88: bool = true;
-            while { if !__for_first_88 { i = add(&i, &Value::Int(1)); } __for_first_88 = false; is_less_than(&i, &get_array_length(&P)) } {
+            let mut __for_first_33: bool = true;
+            while { if !__for_first_33 { i = add(&i, &Value::Int(1)); } __for_first_33 = false; is_less_than(&i, &get_array_length(&P)) } {
             let mut rawPosition: Value = get_value(&P, &i);
             let mut rawPosition: Value = get_value(&P, &i);
             let mut position: Value = self.parse_ws_options_position(rawPosition.clone(), &[]);
@@ -7222,8 +7039,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut messageHashes: Value = self.find_message_hashes(client.clone(), add(&accountType, &Value::Str(":positions::".to_string())));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_89: bool = true;
-            while { if !__for_first_89 { i = add(&i, &Value::Int(1)); } __for_first_89 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
+            let mut __for_first_34: bool = true;
+            while { if !__for_first_34 { i = add(&i, &Value::Int(1)); } __for_first_34 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
             let mut messageHash: Value = get_value(&messageHashes, &i);
             let mut messageHash: Value = get_value(&messageHashes, &i);
             let mut parts: Value = split(&messageHash, &Value::Str("::".to_string()));
@@ -7278,8 +7095,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut subscriptionKeys: Value = object_keys(&get_value(&client, &Value::Str("subscriptions".to_string())));
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_90: bool = true;
-                while { if !__for_first_90 { i = add(&i, &Value::Int(1)); } __for_first_90 = false; is_less_than(&i, &get_array_length(&subscriptionKeys)) } {
+                let mut __for_first_35: bool = true;
+                while { if !__for_first_35 { i = add(&i, &Value::Int(1)); } __for_first_35 = false; is_less_than(&i, &get_array_length(&subscriptionKeys)) } {
                 let mut subscriptionHash: Value = get_value(&subscriptionKeys, &i);
                 let mut subscriptionHash: Value = get_value(&subscriptionKeys, &i);
                 let mut subscriptionId: Value = self.safe_string(get_value(&get_value(&client, &Value::Str("subscriptions".to_string())), &subscriptionHash), Value::Str("id".to_string()), &[]);

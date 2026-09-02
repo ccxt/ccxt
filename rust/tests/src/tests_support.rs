@@ -12,7 +12,14 @@ use ccxt::exchange::Exchange;
 /// static dispatch). `BaseCore` `Deref`s to `Exchange`, so field access and
 /// `to_value()` still work unchanged.
 pub fn make_exchange(config: Value) -> ccxt::exchange::BaseCore {
-    ccxt::exchange::BaseCore::new(Exchange::new(Some(config)))
+    let mut core = ccxt::exchange::BaseCore::new(Exchange::new(Some(config)));
+    // `Exchange::new` no longer runs `after_construct`: a derived Core's
+    // `init()` calls it last, once its describe() has been applied (mirroring
+    // the TS constructor). A bare `Exchange` has no such Core, so run it here
+    // — `test.afterConstructor` and anything reading networksById / features /
+    // the tokenBucket depends on it.
+    ccxt::exchange_generated::ExchangeBase::after_construct(&mut core);
+    core
 }
 
 /// `equals(a, b)` — checks that every key of `a` matches the same key
