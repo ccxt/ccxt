@@ -443,6 +443,7 @@ class bingx extends Exchange {
                                 'uid' => array( 'cost' => 1 ),
                                 'apiKey/query' => array( 'cost' => 2 ),
                                 'account/apiPermissions' => array( 'cost' => 5 ),
+                                'account/apiRestrictions' => array( 'cost' => 5 ),
                                 'allAccountBalance' => array( 'cost' => 2 ),
                             ),
                             'post' => array(
@@ -1060,6 +1061,8 @@ class bingx extends Exchange {
             $isActive = true; // $swap active
         } elseif (($this->safe_bool($market, 'apiStateSell') === true) && ($this->safe_bool($market, 'apiStateBuy') === true) && ($this->safe_string($market, 'status') === '1')) {
             $isActive = true; // $spot active
+        } elseif ($checkIsInverse && ($this->safe_string($market, 'status') === '1')) {
+            $isActive = true; // inverse $swap active
         }
         $isInverse = ($spot) ? null : $checkIsInverse;
         $isLinear = ($spot) ? null : $checkIsLinear;
@@ -5200,17 +5203,23 @@ class bingx extends Exchange {
             'amount' => $this->currency_to_precision($code, $amount),
         );
         $response = $this->apiAssetV1PrivatePostTransfer($this->extend($request, $params));
+        $data = $this->safe_dict($response, 'data', array());
+        $timestamp = $this->safe_integer($response, 'timestamp');
         //
         //     {
-        //         "tranId" => 1933130865269936128,
-        //         "transferId" => "1051450703949464903736"
+        //         "code" => "0",
+        //         "timestamp" => "1752202170686",
+        //         "data" => {
+        //             "tranId" => "1943502883135819776",
+        //             "transferId" => "1051461075875997081703"
+        //         }
         //     }
         //
         return array(
             'info' => $response,
-            'id' => $this->safe_string($response, 'transferId'),
-            'timestamp' => null,
-            'datetime' => null,
+            'id' => $this->safe_string_2($data, 'transferId', 'tranId'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
             'currency' => $code,
             'amount' => $amount,
             'fromAccount' => $fromAccount,
@@ -7016,7 +7025,8 @@ class bingx extends Exchange {
             $version = $section[2];
             $access = $section[3];
         }
-        if ($path !== 'account/apiPermissions') {
+        $flatAccountPaths = array( 'account/apiPermissions', 'account/apiRestrictions' );
+        if (!$this->in_array($path, $flatAccountPaths)) {
             if ($type === 'spot' && $version === 'v3') {
                 $url .= '/api';
             } else {

@@ -3242,7 +3242,7 @@ export default class bitget extends Exchange {
             'address': this.safeString(transaction, 'toAddress'),
             'addressTo': this.safeString(transaction, 'toAddress'),
             'amount': this.parseNumber(amountString),
-            'type': this.safeString(transaction, 'type'),
+            'type': this.parseTransactionType(this.safeString(transaction, 'type')),
             'currency': code,
             'status': this.parseTransactionStatus(status),
             'updated': this.safeInteger2(transaction, 'uTime', 'updatedTime'),
@@ -3253,6 +3253,13 @@ export default class bitget extends Exchange {
             'internal': undefined,
             'fee': fee,
         };
+    }
+    parseTransactionType(type) {
+        // the wire says withdraw, and a unified transaction says withdrawal
+        const types = {
+            'withdraw': 'withdrawal',
+        };
+        return this.safeString(types, type, type);
     }
     parseTransactionStatus(status) {
         const statuses = {

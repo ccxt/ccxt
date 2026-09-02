@@ -3241,7 +3241,9 @@ class poloniex(Exchange, ImplicitAPI):
         for i in range(0, len(data)):
             entry = data[i]
             marketId = self.safe_string(entry, 'symbol')
-            marginMode = self.safe_string(entry, 'mgnMode')
+            # mgnMode arrives upper case; parseOrder and parsePosition read the
+            # same field with safeStringLower
+            marginMode = self.safe_string_lower(entry, 'mgnMode')
             lever = self.safe_integer(entry, 'lever')
             posSide = self.safe_string(entry, 'posSide')
             if posSide == 'LONG':

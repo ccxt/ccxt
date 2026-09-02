@@ -2399,6 +2399,7 @@ func (this *CoinbaseinternationalCore) ParseOrder(order any, optionalArgs ...any
 }
 func (this *CoinbaseinternationalCore) ParseOrderStatus(status any) any {
 	var statuses map[string]any = map[string]any{
+		"WORKING":         "open",
 		"NEW":             "open",
 		"PARTIAL_FILLED":  "open",
 		"FILLED":          "closed",
@@ -2449,8 +2450,8 @@ func (this *CoinbaseinternationalCore) cancelOrderBody(ch chan any, id any, opti
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes197012 := (<-this.LoadMarkets())
-		PanicOnError(retRes197012)
+		retRes197312 := (<-this.LoadMarkets())
+		PanicOnError(retRes197312)
 	}
 	var portfolio any = nil
 	portfolioparamsVariable := (<-this.HandlePortfolioAndParams("cancelOrder", params))
@@ -2517,8 +2518,8 @@ func (this *CoinbaseinternationalCore) cancelAllOrdersBody(ch chan any, optional
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes201912 := (<-this.LoadMarkets())
-		PanicOnError(retRes201912)
+		retRes202212 := (<-this.LoadMarkets())
+		PanicOnError(retRes202212)
 	}
 	var portfolio any = nil
 	portfolioparamsVariable := (<-this.HandlePortfolioAndParams("cancelAllOrders", params))
@@ -2571,8 +2572,8 @@ func (this *CoinbaseinternationalCore) editOrderBody(ch chan any, id any, symbol
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes205212 := (<-this.LoadMarkets())
-		PanicOnError(retRes205212)
+		retRes205512 := (<-this.LoadMarkets())
+		PanicOnError(retRes205512)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -2632,8 +2633,8 @@ func (this *CoinbaseinternationalCore) fetchOrderBody(ch chan any, id any, optio
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes209412 := (<-this.LoadMarkets())
-		PanicOnError(retRes209412)
+		retRes209712 := (<-this.LoadMarkets())
+		PanicOnError(retRes209712)
 	}
 	var market any = nil
 	if IsTrue(!IsEqual(symbol, nil)) {
@@ -2712,8 +2713,8 @@ func (this *CoinbaseinternationalCore) fetchOpenOrdersBody(ch chan any, optional
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes215112 := (<-this.LoadMarkets())
-		PanicOnError(retRes215112)
+		retRes215412 := (<-this.LoadMarkets())
+		PanicOnError(retRes215412)
 	}
 	var portfolio any = nil
 	portfolioparamsVariable := (<-this.HandlePortfolioAndParams("fetchOpenOrders", params))
@@ -2730,9 +2731,9 @@ func (this *CoinbaseinternationalCore) fetchOpenOrdersBody(ch chan any, optional
 	var pageKey string = "ccxtPageKey"
 	if IsTrue(paginate) {
 
-		retRes216119 := (<-this.FetchPaginatedCallIncremental("fetchOpenOrders", symbol, since, limit, params, pageKey, maxEntriesPerRequest))
-		PanicOnError(retRes216119)
-		ch <- retRes216119
+		retRes216419 := (<-this.FetchPaginatedCallIncremental("fetchOpenOrders", symbol, since, limit, params, pageKey, maxEntriesPerRequest))
+		PanicOnError(retRes216419)
+		ch <- retRes216419
 		return nil
 	}
 	var page any = Subtract(this.SafeInteger(params, pageKey, 1), 1)
@@ -2829,8 +2830,8 @@ func (this *CoinbaseinternationalCore) fetchMyTradesBody(ch chan any, optionalAr
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes223712 := (<-this.LoadMarkets())
-		PanicOnError(retRes223712)
+		retRes224012 := (<-this.LoadMarkets())
+		PanicOnError(retRes224012)
 	}
 	var paginate any = false
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
@@ -2843,9 +2844,9 @@ func (this *CoinbaseinternationalCore) fetchMyTradesBody(ch chan any, optionalAr
 	params = GetValue(maxEntriesPerRequestparamsVariable, 1)
 	if IsTrue(paginate) {
 
-		retRes224519 := (<-this.FetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, params, pageKey, maxEntriesPerRequest))
-		PanicOnError(retRes224519)
-		ch <- retRes224519
+		retRes224819 := (<-this.FetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, params, pageKey, maxEntriesPerRequest))
+		PanicOnError(retRes224819)
+		ch <- retRes224819
 		return nil
 	}
 	var market any = nil
@@ -2954,8 +2955,8 @@ func (this *CoinbaseinternationalCore) withdrawBody(ch chan any, code any, amoun
 	this.CheckAddress(address)
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes233512 := (<-this.LoadMarkets())
-		PanicOnError(retRes233512)
+		retRes233812 := (<-this.LoadMarkets())
+		PanicOnError(retRes233812)
 	}
 	var currency any = this.Currency(code)
 	var portfolio any = nil

@@ -1735,7 +1735,7 @@ public partial class hollaex : Exchange
         //
         object wallet = this.safeValue(response, "wallet", new List<object>() {});
         object addresses = ((bool) isTrue((isEqual(network, null)))) ? wallet : this.filterBy(wallet, "network", network);
-        return ccxt.BaseExchange.ToDepositAddressList(this.parseDepositAddresses(addresses, codes));
+        return ccxt.BaseExchange.ToDepositAddressList(this.parseDepositAddresses(addresses, codes, false));
     }
 
     /**

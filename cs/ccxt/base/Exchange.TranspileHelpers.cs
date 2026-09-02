@@ -20,6 +20,13 @@ public partial class BaseExchange
         {
             return System.Convert.ToInt64(a);
         }
+        // large int literals (2^31..2^32-1, e.g. 2592000000 = 30 days in ms)
+        // are typed uint by the C# compiler and would fail the (Int64) casts
+        // in the arithmetic helpers
+        if (a is uint)
+        {
+            return System.Convert.ToInt64(a);
+        }
         return a;
     }
     public static object postFixIncrement(ref object a)

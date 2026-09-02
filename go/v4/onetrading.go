@@ -372,7 +372,7 @@ func (this *OnetradingCore) Describe() any {
 					"marginMode":     false,
 					"limit":          100,
 					"daysBack":       100000,
-					"untilDays":      100000,
+					"untilDays":      30,
 					"symbolRequired": false,
 				},
 				"fetchOrder": map[string]any{
@@ -384,6 +384,7 @@ func (this *OnetradingCore) Describe() any {
 				"fetchOpenOrders": map[string]any{
 					"marginMode":     false,
 					"limit":          100,
+					"untilDays":      30,
 					"trigger":        false,
 					"trailing":       false,
 					"symbolRequired": false,
@@ -394,7 +395,7 @@ func (this *OnetradingCore) Describe() any {
 					"limit":            100,
 					"daysBack":         100000,
 					"daysBackCanceled": Divide(1, 12),
-					"untilDays":        100000,
+					"untilDays":        30,
 					"trigger":          false,
 					"trailing":         false,
 					"symbolRequired":   false,
@@ -681,15 +682,15 @@ func (this *OnetradingCore) fetchTradingFeesBody(ch chan any, optionalArgs ...an
 	}
 	if IsTrue(IsEqual(method, "fetchPrivateTradingFees")) {
 
-		retRes61419 := (<-this.FetchPrivateTradingFees(params))
-		PanicOnError(retRes61419)
-		ch <- retRes61419
+		retRes61519 := (<-this.FetchPrivateTradingFees(params))
+		PanicOnError(retRes61519)
+		ch <- retRes61519
 		return nil
 	} else if IsTrue(IsEqual(method, "fetchPublicTradingFees")) {
 
-		retRes61619 := (<-this.FetchPublicTradingFees(params))
-		PanicOnError(retRes61619)
-		ch <- retRes61619
+		retRes61719 := (<-this.FetchPublicTradingFees(params))
+		PanicOnError(retRes61719)
+		ch <- retRes61719
 		return nil
 	} else {
 		panic(NotSupported(Add(Add(Add(this.Id, " fetchTradingFees() does not support "), method), ", fetchPrivateTradingFees and fetchPublicTradingFees are supported")))
@@ -707,8 +708,8 @@ func (this *OnetradingCore) fetchPublicTradingFeesBody(ch chan any, optionalArgs
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes62412 := (<-this.LoadMarkets())
-		PanicOnError(retRes62412)
+		retRes62512 := (<-this.LoadMarkets())
+		PanicOnError(retRes62512)
 	}
 
 	response := (<-this.PublicGetFees(params))
@@ -795,8 +796,8 @@ func (this *OnetradingCore) fetchPrivateTradingFeesBody(ch chan any, optionalArg
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes69812 := (<-this.LoadMarkets())
-		PanicOnError(retRes69812)
+		retRes69912 := (<-this.LoadMarkets())
+		PanicOnError(retRes69912)
 	}
 
 	response := (<-this.PrivateGetAccountFees(params))
@@ -962,8 +963,8 @@ func (this *OnetradingCore) fetchTickerBody(ch chan any, symbol any, optionalArg
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes84812 := (<-this.LoadMarkets())
-		PanicOnError(retRes84812)
+		retRes84912 := (<-this.LoadMarkets())
+		PanicOnError(retRes84912)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -1018,8 +1019,8 @@ func (this *OnetradingCore) fetchTickersBody(ch chan any, optionalArgs ...any) a
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes88712 := (<-this.LoadMarkets())
-		PanicOnError(retRes88712)
+		retRes88812 := (<-this.LoadMarkets())
+		PanicOnError(retRes88812)
 	}
 	symbols = this.MarketSymbols(symbols)
 
@@ -1083,8 +1084,8 @@ func (this *OnetradingCore) fetchOrderBookBody(ch chan any, symbol any, optional
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes93512 := (<-this.LoadMarkets())
-		PanicOnError(retRes93512)
+		retRes93612 := (<-this.LoadMarkets())
+		PanicOnError(retRes93612)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -1230,8 +1231,8 @@ func (this *OnetradingCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes107312 := (<-this.LoadMarkets())
-		PanicOnError(retRes107312)
+		retRes107412 := (<-this.LoadMarkets())
+		PanicOnError(retRes107412)
 	}
 	var market any = this.Market(symbol)
 	var periodUnit any = this.SafeString(this.Timeframes, timeframe)
@@ -1396,8 +1397,8 @@ func (this *OnetradingCore) fetchBalanceBody(ch chan any, optionalArgs ...any) a
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes122212 := (<-this.LoadMarkets())
-		PanicOnError(retRes122212)
+		retRes122312 := (<-this.LoadMarkets())
+		PanicOnError(retRes122312)
 	}
 
 	response := (<-this.PrivateGetAccountBalances(params))
@@ -1584,8 +1585,8 @@ func (this *OnetradingCore) createOrderBody(ch chan any, symbol any, typeVar any
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes139512 := (<-this.LoadMarkets())
-		PanicOnError(retRes139512)
+		retRes139612 := (<-this.LoadMarkets())
+		PanicOnError(retRes139612)
 	}
 	var market any = this.Market(symbol)
 	var uppercaseType string = ToUpper(typeVar)
@@ -1672,8 +1673,8 @@ func (this *OnetradingCore) cancelOrderBody(ch chan any, id any, optionalArgs ..
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes147212 := (<-this.LoadMarkets())
-		PanicOnError(retRes147212)
+		retRes147312 := (<-this.LoadMarkets())
+		PanicOnError(retRes147312)
 	}
 	var clientOrderId any = this.SafeString2(params, "clientOrderId", "client_id")
 	params = this.Omit(params, []any{"clientOrderId", "client_id"})
@@ -1726,8 +1727,8 @@ func (this *OnetradingCore) cancelAllOrdersBody(ch chan any, optionalArgs ...any
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes150712 := (<-this.LoadMarkets())
-		PanicOnError(retRes150712)
+		retRes150812 := (<-this.LoadMarkets())
+		PanicOnError(retRes150812)
 	}
 	var request map[string]any = map[string]any{}
 	if IsTrue(!IsEqual(symbol, nil)) {
@@ -1773,8 +1774,8 @@ func (this *OnetradingCore) cancelOrdersBody(ch chan any, ids any, optionalArgs 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes153512 := (<-this.LoadMarkets())
-		PanicOnError(retRes153512)
+		retRes153612 := (<-this.LoadMarkets())
+		PanicOnError(retRes153612)
 	}
 	var request map[string]any = map[string]any{
 		"ids": Join(ids, ","),
@@ -1819,8 +1820,8 @@ func (this *OnetradingCore) fetchOrderBody(ch chan any, id any, optionalArgs ...
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes156212 := (<-this.LoadMarkets())
-		PanicOnError(retRes156212)
+		retRes156312 := (<-this.LoadMarkets())
+		PanicOnError(retRes156312)
 	}
 	var request map[string]any = map[string]any{
 		"order_id": id,
@@ -1880,9 +1881,10 @@ func (this *OnetradingCore) fetchOrderBody(ch chan any, id any, optionalArgs ...
  * @description fetch all unfilled currently open orders
  * @see https://docs.onetrading.com/rest/trading/get-orders
  * @param {string} symbol unified market symbol
- * @param {int} [since] the earliest time in ms to fetch open orders for
+ * @param {int} [since] the earliest time in ms to fetch open orders for, the maximum window between since and until is 30 days
  * @param {int} [limit] the maximum number of  open orders structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.until] timestamp in ms of the latest entry to fetch
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *OnetradingCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
@@ -1903,8 +1905,8 @@ func (this *OnetradingCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes162512 := (<-this.LoadMarkets())
-		PanicOnError(retRes162512)
+		retRes162712 := (<-this.LoadMarkets())
+		PanicOnError(retRes162712)
 	}
 	var request map[string]any = map[string]any{}
 	var market any = nil
@@ -1913,11 +1915,12 @@ func (this *OnetradingCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any
 		AddElementToObject(request, "instrument_code", GetValue(market, "id"))
 	}
 	if IsTrue(!IsEqual(since, nil)) {
-		var to any = this.SafeString(params, "to")
-		if IsTrue(IsEqual(to, nil)) {
-			panic(ArgumentsRequired(Add(this.Id, " fetchOpenOrders() requires a \"to\" iso8601 string param with the since argument is specified, max range is 100 days")))
-		}
 		AddElementToObject(request, "from", this.Iso8601(since))
+	}
+	var until any = this.SafeInteger(params, "until")
+	if IsTrue(!IsEqual(until, nil)) {
+		params = this.Omit(params, "until")
+		AddElementToObject(request, "to", this.Iso8601(until))
 	}
 	if IsTrue(!IsEqual(limit, nil)) {
 		AddElementToObject(request, "max_page_size", limit)
@@ -2016,9 +2019,10 @@ func (this *OnetradingCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any
  * @description fetches information on multiple closed orders made by the user
  * @see https://docs.onetrading.com/rest/trading/get-orders
  * @param {string} symbol unified market symbol of the market orders were made in
- * @param {int} [since] the earliest time in ms to fetch orders for
+ * @param {int} [since] the earliest time in ms to fetch orders for, the maximum window between since and until is 30 days
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.until] timestamp in ms of the latest entry to fetch
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *OnetradingCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
@@ -2041,9 +2045,9 @@ func (this *OnetradingCore) fetchClosedOrdersBody(ch chan any, optionalArgs ...a
 		"with_cancelled_and_rejected": true,
 	}
 
-	retRes175115 := (<-this.FetchOpenOrders(symbol, since, limit, this.Extend(request, params)))
-	PanicOnError(retRes175115)
-	ch <- retRes175115
+	retRes175515 := (<-this.FetchOpenOrders(symbol, since, limit, this.Extend(request, params)))
+	PanicOnError(retRes175515)
+	ch <- retRes175515
 	return nil
 }
 
@@ -2077,8 +2081,8 @@ func (this *OnetradingCore) fetchOrderTradesBody(ch chan any, id any, optionalAr
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes176812 := (<-this.LoadMarkets())
-		PanicOnError(retRes176812)
+		retRes177212 := (<-this.LoadMarkets())
+		PanicOnError(retRes177212)
 	}
 	var request map[string]any = map[string]any{
 		"order_id": id,
@@ -2135,9 +2139,10 @@ func (this *OnetradingCore) fetchOrderTradesBody(ch chan any, id any, optionalAr
  * @description fetch all trades made by the user
  * @see https://docs.onetrading.com/rest/trading/get-trades
  * @param {string} symbol unified market symbol
- * @param {int} [since] the earliest time in ms to fetch trades for
+ * @param {int} [since] the earliest time in ms to fetch trades for, the maximum window between since and until is 30 days, when until is omitted the exchange defaults to 7 days after since
  * @param {int} [limit] the maximum number of trades structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.until] timestamp in ms of the latest entry to fetch
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *OnetradingCore) FetchMyTrades(optionalArgs ...any) <-chan any {
@@ -2158,8 +2163,8 @@ func (this *OnetradingCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes183012 := (<-this.LoadMarkets())
-		PanicOnError(retRes183012)
+		retRes183512 := (<-this.LoadMarkets())
+		PanicOnError(retRes183512)
 	}
 	var request map[string]any = map[string]any{}
 	var market any = nil
@@ -2168,11 +2173,12 @@ func (this *OnetradingCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) 
 		AddElementToObject(request, "instrument_code", GetValue(market, "id"))
 	}
 	if IsTrue(!IsEqual(since, nil)) {
-		var to any = this.SafeString(params, "to")
-		if IsTrue(IsEqual(to, nil)) {
-			panic(ArgumentsRequired(Add(this.Id, " fetchMyTrades() requires a \"to\" iso8601 string param with the since argument is specified, max range is 100 days")))
-		}
 		AddElementToObject(request, "from", this.Iso8601(since))
+	}
+	var until any = this.SafeInteger(params, "until")
+	if IsTrue(!IsEqual(until, nil)) {
+		params = this.Omit(params, "until")
+		AddElementToObject(request, "to", this.Iso8601(until))
 	}
 	if IsTrue(!IsEqual(limit, nil)) {
 		AddElementToObject(request, "max_page_size", limit)

@@ -742,6 +742,9 @@ public partial class bingx : Exchange
                                 { "account/apiPermissions", new Dictionary<string, object>() {
                                     { "cost", 5 },
                                 } },
+                                { "account/apiRestrictions", new Dictionary<string, object>() {
+                                    { "cost", 5 },
+                                } },
                                 { "allAccountBalance", new Dictionary<string, object>() {
                                     { "cost", 2 },
                                 } },
@@ -1449,6 +1452,9 @@ public partial class bingx : Exchange
         } else if (isTrue(isTrue(isTrue((isEqual(this.safeBool(market, "apiStateSell"), true))) && isTrue((isEqual(this.safeBool(market, "apiStateBuy"), true)))) && isTrue((isEqual(this.safeString(market, "status"), "1")))))
         {
             isActive = true; // spot active
+        } else if (isTrue(isTrue(checkIsInverse) && isTrue((isEqual(this.safeString(market, "status"), "1")))))
+        {
+            isActive = true; // inverse swap active
         }
         object isInverse = ((bool) isTrue((spot))) ? null : checkIsInverse;
         object isLinear = ((bool) isTrue((spot))) ? null : checkIsLinear;
@@ -5361,17 +5367,23 @@ public partial class bingx : Exchange
             { "amount", this.currencyToPrecision(code, amount) },
         };
         object response = await this.apiAssetV1PrivatePostTransfer(this.extend(request, parameters));
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object timestamp = this.safeInteger(response, "timestamp");
         //
         //     {
-        //         "tranId": 1933130865269936128,
-        //         "transferId": "1051450703949464903736"
+        //         "code": "0",
+        //         "timestamp": "1752202170686",
+        //         "data": {
+        //             "tranId": "1943502883135819776",
+        //             "transferId": "1051461075875997081703"
+        //         }
         //     }
         //
         return new Dictionary<string, object>() {
             { "info", response },
-            { "id", this.safeString(response, "transferId") },
-            { "timestamp", null },
-            { "datetime", null },
+            { "id", this.safeString2(data, "transferId", "tranId") },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
             { "currency", code },
             { "amount", amount },
             { "fromAccount", fromAccount },
@@ -7095,7 +7107,8 @@ public partial class bingx : Exchange
             version = getValue(section, 2);
             access = getValue(section, 3);
         }
-        if (isTrue(!isEqual(path, "account/apiPermissions")))
+        object flatAccountPaths = new List<object>() {"account/apiPermissions", "account/apiRestrictions"};
+        if (!isTrue(this.inArray(path, flatAccountPaths)))
         {
             if (isTrue(isTrue(isEqual(type, "spot")) && isTrue(isEqual(version, "v3"))))
             {

@@ -125,6 +125,7 @@ export default class bitget extends Exchange {
      */
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
+    parseTransactionType(type: Str): Str;
     parseTransactionStatus(status: Str): Str;
     /**
      * @method

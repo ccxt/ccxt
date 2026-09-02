@@ -462,6 +462,7 @@ class bingx(Exchange, ImplicitAPI):
                                 'uid': {'cost': 1},
                                 'apiKey/query': {'cost': 2},
                                 'account/apiPermissions': {'cost': 5},
+                                'account/apiRestrictions': {'cost': 5},
                                 'allAccountBalance': {'cost': 2},
                             },
                             'post': {
@@ -1064,6 +1065,8 @@ class bingx(Exchange, ImplicitAPI):
             isActive = True  # swap active
         elif (self.safe_bool(market, 'apiStateSell') is True) and (self.safe_bool(market, 'apiStateBuy') is True) and (self.safe_string(market, 'status') == '1'):
             isActive = True  # spot active
+        elif checkIsInverse and (self.safe_string(market, 'status') == '1'):
+            isActive = True  # inverse swap active
         isInverse = None if (spot) else checkIsInverse
         isLinear = None if (spot) else checkIsLinear
         minAmount = None
@@ -4982,17 +4985,23 @@ class bingx(Exchange, ImplicitAPI):
             'amount': self.currency_to_precision(code, amount),
         }
         response = await self.apiAssetV1PrivatePostTransfer(self.extend(request, params))
+        data = self.safe_dict(response, 'data', {})
+        timestamp = self.safe_integer(response, 'timestamp')
         #
         #     {
-        #         "tranId": 1933130865269936128,
-        #         "transferId": "1051450703949464903736"
+        #         "code": "0",
+        #         "timestamp": "1752202170686",
+        #         "data": {
+        #             "tranId": "1943502883135819776",
+        #             "transferId": "1051461075875997081703"
+        #         }
         #     }
         #
         return {
             'info': response,
-            'id': self.safe_string(response, 'transferId'),
-            'timestamp': None,
-            'datetime': None,
+            'id': self.safe_string_2(data, 'transferId', 'tranId'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
             'currency': code,
             'amount': amount,
             'fromAccount': fromAccount,
@@ -6670,7 +6679,8 @@ class bingx(Exchange, ImplicitAPI):
                 type = 'api/asset'
             version = section[2]
             access = section[3]
-        if path != 'account/apiPermissions':
+        flatAccountPaths = ['account/apiPermissions', 'account/apiRestrictions']
+        if not self.in_array(path, flatAccountPaths):
             if type == 'spot' and version == 'v3':
                 url += '/api'
             else:

@@ -1,0 +1,110 @@
+{
+    "BTC": {
+        "info": {
+            "symbol": "BTC",
+            "name": "Bitcoin",
+            "scale": 8,
+            "asset_type": "crypto",
+            "status": "active",
+            "id": "BTC"
+        },
+        "id": "BTC",
+        "numericId": null,
+        "code": "BTC",
+        "precision": 0.00000001,
+        "type": "crypto",
+        "name": "Bitcoin",
+        "active": true,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            },
+            "deposit": {
+                "min": null,
+                "max": null
+            }
+        }
+    },
+    "USD": {
+        "info": {
+            "symbol": "$",
+            "name": "US Dollar",
+            "scale": 2,
+            "asset_type": "fiat",
+            "status": "active",
+            "id": "USD"
+        },
+        "id": "USD",
+        "numericId": null,
+        "code": "USD",
+        "precision": 0.01,
+        "type": "fiat",
+        "name": "US Dollar",
+        "active": true,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            },
+            "deposit": {
+                "min": null,
+                "max": null
+            }
+        }
+    },
+    "ETH": {
+        "info": {
+            "symbol": "ETH",
+            "name": "Ethereum",
+            "scale": 8,
+            "asset_type": "crypto",
+            "status": "active",
+            "id": "ETH"
+        },
+        "id": "ETH",
+        "numericId": null,
+        "code": "ETH",
+        "precision": 0.00000001,
+        "type": "crypto",
+        "name": "Ethereum",
+        "active": true,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            },
+            "deposit": {
+                "min": null,
+                "max": null
+            }
+        }
+    }
+}

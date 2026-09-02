@@ -2322,6 +2322,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
     public Object parseOrderStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
+            put( "WORKING", "open" );
             put( "NEW", "open" );
             put( "PARTIAL_FILLED", "open" );
             put( "FILLED", "closed" );

@@ -3158,7 +3158,7 @@ class bitget(Exchange, ImplicitAPI):
             'address': self.safe_string(transaction, 'toAddress'),
             'addressTo': self.safe_string(transaction, 'toAddress'),
             'amount': self.parse_number(amountString),
-            'type': self.safe_string(transaction, 'type'),
+            'type': self.parse_transaction_type(self.safe_string(transaction, 'type')),
             'currency': code,
             'status': self.parse_transaction_status(status),
             'updated': self.safe_integer_2(transaction, 'uTime', 'updatedTime'),
@@ -3169,6 +3169,13 @@ class bitget(Exchange, ImplicitAPI):
             'internal': None,
             'fee': fee,
         }
+
+    def parse_transaction_type(self, type: Str):
+        # the wire says withdraw, and a unified transaction says withdrawal
+        types = {
+            'withdraw': 'withdrawal',
+        }
+        return self.safe_string(types, type, type)
 
     def parse_transaction_status(self, status: Str):
         statuses = {

@@ -449,6 +449,7 @@ export default class bingx extends Exchange {
                                 'uid': { 'cost': 1 } as Endpoint<Dict>,
                                 'apiKey/query': { 'cost': 2 } as Endpoint<Dict>,
                                 'account/apiPermissions': { 'cost': 5 } as Endpoint<Dict>,
+                                'account/apiRestrictions': { 'cost': 5 } as Endpoint<Dict>,
                                 'allAccountBalance': { 'cost': 2 } as Endpoint<Dict>,
                             },
                             'post': {
@@ -1066,6 +1067,8 @@ export default class bingx extends Exchange {
             isActive = true; // swap active
         } else if ((this.safeBool (market, 'apiStateSell') === true) && (this.safeBool (market, 'apiStateBuy') === true) && (this.safeString (market, 'status') === '1')) {
             isActive = true; // spot active
+        } else if (checkIsInverse && (this.safeString (market, 'status') === '1')) {
+            isActive = true; // inverse swap active
         }
         const isInverse = (spot) ? undefined : checkIsInverse;
         const isLinear = (spot) ? undefined : checkIsLinear;
@@ -5237,17 +5240,23 @@ export default class bingx extends Exchange {
             'amount': this.currencyToPrecision (code, amount),
         };
         const response = await this.apiAssetV1PrivatePostTransfer (this.extend (request, params));
+        const data = this.safeDict (response, 'data', {});
+        const timestamp = this.safeInteger (response, 'timestamp');
         //
         //     {
-        //         "tranId": 1933130865269936128,
-        //         "transferId": "1051450703949464903736"
+        //         "code": "0",
+        //         "timestamp": "1752202170686",
+        //         "data": {
+        //             "tranId": "1943502883135819776",
+        //             "transferId": "1051461075875997081703"
+        //         }
         //     }
         //
         return {
             'info': response,
-            'id': this.safeString (response, 'transferId'),
-            'timestamp': undefined,
-            'datetime': undefined,
+            'id': this.safeString2 (data, 'transferId', 'tranId'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'currency': code,
             'amount': amount,
             'fromAccount': fromAccount,
@@ -7061,7 +7070,8 @@ export default class bingx extends Exchange {
             version = section[2];
             access = section[3];
         }
-        if (path !== 'account/apiPermissions') {
+        const flatAccountPaths = [ 'account/apiPermissions', 'account/apiRestrictions' ];
+        if (!this.inArray (path, flatAccountPaths)) {
             if (type === 'spot' && version === 'v3') {
                 url += '/api';
             } else {

@@ -1028,9 +1028,9 @@
                             "transferId": "1051461075875997081703"
                         }
                     },
-                    "id": null,
-                    "timestamp": null,
-                    "datetime": null,
+                    "id": "1051461075875997081703",
+                    "timestamp": 1752202170686,
+                    "datetime": "2025-07-11T02:49:30.686Z",
                     "currency": "LTC",
                     "amount": 0.05,
                     "fromAccount": "swap",
@@ -1064,9 +1064,9 @@
                             "transferId": "1051461077440303243364"
                         }
                     },
-                    "id": null,
-                    "timestamp": null,
-                    "datetime": null,
+                    "id": "1051461077440303243364",
+                    "timestamp": 1752202545982,
+                    "datetime": "2025-07-11T02:55:45.982Z",
                     "currency": "USDT",
                     "amount": 10,
                     "fromAccount": "spot",
