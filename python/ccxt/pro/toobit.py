@@ -946,19 +946,20 @@ class toobit(ccxt.async_support.toobit):
         if self.markets is None:
             await self.load_markets()
         await self.authenticate()
+        type = 'swap'  # the only account type that carries positions here
         messageHash = ''
         if not self.is_empty(symbols):
             symbols = self.market_symbols(symbols)
             if symbols is None:
                 raise ArgumentsRequired(self.id + ' watchPositions() symbols is required')
             messageHash = '::' + ','.join(symbols)
+        messageHash = type + ':positions' + messageHash
         url = self.get_user_stream_url()
         client = self.client(url)
-        await self.authenticate(url)
-        self.set_positions_cache(client, symbols)
-        cache = self.positions
+        self.set_positions_cache(client, type, symbols)
+        cache = self.safe_value(self.positions, type)
         if cache is None:
-            snapshot = await client.future('fetchPositionsSnapshot')
+            snapshot = await client.future(type + ':fetchPositionsSnapshot')
             return self.filter_by_symbols_since_limit(snapshot, symbols, since, limit, True)
         newPositions = await self.watch(url, messageHash, None, messageHash)
         if self.newUpdates:
@@ -1020,31 +1021,38 @@ class toobit(ccxt.async_support.toobit):
         #     }
         # ]
         #
-        subscriptions = list(client.subscriptions.keys())
-        accountType = subscriptions[0]
+        accountType = 'swap'
         if self.positions is None:
             self.positions = {}
         if not (accountType in self.positions):
             self.positions[accountType] = ArrayCacheBySymbolBySide()
         cache = self.positions[accountType]
+        # handleMessage's fallback dispatches one item at a time
+        rawPositions = message
+        if not isinstance(message, list):
+            rawPositions = [message]
         newPositions = []
-        for i in range(0, len(message)):
-            rawPosition = message[i]
+        for i in range(0, len(rawPositions)):
+            rawPosition = rawPositions[i]
             position = self.parse_ws_position(rawPosition)
             timestamp = self.safe_integer(rawPosition, 'E')
             position['timestamp'] = timestamp
             position['datetime'] = self.iso8601(timestamp)
             newPositions.append(position)
             cache.append(position)
+        # no local may be named `positions` in self method: build/transpile.ts
+        # appends `$` to every local name wherever it appears, string literals
+        # included, so a local `positions` rewrites the hash prefix below to
+        # ':$positions::' and find_message_hashes() matches nothing in PHP
         messageHashes = self.find_message_hashes(client, accountType + ':positions::')
         for i in range(0, len(messageHashes)):
             messageHash = messageHashes[i]
             parts = messageHash.split('::')
             symbolsString = parts[1]
             symbols = symbolsString.split(',')
-            positions = self.filter_by_array(newPositions, 'symbol', symbols, False)
-            if not self.is_empty(positions):
-                client.resolve(positions, messageHash)
+            filtered = self.filter_by_array(newPositions, 'symbol', symbols, False)
+            if not self.is_empty(filtered):
+                client.resolve(filtered, messageHash)
         client.resolve(newPositions, accountType + ':positions')
 
     def parse_ws_position(self, position: object, market: Market = None):
@@ -1077,30 +1085,55 @@ class toobit(ccxt.async_support.toobit):
         })
 
     async def authenticate(self, params={}):
-        client = self.client(self.get_user_stream_url())
-        messageHash = 'authenticated'
-        future = client.reusableFuture(messageHash)
-        authenticated = self.safe_value(client.subscriptions, messageHash)
-        if authenticated is None:
+        time = self.milliseconds()
+        lastAuthenticatedTime = self.safe_integer(self.options['ws'], 'lastAuthenticatedTime', 0)
+        listenKeyRefreshRate = self.safe_integer(self.options['ws'], 'listenKeyRefreshRate', 1200000)
+        delay = self.sum(listenKeyRefreshRate, 10000)
+        if time - lastAuthenticatedTime > delay:
             self.check_required_credentials()
-            time = self.milliseconds()
-            lastAuthenticatedTime = self.safe_integer(self.options['ws'], 'lastAuthenticatedTime', 0)
-            listenKeyRefreshRate = self.safe_integer(self.options['ws'], 'listenKeyRefreshRate', 1200000)
-            delay = self.sum(listenKeyRefreshRate, 10000)
-            if time - lastAuthenticatedTime > delay:
-                try:
-                    client.subscriptions[messageHash] = True
-                    response = await self.privatePostApiV1UserDataStream(params)
-                    self.options['ws']['listenKey'] = self.safe_string(response, 'listenKey')
-                    self.options['ws']['lastAuthenticatedTime'] = time
-                    future.resolve(True)
-                    self.delay(listenKeyRefreshRate, self.keep_alive_listen_key, params)
-                except Exception as e:
-                    err = AuthenticationError(self.id + ' ' + self.exception_message(e))
-                    client.reject(err, messageHash)
-                    if messageHash in client.subscriptions:
-                        del client.subscriptions[messageHash]
-        return await future
+            # single-flight leader election on a never-dialed client, see
+            # https://github.com/ccxt/ccxt/issues/29393. the election used to
+            # run on self.client(self.get_user_stream_url()), but that url
+            # embeds the listenKey it is about to mint, so the client the
+            # flight registers on is not the client the next caller looks at:
+            # the cold call elected on .../ws/None and every later call
+            # landed on .../ws/<key> with an empty subscriptions map, found
+            # the key still fresh, skipped the fetch and hung on a future
+            # nobody resolves. client.futures is the registry: client.future()
+            # is the atomic check-and-insert and client.resolve() /
+            # client.reject() settle and remove the entry under the same lock
+            # in every port
+            messageHash = 'authenticate'
+            client = self.client('authenticationFlights')
+            if messageHash in client.futures:
+                # a flight is already in progress - wake when the leader
+                # settles it: the listenKey is then in the bucket
+                await client.future(messageHash)
+                return
+            # reusableFuture(), not future() - the two match in
+            # js/py/php/cs/java, but go's Client.Future() yields a channel
+            # that the trailing suspension point below would panic on
+            future = client.reusableFuture(messageHash)
+            try:
+                response = await self.privatePostApiV1UserDataStream(params)
+                listenKey = self.safe_string(response, 'listenKey')
+                if listenKey is None:
+                    # reject instead of caching an empty credential, so waiters
+                    # retry rather than dial .../ws/None for 20 minutes
+                    raise AuthenticationError(self.id + ' authenticate() received an empty listenKey')
+                self.options['ws']['listenKey'] = listenKey
+                self.options['ws']['lastAuthenticatedTime'] = time
+                self.delay(listenKeyRefreshRate, self.keep_alive_listen_key, params)
+                # settle the flight: client.resolve() removes the future from
+                # client.futures and wakes every waiter
+                client.resolve(listenKey, messageHash)
+            except Exception as e:
+                # reject the flight - waiters raise and the next caller re-leads.
+                # no reraise here, the trailing suspension point rethrows to self
+                # caller AND attaches the handler an alone leader needs
+                err = AuthenticationError(self.id + ' ' + self.exception_message(e))
+                client.reject(err, messageHash)
+            await future
 
     async def keep_alive_listen_key(self, params={}):
         options = self.safe_value(self.options, 'ws', {})

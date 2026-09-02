@@ -913,11 +913,11 @@ public partial class bullish : Exchange
         object settleId = this.safeString(market, "settlementAssetSymbol");
         object settle = this.safeCurrencyCode(settleId);
         object type = this.parseMarketType(this.safeString(market, "marketType"), "spot");
-        object spot = false;
-        object swap = false;
-        object future = false;
-        object option = false;
-        object contract = true;
+        bool spot = false;
+        bool swap = false;
+        bool future = false;
+        bool option = false;
+        bool contract = true;
         object linear = null;
         object inverse = null;
         object expiryDatetime = null;
@@ -942,7 +942,7 @@ public partial class bullish : Exchange
             } else
             {
                 expiryDatetime = this.safeString(market, "expiryDatetime");
-                object idParts = ((string)id).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
+                List<object> idParts = ((string)id).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
                 object datePart = ((string)this.safeString(idParts, 2));
                 object dateYmd = slice(datePart, 2, null);
                 symbol = add(symbol, add("-", dateYmd));
@@ -1758,7 +1758,7 @@ public partial class bullish : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object ninetyDays = multiply(multiply(multiply(multiply(90, 24), 60), 60), 1000);
-        object now = this.milliseconds();
+        Int64 now = this.milliseconds();
         object allowedSince = subtract(now, ninetyDays);
         if (isTrue(isTrue((!isEqual(since, null))) && isTrue((isLessThan(since, allowedSince)))))
         {
@@ -1794,7 +1794,7 @@ public partial class bullish : Exchange
             } else if (isTrue(isEqual(until, null)))
             {
                 until = this.sum(since, timeDelta);
-                object now = this.milliseconds();
+                Int64 now = this.milliseconds();
                 if (isTrue(isGreaterThan(until, now)))
                 {
                     until = now;
@@ -2000,7 +2000,7 @@ public partial class bullish : Exchange
             { "quantity", this.amountToPrecision(symbol, amount) },
             { "tradingAccountId", tradingAccountId },
         };
-        object isMarketOrder = (isTrue((isEqual(typeVar, "market"))) || isTrue(isEqual(typeVar, "MARKET")));
+        bool isMarketOrder = (isTrue((isEqual(typeVar, "market"))) || isTrue(isEqual(typeVar, "MARKET")));
         object postOnly = false;
         var postOnlyparametersVariable = this.handlePostOnly(isMarketOrder, isEqual(typeVar, "POST_ONLY"), parameters);
         postOnly = ((IList<object>)postOnlyparametersVariable)[0];
@@ -2694,13 +2694,13 @@ public partial class bullish : Exchange
         //     ]
         //
         object safeResponse = this.toArray(response);
-        object length = getArrayLength(safeResponse);
+        int length = getArrayLength(safeResponse);
         object data = this.safeDict(safeResponse, 0, new Dictionary<string, object>() {});
         object network = null;
         var networkparametersVariable = this.handleNetworkCodeAndParams(parameters);
         network = ((IList<object>)networkparametersVariable)[0];
         parameters = ((IList<object>)networkparametersVariable)[1];
-        object networkDefinedByUser = !isEqual(network, null);
+        bool networkDefinedByUser = !isEqual(network, null);
         if (isTrue(isTrue((isGreaterThan(length, 1))) || isTrue((networkDefinedByUser))))
         {
             // some currencies have multiple networks
@@ -2980,7 +2980,7 @@ public partial class bullish : Exchange
         if (isTrue(isTrue((isEqual(since, null))) && isTrue((isEqual(until, null)))))
         {
             // since and until are mandatory for this endpoint, set until to now if both are undefined
-            object now = this.milliseconds();
+            Int64 now = this.milliseconds();
             parameters = this.extend(parameters, new Dictionary<string, object>() {
                 { "until", now },
             });
@@ -3132,7 +3132,7 @@ public partial class bullish : Exchange
             { "assetSymbol", getValue(currency, "id") },
             { "tradingAccountId", tradingAccountId },
         };
-        object now = this.milliseconds();
+        Int64 now = this.milliseconds();
         object startTimestamp = since;
         var requestparametersVariable = this.handleUntilOption("createdAtDatetime[lte]", request, parameters);
         request = ((IList<object>)requestparametersVariable)[0];
@@ -3320,12 +3320,12 @@ public partial class bullish : Exchange
         if (isTrue(isEqual(api, "private")))
         {
             this.checkRequiredCredentials();
-            object nonce = ((object)this.microseconds()).ToString();
-            object timestamp = ((object)this.getTimestamp()).ToString();
+            string nonce = ((object)this.microseconds()).ToString();
+            string timestamp = ((object)this.getTimestamp()).ToString();
             if (isTrue(isEqual(method, "GET")))
             {
                 object payload = add(add(add(add(timestamp, nonce), method), "/trading-api/"), path);
-                object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "hex");
+                string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "hex");
                 headers = new Dictionary<string, object>() {
                     { "BX-TIMESTAMP", timestamp },
                     { "BX-NONCE", nonce },
@@ -3336,7 +3336,7 @@ public partial class bullish : Exchange
                 body = this.json(parameters);
                 object payload = add(add(add(add(add(timestamp, nonce), method), "/trading-api/"), path), body);
                 object digest = this.hash(this.encode(payload), sha256, "hex");
-                object signature = this.hmac(this.encode(digest), this.encode(this.secret), sha256, "hex");
+                string signature = this.hmac(this.encode(digest), this.encode(this.secret), sha256, "hex");
                 headers = new Dictionary<string, object>() {
                     { "BX-TIMESTAMP", timestamp },
                     { "BX-NONCE", nonce },
@@ -3411,7 +3411,7 @@ public partial class bullish : Exchange
     public async virtual Task<object> handleToken(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object now = this.milliseconds();
+        Int64 now = this.milliseconds();
         object token = this.token;
         object tokenExpires = this.safeInteger(this.options, "tokenExpires");
         if (isTrue(isTrue(isTrue((isEqual(token, null))) || isTrue((isEqual(tokenExpires, null)))) || isTrue((isGreaterThan(now, tokenExpires)))))

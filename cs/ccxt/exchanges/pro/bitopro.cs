@@ -435,13 +435,13 @@ public partial class bitopro : ccxt.bitopro
             return;
         }
         this.checkRequiredCredentials();
-        object nonce = this.milliseconds();
-        object rawData = this.json(new Dictionary<string, object>() {
+        Int64 nonce = this.milliseconds();
+        string rawData = this.json(new Dictionary<string, object>() {
             { "nonce", nonce },
             { "identity", this.login },
         });
         object payload = this.stringToBase64(rawData);
-        object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha384);
+        string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha384);
         object defaultOptions = new Dictionary<string, object>() {
             { "ws", new Dictionary<string, object>() {
                 { "options", new Dictionary<string, object>() {
@@ -480,7 +480,7 @@ public partial class bitopro : ccxt.bitopro
         {
             await this.loadMarkets();
         }
-        object messageHash = "ACCOUNT_BALANCE";
+        string messageHash = "ACCOUNT_BALANCE";
         object url = add(add(getValue(getValue(this.urls, "ws"), "private"), "/"), "account-balance");
         this.authenticate(url);
         return ccxt.BaseExchange.ToBalances(await this.watch(url, messageHash, null, messageHash));
@@ -508,7 +508,7 @@ public partial class bitopro : ccxt.bitopro
         object data = this.safeValue(message, "data");
         object timestamp = this.safeInteger(message, "timestamp");
         object datetime = this.safeString(message, "datetime");
-        object currencies = new List<object>(((IDictionary<string,object>)data).Keys);
+        List<object> currencies = new List<object>(((IDictionary<string,object>)data).Keys);
         object result = new Dictionary<string, object>() {
             { "info", data },
             { "timestamp", timestamp },

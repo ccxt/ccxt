@@ -595,26 +595,26 @@ public partial class dydx : Exchange
         //     "defaultFundingRate1H": "0"
         // }
         //
-        object quoteId = "USDC";
+        string quoteId = "USDC";
         object marketId = this.safeString(market, "ticker");
         if (isTrue(isEqual(marketId, null)))
         {
             throw new ExchangeError ((string)add(this.id, " parseMarket() missing marketId")) ;
         }
-        object parts = ((string)marketId).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = ((string)marketId).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
         object baseName = this.safeString(parts, 0);
         object baseId = this.safeString(market, "baseId", baseName); // idk where 'baseId' comes from, but leaving as is
         object bs = this.safeCurrencyCode(baseId);
         object quote = this.safeCurrencyCode(quoteId);
-        object settleId = "USDC";
+        string settleId = "USDC";
         object settle = this.safeCurrencyCode(settleId);
         object symbol = add(add(add(add(bs, "/"), quote), ":"), settle);
-        object contract = true;
-        object swap = true;
+        bool contract = true;
+        bool swap = true;
         object amountPrecisionStr = this.safeString(market, "stepSize");
         object pricePrecisionStr = this.safeString(market, "tickSize");
         object status = this.safeString(market, "status");
-        object active = true;
+        bool active = true;
         if (isTrue(!isEqual(status, "ACTIVE")))
         {
             active = false;
@@ -717,7 +717,7 @@ public partial class dydx : Exchange
         // }
         //
         object data = this.safeDict(response, "markets", new Dictionary<string, object>() {});
-        object markets = new List<object>(((IDictionary<string,object>)data).Values);
+        List<object> markets = new List<object>(((IDictionary<string,object>)data).Values);
         return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(markets));
     }
 
@@ -1492,13 +1492,13 @@ public partial class dydx : Exchange
             throw new ArgumentsRequired ((string)add(this.id, " requires a side argument")) ;
         }
         object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only", false);
-        object orderType = ((string)type).ToUpper();
+        string orderType = ((string)type).ToUpper();
         object market = this.market(symbol);
         if (isTrue(isEqual(side, null)))
         {
             throw new ArgumentsRequired ((string)add(this.id, " createOrderRequest() requires a side argument")) ;
         }
-        object orderSide = ((string)side).ToUpper();
+        string orderSide = ((string)side).ToUpper();
         object subaccountId = 0;
         var subaccountIdparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "subAccountId", subaccountId);
         subaccountId = ((IList<object>)subaccountIdparametersVariable)[0];
@@ -1506,8 +1506,8 @@ public partial class dydx : Exchange
         object triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
         object stopLossPrice = this.safeValue(parameters, "stopLossPrice", triggerPrice);
         object takeProfitPrice = this.safeValue(parameters, "takeProfitPrice");
-        object isConditional = isTrue(isTrue(!isEqual(triggerPrice, null)) || isTrue(!isEqual(stopLossPrice, null))) || isTrue(!isEqual(takeProfitPrice, null));
-        object isMarket = isEqual(orderType, "MARKET");
+        bool isConditional = isTrue(isTrue(!isEqual(triggerPrice, null)) || isTrue(!isEqual(stopLossPrice, null))) || isTrue(!isEqual(takeProfitPrice, null));
+        bool isMarket = isEqual(orderType, "MARKET");
         object timeInForce = this.safeStringUpper(parameters, "timeInForce", "GTT");
         object postOnly = this.isPostOnly(isMarket, null, parameters);
         object amountStr = this.amountToPrecision(symbol, amount);
@@ -1716,7 +1716,7 @@ public partial class dydx : Exchange
         object account = await this.fetchDydxAccount();
         object lastBlockHeight = await this.fetchLatestBlockHeight();
         // params['latestBlockHeight'] = lastBlockHeight;
-        object newParams = this.extend(parameters, new Dictionary<string, object>() {
+        Dictionary<string, object> newParams = this.extend(parameters, new Dictionary<string, object>() {
             { "latestBlockHeight", lastBlockHeight },
         });
         object orderRequestRes = this.createOrderRequest(symbol, type, side, amount, price, newParams);
@@ -1781,7 +1781,7 @@ public partial class dydx : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " cancelOrder() requires a clientOrderId parameter, cancelling using id is not currently supported.")) ;
         }
-        object idString = ((object)id).ToString();
+        string idString = ((object)id).ToString();
         if (isTrue(isTrue(!isEqual(id, null)) && isTrue(isGreaterThan(getIndexOf(idString, "-"), -1))))
         {
             throw new NotSupported ((string)add(this.id, " cancelOrder() cancelling using id is not currently supported, please use provide the clientOrderId parameter.")) ;
@@ -2125,7 +2125,7 @@ public partial class dydx : Exchange
             gasPrice = getValue(feeDenom, "CHAINTOKEN_GAS_PRICE");
             denom = getValue(feeDenom, "CHAINTOKEN_DENOM");
         }
-        object gasLimit = Math.Ceiling(Convert.ToDouble(this.parseToNumeric(Precise.stringMul(gasUsed, defaultFeeMultiplier))));
+        double gasLimit = Math.Ceiling(Convert.ToDouble(this.parseToNumeric(Precise.stringMul(gasUsed, defaultFeeMultiplier))));
         object feeAmount = Precise.stringMul(this.numberToString(gasLimit), gasPrice);
         if (isTrue(isEqual(feeAmount, null)))
         {

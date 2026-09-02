@@ -285,7 +285,7 @@ public partial class coinbase : ccxt.coinbase
         object subscribe = new Dictionary<string, object>() {};
         object timestamp = this.numberToString(this.seconds());
         this.checkRequiredCredentials();
-        object isCloudAPiKey = isTrue((isGreaterThanOrEqual(getIndexOf(this.apiKey, "organizations/"), 0))) || isTrue((((string)this.secret).StartsWith(((string)"-----BEGIN"))));
+        bool isCloudAPiKey = isTrue((isGreaterThanOrEqual(getIndexOf(this.apiKey, "organizations/"), 0))) || isTrue((((string)this.secret).StartsWith(((string)"-----BEGIN"))));
         object auth = add(add(timestamp, name), String.Join(",", ((IList<object>)productIds).ToArray()));
         if (!isTrue(isCloudAPiKey))
         {
@@ -300,7 +300,7 @@ public partial class coinbase : ccxt.coinbase
             }
             object currentToken = this.safeString(this.options, "wsToken");
             object tokenTimestamp = this.safeInteger(this.options, "wsTokenTimestamp", 0);
-            object seconds = this.seconds();
+            Int64 seconds = this.seconds();
             if (isTrue(isTrue(isEqual(currentToken, null)) || isTrue(isLessThan(add(tokenTimestamp, 120), seconds))))
             {
                 // we should generate new token
@@ -329,7 +329,7 @@ public partial class coinbase : ccxt.coinbase
         {
             await this.loadMarkets();
         }
-        object name = "ticker";
+        string name = "ticker";
         return ccxt.BaseExchange.ToTicker(await this.subscribe(name, false, symbol, parameters));
     }
 
@@ -349,7 +349,7 @@ public partial class coinbase : ccxt.coinbase
         {
             await this.loadMarkets();
         }
-        object name = "ticker";
+        string name = "ticker";
         return await this.unSubscribe("ticker", name, false, symbol);
     }
 
@@ -373,7 +373,7 @@ public partial class coinbase : ccxt.coinbase
         {
             symbols = this.symbols;
         }
-        object name = "ticker_batch";
+        string name = "ticker_batch";
         object ticker = await this.subscribeMultiple(name, false, symbols, parameters);
         if (isTrue(this.newUpdates))
         {
@@ -600,7 +600,7 @@ public partial class coinbase : ccxt.coinbase
             await this.loadMarkets();
         }
         symbolVar = this.symbol(symbolVar);
-        object name = "market_trades";
+        string name = "market_trades";
         object trades = await this.subscribe(name, false, symbolVar, parameters);
         if (isTrue(this.newUpdates))
         {
@@ -625,7 +625,7 @@ public partial class coinbase : ccxt.coinbase
         {
             await this.loadMarkets();
         }
-        object name = "market_trades";
+        string name = "market_trades";
         return await this.unSubscribe("trades", name, false, symbol);
     }
 
@@ -648,7 +648,7 @@ public partial class coinbase : ccxt.coinbase
         {
             await this.loadMarkets();
         }
-        object name = "market_trades";
+        string name = "market_trades";
         object trades = await this.subscribeMultiple(name, false, symbols, parameters);
         if (isTrue(this.newUpdates))
         {
@@ -675,7 +675,7 @@ public partial class coinbase : ccxt.coinbase
         {
             await this.loadMarkets();
         }
-        object name = "market_trades";
+        string name = "market_trades";
         return await this.unSubscribeMultiple("trades", name, false, symbols, parameters);
     }
 
@@ -698,7 +698,7 @@ public partial class coinbase : ccxt.coinbase
         {
             await this.loadMarkets();
         }
-        object name = "user";
+        string name = "user";
         object orders = await this.subscribe(name, true, symbol, parameters);
         if (isTrue(this.newUpdates))
         {
@@ -723,7 +723,7 @@ public partial class coinbase : ccxt.coinbase
         {
             await this.loadMarkets();
         }
-        object name = "user";
+        string name = "user";
         return await this.unSubscribe("orders", name, true, this.symbol(symbol));
     }
 
@@ -745,7 +745,7 @@ public partial class coinbase : ccxt.coinbase
         {
             await this.loadMarkets();
         }
-        object name = "level2";
+        string name = "level2";
         object market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
         object orderbook = await this.subscribe(name, false, symbolVar, parameters);
@@ -769,7 +769,7 @@ public partial class coinbase : ccxt.coinbase
             await this.loadMarkets();
         }
         symbol = this.symbol(symbol);
-        object name = "level2";
+        string name = "level2";
         return await this.unSubscribe("orderbook", name, false, symbol);
     }
 
@@ -790,7 +790,7 @@ public partial class coinbase : ccxt.coinbase
         {
             await this.loadMarkets();
         }
-        object name = "level2";
+        string name = "level2";
         object orderbook = await this.subscribeMultiple(name, false, symbols, parameters);
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
@@ -847,7 +847,7 @@ public partial class coinbase : ccxt.coinbase
                 continue;
             }
             // coinbase sends trades newest-first, append them in reverse so the cache stays sorted by ascending timestamp
-            object tradesLength = getArrayLength(currentTrades);
+            int tradesLength = getArrayLength(currentTrades);
             for (object j = 0; isLessThan(j, tradesLength); postFixIncrement(ref j))
             {
                 object item = getValue(currentTrades, subtract(subtract(tradesLength, j), 1));
@@ -1099,9 +1099,9 @@ public partial class coinbase : ccxt.coinbase
         //
         object events = this.safeList(message, "events", new List<object>() {});
         object firstEvent = this.safeValue(events, 0, new Dictionary<string, object>() {});
-        object isUnsub = (inOp(firstEvent, "subscriptions"));
-        object subKeys = new List<object>(((IDictionary<string,object>)getValue(firstEvent, "subscriptions")).Keys);
-        object subKeysLength = getArrayLength(subKeys);
+        bool isUnsub = (inOp(firstEvent, "subscriptions"));
+        List<object> subKeys = new List<object>(((IDictionary<string,object>)getValue(firstEvent, "subscriptions")).Keys);
+        int subKeysLength = getArrayLength(subKeys);
         if (isTrue(isTrue(isUnsub) && isTrue(isEqual(subKeysLength, 0))))
         {
             object unSubObject = this.safeDict(this.options, "unSubscription", new Dictionary<string, object>() {});

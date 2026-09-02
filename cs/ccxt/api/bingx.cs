@@ -1068,6 +1068,13 @@ public partial class bingx : Exchange
         return await this.callAsync<Dictionary<string, object>> ("accountV1PrivateGetAccountApiPermissions",parameters);
     }
 
+    /// <summary>Calls the accountV1PrivateGetAccountApiRestrictions endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> accountV1PrivateGetAccountApiRestrictions (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("accountV1PrivateGetAccountApiRestrictions",parameters);
+    }
+
     /// <summary>Calls the accountV1PrivateGetAllAccountBalance endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> accountV1PrivateGetAllAccountBalance (object parameters = null)

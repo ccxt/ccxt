@@ -35,7 +35,7 @@ public partial class tokocrypto
     /// <item>
     /// <term>limit</term>
     /// <description>
-    /// int : the maximum amount of order book entries to return
+    /// int : the maximum amount of order book entries to return, symbol type 3 markets accept 5, 10, 20, 50, 100, 500 or 1000 only
     /// </description>
     /// </item>
     /// <item>

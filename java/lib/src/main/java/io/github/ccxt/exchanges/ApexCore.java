@@ -2368,7 +2368,7 @@ public class ApexCore extends ApexApi
             put( "info", position );
             put( "id", ApexCore.this.safeString(position, "id") );
             put( "symbol", symbol );
-            put( "entryPrice", ApexCore.this.safeString(position, "entryPrice") );
+            put( "entryPrice", ApexCore.this.safeNumber(position, "entryPrice") );
             put( "markPrice", null );
             put( "notional", null );
             put( "collateral", null );

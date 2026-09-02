@@ -3937,6 +3937,7 @@ if (isMainEntry(metaFileUrl)) {
     const addJsHeaders = process.argv.includes ('--js-headers')
     const multiprocess = process.argv.includes ('--multiprocess') || process.argv.includes ('--multi')
     const baseClassOnly = process.argv.includes ('--baseClass')
+    const baseTestsOnly = process.argv.includes ('--baseTests')
 
     shouldTranspileTests = process.argv.includes ('--noTests') ? false : true
 
@@ -3956,6 +3957,11 @@ if (isMainEntry(metaFileUrl)) {
     if (baseClassOnly) {
         transpiler.transpileBaseMethods ()
         transpiler.transpilePredictionBaseMethods ()
+    } else if (baseTestsOnly) {
+        (async () => {
+            await transpiler.baseFunctionalitiesTests ()
+            transpiler.transpileCryptoTests ()
+        })()
     } else if (test) {
         (async () => {
             await transpiler.transpileTests ()

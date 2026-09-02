@@ -17,16 +17,16 @@ public partial class testMainClass : BaseTest
     async static public Task<object> testWatchTickersHelper(Exchange exchange, object skippedProperties, object argSymbols, object argParams = null)
     {
         argParams ??= new Dictionary<string, object>();
-        object method = "watchTickers";
+        string method = "watchTickers";
         object now = exchange.milliseconds();
         object ends = add(now, 15000);
         object maxIdleTime = 5000;
-        object idle = false;
+        bool idle = false;
         while (isTrue((isLessThan(now, ends))) && !isTrue(idle))
         {
             object response = new Dictionary<string, object>() {};
-            object success = true;
-            object shouldReturn = false;
+            bool success = true;
+            bool shouldReturn = false;
             object startTime = exchange.milliseconds();
             try
             {
@@ -57,7 +57,7 @@ public partial class testMainClass : BaseTest
             if (isTrue(isEqual(success, true)))
             {
                 assert(exchange.isDictionary(response), add(add(add(add(add(add(exchange.id, " "), method), " "), exchange.json(argSymbols)), " must return a dictionary. "), exchange.json(response)));
-                object values = new List<object>(((IDictionary<string,object>)response).Values);
+                List<object> values = new List<object>(((IDictionary<string,object>)response).Values);
                 object checkedSymbol = null;
                 if (isTrue(isTrue(!isEqual(argSymbols, null)) && isTrue(isEqual(getArrayLength(argSymbols), 1))))
                 {

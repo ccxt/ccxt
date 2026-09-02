@@ -1181,7 +1181,7 @@ public partial class bitstamp : Exchange
                     subType = "inverse";
                 }
             }
-            object isSpot = (isEqual(type, "spot"));
+            bool isSpot = (isEqual(type, "spot"));
             object settle = ((bool) isTrue((isTrue(!isEqual(settleId, null)) && isTrue(!isEqual(settleId, ""))))) ? this.safeCurrencyCode(settleId) : null;
             ((IList<object>)result).Add(new Dictionary<string, object>() {
                 { "id", this.safeString(market, "market_symbol") },
@@ -1239,7 +1239,7 @@ public partial class bitstamp : Exchange
 
     public virtual object constructCurrencyObject(object id, object code, object name, object precision, object minCost, object originalPayload)
     {
-        object currencyType = "crypto";
+        string currencyType = "crypto";
         object description = this.describe();
         if (isTrue(this.isFiat(code)))
         {
@@ -1287,7 +1287,7 @@ public partial class bitstamp : Exchange
         object options = this.safeValue(this.options, "fetchMarkets", new Dictionary<string, object>() {});
         object timestamp = this.safeInteger(options, "timestamp");
         object expires = this.safeInteger(options, "expires", 1000);
-        object now = this.milliseconds();
+        Int64 now = this.milliseconds();
         if (isTrue(isTrue((isEqual(timestamp, null))) || isTrue((isGreaterThan((subtract(now, timestamp)), expires)))))
         {
             object response = await this.publicGetMarkets(parameters);
@@ -1374,7 +1374,7 @@ public partial class bitstamp : Exchange
             {
                 throw new ExchangeError ((string)add(this.id, " parseCurrencies() missing minimumOrder")) ;
             }
-            object parts = ((string)minimumOrder).Split(new [] {((string)" ")}, StringSplitOptions.None).ToList<object>();
+            List<object> parts = ((string)minimumOrder).Split(new [] {((string)" ")}, StringSplitOptions.None).ToList<object>();
             object cost = getValue(parts, 0);
             if (isTrue(isTrue((!isEqual(bs, null))) && !isTrue((inOp(result, bs)))))
             {
@@ -1584,7 +1584,7 @@ public partial class bitstamp : Exchange
             return currencyId;
         }
         transaction = this.omit(transaction, new List<object>() {"fee", "price", "datetime", "type", "status", "id"});
-        object ids = new List<object>(((IDictionary<string,object>)transaction).Keys);
+        List<object> ids = new List<object>(((IDictionary<string,object>)transaction).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
         {
             object id = getValue(ids, i);
@@ -1603,8 +1603,8 @@ public partial class bitstamp : Exchange
     public virtual object getMarketFromTrade(object trade)
     {
         trade = this.omit(trade, new List<object>() {"fee", "price", "datetime", "tid", "type", "order_id", "side"});
-        object currencyIds = new List<object>(((IDictionary<string,object>)trade).Keys);
-        object numCurrencyIds = getArrayLength(currencyIds);
+        List<object> currencyIds = new List<object>(((IDictionary<string,object>)trade).Keys);
+        int numCurrencyIds = getArrayLength(currencyIds);
         if (isTrue(isGreaterThan(numCurrencyIds, 2)))
         {
             throw new ExchangeError ((string)add(add(add(add(this.id, " getMarketFromTrade() too many keys: "), this.json(currencyIds)), " in the trade: "), this.json(trade))) ;
@@ -1677,7 +1677,7 @@ public partial class bitstamp : Exchange
         object rawMarketId = null;
         if (isTrue(isEqual(market, null)))
         {
-            object keys = new List<object>(((IDictionary<string,object>)trade).Keys);
+            List<object> keys = new List<object>(((IDictionary<string,object>)trade).Keys);
             for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
             {
                 object currentKey = getValue(keys, i);
@@ -2013,7 +2013,7 @@ public partial class bitstamp : Exchange
         //         ...
         //     ]
         //
-        object tradingFeesByMarketId = this.indexBy(response, "currency_pair");
+        Dictionary<string, object> tradingFeesByMarketId = this.indexBy(response, "currency_pair");
         object tradingFee = this.safeDict(tradingFeesByMarketId, getValue(market, "id"));
         if (isTrue(isEqual(tradingFee, null)))
         {
@@ -2120,8 +2120,8 @@ public partial class bitstamp : Exchange
     public virtual object parseTransactionFees(object response, object codes = null)
     {
         object result = new Dictionary<string, object>() {};
-        object currencies = this.indexBy(response, "currency");
-        object ids = new List<object>(((IDictionary<string,object>)currencies).Keys);
+        Dictionary<string, object> currencies = this.indexBy(response, "currency");
+        List<object> ids = new List<object>(((IDictionary<string,object>)currencies).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
         {
             object id = getValue(ids, i);
@@ -2170,7 +2170,7 @@ public partial class bitstamp : Exchange
         //         ...
         //     ]
         //
-        object responseByCurrencyId = this.groupBy(response, "currency");
+        Dictionary<string, object> responseByCurrencyId = this.groupBy(response, "currency");
         return ccxt.BaseExchange.ToDepositWithdrawFees(this.parseDepositWithdrawFees(responseByCurrencyId, codes));
     }
 
@@ -2242,7 +2242,7 @@ public partial class bitstamp : Exchange
             parameters = this.omit(parameters, new List<object>() {"clientOrderId"});
         }
         object response = null;
-        object capitalizedSide = this.capitalize(side);
+        string capitalizedSide = this.capitalize(side);
         if (isTrue(isEqual(type, "market")))
         {
             if (isTrue(isEqual(capitalizedSide, "Buy")))
@@ -2817,8 +2817,8 @@ public partial class bitstamp : Exchange
         if (isTrue(!isEqual(address, null)))
         {
             // dt (destination tag) is embedded into the address field
-            object addressParts = ((string)address).Split(new [] {((string)"?dt=")}, StringSplitOptions.None).ToList<object>();
-            object numParts = getArrayLength(addressParts);
+            List<object> addressParts = ((string)address).Split(new [] {((string)"?dt=")}, StringSplitOptions.None).ToList<object>();
+            int numParts = getArrayLength(addressParts);
             if (isTrue(isGreaterThan(numParts, 1)))
             {
                 address = getValue(addressParts, 0);
@@ -3027,12 +3027,12 @@ public partial class bitstamp : Exchange
         {
             object parsedTrade = this.parseTrade(item);
             object market = null;
-            object keys = new List<object>(((IDictionary<string,object>)item).Keys);
+            List<object> keys = new List<object>(((IDictionary<string,object>)item).Keys);
             for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
             {
                 if (isTrue(isGreaterThanOrEqual(getIndexOf(getValue(keys, i), "_"), 0)))
                 {
-                    object marketId = ((string)getValue(keys, i)).Replace((string)"_", (string)"");
+                    string marketId = ((string)getValue(keys, i)).Replace((string)"_", (string)"");
                     market = this.safeMarket(marketId, market);
                 }
             }
@@ -3444,10 +3444,10 @@ public partial class bitstamp : Exchange
         {
             this.checkRequiredCredentials();
             object xAuth = add("BITSTAMP ", this.apiKey);
-            object xAuthNonce = this.uuid();
-            object xAuthTimestamp = ((object)this.milliseconds()).ToString();
-            object xAuthVersion = "v2";
-            object contentType = "";
+            string xAuthNonce = this.uuid();
+            string xAuthTimestamp = ((object)this.milliseconds()).ToString();
+            string xAuthVersion = "v2";
+            string contentType = "";
             headers = new Dictionary<string, object>() {
                 { "X-Auth", xAuth },
                 { "X-Auth-Nonce", xAuthNonce },
@@ -3476,7 +3476,7 @@ public partial class bitstamp : Exchange
             }
             object authBody = ((bool) isTrue((isTrue(!isEqual(body, null)) && isTrue(!isEqual(body, ""))))) ? body : "";
             object auth = add(add(add(add(add(add(add(xAuth, method), ((string)url).Replace((string)"https://", (string)"")), contentType), xAuthNonce), xAuthTimestamp), xAuthVersion), authBody);
-            object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
+            string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
             ((IDictionary<string,object>)headers)["X-Auth-Signature"] = signature;
         }
         return new Dictionary<string, object>() {
@@ -3508,7 +3508,7 @@ public partial class bitstamp : Exchange
                 ((IList<object>)errors).Add(error);
             } else if (isTrue(!isEqual(error, null)))
             {
-                object keys = new List<object>(((IDictionary<string,object>)error).Keys);
+                List<object> keys = new List<object>(((IDictionary<string,object>)error).Keys);
                 for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
                 {
                     object key = getValue(keys, i);

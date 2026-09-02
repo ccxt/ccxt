@@ -2320,15 +2320,16 @@ class paradex(Exchange, ImplicitAPI):
         if side != 'long':
             quantity = Precise.string_mul('-1', quantity)
         timestamp = self.safe_integer(position, 'time')
+        liquidationPrice = self.parse_number(self.omit_zero(self.safe_string(position, 'liquidation_price')))
         return self.safe_position({
             'info': position,
             'id': self.safe_string(position, 'id'),
             'symbol': symbol,
-            'entryPrice': self.safe_string(position, 'average_entry_price'),
+            'entryPrice': self.safe_number(position, 'average_entry_price'),
             'markPrice': None,
             'notional': None,
-            'collateral': self.safe_string(position, 'cost'),
-            'unrealizedPnl': self.safe_string(position, 'unrealized_pnl'),
+            'collateral': self.safe_number(position, 'cost'),
+            'unrealizedPnl': self.safe_number(position, 'unrealized_pnl'),
             'side': side,
             'contracts': self.parse_number(quantity),
             'contractSize': None,
@@ -2340,7 +2341,7 @@ class paradex(Exchange, ImplicitAPI):
             'initialMargin': None,
             'initialMarginPercentage': None,
             'leverage': None,
-            'liquidationPrice': None,
+            'liquidationPrice': liquidationPrice,
             'marginRatio': None,
             'marginMode': None,
             'percentage': None,

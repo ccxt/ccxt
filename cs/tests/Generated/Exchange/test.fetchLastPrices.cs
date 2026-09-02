@@ -9,7 +9,7 @@ public partial class testMainClass : BaseTest
 {
     async static public Task<object> testFetchLastPrices(BaseExchange exchange, object skippedProperties, object symbol)
     {
-        object method = "fetchLastprices";
+        string method = "fetchLastprices";
         // log ('fetching all tickers at once...')
         object response = new Dictionary<string, object>() {};
         object checkedSymbol = null;
@@ -22,9 +22,9 @@ public partial class testMainClass : BaseTest
             checkedSymbol = symbol;
         }
         testSharedMethods.assertDictionaryResponse(exchange, method, response, checkedSymbol);
-        object values = new List<object>(((IDictionary<string,object>)response).Values);
+        List<object> values = new List<object>(((IDictionary<string,object>)response).Values);
         testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, values, checkedSymbol);
-        object atLeastOnePassed = false;
+        bool atLeastOnePassed = false;
         for (object i = 0; isLessThan(i, getArrayLength(values)); postFixIncrement(ref i))
         {
             // todo: symbol check here

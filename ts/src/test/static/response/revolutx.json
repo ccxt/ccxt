@@ -1,0 +1,1269 @@
+{
+    "exchange": "revolutx",
+    "skipKeys": [
+        "timestamp",
+        "nonce"
+    ],
+    "outputType": "both",
+    "apiKey": "xxxxxxxx",
+    "privateKey": "-----BEGIN PRIVATE KEY-----\nMC4CAQAwBQYDK2VwBCIEIKqBrzv6jAqWIyrzCX0l+sQat4AqVL8rkfs6AvTG5tSJ\n-----END PRIVATE KEY-----",
+    "methods": {
+        "fetchMarkets": [
+            {
+                "description": "default",
+                "disabledGO": true,
+                "method": "fetchMarkets",
+                "input": [],
+                "httpResponse": {
+                    "data": {
+                        "BTC/USD": {
+                            "base": "BTC",
+                            "quote": "USD",
+                            "base_step": "0.0000001",
+                            "quote_step": "0.01",
+                            "min_order_size": "0.0000001",
+                            "max_order_size": "1000",
+                            "min_order_size_quote": "0.01",
+                            "status": "active"
+                        },
+                        "ETH/USD": {
+                            "base": "ETH",
+                            "quote": "USD",
+                            "base_step": "0.00000001",
+                            "quote_step": "0.01",
+                            "min_order_size": "0.00000001",
+                            "max_order_size": "5000",
+                            "min_order_size_quote": "0.01",
+                            "status": "active"
+                        }
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "id": "BTC-USD",
+                        "symbol": "BTC/USD",
+                        "base": "BTC",
+                        "quote": "USD",
+                        "baseId": "BTC",
+                        "quoteId": "USD",
+                        "active": true,
+                        "type": "spot",
+                        "spot": true,
+                        "margin": false,
+                        "swap": false,
+                        "future": false,
+                        "option": false,
+                        "contract": false,
+                        "settle": null,
+                        "settleId": null,
+                        "contractSize": null,
+                        "linear": null,
+                        "inverse": null,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "taker": 0.0009,
+                        "maker": 0,
+                        "percentage": true,
+                        "tierBased": false,
+                        "feeSide": "get",
+                        "precision": {
+                            "amount": 1e-07,
+                            "price": 0.01
+                        },
+                        "limits": {
+                            "amount": {
+                                "min": 1e-07,
+                                "max": 1000
+                            },
+                            "price": {
+                                "min": null,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": 0.01,
+                                "max": null
+                            },
+                            "leverage": {
+                                "min": null,
+                                "max": null
+                            },
+                            "market": null
+                        },
+                        "created": null,
+                        "info": {
+                            "base": "BTC",
+                            "quote": "USD",
+                            "base_step": "0.0000001",
+                            "quote_step": "0.01",
+                            "min_order_size": "0.0000001",
+                            "max_order_size": "1000",
+                            "min_order_size_quote": "0.01",
+                            "status": "active",
+                            "id": "BTC-USD"
+                        }
+                    },
+                    {
+                        "id": "ETH-USD",
+                        "symbol": "ETH/USD",
+                        "base": "ETH",
+                        "quote": "USD",
+                        "baseId": "ETH",
+                        "quoteId": "USD",
+                        "active": true,
+                        "type": "spot",
+                        "spot": true,
+                        "margin": false,
+                        "swap": false,
+                        "future": false,
+                        "option": false,
+                        "contract": false,
+                        "settle": null,
+                        "settleId": null,
+                        "contractSize": null,
+                        "linear": null,
+                        "inverse": null,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "taker": 0.0009,
+                        "maker": 0,
+                        "percentage": true,
+                        "tierBased": false,
+                        "feeSide": "get",
+                        "precision": {
+                            "amount": 1e-08,
+                            "price": 0.01
+                        },
+                        "limits": {
+                            "amount": {
+                                "min": 1e-08,
+                                "max": 5000
+                            },
+                            "price": {
+                                "min": null,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": 0.01,
+                                "max": null
+                            },
+                            "leverage": {
+                                "min": null,
+                                "max": null
+                            },
+                            "market": null
+                        },
+                        "created": null,
+                        "info": {
+                            "base": "ETH",
+                            "quote": "USD",
+                            "base_step": "0.00000001",
+                            "quote_step": "0.01",
+                            "min_order_size": "0.00000001",
+                            "max_order_size": "5000",
+                            "min_order_size_quote": "0.01",
+                            "status": "active",
+                            "id": "ETH-USD"
+                        }
+                    }
+                ]
+            }
+        ],
+        "fetchCurrencies": [
+            {
+                "description": "default",
+                "method": "fetchCurrencies",
+                "input": [],
+                "httpResponse": {
+                    "data": {
+                        "BTC": {
+                            "symbol": "BTC",
+                            "name": "Bitcoin",
+                            "scale": 8,
+                            "asset_type": "crypto",
+                            "status": "active"
+                        },
+                        "USD": {
+                            "symbol": "$",
+                            "name": "US Dollar",
+                            "scale": 2,
+                            "asset_type": "fiat",
+                            "status": "active"
+                        }
+                    }
+                },
+                "parsedResponse": {
+                    "BTC": {
+                        "info": {
+                            "symbol": "BTC",
+                            "name": "Bitcoin",
+                            "scale": 8,
+                            "asset_type": "crypto",
+                            "status": "active",
+                            "id": "BTC"
+                        },
+                        "id": "BTC",
+                        "code": "BTC",
+                        "name": "Bitcoin",
+                        "active": true,
+                        "type": "crypto",
+                        "deposit": null,
+                        "withdraw": null,
+                        "precision": 1e-08,
+                        "fee": null,
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            },
+                            "deposit": {
+                                "min": null,
+                                "max": null
+                            }
+                        },
+                        "networks": {}
+                    },
+                    "USD": {
+                        "info": {
+                            "symbol": "$",
+                            "name": "US Dollar",
+                            "scale": 2,
+                            "asset_type": "fiat",
+                            "status": "active",
+                            "id": "USD"
+                        },
+                        "id": "USD",
+                        "code": "USD",
+                        "name": "US Dollar",
+                        "active": true,
+                        "type": "fiat",
+                        "deposit": null,
+                        "withdraw": null,
+                        "precision": 0.01,
+                        "fee": null,
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            },
+                            "deposit": {
+                                "min": null,
+                                "max": null
+                            }
+                        },
+                        "networks": {}
+                    }
+                }
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "all tickers",
+                "method": "fetchTickers",
+                "input": [],
+                "httpResponse": {
+                    "data": [
+                        {
+                            "symbol": "BTC/USD",
+                            "bid": "119950.00",
+                            "ask": "120050.00",
+                            "mid": "120000.00",
+                            "last_price": "119980.00",
+                            "low_24h": "115000.00",
+                            "high_24h": "122500.00",
+                            "price_change_24h": "2480.00",
+                            "volume_24h": "135.42000000",
+                            "region": "EEA"
+                        }
+                    ],
+                    "metadata": {
+                        "timestamp": 1785313433816
+                    }
+                },
+                "parsedResponse": {
+                    "BTC/USD": {
+                        "symbol": "BTC/USD",
+                        "timestamp": 1785313433816,
+                        "datetime": "2026-07-29T08:23:53.816Z",
+                        "high": 122500,
+                        "low": 115000,
+                        "bid": 119950,
+                        "bidVolume": null,
+                        "ask": 120050,
+                        "askVolume": null,
+                        "vwap": null,
+                        "open": 117500,
+                        "close": 119980,
+                        "last": 119980,
+                        "previousClose": null,
+                        "change": 2480,
+                        "percentage": 2.110638,
+                        "average": 118740,
+                        "baseVolume": 135.42,
+                        "quoteVolume": null,
+                        "indexPrice": null,
+                        "markPrice": null,
+                        "info": {
+                            "symbol": "BTC/USD",
+                            "bid": "119950.00",
+                            "ask": "120050.00",
+                            "mid": "120000.00",
+                            "last_price": "119980.00",
+                            "low_24h": "115000.00",
+                            "high_24h": "122500.00",
+                            "price_change_24h": "2480.00",
+                            "volume_24h": "135.42000000",
+                            "region": "EEA",
+                            "timestamp": 1785313433816
+                        }
+                    }
+                }
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "BTC/USD orderbook",
+                "method": "fetchOrderBook",
+                "input": [
+                    "BTC/USD"
+                ],
+                "httpResponse": {
+                    "data": {
+                        "asks": [
+                            {
+                                "price": "120050.00",
+                                "quantity": "1.7000",
+                                "count": 3
+                            },
+                            {
+                                "price": "120100.00",
+                                "quantity": "0.5000",
+                                "count": 1
+                            }
+                        ],
+                        "bids": [
+                            {
+                                "price": "119950.00",
+                                "quantity": "0.25",
+                                "count": 1
+                            },
+                            {
+                                "price": "119900.00",
+                                "quantity": "1.2000",
+                                "count": 2
+                            }
+                        ]
+                    },
+                    "metadata": {
+                        "region": "UK",
+                        "timestamp": 1785313433816
+                    }
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USD",
+                    "bids": [
+                        [
+                            119950,
+                            0.25
+                        ],
+                        [
+                            119900,
+                            1.2
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            120050,
+                            1.7
+                        ],
+                        [
+                            120100,
+                            0.5
+                        ]
+                    ],
+                    "timestamp": 1785313433816,
+                    "datetime": "2026-07-29T08:23:53.816Z",
+                    "nonce": null
+                }
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "BTC/USD 1h candles",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/USD",
+                    "1h",
+                    null,
+                    5
+                ],
+                "httpResponse": {
+                    "data": [
+                        {
+                            "start": 1785309833816,
+                            "open": "119800.00",
+                            "high": "120100.00",
+                            "low": "119700.00",
+                            "close": "120000.00",
+                            "volume": "0.25000000"
+                        },
+                        {
+                            "start": 1785309834816,
+                            "open": "120000.00",
+                            "high": "120200.00",
+                            "low": "119900.00",
+                            "close": "120100.00",
+                            "volume": "0.35000000"
+                        }
+                    ],
+                    "metadata": {
+                        "region": "EEA",
+                        "timestamp": 1785313433816
+                    }
+                },
+                "parsedResponse": [
+                    [
+                        1785309833816,
+                        119800,
+                        120100,
+                        119700,
+                        120000,
+                        0.25
+                    ],
+                    [
+                        1785309834816,
+                        120000,
+                        120200,
+                        119900,
+                        120100,
+                        0.35
+                    ]
+                ]
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "BTC/USD trades",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USD"
+                ],
+                "httpResponse": {
+                    "data": [
+                        {
+                            "id": "3b2b202b-7668-43cf-a6c8-b3354e7f4c52",
+                            "symbol": "BTC/USD",
+                            "price": "119980.00",
+                            "quantity": "0.01000000",
+                            "side": "sell",
+                            "timestamp": 1785313433816
+                        },
+                        {
+                            "id": "4c3c303c-8779-54dg-b7d9-c4465f8g5d63",
+                            "symbol": "BTC/USD",
+                            "price": "119990.00",
+                            "quantity": "0.02000000",
+                            "side": "buy",
+                            "timestamp": 1785313434816
+                        }
+                    ],
+                    "metadata": {
+                        "timestamp": 1785313433816,
+                        "next_cursor": "abc123"
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "id": "3b2b202b-7668-43cf-a6c8-b3354e7f4c52",
+                        "order": null,
+                        "symbol": "BTC/USD",
+                        "side": "sell",
+                        "type": null,
+                        "takerOrMaker": null,
+                        "price": 119980,
+                        "amount": 0.01,
+                        "cost": 1199.8,
+                        "timestamp": 1785313433816,
+                        "datetime": "2026-07-29T08:23:53.816Z",
+                        "fee": null,
+                        "info": {
+                            "id": "3b2b202b-7668-43cf-a6c8-b3354e7f4c52",
+                            "symbol": "BTC/USD",
+                            "price": "119980.00",
+                            "quantity": "0.01000000",
+                            "side": "sell",
+                            "timestamp": 1785313433816
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": "4c3c303c-8779-54dg-b7d9-c4465f8g5d63",
+                        "order": null,
+                        "symbol": "BTC/USD",
+                        "side": "buy",
+                        "type": null,
+                        "takerOrMaker": null,
+                        "price": 119990,
+                        "amount": 0.02,
+                        "cost": 2399.8,
+                        "timestamp": 1785313434816,
+                        "datetime": "2026-07-29T08:23:54.816Z",
+                        "fee": null,
+                        "info": {
+                            "id": "4c3c303c-8779-54dg-b7d9-c4465f8g5d63",
+                            "symbol": "BTC/USD",
+                            "price": "119990.00",
+                            "quantity": "0.02000000",
+                            "side": "buy",
+                            "timestamp": 1785313434816
+                        },
+                        "fees": []
+                    }
+                ]
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "default",
+                "method": "fetchBalance",
+                "input": [],
+                "httpResponse": [
+                    {
+                        "currency": "BTC",
+                        "available": "1.25000000",
+                        "reserved": "0.10000000",
+                        "total": "1.35000000"
+                    },
+                    {
+                        "currency": "USD",
+                        "available": "50000.00",
+                        "reserved": "1000.00",
+                        "staked": "32.00",
+                        "total": "51032.00"
+                    }
+                ],
+                "parsedResponse": {
+                    "info": [
+                        {
+                            "currency": "BTC",
+                            "available": "1.25000000",
+                            "reserved": "0.10000000",
+                            "total": "1.35000000"
+                        },
+                        {
+                            "currency": "USD",
+                            "available": "50000.00",
+                            "reserved": "1000.00",
+                            "staked": "32.00",
+                            "total": "51032.00"
+                        }
+                    ],
+                    "BTC": {
+                        "free": 1.25,
+                        "used": 0.1,
+                        "total": 1.35
+                    },
+                    "USD": {
+                        "free": 50000,
+                        "used": 1032,
+                        "total": 51032
+                    },
+                    "free": {
+                        "BTC": 1.25,
+                        "USD": 50000
+                    },
+                    "used": {
+                        "BTC": 0.1,
+                        "USD": 1032
+                    },
+                    "total": {
+                        "BTC": 1.35,
+                        "USD": 51032
+                    }
+                }
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "limit buy order",
+                "method": "createOrder",
+                "input": [
+                    "BTC/USD",
+                    "limit",
+                    "buy",
+                    0.001,
+                    120000
+                ],
+                "httpResponse": {
+                    "data": [
+                        {
+                            "venue_order_id": "7a52e92e-8639-4fe1-abaa-68d3a2d5234b",
+                            "client_order_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+                            "state": "new"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "id": "7a52e92e-8639-4fe1-abaa-68d3a2d5234b",
+                    "clientOrderId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+                    "symbol": "BTC/USD",
+                    "type": "limit",
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "side": "buy",
+                    "amount": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "cost": null,
+                    "filled": null,
+                    "remaining": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "status": "open",
+                    "average": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "info": {
+                        "venue_order_id": "7a52e92e-8639-4fe1-abaa-68d3a2d5234b",
+                        "client_order_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+                        "state": "new",
+                        "id": "7a52e92e-8639-4fe1-abaa-68d3a2d5234b",
+                        "symbol": "BTC-USD",
+                        "status": "new",
+                        "side": "buy",
+                        "type": "limit"
+                    }
+                }
+            },
+            {
+                "description": "market sell order response",
+                "method": "createOrder",
+                "input": [
+                    "BTC/USD",
+                    "market",
+                    "sell",
+                    0.001
+                ],
+                "httpResponse": {
+                    "data": [
+                        {
+                            "venue_order_id": "835015b2-30f4-4ab0-82e6-22420c441c1b",
+                            "client_order_id": "e1755b3f-6450-4bff-affc-d1b20a27b436",
+                            "state": "new"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "id": "835015b2-30f4-4ab0-82e6-22420c441c1b",
+                    "clientOrderId": "e1755b3f-6450-4bff-affc-d1b20a27b436",
+                    "symbol": "BTC/USD",
+                    "type": "market",
+                    "timeInForce": "IOC",
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "side": "sell",
+                    "amount": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "cost": null,
+                    "filled": null,
+                    "remaining": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "status": "open",
+                    "average": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "info": {
+                        "venue_order_id": "835015b2-30f4-4ab0-82e6-22420c441c1b",
+                        "client_order_id": "e1755b3f-6450-4bff-affc-d1b20a27b436",
+                        "state": "new",
+                        "id": "835015b2-30f4-4ab0-82e6-22420c441c1b",
+                        "symbol": "BTC-USD",
+                        "status": "new",
+                        "side": "sell",
+                        "type": "market"
+                    }
+                }
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "fetch order by id",
+                "method": "fetchOrder",
+                "input": [
+                    "7a52e92e-8639-4fe1-abaa-68d3a2d5234b"
+                ],
+                "httpResponse": {
+                    "data": {
+                        "id": "7a52e92e-8639-4fe1-abaa-68d3a2d5234b",
+                        "client_order_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+                        "symbol": "BTC/USD",
+                        "side": "buy",
+                        "type": "limit",
+                        "quantity": "0.001",
+                        "filled_quantity": "0",
+                        "leaves_quantity": "0.001",
+                        "price": "120000.00",
+                        "status": "new",
+                        "time_in_force": "gtc",
+                        "created_date": 1785309833816,
+                        "updated_date": 1785313433816
+                    }
+                },
+                "parsedResponse": {
+                    "id": "7a52e92e-8639-4fe1-abaa-68d3a2d5234b",
+                    "clientOrderId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+                    "symbol": "BTC/USD",
+                    "type": "limit",
+                    "timeInForce": "GTC",
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "side": "buy",
+                    "amount": 0.001,
+                    "price": 120000,
+                    "triggerPrice": null,
+                    "cost": null,
+                    "filled": 0,
+                    "remaining": 0.001,
+                    "timestamp": 1785309833816,
+                    "datetime": "2026-07-29T07:23:53.816Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": 1785313433816,
+                    "status": "open",
+                    "average": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "info": {
+                        "id": "7a52e92e-8639-4fe1-abaa-68d3a2d5234b",
+                        "client_order_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+                        "symbol": "BTC/USD",
+                        "side": "buy",
+                        "type": "limit",
+                        "quantity": "0.001",
+                        "filled_quantity": "0",
+                        "leaves_quantity": "0.001",
+                        "price": "120000.00",
+                        "status": "new",
+                        "time_in_force": "gtc",
+                        "created_date": 1785309833816,
+                        "updated_date": 1785313433816
+                    }
+                }
+            },
+            {
+                "description": "fetch canceled order by id",
+                "method": "fetchOrder",
+                "input": [
+                    "63663cc7-cf62-4128-b88c-6d8a8d98097b"
+                ],
+                "httpResponse": {
+                    "data": {
+                        "id": "63663cc7-cf62-4128-b88c-6d8a8d98097b",
+                        "client_order_id": "9004de58-1494-4f9d-8c0e-3b96fb1036d2",
+                        "symbol": "BTC/USD",
+                        "side": "buy",
+                        "type": "limit",
+                        "quantity": "0.00016667",
+                        "filled_quantity": "0",
+                        "leaves_quantity": "0.00016667",
+                        "price": "30500.00",
+                        "status": "cancelled",
+                        "time_in_force": "gtc",
+                        "created_date": 1787668883216,
+                        "updated_date": 1787668901000
+                    }
+                },
+                "parsedResponse": {
+                    "id": "63663cc7-cf62-4128-b88c-6d8a8d98097b",
+                    "clientOrderId": "9004de58-1494-4f9d-8c0e-3b96fb1036d2",
+                    "symbol": "BTC/USD",
+                    "type": "limit",
+                    "timeInForce": "GTC",
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "side": "buy",
+                    "amount": 0.00016667,
+                    "price": 30500,
+                    "triggerPrice": null,
+                    "cost": null,
+                    "filled": 0,
+                    "remaining": 0.00016667,
+                    "timestamp": 1787668883216,
+                    "datetime": "2026-08-25T14:41:23.216Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": 1787668901000,
+                    "status": "canceled",
+                    "average": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "info": {
+                        "id": "63663cc7-cf62-4128-b88c-6d8a8d98097b",
+                        "client_order_id": "9004de58-1494-4f9d-8c0e-3b96fb1036d2",
+                        "symbol": "BTC/USD",
+                        "side": "buy",
+                        "type": "limit",
+                        "quantity": "0.00016667",
+                        "filled_quantity": "0",
+                        "leaves_quantity": "0.00016667",
+                        "price": "30500.00",
+                        "status": "cancelled",
+                        "time_in_force": "gtc",
+                        "created_date": 1787668883216,
+                        "updated_date": 1787668901000
+                    }
+                }
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "fetch open orders for BTC/USD",
+                "method": "fetchOpenOrders",
+                "input": [
+                    "BTC/USD"
+                ],
+                "httpResponse": {
+                    "data": [
+                        {
+                            "id": "7a52e92e-8639-4fe1-abaa-68d3a2d5234b",
+                            "client_order_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+                            "symbol": "BTC/USD",
+                            "side": "buy",
+                            "type": "limit",
+                            "quantity": "0.001",
+                            "filled_quantity": "0",
+                            "leaves_quantity": "0.001",
+                            "price": "120000.00",
+                            "status": "new",
+                            "time_in_force": "gtc",
+                            "created_date": 1785309833816,
+                            "updated_date": 1785313433816
+                        }
+                    ],
+                    "metadata": {
+                        "timestamp": 1785313433816,
+                        "next_cursor": null
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "id": "7a52e92e-8639-4fe1-abaa-68d3a2d5234b",
+                        "clientOrderId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+                        "symbol": "BTC/USD",
+                        "type": "limit",
+                        "timeInForce": "GTC",
+                        "postOnly": null,
+                        "reduceOnly": null,
+                        "side": "buy",
+                        "amount": 0.001,
+                        "price": 120000,
+                        "triggerPrice": null,
+                        "cost": null,
+                        "filled": 0,
+                        "remaining": 0.001,
+                        "timestamp": 1785309833816,
+                        "datetime": "2026-07-29T07:23:53.816Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": 1785313433816,
+                        "status": "open",
+                        "average": null,
+                        "fee": null,
+                        "trades": [],
+                        "fees": [],
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "info": {
+                            "id": "7a52e92e-8639-4fe1-abaa-68d3a2d5234b",
+                            "client_order_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+                            "symbol": "BTC/USD",
+                            "side": "buy",
+                            "type": "limit",
+                            "quantity": "0.001",
+                            "filled_quantity": "0",
+                            "leaves_quantity": "0.001",
+                            "price": "120000.00",
+                            "status": "new",
+                            "time_in_force": "gtc",
+                            "created_date": 1785309833816,
+                            "updated_date": 1785313433816
+                        }
+                    }
+                ]
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "fetch my trades for BTC/USD",
+                "method": "fetchMyTrades",
+                "input": [
+                    "BTC/USD"
+                ],
+                "httpResponse": {
+                    "data": [
+                        {
+                            "tdt": 1785309833816,
+                            "p": "119900.00",
+                            "q": "0.00100000",
+                            "tid": "ad3e8787ab623ba5a1dfea53819be6f9",
+                            "oid": "2affb2ac-4cf7-4bbf-b7b2-fc1e885bdc2c",
+                            "s": "buy",
+                            "im": false
+                        }
+                    ],
+                    "metadata": {
+                        "timestamp": 1785313433816,
+                        "next_cursor": null
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "id": "ad3e8787ab623ba5a1dfea53819be6f9",
+                        "order": "2affb2ac-4cf7-4bbf-b7b2-fc1e885bdc2c",
+                        "symbol": "BTC/USD",
+                        "side": "buy",
+                        "type": null,
+                        "takerOrMaker": "taker",
+                        "price": 119900,
+                        "amount": 0.001,
+                        "cost": 119.9,
+                        "timestamp": 1785309833816,
+                        "datetime": "2026-07-29T07:23:53.816Z",
+                        "fee": null,
+                        "info": {
+                            "tdt": 1785309833816,
+                            "p": "119900.00",
+                            "q": "0.00100000",
+                            "tid": "ad3e8787ab623ba5a1dfea53819be6f9",
+                            "oid": "2affb2ac-4cf7-4bbf-b7b2-fc1e885bdc2c",
+                            "s": "buy",
+                            "im": false
+                        },
+                        "fees": []
+                    }
+                ]
+            }
+        ],
+        "editOrder": [
+            {
+                "description": "replace order with object response data",
+                "method": "editOrder",
+                "input": [
+                    "7a52e92e-8639-4fe1-abaa-68d3a2d5234b",
+                    "BTC/USD",
+                    "limit",
+                    "buy",
+                    0.002,
+                    121000
+                ],
+                "httpResponse": {
+                    "data": {
+                        "venue_order_id": "8b63fa3f-974a-50f2-bcbb-79e4b3e6345c",
+                        "client_order_id": "b2c3d4e5-f678-9012-abcd-ef2345678901",
+                        "state": "new"
+                    }
+                },
+                "parsedResponse": {
+                    "id": "8b63fa3f-974a-50f2-bcbb-79e4b3e6345c",
+                    "clientOrderId": "b2c3d4e5-f678-9012-abcd-ef2345678901",
+                    "symbol": "BTC/USD",
+                    "type": "limit",
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "side": "buy",
+                    "amount": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "cost": null,
+                    "filled": null,
+                    "remaining": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "status": "open",
+                    "average": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "info": {
+                        "venue_order_id": "8b63fa3f-974a-50f2-bcbb-79e4b3e6345c",
+                        "client_order_id": "b2c3d4e5-f678-9012-abcd-ef2345678901",
+                        "state": "new",
+                        "id": "8b63fa3f-974a-50f2-bcbb-79e4b3e6345c",
+                        "symbol": "BTC-USD",
+                        "status": "new",
+                        "side": "buy",
+                        "type": "limit"
+                    }
+                }
+            }
+        ],
+        "fetchOrders": [
+            {
+                "description": "fetch historical orders for BTC/USD",
+                "method": "fetchOrders",
+                "input": [
+                    "BTC/USD"
+                ],
+                "httpResponse": {
+                    "data": [
+                        {
+                            "id": "9c73fa4d-a8b2-4cde-9f01-234567890abc",
+                            "client_order_id": "d4e5f6a7-b8c9-0123-4567-890abcdef012",
+                            "symbol": "BTC/USD",
+                            "side": "buy",
+                            "type": "limit",
+                            "quantity": "0.001",
+                            "filled_quantity": "0.001",
+                            "leaves_quantity": "0",
+                            "price": "120000.00",
+                            "average_fill_price": "119950.00",
+                            "total_fee": "0.108",
+                            "fee_currency": "USD",
+                            "status": "filled",
+                            "time_in_force": "gtc",
+                            "created_date": 1785309833816,
+                            "updated_date": 1785313433816
+                        }
+                    ],
+                    "metadata": {
+                        "timestamp": 1785313433816,
+                        "next_cursor": null
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "id": "9c73fa4d-a8b2-4cde-9f01-234567890abc",
+                        "clientOrderId": "d4e5f6a7-b8c9-0123-4567-890abcdef012",
+                        "symbol": "BTC/USD",
+                        "type": "limit",
+                        "timeInForce": "GTC",
+                        "postOnly": false,
+                        "reduceOnly": null,
+                        "side": "buy",
+                        "amount": 0.001,
+                        "price": 120000,
+                        "triggerPrice": null,
+                        "cost": 119.95,
+                        "average": 119950,
+                        "filled": 0.001,
+                        "remaining": 0,
+                        "timestamp": 1785309833816,
+                        "datetime": "2026-07-29T07:23:53.816Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": 1785313433816,
+                        "status": "closed",
+                        "fee": {
+                            "cost": 0.108,
+                            "currency": "USD"
+                        },
+                        "trades": [],
+                        "fees": [
+                            {
+                                "cost": 0.108,
+                                "currency": "USD"
+                            }
+                        ],
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "info": {
+                            "id": "9c73fa4d-a8b2-4cde-9f01-234567890abc",
+                            "client_order_id": "d4e5f6a7-b8c9-0123-4567-890abcdef012",
+                            "symbol": "BTC/USD",
+                            "side": "buy",
+                            "type": "limit",
+                            "quantity": "0.001",
+                            "filled_quantity": "0.001",
+                            "leaves_quantity": "0",
+                            "price": "120000.00",
+                            "average_fill_price": "119950.00",
+                            "total_fee": "0.108",
+                            "fee_currency": "USD",
+                            "status": "filled",
+                            "time_in_force": "gtc",
+                            "created_date": 1785309833816,
+                            "updated_date": 1785313433816
+                        }
+                    }
+                ]
+            }
+        ],
+        "fetchClosedOrders": [
+            {
+                "description": "fetch closed orders for BTC/USD",
+                "method": "fetchClosedOrders",
+                "input": [
+                    "BTC/USD"
+                ],
+                "httpResponse": {
+                    "data": [
+                        {
+                            "id": "9c73fa4d-a8b2-4cde-9f01-234567890abc",
+                            "client_order_id": "d4e5f6a7-b8c9-0123-4567-890abcdef012",
+                            "symbol": "BTC/USD",
+                            "side": "buy",
+                            "type": "limit",
+                            "quantity": "0.001",
+                            "filled_quantity": "0.001",
+                            "leaves_quantity": "0",
+                            "price": "120000.00",
+                            "average_fill_price": "119950.00",
+                            "total_fee": "0.108",
+                            "fee_currency": "USD",
+                            "status": "filled",
+                            "time_in_force": "gtc",
+                            "created_date": 1785309833816,
+                            "updated_date": 1785313433816
+                        }
+                    ],
+                    "metadata": {
+                        "timestamp": 1785313433816,
+                        "next_cursor": null
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "id": "9c73fa4d-a8b2-4cde-9f01-234567890abc",
+                        "clientOrderId": "d4e5f6a7-b8c9-0123-4567-890abcdef012",
+                        "symbol": "BTC/USD",
+                        "type": "limit",
+                        "timeInForce": "GTC",
+                        "postOnly": false,
+                        "reduceOnly": null,
+                        "side": "buy",
+                        "amount": 0.001,
+                        "price": 120000,
+                        "triggerPrice": null,
+                        "cost": 119.95,
+                        "average": 119950,
+                        "filled": 0.001,
+                        "remaining": 0,
+                        "timestamp": 1785309833816,
+                        "datetime": "2026-07-29T07:23:53.816Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": 1785313433816,
+                        "status": "closed",
+                        "fee": {
+                            "cost": 0.108,
+                            "currency": "USD"
+                        },
+                        "trades": [],
+                        "fees": [
+                            {
+                                "cost": 0.108,
+                                "currency": "USD"
+                            }
+                        ],
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "info": {
+                            "id": "9c73fa4d-a8b2-4cde-9f01-234567890abc",
+                            "client_order_id": "d4e5f6a7-b8c9-0123-4567-890abcdef012",
+                            "symbol": "BTC/USD",
+                            "side": "buy",
+                            "type": "limit",
+                            "quantity": "0.001",
+                            "filled_quantity": "0.001",
+                            "leaves_quantity": "0",
+                            "price": "120000.00",
+                            "average_fill_price": "119950.00",
+                            "total_fee": "0.108",
+                            "fee_currency": "USD",
+                            "status": "filled",
+                            "time_in_force": "gtc",
+                            "created_date": 1785309833816,
+                            "updated_date": 1785313433816
+                        }
+                    }
+                ]
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "cancel order by id",
+                "method": "cancelOrder",
+                "input": [
+                    "7a52e92e-8639-4fe1-abaa-68d3a2d5234b"
+                ],
+                "httpResponse": {},
+                "parsedResponse": {
+                    "id": "7a52e92e-8639-4fe1-abaa-68d3a2d5234b",
+                    "clientOrderId": null,
+                    "symbol": null,
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "side": null,
+                    "amount": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "cost": null,
+                    "filled": null,
+                    "remaining": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "status": "canceled",
+                    "average": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "info": {}
+                }
+            }
+        ],
+        "cancelAllOrders": [
+            {
+                "description": "cancel all orders",
+                "method": "cancelAllOrders",
+                "input": [],
+                "httpResponse": {},
+                "parsedResponse": []
+            }
+        ]
+    }
+}

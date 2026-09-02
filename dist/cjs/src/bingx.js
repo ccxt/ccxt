@@ -449,6 +449,7 @@ class bingx extends bingx$1["default"] {
                                 'uid': { 'cost': 1 },
                                 'apiKey/query': { 'cost': 2 },
                                 'account/apiPermissions': { 'cost': 5 },
+                                'account/apiRestrictions': { 'cost': 5 },
                                 'allAccountBalance': { 'cost': 2 },
                             },
                             'post': {
@@ -734,6 +735,10 @@ class bingx extends bingx$1["default"] {
                 },
                 'defaultForInverse': {
                     'extends': 'defaultForLinear',
+                    'createOrders': undefined,
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
                     'fetchMyTrades': {
                         'limit': 1000,
                         'daysBack': undefined,
@@ -1060,6 +1065,9 @@ class bingx extends bingx$1["default"] {
         else if ((this.safeBool(market, 'apiStateSell') === true) && (this.safeBool(market, 'apiStateBuy') === true) && (this.safeString(market, 'status') === '1')) {
             isActive = true; // spot active
         }
+        else if (checkIsInverse && (this.safeString(market, 'status') === '1')) {
+            isActive = true; // inverse swap active
+        }
         const isInverse = (spot) ? undefined : checkIsInverse;
         const isLinear = (spot) ? undefined : checkIsLinear;
         let minAmount = undefined;
@@ -1158,7 +1166,7 @@ class bingx extends bingx$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
-     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch (max 1000 for inverse swaps, 1440 otherwise)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
@@ -1168,26 +1176,32 @@ class bingx extends bingx$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
+        const market = this.market(symbol);
+        const maxLimit = (market['inverse'] === true) ? 1000 : 1440;
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 1440);
+            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimit);
         }
-        const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
         };
         request['interval'] = this.safeString(this.timeframes, timeframe, timeframe);
+        const requestLimit = (limit === undefined) ? 500 : Math.min(limit, maxLimit);
         if (since !== undefined) {
             request['startTime'] = Math.max(since - 1, 0);
         }
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = requestLimit;
         }
         const until = this.safeInteger2(params, 'until', 'endTime');
         if (until !== undefined) {
             params = this.omit(params, ['until']);
             request['endTime'] = until;
+        }
+        else if ((market['inverse'] === true) && (since !== undefined)) {
+            const duration = this.parseTimeframe(timeframe) * 1000;
+            request['endTime'] = this.sum(since, duration * requestLimit);
         }
         let response;
         if (market['spot'] === true) {
@@ -3492,7 +3506,7 @@ class bingx extends bingx$1["default"] {
      * @description create a list of trade orders
      * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Place%20multiple%20orders
      * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Place%20multiple%20orders
-     * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+     * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params, linear swap and spot only
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.sync] *spot only* if true, multiple orders are ordered serially and all orders do not require the same symbol/side/type
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
@@ -3518,6 +3532,9 @@ class bingx extends bingx$1["default"] {
         const symbols = this.marketSymbols(marketIds, undefined, false, true, true);
         const symbolsLength = symbols.length;
         const market = this.market(symbols[0]);
+        if (market['inverse'] === true) {
+            throw new errors.NotSupported(this.id + ' createOrders() is not supported for inverse swap markets');
+        }
         const request = {};
         let response;
         if (market['swap'] === true) {
@@ -5256,17 +5273,23 @@ class bingx extends bingx$1["default"] {
             'amount': this.currencyToPrecision(code, amount),
         };
         const response = await this.apiAssetV1PrivatePostTransfer(this.extend(request, params));
+        const data = this.safeDict(response, 'data', {});
+        const timestamp = this.safeInteger(response, 'timestamp');
         //
         //     {
-        //         "tranId": 1933130865269936128,
-        //         "transferId": "1051450703949464903736"
+        //         "code": "0",
+        //         "timestamp": "1752202170686",
+        //         "data": {
+        //             "tranId": "1943502883135819776",
+        //             "transferId": "1051461075875997081703"
+        //         }
         //     }
         //
         return {
             'info': response,
-            'id': this.safeString(response, 'transferId'),
-            'timestamp': undefined,
-            'datetime': undefined,
+            'id': this.safeString2(data, 'transferId', 'tranId'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
             'currency': code,
             'amount': amount,
             'fromAccount': fromAccount,
@@ -5463,7 +5486,7 @@ class bingx extends bingx$1["default"] {
         const currencyId = this.safeString(depositAddress, 'coin');
         currency = this.safeCurrency(currencyId, currency);
         const code = currency['code'];
-        let address = this.safeString(depositAddress, 'addressWithPrefix');
+        let address = this.safeString2(depositAddress, 'addressWithPrefix', 'address');
         const networkId = this.safeString(depositAddress, 'network');
         const networkCode = this.networkIdToCode(networkId, code);
         // despite its name the addressWithPrefix field sometimes arrives without
@@ -5493,13 +5516,14 @@ class bingx extends bingx$1["default"] {
      * @param {int} [since] the earliest time in ms to fetch deposits for
      * @param {int} [limit] the maximum number of deposits structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch deposits for
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const request = {};
+        let request = {};
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency(code);
@@ -5509,8 +5533,9 @@ class bingx extends bingx$1["default"] {
             request['startTime'] = since;
         }
         if (limit !== undefined) {
-            request['limit'] = limit; // default 1000
+            request['limit'] = Math.min(limit, 1000); // api maximum 1000
         }
+        [request, params] = this.handleUntilOption('endTime', request, params);
         const response = await this.spotV3PrivateGetCapitalDepositHisrec(this.extend(request, params));
         //
         //    [
@@ -5540,13 +5565,14 @@ class bingx extends bingx$1["default"] {
      * @param {int} [since] the earliest time in ms to fetch withdrawals for
      * @param {int} [limit] the maximum number of withdrawals structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch withdrawals for
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const request = {};
+        let request = {};
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency(code);
@@ -5556,8 +5582,9 @@ class bingx extends bingx$1["default"] {
             request['startTime'] = since;
         }
         if (limit !== undefined) {
-            request['limit'] = limit; // default 1000
+            request['limit'] = Math.min(limit, 1000); // api maximum 1000
         }
+        [request, params] = this.handleUntilOption('endTime', request, params);
         const response = await this.spotV3PrivateGetCapitalWithdrawHistory(this.extend(request, params));
         //
         //    [
@@ -5928,6 +5955,7 @@ class bingx extends bingx$1["default"] {
         }
         const side = this.safeStringUpper(params, 'side');
         this.checkRequiredArgument('setLeverage', side, 'side', ['LONG', 'SHORT', 'BOTH']);
+        params = this.omit(params, 'side');
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -7058,7 +7086,8 @@ class bingx extends bingx$1["default"] {
             version = section[2];
             access = section[3];
         }
-        if (path !== 'account/apiPermissions') {
+        const flatAccountPaths = ['account/apiPermissions', 'account/apiRestrictions'];
+        if (!this.inArray(path, flatAccountPaths)) {
             if (type === 'spot' && version === 'v3') {
                 url += '/api';
             }

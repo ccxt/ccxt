@@ -3109,7 +3109,7 @@ func (this *BybitCore) fetchFutureMarketsBody(ch chan any, optionalArgs ...any) 
 					"max": this.SafeNumber(priceFilter, "maxPrice"),
 				},
 				"cost": map[string]any{
-					"min": nil,
+					"min": Ternary(IsTrue(linear), this.SafeNumber(lotSizeFilter, "minNotionalValue"), nil),
 					"max": nil,
 				},
 			},
@@ -11089,7 +11089,7 @@ func (this *BybitCore) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) 
 
 	data := (<-this.GetLeverageTiersPaginated(symbol, this.Extend(map[string]any{
 		"paginate":        true,
-		"paginationCalls": 50,
+		"paginationCalls": 200,
 	}, params)))
 	PanicOnError(data)
 	symbols = this.MarketSymbols(symbols)

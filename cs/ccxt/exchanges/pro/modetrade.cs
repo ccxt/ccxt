@@ -88,7 +88,7 @@ public partial class modetrade : ccxt.modetrade
         object subscribe = new Dictionary<string, object>() {
             { "id", requestId },
         };
-        object request = this.extend(subscribe, message);
+        Dictionary<string, object> request = this.extend(subscribe, message);
         return await this.watch(url, messageHash, request, messageHash, subscribe);
     }
 
@@ -109,14 +109,14 @@ public partial class modetrade : ccxt.modetrade
         {
             await this.loadMarkets();
         }
-        object name = "orderbook";
+        string name = "orderbook";
         object market = this.market(symbol);
         object topic = add(add(getValue(market, "id"), "@"), name);
         object request = new Dictionary<string, object>() {
             { "event", "subscribe" },
             { "topic", topic },
         };
-        object message = this.extend(request, parameters);
+        Dictionary<string, object> message = this.extend(request, parameters);
         object orderbook = await this.watchPublic(topic, message);
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
@@ -177,7 +177,7 @@ public partial class modetrade : ccxt.modetrade
         {
             await this.loadMarkets();
         }
-        object name = "ticker";
+        string name = "ticker";
         object market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
         object topic = add(add(getValue(market, "id"), "@"), name);
@@ -185,7 +185,7 @@ public partial class modetrade : ccxt.modetrade
             { "event", "subscribe" },
             { "topic", topic },
         };
-        object message = this.extend(request, parameters);
+        Dictionary<string, object> message = this.extend(request, parameters);
         return ccxt.BaseExchange.ToTicker(await this.watchPublic(topic, message));
     }
 
@@ -275,13 +275,13 @@ public partial class modetrade : ccxt.modetrade
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols);
-        object name = "tickers";
+        string name = "tickers";
         object topic = name;
         object request = new Dictionary<string, object>() {
             { "event", "subscribe" },
             { "topic", topic },
         };
-        object message = this.extend(request, parameters);
+        Dictionary<string, object> message = this.extend(request, parameters);
         object tickers = await this.watchPublic(topic, message);
         return ccxt.BaseExchange.ToTickers(this.filterByArray(tickers, "symbol", symbols));
     }
@@ -341,13 +341,13 @@ public partial class modetrade : ccxt.modetrade
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols);
-        object name = "bbos";
+        string name = "bbos";
         object topic = name;
         object request = new Dictionary<string, object>() {
             { "event", "subscribe" },
             { "topic", topic },
         };
-        object message = this.extend(request, parameters);
+        Dictionary<string, object> message = this.extend(request, parameters);
         object tickers = await this.watchPublic(topic, message);
         return ccxt.BaseExchange.ToTickers(this.filterByArray(tickers, "symbol", symbols));
     }
@@ -434,13 +434,13 @@ public partial class modetrade : ccxt.modetrade
         }
         object market = this.market(symbol);
         object interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
-        object name = "kline";
+        string name = "kline";
         object topic = add(add(add(add(getValue(market, "id"), "@"), name), "_"), interval);
         object request = new Dictionary<string, object>() {
             { "event", "subscribe" },
             { "topic", topic },
         };
-        object message = this.extend(request, parameters);
+        Dictionary<string, object> message = this.extend(request, parameters);
         object ohlcv = await this.watchPublic(topic, message);
         if (isTrue(this.newUpdates))
         {
@@ -521,7 +521,7 @@ public partial class modetrade : ccxt.modetrade
             { "event", "subscribe" },
             { "topic", topic },
         };
-        object message = this.extend(request, parameters);
+        Dictionary<string, object> message = this.extend(request, parameters);
         object trades = await this.watchPublic(topic, message);
         if (isTrue(this.newUpdates))
         {
@@ -652,7 +652,7 @@ public partial class modetrade : ccxt.modetrade
         //         "ts": 1657463158812
         //     }
         //
-        object messageHash = "authenticated";
+        string messageHash = "authenticated";
         object success = this.safeValue(message, "success");
         if (isTrue(isEqual(success, true)))
         {
@@ -677,18 +677,18 @@ public partial class modetrade : ccxt.modetrade
         this.checkRequiredCredentials();
         object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "private"), "/"), this.accountId);
         var client = this.client(url);
-        object messageHash = "authenticated";
-        object eventVar = "auth";
+        string messageHash = "authenticated";
+        string eventVar = "auth";
         var future = client.reusableFuture(messageHash);
         object authenticated = this.safeValue(((WebSocketClient)client).subscriptions, messageHash);
         if (isTrue(isEqual(authenticated, null)))
         {
-            object ts = ((object)this.nonce()).ToString();
+            string ts = ((object)this.nonce()).ToString();
             object auth = ts;
             object secret = this.secret;
             if (isTrue(isGreaterThanOrEqual(getIndexOf(secret, "ed25519:"), 0)))
             {
-                object parts = ((string)secret).Split(new [] {((string)"ed25519:")}, StringSplitOptions.None).ToList<object>();
+                List<object> parts = ((string)secret).Split(new [] {((string)"ed25519:")}, StringSplitOptions.None).ToList<object>();
                 secret = getValue(parts, 1);
             }
             object signature = eddsa(this.encode(auth), this.base58ToBinary(secret), ed25519);
@@ -700,7 +700,7 @@ public partial class modetrade : ccxt.modetrade
                     { "timestamp", ts },
                 } },
             };
-            object message = this.extend(request, parameters);
+            Dictionary<string, object> message = this.extend(request, parameters);
             this.watch(url, messageHash, message, messageHash);
         }
         return await (future as Exchange.Future);
@@ -715,7 +715,7 @@ public partial class modetrade : ccxt.modetrade
         object subscribe = new Dictionary<string, object>() {
             { "id", requestId },
         };
-        object request = this.extend(subscribe, message);
+        Dictionary<string, object> request = this.extend(subscribe, message);
         return await this.watch(url, messageHash, request, messageHash, subscribe);
     }
 
@@ -728,7 +728,7 @@ public partial class modetrade : ccxt.modetrade
         object subscribe = new Dictionary<string, object>() {
             { "id", requestId },
         };
-        object request = this.extend(subscribe, message);
+        Dictionary<string, object> request = this.extend(subscribe, message);
         return await this.watchMultiple(url, messageHashes, request, messageHashes, subscribe);
     }
 
@@ -768,7 +768,7 @@ public partial class modetrade : ccxt.modetrade
             { "event", "subscribe" },
             { "topic", topic },
         };
-        object message = this.extend(request, parameters);
+        Dictionary<string, object> message = this.extend(request, parameters);
         object orders = await this.watchPrivate(messageHash, message);
         if (isTrue(this.newUpdates))
         {
@@ -813,7 +813,7 @@ public partial class modetrade : ccxt.modetrade
             { "event", "subscribe" },
             { "topic", topic },
         };
-        object message = this.extend(request, parameters);
+        Dictionary<string, object> message = this.extend(request, parameters);
         object orders = await this.watchPrivate(messageHash, message);
         if (isTrue(this.newUpdates))
         {
@@ -1073,7 +1073,7 @@ public partial class modetrade : ccxt.modetrade
         //     maker: false
         // }
         //
-        object messageHash = "myTrades";
+        string messageHash = "myTrades";
         object marketId = this.safeString(message, "symbol");
         object market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
@@ -1149,7 +1149,7 @@ public partial class modetrade : ccxt.modetrade
         object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", false);
         if (isTrue(isEqual(fetchPositionsSnapshot, true)))
         {
-            object messageHash = "fetchPositionsSnapshot";
+            string messageHash = "fetchPositionsSnapshot";
             if (!isTrue((inOp(client.futures, messageHash))))
             {
                 client.future(messageHash);
@@ -1331,13 +1331,13 @@ public partial class modetrade : ccxt.modetrade
         {
             await this.loadMarkets();
         }
-        object topic = "balance";
+        string topic = "balance";
         object messageHash = topic;
         object request = new Dictionary<string, object>() {
             { "event", "subscribe" },
             { "topic", topic },
         };
-        object message = this.extend(request, parameters);
+        Dictionary<string, object> message = this.extend(request, parameters);
         return ccxt.BaseExchange.ToBalances(await this.watchPrivate(messageHash, message));
     }
 
@@ -1372,7 +1372,7 @@ public partial class modetrade : ccxt.modetrade
         //
         object data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         object balances = this.safeDict(data, "balances", new Dictionary<string, object>() {});
-        object keys = new List<object>(((IDictionary<string,object>)balances).Keys);
+        List<object> keys = new List<object>(((IDictionary<string,object>)balances).Keys);
         object ts = this.safeInteger(message, "ts");
         ((IDictionary<string,object>)this.balance)["info"] = data;
         ((IDictionary<string,object>)this.balance)["timestamp"] = ts;
@@ -1428,7 +1428,7 @@ public partial class modetrade : ccxt.modetrade
         {
             if (isTrue(error is AuthenticationError))
             {
-                object messageHash = "authenticated";
+                string messageHash = "authenticated";
                 ((WebSocketClient)client).reject(error, messageHash);
                 if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
                 {
@@ -1480,8 +1480,8 @@ public partial class modetrade : ccxt.modetrade
                 DynamicInvoker.InvokeMethod(method, new object[] { client, message});
                 return;
             }
-            object splitTopic = ((string)topic).Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>();
-            object splitLength = getArrayLength(splitTopic);
+            List<object> splitTopic = ((string)topic).Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>();
+            int splitLength = getArrayLength(splitTopic);
             if (isTrue(isEqual(splitLength, 2)))
             {
                 object name = this.safeString(splitTopic, 1);
@@ -1495,8 +1495,8 @@ public partial class modetrade : ccxt.modetrade
                     DynamicInvoker.InvokeMethod(method, new object[] { client, message});
                     return;
                 }
-                object splitName = ((string)name).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
-                object splitNameLength = getArrayLength(splitTopic);
+                List<object> splitName = ((string)name).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+                int splitNameLength = getArrayLength(splitTopic);
                 if (isTrue(isEqual(splitNameLength, 2)))
                 {
                     object splitNameFirst = this.safeString(splitName, 0);

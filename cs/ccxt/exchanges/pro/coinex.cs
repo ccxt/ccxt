@@ -169,12 +169,12 @@ public partial class coinex : ccxt.coinex
         for (object i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
         {
             object messageHash = getValue(messageHashes, i);
-            object parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
+            List<object> parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
             object symbolsString = getValue(parts, 1);
-            object symbols = ((string)symbolsString).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
+            List<object> symbols = ((string)symbolsString).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
             object tickers = this.filterByArray(newTickers, "symbol", symbols);
-            object tickersSymbols = new List<object>(((IDictionary<string,object>)tickers).Keys);
-            object numTickers = getArrayLength(tickersSymbols);
+            List<object> tickersSymbols = new List<object>(((IDictionary<string,object>)tickers).Keys);
+            int numTickers = getArrayLength(tickersSymbols);
             if (isTrue(isGreaterThan(numTickers, 0)))
             {
                 callDynamically(client as WebSocketClient, "resolve", new object[] {tickers, messageHash});
@@ -274,7 +274,7 @@ public partial class coinex : ccxt.coinex
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), type);
         // coinex throws a closes the websocket when subscribing over 1422 currencies, therefore we filter out inactive currencies
         object activeCurrencies = this.filterBy(this.currencies_by_id, "active", true);
-        object activeCurrenciesById = this.indexBy(activeCurrencies, "id");
+        Dictionary<string, object> activeCurrenciesById = this.indexBy(activeCurrencies, "id");
         object currencies = new List<object>(((IDictionary<string,object>)activeCurrenciesById).Keys);
         if (isTrue(isEqual(currencies, null)))
         {
@@ -295,7 +295,7 @@ public partial class coinex : ccxt.coinex
             } },
             { "id", this.requestId() },
         };
-        object request = this.deepExtend(subscribe, parameters);
+        Dictionary<string, object> request = this.deepExtend(subscribe, parameters);
         return ccxt.BaseExchange.ToBalances(await this.watch(url, messageHash, request, messageHash));
     }
 
@@ -349,8 +349,8 @@ public partial class coinex : ccxt.coinex
         object firstEntry = getValue(balances, 0);
         object updated = this.safeInteger(firstEntry, "updated_at");
         object unrealizedPnl = this.safeString(firstEntry, "unrealized_pnl");
-        object isSpot = (!isEqual(updated, null));
-        object isSwap = (!isEqual(unrealizedPnl, null));
+        bool isSpot = (!isEqual(updated, null));
+        bool isSwap = (!isEqual(unrealizedPnl, null));
         object info = null;
         object account = null;
         object rawBalances = new List<object>() {};
@@ -496,7 +496,7 @@ public partial class coinex : ccxt.coinex
             } },
             { "id", this.requestId() },
         };
-        object request = this.deepExtend(message, parameters);
+        Dictionary<string, object> request = this.deepExtend(message, parameters);
         object trades = await this.watch(url, messageHash, request, messageHash);
         if (isTrue(this.newUpdates))
         {
@@ -528,7 +528,7 @@ public partial class coinex : ccxt.coinex
         //
         object data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         object marketId = this.safeString(data, "market");
-        object isSpot = isGreaterThan(getIndexOf(client.url, "spot"), -1);
+        bool isSpot = isGreaterThan(getIndexOf(client.url, "spot"), -1);
         object defaultType = ((bool) isTrue(isSpot)) ? "spot" : "swap";
         object market = this.safeMarket(marketId, null, null, defaultType);
         object symbol = getValue(market, "symbol");
@@ -592,7 +592,7 @@ public partial class coinex : ccxt.coinex
         object data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         object trades = this.safeList(data, "deal_list", new List<object>() {});
         object marketId = this.safeString(data, "market");
-        object isSpot = isGreaterThan(getIndexOf(client.url, "spot"), -1);
+        bool isSpot = isGreaterThan(getIndexOf(client.url, "spot"), -1);
         object defaultType = ((bool) isTrue(isSpot)) ? "spot" : "swap";
         object market = this.safeMarket(marketId, null, null, defaultType);
         object symbol = getValue(market, "symbol");
@@ -654,7 +654,7 @@ public partial class coinex : ccxt.coinex
         //     }
         //
         object timestamp = this.safeInteger(trade, "created_at");
-        object isSpot = (inOp(trade, "margin_market"));
+        bool isSpot = (inOp(trade, "margin_market"));
         object defaultType = ((bool) isTrue(isSpot)) ? "spot" : "swap";
         object marketId = this.safeString(trade, "market");
         market = this.safeMarket(marketId, market, null, defaultType);
@@ -727,7 +727,7 @@ public partial class coinex : ccxt.coinex
         object marketIds = this.marketIds(symbols);
         object market = null;
         object messageHashes = new List<object>() {};
-        object symbolsDefined = (!isEqual(symbols, null));
+        bool symbolsDefined = (!isEqual(symbols, null));
         if (isTrue(symbolsDefined))
         {
             for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
@@ -807,7 +807,7 @@ public partial class coinex : ccxt.coinex
         var callerMethodNameparametersVariable = this.handleParamString(parameters, "callerMethodName", "watchTradesForSymbols");
         callerMethodName = ((IList<object>)callerMethodNameparametersVariable)[0];
         parameters = ((IList<object>)callerMethodNameparametersVariable)[1];
-        object symbolsDefined = (!isEqual(symbols, null));
+        bool symbolsDefined = (!isEqual(symbols, null));
         if (isTrue(symbolsDefined))
         {
             for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
@@ -887,7 +887,7 @@ public partial class coinex : ccxt.coinex
             throw new NotSupported ((string)add(add(this.id, " watchOrderBookForSymbols() aggregation must be one of "), String.Join(", ", ((IList<object>)aggregations).ToArray()))) ;
         }
         parameters = this.omit(parameters, "aggregation");
-        object symbolsDefined = (!isEqual(symbols, null));
+        bool symbolsDefined = (!isEqual(symbols, null));
         if (!isTrue(symbolsDefined))
         {
             throw new ArgumentsRequired ((string)add(this.id, " watchOrderBookForSymbols() requires a symbol argument")) ;
@@ -902,7 +902,7 @@ public partial class coinex : ccxt.coinex
         var typeparametersVariable = this.handleMarketTypeAndParams(callerMethodName, market, parameters);
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
-        object marketList = new List<object>(((IDictionary<string,object>)watchOrderBookSubscriptions).Values);
+        List<object> marketList = new List<object>(((IDictionary<string,object>)watchOrderBookSubscriptions).Values);
         object subscribe = new Dictionary<string, object>() {
             { "method", "depth.subscribe" },
             { "params", new Dictionary<string, object>() {
@@ -981,14 +981,14 @@ public partial class coinex : ccxt.coinex
         //         "id": null
         //     }
         //
-        object isSpot = isGreaterThan(getIndexOf(client.url, "spot"), -1);
+        bool isSpot = isGreaterThan(getIndexOf(client.url, "spot"), -1);
         object defaultType = ((bool) isTrue(isSpot)) ? "spot" : "swap";
         object data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         object depth = this.safeDict(data, "depth", new Dictionary<string, object>() {});
         object marketId = this.safeString(data, "market");
         object market = this.safeMarket(marketId, null, null, defaultType);
         object symbol = getValue(market, "symbol");
-        object name = "orderbook";
+        string name = "orderbook";
         object messageHash = add(add(name, ":"), symbol);
         object timestamp = this.safeInteger(depth, "updated_at");
         object currentOrderBook = this.safeValue(this.orderbooks, symbol);
@@ -1087,7 +1087,7 @@ public partial class coinex : ccxt.coinex
             { "id", this.requestId() },
         };
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), type);
-        object request = this.deepExtend(message, parameters);
+        Dictionary<string, object> request = this.deepExtend(message, parameters);
         object orders = await this.watch(url, messageHash, request, messageHash, request);
         if (isTrue(this.newUpdates))
         {
@@ -1215,7 +1215,7 @@ public partial class coinex : ccxt.coinex
         //     }
         //
         object data = this.safeDict(message, "data", new Dictionary<string, object>() {});
-        object order = this.extend(new Dictionary<string, object>() {
+        Dictionary<string, object> order = this.extend(new Dictionary<string, object>() {
             { "status", this.safeString(data, "event") },
         }, this.safeDict2(data, "order", "stop", new Dictionary<string, object>() {}));
         object parsedOrder = this.parseWsOrder(order);
@@ -1328,7 +1328,7 @@ public partial class coinex : ccxt.coinex
         object timestamp = this.safeInteger(order, "created_at");
         object marketId = this.safeString(order, "market");
         object status = this.safeString(order, "status");
-        object isSpot = (inOp(order, "margin_market"));
+        bool isSpot = (inOp(order, "margin_market"));
         object defaultType = ((bool) isTrue(isSpot)) ? "spot" : "swap";
         market = this.safeMarket(marketId, market, null, defaultType);
         object fee = null;
@@ -1401,7 +1401,7 @@ public partial class coinex : ccxt.coinex
         object marketIds = this.marketIds(symbols);
         object messageHashes = new List<object>() {};
         object market = null;
-        object symbolsDefined = (!isEqual(symbols, null));
+        bool symbolsDefined = (!isEqual(symbols, null));
         if (isTrue(symbolsDefined))
         {
             for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
@@ -1526,9 +1526,9 @@ public partial class coinex : ccxt.coinex
         //     { "id": 1, "code": 21002, "message": "Signature Incorrect" }
         //
         object message = this.safeStringLower(response, "message");
-        object isErrorMessage = isTrue((!isEqual(message, null))) && isTrue((!isEqual(message, "ok")));
+        bool isErrorMessage = isTrue((!isEqual(message, null))) && isTrue((!isEqual(message, "ok")));
         object errorCode = this.safeString(response, "code");
-        object isErrorCode = isTrue((!isEqual(errorCode, null))) && isTrue((!isEqual(errorCode, "0")));
+        bool isErrorCode = isTrue((!isEqual(errorCode, null))) && isTrue((!isEqual(errorCode, "0")));
         if (isTrue(isTrue(isErrorCode) || isTrue(isErrorMessage)))
         {
             object feedback = add(add(this.id, " "), body);
@@ -1560,7 +1560,7 @@ public partial class coinex : ccxt.coinex
         //
         object status = this.safeStringLower(message, "message");
         object errorCode = this.safeString(message, "code");
-        object messageHash = "authenticated";
+        string messageHash = "authenticated";
         if (isTrue(isTrue((isEqual(status, "ok"))) || isTrue((isEqual(errorCode, "0")))))
         {
             var future = this.safeValue((client as WebSocketClient).futures, messageHash);
@@ -1596,9 +1596,9 @@ public partial class coinex : ccxt.coinex
     {
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), type);
         var client = this.client(url);
-        object time = this.milliseconds();
-        object timestamp = ((object)time).ToString();
-        object messageHash = "authenticated";
+        Int64 time = this.milliseconds();
+        string timestamp = ((object)time).ToString();
+        string messageHash = "authenticated";
         var future = client.reusableFuture(messageHash);
         object authenticated = this.safeValue(((WebSocketClient)client).subscriptions, messageHash);
         if (isTrue(!isEqual(authenticated, null)))
@@ -1610,7 +1610,7 @@ public partial class coinex : ccxt.coinex
             { "id", requestId },
             { "future", messageHash },
         };
-        object hmac = this.hmac(this.encode(timestamp), this.encode(this.secret), sha256, "hex");
+        string hmac = this.hmac(this.encode(timestamp), this.encode(this.secret), sha256, "hex");
         object request = new Dictionary<string, object>() {
             { "id", requestId },
             { "method", "server.sign" },

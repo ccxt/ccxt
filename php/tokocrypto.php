@@ -608,6 +608,7 @@ class tokocrypto extends Exchange {
                     '3211' => '\\ccxt\\InvalidOrder', // array("code":3211,"msg":"The total volume must be greater than 10","timestamp":1662739358179)
                     '3207' => '\\ccxt\\InvalidOrder', // array("code":3207,"msg":"The price cannot be lower than 12.18","timestamp":1662739502856)
                     '3218' => '\\ccxt\\OrderNotFound', // array("code":3218,"msg":"Order does not exist","timestamp":1662739749275)
+                    '1106' => '\\ccxt\\BadRequest', // array("code":1106,"msg":"Incorrect Page number") — an order book limit outside the 5, 10, 20, 50, 100, 500, 1000 ladder
                 ),
                 'broad' => array(
                     'has no operation privilege' => '\\ccxt\\PermissionDenied',
@@ -794,7 +795,7 @@ class tokocrypto extends Exchange {
                     break;
                 }
             }
-            $isMarginTradingAllowed = $this->safe_bool($market, 'isMarginTradingAllowed', false);
+            $marginTradingEnable = $this->safe_string($market, 'marginTradingEnable');
             $entry = array(
                 'id' => $id,
                 'lowercaseId' => $lowercaseId,
@@ -807,7 +808,7 @@ class tokocrypto extends Exchange {
                 'settleId' => $settleId,
                 'type' => 'spot',
                 'spot' => true,
-                'margin' => $isMarginTradingAllowed,
+                'margin' => ($marginTradingEnable === '1'),
                 'swap' => false,
                 'future' => false,
                 'delivery' => false,
@@ -824,7 +825,7 @@ class tokocrypto extends Exchange {
                 'precision' => array(
                     'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'quantityPrecision'))),
                     'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'pricePrecision'))),
-                    'base' => $this->parse_number($this->parse_precision($this->safe_string($market, 'baseAssetPrecision'))),
+                    'base' => $this->parse_number($this->parse_precision($this->safe_string($market, 'basePrecision'))),
                     'quote' => $this->parse_number($this->parse_precision($this->safe_string($market, 'quotePrecision'))),
                 ),
                 'limits' => array(
@@ -892,7 +893,7 @@ class tokocrypto extends Exchange {
          *
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-         * @param {int} [$limit] the maximum amount of order book entries to return
+         * @param {int} [$limit] the maximum amount of order book entries to return, $symbol type 3 markets accept 5, 10, 20, 50, 100, 500 or 1000 only
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
@@ -900,16 +901,16 @@ class tokocrypto extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        $request = array();
+        $request = array(
+            'symbol' => $this->get_market_id_by_type($market),
+        );
         if ($limit !== null) {
             $request['limit'] = $limit; // default 100, max 5000, see https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md#order-book
         }
-        if ($market['quote'] === 'USDT') {
-            $request['symbol'] = $this->safe_string($market, 'baseId', '') . $this->safe_string($market, 'quoteId', '');
-            $response = $this->binanceGetDepth($this->extend($request, $params));
-        } else {
-            $request['symbol'] = $market['id'];
+        if ($this->is_native_market($market)) {
             $response = $this->publicGetOpenV1MarketDepth($this->extend($request, $params));
+        } else {
+            $response = $this->binanceGetDepth($this->extend($request, $params));
         }
         //
         // future
@@ -1119,10 +1120,8 @@ class tokocrypto extends Exchange {
         // the venue routes $market $data by the $symbol type reported by fetchMarkets,
         // not by the quote currency => type 1 markets are served by the binance host
         // with the underscore-less id, every other type by open/v1 with the raw id
-        $marketInfo = $this->safe_dict($market, 'info', array());
-        $symbolType = $this->safe_string($marketInfo, 'type');
-        if ($symbolType !== '1') {
-            $request['symbol'] = $market['id'];
+        $request['symbol'] = $this->get_market_id_by_type($market);
+        if ($this->is_native_market($market)) {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
@@ -1153,7 +1152,6 @@ class tokocrypto extends Exchange {
             $list = $this->safe_list($data, 'list', array());
             return $this->parse_trades($list, $market, $since, $limit);
         }
-        $request['symbol'] = $this->safe_string($market, 'baseId', '') . $this->safe_string($market, 'quoteId', '');
         if ($limit !== null) {
             $request['limit'] = $limit; // default = 500, maximum = 1000
         }
@@ -1309,6 +1307,9 @@ class tokocrypto extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
+        // the binance backed host is the only source of 24hr statistics, so the
+        // result omits the native markets instead of raising for them, unlike
+        // the single symbol fetchTicker
         $response = $this->binanceGetTicker24hr($params);
         if ((gettype($response) !== 'array' || array_keys($response) !== array_keys(array_keys($response)))) {
             // a user-supplied symbol param makes the endpoint answer a single
@@ -1319,11 +1320,33 @@ class tokocrypto extends Exchange {
         return $this->parse_tickers($response, $symbols);
     }
 
-    public function get_market_id_by_type(mixed $market) {
-        if ($market['quote'] === 'USDT') {
-            return $market['baseId'] . $market['quoteId'];
+    public function is_native_market(array $market): bool {
+        /**
+         * @ignore
+         * whether a $market is served by the tokocrypto native endpoints instead of the binance backed host
+         * @param {array} $market a unified $market structure
+         * @return {boolean} true when the symbol type of the $market is known and is not 1
+         */
+        $marketInfo = $this->safe_dict($market, 'info', array());
+        $symbolType = $this->safe_string($marketInfo, 'type');
+        // a $market with an unknown symbol type falls back to the binance backed
+        // host, the route that answers with data for every symbol type 1 $market
+        // and errors out loudly for the others, whereas open/v1 would answer an
+        // empty list for them
+        return ($symbolType !== null) && ($symbolType !== '1');
+    }
+
+    public function get_market_id_by_type(array $market): ?string {
+        /**
+         * @ignore
+         * the $market id spelling expected by the host that serves the $market
+         * @param {array} $market a unified $market structure
+         * @return {string} the raw $market id for native markets, the id without the underscore separator otherwise
+         */
+        if ($this->is_native_market($market)) {
+            return $this->safe_string($market, 'id');
         }
-        return $market['id'];
+        return $this->safe_string($market, 'baseId', '') . $this->safe_string($market, 'quoteId', '');
     }
 
     public function fetch_ticker(string $symbol, $params = array()): array {
@@ -1340,8 +1363,11 @@ class tokocrypto extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
+        if ($this->is_native_market($market)) {
+            throw new NotSupported($this->id . ' fetchTicker() does not support ' . $symbol . ' yet, the venue serves 24hr ticker statistics only for its binance backed markets');
+        }
         $request = array(
-            'symbol' => $this->safe_string($market, 'baseId', '') . $this->safe_string($market, 'quoteId', ''),
+            'symbol' => $this->get_market_id_by_type($market),
         );
         $response = $this->binanceGetTicker24hr($this->extend($request, $params));
         if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
@@ -1457,10 +1483,10 @@ class tokocrypto extends Exchange {
             $request['endTime'] = $until;
         }
         $response = null;
-        if ($market['quote'] === 'USDT') {
-            $response = $this->binanceGetKlines($this->extend($request, $params));
-        } else {
+        if ($this->is_native_market($market)) {
             $response = $this->publicGetOpenV1MarketKlines($this->extend($request, $params));
+        } else {
+            $response = $this->binanceGetKlines($this->extend($request, $params));
         }
         //
         // binanceGetKlines
@@ -1477,6 +1503,17 @@ class tokocrypto extends Exchange {
         //         "code" => 0,
         //         "msg" => "Success",
         //         "data" => array(
+        //             [1787817600000,"521.00","537.00","521.00","537.00","1188.29000000",1787821199999,"632572.93",9,"1027.29000000","548331.93","0"],
+        //         ),
+        //         "timestamp" => 1787822924930
+        //     }
+        //
+        // publicGetOpenV1MarketKlines, legacy envelope
+        //
+        //     {
+        //         "code" => 0,
+        //         "msg" => "Success",
+        //         "data" => array(
         //             "list" => array(
         //                 [1591478520000,"0.02501300","0.02501800","0.02500000","0.02500000","22.19000000",1591478579999,"0.55490906",40,"10.92900000","0.27336462","0"],
         //             )
@@ -1488,8 +1525,13 @@ class tokocrypto extends Exchange {
         if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
             $data = $response;
         } else {
-            $responseData = $this->safe_dict($response, 'data', array());
-            $data = $this->safe_list($responseData, 'list', array());
+            $dataList = $this->safe_list($response, 'data');
+            if ($dataList !== null) {
+                $data = $dataList;
+            } else {
+                $dataDict = $this->safe_dict($response, 'data', array());
+                $data = $this->safe_list($dataDict, 'list', array());
+            }
         }
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }

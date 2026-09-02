@@ -89,7 +89,7 @@ public partial class mudrex : ccxt.mudrex
             { "params", new List<object>() {"ticker@1s"} },
             { "assets", new List<object>() {assetId} },
         };
-        object request = this.extend(subscribe, parameters);
+        Dictionary<string, object> request = this.extend(subscribe, parameters);
         return ccxt.BaseExchange.ToTicker(await this.watch(url, messageHash, request, messageHash));
     }
 
@@ -122,7 +122,7 @@ public partial class mudrex : ccxt.mudrex
             { "params", new List<object>() {"ticker@1s"} },
             { "assets", assets },
         };
-        object request = this.extend(subscribe, parameters);
+        Dictionary<string, object> request = this.extend(subscribe, parameters);
         object ticker = await this.watchMultiple(url, messageHashes, request, messageHashes);
         if (isTrue(this.newUpdates))
         {
@@ -153,7 +153,7 @@ public partial class mudrex : ccxt.mudrex
         {
             throw new NotSupported ((string)add(this.id, " watchOHLCV() supports 1s and 1m timeframes only")) ;
         }
-        object prefix = "kline";
+        string prefix = "kline";
         if (isTrue(isEqual(priceType, "mark")))
         {
             prefix = "markKline";
@@ -169,7 +169,7 @@ public partial class mudrex : ccxt.mudrex
             { "method", "SUBSCRIBE" },
             { "params", new List<object>() {stream} },
         };
-        object request = this.extend(subscribe, parameters);
+        Dictionary<string, object> request = this.extend(subscribe, parameters);
         object ohlcv = await this.watch(url, messageHash, request, messageHash);
         if (isTrue(this.newUpdates))
         {
@@ -223,7 +223,7 @@ public partial class mudrex : ccxt.mudrex
         {
             return;
         }
-        object parts = ((string)stream).Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = ((string)stream).Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>();
         object interval = getValue(parts, 1);
         object tf = this.findTimeframe(interval);
         object data = this.safeDict(message, "data", new Dictionary<string, object>() {});
@@ -264,7 +264,7 @@ public partial class mudrex : ccxt.mudrex
             }
             object market = this.safeMarket(((string)s).ToUpper());
             object symbol = getValue(market, "symbol");
-            object timestamp = this.milliseconds();
+            Int64 timestamp = this.milliseconds();
             object last = this.safeNumber(t, "p");
             object result = this.safeTicker(new Dictionary<string, object>() {
                 { "symbol", symbol },

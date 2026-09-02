@@ -116,7 +116,7 @@ public partial class bingx : ccxt.bingx
         {
             url = this.safeString(getValue(getValue(this.urls, "api"), "ws"), marketType);
         }
-        object id = this.uuid();
+        string id = this.uuid();
         object request = new Dictionary<string, object>() {
             { "id", id },
             { "dataType", dataType },
@@ -181,7 +181,7 @@ public partial class bingx : ccxt.bingx
         }
         object dataType = add(getValue(market, "id"), "@ticker");
         object messageHash = this.getMessageHash("ticker", getValue(market, "symbol"));
-        object uuid = this.uuid();
+        string uuid = this.uuid();
         object request = new Dictionary<string, object>() {
             { "id", uuid },
             { "dataType", dataType },
@@ -219,8 +219,8 @@ public partial class bingx : ccxt.bingx
         object dataType = add(getValue(market, "id"), "@ticker");
         object subMessageHash = this.getMessageHash("ticker", getValue(market, "symbol"));
         object messageHash = add("unsubscribe::", subMessageHash);
-        object topic = "ticker";
-        object methodName = "unWatchTicker";
+        string topic = "ticker";
+        string methodName = "unWatchTicker";
         return await this.unWatch(messageHash, subMessageHash, messageHash, dataType, topic, market, methodName, parameters);
     }
 
@@ -283,7 +283,7 @@ public partial class bingx : ccxt.bingx
         object data = this.safeValue(message, "data", new Dictionary<string, object>() {});
         object marketId = this.safeString(data, "s");
         // const marketId = messageHash.split('@')[0];
-        object isSwap = isGreaterThanOrEqual(getIndexOf(client.url, "swap"), 0);
+        bool isSwap = isGreaterThanOrEqual(getIndexOf(client.url, "swap"), 0);
         object marketType = ((bool) isTrue(isSwap)) ? "swap" : "spot";
         object market = this.safeMarket(marketId, null, null, marketType);
         object symbol = getValue(market, "symbol");
@@ -425,7 +425,7 @@ public partial class bingx : ccxt.bingx
         }
         object rawHash = add(getValue(market, "id"), "@trade");
         object messageHash = add("trade::", symbolVar);
-        object uuid = this.uuid();
+        string uuid = this.uuid();
         object request = new Dictionary<string, object>() {
             { "id", uuid },
             { "dataType", rawHash },
@@ -476,8 +476,8 @@ public partial class bingx : ccxt.bingx
         object dataType = add(getValue(market, "id"), "@trade");
         object subMessageHash = this.getMessageHash("trade", getValue(market, "symbol"));
         object messageHash = add("unsubscribe::", subMessageHash);
-        object topic = "trades";
-        object methodName = "unWatchTrades";
+        string topic = "trades";
+        string methodName = "unWatchTrades";
         return await this.unWatch(messageHash, subMessageHash, messageHash, dataType, topic, market, methodName, parameters);
     }
 
@@ -567,7 +567,7 @@ public partial class bingx : ccxt.bingx
         object data = this.safeValue(message, "data", new List<object>() {});
         object rawHash = this.safeString(message, "dataType", "");
         object marketId = getValue(((string)rawHash).Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>(), 0);
-        object isSwap = isGreaterThanOrEqual(getIndexOf(client.url, "swap"), 0);
+        bool isSwap = isGreaterThanOrEqual(getIndexOf(client.url, "swap"), 0);
         object marketType = ((bool) isTrue(isSwap)) ? "swap" : "spot";
         object market = this.safeMarket(marketId, null, null, marketType);
         object symbol = getValue(market, "symbol");
@@ -634,7 +634,7 @@ public partial class bingx : ccxt.bingx
         object depth = this.safeInteger(options, "depth", 100);
         object subscriptionHash = add(add(add(getValue(market, "id"), "@"), "depth"), this.numberToString(depth));
         object messageHash = this.getMessageHash("orderbook", getValue(market, "symbol"));
-        object uuid = this.uuid();
+        string uuid = this.uuid();
         object request = new Dictionary<string, object>() {
             { "id", uuid },
             { "dataType", subscriptionHash },
@@ -688,8 +688,8 @@ public partial class bingx : ccxt.bingx
         object depth = this.safeInteger(options, "depth", 100);
         object subMessageHash = add(add(add(getValue(market, "id"), "@"), "depth"), this.numberToString(depth));
         object messageHash = add("unsubscribe::", subMessageHash);
-        object topic = "orderbook";
-        object methodName = "unWatchOrderBook";
+        string topic = "orderbook";
+        string methodName = "unWatchOrderBook";
         return await this.unWatch(messageHash, subMessageHash, messageHash, subMessageHash, topic, market, methodName, parameters);
     }
 
@@ -771,11 +771,11 @@ public partial class bingx : ccxt.bingx
         //
         object data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         object dataType = this.safeString(message, "dataType", "");
-        object parts = ((string)dataType).Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = ((string)dataType).Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>();
         object firstPart = getValue(parts, 0);
-        object isAllEndpoint = (isEqual(firstPart, "all"));
+        bool isAllEndpoint = (isEqual(firstPart, "all"));
         object marketId = this.safeString(data, "symbol", firstPart);
-        object isSwap = isGreaterThanOrEqual(getIndexOf(client.url, "swap"), 0);
+        bool isSwap = isGreaterThanOrEqual(getIndexOf(client.url, "swap"), 0);
         object marketType = ((bool) isTrue(isSwap)) ? "swap" : "spot";
         object market = this.safeMarket(marketId, null, null, marketType);
         object symbol = getValue(market, "symbol");
@@ -829,8 +829,8 @@ public partial class bingx : ccxt.bingx
         //
         // for spot, opening-time (t) is used instead of closing-time (T), to be compatible with fetchOHLCV
         // for linear swap, (T) is the opening time
-        object isSpot = (isEqual(this.safeBool(market, "spot"), true));
-        object isInverse = (isEqual(this.safeBool(market, "inverse"), true));
+        bool isSpot = (isEqual(this.safeBool(market, "spot"), true));
+        bool isInverse = (isEqual(this.safeBool(market, "inverse"), true));
         object timestamp = ((bool) isTrue(isSpot)) ? "t" : "T";
         if (isTrue(isEqual(this.safeBool(market, "swap"), true)))
         {
@@ -905,11 +905,11 @@ public partial class bingx : ccxt.bingx
         //         }
         //     }
         //
-        object isSwap = isGreaterThanOrEqual(getIndexOf(client.url, "swap"), 0);
+        bool isSwap = isGreaterThanOrEqual(getIndexOf(client.url, "swap"), 0);
         object dataType = this.safeString(message, "dataType", "");
-        object parts = ((string)dataType).Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = ((string)dataType).Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>();
         object firstPart = getValue(parts, 0);
-        object isAllEndpoint = (isEqual(firstPart, "all"));
+        bool isAllEndpoint = (isEqual(firstPart, "all"));
         object marketId = this.safeString(message, "s", firstPart);
         object marketType = ((bool) isTrue(isSwap)) ? "swap" : "spot";
         object market = this.safeMarket(marketId, null, null, marketType);
@@ -1012,7 +1012,7 @@ public partial class bingx : ccxt.bingx
         object rawTimeframe = this.safeString(timeframes, timeframeVar, timeframeVar);
         object messageHash = this.getMessageHash("ohlcv", getValue(market, "symbol"), timeframeVar);
         object subscriptionHash = add(add(getValue(market, "id"), "@kline_"), rawTimeframe);
-        object uuid = this.uuid();
+        string uuid = this.uuid();
         object request = new Dictionary<string, object>() {
             { "id", uuid },
             { "dataType", subscriptionHash },
@@ -1062,8 +1062,8 @@ public partial class bingx : ccxt.bingx
         object rawTimeframe = this.safeString(timeframes, timeframe, timeframe);
         object subMessageHash = add(add(getValue(market, "id"), "@kline_"), rawTimeframe);
         object messageHash = add("unsubscribe::", subMessageHash);
-        object topic = "ohlcv";
-        object methodName = "unWatchOHLCV";
+        string topic = "ohlcv";
+        string methodName = "unWatchOHLCV";
         object symbolsAndTimeframes = new List<object>() {new List<object>() {getValue(market, "symbol"), timeframe}};
         ((IDictionary<string,object>)parameters)["symbolsAndTimeframes"] = symbolsAndTimeframes;
         return await this.unWatch(messageHash, subMessageHash, messageHash, subMessageHash, topic, market, methodName, parameters);
@@ -1106,18 +1106,18 @@ public partial class bingx : ccxt.bingx
         var subTypeparametersVariable = this.handleSubTypeAndParams("watchOrders", market, parameters, "linear");
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
-        object isSpot = (isEqual(type, "spot"));
-        object spotHash = "spot:private";
-        object swapHash = "swap:private";
+        bool isSpot = (isEqual(type, "spot"));
+        string spotHash = "spot:private";
+        string swapHash = "swap:private";
         object subscriptionHash = ((bool) isTrue(isSpot)) ? spotHash : swapHash;
-        object spotMessageHash = "spot:order";
-        object swapMessageHash = "swap:order";
+        string spotMessageHash = "spot:order";
+        string swapMessageHash = "swap:order";
         object messageHash = ((bool) isTrue(isSpot)) ? spotMessageHash : swapMessageHash;
         if (isTrue(!isEqual(market, null)))
         {
             messageHash = add(messageHash, add(":", symbolVar));
         }
-        object uuid = this.uuid();
+        string uuid = this.uuid();
         object baseUrl = null;
         object request = null;
         if (isTrue(isEqual(type, "swap")))
@@ -1186,18 +1186,18 @@ public partial class bingx : ccxt.bingx
         var subTypeparametersVariable = this.handleSubTypeAndParams("watchMyTrades", market, parameters, "linear");
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
-        object isSpot = (isEqual(type, "spot"));
-        object spotHash = "spot:private";
-        object swapHash = "swap:private";
+        bool isSpot = (isEqual(type, "spot"));
+        string spotHash = "spot:private";
+        string swapHash = "swap:private";
         object subscriptionHash = ((bool) isTrue(isSpot)) ? spotHash : swapHash;
-        object spotMessageHash = "spot:mytrades";
-        object swapMessageHash = "swap:mytrades";
+        string spotMessageHash = "spot:mytrades";
+        string swapMessageHash = "swap:mytrades";
         object messageHash = ((bool) isTrue(isSpot)) ? spotMessageHash : swapMessageHash;
         if (isTrue(!isEqual(market, null)))
         {
             messageHash = add(messageHash, add(":", symbolVar));
         }
-        object uuid = this.uuid();
+        string uuid = this.uuid();
         object baseUrl = null;
         object request = new Dictionary<string, object>() {};
         if (isTrue(isEqual(type, "swap")))
@@ -1255,16 +1255,16 @@ public partial class bingx : ccxt.bingx
         var subTypeparametersVariable = this.handleSubTypeAndParams("watchBalance", null, parameters, "linear");
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
-        object isSpot = (isEqual(type, "spot"));
-        object spotSubHash = "spot:balance";
-        object swapSubHash = "swap:private";
-        object spotMessageHash = "spot:balance";
-        object swapMessageHash = "swap:balance";
+        bool isSpot = (isEqual(type, "spot"));
+        string spotSubHash = "spot:balance";
+        string swapSubHash = "swap:private";
+        string spotMessageHash = "spot:balance";
+        string swapMessageHash = "swap:balance";
         object messageHash = ((bool) isTrue(isSpot)) ? spotMessageHash : swapMessageHash;
         object subscriptionHash = ((bool) isTrue(isSpot)) ? spotSubHash : swapSubHash;
         object request = null;
         object baseUrl = null;
-        object uuid = this.uuid();
+        string uuid = this.uuid();
         if (isTrue(isEqual(type, "swap")))
         {
             if (isTrue(isEqual(subType, "inverse")))
@@ -1384,7 +1384,7 @@ public partial class bingx : ccxt.bingx
         {
             throw new NotSupported ((string)add(this.id, " watchPositions is not supported for inverse swap markets yet")) ;
         }
-        object subscriptionHash = "swap:private";
+        string subscriptionHash = "swap:private";
         messageHash = add("swap:positions", messageHash);
         object baseUrl = this.safeString(getValue(getValue(this.urls, "api"), "ws"), subType);
         object url = add(add(baseUrl, "?listenKey="), getValue(this.options, "listenKey"));
@@ -1398,7 +1398,7 @@ public partial class bingx : ccxt.bingx
         var awaitPositionsSnapshotparametersVariable = this.handleOptionAndParams(parameters, "watchPositions", "awaitPositionsSnapshot", false);
         awaitPositionsSnapshot = ((IList<object>)awaitPositionsSnapshotparametersVariable)[0];
         parameters = ((IList<object>)awaitPositionsSnapshotparametersVariable)[1];
-        object uuid = this.uuid();
+        string uuid = this.uuid();
         object subscription = new Dictionary<string, object>() {
             { "unsubscribe", false },
             { "id", uuid },
@@ -1477,7 +1477,7 @@ public partial class bingx : ccxt.bingx
         object contracts = this.safeString(position, "pa");
         object contractsAbs = Precise.stringAbs(contracts);
         object positionSide = this.safeStringLower(position, "ps");
-        object hedged = true;
+        bool hedged = true;
         if (isTrue(isEqual(positionSide, "both")))
         {
             hedged = false;
@@ -1575,9 +1575,9 @@ public partial class bingx : ccxt.bingx
         for (object i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
         {
             object messageHash = getValue(messageHashes, i);
-            object parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
+            List<object> parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
             object symbolsString = getValue(parts, 1);
-            object filteredSymbols = ((string)symbolsString).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
+            List<object> filteredSymbols = ((string)symbolsString).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
             object positions = this.filterByArray(newPositions, "symbol", filteredSymbols, false);
             if (!isTrue(this.isEmpty(positions)))
             {
@@ -1640,7 +1640,7 @@ public partial class bingx : ccxt.bingx
                 }
                 object url = add(add(baseUrl, "?listenKey="), listenKey);
                 var client = this.client(url);
-                object messageHashes = new List<object>(((IDictionary<string, ccxt.Exchange.Future>)client.futures).Keys);
+                List<object> messageHashes = new List<object>(((IDictionary<string, ccxt.Exchange.Future>)client.futures).Keys);
                 for (object j = 0; isLessThan(j, getArrayLength(messageHashes)); postFixIncrement(ref j))
                 {
                     object messageHash = getValue(messageHashes, j);
@@ -1659,7 +1659,7 @@ public partial class bingx : ccxt.bingx
     public async virtual Task authenticate(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object time = this.milliseconds();
+        Int64 time = this.milliseconds();
         object lastAuthenticatedTime = this.safeInteger(this.options, "lastAuthenticatedTime", 0);
         object listenKeyRefreshRate = this.safeInteger(this.options, "listenKeyRefreshRate", 3600000); // 1 hour
         if (isTrue(isGreaterThan(subtract(time, lastAuthenticatedTime), listenKeyRefreshRate)))
@@ -1671,7 +1671,7 @@ public partial class bingx : ccxt.bingx
             // the registry: client.future () is the atomic check-and-insert
             // and client.resolve () / ((WebSocketClient)client).reject () settle and remove the
             // entry under the same lock in every port
-            object messageHash = "authenticate";
+            string messageHash = "authenticate";
             var client = this.client("authenticationFlights");
             if (isTrue(inOp(client.futures, messageHash)))
             {
@@ -1817,7 +1817,7 @@ public partial class bingx : ccxt.bingx
         //        }
         //    }
         //
-        object isSpot = (inOp(message, "dataType"));
+        bool isSpot = (inOp(message, "dataType"));
         object data = this.safeValue2(message, "data", "o", new Dictionary<string, object>() {});
         if (isTrue(isEqual(this.orders, null)))
         {
@@ -1828,8 +1828,8 @@ public partial class bingx : ccxt.bingx
         object parsedOrder = this.parseOrder(data);
         callDynamically(stored, "append", new object[] {parsedOrder});
         object symbol = getValue(parsedOrder, "symbol");
-        object spotHash = "spot:order";
-        object swapHash = "swap:order";
+        string spotHash = "spot:order";
+        string swapHash = "swap:order";
         object messageHash = ((bool) isTrue((isSpot))) ? spotHash : swapHash;
         callDynamically(client as WebSocketClient, "resolve", new object[] {stored, messageHash});
         callDynamically(client as WebSocketClient, "resolve", new object[] {stored, add(add(messageHash, ":"), symbol)});
@@ -1893,7 +1893,7 @@ public partial class bingx : ccxt.bingx
         //        }
         //    }
         //
-        object isSpot = (inOp(message, "dataType"));
+        bool isSpot = (inOp(message, "dataType"));
         object result = this.safeDict2(message, "data", "o", new Dictionary<string, object>() {});
         object cachedTrades = this.myTrades;
         if (isTrue(isEqual(cachedTrades, null)))
@@ -1907,8 +1907,8 @@ public partial class bingx : ccxt.bingx
         object market = this.safeMarket(marketId, null, "-", type);
         object parsed = this.parseTrade(result, market);
         object symbol = getValue(parsed, "symbol");
-        object spotHash = "spot:mytrades";
-        object swapHash = "swap:mytrades";
+        string spotHash = "spot:mytrades";
+        string swapHash = "swap:mytrades";
         object messageHash = ((bool) isTrue(isSpot)) ? spotHash : swapHash;
         callDynamically(cachedTrades, "append", new object[] {parsed});
         callDynamically(client as WebSocketClient, "resolve", new object[] {cachedTrades, messageHash});
@@ -1957,7 +1957,7 @@ public partial class bingx : ccxt.bingx
         object data = this.safeList(a, "B", new List<object>() {});
         object timestamp = this.safeInteger2(message, "T", "E");
         object spotUrl = this.safeString(getValue(getValue(this.urls, "api"), "ws"), "spot");
-        object isSpot = isTrue((!isEqual(spotUrl, null))) && isTrue((isEqual(getIndexOf(client.url, spotUrl), 0)));
+        bool isSpot = isTrue((!isEqual(spotUrl, null))) && isTrue((isEqual(getIndexOf(client.url, spotUrl), 0)));
         object type = ((bool) isTrue(isSpot)) ? "spot" : "swap";
         if (!isTrue((inOp(this.balance, type))))
         {
@@ -2068,7 +2068,7 @@ public partial class bingx : ccxt.bingx
         //     }
         //
         object id = this.safeString(message, "id");
-        object subscriptionsById = this.indexBy(((WebSocketClient)client).subscriptions, "id");
+        Dictionary<string, object> subscriptionsById = this.indexBy(((WebSocketClient)client).subscriptions, "id");
         object subscription = this.safeDict(subscriptionsById, id, new Dictionary<string, object>() {});
         object isUnSubMessage = this.safeBool(subscription, "unsubscribe", false);
         if (isTrue(isEqual(isUnSubMessage, true)))

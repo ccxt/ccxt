@@ -1071,7 +1071,7 @@
                         ]
                     },
                     "symbol": "BTC/USDT:USDT",
-                    "marginMode": "CROSS",
+                    "marginMode": "cross",
                     "longLeverage": 20,
                     "shortLeverage": 20
                 }

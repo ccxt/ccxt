@@ -35,7 +35,7 @@ public partial class BaseTest
             exchange.mergeBalanceAccount(result, "USDT", usdtAccount);
             Assert(isEqual(exchange.safeString(getValue(result, "USDT"), "free"), "5"));
             Assert(isEqual(exchange.safeString(getValue(result, "USDT"), "used"), null));
-            object keys = new List<object>(((IDictionary<string,object>)result).Keys);
+            List<object> keys = new List<object>(((IDictionary<string,object>)result).Keys);
             Assert(isEqual(getArrayLength(keys), 2));
             // the merged dict is a regular safeBalance input
             object balance = exchange.safeBalance(result);

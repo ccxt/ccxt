@@ -2146,8 +2146,8 @@ public partial class htx : Exchange
             //     }
             //
             object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-            object heartbeatKey = "heartbeat";
-            object etaKey = "estimated_recovery_time";
+            string heartbeatKey = "heartbeat";
+            string etaKey = "estimated_recovery_time";
             if (isTrue(isEqual(subType, "linear")))
             {
                 heartbeatKey = "linear_swap_heartbeat";
@@ -2383,7 +2383,7 @@ public partial class htx : Exchange
         parameters = ((IList<object>)typesparametersVariable)[1];
         object allMarkets = new List<object>() {};
         object promises = new List<object>() {};
-        object keys = new List<object>(((IDictionary<string,object>)types).Keys);
+        List<object> keys = new List<object>(((IDictionary<string,object>)types).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object key = getValue(keys, i);
@@ -2427,7 +2427,7 @@ public partial class htx : Exchange
     public async virtual Task<object> fetchMarketsByTypeAndSubType(object type, object subType, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object isSpot = (isEqual(type, "spot"));
+        bool isSpot = (isEqual(type, "spot"));
         object request = new Dictionary<string, object>() {};
         object response = null;
         if (!isTrue(isSpot))
@@ -2537,7 +2537,7 @@ public partial class htx : Exchange
         //     }
         //
         object markets = this.safeList(response, "data", new List<object>() {});
-        object numMarkets = getArrayLength(markets);
+        int numMarkets = getArrayLength(markets);
         if (isTrue(isLessThan(numMarkets, 1)))
         {
             throw new OperationFailed ((string)add(add(this.id, " fetchMarkets() returned an empty response: "), this.json(response))) ;
@@ -2551,10 +2551,10 @@ public partial class htx : Exchange
             object settleId = null;
             object id = null;
             object lowercaseId = null;
-            object contract = (inOp(market, "contract_code"));
-            object spot = !isTrue(contract);
-            object swap = false;
-            object future = false;
+            bool contract = (inOp(market, "contract_code"));
+            bool spot = !isTrue(contract);
+            bool swap = false;
+            bool future = false;
             object linear = null;
             object inverse = null;
             // check if parsed market is contract
@@ -2579,7 +2579,7 @@ public partial class htx : Exchange
                     {
                         throw new ExchangeError ((string)add(this.id, " method() missing id")) ;
                     }
-                    object parts = ((string)id).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
+                    List<object> parts = ((string)id).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
                     baseId = this.safeStringLower(market, "symbol");
                     quoteId = this.safeStringLower(parts, 1);
                     settleId = ((bool) isTrue(inverse)) ? baseId : quoteId;
@@ -2598,7 +2598,7 @@ public partial class htx : Exchange
                         {
                             throw new ExchangeError ((string)add(this.id, " method() missing pair")) ;
                         }
-                        object parts = ((string)pair).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
+                        List<object> parts = ((string)pair).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
                         quoteId = this.safeStringLower(parts, 1);
                         settleId = quoteId;
                     }
@@ -2679,7 +2679,7 @@ public partial class htx : Exchange
             }
             object leverageRatio = this.safeString(market, "leverage-ratio", "1");
             object superLeverageRatio = this.safeString(market, "super-margin-leverage-ratio", "1");
-            object hasLeverage = isTrue(Precise.stringGt(leverageRatio, "1")) || isTrue(Precise.stringGt(superLeverageRatio, "1"));
+            bool hasLeverage = isTrue(Precise.stringGt(leverageRatio, "1")) || isTrue(Precise.stringGt(superLeverageRatio, "1"));
             // 0 Delisting
             // 1 Listing
             // 2 Pending Listing
@@ -3028,7 +3028,7 @@ public partial class htx : Exchange
         {
             market = this.market(first);
         }
-        object isSubTypeRequested = isTrue((inOp(parameters, "subType"))) || isTrue((inOp(parameters, "business_type")));
+        bool isSubTypeRequested = isTrue((inOp(parameters, "subType"))) || isTrue((inOp(parameters, "business_type")));
         object type = null;
         object subType = null;
         var typeparametersVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters);
@@ -3038,11 +3038,11 @@ public partial class htx : Exchange
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
         object request = new Dictionary<string, object>() {};
-        object isSpot = (isEqual(type, "spot"));
-        object future = (isEqual(type, "future"));
-        object swap = (isEqual(type, "swap"));
-        object linear = (isEqual(subType, "linear"));
-        object inverse = (isEqual(subType, "inverse"));
+        bool isSpot = (isEqual(type, "spot"));
+        bool future = (isEqual(type, "future"));
+        bool swap = (isEqual(type, "swap"));
+        bool linear = (isEqual(subType, "linear"));
+        bool inverse = (isEqual(subType, "inverse"));
         object response = null;
         if (isTrue(!isTrue(isSpot) || isTrue(isSubTypeRequested)))
         {
@@ -3420,7 +3420,7 @@ public partial class htx : Exchange
         object type = this.safeString(trade, "type");
         if (isTrue(isTrue((!isEqual(type, null))) && isTrue((isGreaterThanOrEqual(getIndexOf(type, "-"), 0)))))
         {
-            object typeParts = ((string)type).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
+            List<object> typeParts = ((string)type).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
             side = getValue(typeParts, 0);
             type = getValue(typeParts, 1);
         }
@@ -3926,7 +3926,7 @@ public partial class htx : Exchange
                 object calcualtedEnd = null;
                 if (isTrue(isEqual(since, null)))
                 {
-                    object now = this.seconds();
+                    Int64 now = this.seconds();
                     ((IDictionary<string,object>)request)["from"] = subtract(now, multiply(duration, (subtract(limitVar, 1))));
                     calcualtedEnd = now;
                 } else
@@ -4306,8 +4306,8 @@ public partial class htx : Exchange
     public override object networkIdToCode(object networkId = null, object currencyCode = null)
     {
         // here network-id is provided as a pair of currency & chain (i.e. trc20usdt)
-        object keys = new List<object>(((IDictionary<string,object>)getValue(this.options, "networkNamesByChainIds")).Keys);
-        object keysLength = getArrayLength(keys);
+        List<object> keys = new List<object>(((IDictionary<string,object>)getValue(this.options, "networkNamesByChainIds")).Keys);
+        int keysLength = getArrayLength(keys);
         if (isTrue(isEqual(keysLength, 0)))
         {
             throw new ExchangeError ((string)add(this.id, " networkIdToCode() - markets need to be loaded at first")) ;
@@ -4326,8 +4326,8 @@ public partial class htx : Exchange
         {
             return base.networkCodeToId(networkCode);
         }
-        object keys = new List<object>(((IDictionary<string,object>)getValue(this.options, "networkChainIdsByNames")).Keys);
-        object keysLength = getArrayLength(keys);
+        List<object> keys = new List<object>(((IDictionary<string,object>)getValue(this.options, "networkChainIdsByNames")).Keys);
+        int keysLength = getArrayLength(keys);
         if (isTrue(isEqual(keysLength, 0)))
         {
             throw new ExchangeError ((string)add(this.id, " networkCodeToId() - markets need to be loaded at first")) ;
@@ -4390,18 +4390,18 @@ public partial class htx : Exchange
         isMultiAssetMode = ((IList<object>)isMultiAssetModeparametersVariable)[0];
         parameters = ((IList<object>)isMultiAssetModeparametersVariable)[1];
         object request = new Dictionary<string, object>() {};
-        object spot = (isEqual(type, "spot"));
-        object future = (isEqual(type, "future"));
-        object swap = (isEqual(type, "swap"));
-        object inverse = (isEqual(subType, "inverse"));
-        object linear = (isEqual(subType, "linear"));
+        bool spot = (isEqual(type, "spot"));
+        bool future = (isEqual(type, "future"));
+        bool swap = (isEqual(type, "swap"));
+        bool inverse = (isEqual(subType, "inverse"));
+        bool linear = (isEqual(subType, "linear"));
         object marginMode = null;
         var marginModeparametersVariable = this.handleMarginModeAndParams("fetchBalance", parameters);
         marginMode = ((IList<object>)marginModeparametersVariable)[0];
         parameters = ((IList<object>)marginModeparametersVariable)[1];
-        object isolated = (isEqual(marginMode, "isolated"));
-        object cross = (isEqual(marginMode, "cross"));
-        object margin = isTrue((isEqual(type, "margin"))) || isTrue((isTrue(spot) && isTrue((isTrue(cross) || isTrue(isolated)))));
+        bool isolated = (isEqual(marginMode, "isolated"));
+        bool cross = (isEqual(marginMode, "cross"));
+        bool margin = isTrue((isEqual(type, "margin"))) || isTrue((isTrue(spot) && isTrue((isTrue(cross) || isTrue(isolated)))));
         object response = null;
         if (isTrue(isTrue(isMultiAssetMode) || isTrue((isTrue(linear) && isTrue((isTrue(swap) || isTrue(future)))))))
         {
@@ -4616,7 +4616,7 @@ public partial class htx : Exchange
                             ((IDictionary<string,object>)subResult)[(string)code] = this.parseMarginBalanceHelper(balance, code, subResult);
                         }
                     }
-                    object subCodes = new List<object>(((IDictionary<string,object>)subResult).Keys);
+                    List<object> subCodes = new List<object>(((IDictionary<string,object>)subResult).Keys);
                     for (object j = 0; isLessThan(j, getArrayLength(subCodes)); postFixIncrement(ref j))
                     {
                         object subCode = getValue(subCodes, j);
@@ -4717,7 +4717,7 @@ public partial class htx : Exchange
             object stopLoss = this.safeBool(parameters, "stopLoss");
             object takeProfit = this.safeBool(parameters, "takeProfit");
             object trailing = this.safeBool(parameters, "trailing");
-            object isAlgo = (isTrue(isTrue(isTrue(isTrue((isEqual(trigger, true))) || isTrue((isEqual(stopLoss, true)))) || isTrue((isEqual(takeProfit, true)))) || isTrue((isEqual(stopLossTakeProfit, true)))) || isTrue((isEqual(trailing, true))));
+            bool isAlgo = (isTrue(isTrue(isTrue(isTrue((isEqual(trigger, true))) || isTrue((isEqual(stopLoss, true)))) || isTrue((isEqual(takeProfit, true)))) || isTrue((isEqual(stopLossTakeProfit, true)))) || isTrue((isEqual(trailing, true))));
             parameters = this.omit(parameters, new List<object>() {"stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit"});
             object clientOrderId = this.safeStringN(parameters, new List<object>() {"client_order_id", "clientOrderId", "algo_client_order_id"});
             if (isTrue(isEqual(clientOrderId, null)))
@@ -5033,7 +5033,7 @@ public partial class htx : Exchange
         object stopLoss = this.safeBool(parameters, "stopLoss");
         object takeProfit = this.safeBool(parameters, "takeProfit");
         object trailing = this.safeBool(parameters, "trailing", false);
-        object isAlgo = (isTrue(isTrue(isTrue(isTrue((isEqual(trigger, true))) || isTrue((isEqual(stopLoss, true)))) || isTrue((isEqual(takeProfit, true)))) || isTrue((isEqual(stopLossTakeProfit, true)))) || isTrue((isEqual(trailing, true))));
+        bool isAlgo = (isTrue(isTrue(isTrue(isTrue((isEqual(trigger, true))) || isTrue((isEqual(stopLoss, true)))) || isTrue((isEqual(takeProfit, true)))) || isTrue((isEqual(stopLossTakeProfit, true)))) || isTrue((isEqual(trailing, true))));
         parameters = this.omit(parameters, new List<object>() {"stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit"});
         if (isTrue(!isEqual(since, null)))
         {
@@ -5145,7 +5145,7 @@ public partial class htx : Exchange
             object stopLoss = this.safeBool(parameters, "stopLoss");
             object takeProfit = this.safeBool(parameters, "takeProfit");
             object trailing = this.safeBool(parameters, "trailing", false);
-            object isAlgo = (isTrue(isTrue(isTrue(isTrue((isEqual(trigger, true))) || isTrue((isEqual(stopLoss, true)))) || isTrue((isEqual(takeProfit, true)))) || isTrue((isEqual(stopLossTakeProfit, true)))) || isTrue((isEqual(trailing, true))));
+            bool isAlgo = (isTrue(isTrue(isTrue(isTrue((isEqual(trigger, true))) || isTrue((isEqual(stopLoss, true)))) || isTrue((isEqual(takeProfit, true)))) || isTrue((isEqual(stopLossTakeProfit, true)))) || isTrue((isEqual(trailing, true))));
             if (isTrue(isEqual(isAlgo, true)))
             {
                 ((IDictionary<string,object>)request)["states"] = "effective";
@@ -5198,7 +5198,7 @@ public partial class htx : Exchange
         var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchOrders", market, parameters);
         marketType = ((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
-        object contract = isTrue((isEqual(marketType, "swap"))) || isTrue((isEqual(marketType, "future")));
+        bool contract = isTrue((isEqual(marketType, "swap"))) || isTrue((isEqual(marketType, "future")));
         if (isTrue(isTrue(contract) && isTrue((isEqual(symbol, null)))))
         {
             throw new ArgumentsRequired ((string)add(add(add(this.id, " fetchOrders() requires a symbol argument for "), marketType), " orders")) ;
@@ -5271,7 +5271,7 @@ public partial class htx : Exchange
                 object stopLoss = this.safeBool(parameters, "stopLoss");
                 object takeProfit = this.safeBool(parameters, "takeProfit");
                 object trailing = this.safeBool(parameters, "trailing", false);
-                object isAlgo = (isTrue(isTrue(isTrue(isTrue((isEqual(trigger, true))) || isTrue((isEqual(stopLoss, true)))) || isTrue((isEqual(takeProfit, true)))) || isTrue((isEqual(stopLossTakeProfit, true)))) || isTrue((isEqual(trailing, true))));
+                bool isAlgo = (isTrue(isTrue(isTrue(isTrue((isEqual(trigger, true))) || isTrue((isEqual(stopLoss, true)))) || isTrue((isEqual(takeProfit, true)))) || isTrue((isEqual(stopLossTakeProfit, true)))) || isTrue((isEqual(trailing, true))));
                 if (isTrue(isEqual(isAlgo, true)))
                 {
                     ((IDictionary<string,object>)request)["states"] = "canceled";
@@ -5377,7 +5377,7 @@ public partial class htx : Exchange
         var subTypeparametersVariable = this.handleSubTypeAndParams("fetchOpenOrders", market, parameters, "linear");
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
-        object isLinear = (isEqual(subType, "linear"));
+        bool isLinear = (isEqual(subType, "linear"));
         object response = null;
         if (isTrue(isEqual(marketType, "spot")))
         {
@@ -6004,7 +6004,7 @@ public partial class htx : Exchange
         object id = this.safeStringN(order, new List<object>() {"algo_id", "id", "order_id_str", "order-id", "order_id"});
         object side = this.safeString2(order, "direction", "side");
         object contractCode = this.safeString(order, "contract_code");
-        object isLinearOrder = isTrue(isTrue(isTrue((!isEqual(contractCode, null))) && isTrue((!isEqual(market, null)))) && isTrue((isEqual(getValue(market, "linear"), true)))) && isTrue((!isEqual(getValue(market, "spot"), true)));
+        bool isLinearOrder = isTrue(isTrue(isTrue((!isEqual(contractCode, null))) && isTrue((!isEqual(market, null)))) && isTrue((isEqual(getValue(market, "linear"), true)))) && isTrue((!isEqual(getValue(market, "spot"), true)));
         object type = null;
         if (isTrue(isEqual(isLinearOrder, true)))
         {
@@ -6025,7 +6025,7 @@ public partial class htx : Exchange
             {
                 if (isTrue(isGreaterThanOrEqual(getIndexOf(rawType, "-"), 0)))
                 {
-                    object orderType = ((string)rawType).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
+                    List<object> orderType = ((string)rawType).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
                     side = getValue(orderType, 0);
                     type = getValue(orderType, 1);
                 } else if (isTrue(isEqual(type, null)))
@@ -6367,7 +6367,7 @@ public partial class htx : Exchange
         var subTypeparametersVariable = this.handleSubTypeAndParams("createOrder", market, parameters);
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
-        object isLinear = (isEqual(subType, "linear"));
+        bool isLinear = (isEqual(subType, "linear"));
         object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only", false);
         object hedged = this.safeBool(parameters, "hedged", false);
         object timeInForce = this.safeStringLower2(parameters, "timeInForce", "time_in_force", "gtc");
@@ -6450,10 +6450,10 @@ public partial class htx : Exchange
         object takeProfitTriggerPrice = this.safeNumber2(parameters, "takeProfitPrice", "tp_trigger_price");
         object trailingPercent = this.safeString2(parameters, "trailingPercent", "callback_rate");
         object trailingTriggerPrice = this.safeNumber(parameters, "trailingTriggerPrice", price);
-        object isTrailingPercentOrder = !isEqual(trailingPercent, null);
-        object isTrigger = !isEqual(triggerPrice, null);
-        object isStopLossTriggerOrder = !isEqual(stopLossTriggerPrice, null);
-        object isTakeProfitTriggerOrder = !isEqual(takeProfitTriggerPrice, null);
+        bool isTrailingPercentOrder = !isEqual(trailingPercent, null);
+        bool isTrigger = !isEqual(triggerPrice, null);
+        bool isStopLossTriggerOrder = !isEqual(stopLossTriggerPrice, null);
+        bool isTakeProfitTriggerOrder = !isEqual(takeProfitTriggerPrice, null);
         object clientOrderId = this.safeIntegerN(parameters, new List<object>() {"client_order_id", "clientOrderId", "algo_client_order_id"});
         if (isTrue(isTrue(isLinear) && isTrue((isTrue(isTrue(isTrue(isTrailingPercentOrder) || isTrue(isTrigger)) || isTrue(isStopLossTriggerOrder)) || isTrue(isTakeProfitTriggerOrder)))))
         {
@@ -6622,10 +6622,10 @@ public partial class htx : Exchange
         object stopLossTriggerPrice = this.safeNumber2(parameters, "stopLossPrice", "sl_trigger_price");
         object takeProfitTriggerPrice = this.safeNumber2(parameters, "takeProfitPrice", "tp_trigger_price");
         object trailingPercent = this.safeNumber(parameters, "trailingPercent");
-        object isTrailingPercentOrder = !isEqual(trailingPercent, null);
-        object isTrigger = !isEqual(triggerPrice, null);
-        object isStopLossTriggerOrder = !isEqual(stopLossTriggerPrice, null);
-        object isTakeProfitTriggerOrder = !isEqual(takeProfitTriggerPrice, null);
+        bool isTrailingPercentOrder = !isEqual(trailingPercent, null);
+        bool isTrigger = !isEqual(triggerPrice, null);
+        bool isStopLossTriggerOrder = !isEqual(stopLossTriggerPrice, null);
+        bool isTakeProfitTriggerOrder = !isEqual(takeProfitTriggerPrice, null);
         object response = null;
         if (isTrue(isEqual(getValue(market, "spot"), true)))
         {
@@ -6994,7 +6994,7 @@ public partial class htx : Exchange
         var subTypeparametersVariable = this.handleSubTypeAndParams("cancelOrder", market, parameters);
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
-        object isLinear = (isEqual(subType, "linear"));
+        bool isLinear = (isEqual(subType, "linear"));
         object request = new Dictionary<string, object>() {};
         object trigger = this.safeBool2(parameters, "stop", "trigger");
         object stopLossTakeProfit = this.safeBoolN(parameters, new List<object>() {"stopLossTakeProfit", "stopLoss", "takeProfit"});
@@ -7761,8 +7761,8 @@ public partial class htx : Exchange
         for (object i = 0; isLessThan(i, getArrayLength(allAddresses)); postFixIncrement(ref i))
         {
             object address = getValue(allAddresses, i);
-            object noteMatch = isTrue((isEqual(note, null))) || isTrue((isEqual(getValue(address, "note"), note)));
-            object networkMatch = isTrue((isEqual(networkCode, null))) || isTrue((isEqual(getValue(address, "network"), networkCode)));
+            bool noteMatch = isTrue((isEqual(note, null))) || isTrue((isEqual(getValue(address, "note"), note)));
+            bool networkMatch = isTrue((isEqual(networkCode, null))) || isTrue((isEqual(getValue(address, "network"), networkCode)));
             if (isTrue(isTrue(noteMatch) && isTrue(networkMatch)))
             {
                 ((IList<object>)addresses).Add(address);
@@ -7988,7 +7988,7 @@ public partial class htx : Exchange
             txHash = add("0x", txHash);
         }
         object subType = this.safeString(transaction, "sub-type");
-        object intern = isEqual(subType, "FAST");
+        bool intern = isEqual(subType, "FAST");
         return new Dictionary<string, object>() {
             { "info", transaction },
             { "id", this.safeString2(transaction, "id", "data") },
@@ -8241,17 +8241,17 @@ public partial class htx : Exchange
         parameters = ((IList<object>)subTypeparametersVariable)[1];
         object fromAccountId = this.convertTypeToAccount(fromAccount);
         object toAccountId = this.convertTypeToAccount(toAccount);
-        object toCross = isEqual(toAccountId, "cross");
-        object fromCross = isEqual(fromAccountId, "cross");
-        object toIsolated = (isTrue((!isEqual(this.ids, null))) && isTrue(this.inArray(toAccountId, this.ids)));
-        object fromIsolated = (isTrue((!isEqual(this.ids, null))) && isTrue(this.inArray(fromAccountId, this.ids)));
-        object fromSpot = isEqual(fromAccountId, "pro");
-        object toSpot = isEqual(toAccountId, "pro");
+        bool toCross = isEqual(toAccountId, "cross");
+        bool fromCross = isEqual(fromAccountId, "cross");
+        bool toIsolated = (isTrue((!isEqual(this.ids, null))) && isTrue(this.inArray(toAccountId, this.ids)));
+        bool fromIsolated = (isTrue((!isEqual(this.ids, null))) && isTrue(this.inArray(fromAccountId, this.ids)));
+        bool fromSpot = isEqual(fromAccountId, "pro");
+        bool toSpot = isEqual(toAccountId, "pro");
         if (isTrue(isTrue(fromSpot) && isTrue(toSpot)))
         {
             throw new BadRequest ((string)add(add(add(add(this.id, " transfer () cannot make a transfer between "), fromAccount), " and "), toAccount)) ;
         }
-        object fromOrToFuturesAccount = isTrue((isEqual(fromAccountId, "futures"))) || isTrue((isEqual(toAccountId, "futures")));
+        bool fromOrToFuturesAccount = isTrue((isEqual(fromAccountId, "futures"))) || isTrue((isEqual(toAccountId, "futures")));
         object response = null;
         if (isTrue(fromOrToFuturesAccount))
         {
@@ -8717,7 +8717,7 @@ public partial class htx : Exchange
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols);
-        object defaultSubType = "linear";
+        string defaultSubType = "linear";
         object subType = null;
         var subTypeparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingRates", "subType", defaultSubType);
         subType = ((IList<object>)subTypeparametersVariable)[0];
@@ -8916,7 +8916,7 @@ public partial class htx : Exchange
         parameters ??= new Dictionary<string, object>();
         object pathString = path;
         object url = "/";
-        object isArrayParams = ((parameters is IList<object>) || (parameters.GetType().IsGenericType && parameters.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
+        bool isArrayParams = ((parameters is IList<object>) || (parameters.GetType().IsGenericType && parameters.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
         object query = null;
         if (isTrue(isArrayParams))
         {
@@ -8939,7 +8939,7 @@ public partial class htx : Exchange
             if (isTrue(isTrue(isEqual(api, "private")) || isTrue(isEqual(api, "v2Private"))))
             {
                 this.checkRequiredCredentials();
-                object timestamp = this.ymdhms(this.nonce(), "T");
+                string timestamp = this.ymdhms(this.nonce(), "T");
                 object request = new Dictionary<string, object>() {
                     { "SignatureMethod", "HmacSHA256" },
                     { "SignatureVersion", "2" },
@@ -8954,8 +8954,8 @@ public partial class htx : Exchange
                 object auth = this.urlencode(sortedRequest, true); // true is a go only requirement
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 object content = new List<object>() {method, this.hostname, url, auth};
-                object payload = String.Join("\n", ((IList<object>)content).ToArray()); // eslint-disable-line quotes
-                object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "base64");
+                string payload = String.Join("\n", ((IList<object>)content).ToArray()); // eslint-disable-line quotes
+                string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "base64");
                 auth = add(auth, add("&", this.urlencode(new Dictionary<string, object>() {
     { "Signature", signature },
 })));
@@ -9044,7 +9044,7 @@ public partial class htx : Exchange
                         }
                     }
                 }
-                object timestamp = this.ymdhms(this.nonce(), "T");
+                string timestamp = this.ymdhms(this.nonce(), "T");
                 object request = new Dictionary<string, object>() {
                     { "SignatureMethod", "HmacSHA256" },
                     { "SignatureVersion", "2" },
@@ -9061,8 +9061,8 @@ public partial class htx : Exchange
                 object auth = ((string)this.urlencode(request, true)).Replace((string)"%2c", (string)"%2C"); // in c# it manually needs to be uppercased
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 object content2 = new List<object>() {method, hostname, url, auth};
-                object payload = String.Join("\n", ((IList<object>)content2).ToArray()); // eslint-disable-line quotes
-                object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "base64");
+                string payload = String.Join("\n", ((IList<object>)content2).ToArray()); // eslint-disable-line quotes
+                string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "base64");
                 auth = add(auth, add("&", this.urlencode(new Dictionary<string, object>() {
     { "Signature", signature },
 })));
@@ -9425,7 +9425,7 @@ public partial class htx : Exchange
         object rawPositionSide = this.safeString(position, "position_side");
         // in one-way mode, "position_side" is "both" and the actual long/short signal is only present in "direction"
         object side = directionSide;
-        object isHedgedPositionSide = isTrue((isEqual(rawPositionSide, "long"))) || isTrue((isEqual(rawPositionSide, "short")));
+        bool isHedgedPositionSide = isTrue((isEqual(rawPositionSide, "long"))) || isTrue((isEqual(rawPositionSide, "short")));
         if (isTrue(isHedgedPositionSide))
         {
             side = rawPositionSide;
@@ -9527,7 +9527,7 @@ public partial class htx : Exchange
         object market = null;
         if (isTrue(!isEqual(symbols, null)))
         {
-            object symbolsLength = getArrayLength(symbols);
+            int symbolsLength = getArrayLength(symbols);
             if (isTrue(isGreaterThan(symbolsLength, 0)))
             {
                 object first = this.safeString(symbols, 0);
@@ -10050,7 +10050,7 @@ public partial class htx : Exchange
         object market = null;
         if (isTrue(!isEqual(symbols, null)))
         {
-            object symbolsLength = getArrayLength(symbols);
+            int symbolsLength = getArrayLength(symbols);
             if (isTrue(isGreaterThan(symbolsLength, 0)))
             {
                 object first = this.safeString(symbols, 0);
@@ -11148,7 +11148,7 @@ public partial class htx : Exchange
         object market = null;
         if (isTrue(!isEqual(symbols, null)))
         {
-            object symbolsLength = getArrayLength(symbols);
+            int symbolsLength = getArrayLength(symbols);
             if (isTrue(isGreaterThan(symbolsLength, 0)))
             {
                 object first = this.safeString(symbols, 0);

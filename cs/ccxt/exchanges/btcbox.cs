@@ -263,16 +263,16 @@ public partial class btcbox : Exchange
         var response2 = ((IList<object>) response1response2Variable)[1];
         //
         object result2Data = this.safeDict(response2, "data", new Dictionary<string, object>() {});
-        object marketIds = new List<object>(((IDictionary<string,object>)response1).Keys);
+        List<object> marketIds = new List<object>(((IDictionary<string,object>)response1).Keys);
         object markets = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
         {
             object marketId = getValue(marketIds, i);
-            object symbolParts = ((string)marketId).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+            List<object> symbolParts = ((string)marketId).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
             object baseCurr = this.safeString(symbolParts, 0, "");
             object quote = this.safeString(symbolParts, 1, "");
-            object quoteId = ((string)quote).ToLower();
-            object id = ((string)baseCurr).ToLower();
+            string quoteId = ((string)quote).ToLower();
+            string id = ((string)baseCurr).ToLower();
             object res = this.safeDict(response1, marketId, new Dictionary<string, object>() {});
             object symbol = add(add(baseCurr, "/"), quote);
             object fee = ((bool) isTrue((isEqual(id, "BTC")))) ? this.parseNumber("0.0005") : this.parseNumber("0.0010");
@@ -398,7 +398,7 @@ public partial class btcbox : Exchange
         object result = new Dictionary<string, object>() {
             { "info", response },
         };
-        object codes = new List<object>(((IDictionary<string,object>)this.currencies).Keys);
+        List<object> codes = new List<object>(((IDictionary<string,object>)this.currencies).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(codes)); postFixIncrement(ref i))
         {
             object code = getValue(codes, i);
@@ -455,7 +455,7 @@ public partial class btcbox : Exchange
         }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {};
-        object numSymbols = getArrayLength(this.symbols);
+        int numSymbols = getArrayLength(this.symbols);
         if (isTrue(isGreaterThan(numSymbols, 1)))
         {
             ((IDictionary<string,object>)request)["coin"] = getValue(market, "baseId");
@@ -510,7 +510,7 @@ public partial class btcbox : Exchange
         }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {};
-        object numSymbols = getArrayLength(this.symbols);
+        int numSymbols = getArrayLength(this.symbols);
         if (isTrue(isGreaterThan(numSymbols, 1)))
         {
             ((IDictionary<string,object>)request)["coin"] = getValue(market, "baseId");
@@ -595,7 +595,7 @@ public partial class btcbox : Exchange
         }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {};
-        object numSymbols = getArrayLength(this.symbols);
+        int numSymbols = getArrayLength(this.symbols);
         if (isTrue(isGreaterThan(numSymbols, 1)))
         {
             ((IDictionary<string,object>)request)["coin"] = getValue(market, "baseId");
@@ -789,7 +789,7 @@ public partial class btcbox : Exchange
             symbolVar = "BTC/JPY";
         }
         object market = this.market(symbolVar);
-        object request = this.extend(new Dictionary<string, object>() {
+        Dictionary<string, object> request = this.extend(new Dictionary<string, object>() {
             { "id", id },
             { "coin", getValue(market, "baseId") },
         }, parameters);
@@ -909,8 +909,8 @@ public partial class btcbox : Exchange
         } else
         {
             this.checkRequiredCredentials();
-            object nonce = ((object)this.nonce()).ToString();
-            object query = this.extend(new Dictionary<string, object>() {
+            string nonce = ((object)this.nonce()).ToString();
+            Dictionary<string, object> query = this.extend(new Dictionary<string, object>() {
                 { "key", this.apiKey },
                 { "nonce", nonce },
             }, parameters);

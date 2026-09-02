@@ -403,7 +403,7 @@ public partial class hollaex : Exchange
         //     }
         //
         object pairs = this.safeValue(response, "pairs", new Dictionary<string, object>() {});
-        object keys = new List<object>(((IDictionary<string,object>)pairs).Keys);
+        List<object> keys = new List<object>(((IDictionary<string,object>)pairs).Keys);
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
@@ -545,7 +545,7 @@ public partial class hollaex : Exchange
         //     }
         //
         object coins = this.safeDict(response, "coins", new Dictionary<string, object>() {});
-        object values = new List<object>(((IDictionary<string,object>)coins).Values);
+        List<object> values = new List<object>(((IDictionary<string,object>)coins).Values);
         return this.parseCurrencies(values);
     }
 
@@ -558,7 +558,7 @@ public partial class hollaex : Exchange
         object type = ((bool) isTrue((isEqual(rawType, "blockchain")))) ? "crypto" : "other";
         object rawNetworks = this.safeDict(rawCurrency, "withdrawal_fees", new Dictionary<string, object>() {});
         object networks = new Dictionary<string, object>() {};
-        object networkIds = new List<object>(((IDictionary<string,object>)rawNetworks).Keys);
+        List<object> networkIds = new List<object>(((IDictionary<string,object>)rawNetworks).Keys);
         for (object j = 0; isLessThan(j, getArrayLength(networkIds)); postFixIncrement(ref j))
         {
             object networkId = getValue(networkIds, j);
@@ -629,7 +629,7 @@ public partial class hollaex : Exchange
         }
         object response = await this.publicGetOrderbooks(parameters);
         object result = new Dictionary<string, object>() {};
-        object marketIds = new List<object>(((IDictionary<string,object>)response).Keys);
+        List<object> marketIds = new List<object>(((IDictionary<string,object>)response).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
         {
             object marketId = getValue(marketIds, i);
@@ -762,7 +762,7 @@ public partial class hollaex : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object result = new Dictionary<string, object>() {};
-        object keys = new List<object>(((IDictionary<string,object>)tickers).Keys);
+        List<object> keys = new List<object>(((IDictionary<string,object>)tickers).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object key = getValue(keys, i);
@@ -1038,7 +1038,7 @@ public partial class hollaex : Exchange
         object until = this.safeInteger(parameters, "until");
         object timeDelta = multiply(multiply(this.parseTimeframe(timeframeVar), maxLimit), 1000);
         object start = since;
-        object now = this.milliseconds();
+        Int64 now = this.milliseconds();
         if (isTrue(isEqual(until, null)))
         {
             until = now; // the exchange has not a lot of trades, so if we count until by limit and limit is small, it may return empty result
@@ -1096,7 +1096,7 @@ public partial class hollaex : Exchange
         {
             throw new ExchangeError ((string)add(this.id, " currencies not loaded")) ;
         }
-        object currencyIds = new List<object>(((IDictionary<string,object>)currenciesById).Keys);
+        List<object> currencyIds = new List<object>(((IDictionary<string,object>)currenciesById).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(currencyIds)); postFixIncrement(ref i))
         {
             object currencyId = getValue(currencyIds, i);
@@ -1459,7 +1459,7 @@ public partial class hollaex : Exchange
         object triggerPrice = this.safeNumberN(parameters, new List<object>() {"triggerPrice", "stopPrice", "stop"});
         object meta = this.safeValue(parameters, "meta", new Dictionary<string, object>() {});
         object exchangeSpecificParam = this.safeBool(meta, "post_only", false);
-        object isMarketOrder = isEqual(type, "market");
+        bool isMarketOrder = isEqual(type, "market");
         object postOnly = this.isPostOnly(isMarketOrder, exchangeSpecificParam, parameters);
         if (!isTrue(isMarketOrder))
         {
@@ -1652,7 +1652,7 @@ public partial class hollaex : Exchange
         object tag = null;
         if (isTrue(!isEqual(address, null)))
         {
-            object parts = ((string)address).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
+            List<object> parts = ((string)address).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
             address = this.safeString(parts, 0);
             tag = this.safeString(parts, 1);
         }
@@ -1735,7 +1735,7 @@ public partial class hollaex : Exchange
         //
         object wallet = this.safeValue(response, "wallet", new List<object>() {});
         object addresses = ((bool) isTrue((isEqual(network, null)))) ? wallet : this.filterBy(wallet, "network", network);
-        return ccxt.BaseExchange.ToDepositAddressList(this.parseDepositAddresses(addresses, codes));
+        return ccxt.BaseExchange.ToDepositAddressList(this.parseDepositAddresses(addresses, codes, false));
     }
 
     /**
@@ -1962,7 +1962,7 @@ public partial class hollaex : Exchange
         object tagFrom = null;
         if (isTrue(!isEqual(address, null)))
         {
-            object parts = ((string)address).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
+            List<object> parts = ((string)address).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
             address = this.safeString(parts, 0);
             tag = this.safeString(parts, 1);
             addressTo = address;
@@ -2132,8 +2132,8 @@ public partial class hollaex : Exchange
         object withdrawalFees = this.safeValue(fee, "withdrawal_fees");
         if (isTrue(!isEqual(withdrawalFees, null)))
         {
-            object keys = new List<object>(((IDictionary<string,object>)withdrawalFees).Keys);
-            object keysLength = getArrayLength(keys);
+            List<object> keys = new List<object>(((IDictionary<string,object>)withdrawalFees).Keys);
+            int keysLength = getArrayLength(keys);
             for (object i = 0; isLessThan(i, keysLength); postFixIncrement(ref i))
             {
                 object key = getValue(keys, i);
@@ -2145,7 +2145,7 @@ public partial class hollaex : Exchange
                 {
                     throw new ArgumentsRequired ((string)add(this.id, " requires a networkCode argument")) ;
                 }
-                object networkCodeUpper = ((string)networkCode).ToUpper(); // default to the upper case network code
+                string networkCodeUpper = ((string)networkCode).ToUpper(); // default to the upper case network code
                 object withdrawalFee = this.safeNumber(value, "value");
                 ((IDictionary<string,object>)getValue(result, "networks"))[(string)networkCodeUpper] = new Dictionary<string, object>() {
                     { "deposit", null },
@@ -2228,7 +2228,7 @@ public partial class hollaex : Exchange
             this.checkRequiredCredentials();
             object defaultExpires = this.safeInteger2(this.options, "api-expires", "expires", this.parseToInt(divide(this.timeout, 1000)));
             object expires = this.sum(this.seconds(), defaultExpires);
-            object expiresString = ((object)expires).ToString();
+            string expiresString = ((object)expires).ToString();
             object auth = add(add(method, path), expiresString);
             headers = new Dictionary<string, object>() {
                 { "api-key", this.apiKey },
@@ -2243,7 +2243,7 @@ public partial class hollaex : Exchange
                     auth = add(auth, body);
                 }
             }
-            object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
+            string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
             ((IDictionary<string,object>)headers)["api-signature"] = signature;
         }
         return new Dictionary<string, object>() {
@@ -2275,7 +2275,7 @@ public partial class hollaex : Exchange
             object feedback = add(add(this.id, " "), body);
             object message = this.safeString(response, "message");
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);
-            object status = ((object)code).ToString();
+            string status = ((object)code).ToString();
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), status, feedback);
         }
         return null;

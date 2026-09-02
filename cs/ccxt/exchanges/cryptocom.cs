@@ -1008,10 +1008,10 @@ public partial class cryptocom : Exchange
         {
             object market = getValue(data, i);
             object inst_type = this.safeString(market, "inst_type");
-            object spot = isEqual(inst_type, "CCY_PAIR");
-            object swap = isEqual(inst_type, "PERPETUAL_SWAP");
-            object future = isEqual(inst_type, "FUTURE");
-            object option = isEqual(inst_type, "WARRANT");
+            bool spot = isEqual(inst_type, "CCY_PAIR");
+            bool swap = isEqual(inst_type, "PERPETUAL_SWAP");
+            bool future = isEqual(inst_type, "FUTURE");
+            bool option = isEqual(inst_type, "WARRANT");
             object baseId = this.safeString(market, "base_ccy");
             object quoteId = this.safeString(market, "quote_ccy");
             object settleId = ((bool) isTrue(spot)) ? null : quoteId;
@@ -1127,7 +1127,7 @@ public partial class cryptocom : Exchange
             object symbol = null;
             if (isTrue(((symbols is IList<object>) || (symbols.GetType().IsGenericType && symbols.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
             {
-                object symbolsLength = getArrayLength(symbols);
+                int symbolsLength = getArrayLength(symbols);
                 if (isTrue(isGreaterThan(symbolsLength, 1)))
                 {
                     throw new BadRequest ((string)add(this.id, " fetchTickers() symbols argument cannot contain more than 1 symbol")) ;
@@ -1403,7 +1403,7 @@ public partial class cryptocom : Exchange
             }
             ((IDictionary<string,object>)request)["count"] = limitVar;
         }
-        object now = this.microseconds();
+        Int64 now = this.microseconds();
         object duration = this.parseTimeframe(timeframeVar);
         object until = this.safeInteger(parameters, "until", now);
         parameters = this.omit(parameters, new List<object>() {"until"});
@@ -1660,7 +1660,7 @@ public partial class cryptocom : Exchange
             throw new ArgumentsRequired ((string)add(this.id, " requires a side argument")) ;
         }
         object market = this.market(symbol);
-        object uppercaseType = ((string)type).ToUpper();
+        string uppercaseType = ((string)type).ToUpper();
         object request = new Dictionary<string, object>() {
             { "instrument_name", getValue(market, "id") },
             { "side", ((string)((string)side)).ToUpper() },
@@ -1713,9 +1713,9 @@ public partial class cryptocom : Exchange
         object triggerPrice = this.safeStringN(parameters, new List<object>() {"stopPrice", "triggerPrice", "ref_price"});
         object stopLossPrice = this.safeNumber(parameters, "stopLossPrice");
         object takeProfitPrice = this.safeNumber(parameters, "takeProfitPrice");
-        object isTrigger = (!isEqual(triggerPrice, null));
-        object isStopLossTrigger = (!isEqual(stopLossPrice, null));
-        object isTakeProfitTrigger = (!isEqual(takeProfitPrice, null));
+        bool isTrigger = (!isEqual(triggerPrice, null));
+        bool isStopLossTrigger = (!isEqual(stopLossPrice, null));
+        bool isTakeProfitTrigger = (!isEqual(takeProfitPrice, null));
         if (isTrue(isTrigger))
         {
             ((IDictionary<string,object>)request)["ref_price"] = this.priceToPrecision(symbol, triggerPrice);
@@ -1939,7 +1939,7 @@ public partial class cryptocom : Exchange
         // namely here we don't support ref_price or spot_margin
         // and market-buy orders need to send notional instead of quantity
         object market = this.market(symbol);
-        object uppercaseType = ((string)type).ToUpper();
+        string uppercaseType = ((string)type).ToUpper();
         object request = new Dictionary<string, object>() {
             { "instrument_name", getValue(market, "id") },
             { "side", ((string)((string)side)).ToUpper() },
@@ -1976,9 +1976,9 @@ public partial class cryptocom : Exchange
         object triggerPrice = this.safeStringN(parameters, new List<object>() {"stopPrice", "triggerPrice", "ref_price"});
         object stopLossPrice = this.safeNumber(parameters, "stopLossPrice");
         object takeProfitPrice = this.safeNumber(parameters, "takeProfitPrice");
-        object isTrigger = (!isEqual(triggerPrice, null));
-        object isStopLossTrigger = (!isEqual(stopLossPrice, null));
-        object isTakeProfitTrigger = (!isEqual(takeProfitPrice, null));
+        bool isTrigger = (!isEqual(triggerPrice, null));
+        bool isStopLossTrigger = (!isEqual(stopLossPrice, null));
+        bool isTakeProfitTrigger = (!isEqual(takeProfitPrice, null));
         if (isTrue(isTrigger))
         {
             object priceString = this.numberToString(price);
@@ -2451,7 +2451,7 @@ public partial class cryptocom : Exchange
             var addressrawTagVariable = ((string)addressString).Split(new [] {((string)"?")}, StringSplitOptions.None).ToList<object>();
             address = ((IList<object>)addressrawTagVariable)[0];
             rawTag = ((IList<object>)addressrawTagVariable)[1];
-            object splitted = ((string)((string)rawTag)).Split(new [] {((string)"=")}, StringSplitOptions.None).ToList<object>();
+            List<object> splitted = ((string)((string)rawTag)).Split(new [] {((string)"=")}, StringSplitOptions.None).ToList<object>();
             tag = getValue(splitted, 1);
         } else
         {
@@ -2565,7 +2565,7 @@ public partial class cryptocom : Exchange
         //
         object data = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object addresses = this.safeList(data, "deposit_address_list", new List<object>() {});
-        object addressesLength = getArrayLength(addresses);
+        int addressesLength = getArrayLength(addresses);
         if (isTrue(isEqual(addressesLength, 0)))
         {
             throw new ExchangeError ((string)add(this.id, " fetchDepositAddressesByNetwork() generating address...")) ;
@@ -2617,7 +2617,7 @@ public partial class cryptocom : Exchange
         {
             return ccxt.BaseExchange.ToDepositAddress(getValue(depositAddresses, ((string)network)));
         }
-        object keys = new List<object>(((IDictionary<string,object>)depositAddresses).Keys);
+        List<object> keys = new List<object>(((IDictionary<string,object>)depositAddresses).Keys);
         return ccxt.BaseExchange.ToDepositAddress(getValue(depositAddresses, getValue(keys, 0)));
     }
 
@@ -3199,7 +3199,7 @@ public partial class cryptocom : Exchange
         //    }
         //
         object networkList = this.safeList(fee, "network_list", new List<object>() {});
-        object networkListLength = getArrayLength(networkList);
+        int networkListLength = getArrayLength(networkList);
         object result = new Dictionary<string, object>() {
             { "info", fee },
             { "withdraw", new Dictionary<string, object>() {
@@ -3865,7 +3865,7 @@ public partial class cryptocom : Exchange
             object symbol = null;
             if (isTrue(((symbols is IList<object>) || (symbols.GetType().IsGenericType && symbols.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
             {
-                object symbolsLength = getArrayLength(symbols);
+                int symbolsLength = getArrayLength(symbols);
                 if (isTrue(isGreaterThan(symbolsLength, 1)))
                 {
                     throw new BadRequest ((string)add(this.id, " fetchPositions() symbols argument cannot contain more than 1 symbol")) ;
@@ -3941,8 +3941,8 @@ public partial class cryptocom : Exchange
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "hedged", null },
-            { "side", ((bool) isTrue(Precise.stringGt(amount, "0"))) ? "buy" : "sell" },
-            { "contracts", Precise.stringAbs(amount) },
+            { "side", ((bool) isTrue(Precise.stringGt(amount, "0"))) ? "long" : "short" },
+            { "contracts", this.parseNumber(Precise.stringAbs(amount)) },
             { "contractSize", getValue(market, "contractSize") },
             { "entryPrice", null },
             { "markPrice", null },
@@ -3986,7 +3986,7 @@ public partial class cryptocom : Exchange
             paramsKeys = obj;
         } else
         {
-            object objectKeys = new List<object>(((IDictionary<string,object>)obj).Keys);
+            List<object> objectKeys = new List<object>(((IDictionary<string,object>)obj).Keys);
             paramsKeys = this.sort(objectKeys);
         }
         for (object i = 0; isLessThan(i, getArrayLength(paramsKeys)); postFixIncrement(ref i))
@@ -4211,13 +4211,13 @@ public partial class cryptocom : Exchange
         } else
         {
             this.checkRequiredCredentials();
-            object nonce = ((object)this.nonce()).ToString();
-            object requestParams = this.extend(new Dictionary<string, object>() {}, parameters);
-            object paramsKeys = new List<object>(((IDictionary<string,object>)requestParams).Keys);
+            string nonce = ((object)this.nonce()).ToString();
+            Dictionary<string, object> requestParams = this.extend(new Dictionary<string, object>() {}, parameters);
+            List<object> paramsKeys = new List<object>(((IDictionary<string,object>)requestParams).Keys);
             object strSortKey = this.paramsToString(requestParams, 0);
             object payload = add(add(add(add(path, nonce), this.apiKey), strSortKey), nonce);
-            object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256);
-            object paramsKeysLength = getArrayLength(paramsKeys);
+            string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256);
+            int paramsKeysLength = getArrayLength(paramsKeys);
             body = this.json(new Dictionary<string, object>() {
                 { "id", nonce },
                 { "method", path },
@@ -4233,8 +4233,8 @@ public partial class cryptocom : Exchange
             // the code below checks and replaces those brackets in empty requests
             if (isTrue(isEqual(paramsKeysLength, 0)))
             {
-                object paramsString = "{}";
-                object arrayString = "[]";
+                string paramsString = "{}";
+                string arrayString = "[]";
                 body = ((string)body).Replace((string)arrayString, (string)paramsString);
             }
             headers = new Dictionary<string, object>() {

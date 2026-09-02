@@ -87,14 +87,14 @@ public partial class poloniex : ccxt.poloniex
         this.checkRequiredCredentials();
         object timestamp = this.numberToString(this.milliseconds());
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "private");
-        object messageHash = "authenticated";
+        string messageHash = "authenticated";
         var client = this.client(url);
         var future = this.safeValue(((WebSocketClient)client).subscriptions, messageHash);
         if (isTrue(isEqual(future, null)))
         {
-            object accessPath = "/ws";
+            string accessPath = "/ws";
             object requestString = add(add(add("GET\n", accessPath), "\nsignTimestamp="), timestamp);
-            object signature = this.hmac(this.encode(requestString), this.encode(this.secret), sha256, "base64");
+            string signature = this.hmac(this.encode(requestString), this.encode(this.secret), sha256, "base64");
             object request = new Dictionary<string, object>() {
                 { "event", "subscribe" },
                 { "channel", new List<object>() {"auth"} },
@@ -106,7 +106,7 @@ public partial class poloniex : ccxt.poloniex
                     { "signatureVersion", "2" },
                 } },
             };
-            object message = this.extend(request, parameters);
+            Dictionary<string, object> message = this.extend(request, parameters);
             future = await this.watch(url, messageHash, message, messageHash);
             //
             //    {
@@ -171,7 +171,7 @@ public partial class poloniex : ccxt.poloniex
         {
             ((IDictionary<string,object>)subscribe)["symbols"] = marketIds;
         }
-        object request = this.extend(subscribe, parameters);
+        Dictionary<string, object> request = this.extend(subscribe, parameters);
         return await this.watch(url, messageHash, request, messageHash);
     }
 
@@ -187,7 +187,7 @@ public partial class poloniex : ccxt.poloniex
     {
         parameters ??= new Dictionary<string, object>();
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "private");
-        object messageHash = ((object)this.nonce()).ToString();
+        string messageHash = ((object)this.nonce()).ToString();
         object subscribe = new Dictionary<string, object>() {
             { "id", messageHash },
             { "event", name },
@@ -227,12 +227,12 @@ public partial class poloniex : ccxt.poloniex
         }
         await this.authenticate();
         object market = this.market(symbol);
-        object uppercaseType = ((string)type).ToUpper();
+        string uppercaseType = ((string)type).ToUpper();
         if (isTrue(isEqual(side, null)))
         {
             throw new ArgumentsRequired ((string)add(this.id, " createOrderWs() side is required")) ;
         }
-        object uppercaseSide = ((string)side).ToUpper();
+        string uppercaseSide = ((string)side).ToUpper();
         object isPostOnly = this.isPostOnly(isEqual(uppercaseType, "MARKET"), isEqual(uppercaseType, "LIMIT_MAKER"), parameters);
         if (isTrue(isPostOnly))
         {
@@ -454,7 +454,7 @@ public partial class poloniex : ccxt.poloniex
         {
             await this.loadMarkets();
         }
-        object name = "ticker";
+        string name = "ticker";
         symbols = this.marketSymbols(symbols);
         object newTickers = await this.subscribe(name, name, false, symbols, parameters);
         if (isTrue(this.newUpdates))
@@ -501,7 +501,7 @@ public partial class poloniex : ccxt.poloniex
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols, null, false, true, true);
-        object name = "trades";
+        string name = "trades";
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
         object marketIds = this.marketIds(symbols);
         object subscribe = new Dictionary<string, object>() {
@@ -509,7 +509,7 @@ public partial class poloniex : ccxt.poloniex
             { "channel", new List<object>() {name} },
             { "symbols", marketIds },
         };
-        object request = this.extend(subscribe, parameters);
+        Dictionary<string, object> request = this.extend(subscribe, parameters);
         object messageHashes = new List<object>() {};
         if (isTrue(!isEqual(symbols, null)))
         {
@@ -574,7 +574,7 @@ public partial class poloniex : ccxt.poloniex
         {
             await this.loadMarkets();
         }
-        object name = "orders";
+        string name = "orders";
         await this.authenticate();
         if (isTrue(!isEqual(symbolVar, null)))
         {
@@ -609,8 +609,8 @@ public partial class poloniex : ccxt.poloniex
         {
             await this.loadMarkets();
         }
-        object name = "orders";
-        object messageHash = "myTrades";
+        string name = "orders";
+        string messageHash = "myTrades";
         await this.authenticate();
         if (isTrue(!isEqual(symbolVar, null)))
         {
@@ -640,7 +640,7 @@ public partial class poloniex : ccxt.poloniex
         {
             await this.loadMarkets();
         }
-        object name = "balances";
+        string name = "balances";
         await this.authenticate();
         return ccxt.BaseExchange.ToBalances(await this.subscribe(name, name, true, null, parameters));
     }
@@ -744,7 +744,7 @@ public partial class poloniex : ccxt.poloniex
             {
                 object trade = this.parseWsTrade(item);
                 object symbol = getValue(trade, "symbol");
-                object type = "trades";
+                string type = "trades";
                 object messageHash = add(add(type, "::"), symbol);
                 object tradesArray = ((bool) isTrue((isEqual(symbol, null)))) ? null : this.safeValue(this.trades, symbol);
                 if (isTrue(isEqual(tradesArray, null)))
@@ -1162,9 +1162,9 @@ public partial class poloniex : ccxt.poloniex
         for (object i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
         {
             object messageHash = getValue(messageHashes, i);
-            object parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
+            List<object> parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
             object symbolsString = getValue(parts, 1);
-            object symbols = ((string)symbolsString).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
+            List<object> symbols = ((string)symbolsString).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
             object tickers = this.filterByArray(newTickers, "symbol", symbols);
             if (!isTrue(this.isEmpty(tickers)))
             {
@@ -1226,15 +1226,15 @@ public partial class poloniex : ccxt.poloniex
         //
         object data = this.safeValue(message, "data", new List<object>() {});
         object type = this.safeString(message, "action");
-        object snapshot = isEqual(type, "snapshot");
-        object update = isEqual(type, "update");
+        bool snapshot = isEqual(type, "snapshot");
+        bool update = isEqual(type, "update");
         for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object item = getValue(data, i);
             object marketId = this.safeString(item, "symbol");
             object market = this.safeMarket(marketId);
             object symbol = getValue(market, "symbol");
-            object name = "book_lv2";
+            string name = "book_lv2";
             object messageHash = add(add(name, "::"), symbol);
             object subscription = this.safeValue(((WebSocketClient)client).subscriptions, messageHash, new Dictionary<string, object>() {});
             object limit = this.safeInteger(subscription, "limit");
@@ -1300,7 +1300,7 @@ public partial class poloniex : ccxt.poloniex
         //    }
         //
         object data = this.safeValue(message, "data", new List<object>() {});
-        object messageHash = "balances";
+        string messageHash = "balances";
         this.balance = this.parseWsBalance(data);
         callDynamically(client as WebSocketClient, "resolve", new object[] {this.balance, messageHash});
     }
@@ -1349,7 +1349,7 @@ public partial class poloniex : ccxt.poloniex
     public virtual void handleMyTrades(WebSocketClient client, object parsedTrade)
     {
         // emulated using the orders' stream
-        object messageHash = "myTrades";
+        string messageHash = "myTrades";
         object symbol = getValue(parsedTrade, "symbol");
         if (isTrue(isEqual(this.myTrades, null)))
         {
@@ -1416,7 +1416,7 @@ public partial class poloniex : ccxt.poloniex
         } else
         {
             object data = this.safeValue(message, "data", new List<object>() {});
-            object dataLength = getArrayLength(data);
+            int dataLength = getArrayLength(data);
             if (isTrue(isGreaterThan(dataLength, 0)))
             {
                 DynamicInvoker.InvokeMethod(method, new object[] { client, message});
@@ -1474,7 +1474,7 @@ public partial class poloniex : ccxt.poloniex
             {
                 if (isTrue(e is AuthenticationError))
                 {
-                    object messageHash = "authenticated";
+                    string messageHash = "authenticated";
                     ((WebSocketClient)client).reject(e, messageHash);
                     if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
                     {
@@ -1502,7 +1502,7 @@ public partial class poloniex : ccxt.poloniex
         //
         object data = this.safeValue(message, "data");
         object success = this.safeValue(data, "success");
-        object messageHash = "authenticated";
+        string messageHash = "authenticated";
         if (isTrue(isEqual(success, true)))
         {
             callDynamically(client as WebSocketClient, "resolve", new object[] {message, messageHash});

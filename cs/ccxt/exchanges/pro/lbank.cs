@@ -114,7 +114,7 @@ public partial class lbank : ccxt.lbank
         {
             ((IDictionary<string,object>)message)["size"] = limit;
         }
-        object request = this.deepExtend(message, parameters);
+        Dictionary<string, object> request = this.deepExtend(message, parameters);
         object requestId = this.requestId();
         return ccxt.BaseExchange.ToOHLCVList(await this.watch(url, messageHash, request, requestId, request));
     }
@@ -154,7 +154,7 @@ public partial class lbank : ccxt.lbank
             { "kbar", timeframeId },
             { "pair", getValue(market, "id") },
         };
-        object request = this.deepExtend(subscribe, parameters);
+        Dictionary<string, object> request = this.deepExtend(subscribe, parameters);
         object ohlcv = await this.watch(url, messageHash, request, messageHash);
         if (isTrue(this.newUpdates))
         {
@@ -284,7 +284,7 @@ public partial class lbank : ccxt.lbank
             { "request", "tick" },
             { "pair", getValue(market, "id") },
         };
-        object request = this.deepExtend(message, parameters);
+        Dictionary<string, object> request = this.deepExtend(message, parameters);
         object requestId = this.requestId();
         return ccxt.BaseExchange.ToTicker(await this.watch(url, messageHash, request, requestId, request));
     }
@@ -314,7 +314,7 @@ public partial class lbank : ccxt.lbank
             { "subscribe", "tick" },
             { "pair", getValue(market, "id") },
         };
-        object request = this.deepExtend(message, parameters);
+        Dictionary<string, object> request = this.deepExtend(message, parameters);
         return ccxt.BaseExchange.ToTicker(await this.watch(url, messageHash, request, messageHash, request));
     }
 
@@ -435,7 +435,7 @@ public partial class lbank : ccxt.lbank
             { "pair", getValue(market, "id") },
             { "size", limit },
         };
-        object request = this.deepExtend(message, parameters);
+        Dictionary<string, object> request = this.deepExtend(message, parameters);
         object requestId = this.requestId();
         return ccxt.BaseExchange.ToTradeList(await this.watch(url, messageHash, request, requestId, request));
     }
@@ -467,7 +467,7 @@ public partial class lbank : ccxt.lbank
             { "subscribe", "trade" },
             { "pair", getValue(market, "id") },
         };
-        object request = this.deepExtend(message, parameters);
+        Dictionary<string, object> request = this.deepExtend(message, parameters);
         object trades = await this.watch(url, messageHash, request, messageHash, request);
         object result = this.filterBySinceLimit(trades, since, limit, "timestamp", true);
         return ccxt.BaseExchange.ToTradeList(this.sortBy(result, "timestamp"));  // needed bcz of https://github.com/ccxt/ccxt/actions/runs/21364685870/job/61493905690?pr=27750#step:11:1067
@@ -547,7 +547,7 @@ public partial class lbank : ccxt.lbank
             timestamp = this.parse8601(datetime);
         }
         object rawSide = this.safeString2(trade, "direction", 3);
-        object parts = ((string)((string)rawSide)).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = ((string)((string)rawSide)).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
         object firstPart = this.safeString(parts, 0);
         object secondPart = this.safeString(parts, 1);
         object side = firstPart;
@@ -612,7 +612,7 @@ public partial class lbank : ccxt.lbank
             { "subscribeKey", key },
             { "pair", pair },
         };
-        object request = this.deepExtend(message, parameters);
+        Dictionary<string, object> request = this.deepExtend(message, parameters);
         object orders = await this.watch(url, messageHash, request, messageHash, request);
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolVar, since, limit, true));
     }
@@ -702,7 +702,7 @@ public partial class lbank : ccxt.lbank
         //
         object orderUpdate = this.safeValue(order, "orderUpdate", new Dictionary<string, object>() {});
         object rawType = this.safeString(orderUpdate, "type", "");
-        object typeParts = ((string)rawType).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+        List<object> typeParts = ((string)rawType).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
         object side = this.safeString(typeParts, 0);
         object exchangeType = this.safeString(typeParts, 1);
         object type = null;
@@ -773,13 +773,13 @@ public partial class lbank : ccxt.lbank
         }
         object key = await this.authenticate(parameters);
         object url = getValue(getValue(this.urls, "api"), "ws");
-        object messageHash = "balance";
+        string messageHash = "balance";
         object message = new Dictionary<string, object>() {
             { "action", "subscribe" },
             { "subscribe", "assetUpdate" },
             { "subscribeKey", key },
         };
-        object request = this.deepExtend(message, parameters);
+        Dictionary<string, object> request = this.deepExtend(message, parameters);
         return ccxt.BaseExchange.ToBalances(await this.watch(url, messageHash, request, messageHash, request));
     }
 
@@ -851,7 +851,7 @@ public partial class lbank : ccxt.lbank
             { "depth", limit },
             { "pair", getValue(market, "id") },
         };
-        object request = this.deepExtend(subscribe, parameters);
+        Dictionary<string, object> request = this.deepExtend(subscribe, parameters);
         object orderbook = await this.watch(url, messageHash, request, messageHash);
         return ccxt.BaseExchange.ToOrderBook((orderbook as IOrderBook).limit());
     }
@@ -889,7 +889,7 @@ public partial class lbank : ccxt.lbank
             { "depth", limitVar },
             { "pair", getValue(market, "id") },
         };
-        object request = this.deepExtend(subscribe, parameters);
+        Dictionary<string, object> request = this.deepExtend(subscribe, parameters);
         object orderbook = await this.watch(url, messageHash, request, messageHash);
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
@@ -1051,8 +1051,8 @@ public partial class lbank : ccxt.lbank
         this.checkRequiredCredentials();
         object url = getValue(getValue(this.urls, "api"), "ws");
         var client = this.client(url);
-        object now = this.milliseconds();
-        object messageHash = "authenticateFlight";
+        Int64 now = this.milliseconds();
+        string messageHash = "authenticateFlight";
         if (isTrue(inOp(client.futures, messageHash)))
         {
             // a flight is already in progress - wake when the leader settles

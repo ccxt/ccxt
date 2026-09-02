@@ -864,10 +864,10 @@ public partial class derive : Exchange
     {
         object type = this.safeString(market, "instrument_type");
         object marketType = null;
-        object spot = false;
-        object margin = true;
-        object swap = false;
-        object option = false;
+        bool spot = false;
+        bool margin = true;
+        bool swap = false;
+        bool option = false;
         object linear = null;
         object inverse = null;
         object baseId = this.safeString(market, "base_currency");
@@ -919,7 +919,7 @@ public partial class derive : Exchange
             inverse = false;
         }
         object contractSize = ((bool) isTrue((spot))) ? null : 1;
-        object isContract = (isTrue(swap) || isTrue(option));
+        bool isContract = (isTrue(swap) || isTrue(option));
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", marketId },
             { "symbol", symbol },
@@ -1237,14 +1237,14 @@ public partial class derive : Exchange
         for (object i = 0; isLessThan(i, getArrayLength(tradesArray)); postFixIncrement(ref i))
         {
             object rawTrade = getValue(tradesArray, i);
-            object isFetchTrades = !isTrue((inOp(rawTrade, "order_id")));
+            bool isFetchTrades = !isTrue((inOp(rawTrade, "order_id")));
             object liquidityRole = this.safeString(rawTrade, "liquidity_role");
             if (isTrue(isTrue(isFetchTrades) && isTrue((isEqual(liquidityRole, "maker")))))
             {
                 continue;
             }
             object parsed = this.parseTrade(rawTrade, market);
-            object trade = this.extend(parsed, parameters);
+            Dictionary<string, object> trade = this.extend(parsed, parameters);
             ((IList<object>)result).Add(trade);
         }
         result = this.sortBy2(result, "timestamp", "id");
@@ -1517,9 +1517,9 @@ public partial class derive : Exchange
         object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
         object timeInForce = this.safeStringLower2(parameters, "timeInForce", "time_in_force");
         object postOnly = this.safeBool(parameters, "postOnly");
-        object orderType = ((string)type).ToLower();
-        object orderSide = ((string)((string)side)).ToLower();
-        object nonce = this.milliseconds();
+        string orderType = ((string)type).ToLower();
+        string orderSide = ((string)((string)side)).ToLower();
+        Int64 nonce = this.milliseconds();
         // Order signature expiry must be between 2592000 and 7776000 sec from now
         object signatureExpiry = this.safeInteger(parameters, "signature_expiry_sec", add(this.seconds(), 7776000));
         object ACTION_TYPEHASH = this.base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17");
@@ -1709,9 +1709,9 @@ public partial class derive : Exchange
         object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
         object timeInForce = this.safeStringLower2(parameters, "timeInForce", "time_in_force");
         object postOnly = this.safeBool(parameters, "postOnly");
-        object orderType = ((string)type).ToLower();
-        object orderSide = ((string)((string)side)).ToLower();
-        object nonce = this.milliseconds();
+        string orderType = ((string)type).ToLower();
+        string orderSide = ((string)((string)side)).ToLower();
+        Int64 nonce = this.milliseconds();
         object signatureExpiry = this.safeNumber(parameters, "signature_expiry_sec", add(this.seconds(), 7776000));
         // TODO: subaccount id / trade module address
         object ACTION_TYPEHASH = this.base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17");
@@ -1878,7 +1878,7 @@ public partial class derive : Exchange
         };
         object clientOrderIdUnified = this.safeString(parameters, "clientOrderId");
         object clientOrderIdExchangeSpecific = this.safeString(parameters, "label", clientOrderIdUnified);
-        object isByClientOrder = !isEqual(clientOrderIdExchangeSpecific, null);
+        bool isByClientOrder = !isEqual(clientOrderIdExchangeSpecific, null);
         object response = null;
         if (isTrue(isByClientOrder))
         {
@@ -2140,7 +2140,7 @@ public partial class derive : Exchange
         {
             await this.loadMarkets();
         }
-        object extendedParams = this.extend(parameters, new Dictionary<string, object>() {
+        Dictionary<string, object> extendedParams = this.extend(parameters, new Dictionary<string, object>() {
             { "status", "open" },
         });
         return await this.FetchOrders(((string)symbol),ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), extendedParams);
@@ -2165,7 +2165,7 @@ public partial class derive : Exchange
         {
             await this.loadMarkets();
         }
-        object extendedParams = this.extend(parameters, new Dictionary<string, object>() {
+        Dictionary<string, object> extendedParams = this.extend(parameters, new Dictionary<string, object>() {
             { "status", "filled" },
         });
         return await this.FetchOrders(((string)symbol),ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), extendedParams);
@@ -2190,7 +2190,7 @@ public partial class derive : Exchange
         {
             await this.loadMarkets();
         }
-        object extendedParams = this.extend(parameters, new Dictionary<string, object>() {
+        Dictionary<string, object> extendedParams = this.extend(parameters, new Dictionary<string, object>() {
             { "status", "cancelled" },
         });
         return await this.FetchOrders(((string)symbol),ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), extendedParams);
@@ -2667,9 +2667,9 @@ public partial class derive : Exchange
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "lastUpdateTimestamp", null },
-            { "initialMargin", this.safeString(position, "initial_margin") },
+            { "initialMargin", this.safeNumber(position, "initial_margin") },
             { "initialMarginPercentage", null },
-            { "maintenanceMargin", this.safeString(position, "maintenance_margin") },
+            { "maintenanceMargin", this.safeNumber(position, "maintenance_margin") },
             { "maintenanceMarginPercentage", null },
             { "entryPrice", null },
             { "notional", this.parseNumber(notional) },
@@ -3152,7 +3152,7 @@ public partial class derive : Exchange
             };
             if (isTrue(isEqual(api, "private")))
             {
-                object now = ((object)this.milliseconds()).ToString();
+                string now = ((object)this.milliseconds()).ToString();
                 object signature = this.signMessage(now, this.privateKey);
                 ((IDictionary<string,object>)headers)["X-LyraWallet"] = this.safeString(this.options, "deriveWalletAddress");
                 ((IDictionary<string,object>)headers)["X-LyraTimestamp"] = now;

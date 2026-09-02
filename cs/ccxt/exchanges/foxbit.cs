@@ -423,8 +423,8 @@ public partial class foxbit : Exchange
             object networkCode = this.networkIdToCode(networkId, code);
             object networkWithdrawInfo = this.safeDict(network, "withdraw_info");
             object networkDepositInfo = this.safeDict(network, "deposit_info");
-            object isWithdrawEnabled = isEqual(this.safeString(networkWithdrawInfo, "status"), "ENABLED");
-            object isDepositEnabled = isEqual(this.safeString(networkDepositInfo, "status"), "ENABLED");
+            bool isWithdrawEnabled = isEqual(this.safeString(networkWithdrawInfo, "status"), "ENABLED");
+            bool isDepositEnabled = isEqual(this.safeString(networkDepositInfo, "status"), "ENABLED");
             if (isTrue(!isEqual(networkCode, null)))
             {
                 ((IDictionary<string,object>)parsedNetworks)[(string)networkCode] = new Dictionary<string, object>() {
@@ -2107,7 +2107,7 @@ public partial class foxbit : Exchange
         object cryptoDetails = this.safeDict(transaction, "details_crypto");
         object address = this.safeString2(cryptoDetails, "receiving_address", "destination_address");
         object sn = this.safeString(transaction, "sn");
-        object type = "withdrawal";
+        string type = "withdrawal";
         if (isTrue(isTrue(!isEqual(sn, null)) && isTrue(isEqual(getValue(sn, 0), "D"))))
         {
             type = "deposit";
@@ -2188,7 +2188,7 @@ public partial class foxbit : Exchange
         object type = this.parseLedgerEntryType(reasonType);
         object exchangeSymbol = this.safeString(item, "currency_symbol");
         object currencySymbol = this.safeCurrencyCode(exchangeSymbol);
-        object direction = "in";
+        string direction = "in";
         object amount = this.safeNumber(item, "amount");
         object realAmount = amount;
         object balance = this.safeNumber(item, "balance");
@@ -2251,13 +2251,13 @@ public partial class foxbit : Exchange
         }
         object url = add(getValue(getValue(this.urls, "api"), urlPath), fullPath);
         parameters = this.omit(parameters, this.extractParams(path));
-        object timestamp = this.milliseconds();
+        Int64 timestamp = this.milliseconds();
         object query = "";
         object signatureQuery = "";
         if (isTrue(isEqual(method, "GET")))
         {
-            object paramKeys = new List<object>(((IDictionary<string,object>)parameters).Keys);
-            object paramKeysLength = getArrayLength(paramKeys);
+            List<object> paramKeys = new List<object>(((IDictionary<string,object>)parameters).Keys);
+            int paramKeysLength = getArrayLength(paramKeys);
             if (isTrue(isGreaterThan(paramKeysLength, 0)))
             {
                 query = this.urlencode(parameters);
@@ -2295,7 +2295,7 @@ public partial class foxbit : Exchange
         {
             this.checkRequiredCredentials();
             object preHash = add(add(add(add(this.numberToString(timestamp), method), fullPath), signatureQuery), bodyToSignature);
-            object signature = this.hmac(this.encode(preHash), this.encode(this.secret), sha256, "hex");
+            string signature = this.hmac(this.encode(preHash), this.encode(this.secret), sha256, "hex");
             ((IDictionary<string,object>)headers)["X-FB-ACCESS-KEY"] = this.apiKey;
             ((IDictionary<string,object>)headers)["X-FB-ACCESS-TIMESTAMP"] = this.numberToString(timestamp);
             ((IDictionary<string,object>)headers)["X-FB-ACCESS-SIGNATURE"] = signature;

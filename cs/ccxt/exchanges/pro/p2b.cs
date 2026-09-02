@@ -62,7 +62,7 @@ public partial class p2b : ccxt.p2b
     /**
      * @ignore
      * @method
-     * @description Connects to a websocket channel
+     * @description connects to a websocket channel
      * @param {string} name name of the channel
      * @param {string} messageHash string to look up in handler
      * @param {string[]|float[]} request endpoint parameters
@@ -78,7 +78,7 @@ public partial class p2b : ccxt.p2b
             { "params", request },
             { "id", this.milliseconds() },
         };
-        object query = this.extend(subscribe, parameters);
+        Dictionary<string, object> query = this.extend(subscribe, parameters);
         return await this.watch(url, messageHash, query, messageHash);
     }
 
@@ -149,7 +149,7 @@ public partial class p2b : ccxt.p2b
         symbolVar = getValue(market, "symbol");
         ((IDictionary<string,object>)getValue(this.options, "tickerSubs"))[(string)((string)getValue(market, "id"))] = true; // we need to re-subscribe to all tickers upon watching a new ticker
         object tickerSubs = getValue(this.options, "tickerSubs");
-        object request = new List<object>(((IDictionary<string,object>)tickerSubs).Keys);
+        List<object> request = new List<object>(((IDictionary<string,object>)tickerSubs).Keys);
         object messageHash = add(add(name, "::"), getValue(market, "symbol"));
         return ccxt.BaseExchange.ToTicker(await this.subscribe(add(name, ".subscribe"), messageHash, request, parameters));
     }
@@ -248,7 +248,7 @@ public partial class p2b : ccxt.p2b
             { "params", marketIds },
             { "id", this.milliseconds() },
         };
-        object query = this.extend(subscribe, parameters);
+        Dictionary<string, object> query = this.extend(subscribe, parameters);
         object trades = await this.watchMultiple(url, messageHashes, query, messageHashes);
         if (isTrue(this.newUpdates))
         {
@@ -279,7 +279,7 @@ public partial class p2b : ccxt.p2b
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object name = "depth.subscribe";
+        string name = "depth.subscribe";
         object messageHash = add("orderbook::", getValue(market, "symbol"));
         object interval = this.safeString(parameters, "interval", "0.001");
         if (isTrue(isEqual(limitVar, null)))
@@ -314,7 +314,7 @@ public partial class p2b : ccxt.p2b
         object data = this.safeList(message, "params");
         data = this.safeList(data, 0);
         object method = this.safeString(message, "method");
-        object splitMethod = ((string)((string)method)).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
+        List<object> splitMethod = ((string)((string)method)).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         object channel = this.safeString(splitMethod, 0);
         object marketId = this.safeString(data, 7);
         object market = this.safeMarket(marketId);
@@ -421,7 +421,7 @@ public partial class p2b : ccxt.p2b
         object marketId = this.safeString(data, 0);
         object market = this.safeMarket(marketId);
         object method = this.safeString(message, "method");
-        object splitMethod = ((string)((string)method)).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
+        List<object> splitMethod = ((string)((string)method)).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         object messageHashStart = this.safeString(splitMethod, 0);
         object tickerData = this.safeDict(data, 1);
         object ticker = null;

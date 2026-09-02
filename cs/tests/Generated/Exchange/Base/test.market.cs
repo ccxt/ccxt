@@ -76,12 +76,12 @@ public partial class testMainClass : BaseTest
         object future = getValue(market, "future");
         object option = getValue(market, "option");
         object index = exchange.safeBool(market, "index"); // todo: unify
-        object isIndex = isTrue((!isEqual(index, null))) && isTrue(index);
+        bool isIndex = isTrue((!isEqual(index, null))) && isTrue(index);
         object linear = getValue(market, "linear");
         object inverse = getValue(market, "inverse");
         object quanto = exchange.safeBool(market, "quanto"); // todo: unify
-        object isQuanto = isTrue((!isEqual(quanto, null))) && isTrue(quanto);
-        object isInactiveMarket = isEqual(getValue(market, "active"), false);
+        bool isQuanto = isTrue((!isEqual(quanto, null))) && isTrue(quanto);
+        bool isInactiveMarket = isEqual(getValue(market, "active"), false);
         //
         object emptyAllowedFor = new List<object>() {"margin"};
         if (isTrue(!isEqual(contract, true)))
@@ -172,7 +172,7 @@ public partial class testMainClass : BaseTest
             testSharedMethods.assertInArray(exchange, skippedProperties, method, market, "margin", new List<object>() {false, null});
         }
         // check mutually exclusive fields
-        object isPrediction = (isEqual(getValue(market, "type"), "prediction"));
+        bool isPrediction = (isEqual(getValue(market, "type"), "prediction"));
         if (isTrue(isPrediction))
         {
             // prediction markets trade outcome shares — neither spot nor a derivative contract
@@ -256,16 +256,16 @@ public partial class testMainClass : BaseTest
             assert(isTrue((isEqual(getValue(market, "expiry"), null))) && isTrue((isEqual(getValue(market, "expiryDatetime"), null))), add("\"expiry\" and \"expiryDatetime\" must be undefined when it is not future|option market", logText));
         }
         // check precisions
-        object precisionKeys = new List<object>(((IDictionary<string,object>)getValue(market, "precision")).Keys);
-        object precisionKeysLen = getArrayLength(precisionKeys);
+        List<object> precisionKeys = new List<object>(((IDictionary<string,object>)getValue(market, "precision")).Keys);
+        int precisionKeysLen = getArrayLength(precisionKeys);
         assert(isGreaterThanOrEqual(precisionKeysLen, 2), add("precision should have \"amount\" and \"price\" keys at least", logText));
         for (object i = 0; isLessThan(i, getArrayLength(precisionKeys)); postFixIncrement(ref i))
         {
             object priceOrAmountKey = getValue(precisionKeys, i);
             // only allow very high priced markets (wher coin costs around 100k) to have a 5$ price tickSize
-            object isExclusivePair = isEqual(getValue(market, "baseId"), "BTC");
-            object isNonSpot = !isEqual(spot, true); // such high precision is only allowed in contract markets
-            object isPrice = isEqual(priceOrAmountKey, "price");
+            bool isExclusivePair = isEqual(getValue(market, "baseId"), "BTC");
+            bool isNonSpot = !isEqual(spot, true); // such high precision is only allowed in contract markets
+            bool isPrice = isEqual(priceOrAmountKey, "price");
             object isTickSize5 = Precise.stringEq("5", exchange.safeString(getValue(market, "precision"), priceOrAmountKey));
             if (isTrue(isTrue(isTrue(isTrue(isNonSpot) && isTrue(isPrice)) && isTrue(isExclusivePair)) && isTrue(isTickSize5)))
             {
@@ -277,8 +277,8 @@ public partial class testMainClass : BaseTest
             }
         }
         // check limits
-        object limitsKeys = new List<object>(((IDictionary<string,object>)getValue(market, "limits")).Keys);
-        object limitsKeysLength = getArrayLength(limitsKeys);
+        List<object> limitsKeys = new List<object>(((IDictionary<string,object>)getValue(market, "limits")).Keys);
+        int limitsKeysLength = getArrayLength(limitsKeys);
         assert(isGreaterThanOrEqual(limitsKeysLength, 3), add("limits should have \"amount\", \"price\" and \"cost\" keys at least", logText));
         for (object i = 0; isLessThan(i, getArrayLength(limitsKeys)); postFixIncrement(ref i))
         {

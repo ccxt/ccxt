@@ -9,7 +9,7 @@ public partial class testMainClass : BaseTest
 {
     async static public Task<object> testFetchMyTrades(BaseExchange exchange, object skippedProperties, object symbol)
     {
-        object method = "fetchMyTrades";
+        string method = "fetchMyTrades";
         object trades = await invokeExchangeDynamically(exchange, "fetchMyTrades", symbol);
         testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, trades, symbol);
         object now = exchange.milliseconds();

@@ -54,7 +54,7 @@ public partial class upbit : ccxt.upbit
             { "hostname", this.hostname },
         });
         var client = this.client(url);
-        object subscriptionsKey = "upbitPublicSubscriptions";
+        string subscriptionsKey = "upbitPublicSubscriptions";
         if (!isTrue((inOp(((WebSocketClient)client).subscriptions, subscriptionsKey))))
         {
             ((IDictionary<string,object>)((WebSocketClient)client).subscriptions)[(string)subscriptionsKey] = new Dictionary<string, object>() {};
@@ -78,7 +78,7 @@ public partial class upbit : ccxt.upbit
         object finalMessage = new List<object>() {new Dictionary<string, object>() {
     { "ticket", this.uuid() },
 }};
-        object channelKeys = new List<object>(((IDictionary<string,object>)subscriptions).Keys);
+        List<object> channelKeys = new List<object>(((IDictionary<string,object>)subscriptions).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(channelKeys)); postFixIncrement(ref i))
         {
             object key = getValue(channelKeys, i);
@@ -421,7 +421,7 @@ public partial class upbit : ccxt.upbit
         url = add(url, "/private");
         var client = this.client(url);
         // Track private channel subscriptions to support multiple concurrent watches
-        object subscriptionsKey = "upbitPrivateSubscriptions";
+        string subscriptionsKey = "upbitPrivateSubscriptions";
         if (!isTrue((inOp(((WebSocketClient)client).subscriptions, subscriptionsKey))))
         {
             ((IDictionary<string,object>)((WebSocketClient)client).subscriptions)[(string)subscriptionsKey] = new Dictionary<string, object>() {};
@@ -432,7 +432,7 @@ public partial class upbit : ccxt.upbit
             channelKey = add(add(channel, ":"), symbol);
         }
         object subscriptions = getValue(((WebSocketClient)client).subscriptions, subscriptionsKey);
-        object isNewChannel = !isTrue((inOp(subscriptions, channelKey)));
+        bool isNewChannel = !isTrue((inOp(subscriptions, channelKey)));
         if (isTrue(isNewChannel))
         {
             ((IDictionary<string,object>)subscriptions)[(string)channelKey] = request;
@@ -440,7 +440,7 @@ public partial class upbit : ccxt.upbit
         // Build subscription message with all requested private channels
         // Format: [{'ticket': uuid}, {'type': 'myOrder'}, {'type': 'myAsset'}, ...]
         object requests = new List<object>() {};
-        object channelKeys = new List<object>(((IDictionary<string,object>)subscriptions).Keys);
+        List<object> channelKeys = new List<object>(((IDictionary<string,object>)subscriptions).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(channelKeys)); postFixIncrement(ref i))
         {
             ((IList<object>)requests).Add(getValue(subscriptions, getValue(channelKeys, i)));
@@ -474,8 +474,8 @@ public partial class upbit : ccxt.upbit
         {
             await this.loadMarkets();
         }
-        object channel = "myOrder";
-        object messageHash = "myOrder";
+        string channel = "myOrder";
+        string messageHash = "myOrder";
         object orders = await this.watchPrivate(symbol, channel, messageHash);
         if (isTrue(this.newUpdates))
         {
@@ -503,8 +503,8 @@ public partial class upbit : ccxt.upbit
         {
             await this.loadMarkets();
         }
-        object channel = "myOrder";
-        object messageHash = "myTrades";
+        string channel = "myOrder";
+        string messageHash = "myTrades";
         object trades = await this.watchPrivate(symbol, channel, messageHash);
         if (isTrue(this.newUpdates))
         {
@@ -722,8 +722,8 @@ public partial class upbit : ccxt.upbit
         {
             await this.loadMarkets();
         }
-        object channel = "myAsset";
-        object messageHash = "myAsset";
+        string channel = "myAsset";
+        string messageHash = "myAsset";
         return ccxt.BaseExchange.ToBalances(await this.watchPrivate(null, channel, messageHash));
     }
 

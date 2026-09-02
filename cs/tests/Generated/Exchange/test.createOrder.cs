@@ -11,7 +11,7 @@ public partial class testMainClass : BaseTest
     public static object tcoDebug(BaseExchange exchange, object symbol, object message)
     {
         // just for debugging purposes
-        object debugCreateOrder = true;
+        bool debugCreateOrder = true;
         if (isTrue(debugCreateOrder))
         {
             // for c# fix, extra step to convert them to string
@@ -24,15 +24,15 @@ public partial class testMainClass : BaseTest
     async static public Task<object> testCreateOrder(BaseExchange exchange, object skippedProperties, object symbol)
     {
         object logPrefix = testSharedMethods.logTemplate(exchange, "createOrder", new List<object>() {symbol});
-        object hasCancelOrder = isTrue((!isEqual(getValue(exchange.has, "cancelOrder"), null))) && isTrue((!isEqual(getValue(exchange.has, "cancelOrder"), false)));
-        object hasCancelOrders = isTrue((!isEqual(getValue(exchange.has, "cancelOrders"), null))) && isTrue((!isEqual(getValue(exchange.has, "cancelOrders"), false)));
-        object hasCancelAllOrders = isTrue((!isEqual(getValue(exchange.has, "cancelAllOrders"), null))) && isTrue((!isEqual(getValue(exchange.has, "cancelAllOrders"), false)));
+        bool hasCancelOrder = isTrue((!isEqual(getValue(exchange.has, "cancelOrder"), null))) && isTrue((!isEqual(getValue(exchange.has, "cancelOrder"), false)));
+        bool hasCancelOrders = isTrue((!isEqual(getValue(exchange.has, "cancelOrders"), null))) && isTrue((!isEqual(getValue(exchange.has, "cancelOrders"), false)));
+        bool hasCancelAllOrders = isTrue((!isEqual(getValue(exchange.has, "cancelAllOrders"), null))) && isTrue((!isEqual(getValue(exchange.has, "cancelAllOrders"), false)));
         assert(isTrue(isTrue(hasCancelOrder) || isTrue(hasCancelOrders)) || isTrue(hasCancelAllOrders), add(logPrefix, " does not have cancelOrder|cancelOrders|canelAllOrders method, which is needed to make tests for `createOrder` method. Skipping the test..."));
         // pre-define some coefficients, which will be used down below
         object limitPriceSafetyMultiplierFromMedian = 1.045; // todo: when this https://github.com/ccxt/ccxt/issues/22442 is implemented, we'll remove hardcoded value. atm 5% is enough
         object market = exchange.market(symbol);
-        object isSwapFuture = isTrue((isEqual(getValue(market, "swap"), true))) || isTrue((isEqual(getValue(market, "future"), true)));
-        object hasFetchBalance = isTrue((!isEqual(getValue(exchange.has, "fetchBalance"), null))) && isTrue((!isEqual(getValue(exchange.has, "fetchBalance"), false)));
+        bool isSwapFuture = isTrue((isEqual(getValue(market, "swap"), true))) || isTrue((isEqual(getValue(market, "future"), true)));
+        bool hasFetchBalance = isTrue((!isEqual(getValue(exchange.has, "fetchBalance"), null))) && isTrue((!isEqual(getValue(exchange.has, "fetchBalance"), false)));
         assert(hasFetchBalance, add(logPrefix, " does not have fetchBalance() method, which is needed to make tests for `createOrder` method. Skipping the test..."));
         object balance = await invokeExchangeDynamically(exchange, "fetchBalance");
         object initialBaseBalance = getValue(getValue(balance, getValue(market, "base")), "free");
@@ -119,8 +119,8 @@ public partial class testMainClass : BaseTest
     {
         try
         {
-            object isSwapFuture = isTrue((isEqual(getValue(market, "swap"), true))) || isTrue((isEqual(getValue(market, "future"), true)));
-            object isBuy = (isEqual(buyOrSellString, "buy"));
+            bool isSwapFuture = isTrue((isEqual(getValue(market, "swap"), true))) || isTrue((isEqual(getValue(market, "future"), true)));
+            bool isBuy = (isEqual(buyOrSellString, "buy"));
             object entrySide = ((bool) isTrue(isBuy)) ? "buy" : "sell";
             object exitSide = ((bool) isTrue(isBuy)) ? "sell" : "buy";
             object entryorderPrice = ((bool) isTrue(isBuy)) ? multiply(bestAsk, limitPriceSafetyMultiplierFromMedian) : divide(bestBid, limitPriceSafetyMultiplierFromMedian);
@@ -180,7 +180,7 @@ public partial class testMainClass : BaseTest
     async static public Task<object> tcoCancelOrder(BaseExchange exchange, object symbol, object orderId = null)
     {
         object logPrefix = testSharedMethods.logTemplate(exchange, "createOrder", new List<object>() {symbol});
-        object usedMethod = "";
+        string usedMethod = "";
         object cancelResult = null;
         if (isTrue(isTrue(isTrue((!isEqual(getValue(exchange.has, "cancelOrder"), null))) && isTrue((!isEqual(getValue(exchange.has, "cancelOrder"), false)))) && isTrue((!isEqual(orderId, null)))))
         {
@@ -258,7 +258,7 @@ public partial class testMainClass : BaseTest
         }
         // because it's possible that calculated value might get truncated down in "createOrder" (i.e. 0.129 -> 0.12), we should ensure that final amount * price would bypass minimum cost requirements, by adding the "minimum precision"
         object amountPrecision = exchange.safeNumber(getValue(market, "precision"), "amount");
-        object isTickSizePrecision = isEqual(exchange.precisionMode, 4);
+        bool isTickSizePrecision = isEqual(exchange.precisionMode, 4);
         if (isTrue(isEqual(amountPrecision, null)))
         {
             amountPrecision = 1e-15; // todo: revise this for better way in future

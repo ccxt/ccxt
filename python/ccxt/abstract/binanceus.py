@@ -577,7 +577,7 @@ class ImplicitAPI:
     fapipublic_get_premiumindex = fapiPublicGetPremiumIndex = Entry[_List]('premiumIndex', 'fapiPublic', 'GET', {'cost': 1})
     fapipublic_get_ticker_24hr = fapiPublicGetTicker24hr = Entry[_Dict | _List]('ticker/24hr', 'fapiPublic', 'GET', {'cost': 1, 'noSymbol': 40})
     fapipublic_get_ticker_price = fapiPublicGetTickerPrice = Entry[_Dict | _List]('ticker/price', 'fapiPublic', 'GET', {'cost': 1, 'noSymbol': 2})
-    fapipublic_get_ticker_bookticker = fapiPublicGetTickerBookTicker = Entry[_List]('ticker/bookTicker', 'fapiPublic', 'GET', {'cost': 1, 'noSymbol': 2})
+    fapipublic_get_ticker_bookticker = fapiPublicGetTickerBookTicker = Entry[_Dict | _List]('ticker/bookTicker', 'fapiPublic', 'GET', {'cost': 2, 'noSymbol': 5})
     fapipublic_get_openinterest = fapiPublicGetOpenInterest = Entry[_Dict]('openInterest', 'fapiPublic', 'GET', {'cost': 1})
     fapipublic_get_indexinfo = fapiPublicGetIndexInfo = Entry[_List]('indexInfo', 'fapiPublic', 'GET', {'cost': 1})
     fapipublic_get_assetindex = fapiPublicGetAssetIndex = Entry[_Dict]('assetIndex', 'fapiPublic', 'GET', {'cost': 1, 'noSymbol': 10})

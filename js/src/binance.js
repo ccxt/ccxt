@@ -875,7 +875,7 @@ export default class binance extends Exchange {
                         'premiumIndex': { 'cost': 1 },
                         'ticker/24hr': { 'cost': 1, 'noSymbol': 40 },
                         'ticker/price': { 'cost': 1, 'noSymbol': 2 },
-                        'ticker/bookTicker': { 'cost': 1, 'noSymbol': 2 },
+                        'ticker/bookTicker': { 'cost': 2, 'noSymbol': 5 },
                         'openInterest': { 'cost': 1 },
                         'indexInfo': { 'cost': 1 },
                         'assetIndex': { 'cost': 1, 'noSymbol': 10 },
@@ -1348,7 +1348,7 @@ export default class binance extends Exchange {
                         'spot', // allows CORS in browsers
                         'linear', // allows CORS in browsers
                         'inverse', // allows CORS in browsers
-                        'stock',
+                        // 'stock', // tokenized stocks share the spot symbol namespace, enable explicitly
                         // 'option', // does not allow CORS, enable outside of the browser only
                     ],
                     'loadAllOptions': false,
@@ -4767,18 +4767,24 @@ export default class binance extends Exchange {
         [type, params] = this.handleMarketTypeAndParams('fetchBidsAsks', market, params);
         let subType = undefined;
         [subType, params] = this.handleSubTypeAndParams('fetchBidsAsks', market, params);
+        const request = {};
+        if ((symbols !== undefined) && (this.isLinear(type, subType) || this.isInverse(type, subType))) {
+            const symbolsLength = symbols.length;
+            if (symbolsLength === 1) {
+                request['symbol'] = this.marketId(symbols[0]);
+            }
+        }
         let response = undefined;
         if (type === 'option') {
             response = await this.eapiPublicGetTicker(params);
         }
         else if (this.isLinear(type, subType)) {
-            response = await this.fapiPublicGetTickerBookTicker(params);
+            response = await this.fapiPublicGetTickerBookTicker(this.extend(request, params));
         }
         else if (this.isInverse(type, subType)) {
-            response = await this.dapiPublicGetTickerBookTicker(params);
+            response = await this.dapiPublicGetTickerBookTicker(this.extend(request, params));
         }
         else if (type === 'spot') {
-            const request = {};
             if (symbols !== undefined) {
                 request['symbols'] = this.json(this.marketIds(symbols));
             }
@@ -4786,6 +4792,9 @@ export default class binance extends Exchange {
         }
         else {
             throw new NotSupported(this.id + ' fetchBidsAsks() does not support ' + type + ' markets yet');
+        }
+        if (!Array.isArray(response)) {
+            response = [response];
         }
         return this.parseTickers(response, symbols);
     }

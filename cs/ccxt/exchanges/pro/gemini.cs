@@ -279,7 +279,7 @@ public partial class gemini : ccxt.gemini
                 callDynamically(stored, "append", new object[] {trade});
                 ((IDictionary<string,object>)storesForSymbols)[(string)symbol] = stored;
             }
-            object symbols = new List<object>(((IDictionary<string,object>)storesForSymbols).Keys);
+            List<object> symbols = new List<object>(((IDictionary<string,object>)storesForSymbols).Keys);
             for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
             {
                 object symbol = getValue(symbols, i);
@@ -360,9 +360,9 @@ public partial class gemini : ccxt.gemini
         //
         object type = this.safeString(message, "type", "");
         object timeframeId = slice(type, 8, null);
-        object timeframeEndIndex = getIndexOf(timeframeId, "_");
+        int timeframeEndIndex = getIndexOf(timeframeId, "_");
         timeframeId = slice(timeframeId, 0, timeframeEndIndex);
-        object marketId = ((string)this.safeString(message, "symbol", "")).ToLower();
+        string marketId = ((string)this.safeString(message, "symbol", "")).ToLower();
         object market = this.safeMarket(marketId);
         object symbol = this.safeSymbol(marketId, market);
         object changes = this.safeValue(message, "changes", new List<object>() {});
@@ -382,7 +382,7 @@ public partial class gemini : ccxt.gemini
                 ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)timeframe] = stored;
             }
         }
-        object changesLength = getArrayLength(changes);
+        int changesLength = getArrayLength(changes);
         // reverse order of array to store candles in ascending order
         for (object i = 0; isLessThan(i, changesLength); postFixIncrement(ref i))
         {
@@ -434,7 +434,7 @@ public partial class gemini : ccxt.gemini
 
     public virtual void handleOrderBook(WebSocketClient client, object message)
     {
-        object isInitial = isTrue(isTrue((inOp(message, "auction_events"))) && isTrue((inOp(message, "trades")))) && isTrue((inOp(message, "changes")));
+        bool isInitial = isTrue(isTrue((inOp(message, "auction_events"))) && isTrue((inOp(message, "trades")))) && isTrue((inOp(message, "changes")));
         object changes = this.safeValue(message, "changes", new List<object>() {});
         object marketId = this.safeStringLower(message, "symbol");
         object market = this.safeMarket(marketId);
@@ -598,7 +598,7 @@ public partial class gemini : ccxt.gemini
             object market = this.market(symbol);
             ((IList<object>)marketIds).Add(getValue(market, "id"));
         }
-        object queryStr = String.Join(",", ((IList<object>)marketIds).ToArray());
+        string queryStr = String.Join(",", ((IList<object>)marketIds).ToArray());
         object url = add(add(add(getValue(getValue(this.urls, "api"), "ws"), "/v1/multimarketdata?symbols="), queryStr), "&heartbeat=true&");
         if (isTrue(isEqual(itemHashName, "orderbook")))
         {
@@ -739,7 +739,7 @@ public partial class gemini : ccxt.gemini
             object market = this.market(symbolVar);
             symbolVar = getValue(market, "symbol");
         }
-        object messageHash = "orders";
+        string messageHash = "orders";
         object orders = await this.watch(url, messageHash, null, messageHash);
         if (isTrue(this.newUpdates))
         {
@@ -803,7 +803,7 @@ public partial class gemini : ccxt.gemini
         //         }
         //     ]
         //
-        object messageHash = "orders";
+        string messageHash = "orders";
         if (isTrue(isEqual(this.orders, null)))
         {
             object limit = this.safeInteger(this.options, "ordersLimit", 1000);
@@ -846,8 +846,8 @@ public partial class gemini : ccxt.gemini
         object marketId = this.safeString(order, "symbol");
         object typeId = this.safeString(order, "order_type");
         object behavior = this.safeString(order, "behavior");
-        object timeInForce = "GTC";
-        object postOnly = false;
+        string timeInForce = "GTC";
+        bool postOnly = false;
         if (isTrue(isEqual(behavior, "immediate-or-cancel")))
         {
             timeInForce = "IOC";
@@ -949,7 +949,7 @@ public partial class gemini : ccxt.gemini
         //         }
         //     ]
         //
-        object isArray = ((message is IList<object>) || (message.GetType().IsGenericType && message.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
+        bool isArray = ((message is IList<object>) || (message.GetType().IsGenericType && message.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
         if (isTrue(isArray))
         {
             this.handleOrder(client as WebSocketClient, message);
@@ -990,14 +990,14 @@ public partial class gemini : ccxt.gemini
             object orderBookItems = new List<object>() {};
             object bidaskItems = new List<object>() {};
             object collectedEventsOfTrades = new List<object>() {};
-            object eventsLength = getArrayLength(events);
+            int eventsLength = getArrayLength(events);
             for (object i = 0; isLessThan(i, getArrayLength(events)); postFixIncrement(ref i))
             {
                 object eventVar = getValue(events, i);
                 object eventType = this.safeString(eventVar, "type");
-                object isOrderBook = isTrue(isTrue((isEqual(eventType, "change"))) && isTrue((inOp(eventVar, "side")))) && isTrue(this.inArray(getValue(eventVar, "side"), new List<object>() {"ask", "bid"}));
+                bool isOrderBook = isTrue(isTrue((isEqual(eventType, "change"))) && isTrue((inOp(eventVar, "side")))) && isTrue(this.inArray(getValue(eventVar, "side"), new List<object>() {"ask", "bid"}));
                 object eventReason = this.safeString(eventVar, "reason");
-                object isBidAsk = isTrue((isEqual(eventReason, "top-of-book"))) || isTrue((isTrue(isTrue(isOrderBook) && isTrue((isEqual(eventReason, "initial")))) && isTrue(isEqual(eventsLength, 2))));
+                bool isBidAsk = isTrue((isEqual(eventReason, "top-of-book"))) || isTrue((isTrue(isTrue(isOrderBook) && isTrue((isEqual(eventReason, "initial")))) && isTrue(isEqual(eventsLength, 2))));
                 if (isTrue(isBidAsk))
                 {
                     ((IList<object>)bidaskItems).Add(eventVar);
@@ -1009,17 +1009,17 @@ public partial class gemini : ccxt.gemini
                     ((IList<object>)collectedEventsOfTrades).Add(getValue(events, i));
                 }
             }
-            object lengthBa = getArrayLength(bidaskItems);
+            int lengthBa = getArrayLength(bidaskItems);
             if (isTrue(isGreaterThan(lengthBa, 0)))
             {
                 this.handleBidsAsksForMultidata(client as WebSocketClient, bidaskItems, ts, eventId);
             }
-            object lengthOb = getArrayLength(orderBookItems);
+            int lengthOb = getArrayLength(orderBookItems);
             if (isTrue(isGreaterThan(lengthOb, 0)))
             {
                 this.handleOrderBookForMultidata(client as WebSocketClient, orderBookItems, ts, eventId);
             }
-            object lengthTrades = getArrayLength(collectedEventsOfTrades);
+            int lengthTrades = getArrayLength(collectedEventsOfTrades);
             if (isTrue(isGreaterThan(lengthTrades, 0)))
             {
                 this.handleTradesForMultidata(client as WebSocketClient, collectedEventsOfTrades, ts);
@@ -1040,9 +1040,9 @@ public partial class gemini : ccxt.gemini
             return;
         }
         this.checkRequiredCredentials();
-        object startIndex = getArrayLength(getValue(getValue(this.urls, "api"), "ws"));
-        object urlParamsIndex = getIndexOf(url, "?");
-        object urlLength = ((string)url).Length;
+        int startIndex = getArrayLength(getValue(getValue(this.urls, "api"), "ws"));
+        int urlParamsIndex = getIndexOf(url, "?");
+        int urlLength = ((string)url).Length;
         object endIndex = ((bool) isTrue((isGreaterThanOrEqual(urlParamsIndex, 0)))) ? urlParamsIndex : urlLength;
         object request = slice(url, startIndex, endIndex);
         object payload = new Dictionary<string, object>() {
@@ -1050,7 +1050,7 @@ public partial class gemini : ccxt.gemini
             { "nonce", this.nonce() },
         };
         object b64 = this.stringToBase64(this.json(payload));
-        object signature = this.hmac(this.encode(b64), this.encode(this.secret), sha384, "hex");
+        string signature = this.hmac(this.encode(b64), this.encode(this.secret), sha384, "hex");
         object defaultOptions = new Dictionary<string, object>() {
             { "ws", new Dictionary<string, object>() {
                 { "options", new Dictionary<string, object>() {

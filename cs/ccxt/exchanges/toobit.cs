@@ -1127,21 +1127,21 @@ public partial class toobit : Exchange
         object id = this.safeString(market, "symbol");
         object baseId = this.safeString(market, "baseAsset", "");
         object quoteId = this.safeString(market, "quoteAsset");
-        object baseParts = ((string)baseId).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
+        List<object> baseParts = ((string)baseId).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
         object baseIdClean = getValue(baseParts, 0);
         object bs = this.safeCurrencyCode(baseIdClean);
         object quote = this.safeCurrencyCode(quoteId);
         object settleId = this.safeString(market, "marginToken");
         object settle = this.safeCurrencyCode(settleId);
         object status = this.safeString(market, "status");
-        object active = (isEqual(status, "TRADING"));
+        bool active = (isEqual(status, "TRADING"));
         object filters = this.safeList(market, "filters", new List<object>() {});
-        object filtersByType = this.indexBy(filters, "filterType");
+        Dictionary<string, object> filtersByType = this.indexBy(filters, "filterType");
         object priceFilter = this.safeDict(filtersByType, "PRICE_FILTER", new Dictionary<string, object>() {});
         object lotSizeFilter = this.safeDict(filtersByType, "LOT_SIZE", new Dictionary<string, object>() {});
         object minNotionalFilter = this.safeDict(filtersByType, "MIN_NOTIONAL", new Dictionary<string, object>() {});
         object symbol = add(add(bs, "/"), quote);
-        object isContract = (inOp(market, "contractMultiplier"));
+        bool isContract = (inOp(market, "contractMultiplier"));
         object inverse = this.safeBool2(market, "isInverse", "inverse");
         if (isTrue(isContract))
         {
@@ -1507,7 +1507,7 @@ public partial class toobit : Exchange
             {
                 market = this.market(symbol);
             }
-            object length = getArrayLength(symbols);
+            int length = getArrayLength(symbols);
             if (isTrue(isTrue((isEqual(length, 1))) && isTrue((!isEqual(market, null)))))
             {
                 ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
@@ -1600,7 +1600,7 @@ public partial class toobit : Exchange
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(symbols, null)))
         {
-            object length = getArrayLength(symbols);
+            int length = getArrayLength(symbols);
             if (isTrue(isEqual(length, 1)))
             {
                 object market = this.market(getValue(symbols, 0));
@@ -1654,7 +1654,7 @@ public partial class toobit : Exchange
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(symbols, null)))
         {
-            object length = getArrayLength(symbols);
+            int length = getArrayLength(symbols);
             if (isTrue(isEqual(length, 1)))
             {
                 object market = this.market(getValue(symbols, 0));
@@ -1683,7 +1683,7 @@ public partial class toobit : Exchange
         for (object i = 0; isLessThan(i, getArrayLength(tickers)); postFixIncrement(ref i))
         {
             object parsedTicker = this.parseBidAskCustom(getValue(tickers, i));
-            object ticker = this.extend(parsedTicker, parameters);
+            Dictionary<string, object> ticker = this.extend(parsedTicker, parameters);
             ((IList<object>)results).Add(ticker);
         }
         symbols = this.marketSymbols(symbols);
@@ -1692,9 +1692,15 @@ public partial class toobit : Exchange
 
     public virtual object parseBidAskCustom(object ticker)
     {
+        // 's' is the exchange id and 't' a millisecond integer, the pair parseTicker
+        // reads through safeMarket and safeInteger. The caller filters on a unified symbol.
+        object marketId = this.safeString(ticker, "s");
+        object market = this.safeMarket(marketId);
+        object timestamp = this.safeInteger(ticker, "t");
         return new Dictionary<string, object>() {
-            { "timestamp", this.safeString(ticker, "t") },
-            { "symbol", this.safeString(ticker, "s") },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "symbol", getValue(market, "symbol") },
             { "bid", this.safeNumber(ticker, "b") },
             { "bidVolume", this.safeNumber(ticker, "bq") },
             { "ask", this.safeNumber(ticker, "a") },
@@ -1723,7 +1729,7 @@ public partial class toobit : Exchange
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(symbols, null)))
         {
-            object length = getArrayLength(symbols);
+            int length = getArrayLength(symbols);
             if (isTrue(isEqual(length, 1)))
             {
                 object market = this.market(getValue(symbols, 0));
@@ -2063,8 +2069,8 @@ public partial class toobit : Exchange
         }
         object stopLoss = this.safeDict(parameters, "stopLoss");
         object takeProfit = this.safeDict(parameters, "takeProfit");
-        object hasStopLoss = (!isEqual(stopLoss, null));
-        object hasTakeProfit = (!isEqual(takeProfit, null));
+        bool hasStopLoss = (!isEqual(stopLoss, null));
+        bool hasTakeProfit = (!isEqual(takeProfit, null));
         object triggerPriceTypes = new Dictionary<string, object>() {
             { "mark", "MARK_PRICE" },
             { "last", "CONTRACT_PRICE" },
@@ -2179,7 +2185,7 @@ public partial class toobit : Exchange
             // contract orders arrive as BUY_OPEN, SELL_CLOSE and the like -
             // the suffix is the only signal that carries reduceOnly, so read
             // it before discarding it (spot sides have no suffix: undefined)
-            object sideParts = ((string)rawSideLower).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+            List<object> sideParts = ((string)rawSideLower).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
             object sideSuffix = this.safeString(sideParts, 1);
             if (isTrue(!isEqual(sideSuffix, null)))
             {
@@ -2365,7 +2371,7 @@ public partial class toobit : Exchange
         {
             await this.loadMarkets();
         }
-        object idsString = String.Join(",", ((IList<object>)ids).ToArray());
+        string idsString = String.Join(",", ((IList<object>)ids).ToArray());
         object request = new Dictionary<string, object>() {
             { "ids", idsString },
         };
@@ -2807,7 +2813,7 @@ public partial class toobit : Exchange
         object after = this.safeNumber(item, "total");
         object amountRaw = this.safeString(item, "change", "");
         object amount = this.parseNumber(Precise.stringAbs(amountRaw));
-        object direction = "in";
+        string direction = "in";
         if (isTrue(((string)amountRaw).StartsWith(((string)"-"))))
         {
             direction = "out";
@@ -3039,7 +3045,7 @@ public partial class toobit : Exchange
         object tagFrom = this.safeString(transaction, "fromAddressTag");
         object addressTo = this.safeString(transaction, "address");
         object addressFrom = this.safeString(transaction, "fromAddress");
-        object isWithdraw = (inOp(transaction, "arriveQuantity"));
+        bool isWithdraw = (inOp(transaction, "arriveQuantity"));
         object type = ((bool) isTrue(isWithdraw)) ? "withdrawal" : "deposit";
         return new Dictionary<string, object>() {
             { "info", transaction },
@@ -3331,7 +3337,7 @@ public partial class toobit : Exchange
         object market = null;
         if (isTrue(!isEqual(symbols, null)))
         {
-            object length = getArrayLength(symbols);
+            int length = getArrayLength(symbols);
             if (isTrue(isGreaterThan(length, 1)))
             {
                 throw new BadRequest ((string)add(this.id, " fetchPositions() only accepts an array with a single symbol or without symbols argument")) ;
@@ -3411,8 +3417,8 @@ public partial class toobit : Exchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         object url = add(add(getValue(getValue(this.urls, "api"), api), "/"), this.implodeParams(path, parameters));
-        object isPost = isEqual(method, "POST");
-        object isDelete = isEqual(method, "DELETE");
+        bool isPost = isEqual(method, "POST");
+        bool isDelete = isEqual(method, "DELETE");
         object extraQuery = new Dictionary<string, object>() {};
         object query = this.omit(parameters, this.extractParams(path));
         if (isTrue(!isEqual(api, "private")))
@@ -3428,11 +3434,11 @@ public partial class toobit : Exchange
         } else
         {
             this.checkRequiredCredentials();
-            object timestamp = this.milliseconds();
+            Int64 timestamp = this.milliseconds();
             // Add timestamp to parameters for signed endpoints
             ((IDictionary<string,object>)extraQuery)["recvWindow"] = this.safeString(this.options, "recvWindow", "5000");
             ((IDictionary<string,object>)extraQuery)["timestamp"] = ((object)timestamp).ToString();
-            object queryExtended = this.extend(query, extraQuery);
+            Dictionary<string, object> queryExtended = this.extend(query, extraQuery);
             object queryString = "";
             if (isTrue(isTrue(isPost) || isTrue(isDelete)))
             {
@@ -3454,7 +3460,7 @@ public partial class toobit : Exchange
             {
                 payload = add(body, payload);
             }
-            object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "hex");
+            string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "hex");
             if (isTrue(!isEqual(queryString, "")))
             {
                 queryString = add(queryString, add("&signature=", signature));

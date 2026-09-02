@@ -9,7 +9,7 @@ public partial class testMainClass : BaseTest
 {
     async static public Task<object> testFetchBalance(BaseExchange exchange, object skippedProperties)
     {
-        object method = "fetchBalance";
+        string method = "fetchBalance";
         object response = await invokeExchangeDynamically(exchange, "fetchBalance");
         testBalance(exchange, skippedProperties, method, response);
         return true;

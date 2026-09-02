@@ -411,7 +411,7 @@ public partial class dydx : ccxt.dydx
         // }
         //
         object id = this.safeString(message, "id", "");
-        object part = ((string)id).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
+        List<object> part = ((string)id).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
         object interval = this.safeString(part, 1);
         object timeframe = this.findTimeframe(interval);
         object marketId = this.safeString(part, 0);

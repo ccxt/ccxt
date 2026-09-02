@@ -72,7 +72,7 @@ public partial class bitstamp : ccxt.bitstamp
                 { "channel", channel },
             } },
         };
-        object message = this.extend(request, parameters);
+        Dictionary<string, object> message = this.extend(request, parameters);
         object orderbook = await this.watch(url, messageHash, message, messageHash);
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
@@ -107,7 +107,7 @@ public partial class bitstamp : ccxt.bitstamp
         {
             return;
         }
-        object parts = ((string)channel).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = ((string)channel).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
         object marketId = this.safeString(parts, 3);
         object symbol = this.safeSymbol(marketId);
         object storedOrderBook = this.safeValue(this.orderbooks, symbol);
@@ -121,7 +121,7 @@ public partial class bitstamp : ccxt.bitstamp
         object messageHash = add("orderbook:", symbol);
         if (isTrue(isEqual(nonce, null)))
         {
-            object cacheLength = getArrayLength((storedOrderBook as ccxt.pro.OrderBook).cache);
+            int cacheLength = getArrayLength((storedOrderBook as ccxt.pro.OrderBook).cache);
             // the rest API is very delayed
             // usually it takes at least 4-5 deltas to resolve
             object snapshotDelay = this.handleOption("watchOrderBook", "snapshotDelay", 6);
@@ -218,7 +218,7 @@ public partial class bitstamp : ccxt.bitstamp
                 { "channel", channel },
             } },
         };
-        object message = this.extend(request, parameters);
+        Dictionary<string, object> message = this.extend(request, parameters);
         object trades = await this.watch(url, messageHash, message, messageHash);
         if (isTrue(this.newUpdates))
         {
@@ -299,7 +299,7 @@ public partial class bitstamp : ccxt.bitstamp
         {
             return;
         }
-        object parts = ((string)channel).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = ((string)channel).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
         object marketId = this.safeString(parts, 2);
         object market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
@@ -342,7 +342,7 @@ public partial class bitstamp : ccxt.bitstamp
         }
         object market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
-        object channel = "private-my_orders";
+        string channel = "private-my_orders";
         object messageHash = add(add(channel, "_"), getValue(market, "id"));
         object subscription = new Dictionary<string, object>() {
             { "symbol", symbolVar },
@@ -487,7 +487,7 @@ public partial class bitstamp : ccxt.bitstamp
         {
             return;
         }
-        object parts = ((string)channel).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = ((string)channel).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
         object marketId = this.safeString(parts, 3);
         object symbol = this.safeSymbol(marketId);
         ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
@@ -567,7 +567,7 @@ public partial class bitstamp : ccxt.bitstamp
             { "diff_order_book", this.handleOrderBook },
             { "private-my_orders", this.handleOrders },
         };
-        object keys = new List<object>(((IDictionary<string,object>)methods).Keys);
+        List<object> keys = new List<object>(((IDictionary<string,object>)methods).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object key = getValue(keys, i);
@@ -649,7 +649,7 @@ public partial class bitstamp : ccxt.bitstamp
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
-        object time = this.milliseconds();
+        Int64 time = this.milliseconds();
         object expiresIn = this.safeInteger(this.options, "expiresIn");
         if (isTrue(isTrue((isEqual(expiresIn, null))) || isTrue((isGreaterThan(time, expiresIn)))))
         {
@@ -663,7 +663,7 @@ public partial class bitstamp : ccxt.bitstamp
             // the flight is registered in client.futures and settled through
             // client.resolve / ((WebSocketClient)client).reject, so every mutation of that map
             // goes through the client's own accessors in the ported languages
-            object messageHash = "authenticateFlight";
+            string messageHash = "authenticateFlight";
             var client = this.client("authenticationFlights");
             if (isTrue(inOp(client.futures, messageHash)))
             {

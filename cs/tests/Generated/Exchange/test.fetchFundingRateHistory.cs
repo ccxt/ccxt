@@ -9,7 +9,7 @@ public partial class testMainClass : BaseTest
 {
     async static public Task<object> testFetchFundingRateHistory(BaseExchange exchange, object skippedProperties, object symbol)
     {
-        object method = "fetchFundingRateHistory";
+        string method = "fetchFundingRateHistory";
         object fundingRatesHistory = await invokeExchangeDynamically(exchange, "fetchFundingRateHistory", symbol);
         testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, fundingRatesHistory, symbol);
         for (object i = 0; isLessThan(i, getArrayLength(fundingRatesHistory)); postFixIncrement(ref i))

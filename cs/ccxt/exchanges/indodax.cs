@@ -406,7 +406,7 @@ public partial class indodax : Exchange
             object bs = this.safeCurrencyCode(baseId);
             object quote = this.safeCurrencyCode(quoteId);
             object isMaintenance = this.safeInteger(market, "is_maintenance");
-            object inMaintenance = isTrue((!isEqual(isMaintenance, null))) && isTrue((!isEqual(isMaintenance, 0)));
+            bool inMaintenance = isTrue((!isEqual(isMaintenance, null))) && isTrue((!isEqual(isMaintenance, 0)));
             ((IList<object>)result).Add(new Dictionary<string, object>() {
                 { "id", id },
                 { "symbol", add(add(bs, "/"), quote) },
@@ -474,7 +474,7 @@ public partial class indodax : Exchange
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
         };
-        object currencyIds = new List<object>(((IDictionary<string,object>)free).Keys);
+        List<object> currencyIds = new List<object>(((IDictionary<string,object>)free).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(currencyIds)); postFixIncrement(ref i))
         {
             object currencyId = getValue(currencyIds, i);
@@ -680,13 +680,13 @@ public partial class indodax : Exchange
         //
         object response = await this.publicGetApiTickerAll(parameters);
         object tickers = this.safeDict(response, "tickers", new Dictionary<string, object>() {});
-        object keys = new List<object>(((IDictionary<string,object>)tickers).Keys);
+        List<object> keys = new List<object>(((IDictionary<string,object>)tickers).Keys);
         object parsedTickers = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object key = getValue(keys, i);
             object rawTicker = getValue(tickers, key);
-            object marketId = ((string)key).Replace((string)"_", (string)"");
+            string marketId = ((string)key).Replace((string)"_", (string)"");
             object market = this.safeMarket(marketId);
             object parsed = this.parseTicker(rawTicker, market);
             ((IDictionary<string,object>)parsedTickers)[(string)marketId] = parsed;
@@ -779,7 +779,7 @@ public partial class indodax : Exchange
         }
         object market = this.market(symbol);
         object selectedTimeframe = this.safeString(this.timeframes, timeframeVar, timeframeVar);
-        object now = this.seconds();
+        Int64 now = this.seconds();
         object until = this.safeInteger(parameters, "until", now);
         parameters = this.omit(parameters, new List<object>() {"until"});
         object request = new Dictionary<string, object>() {
@@ -1004,7 +1004,7 @@ public partial class indodax : Exchange
             return ccxt.BaseExchange.ToOrderList(this.parseOrders(rawOrders, market, since, limit));
         }
         // { success: 1, return: { orders: { marketid: [ ... objects ] }}} if all orders are fetched
-        object marketIds = new List<object>(((IDictionary<string,object>)rawOrders).Keys);
+        List<object> marketIds = new List<object>(((IDictionary<string,object>)rawOrders).Keys);
         object exchangeOrders = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
         {
@@ -1076,8 +1076,8 @@ public partial class indodax : Exchange
             { "type", side },
             { "price", price },
         };
-        object priceIsRequired = false;
-        object quantityIsRequired = false;
+        bool priceIsRequired = false;
+        bool quantityIsRequired = false;
         if (isTrue(isEqual(type, "market")))
         {
             if (isTrue(isEqual(side, "buy")))
@@ -1285,7 +1285,7 @@ public partial class indodax : Exchange
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(since, null)))
         {
-            object startTime = this.yyyymmdd(since);
+            string startTime = this.yyyymmdd(since);
             ((IDictionary<string,object>)request)["start"] = startTime;
             ((IDictionary<string,object>)request)["end"] = this.yyyymmdd(this.milliseconds());
         }
@@ -1354,7 +1354,7 @@ public partial class indodax : Exchange
         object currency = null;
         if (isTrue(isEqual(code, null)))
         {
-            object keys = new List<object>(((IDictionary<string,object>)withdraw).Keys);
+            List<object> keys = new List<object>(((IDictionary<string,object>)withdraw).Keys);
             for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
             {
                 object key = getValue(keys, i);
@@ -1405,7 +1405,7 @@ public partial class indodax : Exchange
         // Will be passed to callback URL (assigned via website to the API key)
         // so your system can identify the request and confirm it.
         // Alphanumeric, max length 255.
-        object requestId = this.milliseconds();
+        Int64 requestId = this.milliseconds();
         // Alternatively:
         // let requestId = this.uuid ();
         object request = new Dictionary<string, object>() {
@@ -1580,7 +1580,7 @@ public partial class indodax : Exchange
         object data = this.safeDict(response, "return");
         object addresses = this.safeDict(data, "address", new Dictionary<string, object>() {});
         object networks = this.safeDict(data, "network", new Dictionary<string, object>() {});
-        object addressKeys = new List<object>(((IDictionary<string,object>)addresses).Keys);
+        List<object> addressKeys = new List<object>(((IDictionary<string,object>)addresses).Keys);
         object result = new Dictionary<string, object>() {
             { "info", data },
         };
@@ -1607,7 +1607,7 @@ public partial class indodax : Exchange
                         {
                             throw new ExchangeError ((string)add(this.id, " fetchDepositAddresses() missing networkId")) ;
                         }
-                        object networkIds = ((string)networkId).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
+                        List<object> networkIds = ((string)networkId).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
                         for (object j = 0; isLessThan(j, getArrayLength(networkIds)); postFixIncrement(ref j))
                         {
                             object _netIdTmp = this.networkIdToCode(getValue(networkIds, j), code);

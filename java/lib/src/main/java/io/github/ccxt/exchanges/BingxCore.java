@@ -754,6 +754,9 @@ public class BingxCore extends BingxApi
                                 put( "account/apiPermissions", new java.util.HashMap<String, Object>() {{
                                     put( "cost", 5 );
                                 }} );
+                                put( "account/apiRestrictions", new java.util.HashMap<String, Object>() {{
+                                    put( "cost", 5 );
+                                }} );
                                 put( "allAccountBalance", new java.util.HashMap<String, Object>() {{
                                     put( "cost", 2 );
                                 }} );
@@ -1111,6 +1114,10 @@ public class BingxCore extends BingxApi
                 }} );
                 put( "defaultForInverse", new java.util.HashMap<String, Object>() {{
                     put( "extends", "defaultForLinear" );
+                    put( "createOrders", null );
+                    put( "fetchOHLCV", new java.util.HashMap<String, Object>() {{
+                        put( "limit", 1000 );
+                    }} );
                     put( "fetchMyTrades", new java.util.HashMap<String, Object>() {{
                         put( "limit", 1000 );
                         put( "daysBack", null );
@@ -1486,6 +1493,9 @@ public class BingxCore extends BingxApi
         } else if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(this.safeBool(market, "apiStateSell"), true))) && Helpers.isTrue((Helpers.isEqual(this.safeBool(market, "apiStateBuy"), true)))) && Helpers.isTrue((Helpers.isEqual(this.safeString(market, "status"), "1")))))
         {
             isActive = true; // spot active
+        } else if (Helpers.isTrue(Helpers.isTrue(checkIsInverse) && Helpers.isTrue((Helpers.isEqual(this.safeString(market, "status"), "1")))))
+        {
+            isActive = true; // inverse swap active
         }
         Object isInverse = ((Helpers.isTrue((spot)))) ? null : checkIsInverse;
         Object isLinear = ((Helpers.isTrue((spot)))) ? null : checkIsLinear;
@@ -1608,7 +1618,7 @@ public class BingxCore extends BingxApi
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
-     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch (max 1000 for inverse swaps, 1440 otherwise)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
@@ -1627,32 +1637,38 @@ public class BingxCore extends BingxApi
             {
                 (this.loadMarkets()).join();
             }
+            Object market = this.market(symbol);
+            Object maxLimit = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "inverse"), true))))) ? 1000 : 1440;
             Object paginate = false;
             var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
             {
-                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, 1440)).join();
+                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, maxLimit)).join();
             }
-            Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             Helpers.addElementToObject(request, "interval", this.safeString(this.timeframes, timeframe, timeframe));
+            Object requestLimit = ((Helpers.isTrue((Helpers.isEqual(limit, null))))) ? 500 : Helpers.mathMin(limit, maxLimit);
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
                 Helpers.addElementToObject(request, "startTime", Helpers.mathMax(Helpers.subtract(since, 1), 0));
             }
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
-                Helpers.addElementToObject(request, "limit", limit);
+                Helpers.addElementToObject(request, "limit", requestLimit);
             }
             Object until = this.safeInteger2(parameters, "until", "endTime");
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until")));
                 Helpers.addElementToObject(request, "endTime", until);
+            } else if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "inverse"), true))) && Helpers.isTrue((!Helpers.isEqual(since, null)))))
+            {
+                Object duration = Helpers.multiply(this.parseTimeframe(timeframe), 1000);
+                Helpers.addElementToObject(request, "endTime", this.sum(since, Helpers.multiply(duration, requestLimit)));
             }
             Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
@@ -4090,7 +4106,7 @@ public class BingxCore extends BingxApi
      * @description create a list of trade orders
      * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Place%20multiple%20orders
      * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Place%20multiple%20orders
-     * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+     * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params, linear swap and spot only
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.sync] *spot only* if true, multiple orders are ordered serially and all orders do not require the same symbol/side/type
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
@@ -4123,6 +4139,10 @@ public class BingxCore extends BingxApi
             Object symbols = this.marketSymbols(marketIds, null, false, true, true);
             Object symbolsLength = Helpers.getArrayLength(symbols);
             Object market = this.market(Helpers.GetValue(symbols, 0));
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "inverse"), true)))
+            {
+                throw new NotSupported((String)Helpers.add(this.id, " createOrders() is not supported for inverse swap markets")) ;
+            }
             Object request = new java.util.HashMap<String, Object>() {{}};
             Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
@@ -5637,17 +5657,23 @@ public class BingxCore extends BingxApi
                 put( "amount", BingxCore.this.currencyToPrecision(code, amount) );
             }};
             Object response = (this.apiAssetV1PrivatePostTransfer(this.extend(request, parameters))).join();
+            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            Object timestamp = this.safeInteger(response, "timestamp");
             //
             //     {
-            //         "tranId": 1933130865269936128,
-            //         "transferId": "1051450703949464903736"
+            //         "code": "0",
+            //         "timestamp": "1752202170686",
+            //         "data": {
+            //             "tranId": "1943502883135819776",
+            //             "transferId": "1051461075875997081703"
+            //         }
             //     }
             //
             return new java.util.HashMap<String, Object>() {{
                 put( "info", response );
-                put( "id", BingxCore.this.safeString(response, "transferId") );
-                put( "timestamp", null );
-                put( "datetime", null );
+                put( "id", BingxCore.this.safeString2(data, "transferId", "tranId") );
+                put( "timestamp", timestamp );
+                put( "datetime", BingxCore.this.iso8601(timestamp) );
                 put( "currency", code );
                 put( "amount", amount );
                 put( "fromAccount", fromAccount );
@@ -5896,7 +5922,7 @@ public class BingxCore extends BingxApi
         Object currencyId = this.safeString(depositAddress, "coin");
         currency = this.safeCurrency(currencyId, currency);
         Object code = Helpers.GetValue(currency, "code");
-        Object address = this.safeString(depositAddress, "addressWithPrefix");
+        Object address = this.safeString2(depositAddress, "addressWithPrefix", "address");
         Object networkId = this.safeString(depositAddress, "network");
         Object networkCode = this.networkIdToCode(networkId, code);
         // despite its name the addressWithPrefix field sometimes arrives without
@@ -5930,6 +5956,7 @@ public class BingxCore extends BingxApi
      * @param {int} [since] the earliest time in ms to fetch deposits for
      * @param {int} [limit] the maximum number of deposits structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch deposits for
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchDeposits(Object... optionalArgs)
@@ -5958,8 +5985,11 @@ public class BingxCore extends BingxApi
             }
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
-                Helpers.addElementToObject(request, "limit", limit); // default 1000
+                Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, 1000)); // api maximum 1000
             }
+            var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
+            request = ((java.util.List<Object>) requestparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             Object response = (this.spotV3PrivateGetCapitalDepositHisrec(this.extend(request, parameters))).join();
             //
             //    [
@@ -5992,6 +6022,7 @@ public class BingxCore extends BingxApi
      * @param {int} [since] the earliest time in ms to fetch withdrawals for
      * @param {int} [limit] the maximum number of withdrawals structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch withdrawals for
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchWithdrawals(Object... optionalArgs)
@@ -6020,8 +6051,11 @@ public class BingxCore extends BingxApi
             }
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
-                Helpers.addElementToObject(request, "limit", limit); // default 1000
+                Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, 1000)); // api maximum 1000
             }
+            var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
+            request = ((java.util.List<Object>) requestparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             Object response = (this.spotV3PrivateGetCapitalWithdrawHistory(this.extend(request, parameters))).join();
             //
             //    [
@@ -6443,6 +6477,7 @@ public class BingxCore extends BingxApi
             }
             Object side = this.safeStringUpper(parameters, "side");
             this.checkRequiredArgument("setLeverage", side, "side", new java.util.ArrayList<Object>(java.util.Arrays.asList("LONG", "SHORT", "BOTH")));
+            parameters = this.omit(parameters, "side");
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
@@ -7530,7 +7565,8 @@ final Object finalMarket = market;
             version = Helpers.GetValue(section, 2);
             access = Helpers.GetValue(section, 3);
         }
-        if (Helpers.isTrue(!Helpers.isEqual(path, "account/apiPermissions")))
+        Object flatAccountPaths = new java.util.ArrayList<Object>(java.util.Arrays.asList("account/apiPermissions", "account/apiRestrictions"));
+        if (!Helpers.isTrue(this.inArray(path, flatAccountPaths)))
         {
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(type, "spot")) && Helpers.isTrue(Helpers.isEqual(version, "v3"))))
             {

@@ -3143,7 +3143,7 @@ public class BybitCore extends BybitApi
                             put( "max", BybitCore.this.safeNumber(priceFilter, "maxPrice") );
                         }} );
                         put( "cost", new java.util.HashMap<String, Object>() {{
-                            put( "min", null );
+                            put( "min", ((Helpers.isTrue(linear))) ? BybitCore.this.safeNumber(lotSizeFilter, "minNotionalValue") : null );
                             put( "max", null );
                         }} );
                     }} );
@@ -10976,7 +10976,7 @@ public class BybitCore extends BybitApi
             }
             Object data = (this.getLeverageTiersPaginated(symbol, this.extend(new java.util.HashMap<String, Object>() {{
                 put( "paginate", true );
-                put( "paginationCalls", 50 );
+                put( "paginationCalls", 200 );
             }}, parameters))).join();
             symbols = this.marketSymbols(symbols);
             return this.parseLeverageTiers(data, symbols, "symbol");

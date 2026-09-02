@@ -615,7 +615,7 @@ public partial class bigone : Exchange
                 };
             }
         }
-        object chainLength = getArrayLength(chains);
+        int chainLength = getArrayLength(chains);
         object type = null;
         if (isTrue(isEqual(this.safeBool(rawCurrency, "is_fiat"), true)))
         {
@@ -1009,7 +1009,7 @@ public partial class bigone : Exchange
         var typeparametersVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters);
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
-        object isSpot = isEqual(type, "spot");
+        bool isSpot = isEqual(type, "spot");
         object request = new Dictionary<string, object>() {};
         symbols = this.marketSymbols(symbols);
         object data = null;
@@ -1170,7 +1170,7 @@ public partial class bigone : Exchange
 
     public virtual object parseContractBidsAsks(object bidsAsks)
     {
-        object bidsAsksKeys = new List<object>(((IDictionary<string,object>)bidsAsks).Keys);
+        List<object> bidsAsksKeys = new List<object>(((IDictionary<string,object>)bidsAsks).Keys);
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(bidsAsksKeys)); postFixIncrement(ref i))
         {
@@ -1463,8 +1463,8 @@ public partial class bigone : Exchange
             throw new NotSupported ((string)add(this.id, " fetchOHLCV () can only fetch ohlcvs for spot markets")) ;
         }
         object until = this.safeInteger(parameters, "until");
-        object untilIsDefined = (!isEqual(until, null));
-        object sinceIsDefined = (!isEqual(since, null));
+        bool untilIsDefined = (!isEqual(until, null));
+        bool sinceIsDefined = (!isEqual(since, null));
         if (isTrue(isEqual(limitVar, null)))
         {
             limitVar = ((bool) isTrue((isTrue(sinceIsDefined) && isTrue(untilIsDefined)))) ? 500 : 100; // default 100, max 500, if since and limitVar defined then fetch all the candles between them unless it exceeds the max of 500
@@ -1730,10 +1730,10 @@ public partial class bigone : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object isBuy = (isEqual(side, "buy"));
+        bool isBuy = (isEqual(side, "buy"));
         object requestSide = ((bool) isTrue(isBuy)) ? "BID" : "ASK";
-        object uppercaseType = ((string)type).ToUpper();
-        object isLimit = isEqual(uppercaseType, "LIMIT");
+        string uppercaseType = ((string)type).ToUpper();
+        bool isLimit = isEqual(uppercaseType, "LIMIT");
         object exchangeSpecificParam = this.safeBool(parameters, "post_only", false);
         object postOnly = null;
         var postOnlyparametersVariable = this.handlePostOnly(isEqual(uppercaseType, "MARKET"), isEqual(exchangeSpecificParam, true), parameters);
@@ -2149,7 +2149,7 @@ public partial class bigone : Exchange
         } else
         {
             this.checkRequiredCredentials();
-            object nonce = ((object)this.nonce()).ToString();
+            string nonce = ((object)this.nonce()).ToString();
             object request = new Dictionary<string, object>() {
                 { "type", "OpenAPIV2" },
                 { "sub", this.apiKey },
@@ -2220,12 +2220,12 @@ public partial class bigone : Exchange
         //     }
         //
         object data = this.safeList(response, "data", new List<object>() {});
-        object dataLength = getArrayLength(data);
+        int dataLength = getArrayLength(data);
         if (isTrue(isLessThan(dataLength, 1)))
         {
             throw new ExchangeError ((string)add(this.id, " fetchDepositAddress() returned empty address response")) ;
         }
-        object chainsIndexedById = this.indexBy(data, "chain");
+        Dictionary<string, object> chainsIndexedById = this.indexBy(data, "chain");
         object selectedNetworkId = this.selectNetworkIdFromRawNetworks(code, networkCode, chainsIndexedById);
         object addressObject = this.safeDict(chainsIndexedById, selectedNetworkId, new Dictionary<string, object>() {});
         object address = this.safeString(addressObject, "value");

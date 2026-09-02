@@ -996,6 +996,7 @@ export default class toobit extends toobitRest {
             await this.loadMarkets();
         }
         await this.authenticate();
+        const type = 'swap'; // the only account type that carries positions here
         let messageHash = '';
         if (!this.isEmpty(symbols)) {
             symbols = this.marketSymbols(symbols);
@@ -1004,13 +1005,13 @@ export default class toobit extends toobitRest {
             }
             messageHash = '::' + symbols.join(',');
         }
+        messageHash = type + ':positions' + messageHash;
         const url = this.getUserStreamUrl();
         const client = this.client(url);
-        await this.authenticate(url);
-        this.setPositionsCache(client, symbols);
-        const cache = this.positions;
+        this.setPositionsCache(client, type, symbols);
+        const cache = this.safeValue(this.positions, type);
         if (cache === undefined) {
-            const snapshot = await client.future('fetchPositionsSnapshot');
+            const snapshot = await client.future(type + ':fetchPositionsSnapshot');
             return this.filterBySymbolsSinceLimit(snapshot, symbols, since, limit, true);
         }
         const newPositions = await this.watch(url, messageHash, undefined, messageHash);
@@ -1081,8 +1082,7 @@ export default class toobit extends toobitRest {
         //     }
         // ]
         //
-        const subscriptions = Object.keys(client.subscriptions);
-        const accountType = subscriptions[0];
+        const accountType = 'swap';
         if (this.positions === undefined) {
             this.positions = {};
         }
@@ -1090,9 +1090,14 @@ export default class toobit extends toobitRest {
             this.positions[accountType] = new ArrayCacheBySymbolBySide();
         }
         const cache = this.positions[accountType];
+        // handleMessage's fallback dispatches one item at a time
+        let rawPositions = message;
+        if (!Array.isArray(message)) {
+            rawPositions = [message];
+        }
         const newPositions = [];
-        for (let i = 0; i < message.length; i++) {
-            const rawPosition = message[i];
+        for (let i = 0; i < rawPositions.length; i++) {
+            const rawPosition = rawPositions[i];
             const position = this.parseWsPosition(rawPosition);
             const timestamp = this.safeInteger(rawPosition, 'E');
             position['timestamp'] = timestamp;
@@ -1100,15 +1105,19 @@ export default class toobit extends toobitRest {
             newPositions.push(position);
             cache.append(position);
         }
+        // no local may be named `positions` in this method: build/transpile.ts
+        // appends `$` to every local name wherever it appears, string literals
+        // included, so a local `positions` rewrites the hash prefix below to
+        // ':$positions::' and find_message_hashes () matches nothing in PHP
         const messageHashes = this.findMessageHashes(client, accountType + ':positions::');
         for (let i = 0; i < messageHashes.length; i++) {
             const messageHash = messageHashes[i];
             const parts = messageHash.split('::');
             const symbolsString = parts[1];
             const symbols = symbolsString.split(',');
-            const positions = this.filterByArray(newPositions, 'symbol', symbols, false);
-            if (!this.isEmpty(positions)) {
-                client.resolve(positions, messageHash);
+            const filtered = this.filterByArray(newPositions, 'symbol', symbols, false);
+            if (!this.isEmpty(filtered)) {
+                client.resolve(filtered, messageHash);
             }
         }
         client.resolve(newPositions, accountType + ':positions');
@@ -1143,35 +1152,60 @@ export default class toobit extends toobitRest {
         });
     }
     async authenticate(params = {}) {
-        const client = this.client(this.getUserStreamUrl());
-        const messageHash = 'authenticated';
-        const future = client.reusableFuture(messageHash);
-        const authenticated = this.safeValue(client.subscriptions, messageHash);
-        if (authenticated === undefined) {
+        const time = this.milliseconds();
+        const lastAuthenticatedTime = this.safeInteger(this.options['ws'], 'lastAuthenticatedTime', 0);
+        const listenKeyRefreshRate = this.safeInteger(this.options['ws'], 'listenKeyRefreshRate', 1200000);
+        const delay = this.sum(listenKeyRefreshRate, 10000);
+        if (time - lastAuthenticatedTime > delay) {
             this.checkRequiredCredentials();
-            const time = this.milliseconds();
-            const lastAuthenticatedTime = this.safeInteger(this.options['ws'], 'lastAuthenticatedTime', 0);
-            const listenKeyRefreshRate = this.safeInteger(this.options['ws'], 'listenKeyRefreshRate', 1200000);
-            const delay = this.sum(listenKeyRefreshRate, 10000);
-            if (time - lastAuthenticatedTime > delay) {
-                try {
-                    client.subscriptions[messageHash] = true;
-                    const response = await this.privatePostApiV1UserDataStream(params);
-                    this.options['ws']['listenKey'] = this.safeString(response, 'listenKey');
-                    this.options['ws']['lastAuthenticatedTime'] = time;
-                    future.resolve(true);
-                    this.delay(listenKeyRefreshRate, this.keepAliveListenKey, params);
-                }
-                catch (e) {
-                    const err = new AuthenticationError(this.id + ' ' + this.exceptionMessage(e));
-                    client.reject(err, messageHash);
-                    if (messageHash in client.subscriptions) {
-                        delete client.subscriptions[messageHash];
-                    }
-                }
+            // single-flight leader election on a never-dialed client, see
+            // https://github.com/ccxt/ccxt/issues/29393. the election used to
+            // run on this.client (this.getUserStreamUrl ()), but that url
+            // embeds the listenKey it is about to mint, so the client the
+            // flight registers on is not the client the next caller looks at:
+            // the cold call elected on .../ws/undefined and every later call
+            // landed on .../ws/<key> with an empty subscriptions map, found
+            // the key still fresh, skipped the fetch and hung on a future
+            // nobody resolves. client.futures is the registry: client.future ()
+            // is the atomic check-and-insert and client.resolve () /
+            // client.reject () settle and remove the entry under the same lock
+            // in every port
+            const messageHash = 'authenticate';
+            const client = this.client('authenticationFlights');
+            if (messageHash in client.futures) {
+                // a flight is already in progress - wake when the leader
+                // settles it: the listenKey is then in the bucket
+                await client.future(messageHash);
+                return;
             }
+            // reusableFuture (), not future () - the two match in
+            // js/py/php/cs/java, but go's Client.Future () yields a channel
+            // that the trailing suspension point below would panic on
+            const future = client.reusableFuture(messageHash);
+            try {
+                const response = await this.privatePostApiV1UserDataStream(params);
+                const listenKey = this.safeString(response, 'listenKey');
+                if (listenKey === undefined) {
+                    // reject instead of caching an empty credential, so waiters
+                    // retry rather than dial .../ws/undefined for 20 minutes
+                    throw new AuthenticationError(this.id + ' authenticate() received an empty listenKey');
+                }
+                this.options['ws']['listenKey'] = listenKey;
+                this.options['ws']['lastAuthenticatedTime'] = time;
+                this.delay(listenKeyRefreshRate, this.keepAliveListenKey, params);
+                // settle the flight: client.resolve () removes the future from
+                // client.futures and wakes every waiter
+                client.resolve(listenKey, messageHash);
+            }
+            catch (e) {
+                // reject the flight - waiters throw and the next caller re-leads.
+                // no rethrow here, the trailing suspension point rethrows to this
+                // caller AND attaches the handler an alone leader needs
+                const err = new AuthenticationError(this.id + ' ' + this.exceptionMessage(e));
+                client.reject(err, messageHash);
+            }
+            await future;
         }
-        return await future;
     }
     async keepAliveListenKey(params = {}) {
         const options = this.safeValue(this.options, 'ws', {});

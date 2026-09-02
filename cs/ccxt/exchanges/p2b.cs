@@ -338,7 +338,7 @@ public partial class p2b : Exchange
     /**
      * @method
      * @name p2b#fetchMarkets
-     * @description retrieves data on all markets for bigone
+     * @description retrieves data on all markets for p2b
      * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#markets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
@@ -358,12 +358,12 @@ public partial class p2b : Exchange
         //                "stock": "ETH",
         //                "money": "BTC",
         //                "precision": {
-        //                    "money": "6",
+        //                    "money": "5",
         //                    "stock": "4",
         //                    "fee": "4"
         //                },
         //                "limits": {
-        //                    "min_amount": "0.001",
+        //                    "min_amount": "0.0001",
         //                    "max_amount": "100000",
         //                    "step_size": "0.0001",
         //                    "min_price": "0.00001",
@@ -376,7 +376,7 @@ public partial class p2b : Exchange
         //        ]
         //    }
         //
-        object markets = this.safeValue(response, "result", new List<object>() {});
+        object markets = this.safeList(response, "result", new List<object>() {});
         return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(markets));
     }
 
@@ -387,7 +387,7 @@ public partial class p2b : Exchange
         object quoteId = this.safeString(market, "money");
         object bs = ((string)this.safeCurrencyCode(baseId));
         object quote = ((string)this.safeCurrencyCode(quoteId));
-        object limits = this.safeValue(market, "limits");
+        object limits = this.safeDict(market, "limits");
         object maxAmount = this.safeString(limits, "max_amount");
         object maxPrice = this.safeString(limits, "max_price");
         return new Dictionary<string, object>() {
@@ -432,7 +432,7 @@ public partial class p2b : Exchange
                     { "max", this.parseNumber(this.omitZero(((string)maxPrice))) },
                 } },
                 { "cost", new Dictionary<string, object>() {
-                    { "min", null },
+                    { "min", this.safeNumber(limits, "min_total") },
                     { "max", null },
                 } },
             } },
@@ -445,7 +445,7 @@ public partial class p2b : Exchange
      * @method
      * @name p2b#fetchTickers
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-     * @see https://futures-docs.poloniex.com/#get-real-time-ticker-of-all-symbols
+     * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#tickers
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -912,7 +912,7 @@ public partial class p2b : Exchange
         object result = new Dictionary<string, object>() {
             { "info", response },
         };
-        object keys = new List<object>(((IDictionary<string,object>)response).Keys);
+        List<object> keys = new List<object>(((IDictionary<string,object>)response).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object currencyId = getValue(keys, i);
@@ -1256,7 +1256,7 @@ public partial class p2b : Exchange
     /**
      * @method
      * @name p2b#fetchClosedOrders
-     * @description fetches information on multiple closed orders made by the user, the time between since and params["untnil"] cannot be longer than 24 hours
+     * @description fetches information on multiple closed orders made by the user, the time between since and params["until"] cannot be longer than 24 hours
      * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#orders-history-by-market
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for, default = params["until"] - 86400000
@@ -1344,7 +1344,7 @@ public partial class p2b : Exchange
         //
         object result = this.safeValue(response, "result");
         object orders = new List<object>() {};
-        object keys = new List<object>(((IDictionary<string,object>)result).Keys);
+        List<object> keys = new List<object>(((IDictionary<string,object>)result).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object marketId = getValue(keys, i);

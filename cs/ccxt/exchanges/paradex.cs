@@ -814,11 +814,11 @@ public partial class paradex : Exchange
         //  }
         //
         object assetKind = this.safeString(market, "asset_kind");
-        object isOptionPerpetual = (isEqual(assetKind, "PERP_OPTION"));
-        object isOptionDelivery = (isEqual(assetKind, "OPTION"));
-        object isOption = isTrue(isOptionPerpetual) || isTrue(isOptionDelivery);
+        bool isOptionPerpetual = (isEqual(assetKind, "PERP_OPTION"));
+        bool isOptionDelivery = (isEqual(assetKind, "OPTION"));
+        bool isOption = isTrue(isOptionPerpetual) || isTrue(isOptionDelivery);
         object type = ((bool) isTrue((isOption))) ? "option" : "swap";
-        object isSwap = (isEqual(type, "swap"));
+        bool isSwap = (isEqual(type, "swap"));
         object marketId = this.safeString(market, "symbol");
         object quoteId = this.safeString(market, "quote_currency");
         object baseId = this.safeString(market, "base_currency");
@@ -1056,7 +1056,7 @@ public partial class paradex : Exchange
             { "resolution", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
             { "symbol", getValue(market, "id") },
         };
-        object now = this.milliseconds();
+        Int64 now = this.milliseconds();
         object duration = this.parseTimeframe(timeframeVar);
         object until = this.safeInteger2(parameters, "until", "till", now);
         object price = this.safeString(parameters, "price");
@@ -1428,7 +1428,7 @@ public partial class paradex : Exchange
         object amountString = this.safeString(trade, "size");
         object side = this.safeStringLower(trade, "side");
         object liability = this.safeStringLower(trade, "liquidity", "taker");
-        object isTaker = isEqual(liability, "taker");
+        bool isTaker = isEqual(liability, "taker");
         object takerOrMaker = ((bool) isTrue((isTaker))) ? "taker" : "maker";
         object currencyId = this.safeString(trade, "fee_currency");
         object code = this.safeCurrencyCode(currencyId);
@@ -1878,8 +1878,8 @@ public partial class paradex : Exchange
         }
         object market = this.market(symbol);
         object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
-        object orderType = ((string)type).ToUpper();
-        object orderSide = ((string)((string)side)).ToUpper();
+        string orderType = ((string)type).ToUpper();
+        string orderSide = ((string)((string)side)).ToUpper();
         object request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
             { "side", orderSide },
@@ -1889,10 +1889,10 @@ public partial class paradex : Exchange
         object triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
         object stopLossPrice = this.safeString(parameters, "stopLossPrice");
         object takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
-        object isMarket = isEqual(orderType, "MARKET");
-        object isTakeProfitOrder = (!isEqual(takeProfitPrice, null));
-        object isStopLossOrder = (!isEqual(stopLossPrice, null));
-        object isStopOrder = isTrue(isTrue((!isEqual(triggerPrice, null))) || isTrue(isTakeProfitOrder)) || isTrue(isStopLossOrder);
+        bool isMarket = isEqual(orderType, "MARKET");
+        bool isTakeProfitOrder = (!isEqual(takeProfitPrice, null));
+        bool isStopLossOrder = (!isEqual(stopLossPrice, null));
+        bool isStopOrder = isTrue(isTrue((!isEqual(triggerPrice, null))) || isTrue(isTakeProfitOrder)) || isTrue(isStopLossOrder);
         object timeInForce = this.safeStringUpper(parameters, "timeInForce");
         object postOnly = this.isPostOnly(isMarket, null, parameters);
         if (!isTrue(isMarket))
@@ -1983,7 +1983,7 @@ public partial class paradex : Exchange
         {
             throw new ExchangeError ((string)add(this.id, " signOrderRequest() missing orderType")) ;
         }
-        object isMarket = (isGreaterThanOrEqual(getIndexOf(orderType, "MARKET"), 0));
+        bool isMarket = (isGreaterThanOrEqual(getIndexOf(orderType, "MARKET"), 0));
         object orderReq = new Dictionary<string, object>() {
             { "timestamp", multiply(now, 1000) },
             { "market", this.stringToBase16(getValue(request, "market")) },
@@ -2204,7 +2204,7 @@ public partial class paradex : Exchange
             object amount = this.safeNumber(rawOrder, "amount");
             object price = this.safeNumber(rawOrder, "price");
             object orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
-            object extendedParams = this.extend(parameters, orderParams);
+            Dictionary<string, object> extendedParams = this.extend(parameters, orderParams);
             object orderRequest = this.createOrderRequest(symbol, type, side, amount, price, extendedParams);
             orderRequest = await this.signOrderRequest(orderRequest);
             ((IList<object>)ordersRequests).Add(orderRequest);
@@ -2304,8 +2304,8 @@ public partial class paradex : Exchange
         }
         object clientOrderIds = this.safeListN(parameters, new List<object>() {"clOrdIDs", "clientOrderIds", "client_order_ids"});
         parameters = this.omit(parameters, new List<object>() {"clOrdIDs", "clientOrderIds", "client_order_ids"});
-        object hasOrderIds = isTrue((!isEqual(ids, null))) && isTrue((((ids is IList<object>) || (ids.GetType().IsGenericType && ids.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))));
-        object hasClientOrderIds = isTrue((!isEqual(clientOrderIds, null))) && isTrue((((clientOrderIds is IList<object>) || (clientOrderIds.GetType().IsGenericType && clientOrderIds.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))));
+        bool hasOrderIds = isTrue((!isEqual(ids, null))) && isTrue((((ids is IList<object>) || (ids.GetType().IsGenericType && ids.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))));
+        bool hasClientOrderIds = isTrue((!isEqual(clientOrderIds, null))) && isTrue((((clientOrderIds is IList<object>) || (clientOrderIds.GetType().IsGenericType && clientOrderIds.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))));
         if (isTrue(!isTrue(hasOrderIds) && !isTrue(hasClientOrderIds)))
         {
             throw new ArgumentsRequired ((string)add(this.id, " cancelOrders() requires a non-empty ids argument or a non-empty clientOrderIds parameter")) ;
@@ -2553,7 +2553,7 @@ public partial class paradex : Exchange
         //
         object orders = this.safeList(response, "results", new List<object>() {});
         object paginationCursor = this.safeString(response, "next");
-        object ordersLength = getArrayLength(orders);
+        int ordersLength = getArrayLength(orders);
         if (isTrue(isTrue((!isEqual(paginationCursor, null))) && isTrue((isGreaterThan(ordersLength, 0)))))
         {
             object first = getValue(orders, 0);
@@ -2860,15 +2860,16 @@ public partial class paradex : Exchange
             quantity = Precise.stringMul("-1", quantity);
         }
         object timestamp = this.safeInteger(position, "time");
+        object liquidationPrice = this.parseNumber(this.omitZero(this.safeString(position, "liquidation_price")));
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", this.safeString(position, "id") },
             { "symbol", symbol },
-            { "entryPrice", this.safeString(position, "average_entry_price") },
+            { "entryPrice", this.safeNumber(position, "average_entry_price") },
             { "markPrice", null },
             { "notional", null },
-            { "collateral", this.safeString(position, "cost") },
-            { "unrealizedPnl", this.safeString(position, "unrealized_pnl") },
+            { "collateral", this.safeNumber(position, "cost") },
+            { "unrealizedPnl", this.safeNumber(position, "unrealized_pnl") },
             { "side", side },
             { "contracts", this.parseNumber(quantity) },
             { "contractSize", null },
@@ -2880,7 +2881,7 @@ public partial class paradex : Exchange
             { "initialMargin", null },
             { "initialMarginPercentage", null },
             { "leverage", null },
-            { "liquidationPrice", null },
+            { "liquidationPrice", liquidationPrice },
             { "marginRatio", null },
             { "marginMode", null },
             { "percentage", null },

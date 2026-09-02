@@ -419,6 +419,7 @@ public partial class alpaca : Exchange
                 { "APCA-PARTNER-ID", "ccxt" },
             } },
             { "options", new Dictionary<string, object>() {
+                { "minCostUSD", 10 },
                 { "defaultExchange", "CBSE" },
                 { "exchanges", new List<object>() {"CBSE", "FTX", "GNSS", "ERSX"} },
                 { "createOrder", new Dictionary<string, object>() {
@@ -517,12 +518,14 @@ public partial class alpaca : Exchange
                     { "40410000", typeof(InvalidOrder) },
                     { "40010001", typeof(BadRequest) },
                     { "40110000", typeof(PermissionDenied) },
-                    { "40310000", typeof(InsufficientFunds) },
                     { "42910000", typeof(RateLimitExceeded) },
                 } },
                 { "broad", new Dictionary<string, object>() {
                     { "Invalid format for parameter", typeof(BadRequest) },
                     { "Invalid symbol", typeof(BadSymbol) },
+                    { "cost basis must be", typeof(InvalidOrder) },
+                    { "insufficient balance for", typeof(InsufficientFunds) },
+                    { "orders are rejected by user request", typeof(PermissionDenied) },
                 } },
             } },
         });
@@ -640,7 +643,7 @@ public partial class alpaca : Exchange
         {
             throw new ExchangeError ((string)add(this.id, " parseMarket() missing marketId")) ;
         }
-        object parts = ((string)marketId).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = ((string)marketId).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
         object assetClass = this.safeString(asset, "class");
         object baseId = this.safeString(parts, 0);
         object quoteId = this.safeString(parts, 1);
@@ -654,10 +657,17 @@ public partial class alpaca : Exchange
         }
         object symbol = add(add(bs, "/"), quote);
         object status = this.safeString(asset, "status");
-        object active = (isEqual(status, "active"));
+        bool active = (isEqual(status, "active"));
         object minAmount = this.safeNumber(asset, "min_order_size");
         object amount = this.safeNumber(asset, "min_trade_increment");
         object price = this.safeNumber(asset, "price_increment");
+        object minCost = null;
+        if (isTrue(isTrue((isEqual(assetClass, "crypto"))) && isTrue((isEqual(quote, "USD")))))
+        {
+            // alpaca rejects USD-quoted crypto buy orders below 10 USD notional: {"code":40310000,"message":"cost basis must be >= minimal amount of order 10"}
+            // USDT-, USDC- and BTC-quoted pairs accept smaller orders, and sell orders are not floored — verified live 2026-08-25
+            minCost = this.safeNumber(this.options, "minCostUSD", this.parseNumber("10"));
+        }
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", marketId },
             { "symbol", symbol },
@@ -700,7 +710,7 @@ public partial class alpaca : Exchange
                     { "max", null },
                 } },
                 { "cost", new Dictionary<string, object>() {
-                    { "min", null },
+                    { "min", minCost },
                     { "max", null },
                 } },
             } },
@@ -880,6 +890,9 @@ public partial class alpaca : Exchange
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @param {int} [params.paginationCalls] the maximum number of requests while following next_page_token, default 10 — when the cap is reached the result is silently truncated to the pages already fetched, so raise it for long ranges, 10 requests cover roughly 30 days of 1h candles
      * @param {string} [params.loc] crypto location, default: us
      * @param {string} [params.method] method, default: marketPublicGetV1beta3CryptoLocBars
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
@@ -897,6 +910,14 @@ public partial class alpaca : Exchange
         object marketId = getValue(market, "id");
         object loc = this.safeString(parameters, "loc", "us");
         object method = this.safeString(parameters, "method", "marketPublicGetV1beta3CryptoLocBars");
+        object paginate = false;
+        var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
+        paginate = ((IList<object>)paginateparametersVariable)[0];
+        parameters = ((IList<object>)paginateparametersVariable)[1];
+        object paginationCalls = 10;
+        var paginationCallsparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "paginationCalls", 10);
+        paginationCalls = ((IList<object>)paginationCallsparametersVariable)[0];
+        parameters = ((IList<object>)paginationCallsparametersVariable)[1];
         object request = new Dictionary<string, object>() {
             { "symbols", marketId },
             { "loc", loc },
@@ -911,7 +932,13 @@ public partial class alpaca : Exchange
             }
             if (isTrue(!isEqual(since, null)))
             {
-                ((IDictionary<string,object>)request)["start"] = this.yyyymmdd(since);
+                ((IDictionary<string,object>)request)["start"] = this.iso8601(since);
+            }
+            object until = this.safeInteger(parameters, "until");
+            if (isTrue(!isEqual(until, null)))
+            {
+                parameters = this.omit(parameters, "until");
+                ((IDictionary<string,object>)request)["end"] = this.iso8601(until);
             }
             ((IDictionary<string,object>)request)["timeframe"] = this.safeString(this.timeframes, timeframeVar, timeframeVar);
             object response = await this.marketPublicGetV1beta3CryptoLocBars(this.extend(request, parameters));
@@ -946,6 +973,30 @@ public partial class alpaca : Exchange
             //
             object bars = this.safeDict(response, "bars", new Dictionary<string, object>() {});
             ohlcvs = this.safeList(bars, marketId, new List<object>() {});
+            if (isTrue(paginate))
+            {
+                // the endpoint answers with a server-sized page plus a next_page_token regardless of the requested limit
+                object pageToken = this.safeString(response, "next_page_token");
+                for (object i = 1; isLessThan(i, paginationCalls); postFixIncrement(ref i))
+                {
+                    int ohlcvsLength = getArrayLength(ohlcvs);
+                    if (isTrue(isTrue((isEqual(pageToken, null))) || isTrue((isTrue((!isEqual(limit, null))) && isTrue((isGreaterThanOrEqual(ohlcvsLength, limit)))))))
+                    {
+                        break;
+                    }
+                    ((IDictionary<string,object>)request)["page_token"] = pageToken;
+                    response = await this.marketPublicGetV1beta3CryptoLocBars(this.extend(request, parameters));
+                    bars = this.safeDict(response, "bars", new Dictionary<string, object>() {});
+                    object page = this.safeList(bars, marketId, new List<object>() {});
+                    int pageLength = getArrayLength(page);
+                    if (isTrue(isEqual(pageLength, 0)))
+                    {
+                        break;
+                    }
+                    ohlcvs = this.arrayConcat(ohlcvs, page);
+                    pageToken = this.safeString(response, "next_page_token");
+                }
+            }
         } else if (isTrue(isEqual(method, "marketPublicGetV1beta3CryptoLocLatestBars")))
         {
             object response = await this.marketPublicGetV1beta3CryptoLocLatestBars(this.extend(request, parameters));
@@ -1022,7 +1073,7 @@ public partial class alpaca : Exchange
      * @name alpaca#fetchTickers
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
      * @see https://docs.alpaca.markets/reference/cryptosnapshots-1
-     * @param {string[]} symbols unified symbols of the markets to fetch tickers for
+     * @param {string[]} [symbols] unified symbols of the markets to fetch tickers for, defaults to all markets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.loc] crypto location, default: us
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -1030,13 +1081,15 @@ public partial class alpaca : Exchange
     public async override Task<ccxt.Tickers> FetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(symbols, null)))
-        {
-            throw new ArgumentsRequired ((string)add(this.id, " fetchTickers() requires a symbols argument")) ;
-        }
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
+        }
+        if (isTrue(isEqual(symbols, null)))
+        {
+            // every listed market is a crypto market because fetchMarkets requests asset_class=crypto, so default to all of them
+            object allSymbols = this.sort(this.symbols); // symbol iteration order differs per language
+            symbols = allSymbols;
         }
         symbols = this.marketSymbols(symbols);
         object loc = this.safeString(parameters, "loc", "us");
@@ -1101,7 +1154,7 @@ public partial class alpaca : Exchange
         //
         object results = new List<object>() {};
         object snapshots = this.safeDict(response, "snapshots", new Dictionary<string, object>() {});
-        object marketIds = new List<object>(((IDictionary<string,object>)snapshots).Keys);
+        List<object> marketIds = new List<object>(((IDictionary<string,object>)snapshots).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
         {
             object marketId = getValue(marketIds, i);
@@ -1142,9 +1195,9 @@ public partial class alpaca : Exchange
     public virtual object generateClientOrderId(object parameters)
     {
         object clientOrderIdprefix = this.safeString(this.options, "clientOrderId");
-        object uuid = this.uuid();
-        object parts = ((string)uuid).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
-        object random_id = String.Join("", ((IList<object>)parts).ToArray());
+        string uuid = this.uuid();
+        List<object> parts = ((string)uuid).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
+        string random_id = String.Join("", ((IList<object>)parts).ToArray());
         object defaultClientId = this.implodeParams(clientOrderIdprefix, new Dictionary<string, object>() {
             { "id", random_id },
         });
@@ -1962,7 +2015,7 @@ public partial class alpaca : Exchange
         {
             currency = this.currency(code);
         }
-        object sandboxMode = isTrue(this.isSandboxModeEnabled) || isTrue(this.safeBool(this.options, "sandboxMode", false));
+        bool sandboxMode = isTrue(this.isSandboxModeEnabled) || isTrue(this.safeBool(this.options, "sandboxMode", false));
         if (isTrue(isEqual(sandboxMode, true)))
         {
             // paper-trading hosts do not serve the crypto wallets api at all, so route
@@ -1994,7 +2047,7 @@ public partial class alpaca : Exchange
                 object entry = getValue(ledger, i);
                 object activityType = this.safeString(entry, "activity_type");
                 object amount = this.safeString(entry, "net_amount");
-                object isIncoming = isTrue((isEqual(activityType, "CSD"))) || isTrue((isTrue((isEqual(activityType, "TRANS"))) && !isTrue(Precise.stringLt(amount, "0"))));
+                bool isIncoming = isTrue((isEqual(activityType, "CSD"))) || isTrue((isTrue((isEqual(activityType, "TRANS"))) && !isTrue(Precise.stringLt(amount, "0"))));
                 object entryDirection = ((bool) isTrue(isIncoming)) ? "INCOMING" : "OUTGOING";
                 if (isTrue(isTrue((isEqual(type, "BOTH"))) || isTrue((isEqual(entryDirection, type)))))
                 {
@@ -2142,7 +2195,7 @@ public partial class alpaca : Exchange
         if (isTrue(!isEqual(activityType, null)))
         {
             object netAmount = this.safeString(transaction, "net_amount");
-            object isIncoming = isTrue((isEqual(activityType, "CSD"))) || isTrue((isTrue((isEqual(activityType, "TRANS"))) && !isTrue(Precise.stringLt(netAmount, "0"))));
+            bool isIncoming = isTrue((isEqual(activityType, "CSD"))) || isTrue((isTrue((isEqual(activityType, "TRANS"))) && !isTrue(Precise.stringLt(netAmount, "0"))));
             timestamp = this.parse8601(add(this.safeString(transaction, "date"), "T00:00:00Z"));
             datetime = this.iso8601(timestamp);
             type = ((bool) isTrue(isIncoming)) ? "deposit" : "withdrawal";
@@ -2367,12 +2420,16 @@ public partial class alpaca : Exchange
         {
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
         }
-        object message = this.safeValue(response, "message");
+        object message = this.safeString(response, "message");
         if (isTrue(!isEqual(message, null)))
         {
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);
-            throw new ExchangeError ((string)feedback) ;
+            string codeAsString = ((object)code).ToString();
+            if (isTrue(isTrue((isLessThan(code, 400))) || !isTrue((inOp(this.httpExceptions, codeAsString)))))
+            {
+                throw new ExchangeError ((string)feedback) ;
+            }
         }
         return null;
     }

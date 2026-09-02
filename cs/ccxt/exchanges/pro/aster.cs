@@ -169,7 +169,7 @@ public partial class aster : ccxt.aster
         }
         object firstMarket = this.getMarketFromSymbols(symbols);
         object type = this.safeString(firstMarket, "type", "swap");
-        object symbolsLength = getArrayLength(symbols);
+        int symbolsLength = getArrayLength(symbols);
         object methodName = null;
         var methodNameparametersVariable = this.handleParamString(parameters, "callerMethodName", "watchTickers");
         methodName = ((IList<object>)methodNameparametersVariable)[0];
@@ -229,7 +229,7 @@ public partial class aster : ccxt.aster
         }
         object firstMarket = this.getMarketFromSymbols(symbols);
         object type = this.safeString(firstMarket, "type", "swap");
-        object symbolsLength = getArrayLength(symbols);
+        int symbolsLength = getArrayLength(symbols);
         object methodName = null;
         var methodNameparametersVariable = this.handleParamString(parameters, "callerMethodName", "unWatchTickers");
         methodName = ((IList<object>)methodNameparametersVariable)[0];
@@ -324,7 +324,7 @@ public partial class aster : ccxt.aster
         }
         object firstMarket = this.getMarketFromSymbols(symbols);
         object type = this.safeString(firstMarket, "type", "swap");
-        object symbolsLength = getArrayLength(symbols);
+        int symbolsLength = getArrayLength(symbols);
         object methodName = null;
         var methodNameparametersVariable = this.handleParamString(parameters, "callerMethodName", "watchMarkPrices");
         methodName = ((IList<object>)methodNameparametersVariable)[0];
@@ -385,7 +385,7 @@ public partial class aster : ccxt.aster
         }
         object firstMarket = this.getMarketFromSymbols(symbols);
         object type = this.safeString(firstMarket, "type", "swap");
-        object symbolsLength = getArrayLength(symbols);
+        int symbolsLength = getArrayLength(symbols);
         object methodName = null;
         var methodNameparametersVariable = this.handleParamString(parameters, "callerMethodName", "unWatchMarkPrices");
         methodName = ((IList<object>)methodNameparametersVariable)[0];
@@ -528,7 +528,7 @@ public partial class aster : ccxt.aster
         }
         object firstMarket = this.getMarketFromSymbols(symbols);
         object type = this.safeString(firstMarket, "type", "swap");
-        object symbolsLength = getArrayLength(symbols);
+        int symbolsLength = getArrayLength(symbols);
         if (isTrue(isEqual(symbolsLength, 0)))
         {
             throw new ArgumentsRequired ((string)add(this.id, " watchBidsAsks() requires a non-empty array of symbols")) ;
@@ -583,7 +583,7 @@ public partial class aster : ccxt.aster
         }
         object firstMarket = this.getMarketFromSymbols(symbols);
         object type = this.safeString(firstMarket, "type", "swap");
-        object symbolsLength = getArrayLength(symbols);
+        int symbolsLength = getArrayLength(symbols);
         if (isTrue(isEqual(symbolsLength, 0)))
         {
             throw new ArgumentsRequired ((string)add(this.id, " unWatchBidsAsks() requires a non-empty array of symbols")) ;
@@ -712,7 +712,7 @@ public partial class aster : ccxt.aster
         symbols = this.marketSymbols(symbols, null, true, true, true);
         object firstMarket = this.getMarketFromSymbols(symbols);
         object type = this.safeString(firstMarket, "type", "swap");
-        object symbolsLength = getArrayLength(symbols);
+        int symbolsLength = getArrayLength(symbols);
         object methodName = null;
         var methodNameparametersVariable = this.handleParamString(parameters, "callerMethodName", "watchTradesForSymbols");
         methodName = ((IList<object>)methodNameparametersVariable)[0];
@@ -768,7 +768,7 @@ public partial class aster : ccxt.aster
         symbols = this.marketSymbols(symbols, null, true, true, true);
         object firstMarket = this.getMarketFromSymbols(symbols);
         object type = this.safeString(firstMarket, "type", "swap");
-        object symbolsLength = getArrayLength(symbols);
+        int symbolsLength = getArrayLength(symbols);
         object methodName = null;
         var methodNameparametersVariable = this.handleParamString(parameters, "callerMethodName", "unWatchTradesForSymbols");
         methodName = ((IList<object>)methodNameparametersVariable)[0];
@@ -924,7 +924,7 @@ public partial class aster : ccxt.aster
         //     }
         //
         object e = this.safeString(trade, "e");
-        object isPublicTrade = isTrue((isEqual(e, "trade"))) || isTrue((isEqual(e, "aggTrade")));
+        bool isPublicTrade = isTrue((isEqual(e, "trade"))) || isTrue((isEqual(e, "aggTrade")));
         object id = this.safeString2(trade, "t", "a");
         object timestamp = this.safeInteger(trade, "T");
         object price = this.safeString2(trade, "L", "p");
@@ -1052,7 +1052,7 @@ public partial class aster : ccxt.aster
         symbols = this.marketSymbols(symbols, null, true, true, true);
         object firstMarket = this.getMarketFromSymbols(symbols);
         object type = this.safeString(firstMarket, "type", "swap");
-        object symbolsLength = getArrayLength(symbols);
+        int symbolsLength = getArrayLength(symbols);
         object methodName = null;
         var methodNameparametersVariable = this.handleParamString(parameters, "callerMethodName", "watchOrderBookForSymbols");
         methodName = ((IList<object>)methodNameparametersVariable)[0];
@@ -1107,7 +1107,7 @@ public partial class aster : ccxt.aster
         symbols = this.marketSymbols(symbols, null, true, true, true);
         object firstMarket = this.getMarketFromSymbols(symbols);
         object type = this.safeString(firstMarket, "type", "swap");
-        object symbolsLength = getArrayLength(symbols);
+        int symbolsLength = getArrayLength(symbols);
         object methodName = null;
         var methodNameparametersVariable = this.handleParamString(parameters, "callerMethodName", "unWatchOrderBookForSymbols");
         methodName = ((IList<object>)methodNameparametersVariable)[0];
@@ -1250,7 +1250,7 @@ public partial class aster : ccxt.aster
         {
             await this.loadMarkets();
         }
-        object symbolsLength = getArrayLength(symbolsAndTimeframes);
+        int symbolsLength = getArrayLength(symbolsAndTimeframes);
         object methodName = null;
         var methodNameparametersVariable = this.handleParamString(parameters, "callerMethodName", "watchOHLCVForSymbols");
         methodName = ((IList<object>)methodNameparametersVariable)[0];
@@ -1315,7 +1315,7 @@ public partial class aster : ccxt.aster
         {
             await this.loadMarkets();
         }
-        object symbolsLength = getArrayLength(symbolsAndTimeframes);
+        int symbolsLength = getArrayLength(symbolsAndTimeframes);
         object methodName = null;
         var methodNameparametersVariable = this.handleParamString(parameters, "callerMethodName", "unWatchOHLCVForSymbols");
         methodName = ((IList<object>)methodNameparametersVariable)[0];
@@ -1421,7 +1421,7 @@ public partial class aster : ccxt.aster
     {
         type ??= "spot";
         parameters ??= new Dictionary<string, object>();
-        object time = this.milliseconds();
+        Int64 time = this.milliseconds();
         object lastAuthenticatedTimeOptions = this.safeDict(this.options, "lastAuthenticatedTime", new Dictionary<string, object>() {});
         object lastAuthenticatedTime = this.safeInteger(lastAuthenticatedTimeOptions, type, 0);
         object listenKeyRefreshRateOptions = this.safeDict(this.options, "listenKeyRefreshRate", new Dictionary<string, object>() {});
@@ -1508,7 +1508,7 @@ public partial class aster : ccxt.aster
         {
             object url = add(add(getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), "private"), type), "/"), listenKey);
             var client = this.client(url);
-            object messageHashes = new List<object>(((IDictionary<string, ccxt.Exchange.Future>)client.futures).Keys);
+            List<object> messageHashes = new List<object>(((IDictionary<string, ccxt.Exchange.Future>)client.futures).Keys);
             for (object i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
             {
                 object messageHash = getValue(messageHashes, i);
@@ -1712,13 +1712,13 @@ public partial class aster : ccxt.aster
         {
             await this.loadMarkets();
         }
-        object type = "swap";
+        string type = "swap";
         await this.authenticate(type, parameters);
         object url = this.getPrivateUrl(type);
         var client = this.client(url);
         this.setPositionsCache(client);
         object messageHashes = new List<object>() {};
-        object messageHash = "positions";
+        string messageHash = "positions";
         symbols = this.marketSymbols(symbols, "swap", true, true);
         if (isTrue(isEqual(symbols, null)))
         {
@@ -1756,7 +1756,7 @@ public partial class aster : ccxt.aster
         object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", false);
         if (isTrue(isEqual(fetchPositionsSnapshot, true)))
         {
-            object messageHash = "fetchPositionsSnapshot";
+            string messageHash = "fetchPositionsSnapshot";
             if (!isTrue((inOp(client.futures, messageHash))))
             {
                 client.future(messageHash);
@@ -1824,7 +1824,7 @@ public partial class aster : ccxt.aster
         //         }
         //     }
         //
-        object messageHash = "positions";
+        string messageHash = "positions";
         if (isTrue(isEqual(this.positions, null)))
         {
             this.positions = new ArrayCacheBySymbolBySide();
@@ -1875,7 +1875,7 @@ public partial class aster : ccxt.aster
         object contracts = this.safeString(position, "pa");
         object contractsAbs = Precise.stringAbs(this.safeString(position, "pa"));
         object positionSide = this.safeStringLower(position, "ps");
-        object hedged = true;
+        bool hedged = true;
         if (isTrue(isEqual(positionSide, "both")))
         {
             hedged = false;
@@ -2029,11 +2029,11 @@ public partial class aster : ccxt.aster
 
     public virtual void handleMyTrade(WebSocketClient client, object message)
     {
-        object messageHash = "myTrades";
+        string messageHash = "myTrades";
         object executionType = this.safeString(message, "x");
         if (isTrue(isEqual(executionType, "TRADE")))
         {
-            object isSwap = isGreaterThanOrEqual(getIndexOf(client.url, "fstream"), 0);
+            bool isSwap = isGreaterThanOrEqual(getIndexOf(client.url, "fstream"), 0);
             object type = ((bool) isTrue(isSwap)) ? "swap" : "spot";
             object fakeMarket = this.safeMarketStructure(new Dictionary<string, object>() {
                 { "type", type },
@@ -2057,7 +2057,7 @@ public partial class aster : ccxt.aster
                         object fee = this.safeValue(order, "fee");
                         if (!isTrue(this.isEmpty(fees)))
                         {
-                            object insertNewFeeCurrency = true;
+                            bool insertNewFeeCurrency = true;
                             for (object i = 0; isLessThan(i, getArrayLength(fees)); postFixIncrement(ref i))
                             {
                                 object orderFee = getValue(fees, i);
@@ -2189,7 +2189,7 @@ public partial class aster : ccxt.aster
         //         "rp":"0"                       // Realized Profit of the trade
         //     }
         //
-        object messageHash = "orders";
+        string messageHash = "orders";
         object market = this.getMarketFromOrder(client as WebSocketClient, message);
         if (isTrue(isEqual(this.orders, null)))
         {

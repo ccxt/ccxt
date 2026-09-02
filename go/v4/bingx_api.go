@@ -762,6 +762,11 @@ func (this *BingxCore) AccountV1PrivateGetAccountApiPermissions(args ...any) <-c
 	return this.callEndpointAsync("accountV1PrivateGetAccountApiPermissions", args...)
 }
 
+// AccountV1PrivateGetAccountApiRestrictions returns a channel that yields a JSON object.
+func (this *BingxCore) AccountV1PrivateGetAccountApiRestrictions(args ...any) <-chan any {
+	return this.callEndpointAsync("accountV1PrivateGetAccountApiRestrictions", args...)
+}
+
 // AccountV1PrivateGetAllAccountBalance returns a channel that yields a JSON object.
 func (this *BingxCore) AccountV1PrivateGetAllAccountBalance(args ...any) <-chan any {
 	return this.callEndpointAsync("accountV1PrivateGetAllAccountBalance", args...)

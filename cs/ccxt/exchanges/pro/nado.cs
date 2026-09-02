@@ -137,7 +137,7 @@ public partial class nado : ccxt.nado
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object symbolsLength = getArrayLength(symbols);
+        int symbolsLength = getArrayLength(symbols);
         if (isTrue(isEqual(symbolsLength, 0)))
         {
             throw new ArgumentsRequired ((string)add(this.id, " watchTradesForSymbols() requires a non-empty array of symbols")) ;
@@ -174,7 +174,7 @@ public partial class nado : ccxt.nado
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object symbolsLength = getArrayLength(symbols);
+        int symbolsLength = getArrayLength(symbols);
         if (isTrue(isEqual(symbolsLength, 0)))
         {
             throw new ArgumentsRequired ((string)add(this.id, " unWatchTradesForSymbols() requires a non-empty array of symbols")) ;
@@ -246,7 +246,7 @@ public partial class nado : ccxt.nado
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object symbolsLength = getArrayLength(symbols);
+        int symbolsLength = getArrayLength(symbols);
         if (isTrue(isEqual(symbolsLength, 0)))
         {
             throw new ArgumentsRequired ((string)add(this.id, " watchOrderBookForSymbols() requires a non-empty array of symbols")) ;
@@ -284,7 +284,7 @@ public partial class nado : ccxt.nado
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object symbolsLength = getArrayLength(symbols);
+        int symbolsLength = getArrayLength(symbols);
         if (isTrue(isEqual(symbolsLength, 0)))
         {
             throw new ArgumentsRequired ((string)add(this.id, " unWatchOrderBookForSymbols() requires a non-empty array of symbols")) ;
@@ -348,7 +348,7 @@ public partial class nado : ccxt.nado
     public async override Task<object> watchOHLCVForSymbols(object symbolsAndTimeframes, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object symbolsLength = getArrayLength(symbolsAndTimeframes);
+        int symbolsLength = getArrayLength(symbolsAndTimeframes);
         if (isTrue(isTrue(isEqual(symbolsLength, 0)) || !isTrue(((getValue(symbolsAndTimeframes, 0) is IList<object>) || (getValue(symbolsAndTimeframes, 0).GetType().IsGenericType && getValue(symbolsAndTimeframes, 0).GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))))
         {
             throw new ArgumentsRequired ((string)add(this.id, " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT0:USDT0', '1m'], ['ETH/USDT0:USDT0', '5m']]")) ;
@@ -411,7 +411,7 @@ public partial class nado : ccxt.nado
     public async override Task<object> unWatchOHLCVForSymbols(object symbolsAndTimeframes, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object symbolsLength = getArrayLength(symbolsAndTimeframes);
+        int symbolsLength = getArrayLength(symbolsAndTimeframes);
         if (isTrue(isTrue(isEqual(symbolsLength, 0)) || !isTrue(((getValue(symbolsAndTimeframes, 0) is IList<object>) || (getValue(symbolsAndTimeframes, 0).GetType().IsGenericType && getValue(symbolsAndTimeframes, 0).GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))))
         {
             throw new ArgumentsRequired ((string)add(this.id, " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT0:USDT0', '1m'], ['ETH/USDT0:USDT0', '5m']]")) ;
@@ -486,10 +486,10 @@ public partial class nado : ccxt.nado
         symbols = this.marketSymbols(symbols, null, true, true, true);
         object market = null;
         object messageHash = "ticker";
-        object streamType = "all_bbo";
+        string streamType = "all_bbo";
         if (isTrue(!isEqual(symbols, null)))
         {
-            object symbolsLength = getArrayLength(symbols);
+            int symbolsLength = getArrayLength(symbols);
             if (isTrue(isEqual(symbolsLength, 1)))
             {
                 market = this.market(getValue(symbols, 0));
@@ -527,10 +527,10 @@ public partial class nado : ccxt.nado
         symbols = this.marketSymbols(symbols, null, true, true, true);
         object market = null;
         object messageHash = "ticker";
-        object streamType = "all_bbo";
+        string streamType = "all_bbo";
         if (isTrue(!isEqual(symbols, null)))
         {
-            object symbolsLength = getArrayLength(symbols);
+            int symbolsLength = getArrayLength(symbols);
             if (isTrue(isEqual(symbolsLength, 1)))
             {
                 market = this.market(getValue(symbols, 0));
@@ -557,10 +557,10 @@ public partial class nado : ccxt.nado
         symbols = this.marketSymbols(symbols, null, true, true, true);
         object market = null;
         object messageHash = "bidask";
-        object streamType = "all_bbo";
+        string streamType = "all_bbo";
         if (isTrue(!isEqual(symbols, null)))
         {
-            object symbolsLength = getArrayLength(symbols);
+            int symbolsLength = getArrayLength(symbols);
             if (isTrue(isEqual(symbolsLength, 1)))
             {
                 market = this.market(getValue(symbols, 0));
@@ -598,10 +598,10 @@ public partial class nado : ccxt.nado
         symbols = this.marketSymbols(symbols, null, true, true, true);
         object market = null;
         object messageHash = "bidask";
-        object streamType = "all_bbo";
+        string streamType = "all_bbo";
         if (isTrue(!isEqual(symbols, null)))
         {
-            object symbolsLength = getArrayLength(symbols);
+            int symbolsLength = getArrayLength(symbols);
             if (isTrue(isEqual(symbolsLength, 1)))
             {
                 market = this.market(getValue(symbols, 0));
@@ -812,7 +812,7 @@ public partial class nado : ccxt.nado
         object productId = null;
         if (isTrue(!isEqual(symbols, null)))
         {
-            object symbolsLength = getArrayLength(symbols);
+            int symbolsLength = getArrayLength(symbols);
             if (isTrue(isEqual(symbolsLength, 1)))
             {
                 object market = this.market(getValue(symbols, 0));
@@ -859,7 +859,7 @@ public partial class nado : ccxt.nado
         object productId = null;
         if (isTrue(!isEqual(symbols, null)))
         {
-            object symbolsLength = getArrayLength(symbols);
+            int symbolsLength = getArrayLength(symbols);
             if (isTrue(isEqual(symbolsLength, 1)))
             {
                 object market = this.market(getValue(symbols, 0));
@@ -1246,7 +1246,7 @@ public partial class nado : ccxt.nado
         this.checkRequiredCredentials();
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "subscriptions");
         var client = this.client(url);
-        object messageHash = "authenticated";
+        string messageHash = "authenticated";
         object authenticated = this.safeValue(((WebSocketClient)client).subscriptions, messageHash);
         if (isTrue(!isEqual(authenticated, null)))
         {
@@ -1414,7 +1414,7 @@ public partial class nado : ccxt.nado
         {
             return null;
         }
-        object length = ((string)value).Length;
+        int length = ((string)value).Length;
         if (isTrue(isGreaterThan(length, 13)))
         {
             return this.parseToInt(slice(value, 0, subtract(length, 6)));
@@ -1765,10 +1765,10 @@ public partial class nado : ccxt.nado
         object side = this.safeString(position, "side");
         if (isTrue(isEqual(side, null)))
         {
-            object longPosition = this.extend(new Dictionary<string, object>() {}, position);
+            Dictionary<string, object> longPosition = this.extend(new Dictionary<string, object>() {}, position);
             ((IDictionary<string,object>)longPosition)["side"] = "long";
             callDynamically(positions, "append", new object[] {longPosition});
-            object shortPosition = this.extend(new Dictionary<string, object>() {}, position);
+            Dictionary<string, object> shortPosition = this.extend(new Dictionary<string, object>() {}, position);
             ((IDictionary<string,object>)shortPosition)["side"] = "short";
             callDynamically(positions, "append", new object[] {shortPosition});
         } else
@@ -1839,7 +1839,7 @@ public partial class nado : ccxt.nado
         //
         object timestamp = this.safeInteger(message, "time");
         object bbos = this.safeDict(message, "bbos", new Dictionary<string, object>() {});
-        object marketIds = new List<object>(((IDictionary<string,object>)bbos).Keys);
+        List<object> marketIds = new List<object>(((IDictionary<string,object>)bbos).Keys);
         object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
         {
@@ -1848,7 +1848,7 @@ public partial class nado : ccxt.nado
             object bbo = this.safeDict(bbos, marketId, new Dictionary<string, object>() {});
             object bid = this.safeString(bbo, "bid");
             object ask = this.safeString(bbo, "ask");
-            object maxPrice = "170141183460469231731687303715884105727";
+            string maxPrice = "170141183460469231731687303715884105727";
             if (isTrue(isTrue(isTrue(isTrue(Precise.stringGt(bid, "0")) && isTrue(Precise.stringGt(ask, "0"))) && !isTrue(Precise.stringEquals(bid, maxPrice))) && !isTrue(Precise.stringEquals(ask, maxPrice))))
             {
                 object ticker = this.safeTicker(new Dictionary<string, object>() {
@@ -1869,7 +1869,7 @@ public partial class nado : ccxt.nado
     public virtual void handleAllBidsAsks(WebSocketClient client, object message)
     {
         object tickers = this.parseWsAllBidsAsks(message);
-        object symbols = new List<object>(((IDictionary<string,object>)tickers).Keys);
+        List<object> symbols = new List<object>(((IDictionary<string,object>)tickers).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
@@ -1915,7 +1915,7 @@ public partial class nado : ccxt.nado
         object lastMaxTimestamp = this.safeString(message, "last_max_timestamp");
         if (isTrue(isTrue(isTrue((!isEqual(maxTimestamp, null))) && isTrue((!isEqual(lastMaxTimestamp, null)))) && isTrue((!isEqual(maxTimestamp, lastMaxTimestamp)))))
         {
-            object subscriptions = new List<object>(((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Keys);
+            List<object> subscriptions = new List<object>(((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Keys);
             for (object i = 0; isLessThan(i, getArrayLength(subscriptions)); postFixIncrement(ref i))
             {
                 object subscriptionHash = getValue(subscriptions, i);
@@ -2017,7 +2017,7 @@ public partial class nado : ccxt.nado
             callDynamically(client as WebSocketClient, "resolve", new object[] {message, unsubscribeHash});
             return;
         }
-        object subscriptions = new List<object>(((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Keys);
+        List<object> subscriptions = new List<object>(((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(subscriptions)); postFixIncrement(ref i))
         {
             object unsubscribeHash = getValue(subscriptions, i);
@@ -2046,21 +2046,21 @@ public partial class nado : ccxt.nado
         }
         if (isTrue(isEqual(getIndexOf(messageHash, "trade:"), 0)))
         {
-            object symbol = ((string)messageHash).Replace((string)"trade:", (string)"");
+            string symbol = ((string)messageHash).Replace((string)"trade:", (string)"");
             if (isTrue(inOp(this.trades, symbol)))
             {
                 ((IDictionary<string,object>)this.trades).Remove((string)symbol);
             }
         } else if (isTrue(isEqual(getIndexOf(messageHash, "orderbook:"), 0)))
         {
-            object symbol = ((string)messageHash).Replace((string)"orderbook:", (string)"");
+            string symbol = ((string)messageHash).Replace((string)"orderbook:", (string)"");
             if (isTrue(inOp(this.orderbooks, symbol)))
             {
                 ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
             }
         } else if (isTrue(isEqual(getIndexOf(messageHash, "ohlcv:"), 0)))
         {
-            object parts = ((string)messageHash).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
+            List<object> parts = ((string)messageHash).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
             object timeframe = this.safeString(parts, 1);
             object symbol = this.safeString(parts, 2);
             if (isTrue(isTrue(isTrue(isTrue((!isEqual(symbol, null))) && isTrue((!isEqual(timeframe, null)))) && isTrue((inOp(this.ohlcvs, symbol)))) && isTrue((inOp(getValue(this.ohlcvs, symbol), timeframe)))))
@@ -2069,28 +2069,28 @@ public partial class nado : ccxt.nado
             }
         } else if (isTrue(isEqual(getIndexOf(messageHash, "ticker:"), 0)))
         {
-            object symbol = ((string)messageHash).Replace((string)"ticker:", (string)"");
+            string symbol = ((string)messageHash).Replace((string)"ticker:", (string)"");
             if (isTrue(inOp(this.tickers, symbol)))
             {
                 ((IDictionary<string,object>)this.tickers).Remove((string)symbol);
             }
         } else if (isTrue(isEqual(messageHash, "ticker")))
         {
-            object symbols = new List<object>(((IDictionary<string,object>)this.tickers).Keys);
+            List<object> symbols = new List<object>(((IDictionary<string,object>)this.tickers).Keys);
             for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
             {
                 ((IDictionary<string,object>)this.tickers).Remove((string)getValue(symbols, i));
             }
         } else if (isTrue(isEqual(getIndexOf(messageHash, "bidask:"), 0)))
         {
-            object symbol = ((string)messageHash).Replace((string)"bidask:", (string)"");
+            string symbol = ((string)messageHash).Replace((string)"bidask:", (string)"");
             if (isTrue(inOp(this.bidsasks, symbol)))
             {
                 ((IDictionary<string,object>)this.bidsasks).Remove((string)symbol);
             }
         } else if (isTrue(isEqual(messageHash, "bidask")))
         {
-            object symbols = new List<object>(((IDictionary<string,object>)this.bidsasks).Keys);
+            List<object> symbols = new List<object>(((IDictionary<string,object>)this.bidsasks).Keys);
             for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
             {
                 ((IDictionary<string,object>)this.bidsasks).Remove((string)getValue(symbols, i));
@@ -2181,7 +2181,7 @@ public partial class nado : ccxt.nado
             return;
         }
         object id = this.safeString(message, "id");
-        object hasResult = (inOp(message, "result"));
+        bool hasResult = (inOp(message, "result"));
         object result = this.safeValue(message, "result");
         object method = this.safeString(result, "method");
         if (isTrue(isEqual(method, "pong")))

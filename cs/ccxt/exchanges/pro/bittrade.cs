@@ -114,7 +114,7 @@ public partial class bittrade : ccxt.bittrade
         {
             return message;
         }
-        object parts = ((string)ch).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = ((string)ch).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         object marketId = this.safeString(parts, 1);
         object market = this.safeMarket(marketId);
         object ticker = this.parseTicker(tick, market);
@@ -203,7 +203,7 @@ public partial class bittrade : ccxt.bittrade
         {
             return message;
         }
-        object parts = ((string)ch).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = ((string)ch).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         object marketId = this.safeString(parts, 1);
         object market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
@@ -297,7 +297,7 @@ public partial class bittrade : ccxt.bittrade
         {
             return;
         }
-        object parts = ((string)ch).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = ((string)ch).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         object marketId = this.safeString(parts, 1);
         object market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
@@ -531,7 +531,7 @@ public partial class bittrade : ccxt.bittrade
         //
         object messageHash = this.safeString(message, "ch");
         object ch = this.safeValue(message, "ch");
-        object parts = ((string)ch).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = ((string)ch).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         object marketId = this.safeString(parts, 1);
         object symbol = this.safeSymbol(marketId);
         object orderbook = getValue(this.orderbooks, symbol);
@@ -577,7 +577,7 @@ public partial class bittrade : ccxt.bittrade
         {
             return message;
         }
-        object subscriptionsById = this.indexBy(((WebSocketClient)client).subscriptions, "id");
+        Dictionary<string, object> subscriptionsById = this.indexBy(((WebSocketClient)client).subscriptions, "id");
         object subscription = this.safeValue(subscriptionsById, id);
         if (isTrue(!isEqual(subscription, null)))
         {
@@ -633,7 +633,7 @@ public partial class bittrade : ccxt.bittrade
         //     }
         //
         object ch = this.safeValue(message, "ch");
-        object parts = ((string)ch).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = ((string)ch).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         object type = this.safeString(parts, 0);
         if (isTrue(isEqual(type, "market")))
         {
@@ -686,7 +686,7 @@ public partial class bittrade : ccxt.bittrade
             {
                 return false;
             }
-            object subscriptionsById = this.indexBy(((WebSocketClient)client).subscriptions, "id");
+            Dictionary<string, object> subscriptionsById = this.indexBy(((WebSocketClient)client).subscriptions, "id");
             object subscription = this.safeValue(subscriptionsById, id);
             if (isTrue(!isEqual(subscription, null)))
             {

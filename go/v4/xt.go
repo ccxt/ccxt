@@ -3222,7 +3222,7 @@ func (this *XtCore) createSpotOrderBody(ch chan any, symbol any, typeVar any, si
 	postOnlyparamsVariable := this.HandlePostOnly(IsEqual(typeVar, "market"), IsEqual(timeInForce, "GTX"), params)
 	postOnly = GetValue(postOnlyparamsVariable, 0)
 	params = GetValue(postOnlyparamsVariable, 1)
-	if IsTrue(postOnly) {
+	if IsTrue(IsEqual(postOnly, true)) {
 		timeInForce = "GTX"
 	}
 	params = this.Omit(params, []any{"timeInForce", "postOnly"})
@@ -3275,7 +3275,7 @@ func (this *XtCore) createContractOrderBody(ch chan any, symbol any, typeVar any
 	postOnlyparamsVariable := this.HandlePostOnly(IsEqual(typeVar, "market"), IsEqual(timeInForce, "GTX"), params)
 	postOnly = GetValue(postOnlyparamsVariable, 0)
 	params = GetValue(postOnlyparamsVariable, 1)
-	if IsTrue(postOnly) {
+	if IsTrue(IsEqual(postOnly, true)) {
 		timeInForce = "GTX"
 	}
 	params = this.Omit(params, []any{"timeInForce", "postOnly"})

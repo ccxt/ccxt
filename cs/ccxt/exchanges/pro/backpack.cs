@@ -69,7 +69,7 @@ public partial class backpack : ccxt.backpack
             { "method", method },
             { "params", topics },
         };
-        object message = this.deepExtend(request, parameters);
+        Dictionary<string, object> message = this.deepExtend(request, parameters);
         if (isTrue(unwatch))
         {
             this.handleUnsubscriptions(url, messageHashes, message);
@@ -84,8 +84,8 @@ public partial class backpack : ccxt.backpack
         unwatch ??= false;
         this.checkRequiredCredentials();
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "private");
-        object instruction = "subscribe";
-        object ts = ((object)this.nonce()).ToString();
+        string instruction = "subscribe";
+        string ts = ((object)this.nonce()).ToString();
         object method = ((bool) isTrue(unwatch)) ? "UNSUBSCRIBE" : "SUBSCRIBE";
         object recvWindow = this.safeString2(this.options, "recvWindow", "X-Window", "5000");
         object payload = add(add(add(add(add(add("instruction=", instruction), "&"), "timestamp="), ts), "&window="), recvWindow);
@@ -97,7 +97,7 @@ public partial class backpack : ccxt.backpack
             { "params", topics },
             { "signature", new List<object>() {this.apiKey, signature, ts, recvWindow} },
         };
-        object message = this.deepExtend(request, parameters);
+        Dictionary<string, object> message = this.deepExtend(request, parameters);
         if (isTrue(unwatch))
         {
             this.handleUnsubscriptions(url, messageHashes, message);
@@ -113,25 +113,25 @@ public partial class backpack : ccxt.backpack
         for (object i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
         {
             object messageHash = getValue(messageHashes, i);
-            object subMessageHash = ((string)messageHash).Replace((string)"unsubscribe:", (string)"");
+            string subMessageHash = ((string)messageHash).Replace((string)"unsubscribe:", (string)"");
             this.cleanUnsubscription(client as WebSocketClient, subMessageHash, messageHash);
             if (isTrue(isGreaterThanOrEqual(getIndexOf(messageHash, "ticker"), 0)))
             {
-                object symbol = ((string)messageHash).Replace((string)"unsubscribe:ticker:", (string)"");
+                string symbol = ((string)messageHash).Replace((string)"unsubscribe:ticker:", (string)"");
                 if (isTrue(inOp(this.tickers, symbol)))
                 {
                     ((IDictionary<string,object>)this.tickers).Remove((string)symbol);
                 }
             } else if (isTrue(isGreaterThanOrEqual(getIndexOf(messageHash, "bidask"), 0)))
             {
-                object symbol = ((string)messageHash).Replace((string)"unsubscribe:bidask:", (string)"");
+                string symbol = ((string)messageHash).Replace((string)"unsubscribe:bidask:", (string)"");
                 if (isTrue(inOp(this.bidsasks, symbol)))
                 {
                     ((IDictionary<string,object>)this.bidsasks).Remove((string)symbol);
                 }
             } else if (isTrue(isGreaterThanOrEqual(getIndexOf(messageHash, "candles"), 0)))
             {
-                object splitHashes = ((string)messageHash).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
+                List<object> splitHashes = ((string)messageHash).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
                 object symbol = this.safeString(splitHashes, 2);
                 object timeframe = this.safeString(splitHashes, 3);
                 if (isTrue(isTrue(isTrue((!isEqual(symbol, null))) && isTrue((!isEqual(timeframe, null)))) && isTrue((inOp(this.ohlcvs, symbol)))))
@@ -143,14 +143,14 @@ public partial class backpack : ccxt.backpack
                 }
             } else if (isTrue(isGreaterThanOrEqual(getIndexOf(messageHash, "orderbook"), 0)))
             {
-                object symbol = ((string)messageHash).Replace((string)"unsubscribe:orderbook:", (string)"");
+                string symbol = ((string)messageHash).Replace((string)"unsubscribe:orderbook:", (string)"");
                 if (isTrue(inOp(this.orderbooks, symbol)))
                 {
                     ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
                 }
             } else if (isTrue(isGreaterThanOrEqual(getIndexOf(messageHash, "trades"), 0)))
             {
-                object symbol = ((string)messageHash).Replace((string)"unsubscribe:trades:", (string)"");
+                string symbol = ((string)messageHash).Replace((string)"unsubscribe:trades:", (string)"");
                 if (isTrue(inOp(this.trades, symbol)))
                 {
                     ((IDictionary<string,object>)this.trades).Remove((string)symbol);
@@ -162,7 +162,7 @@ public partial class backpack : ccxt.backpack
                     object cache = this.orders;
                     if (isTrue(!isEqual(cache, null)))
                     {
-                        object keys = new List<object>(((IDictionary<string,object>)cache).Keys);
+                        List<object> keys = new List<object>(((IDictionary<string,object>)cache).Keys);
                         for (object j = 0; isLessThan(j, getArrayLength(keys)); postFixIncrement(ref j))
                         {
                             object symbol = getValue(keys, j);
@@ -171,7 +171,7 @@ public partial class backpack : ccxt.backpack
                     }
                 } else
                 {
-                    object symbol = ((string)messageHash).Replace((string)"unsubscribe:orders:", (string)"");
+                    string symbol = ((string)messageHash).Replace((string)"unsubscribe:orders:", (string)"");
                     object cache = this.orders;
                     if (isTrue(isTrue((!isEqual(cache, null))) && isTrue((inOp(cache, symbol)))))
                     {
@@ -183,7 +183,7 @@ public partial class backpack : ccxt.backpack
                 if (isTrue(isEqual(messageHash, "unsubscribe:positions")))
                 {
                     object cache = this.positions;
-                    object keys = new List<object>(((IDictionary<string,object>)cache).Keys);
+                    List<object> keys = new List<object>(((IDictionary<string,object>)cache).Keys);
                     for (object j = 0; isLessThan(j, getArrayLength(keys)); postFixIncrement(ref j))
                     {
                         object symbol = getValue(keys, j);
@@ -191,7 +191,7 @@ public partial class backpack : ccxt.backpack
                     }
                 } else
                 {
-                    object symbol = ((string)messageHash).Replace((string)"unsubscribe:positions:", (string)"");
+                    string symbol = ((string)messageHash).Replace((string)"unsubscribe:positions:", (string)"");
                     if (isTrue(inOp(this.positions, symbol)))
                     {
                         ((IDictionary<string,object>)this.positions).Remove((string)symbol);
@@ -548,7 +548,7 @@ public partial class backpack : ccxt.backpack
     public async override Task<object> watchOHLCVForSymbols(object symbolsAndTimeframes, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object symbolsLength = getArrayLength(symbolsAndTimeframes);
+        int symbolsLength = getArrayLength(symbolsAndTimeframes);
         if (isTrue(isTrue(isEqual(symbolsLength, 0)) || !isTrue(((getValue(symbolsAndTimeframes, 0) is IList<object>) || (getValue(symbolsAndTimeframes, 0).GetType().IsGenericType && getValue(symbolsAndTimeframes, 0).GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))))
         {
             throw new ArgumentsRequired ((string)add(this.id, " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']")) ;
@@ -593,7 +593,7 @@ public partial class backpack : ccxt.backpack
     public async override Task<object> unWatchOHLCVForSymbols(object symbolsAndTimeframes, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object symbolsLength = getArrayLength(symbolsAndTimeframes);
+        int symbolsLength = getArrayLength(symbolsAndTimeframes);
         if (isTrue(isTrue(isEqual(symbolsLength, 0)) || !isTrue(((getValue(symbolsAndTimeframes, 0) is IList<object>) || (getValue(symbolsAndTimeframes, 0).GetType().IsGenericType && getValue(symbolsAndTimeframes, 0).GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))))
         {
             throw new ArgumentsRequired ((string)add(this.id, " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']")) ;
@@ -643,7 +643,7 @@ public partial class backpack : ccxt.backpack
         object market = this.market(marketId);
         object symbol = getValue(market, "symbol");
         object stream = this.safeString(message, "stream", "");
-        object parts = ((string)stream).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = ((string)stream).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         object timeframe = this.safeString(parts, 1, "");
         if (!isTrue((inOp(this.ohlcvs, symbol))))
         {
@@ -735,7 +735,7 @@ public partial class backpack : ccxt.backpack
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols);
-        object symbolsLength = getArrayLength(symbols);
+        int symbolsLength = getArrayLength(symbols);
         if (isTrue(isEqual(symbolsLength, 0)))
         {
             throw new ArgumentsRequired ((string)add(this.id, " watchTradesForSymbols() requires a non-empty array of symbols")) ;
@@ -777,7 +777,7 @@ public partial class backpack : ccxt.backpack
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols);
-        object symbolsLength = getArrayLength(symbols);
+        int symbolsLength = getArrayLength(symbols);
         if (isTrue(isEqual(symbolsLength, 0)))
         {
             throw new ArgumentsRequired ((string)add(this.id, " unWatchTradesForSymbols() requires a non-empty array of symbols")) ;
@@ -1024,7 +1024,7 @@ public partial class backpack : ccxt.backpack
         object messageHash = add("orderbook:", symbol);
         if (isTrue(isEqual(nonce, null)))
         {
-            object cacheLength = getArrayLength((storedOrderBook as ccxt.pro.OrderBook).cache);
+            int cacheLength = getArrayLength((storedOrderBook as ccxt.pro.OrderBook).cache);
             // the rest API is very delayed
             // usually it takes at least 9 deltas to resolve
             object snapshotDelay = this.handleOption("watchOrderBook", "snapshotDelay", 10);
@@ -1200,7 +1200,7 @@ public partial class backpack : ccxt.backpack
         //         stream: 'account.orderUpdate.ETH_USDC'
         //     }
         //
-        object messageHash = "orders";
+        string messageHash = "orders";
         object data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         object marketId = this.safeString(data, "s");
         object market = this.safeMarket(marketId);
@@ -1422,7 +1422,7 @@ public partial class backpack : ccxt.backpack
         //         stream: 'account.positionUpdate'
         //     }
         //
-        object messageHash = "positions";
+        string messageHash = "positions";
         object data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         if (isTrue(isEqual(this.positions, null)))
         {

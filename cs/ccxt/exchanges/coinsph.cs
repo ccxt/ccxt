@@ -813,7 +813,7 @@ public partial class coinsph : Exchange
         } else if (isTrue(isTrue((inOp(config, "byNumberOfSymbols"))) && isTrue((inOp(parameters, "symbols")))))
         {
             object symbols = getValue(parameters, "symbols");
-            object symbolsAmount = getArrayLength(symbols);
+            int symbolsAmount = getArrayLength(symbols);
             object byNumberOfSymbols = this.safeList(config, "byNumberOfSymbols", new List<object>() {});
             for (object i = 0; isLessThan(i, getArrayLength(byNumberOfSymbols)); postFixIncrement(ref i))
             {
@@ -953,7 +953,7 @@ public partial class coinsph : Exchange
             object quoteId = this.safeString(market, "quoteAsset");
             object bs = this.safeCurrencyCode(baseId);
             object quote = this.safeCurrencyCode(quoteId);
-            object limits = this.indexBy(this.safeList(market, "filters", new List<object>() {}), "filterType");
+            Dictionary<string, object> limits = this.indexBy(this.safeList(market, "filters", new List<object>() {}), "filterType");
             object amountLimits = this.safeValue(limits, "LOT_SIZE", new Dictionary<string, object>() {});
             object priceLimits = this.safeValue(limits, "PRICE_FILTER", new Dictionary<string, object>() {});
             object costLimits = this.safeValue(limits, "NOTIONAL", new Dictionary<string, object>() {});
@@ -1043,7 +1043,7 @@ public partial class coinsph : Exchange
             }
             ((IDictionary<string,object>)request)["symbols"] = ids;
         }
-        object defaultMethod = "publicGetOpenapiQuoteV1Ticker24hr";
+        string defaultMethod = "publicGetOpenapiQuoteV1Ticker24hr";
         object options = this.safeDict(this.options, "fetchTickers", new Dictionary<string, object>() {});
         object method = this.safeString(options, "method", defaultMethod);
         object tickers = new List<object>() {};
@@ -1082,7 +1082,7 @@ public partial class coinsph : Exchange
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
-        object defaultMethod = "publicGetOpenapiQuoteV1Ticker24hr";
+        string defaultMethod = "publicGetOpenapiQuoteV1Ticker24hr";
         object options = this.safeDict(this.options, "fetchTicker", new Dictionary<string, object>() {});
         object method = this.safeString(options, "method", defaultMethod);
         object ticker = new Dictionary<string, object>() {};
@@ -1268,7 +1268,7 @@ public partial class coinsph : Exchange
             {
                 object duration = multiply(this.parseTimeframe(timeframeVar), 1000);
                 object endTimeByLimit = this.sum(since, multiply(duration, (subtract(limitVar, 1))));
-                object now = this.milliseconds();
+                Int64 now = this.milliseconds();
                 ((IDictionary<string,object>)request)["endTime"] = mathMin(endTimeByLimit, now);
             }
         } else if (isTrue(!isEqual(until, null)))
@@ -2434,7 +2434,7 @@ public partial class coinsph : Exchange
             };
         }
         object network = this.safeString(transaction, "network");
-        object intern = isEqual(network, "Internal");
+        bool intern = isEqual(network, "Internal");
         return new Dictionary<string, object>() {
             { "info", transaction },
             { "id", id },
@@ -2538,7 +2538,7 @@ public partial class coinsph : Exchange
     {
         query ??= new Dictionary<string, object>();
         object encodedArrayParams = "";
-        object keys = new List<object>(((IDictionary<string,object>)query).Keys);
+        List<object> keys = new List<object>(((IDictionary<string,object>)query).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object key = getValue(keys, i);
@@ -2566,7 +2566,7 @@ public partial class coinsph : Exchange
 
     public virtual object parseArrayParam(object array, object key)
     {
-        object stringifiedArray = this.json(array);
+        string stringifiedArray = this.json(array);
         stringifiedArray = ((string)stringifiedArray).Replace((string)"[", (string)"%5B");
         stringifiedArray = ((string)stringifiedArray).Replace((string)"]", (string)"%5D");
         object urlEncodedParam = add(add(key, "="), stringifiedArray);
@@ -2596,7 +2596,7 @@ public partial class coinsph : Exchange
                 }
             }
             query = this.urlEncodeQuery(query);
-            object signature = this.hmac(this.encode(query), this.encode(this.secret), sha256);
+            string signature = this.hmac(this.encode(query), this.encode(this.secret), sha256);
             url = add(add(add(add(url, "?"), query), "&signature="), signature);
             headers = new Dictionary<string, object>() {
                 { "X-COINS-APIKEY", this.apiKey },

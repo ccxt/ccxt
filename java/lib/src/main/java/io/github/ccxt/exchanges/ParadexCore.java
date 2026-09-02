@@ -3075,17 +3075,18 @@ public class ParadexCore extends ParadexApi
             quantity = Precise.stringMul("-1", quantity);
         }
         Object timestamp = this.safeInteger(position, "time");
+        Object liquidationPrice = this.parseNumber(this.omitZero(this.safeString(position, "liquidation_price")));
         final Object finalSide = side;
         final Object finalQuantity = quantity;
         return this.safePosition(new java.util.HashMap<String, Object>() {{
             put( "info", position );
             put( "id", ParadexCore.this.safeString(position, "id") );
             put( "symbol", symbol );
-            put( "entryPrice", ParadexCore.this.safeString(position, "average_entry_price") );
+            put( "entryPrice", ParadexCore.this.safeNumber(position, "average_entry_price") );
             put( "markPrice", null );
             put( "notional", null );
-            put( "collateral", ParadexCore.this.safeString(position, "cost") );
-            put( "unrealizedPnl", ParadexCore.this.safeString(position, "unrealized_pnl") );
+            put( "collateral", ParadexCore.this.safeNumber(position, "cost") );
+            put( "unrealizedPnl", ParadexCore.this.safeNumber(position, "unrealized_pnl") );
             put( "side", finalSide );
             put( "contracts", ParadexCore.this.parseNumber(finalQuantity) );
             put( "contractSize", null );
@@ -3097,7 +3098,7 @@ public class ParadexCore extends ParadexApi
             put( "initialMargin", null );
             put( "initialMarginPercentage", null );
             put( "leverage", null );
-            put( "liquidationPrice", null );
+            put( "liquidationPrice", liquidationPrice );
             put( "marginRatio", null );
             put( "marginMode", null );
             put( "percentage", null );

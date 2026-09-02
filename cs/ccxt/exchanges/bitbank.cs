@@ -1213,10 +1213,10 @@ public partial class bitbank : Exchange
             // 'nonce': legacy strictly-increasing nonce, kept as an escape hatch for clients with drifting clocks,
             // since bitbank offers no server time endpoint to compensate against
             object authMethod = this.safeString(this.options, "authMethod", "timeWindow");
-            object isTimeWindow = (isEqual(authMethod, "timeWindow"));
-            object requestTime = ((object)this.milliseconds()).ToString();
+            bool isTimeWindow = (isEqual(authMethod, "timeWindow"));
+            string requestTime = ((object)this.milliseconds()).ToString();
             object timeWindow = this.safeString(this.options, "timeWindow", "5000");
-            object nonce = ((object)this.nonce()).ToString();
+            string nonce = ((object)this.nonce()).ToString();
             object auth = null;
             if (isTrue(isTimeWindow))
             {

@@ -642,8 +642,8 @@ public partial class bitmex : Exchange
         object id = this.safeString(currency, "currency");
         object name = this.safeString(currency, "name");
         object chains = this.safeValue(currency, "networks", new List<object>() {});
-        object depositEnabled = false;
-        object withdrawEnabled = false;
+        bool depositEnabled = false;
+        bool withdrawEnabled = false;
         object networks = new Dictionary<string, object>() {};
         object scale = this.safeString(currency, "scale");
         object precisionString = this.parsePrecision(scale);
@@ -657,7 +657,7 @@ public partial class bitmex : Exchange
             object withdrawalFee = this.parseNumber(Precise.stringMul(withdrawalFeeRaw, precisionString));
             object isDepositEnabled = this.safeBool(chain, "depositEnabled", false);
             object isWithdrawEnabled = this.safeBool(chain, "withdrawalEnabled", false);
-            object active = (isTrue((isEqual(isDepositEnabled, true))) && isTrue((isEqual(isWithdrawEnabled, true))));
+            bool active = (isTrue((isEqual(isDepositEnabled, true))) && isTrue((isEqual(isWithdrawEnabled, true))));
             if (isTrue(isEqual(isDepositEnabled, true)))
             {
                 depositEnabled = true;
@@ -691,14 +691,14 @@ public partial class bitmex : Exchange
             }
         }
         object currencyEnabled = this.safeValue(currency, "enabled");
-        object currencyActive = isTrue((isEqual(currencyEnabled, true))) || isTrue((isTrue(depositEnabled) || isTrue(withdrawEnabled)));
+        bool currencyActive = isTrue((isEqual(currencyEnabled, true))) || isTrue((isTrue(depositEnabled) || isTrue(withdrawEnabled)));
         object minWithdrawalString = this.safeString(currency, "minWithdrawalAmount");
         object minWithdrawal = this.parseNumber(Precise.stringMul(minWithdrawalString, precisionString));
         object maxWithdrawalString = this.safeString(currency, "maxWithdrawalAmount");
         object maxWithdrawal = this.parseNumber(Precise.stringMul(maxWithdrawalString, precisionString));
         object minDepositString = this.safeString(currency, "minDepositAmount");
         object minDeposit = this.parseNumber(Precise.stringMul(minDepositString, precisionString));
-        object isCrypto = isEqual(this.safeString(currency, "currencyType"), "Crypto");
+        bool isCrypto = isEqual(this.safeString(currency, "currencyType"), "Crypto");
         return this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "id", id },
             { "code", code },
@@ -771,7 +771,7 @@ public partial class bitmex : Exchange
             return this.parseNumber(rawQuantity);
         }
         symbol = this.safeSymbol(symbol);
-        object marketExists = this.inArray(symbol, this.symbols);
+        bool marketExists = this.inArray(symbol, this.symbols);
         if (!isTrue(marketExists))
         {
             return this.parseNumber(rawQuantity);
@@ -994,9 +994,9 @@ public partial class bitmex : Exchange
         // so let's take the settlCurrency first and then adjust if needed
         object typ = this.safeString(market, "typ"); // type definitions at: https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_get
         object type = null;
-        object swap = false;
-        object spot = false;
-        object future = false;
+        bool swap = false;
+        bool spot = false;
+        bool future = false;
         if (isTrue(isEqual(typ, "FFWCSX")))
         {
             type = "swap";
@@ -1023,13 +1023,13 @@ public partial class bitmex : Exchange
         }
         object bs = this.safeCurrencyCode(baseId);
         object quote = this.safeCurrencyCode(quoteId);
-        object contract = isTrue(swap) || isTrue(future);
+        bool contract = isTrue(swap) || isTrue(future);
         object contractSize = null;
         object isInverse = this.safeValue(market, "isInverse"); // this is true when BASE and SETTLE are same, i.e. BTC/XXX:BTC
         object isQuanto = this.safeValue(market, "isQuanto"); // this is true when BASE and SETTLE are different, i.e. AXS/XXX:BTC
         object linear = ((bool) isTrue(contract)) ? (isTrue((!isEqual(isInverse, true))) && isTrue((!isEqual(isQuanto, true)))) : null;
         object status = this.safeString(market, "state");
-        object active = isEqual(status, "Open"); // Open, Settled, Unlisted
+        bool active = isEqual(status, "Open"); // Open, Settled, Unlisted
         object expiry = null;
         object expiryDatetime = null;
         object symbol = null;
@@ -1060,7 +1060,7 @@ public partial class bitmex : Exchange
         }
         object positionId = this.safeString2(market, "positionCurrency", "underlying");
         object position = this.safeCurrencyCode(positionId);
-        object positionIsQuote = (isEqual(position, quote));
+        bool positionIsQuote = (isEqual(position, quote));
         object maxOrderQty = this.safeNumber(market, "maxOrderQty");
         object initMargin = this.safeString(market, "initMargin", "1");
         object maxLeverage = this.parseNumber(Precise.stringDiv("1", initMargin));
@@ -1341,7 +1341,7 @@ public partial class bitmex : Exchange
             } },
         };
         object response = ccxt.BaseExchange.FromOrderList(await this.FetchOrders(((string)symbol),ccxt.BaseExchange.ToInt64Arg(null),ccxt.BaseExchange.ToInt64Arg(null), this.deepExtend(filter, parameters)));
-        object numResults = getArrayLength(response);
+        int numResults = getArrayLength(response);
         if (isTrue(isEqual(numResults, 1)))
         {
             return ccxt.BaseExchange.ToOrder(getValue(response, 0));
@@ -2477,7 +2477,7 @@ public partial class bitmex : Exchange
         {
             ((IList<object>)execInstructions).Add("ParticipateDoNotInitiate");
         }
-        object execInstLength = getArrayLength(execInstructions);
+        int execInstLength = getArrayLength(execInstructions);
         if (isTrue(isGreaterThan(execInstLength, 0)))
         {
             ((IDictionary<string,object>)request)["execInst"] = String.Join(",", ((IList<object>)execInstructions).ToArray());
@@ -2485,12 +2485,12 @@ public partial class bitmex : Exchange
         // support for unified trigger format
         object triggerPrice = this.safeNumberN(parameters, new List<object>() {"triggerPrice", "stopPx", "stopPrice"});
         object trailingAmount = this.safeString2(parameters, "trailingAmount", "pegOffsetValue");
-        object isTriggerOrder = !isEqual(triggerPrice, null);
-        object isTrailingAmountOrder = !isEqual(trailingAmount, null);
+        bool isTriggerOrder = !isEqual(triggerPrice, null);
+        bool isTrailingAmountOrder = !isEqual(trailingAmount, null);
         if (isTrue(isTrue(isTriggerOrder) || isTrue(isTrailingAmountOrder)))
         {
             object triggerDirection = this.safeString(parameters, "triggerDirection");
-            object triggerAbove = (isTrue((isEqual(triggerDirection, "ascending"))) || isTrue((isEqual(triggerDirection, "above"))));
+            bool triggerAbove = (isTrue((isEqual(triggerDirection, "ascending"))) || isTrue((isEqual(triggerDirection, "above"))));
             if (isTrue(isTrue((isEqual(type, "limit"))) || isTrue((isEqual(type, "market")))))
             {
                 this.checkRequiredArgument("createOrder", triggerDirection, "triggerDirection", new List<object>() {"above", "below"});
@@ -2516,8 +2516,8 @@ public partial class bitmex : Exchange
             }
             if (isTrue(isTrailingAmountOrder))
             {
-                object isStopSellOrder = isTrue((isEqual(side, "sell"))) && isTrue((isTrue((isEqual(orderType, "Stop"))) || isTrue((isEqual(orderType, "StopLimit")))));
-                object isBuyIfTouchedOrder = isTrue((isEqual(side, "buy"))) && isTrue((isTrue((isEqual(orderType, "MarketIfTouched"))) || isTrue((isEqual(orderType, "LimitIfTouched")))));
+                bool isStopSellOrder = isTrue((isEqual(side, "sell"))) && isTrue((isTrue((isEqual(orderType, "Stop"))) || isTrue((isEqual(orderType, "StopLimit")))));
+                bool isBuyIfTouchedOrder = isTrue((isEqual(side, "buy"))) && isTrue((isTrue((isEqual(orderType, "MarketIfTouched"))) || isTrue((isEqual(orderType, "LimitIfTouched")))));
                 if (isTrue(isTrue(isStopSellOrder) || isTrue(isBuyIfTouchedOrder)))
                 {
                     trailingAmount = add("-", trailingAmount);
@@ -2558,11 +2558,11 @@ public partial class bitmex : Exchange
         }
         object request = new Dictionary<string, object>() {};
         object trailingAmount = this.safeString2(parameters, "trailingAmount", "pegOffsetValue");
-        object isTrailingAmountOrder = !isEqual(trailingAmount, null);
+        bool isTrailingAmountOrder = !isEqual(trailingAmount, null);
         if (isTrue(isTrailingAmountOrder))
         {
             object triggerDirection = this.safeString(parameters, "triggerDirection");
-            object triggerAbove = (isTrue((isEqual(triggerDirection, "ascending"))) || isTrue((isEqual(triggerDirection, "above"))));
+            bool triggerAbove = (isTrue((isEqual(triggerDirection, "ascending"))) || isTrue((isEqual(triggerDirection, "above"))));
             if (isTrue(isTrue((isEqual(type, "limit"))) || isTrue((isEqual(type, "market")))))
             {
                 this.checkRequiredArgument("editOrder", triggerDirection, "triggerDirection", new List<object>() {"above", "below"});
@@ -2587,8 +2587,8 @@ public partial class bitmex : Exchange
                     orderType = ((bool) isTrue(triggerAbove)) ? "MarketIfTouched" : "Stop";
                 }
             }
-            object isStopSellOrder = isTrue((isEqual(side, "sell"))) && isTrue((isTrue((isEqual(orderType, "Stop"))) || isTrue((isEqual(orderType, "StopLimit")))));
-            object isBuyIfTouchedOrder = isTrue((isEqual(side, "buy"))) && isTrue((isTrue((isEqual(orderType, "MarketIfTouched"))) || isTrue((isEqual(orderType, "LimitIfTouched")))));
+            bool isStopSellOrder = isTrue((isEqual(side, "sell"))) && isTrue((isTrue((isEqual(orderType, "Stop"))) || isTrue((isEqual(orderType, "StopLimit")))));
+            bool isBuyIfTouchedOrder = isTrue((isEqual(side, "buy"))) && isTrue((isTrue((isEqual(orderType, "MarketIfTouched"))) || isTrue((isEqual(orderType, "LimitIfTouched")))));
             if (isTrue(isTrue(isStopSellOrder) || isTrue(isBuyIfTouchedOrder)))
             {
                 trailingAmount = add("-", trailingAmount);
@@ -3260,8 +3260,8 @@ public partial class bitmex : Exchange
             ((IDictionary<string,object>)request)["symbol"] = getValue(code, "id");
         } else if (isTrue(!isEqual(symbolVar, null)))
         {
-            object splitSymbol = ((string)symbolVar).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
-            object splitSymbolLength = getArrayLength(splitSymbol);
+            List<object> splitSymbol = ((string)symbolVar).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
+            int splitSymbolLength = getArrayLength(splitSymbol);
             object timeframes = new List<object>() {"nearest", "daily", "weekly", "monthly", "quarterly", "biquarterly", "perpetual"};
             if (isTrue(isTrue((isGreaterThan(splitSymbolLength, 1))) && isTrue(this.inArray(getValue(splitSymbol, 1), timeframes))))
             {
@@ -3474,7 +3474,7 @@ public partial class bitmex : Exchange
         //    }
         //
         object networks = this.safeValue(fee, "networks", new List<object>() {});
-        object networksLength = getArrayLength(networks);
+        int networksLength = getArrayLength(networks);
         object result = new Dictionary<string, object>() {
             { "info", fee },
             { "withdraw", new Dictionary<string, object>() {
@@ -4230,7 +4230,7 @@ public partial class bitmex : Exchange
             {
                 throw new ExchangeError ((string)add(this.id, " sign() missing expires")) ;
             }
-            object stringExpires = ((object)expires).ToString();
+            string stringExpires = ((object)expires).ToString();
             auth = add(auth, stringExpires);
             ((IDictionary<string,object>)headers)["api-expires"] = stringExpires;
             if (isTrue(isTrue(isTrue(isEqual(method, "POST")) || isTrue(isEqual(method, "PUT"))) || isTrue(isEqual(method, "DELETE"))))

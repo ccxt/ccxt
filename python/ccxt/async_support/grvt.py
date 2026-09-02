@@ -1245,10 +1245,13 @@ class grvt(Exchange, ImplicitAPI):
         #
         marketId = self.safe_string(rawItem, 'instrument')
         ts = self.safe_integer_product(rawItem, 'funding_time', 0.000001)
+        # the api documents funding_rate in percentage points, and a unified
+        # fundingRate is a fraction, with the Manual's examples reading 0.000072
+        rate = self.safe_string(rawItem, 'funding_rate')
         return {
             'info': rawItem,
             'symbol': self.safe_symbol(marketId, market),
-            'fundingRate': self.safe_number(rawItem, 'funding_rate'),
+            'fundingRate': self.parse_number(Precise.string_div(rate, '100')),
             'timestamp': ts,
             'datetime': self.iso8601(ts),
         }
