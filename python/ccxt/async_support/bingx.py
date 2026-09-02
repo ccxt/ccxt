@@ -749,6 +749,9 @@ class bingx(Exchange, ImplicitAPI):
                 'defaultForInverse': {
                     'extends': 'defaultForLinear',
                     'createOrders': None,
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
                     'fetchMyTrades': {
                         'limit': 1000,
                         'daysBack': None,
@@ -1163,7 +1166,7 @@ class bingx(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
-        :param int [limit]: the maximum amount of candles to fetch
+        :param int [limit]: the maximum amount of candles to fetch(max 1000 for inverse swaps, 1440 otherwise)
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest candle to fetch
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
@@ -1171,23 +1174,28 @@ class bingx(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
+        market = self.market(symbol)
+        maxLimit = 1000 if (market['inverse'] is True) else 1440
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate', False)
         if paginate:
-            return await self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 1440)
-        market = self.market(symbol)
+            return await self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimit)
         request = {
             'symbol': market['id'],
         }
         request['interval'] = self.safe_string(self.timeframes, timeframe, timeframe)
+        requestLimit = 500 if (limit is None) else min(limit, maxLimit)
         if since is not None:
             request['startTime'] = max(since - 1, 0)
         if limit is not None:
-            request['limit'] = limit
+            request['limit'] = requestLimit
         until = self.safe_integer_2(params, 'until', 'endTime')
         if until is not None:
             params = self.omit(params, ['until'])
             request['endTime'] = until
+        elif (market['inverse'] is True) and (since is not None):
+            duration = self.parse_timeframe(timeframe) * 1000
+            request['endTime'] = self.sum(since, duration * requestLimit)
         response: dict
         if market['spot'] is True:
             # bingx spot klines are anchored to UTC+8 by default, unlike the swap klines and other exchanges
