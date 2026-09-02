@@ -6,36 +6,5 @@ namespace ccxt;
 
 public partial class revolutx
 {
-    /// <summary>
-    /// fetches the current order book snapshot for a given market symbol
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://developer.revolut.com/docs/api/revolut-x-crypto-exchange#tag-public-market-data"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>limit</term>
-    /// <description>
-    /// int : the maximum number of orders to return (1-50, default 50)
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.region</term>
-    /// <description>
-    /// string : the region to fetch the order book for
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
-    public async Task<OrderBook> FetchOrderBook(string symbol, Int64? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchOrderBook(symbol, limit, parameters);
-        return new OrderBook(res);
-    }
+
 }

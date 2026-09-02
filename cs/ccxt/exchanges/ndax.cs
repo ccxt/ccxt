@@ -946,7 +946,7 @@ public partial class ndax : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
@@ -985,7 +985,7 @@ public partial class ndax : Exchange
         //         [97244115,0,1607456142964,0,19069.32,1,19069.99,8,0.141604,1],
         //     ]
         //
-        return this.parseOrderBook(response, symbol);
+        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, symbol));
     }
 
     public override object parseTicker(object ticker, object market = null)

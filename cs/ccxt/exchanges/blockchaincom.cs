@@ -445,10 +445,10 @@ public partial class blockchaincom : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.fetchL3OrderBook(symbol,ccxt.BaseExchange.ToInt64Arg(limit), parameters);
+        return await this.FetchL3OrderBook(symbol,ccxt.BaseExchange.ToInt64Arg(limit), parameters);
     }
 
     /**
@@ -461,7 +461,7 @@ public partial class blockchaincom : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchL3OrderBook(object symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchL3OrderBook(object symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -477,7 +477,7 @@ public partial class blockchaincom : Exchange
             ((IDictionary<string,object>)request)["depth"] = limit;
         }
         object response = await this.publicGetL3Symbol(this.extend(request, parameters));
-        return this.parseOrderBook(response, getValue(market, "symbol"), null, "bids", "asks", "px", "qty");
+        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, getValue(market, "symbol"), null, "bids", "asks", "px", "qty"));
     }
 
     public async override Task<object> fetchL2OrderBook(object symbol, Int64? limit = null, object parameters = null)

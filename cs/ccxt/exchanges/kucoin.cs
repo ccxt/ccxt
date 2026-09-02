@@ -1989,7 +1989,7 @@ public partial class kucoin : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    public async override Task<object> fetchTime(object parameters = null)
+    public async override Task<Int64> FetchTime(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object type = null;
@@ -2017,7 +2017,7 @@ public partial class kucoin : Exchange
             //
             response = await this.publicGetTimestamp(parameters);
         }
-        return this.safeInteger(response, "data");
+        return ccxt.BaseExchange.ToInt64Value(this.safeInteger(response, "data"));
     }
 
     /**
@@ -4342,7 +4342,7 @@ public partial class kucoin : Exchange
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -4489,7 +4489,7 @@ public partial class kucoin : Exchange
         }
         object orderbook = this.parseOrderBook(data, getValue(market, "symbol"), timestamp, "bids", "asks", subtract(level, 2), subtract(level, 1));
         ((IDictionary<string,object>)orderbook)["nonce"] = this.safeInteger(data, "sequence");
-        return orderbook;
+        return ccxt.BaseExchange.ToOrderBook(orderbook);
     }
 
     public virtual object handleTriggerPrices(object parameters)
@@ -9689,7 +9689,7 @@ public partial class kucoin : Exchange
      * Check transferClassic() and transferUta() for more details on params
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public async override Task<object> transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
+    public async override Task<ccxt.TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -9702,9 +9702,9 @@ public partial class kucoin : Exchange
         parameters = ((IList<object>)utaparametersVariable)[1];
         if (isTrue(uta))
         {
-            return await this.transferUta(((string)code), amount,((string)fromAccount),((string)toAccount), parameters);
+            return await this.TransferUta(((string)code), amount,((string)fromAccount),((string)toAccount), parameters);
         }
-        return await this.transferClassic(((string)code), amount,((string)fromAccount),((string)toAccount), parameters);
+        return await this.TransferClassic(((string)code), amount,((string)fromAccount),((string)toAccount), parameters);
     }
 
     /**
@@ -9722,7 +9722,7 @@ public partial class kucoin : Exchange
      * @param {string} [params.toUserId] required if transferType is PARENT_TO_SUB or SUB_TO_SUB
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public async virtual Task<object> transferUta(string code, object amount, string fromAccount, string toAccount, object parameters = null)
+    public async virtual Task<ccxt.TransferEntry> TransferUta(string code, object amount, string fromAccount, string toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -9812,7 +9812,7 @@ public partial class kucoin : Exchange
             ((IDictionary<string,object>)transfer)["toAccount"] = toAccount;
             ((IDictionary<string,object>)transfer)["status"] = "ok";
         }
-        return transfer;
+        return ccxt.BaseExchange.ToTransferEntry(transfer);
     }
 
     /**
@@ -9830,7 +9830,7 @@ public partial class kucoin : Exchange
      * @param {string} [params.toUserId] required if transferType is PARENT_TO_SUB
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public async virtual Task<object> transferClassic(string code, object amount, string fromAccount, string toAccount, object parameters = null)
+    public async virtual Task<ccxt.TransferEntry> TransferClassic(string code, object amount, string fromAccount, string toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -9914,7 +9914,7 @@ public partial class kucoin : Exchange
             ((IDictionary<string,object>)transfer)["toAccount"] = toAccount;
             ((IDictionary<string,object>)transfer)["status"] = "ok";
         }
-        return transfer;
+        return ccxt.BaseExchange.ToTransferEntry(transfer);
     }
 
     public virtual object isHfOrMining(object fromId, object toId)
@@ -10728,7 +10728,7 @@ public partial class kucoin : Exchange
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @returns {object} a dictionary of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure} indexed by the market symbol
      */
-    public async virtual Task<object> fetchBorrowRateHistories(object codes = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> FetchBorrowRateHistories(object codes = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -10775,7 +10775,7 @@ public partial class kucoin : Exchange
         //
         object data = this.safeDict(response, "data");
         object rows = this.safeList(data, "items", new List<object>() {});
-        return this.parseBorrowRateHistories(rows, codes, since, limit);
+        return ccxt.BaseExchange.ToDict(this.parseBorrowRateHistories(rows, codes, since, limit));
     }
 
     /**
@@ -10791,7 +10791,7 @@ public partial class kucoin : Exchange
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @returns {object[]} an array of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
      */
-    public async virtual Task<object> fetchBorrowRateHistory(object code, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async virtual Task<List<Dictionary<string, object>>> FetchBorrowRateHistory(object code, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -10840,7 +10840,7 @@ public partial class kucoin : Exchange
         //
         object data = this.safeDict(response, "data");
         object rows = this.safeList(data, "items", new List<object>() {});
-        return this.parseBorrowRateHistory(rows, code, since, limit);
+        return ccxt.BaseExchange.ToDictList(this.parseBorrowRateHistory(rows, code, since, limit));
     }
 
     public virtual object parseBorrowRateHistories(object response, object codes, object since, object limit)
@@ -11209,7 +11209,7 @@ public partial class kucoin : Exchange
      * @param {string} [params.code] *uta margin only* the unified currency code for the margin to set the leverage for
      * @returns {object} response from the exchange
      */
-    public async override Task<object> setLeverage(object leverage, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetLeverage(object leverage, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -11230,7 +11230,7 @@ public partial class kucoin : Exchange
             market = this.market(symbol);
             if (isTrue(isEqual(getValue(market, "contract"), true)))
             {
-                return await this.setContractLeverage(leverage, symbol, parameters);
+                return ccxt.BaseExchange.ToDict(await this.setContractLeverage(leverage, symbol, parameters));
             }
         }
         object request = new Dictionary<string, object>() {
@@ -11279,7 +11279,7 @@ public partial class kucoin : Exchange
             ((IDictionary<string,object>)request)["isIsolated"] = (isEqual(marginMode, "isolated"));
             response = await this.privatePostPositionUpdateUserLeverage(this.extend(request, parameters));
         }
-        return response;
+        return ccxt.BaseExchange.ToDict(response);
     }
 
     /**
@@ -12245,7 +12245,7 @@ public partial class kucoin : Exchange
      * @param {string} [params.marginMode] *for margin orders only* 'cross' or 'isolated' (unified accountMode supports cross margin only)
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelOrders(object ids, string symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> CancelOrders(object ids, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -12348,7 +12348,7 @@ public partial class kucoin : Exchange
             //
             orders = this.safeList(response, "data", new List<object>() {});
         }
-        return this.parseOrders(orders, market);
+        return ccxt.BaseExchange.ToOrderList(this.parseOrders(orders, market));
     }
 
     /**
@@ -12603,7 +12603,7 @@ public partial class kucoin : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public async override Task<object> setMarginMode(string marginMode, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetMarginMode(string marginMode, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -12635,7 +12635,7 @@ public partial class kucoin : Exchange
         //    }
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return this.parseMarginMode(data, market);  // widened to Dict to match the base setMarginMode return ({}) — narrowing it to MarginMode breaks the Go IExchange interface
+        return ccxt.BaseExchange.ToDict(this.parseMarginMode(data, market));  // widened to Dict to match the base setMarginMode return ({}) — narrowing it to MarginMode breaks the Go IExchange interface
     }
 
     /**
@@ -12648,7 +12648,7 @@ public partial class kucoin : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a response from the exchange
      */
-    public async override Task<object> setPositionMode(object hedged, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetPositionMode(object hedged, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -12668,7 +12668,7 @@ public partial class kucoin : Exchange
         //         }
         //     }
         //
-        return response;
+        return ccxt.BaseExchange.ToDict(response);
     }
 
     /**

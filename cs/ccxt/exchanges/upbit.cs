@@ -800,11 +800,11 @@ public partial class upbit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object orderbooks = ccxt.BaseExchange.FromOrderBooks(await this.FetchOrderBooks(new List<object>() {symbol},ccxt.BaseExchange.ToInt64Arg(limit), parameters));
-        return this.safeValue(orderbooks, symbol);
+        return ccxt.BaseExchange.ToOrderBook(this.safeValue(orderbooks, symbol));
     }
 
     public override object parseTicker(object ticker, object market = null)

@@ -7,32 +7,6 @@ namespace ccxt;
 public partial class bitbank
 {
     /// <summary>
-    /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/public-api.md#depth"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>limit</term>
-    /// <description>
-    /// int : the maximum amount of order book entries to return
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
-    public async Task<OrderBook> FetchOrderBook(string symbol, Int64? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchOrderBook(symbol, limit, parameters);
-        return new OrderBook(res);
-    }
-    /// <summary>
     /// fetch the trading fees for multiple markets
     /// </summary>
     /// <remarks>

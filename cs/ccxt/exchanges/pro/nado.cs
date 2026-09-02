@@ -209,7 +209,7 @@ public partial class nado : ccxt.nado
         object messageHash = add("orderbook:", getValue(market, "symbol"));
         if (!isTrue((inOp(this.orderbooks, getValue(market, "symbol")))))
         {
-            object snapshot = await this.fetchOrderBook(((string)symbol),ccxt.BaseExchange.ToInt64Arg(limit));
+            object snapshot = ccxt.BaseExchange.FromOrderBook(await this.FetchOrderBook(((string)symbol),ccxt.BaseExchange.ToInt64Arg(limit)));
             ((IDictionary<string,object>)this.orderbooks)[(string)getValue(market, "symbol")] = this.orderBook(snapshot, limit);
         }
         object orderbook = await this.watchPublic("book_depth", market, messageHash, parameters);
@@ -263,7 +263,7 @@ public partial class nado : ccxt.nado
             ((IList<object>)messageHashes).Add(messageHash);
             if (!isTrue((inOp(this.orderbooks, getValue(market, "symbol")))))
             {
-                object snapshot = await this.fetchOrderBook(((string)symbol),ccxt.BaseExchange.ToInt64Arg(limit));
+                object snapshot = ccxt.BaseExchange.FromOrderBook(await this.FetchOrderBook(((string)symbol),ccxt.BaseExchange.ToInt64Arg(limit)));
                 ((IDictionary<string,object>)this.orderbooks)[(string)getValue(market, "symbol")] = this.orderBook(snapshot, limit);
             }
         }

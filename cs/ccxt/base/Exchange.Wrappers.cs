@@ -21,40 +21,10 @@ public partial class BaseExchange
         var res = await this.watchOHLCVForSymbols(symbolsAndTimeframes, since, limit, parameters);
         return Helper.ConvertToDictionaryOHLCVList(res);
     }
-    public async Task<Int64> FetchTime(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchTime(parameters);
-        return (Int64)res;
-    }
-    public async Task<Dictionary<string, object>> FetchTradingLimits(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchTradingLimits(symbols, parameters);
-        return ((Dictionary<string, object>)res);
-    }
     public async Task<LeverageTiers> FetchLeverageTiers(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchLeverageTiers(symbols, parameters);
         return new LeverageTiers(res);
-    }
-    public async Task<TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.transfer(code, amount, fromAccount, toAccount, parameters);
-        return new TransferEntry(res);
-    }
-    public async Task<Dictionary<string, object>> SetLeverage(Int64 leverage, string symbol = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.setLeverage(leverage, symbol, parameters);
-        return ((Dictionary<string, object>)res);
-    }
-    public async Task<Dictionary<string, object>> SetPositionMode(bool hedged, string symbol = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.setPositionMode(hedged, symbol, parameters);
-        return ((Dictionary<string, object>)res);
-    }
-    public async Task<Dictionary<string, object>> SetMarginMode(string marginMode, string symbol = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.setMarginMode(marginMode, symbol, parameters);
-        return ((Dictionary<string, object>)res);
     }
     public async Task<List<DepositAddress>> FetchDepositAddressesByNetwork(string code, Dictionary<string, object> parameters = null)
     {
@@ -96,16 +66,6 @@ public partial class BaseExchange
         var res = await this.fetchTransactionFee(code, parameters);
         return ((Dictionary<string, object>)res);
     }
-    public async Task<Dictionary<string, object>> FetchTransactionFees(List<String> codes = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchTransactionFees(codes, parameters);
-        return ((Dictionary<string, object>)res);
-    }
-    public async Task<Dictionary<string, object>> CancelAllOrdersAfter(Int64 timeout, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.cancelAllOrdersAfter(timeout, parameters);
-        return ((Dictionary<string, object>)res);
-    }
     public async Task<List<Greeks>> FetchAllGreeks(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchAllGreeks(symbols, parameters);
@@ -115,11 +75,6 @@ public partial class BaseExchange
     {
         var res = this.createExpiredOptionMarket(symbol);
         return new MarketInterface(res);
-    }
-    public async Task<Dictionary<string, object>> CreateSubAccount(string name, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.createSubAccount(name, parameters);
-        return ((Dictionary<string, object>)res);
     }
     public async Task<TradingFees> FetchTradingFees(Dictionary<string, object> parameters = null)
     {
@@ -150,16 +105,6 @@ public partial class BaseExchange
     {
         var res = await this.fetchPaginatedCallIncremental(method, symbol, since, limit, parameters, pageKey, maxEntriesPerRequest);
         return ((Dictionary<string, object>)res);
-    }
-    public async Task<OrderBook> FetchOrderBook(string symbol, Int64? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchOrderBook(symbol, limit, parameters);
-        return new OrderBook(res);
-    }
-    public async Task<OrderBook> FetchRestOrderBookSafe(object symbol, Int64? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchRestOrderBookSafe(symbol, limit, parameters);
-        return new OrderBook(res);
     }
 }
 // class wrappers

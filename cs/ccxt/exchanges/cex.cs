@@ -580,7 +580,7 @@ public partial class cex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    public async override Task<object> fetchTime(object parameters = null)
+    public async override Task<Int64> FetchTime(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicPostGetServerTime(parameters);
@@ -595,7 +595,7 @@ public partial class cex : Exchange
         //
         object data = this.safeDict(response, "data");
         object timestamp = this.safeInteger(data, "timestamp");
-        return timestamp;
+        return ccxt.BaseExchange.ToInt64Value(timestamp);
     }
 
     /**
@@ -800,7 +800,7 @@ public partial class cex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -832,7 +832,7 @@ public partial class cex : Exchange
         //
         object orderBook = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object timestamp = this.safeInteger(orderBook, "timestamp");
-        return this.parseOrderBook(orderBook, getValue(market, "symbol"), timestamp);
+        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(orderBook, getValue(market, "symbol"), timestamp));
     }
 
     /**
@@ -1821,16 +1821,16 @@ public partial class cex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public async override Task<object> transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
+    public async override Task<ccxt.TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object transfer = null;
         if (isTrue(isTrue(!isEqual(toAccount, "")) && isTrue(!isEqual(fromAccount, ""))))
         {
-            transfer = await this.transferBetweenSubAccounts(((string)code), amount,((string)fromAccount),((string)toAccount), parameters);
+            transfer = ccxt.BaseExchange.FromTransferEntry(await this.TransferBetweenSubAccounts(((string)code), amount,((string)fromAccount),((string)toAccount), parameters));
         } else
         {
-            transfer = await this.transferBetweenMainAndSubAccount(((string)code), amount,((string)fromAccount),((string)toAccount), parameters);
+            transfer = ccxt.BaseExchange.FromTransferEntry(await this.TransferBetweenMainAndSubAccount(((string)code), amount,((string)fromAccount),((string)toAccount), parameters));
         }
         object fillResponseFromRequest = this.handleOption("transfer", "fillResponseFromRequest", true);
         if (isTrue(isEqual(fillResponseFromRequest, true)))
@@ -1838,10 +1838,10 @@ public partial class cex : Exchange
             ((IDictionary<string,object>)transfer)["fromAccount"] = fromAccount;
             ((IDictionary<string,object>)transfer)["toAccount"] = toAccount;
         }
-        return transfer;
+        return ccxt.BaseExchange.ToTransferEntry(transfer);
     }
 
-    public async virtual Task<object> transferBetweenMainAndSubAccount(string code, object amount, string fromAccount, string toAccount, object parameters = null)
+    public async virtual Task<ccxt.TransferEntry> TransferBetweenMainAndSubAccount(string code, object amount, string fromAccount, string toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1880,10 +1880,10 @@ public partial class cex : Exchange
         //     }
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return this.parseTransfer(data, currency);
+        return ccxt.BaseExchange.ToTransferEntry(this.parseTransfer(data, currency));
     }
 
-    public async virtual Task<object> transferBetweenSubAccounts(string code, object amount, string fromAccount, string toAccount, object parameters = null)
+    public async virtual Task<ccxt.TransferEntry> TransferBetweenSubAccounts(string code, object amount, string fromAccount, string toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1907,7 +1907,7 @@ public partial class cex : Exchange
         //    }
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return this.parseTransfer(data, currency);
+        return ccxt.BaseExchange.ToTransferEntry(this.parseTransfer(data, currency));
     }
 
     public override object parseTransfer(object transfer, object currency = null)

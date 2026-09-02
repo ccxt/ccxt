@@ -483,7 +483,7 @@ public partial class bitbank : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -497,7 +497,7 @@ public partial class bitbank : Exchange
         object response = await this.publicGetPairDepth(this.extend(request, parameters));
         object orderbook = this.safeValue(response, "data", new Dictionary<string, object>() {});
         object timestamp = this.safeInteger(orderbook, "timestamp");
-        return this.parseOrderBook(orderbook, getValue(market, "symbol"), timestamp);
+        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(orderbook, getValue(market, "symbol"), timestamp));
     }
 
     public override object parseTrade(object trade, object market = null)

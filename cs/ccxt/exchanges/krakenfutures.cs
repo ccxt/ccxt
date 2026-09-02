@@ -615,7 +615,7 @@ public partial class krakenfutures : Exchange
      * @param {object} [params] exchange specific params
      * @returns An [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -659,7 +659,7 @@ public partial class krakenfutures : Exchange
         //
         object timestamp = this.parse8601(this.safeString(response, "serverTime"));
         object orderBook = this.safeDict(response, "orderBook", new Dictionary<string, object>() {});
-        return this.parseOrderBook(orderBook, symbol, timestamp);
+        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(orderBook, symbol, timestamp));
     }
 
     /**
@@ -1644,7 +1644,7 @@ public partial class krakenfutures : Exchange
      * @param {string[]} [params.clientOrderIds] max length 10 e.g. ["my_id_1","my_id_2"]
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelOrders(object ids, string symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> CancelOrders(object ids, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1707,7 +1707,7 @@ public partial class krakenfutures : Exchange
         //     ]
         // }
         object batchStatus = this.safeList(response, "batchStatus", new List<object>() {});
-        return this.parseOrders(batchStatus);
+        return ccxt.BaseExchange.ToOrderList(this.parseOrders(batchStatus));
     }
 
     /**
@@ -1780,7 +1780,7 @@ public partial class krakenfutures : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the api result
      */
-    public async override Task<object> cancelAllOrdersAfter(object timeout, object parameters = null)
+    public async override Task<Dictionary<string, object>> CancelAllOrdersAfter(object timeout, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1801,7 +1801,7 @@ public partial class krakenfutures : Exchange
         //         }
         //     }
         //
-        return response;
+        return ccxt.BaseExchange.ToDict(response);
     }
 
     /**
@@ -3625,10 +3625,10 @@ public partial class krakenfutures : Exchange
      * @param {dict} [params] Exchange specific parameters
      * @returns a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public async virtual Task<object> transferOut(string code, object amount, object parameters = null)
+    public async virtual Task<ccxt.TransferEntry> TransferOut(string code, object amount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.transfer(((string)code),ccxt.BaseExchange.ToDoubleArgRequired(amount), "future", "spot", parameters);
+        return await this.Transfer(((string)code),ccxt.BaseExchange.ToDoubleArgRequired(amount), "future", "spot", parameters);
     }
 
     /**
@@ -3644,7 +3644,7 @@ public partial class krakenfutures : Exchange
      * @param {object} [params] Exchange specific parameters
      * @returns a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public async override Task<object> transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
+    public async override Task<ccxt.TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -3682,11 +3682,7 @@ public partial class krakenfutures : Exchange
         //    }
         //
         object transfer = this.parseTransfer(response, currency);
-        return this.extend(transfer, new Dictionary<string, object>() {
-            { "amount", amount },
-            { "fromAccount", fromAccount },
-            { "toAccount", toAccount },
-        });
+        return ccxt.BaseExchange.ToTransferEntry(this.extend(transfer, new Dictionary<string, object>() {             { "amount", amount },             { "fromAccount", fromAccount },             { "toAccount", toAccount },         }));
     }
 
     /**
@@ -3699,7 +3695,7 @@ public partial class krakenfutures : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public async override Task<object> setLeverage(object leverage, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetLeverage(object leverage, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -3722,7 +3718,7 @@ public partial class krakenfutures : Exchange
         //
         // { result: "success", serverTime: "2023-08-01T09:40:32.345Z" }
         //
-        return await this.privatePutLeveragepreferences(this.extend(request, parameters));
+        return ccxt.BaseExchange.ToDict(await this.privatePutLeveragepreferences(this.extend(request, parameters)));
     }
 
     /**

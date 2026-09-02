@@ -344,7 +344,7 @@ public partial class indodax : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    public async override Task<object> fetchTime(object parameters = null)
+    public async override Task<Int64> FetchTime(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetApiServerTime(parameters);
@@ -354,7 +354,7 @@ public partial class indodax : Exchange
         //         "server_time": 1571205969552
         //     }
         //
-        return this.safeInteger(response, "server_time");
+        return ccxt.BaseExchange.ToInt64Value(this.safeInteger(response, "server_time"));
     }
 
     /**
@@ -549,7 +549,7 @@ public partial class indodax : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -561,7 +561,7 @@ public partial class indodax : Exchange
             { "pair", getValue(market, "id") },
         };
         object orderbook = await this.publicGetApiDepthPair(this.extend(request, parameters));
-        return this.parseOrderBook(orderbook, getValue(market, "symbol"), null, "buy", "sell");
+        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(orderbook, getValue(market, "symbol"), null, "buy", "sell"));
     }
 
     public override object parseTicker(object ticker, object market = null)

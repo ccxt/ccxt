@@ -33,38 +33,6 @@ public partial class pacifica
         return ((Dictionary<string, object>)res);
     }
     /// <summary>
-    /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-orderbook"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>limit</term>
-    /// <description>
-    /// int : the maximum amount of order book entries to return
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.aggLevel</term>
-    /// <description>
-    /// int : aggregation level for price grouping. Defaults to 1. Can be 1, 10, 100, 1000, 10000
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
-    public async Task<OrderBook> FetchOrderBook(string symbol, Int64? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchOrderBook(symbol, limit, parameters);
-        return new OrderBook(res);
-    }
-    /// <summary>
     /// create a trade order
     /// </summary>
     /// <remarks>
@@ -140,38 +108,6 @@ public partial class pacifica
         var res = this.createOrdersRequest(orders, parameters);
         return ((Dictionary<string, object>)res);
     }
-    /// <summary>
-    /// cancel multiple orders
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.pacifica.fi/api-documentation/api/rest-api/orders/batch-order"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>symbol</term>
-    /// <description>
-    /// string : unified market symbol
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.expiryWindow</term>
-    /// <description>
-    /// int : time to live in milliseconds
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
-    public async Task<List<Order>> CancelOrders(List<string> ids, string symbol = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.cancelOrders(ids, symbol, parameters);
-        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
-    }
     public Dictionary<string, object> CancelOrdersRequest(List<string> ids, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = this.cancelOrdersRequest(ids, symbol, parameters);
@@ -190,122 +126,6 @@ public partial class pacifica
     public Dictionary<string, object> EditOrderRequest(string id, string symbol, string type, string side, double amount, double price, MarketInterface market, Dictionary<string, object> parameters = null)
     {
         var res = this.editOrderRequest(id, symbol, type, side, amount, price, market, parameters);
-        return ((Dictionary<string, object>)res);
-    }
-    /// <summary>
-    /// set margin mode (symbol)
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.pacifica.fi/api-documentation/api/rest-api/account/update-margin-mode"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.expiryWindow</term>
-    /// <description>
-    /// int : time to live in milliseconds
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> response from the exchange.</returns>
-    public async Task<Dictionary<string, object>> SetMarginMode(string marginMode, string symbol = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.setMarginMode(marginMode, symbol, parameters);
-        return ((Dictionary<string, object>)res);
-    }
-    /// <summary>
-    /// set the level of leverage for a market
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.pacifica.fi/api-documentation/api/rest-api/account/update-leverage"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.expiryWindow</term>
-    /// <description>
-    /// int : time to live in milliseconds
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> response from the exchange.</returns>
-    public async Task<Dictionary<string, object>> SetLeverage(Int64 leverage, string symbol = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.setLeverage(leverage, symbol, parameters);
-        return ((Dictionary<string, object>)res);
-    }
-    /// <summary>
-    /// transfer currency internally between wallets on the same account
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.pacifica.fi/api-documentation/api/rest-api/subaccounts/subaccount-fund-transfer"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.expiryWindow</term>
-    /// <description>
-    /// int : time to live in milliseconds
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}.</returns>
-    public async Task<TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.transfer(code, amount, fromAccount, toAccount, parameters);
-        return new TransferEntry(res);
-    }
-    /// <summary>
-    /// creates a sub-account under the main account
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.pacifica.fi/api-documentation/api/rest-api/subaccounts/create-subaccount"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.expiryWindow</term>
-    /// <description>
-    /// int : time to live in milliseconds
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.subAccountAddress</term>
-    /// <description>
-    /// string : - The public key (address) of the sub-account to use for creation
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.subAccountPrivateKey</term>
-    /// <description>
-    /// string : - The private key of the sub-account to use for creation
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a response object.</returns>
-    public async Task<Dictionary<string, object>> CreateSubAccount(string name, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.createSubAccount(name, parameters);
         return ((Dictionary<string, object>)res);
     }
     public async Task<Dictionary<string, object>> CreateApiKey(Dictionary<string, object> parameters = null)

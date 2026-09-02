@@ -1285,7 +1285,7 @@ public partial class hibachi : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelOrders(object ids, string symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> CancelOrders(object ids, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object orders = new List<object>() {};
@@ -1314,7 +1314,7 @@ public partial class hibachi : Exchange
                 { "status", "canceled" },
             }));
         }
-        return ret;
+        return ccxt.BaseExchange.ToOrderList(ret);
     }
 
     /**
@@ -1467,7 +1467,7 @@ public partial class hibachi : Exchange
      * @param {object} [params] extra parameters to be passed -- see documentation link above
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1520,7 +1520,7 @@ public partial class hibachi : Exchange
         //         "startPrice": "3515.39"
         //     }
         // }
-        return this.parseOrderBook(formattedResponse, symbol, this.milliseconds(), "bid", "ask", "price", "quantity");
+        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(formattedResponse, symbol, this.milliseconds(), "bid", "ask", "price", "quantity"));
     }
 
     /**
@@ -2407,7 +2407,7 @@ public partial class hibachi : Exchange
      * @param {int} [params.until] timestamp in ms of the latest settlement
      * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/#/?id=settlement-history-structure}
      */
-    public async virtual Task<object> fetchMySettlementHistory(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async virtual Task<List<Dictionary<string, object>>> FetchMySettlementHistory(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -2456,7 +2456,7 @@ public partial class hibachi : Exchange
         object data = this.safeList(response, "settlements", new List<object>() {});
         object settlements = this.parseSettlements(data, market);
         object sorted = this.sortBy(settlements, "timestamp");
-        return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
+        return ccxt.BaseExchange.ToDictList(this.filterBySymbolSinceLimit(sorted, symbol, since, limit));
     }
 
     /**
@@ -2467,14 +2467,14 @@ public partial class hibachi : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    public async override Task<object> fetchTime(object parameters = null)
+    public async override Task<Int64> FetchTime(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetExchangeUtcTimestamp(parameters);
         //
         //     { "timestampMs":1754077574040 }
         //
-        return this.safeInteger(response, "timestampMs");
+        return ccxt.BaseExchange.ToInt64Value(this.safeInteger(response, "timestampMs"));
     }
 
     /**

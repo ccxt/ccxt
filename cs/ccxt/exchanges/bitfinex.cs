@@ -1255,7 +1255,7 @@ public partial class bitfinex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public async override Task<object> transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
+    public async override Task<ccxt.TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
     {
         // transferring between derivatives wallet and regular wallet is not documented in their API
         // however we support it in CCXT (from just looking at web inspector)
@@ -1319,9 +1319,7 @@ public partial class bitfinex : Exchange
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, add(add(this.id, " "), message));
             throw new ExchangeError ((string)add(add(this.id, " "), message)) ;
         }
-        return this.parseTransfer(new Dictionary<string, object>() {
-            { "result", response },
-        }, currency);
+        return ccxt.BaseExchange.ToTransferEntry(this.parseTransfer(new Dictionary<string, object>() {             { "result", response },         }, currency));
     }
 
     public override object parseTransfer(object transfer, object currency = null)
@@ -1419,7 +1417,7 @@ public partial class bitfinex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1460,7 +1458,7 @@ public partial class bitfinex : Exchange
         }
         ((IDictionary<string,object>)result)["bids"] = this.sortBy(getValue(result, "bids"), 0, true);
         ((IDictionary<string,object>)result)["asks"] = this.sortBy(getValue(result, "asks"), 0);
-        return result;
+        return ccxt.BaseExchange.ToOrderBook(result);
     }
 
     public override object parseTicker(object ticker, object market = null)
@@ -2399,7 +2397,7 @@ public partial class bitfinex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an array of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelOrders(object ids, string symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> CancelOrders(object ids, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2479,7 +2477,7 @@ public partial class bitfinex : Exchange
                 { "result", getValue(orders, i) },
             });
         }
-        return this.parseOrders(ordersList, market);
+        return ccxt.BaseExchange.ToOrderList(this.parseOrders(ordersList, market));
     }
 
     /**

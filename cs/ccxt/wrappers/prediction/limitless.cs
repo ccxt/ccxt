@@ -27,32 +27,6 @@ public partial class limitless
         return new PredictionEvent(res);
     }
     /// <summary>
-    /// fetches the order book for a single outcome token, converting 6-decimal USDC sizes to whole units, no outcomes are quoted at 1 - price with the sides swapped
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.limitless.exchange/api-reference/trading/orderbook"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>limit</term>
-    /// <description>
-    /// int : not used by limitless fetchOrderBook
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure).</returns>
-    public async Task<PredictionOrderBook> FetchOrderBook(string outcome, Int64? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchOrderBook(outcome, limit, parameters);
-        return new PredictionOrderBook(res);
-    }
-    /// <summary>
     /// cancels all open orders for one market slug
     /// </summary>
     /// <remarks>

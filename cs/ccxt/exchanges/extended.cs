@@ -1005,7 +1005,7 @@ public partial class extended : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -1042,7 +1042,7 @@ public partial class extended : Exchange
             ((IDictionary<string,object>)orderbook)["bids"] = this.arraySlice(getValue(orderbook, "bids"), 0, limit);
             ((IDictionary<string,object>)orderbook)["asks"] = this.arraySlice(getValue(orderbook, "asks"), 0, limit);
         }
-        return orderbook;
+        return ccxt.BaseExchange.ToOrderBook(orderbook);
     }
 
     /**
@@ -2141,7 +2141,7 @@ public partial class extended : Exchange
      * @param {int} [params.settlementExpiration] settlement expiration timestamp in seconds, defaults to now + 21 days
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public async override Task<object> transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
+    public async override Task<ccxt.TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
     {
         object fromAccountVar = fromAccount;
         parameters ??= new Dictionary<string, object>();
@@ -2191,17 +2191,7 @@ public partial class extended : Exchange
         {
             status = ((bool) isTrue(validSignature)) ? "ok" : "failed";
         }
-        return new Dictionary<string, object>() {
-            { "info", response },
-            { "id", this.safeString(data, "id") },
-            { "timestamp", now },
-            { "datetime", this.iso8601(now) },
-            { "currency", getValue(currency, "code") },
-            { "amount", this.parseNumber(amountString) },
-            { "fromAccount", fromAccountVar },
-            { "toAccount", toAccount },
-            { "status", status },
-        };
+        return ccxt.BaseExchange.ToTransferEntry(new Dictionary<string, object>() {             { "info", response },             { "id", this.safeString(data, "id") },             { "timestamp", now },             { "datetime", this.iso8601(now) },             { "currency", getValue(currency, "code") },             { "amount", this.parseNumber(amountString) },             { "fromAccount", fromAccountVar },             { "toAccount", toAccount },             { "status", status },         });
     }
 
     public override object parseTransfer(object transfer, object currency = null)
@@ -2488,7 +2478,7 @@ public partial class extended : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public async override Task<object> setLeverage(object leverage, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetLeverage(object leverage, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -2509,7 +2499,7 @@ public partial class extended : Exchange
         //     }
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return this.parseLeverage(data, market);
+        return ccxt.BaseExchange.ToDict(this.parseLeverage(data, market));
     }
 
     public override object parseLeverage(object leverage, object market = null)
@@ -3343,7 +3333,7 @@ public partial class extended : Exchange
      * @param {string} [params.clientOrderId] single client order id
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelOrders(object ids, string symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> CancelOrders(object ids, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -3384,7 +3374,7 @@ public partial class extended : Exchange
         //         "data": {}
         //     }
         //
-        return new List<object>() {};
+        return ccxt.BaseExchange.ToOrderList(new List<object>() {});
     }
 
     /**
@@ -3428,7 +3418,7 @@ public partial class extended : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the api result
      */
-    public async override Task<object> cancelAllOrdersAfter(object timeout, object parameters = null)
+    public async override Task<Dictionary<string, object>> CancelAllOrdersAfter(object timeout, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -3439,9 +3429,7 @@ public partial class extended : Exchange
         //
         // the endpoint answers with an empty string body
         //
-        return new Dictionary<string, object>() {
-            { "info", response },
-        };
+        return ccxt.BaseExchange.ToDict(new Dictionary<string, object>() {             { "info", response },         });
     }
 
     /**

@@ -509,13 +509,13 @@ public partial class delta : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    public async override Task<object> fetchTime(object parameters = null)
+    public async override Task<Int64> FetchTime(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetSettings(parameters);
         // full response sample under `fetchStatus`
         object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
-        return this.safeIntegerProduct(result, "server_time", 0.001);
+        return ccxt.BaseExchange.ToInt64Value(this.safeIntegerProduct(result, "server_time", 0.001));
     }
 
     /**
@@ -1554,7 +1554,7 @@ public partial class delta : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -1586,7 +1586,7 @@ public partial class delta : Exchange
         //     }
         //
         object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
-        return this.parseOrderBook(result, getValue(market, "symbol"), null, "buy", "sell", "price", "size");
+        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(result, getValue(market, "symbol"), null, "buy", "sell", "price", "size"));
     }
 
     public override object parseTrade(object trade, object market = null)
@@ -3353,7 +3353,7 @@ public partial class delta : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public async override Task<object> setLeverage(object leverage, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetLeverage(object leverage, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -3377,7 +3377,7 @@ public partial class delta : Exchange
         //         "success": true
         //     }
         //
-        return await this.privatePostProductsProductIdOrdersLeverage(this.extend(request, parameters));
+        return ccxt.BaseExchange.ToDict(await this.privatePostProductsProductIdOrdersLeverage(this.extend(request, parameters)));
     }
 
     /**
@@ -3391,7 +3391,7 @@ public partial class delta : Exchange
      * @param {object} [params] exchange specific params
      * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
      */
-    public async virtual Task<object> fetchSettlementHistory(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async virtual Task<List<Dictionary<string, object>>> FetchSettlementHistory(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -3469,7 +3469,7 @@ public partial class delta : Exchange
         object result = this.safeList(response, "result", new List<object>() {});
         object settlements = this.parseSettlements(result, market);
         object sorted = this.sortBy(settlements, "timestamp");
-        return this.filterBySymbolSinceLimit(sorted, this.safeString(market, "symbol"), since, limit);
+        return ccxt.BaseExchange.ToDictList(this.filterBySymbolSinceLimit(sorted, this.safeString(market, "symbol"), since, limit));
     }
 
     public virtual object parseSettlement(object settlement, object market)
@@ -3837,7 +3837,7 @@ public partial class delta : Exchange
      * @param {string} params.subaccount_user_id the user id of the subaccount
      * @returns {object} response from the exchange
      */
-    public async override Task<object> setMarginMode(string marginMode, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetMarginMode(string marginMode, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredArgument("setMarginMode", marginMode, "marginMode", new List<object>() {"isolated", "portfolio"});
@@ -3846,7 +3846,7 @@ public partial class delta : Exchange
         object request = new Dictionary<string, object>() {
             { "margin_mode", marginMode },
         };
-        return await this.privatePutUsersMarginMode(this.extend(request, parameters));
+        return ccxt.BaseExchange.ToDict(await this.privatePutUsersMarginMode(this.extend(request, parameters)));
     }
 
     /**

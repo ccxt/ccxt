@@ -1747,7 +1747,7 @@ public partial class coinex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    public async override Task<object> fetchTime(object parameters = null)
+    public async override Task<Int64> FetchTime(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.v2PublicGetTime(parameters);
@@ -1761,7 +1761,7 @@ public partial class coinex : Exchange
         //     }
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return this.safeInteger(data, "timestamp");
+        return ccxt.BaseExchange.ToInt64Value(this.safeInteger(data, "timestamp"));
     }
 
     /**
@@ -1775,7 +1775,7 @@ public partial class coinex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         object limitVar = limit;
         limitVar ??= 20;
@@ -1805,7 +1805,7 @@ public partial class coinex : Exchange
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object depth = this.safeDict(data, "depth", new Dictionary<string, object>() {});
         object timestamp = this.safeInteger(depth, "updated_at");
-        return this.parseOrderBook(depth, symbol, timestamp);
+        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(depth, symbol, timestamp));
     }
 
     public override object parseTrade(object trade, object market = null)
@@ -3016,7 +3016,7 @@ public partial class coinex : Exchange
      * @param {boolean} [params.trigger] set to true for canceling stop orders
      * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelOrders(object ids, string symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> CancelOrders(object ids, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -3075,7 +3075,7 @@ public partial class coinex : Exchange
             object order = this.parseOrder(item, market);
             ((IList<object>)results).Add(order);
         }
-        return results;
+        return ccxt.BaseExchange.ToOrderList(results);
     }
 
     /**
@@ -4052,7 +4052,7 @@ public partial class coinex : Exchange
      * @param {int} params.leverage the rate of leverage
      * @returns {object} response from the exchange
      */
-    public async override Task<object> setMarginMode(string marginMode, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetMarginMode(string marginMode, string symbol = null, object parameters = null)
     {
         object marginModeVar = marginMode;
         parameters ??= new Dictionary<string, object>();
@@ -4090,7 +4090,7 @@ public partial class coinex : Exchange
             { "margin_mode", marginModeVar },
             { "leverage", leverage },
         };
-        return await this.v2PrivatePostFuturesAdjustPositionLeverage(this.extend(request, parameters));
+        return ccxt.BaseExchange.ToDict(await this.v2PrivatePostFuturesAdjustPositionLeverage(this.extend(request, parameters)));
     }
 
     /**
@@ -4104,7 +4104,7 @@ public partial class coinex : Exchange
      * @param {string} [params.marginMode] 'cross' or 'isolated' (default is 'cross')
      * @returns {object} response from the exchange
      */
-    public async override Task<object> setLeverage(object leverage, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetLeverage(object leverage, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -4136,7 +4136,7 @@ public partial class coinex : Exchange
             { "margin_mode", marginMode },
             { "leverage", leverage },
         };
-        return await this.v2PrivatePostFuturesAdjustPositionLeverage(this.extend(request, parameters));
+        return ccxt.BaseExchange.ToDict(await this.v2PrivatePostFuturesAdjustPositionLeverage(this.extend(request, parameters)));
     }
 
     /**
@@ -4950,7 +4950,7 @@ public partial class coinex : Exchange
      * @param {string} [params.symbol] unified ccxt symbol, required when either the fromAccount or toAccount is margin
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public async override Task<object> transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
+    public async override Task<ccxt.TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -4990,11 +4990,7 @@ public partial class coinex : Exchange
         //         "message": "OK"
         //     }
         //
-        return this.extend(this.parseTransfer(response, currency), new Dictionary<string, object>() {
-            { "amount", this.parseNumber(amountToPrecision) },
-            { "fromAccount", fromAccount },
-            { "toAccount", toAccount },
-        });
+        return ccxt.BaseExchange.ToTransferEntry(this.extend(this.parseTransfer(response, currency), new Dictionary<string, object>() {             { "amount", this.parseNumber(amountToPrecision) },             { "fromAccount", fromAccount },             { "toAccount", toAccount },         }));
     }
 
     public virtual object parseTransferStatus(object status)

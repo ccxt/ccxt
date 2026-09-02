@@ -92,52 +92,6 @@ public partial class polymarket
         return ((Dictionary<string, object>)res);
     }
     /// <summary>
-    /// fetches the CLOB order book for a single outcome token
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.polymarket.com/api-reference/market-data/get-order-book"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>limit</term>
-    /// <description>
-    /// int : not used by polymarket fetchOrderBook
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure).</returns>
-    public async Task<PredictionOrderBook> FetchOrderBook(string outcome, Int64? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchOrderBook(outcome, limit, parameters);
-        return new PredictionOrderBook(res);
-    }
-    /// <summary>
-    /// fetches the current timestamp from the CLOB server
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.polymarket.com/api-reference/data/get-server-time"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>int</term> the current server time in milliseconds.</returns>
-    public async Task<Int64> FetchTime(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchTime(parameters);
-        return (Int64)res;
-    }
-    /// <summary>
     /// cancels all open orders on the CLOB, optionally scoped to one outcome token
     /// </summary>
     /// <remarks>

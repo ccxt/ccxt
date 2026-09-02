@@ -1829,7 +1829,7 @@ public partial class hitbtc : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1846,7 +1846,7 @@ public partial class hitbtc : Exchange
         }
         object response = await this.publicGetPublicOrderbookSymbol(this.extend(request, parameters));
         object timestamp = this.parse8601(this.safeString(response, "timestamp"));
-        return this.parseOrderBook(response, symbol, timestamp, "bid", "ask");
+        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, symbol, timestamp, "bid", "ask"));
     }
 
     public virtual object parseTradingFee(object fee, object market = null)
@@ -2991,7 +2991,7 @@ public partial class hitbtc : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public async override Task<object> transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
+    public async override Task<ccxt.TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
     {
         object fromAccountVar = fromAccount;
         object toAccountVar = toAccount;
@@ -3024,7 +3024,7 @@ public partial class hitbtc : Exchange
         //         "2db6ebab-fb26-4537-9ef8-1a689472d236"
         //     ]
         //
-        return this.parseTransfer(response, currency);
+        return ccxt.BaseExchange.ToTransferEntry(this.parseTransfer(response, currency));
     }
 
     public override object parseTransfer(object transfer, object currency = null)
@@ -4039,7 +4039,7 @@ public partial class hitbtc : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public async override Task<object> setLeverage(object leverage, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetLeverage(object leverage, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -4070,7 +4070,7 @@ public partial class hitbtc : Exchange
             { "leverage", ((object)leverage).ToString() },
             { "margin_balance", this.amountToPrecision(symbol, amount) },
         };
-        return await this.privatePutFuturesAccountIsolatedSymbol(this.extend(request, parameters));
+        return ccxt.BaseExchange.ToDict(await this.privatePutFuturesAccountIsolatedSymbol(this.extend(request, parameters)));
     }
 
     /**

@@ -651,7 +651,7 @@ public partial class bydfi : Exchange
      * @param {string} [params.loc] crypto location, default: us
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -697,7 +697,7 @@ public partial class bydfi : Exchange
         Int64 timestamp = this.milliseconds();
         object orderBook = this.parseOrderBook(data, getValue(market, "symbol"), timestamp, "bids", "asks", "price", "amount");
         ((IDictionary<string,object>)orderBook)["nonce"] = this.safeInteger(data, "lastUpdateId");
-        return orderBook;
+        return ccxt.BaseExchange.ToOrderBook(orderBook);
     }
 
     public virtual object getClosestLimit(object limit)
@@ -2202,7 +2202,7 @@ public partial class bydfi : Exchange
      * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
      * @returns {object} response from the exchange
      */
-    public async override Task<object> setLeverage(object leverage, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetLeverage(object leverage, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -2225,7 +2225,7 @@ public partial class bydfi : Exchange
         };
         object response = await this.privatePostV1FapiTradeLeverage(this.extend(request, parameters));
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return data;
+        return ccxt.BaseExchange.ToDict(data);
     }
 
     /**
@@ -2685,7 +2685,7 @@ public partial class bydfi : Exchange
      * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
      * @returns {object} response from the exchange
      */
-    public async override Task<object> setMarginMode(string marginMode, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetMarginMode(string marginMode, string symbol = null, object parameters = null)
     {
         object marginModeVar = marginMode;
         parameters ??= new Dictionary<string, object>();
@@ -2717,7 +2717,7 @@ public partial class bydfi : Exchange
             { "marginType", ((string)marginModeVar).ToUpper() },
             { "wallet", wallet },
         };
-        return await this.privatePostV1FapiUserDataMarginType(this.extend(request, parameters));
+        return ccxt.BaseExchange.ToDict(await this.privatePostV1FapiUserDataMarginType(this.extend(request, parameters)));
     }
 
     /**
@@ -2733,7 +2733,7 @@ public partial class bydfi : Exchange
      * @param {string} [params.settleCoin] The settlement currency - USDT or USDC or USD (default is USDT)
      * @returns {object} response from the exchange
      */
-    public async override Task<object> setPositionMode(object hedged, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetPositionMode(object hedged, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(!isEqual(symbol, null)))
@@ -2770,7 +2770,7 @@ public partial class bydfi : Exchange
         //         "success": true
         //     }
         //
-        return await this.privatePostV1FapiUserDataPositionSideDual(this.extend(request, parameters));
+        return ccxt.BaseExchange.ToDict(await this.privatePostV1FapiUserDataPositionSideDual(this.extend(request, parameters)));
     }
 
     /**
@@ -2963,7 +2963,7 @@ public partial class bydfi : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public async override Task<object> transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
+    public async override Task<ccxt.TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -3001,7 +3001,7 @@ public partial class bydfi : Exchange
             ((IDictionary<string,object>)transfer)["toAccount"] = toAccount;
             ((IDictionary<string,object>)transfer)["amount"] = amount;
         }
-        return transfer;
+        return ccxt.BaseExchange.ToTransferEntry(transfer);
     }
 
     /**

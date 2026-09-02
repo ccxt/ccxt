@@ -7,58 +7,6 @@ namespace ccxt;
 public partial class extended
 {
     /// <summary>
-    /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://api.docs.extended.exchange/#get-market-order-book"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>limit</term>
-    /// <description>
-    /// int : the maximum amount of order book entries to return
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
-    public async Task<OrderBook> FetchOrderBook(string symbol, Int64? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchOrderBook(symbol, limit, parameters);
-        return new OrderBook(res);
-    }
-    /// <summary>
-    /// transfer collateral between sub-accounts associated with the same wallet
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://api.docs.extended.exchange/#create-transfer"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.settlementExpiration</term>
-    /// <description>
-    /// int : settlement expiration timestamp in seconds, defaults to now + 21 days
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}.</returns>
-    public async Task<TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.transfer(code, amount, fromAccount, toAccount, parameters);
-        return new TransferEntry(res);
-    }
-    /// <summary>
     /// fetch the trading fees for multiple markets
     /// </summary>
     /// <remarks>
@@ -90,26 +38,6 @@ public partial class extended
         var res = await this.fetchTradingFees(parameters);
         return new TradingFees(res);
     }
-    /// <summary>
-    /// set the level of leverage for a market
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://api.docs.extended.exchange/#update-leverage"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> response from the exchange.</returns>
-    public async Task<Leverage> SetLeverage(Int64 leverage, string symbol = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.setLeverage(leverage, symbol, parameters);
-        return new Leverage(res);
-    }
     public async Task<Dictionary<string, object>> FetchExtendedAccount(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchExtendedAccount(parameters);
@@ -133,58 +61,6 @@ public partial class extended
     public async Task<Dictionary<string, object>> CreateExtendedOrderRequest(string symbol, string type, string side, double amount, double? price = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.createExtendedOrderRequest(symbol, type, side, amount, price, parameters);
-        return ((Dictionary<string, object>)res);
-    }
-    /// <summary>
-    /// cancel multiple orders by order ids or client order ids
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://api.docs.extended.exchange/#mass-cancel"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>symbol</term>
-    /// <description>
-    /// string : unified market symbol, only used to populate the returned orders
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.clientOrderId</term>
-    /// <description>
-    /// string : single client order id
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object[]</term> a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
-    public async Task<List<Order>> CancelOrders(List<string> ids, string symbol = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.cancelOrders(ids, symbol, parameters);
-        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
-    }
-    /// <summary>
-    /// dead man's switch, cancel all orders after the given timeout
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://api.docs.extended.exchange/#mass-auto-cancel-dead-man-39-s-switch"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> the api result.</returns>
-    public async Task<Dictionary<string, object>> CancelAllOrdersAfter(Int64 timeout, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.cancelAllOrdersAfter(timeout, parameters);
         return ((Dictionary<string, object>)res);
     }
 }

@@ -525,7 +525,7 @@ public partial class independentreserve : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -539,7 +539,7 @@ public partial class independentreserve : Exchange
         };
         object response = await this.publicGetGetOrderBook(this.extend(request, parameters));
         object timestamp = this.parse8601(this.safeString(response, "CreatedTimestampUtc"));
-        return this.parseOrderBook(response, getValue(market, "symbol"), timestamp, "BuyOrders", "SellOrders", "Price", "Volume");
+        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, getValue(market, "symbol"), timestamp, "BuyOrders", "SellOrders", "Price", "Volume"));
     }
 
     public override object parseTicker(object ticker, object market = null)

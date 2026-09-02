@@ -489,14 +489,14 @@ public partial class bitvavo : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    public async override Task<object> fetchTime(object parameters = null)
+    public async override Task<Int64> FetchTime(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetTime(parameters);
         //
         //     { "time": 1590379519148 }
         //
-        return this.safeInteger(response, "time");
+        return ccxt.BaseExchange.ToInt64Value(this.safeInteger(response, "time"));
     }
 
     /**
@@ -1150,7 +1150,7 @@ public partial class bitvavo : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1184,7 +1184,7 @@ public partial class bitvavo : Exchange
         //
         object orderbook = this.parseOrderBook(response, getValue(market, "symbol"));
         ((IDictionary<string,object>)orderbook)["nonce"] = this.safeInteger(response, "nonce");
-        return orderbook;
+        return ccxt.BaseExchange.ToOrderBook(orderbook);
     }
 
     public override object parseOHLCV(object ohlcv, object market = null)
@@ -1389,7 +1389,7 @@ public partial class bitvavo : Exchange
      * @param {string} [params.clientRequestId] client defined unique id
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public async override Task<object> transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
+    public async override Task<ccxt.TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1444,7 +1444,7 @@ public partial class bitvavo : Exchange
         //         "createdAt": "1700000000000"
         //     }
         //
-        return this.parseTransfer(response, currency);
+        return ccxt.BaseExchange.ToTransferEntry(this.parseTransfer(response, currency));
     }
 
     /**
@@ -2010,7 +2010,7 @@ public partial class bitvavo : Exchange
      * @param {int} [params.codGroupId] your identifier for a group of orders, default is 1
      * @returns {object} the api result
      */
-    public async override Task<object> cancelAllOrdersAfter(object timeout, object parameters = null)
+    public async override Task<Dictionary<string, object>> CancelAllOrdersAfter(object timeout, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isGreaterThan(timeout, 300000)))
@@ -2040,7 +2040,7 @@ public partial class bitvavo : Exchange
         //         "timeOfExpirySeconds": 17202139111
         //     }
         //
-        return response;
+        return ccxt.BaseExchange.ToDict(response);
     }
 
     /**

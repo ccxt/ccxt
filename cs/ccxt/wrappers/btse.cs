@@ -7,52 +7,6 @@ namespace ccxt;
 public partial class btse
 {
     /// <summary>
-    /// fetches the current integer timestamp in milliseconds from the exchange server
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://btsecom.github.io/docs/spotV3_3/en/#query-server-time"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>int</term> the current integer timestamp in milliseconds from the exchange server.</returns>
-    public async Task<Int64> FetchTime(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchTime(parameters);
-        return (Int64)res;
-    }
-    /// <summary>
-    /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.btse.com/markets/rest/get-orderbook/"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>limit</term>
-    /// <description>
-    /// int : the maximum amount of order book entries to return
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols.</returns>
-    public async Task<OrderBook> FetchOrderBook(string symbol, Int64? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchOrderBook(symbol, limit, parameters);
-        return new OrderBook(res);
-    }
-    /// <summary>
     /// retrieve information on the maximum leverage, for different trade sizes
     /// </summary>
     /// <remarks>
@@ -71,33 +25,6 @@ public partial class btse
     {
         var res = await this.fetchLeverageTiers(symbols, parameters);
         return new LeverageTiers(res);
-    }
-    /// <summary>
-    /// dead man's switch, cancel all orders after the given timeout
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.btse.com/spot/rest/cancel-all-after"/>  <br/>
-    /// See <see href="https://docs.btse.com/futures/rest/cancel-all-after"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.type</term>
-    /// <description>
-    /// string : 'spot', 'swap' or 'future', default is 'spot'
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> the api result.</returns>
-    public async Task<Dictionary<string, object>> CancelAllOrdersAfter(Int64 timeout, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.cancelAllOrdersAfter(timeout, parameters);
-        return ((Dictionary<string, object>)res);
     }
     /// <summary>
     /// fetch the trading fees for multiple markets
@@ -125,89 +52,5 @@ public partial class btse
     {
         var res = await this.fetchTradingFees(parameters);
         return new TradingFees(res);
-    }
-    /// <summary>
-    /// NB!!! This method also sets margin mode to cross on btse. Set hedged to true or false for a cross-margin market.
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.btse.com/futures/rest/change-position-mode"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> response from the exchange.</returns>
-    public async Task<Dictionary<string, object>> SetPositionMode(bool hedged, string symbol = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.setPositionMode(hedged, symbol, parameters);
-        return ((Dictionary<string, object>)res);
-    }
-    /// <summary>
-    /// set margin mode to 'cross' or 'isolated'
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.btse.com/futures/rest/change-position-mode"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.hedged</term>
-    /// <description>
-    /// bool : set to true to use dualSidePosition, required for setting marginMode to cross on btse
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> response from the exchange.</returns>
-    public async Task<Dictionary<string, object>> SetMarginMode(string marginMode, string symbol = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.setMarginMode(marginMode, symbol, parameters);
-        return ((Dictionary<string, object>)res);
-    }
-    /// <summary>
-    /// set the level of leverage for a market
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.btse.com/futures/rest/change-leverage"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.positionMode</term>
-    /// <description>
-    /// string : ONE_WAY or HEDGE, defaults to ONE_WAY on the exchange side when omitted
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.positionDirection</term>
-    /// <description>
-    /// string : LONG or SHORT, identifies the side to update in hedge mode
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.positionId</term>
-    /// <description>
-    /// string : existing position id to update, disambiguates the target position in hedge mode
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> response from the exchange.</returns>
-    public async Task<Dictionary<string, object>> SetLeverage(Int64 leverage, string symbol = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.setLeverage(leverage, symbol, parameters);
-        return ((Dictionary<string, object>)res);
     }
 }

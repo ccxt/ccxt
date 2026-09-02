@@ -1066,6 +1066,30 @@ public partial class BaseExchange
         return result;
     }
 
+    public static PredictionOrderBook ToPredictionOrderBook(object value)
+    {
+        return value is PredictionOrderBook ? (PredictionOrderBook)value : new PredictionOrderBook(value);
+    }
+
+    public static List<PredictionOrderBook> ToPredictionOrderBookList(object values)
+    {
+        if (values == null)
+        {
+            return null;
+        }
+        if (values is List<PredictionOrderBook>)
+        {
+            return (List<PredictionOrderBook>)values;
+        }
+        var rows = (IList<object>)values;
+        var result = new List<PredictionOrderBook>(rows.Count);
+        foreach (var row in rows)
+        {
+            result.Add(row is PredictionOrderBook ? (PredictionOrderBook)row : new PredictionOrderBook(row));
+        }
+        return result;
+    }
+
     public static PredictionPosition ToPredictionPosition(object value)
     {
         return value is PredictionPosition ? (PredictionPosition)value : new PredictionPosition(value);
@@ -4930,6 +4954,74 @@ public partial class BaseExchange
         return result;
     }
 
+    public static object FromPredictionOrderBook(object value)
+    {
+        if (!(value is PredictionOrderBook))
+        {
+            return value;
+        }
+        var typed = (PredictionOrderBook)value;
+        var result = new Dictionary<string, object>();
+        if (typed.bids != null)
+        {
+            var bidsRows = new List<object>();
+            foreach (var level in typed.bids)
+            {
+                bidsRows.Add(new List<object>(level.Select(v => (object)v)));
+            }
+            result["bids"] = bidsRows;
+        }
+        if (typed.asks != null)
+        {
+            var asksRows = new List<object>();
+            foreach (var level in typed.asks)
+            {
+                asksRows.Add(new List<object>(level.Select(v => (object)v)));
+            }
+            result["asks"] = asksRows;
+        }
+        if (typed.timestamp != null)
+        {
+            result["timestamp"] = typed.timestamp;
+        }
+        if (typed.datetime != null)
+        {
+            result["datetime"] = typed.datetime;
+        }
+        if (typed.nonce != null)
+        {
+            result["nonce"] = typed.nonce;
+        }
+        if (typed.outcome != null)
+        {
+            result["outcome"] = typed.outcome;
+        }
+        if (typed.outcomeId != null)
+        {
+            result["outcomeId"] = typed.outcomeId;
+        }
+        if (typed.market != null)
+        {
+            result["market"] = typed.market;
+        }
+        return result;
+    }
+
+    public static object FromPredictionOrderBookList(object values)
+    {
+        if (!(values is List<PredictionOrderBook>))
+        {
+            return values;
+        }
+        var typed = (List<PredictionOrderBook>)values;
+        var result = new List<object>(typed.Count);
+        foreach (var row in typed)
+        {
+            result.Add(FromPredictionOrderBook(row));
+        }
+        return result;
+    }
+
     public static object FromPredictionOutcome(object value)
     {
         if (!(value is PredictionOutcome))
@@ -6309,6 +6401,10 @@ public partial class BaseExchange
                 return FromPredictionOrder(value);
             case List<PredictionOrder> _:
                 return FromPredictionOrderList(value);
+            case PredictionOrderBook _:
+                return FromPredictionOrderBook(value);
+            case List<PredictionOrderBook> _:
+                return FromPredictionOrderBookList(value);
             case PredictionOutcome _:
                 return FromPredictionOutcome(value);
             case List<PredictionOutcome> _:

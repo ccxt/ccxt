@@ -310,7 +310,7 @@ public partial class woo : ccxt.woo
             object defaultLimit = this.safeInteger(this.options, "watchOrderBookLimit", 1000);
             object limit = this.safeInteger(subscription, "limit", defaultLimit);
             object parameters = this.safeValue(subscription, "params");
-            object snapshot = await this.fetchRestOrderBookSafe(symbol, limit, parameters);
+            object snapshot = ccxt.BaseExchange.FromOrderBook(await this.FetchRestOrderBookSafe(symbol, limit, parameters));
             if (isTrue(isEqual(this.safeValue(this.orderbooks, symbol), null)))
             {
                 // if the orderbook is dropped before the snapshot is received

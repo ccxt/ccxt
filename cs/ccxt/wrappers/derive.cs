@@ -6,24 +6,5 @@ namespace ccxt;
 
 public partial class derive
 {
-    /// <summary>
-    /// fetches the current integer timestamp in milliseconds from the exchange server
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.derive.xyz/reference/post_public-get-time"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>int</term> the current integer timestamp in milliseconds from the exchange server.</returns>
-    public async Task<Int64> FetchTime(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchTime(parameters);
-        return (Int64)res;
-    }
+
 }

@@ -1076,7 +1076,7 @@ public partial class PredictionExchange : BaseExchange
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object} a prediction [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
      */
-    public async override Task<object> fetchOrderBook(string outcome, Int64? limit = null, object parameters = null)
+    public async virtual Task<ccxt.PredictionOrderBook> FetchOrderBook(string outcome, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchOrderBook() is not supported yet")) ;
@@ -2148,10 +2148,5 @@ public partial class PredictionExchange
     {
         var res = await this.fetchOutcome(outcomeSymbol);
         return ((Dictionary<string, object>)res);
-    }
-    public async Task<PredictionOrderBook> FetchOrderBook(string outcome, Int64? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchOrderBook(outcome, limit, parameters);
-        return new PredictionOrderBook(res);
     }
 }

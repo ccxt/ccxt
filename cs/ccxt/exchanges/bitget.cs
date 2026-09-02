@@ -3190,7 +3190,7 @@ public partial class bitget : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    public async override Task<object> fetchTime(object parameters = null)
+    public async override Task<Int64> FetchTime(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicCommonGetV2PublicTime(parameters);
@@ -3205,7 +3205,7 @@ public partial class bitget : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        return this.safeInteger(data, "serverTime");
+        return ccxt.BaseExchange.ToInt64Value(this.safeInteger(data, "serverTime"));
     }
 
     /**
@@ -4731,7 +4731,7 @@ public partial class bitget : Exchange
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -4796,7 +4796,7 @@ public partial class bitget : Exchange
         object bidsKey = ((bool) isTrue((isEqual(uta, true)))) ? "b" : "bids";
         object asksKey = ((bool) isTrue((isEqual(uta, true)))) ? "a" : "asks";
         object timestamp = this.safeInteger(data, "ts");
-        return this.parseOrderBook(data, getValue(market, "symbol"), timestamp, bidsKey, asksKey);
+        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(data, getValue(market, "symbol"), timestamp, bidsKey, asksKey));
     }
 
     public override object parseTicker(object ticker, object market = null)
@@ -8211,7 +8211,7 @@ public partial class bitget : Exchange
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} an array of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelOrders(object ids, string symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> CancelOrders(object ids, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -8229,7 +8229,7 @@ public partial class bitget : Exchange
         parameters = ((IList<object>)utaparametersVariable)[1];
         if (isTrue(isEqual(uta, true)))
         {
-            return ccxt.BaseExchange.FromOrderList(await this.CancelUtaOrders(ids,((string)symbol), parameters));
+            return await this.CancelUtaOrders(ids,((string)symbol), parameters);
         }
         object marginMode = null;
         var marginModeparametersVariable = this.handleMarginModeAndParams("cancelOrders", parameters);
@@ -8305,7 +8305,7 @@ public partial class bitget : Exchange
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
         object orders = this.safeList(data, "successList", new List<object>() {});
-        return this.parseOrders(orders, market);
+        return ccxt.BaseExchange.ToOrderList(this.parseOrders(orders, market));
     }
 
     /**
@@ -11452,7 +11452,7 @@ public partial class bitget : Exchange
      * @param {boolean} [params.posSide] required for uta isolated margin, long or short
      * @returns {object} response from the exchange
      */
-    public async override Task<object> setLeverage(object leverage, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetLeverage(object leverage, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -11499,7 +11499,7 @@ public partial class bitget : Exchange
             ((IDictionary<string,object>)request)["productType"] = productType;
             response = await this.privateMixPostV2MixAccountSetLeverage(this.extend(request, parameters));
         }
-        return response;
+        return ccxt.BaseExchange.ToDict(response);
     }
 
     /**
@@ -11512,7 +11512,7 @@ public partial class bitget : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public async override Task<object> setMarginMode(string marginMode, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetMarginMode(string marginMode, string symbol = null, object parameters = null)
     {
         object marginModeVar = marginMode;
         parameters ??= new Dictionary<string, object>();
@@ -11559,7 +11559,7 @@ public partial class bitget : Exchange
         //         }
         //     }
         //
-        return response;
+        return ccxt.BaseExchange.ToDict(response);
     }
 
     /**
@@ -11575,7 +11575,7 @@ public partial class bitget : Exchange
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} response from the exchange
      */
-    public async override Task<object> setPositionMode(object hedged, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetPositionMode(object hedged, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -11608,7 +11608,7 @@ public partial class bitget : Exchange
             ((IDictionary<string,object>)request)["productType"] = productType;
             response = await this.privateMixPostV2MixAccountSetPositionMode(this.extend(request, parameters));
         }
-        return response;
+        return ccxt.BaseExchange.ToDict(response);
     }
 
     /**
@@ -11788,7 +11788,7 @@ public partial class bitget : Exchange
      * @param {string} [params.clientOid] custom id
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public async override Task<object> transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
+    public async override Task<ccxt.TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -11838,7 +11838,7 @@ public partial class bitget : Exchange
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
         ((IDictionary<string,object>)data)["ts"] = this.safeInteger(response, "requestTime");
-        return this.parseTransfer(data, currency);
+        return ccxt.BaseExchange.ToTransferEntry(this.parseTransfer(data, currency));
     }
 
     public override object parseTransfer(object transfer, object currency = null)

@@ -367,6 +367,24 @@ public partial class testMainClass : BaseTest
             }
             return outDict;
         }
+        // OrderBook.bids/asks are List<List<double>>. getValue on List<double> returns
+        // null (it is not IList<object>), so each stored [price, amount] compared as null.
+        if (type.IsGenericType
+            && type.GetGenericTypeDefinition() == typeof(List<>)
+            && value is System.Collections.IList numericList)
+        {
+            var elem = type.GetGenericArguments()[0];
+            if (elem.IsPrimitive || elem == typeof(double) || elem == typeof(Int64)
+                || (elem.IsGenericType && elem.GetGenericTypeDefinition() == typeof(List<>)))
+            {
+                var outList = new List<object>(numericList.Count);
+                foreach (var item in numericList)
+                {
+                    outList.Add(detypeForComparison(item));
+                }
+                return outList;
+            }
+        }
         return value;
     }
 

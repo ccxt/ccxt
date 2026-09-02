@@ -346,7 +346,7 @@ public partial class zebpay : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the poloniexfutures server
      */
-    public async override Task<object> fetchTime(object parameters = null)
+    public async override Task<Int64> FetchTime(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object type = null;
@@ -377,7 +377,7 @@ public partial class zebpay : Exchange
         // }
         //
         object time = this.safeInteger(data, "timestamp");
-        return time;
+        return ccxt.BaseExchange.ToInt64Value(time);
     }
 
     /**
@@ -678,7 +678,7 @@ public partial class zebpay : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -716,7 +716,7 @@ public partial class zebpay : Exchange
         object bookData = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object orderbook = this.parseOrderBook(bookData, getValue(market, "symbol"), null, "bids", "asks", 0, 1);
         ((IDictionary<string,object>)orderbook)["nonce"] = this.safeInteger(bookData, "nonce");
-        return orderbook;
+        return ccxt.BaseExchange.ToOrderBook(orderbook);
     }
 
     /**
@@ -1667,7 +1667,7 @@ public partial class zebpay : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public async override Task<object> setLeverage(object leverage, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetLeverage(object leverage, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -1687,7 +1687,7 @@ public partial class zebpay : Exchange
         // { data: { "symbol", "longLeverage": 10, "shortLeverage": 1, "marginMode": "isolated" }
         //
         object response = await this.privateSwapPostV1TradeUpdateUserLeverage(this.extend(request, parameters));
-        return response;
+        return ccxt.BaseExchange.ToDict(response);
     }
 
     /**

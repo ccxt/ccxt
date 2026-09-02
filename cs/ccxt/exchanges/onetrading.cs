@@ -417,7 +417,7 @@ public partial class onetrading : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    public async override Task<object> fetchTime(object parameters = null)
+    public async override Task<Int64> FetchTime(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetTime(parameters);
@@ -427,7 +427,7 @@ public partial class onetrading : Exchange
         //         "epoch_millis": 1594358246716,
         //     }
         //
-        return this.safeInteger(response, "epoch_millis");
+        return ccxt.BaseExchange.ToInt64Value(this.safeInteger(response, "epoch_millis"));
     }
 
     /**
@@ -981,7 +981,7 @@ public partial class onetrading : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1053,7 +1053,7 @@ public partial class onetrading : Exchange
         //     }
         //
         object timestamp = this.parse8601(this.safeString(response, "time"));
-        return this.parseOrderBook(response, getValue(market, "symbol"), timestamp, "bids", "asks", "price", "amount");
+        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, getValue(market, "symbol"), timestamp, "bids", "asks", "price", "amount"));
     }
 
     public override object parseOHLCV(object ohlcv, object market = null)
@@ -1613,7 +1613,7 @@ public partial class onetrading : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelOrders(object ids, string symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> CancelOrders(object ids, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1632,7 +1632,7 @@ public partial class onetrading : Exchange
         object order = this.safeOrder(new Dictionary<string, object>() {
             { "info", response },
         });
-        return new List<object>() {order};
+        return ccxt.BaseExchange.ToOrderList(new List<object>() {order});
     }
 
     /**

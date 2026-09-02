@@ -687,7 +687,7 @@ public partial class btse : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    public async override Task<object> fetchTime(object parameters = null)
+    public async override Task<Int64> FetchTime(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetSpotApiV33Time(parameters);
@@ -697,7 +697,7 @@ public partial class btse : Exchange
         //         "epoch": 1770378517
         //     }
         //
-        return this.safeTimestamp(response, "epoch");
+        return ccxt.BaseExchange.ToInt64Value(this.safeTimestamp(response, "epoch"));
     }
 
     /**
@@ -999,7 +999,7 @@ public partial class btse : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
      */
-    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -1031,7 +1031,7 @@ public partial class btse : Exchange
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object timestamp = this.safeInteger(data, "timestamp");
-        return this.parseOrderBook(data, getValue(market, "symbol"), timestamp, "bids", "asks");
+        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(data, getValue(market, "symbol"), timestamp, "bids", "asks"));
     }
 
     /**
@@ -2868,7 +2868,7 @@ public partial class btse : Exchange
      * @param {string} [params.type] 'spot', 'swap' or 'future', default is 'spot'
      * @returns {object} the api result
      */
-    public async override Task<object> cancelAllOrdersAfter(object timeout, object parameters = null)
+    public async override Task<Dictionary<string, object>> CancelAllOrdersAfter(object timeout, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -2888,7 +2888,7 @@ public partial class btse : Exchange
             ((IDictionary<string,object>)request)["timeoutMs"] = timeout;
             response = await this.privatePostFuturesApiV3TradeOrdersCancelAllAfter(this.extend(request, parameters));
         }
-        return response;
+        return ccxt.BaseExchange.ToDict(response);
     }
 
     /**
@@ -3811,7 +3811,7 @@ public partial class btse : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public async override Task<object> setPositionMode(object hedged, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetPositionMode(object hedged, string symbol = null, object parameters = null)
     {
         // NB!!! This method also sets margin mode to cross on btse
         // btse do not have specific endpoint for marginMode
@@ -3830,7 +3830,7 @@ public partial class btse : Exchange
             { "symbol", this.futuresRequestId(market) },
             { "positionMode", positionMode },
         };
-        return await this.privatePostFuturesApiV3TradePositionMode(this.extend(request, parameters));
+        return ccxt.BaseExchange.ToDict(await this.privatePostFuturesApiV3TradePositionMode(this.extend(request, parameters)));
     }
 
     /**
@@ -3891,7 +3891,7 @@ public partial class btse : Exchange
      * @param {bool} [params.hedged] set to true to use dualSidePosition, required for setting marginMode to cross on btse
      * @returns {object} response from the exchange
      */
-    public async override Task<object> setMarginMode(string marginMode, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetMarginMode(string marginMode, string symbol = null, object parameters = null)
     {
         object marginModeVar = marginMode;
         // btse do not have specific endpoint for marginModeVar
@@ -3935,7 +3935,7 @@ public partial class btse : Exchange
             { "symbol", this.futuresRequestId(market) },
             { "positionMode", positionMode },
         };
-        return await this.privatePostFuturesApiV3TradePositionMode(this.extend(request, parameters));
+        return ccxt.BaseExchange.ToDict(await this.privatePostFuturesApiV3TradePositionMode(this.extend(request, parameters)));
     }
 
     /**
@@ -4073,7 +4073,7 @@ public partial class btse : Exchange
      * @param {string} [params.positionId] existing position id to update, disambiguates the target position in hedge mode
      * @returns {object} response from the exchange
      */
-    public async override Task<object> setLeverage(object leverage, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetLeverage(object leverage, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -4098,7 +4098,7 @@ public partial class btse : Exchange
             ((IDictionary<string,object>)request)["marginMode"] = ((string)marginMode).ToUpper();
         }
         object response = await this.privatePostFuturesApiV3TradeLeverage(this.extend(request, parameters));
-        return response;
+        return ccxt.BaseExchange.ToDict(response);
     }
 
     public override object handleErrors(object code, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)

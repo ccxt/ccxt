@@ -935,6 +935,60 @@ public partial class BaseExchange
         return (value is PredictionOrderBook already) ? already : new PredictionOrderBook(ToOrderBookSnapshot(value));
     }
 
+    public static Dictionary<string, object> ToDict(object value)
+    {
+        return value as Dictionary<string, object>;
+    }
+
+    public static List<Dictionary<string, object>> ToDictList(object values)
+    {
+        if (values == null)
+        {
+            return null;
+        }
+        if (values is List<Dictionary<string, object>> already)
+        {
+            return already;
+        }
+        var rows = (IList<object>)values;
+        var result = new List<Dictionary<string, object>>(rows.Count);
+        foreach (var row in rows)
+        {
+            result.Add(row as Dictionary<string, object>);
+        }
+        return result;
+    }
+
+    public static Int64 ToInt64Value(object value)
+    {
+        return ToInt64ArgRequired(value);
+    }
+
+    public static string ToStringValue(object value)
+    {
+        return value as string;
+    }
+
+    public static object FromDict(object value)
+    {
+        return value;
+    }
+
+    public static object FromDictList(object values)
+    {
+        return values;
+    }
+
+    public static object FromInt64(object value)
+    {
+        return value;
+    }
+
+    public static object FromStringValue(object value)
+    {
+        return value;
+    }
+
     public static string toStringOrNull(object value)
     {
         if (value == null)

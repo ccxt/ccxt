@@ -459,7 +459,7 @@ public partial class lbank : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    public async override Task<object> fetchTime(object parameters = null)
+    public async override Task<Int64> FetchTime(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object type = null;
@@ -494,7 +494,7 @@ public partial class lbank : Exchange
         //         "success": true
         //     }
         //
-        return this.safeInteger(response, "data");
+        return ccxt.BaseExchange.ToInt64Value(this.safeInteger(response, "data"));
     }
 
     /**
@@ -1034,7 +1034,7 @@ public partial class lbank : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
@@ -1116,9 +1116,9 @@ public partial class lbank : Exchange
         Int64 timestamp = this.milliseconds();
         if (isTrue(isEqual(getValue(market, "swap"), true)))
         {
-            return this.parseOrderBook(orderbook, getValue(market, "symbol"), timestamp, "bids", "asks", "price", "volume");
+            return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(orderbook, getValue(market, "symbol"), timestamp, "bids", "asks", "price", "volume"));
         }
-        return this.parseOrderBook(orderbook, getValue(market, "symbol"), timestamp, "bids", "asks");
+        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(orderbook, getValue(market, "symbol"), timestamp, "bids", "asks"));
     }
 
     public override object parseTrade(object trade, object market = null)
@@ -2939,7 +2939,7 @@ public partial class lbank : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public async override Task<object> fetchTransactionFees(object codes = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> FetchTransactionFees(object codes = null, object parameters = null)
     {
         // private only returns information for currencies with non-zero balance
         parameters ??= new Dictionary<string, object>();
@@ -2966,7 +2966,7 @@ public partial class lbank : Exchange
         {
             result = await this.fetchPublicTransactionFees(parameters);
         }
-        return result;
+        return ccxt.BaseExchange.ToDict(result);
     }
 
     public async virtual Task<object> fetchPrivateTransactionFees(object parameters = null)

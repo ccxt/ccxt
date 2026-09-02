@@ -1168,13 +1168,13 @@ public partial class BaseExchange
         throw new NotSupported ((string)add(this.id, " unWatchOrderBook() is not supported yet")) ;
     }
 
-    public async virtual Task<object> fetchTime(object parameters = null)
+    public async virtual Task<Int64> FetchTime(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchTime() is not supported yet")) ;
     }
 
-    public async virtual Task<object> fetchTradingLimits(object symbols = null, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> FetchTradingLimits(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchTradingLimits() is not supported yet")) ;
@@ -1360,7 +1360,7 @@ public partial class BaseExchange
         return await this.WatchFundingRates(symbols, parameters);
     }
 
-    public async virtual Task<object> transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
+    public async virtual Task<ccxt.TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " transfer() is not supported yet")) ;
@@ -1378,7 +1378,7 @@ public partial class BaseExchange
         throw new NotSupported ((string)add(this.id, " createDepositAddress() is not supported yet")) ;
     }
 
-    public async virtual Task<object> setLeverage(object leverage, string symbol = null, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> SetLeverage(object leverage, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " setLeverage() is not supported yet")) ;
@@ -1403,7 +1403,7 @@ public partial class BaseExchange
         throw new NotSupported ((string)add(this.id, " fetchLeverages() is not supported yet")) ;
     }
 
-    public async virtual Task<object> setPositionMode(object hedged, string symbol = null, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> SetPositionMode(object hedged, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " setPositionMode() is not supported yet")) ;
@@ -1445,7 +1445,7 @@ public partial class BaseExchange
         throw new NotSupported ((string)add(this.id, " fetchMarginAdjustmentHistory() is not supported yet")) ;
     }
 
-    public async virtual Task<object> setMarginMode(string marginMode, string symbol = null, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> SetMarginMode(string marginMode, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " setMarginMode() is not supported yet")) ;
@@ -4009,7 +4009,7 @@ public partial class BaseExchange
         {
             if (isTrue(isTrue(reload) || !isTrue((inOp(this.options, "limitsLoaded")))))
             {
-                object response = await this.fetchTradingLimits(symbols);
+                object response = ccxt.BaseExchange.FromDict(await this.FetchTradingLimits(symbols));
                 object symbolsArray = this.requireValue(symbols, "loadTradingLimits() requires a symbols argument");
                 object markets = this.markets;
                 if (isTrue(isEqual(markets, null)))
@@ -4887,10 +4887,10 @@ public partial class BaseExchange
         {
             throw new NotSupported ((string)add(this.id, " fetchTransactionFee() is not supported yet")) ;
         }
-        return await this.fetchTransactionFees(new List<object>() {code}, parameters);
+        return ccxt.BaseExchange.FromDict(await this.FetchTransactionFees(new List<object>() {code}, parameters));
     }
 
-    public async virtual Task<object> fetchTransactionFees(object codes = null, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> FetchTransactionFees(object codes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchTransactionFees() is not supported yet")) ;
@@ -5381,7 +5381,7 @@ public partial class BaseExchange
         throw new NotSupported ((string)add(this.id, " cancelAllContractOrders() is not supported yet")) ;
     }
 
-    public async virtual Task<object> cancelAllOrdersAfter(object timeout, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> CancelAllOrdersAfter(object timeout, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " cancelAllOrdersAfter() is not supported yet")) ;
@@ -5867,7 +5867,7 @@ public partial class BaseExchange
     public async virtual Task<object> loadTimeDifference(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object serverTime = await this.fetchTime(parameters);
+        object serverTime = ccxt.BaseExchange.FromInt64(await this.FetchTime(parameters));
         Int64 after = this.milliseconds();
         if (isTrue(isEqual(serverTime, null)))
         {
@@ -5902,7 +5902,7 @@ public partial class BaseExchange
         }
     }
 
-    public async virtual Task<object> createSubAccount(object name, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> CreateSubAccount(object name, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " createSubAccount() is not supported yet")) ;
@@ -7920,33 +7920,6 @@ public partial class BaseExchange
     {
         parameters ??= new Dictionary<string, object>();
         return false;  // stub
-    }
-
-    public async virtual Task<object> fetchRestOrderBookSafe(object symbol, object limit = null, object parameters = null)
-    {
-        parameters ??= new Dictionary<string, object>();
-        object fetchSnapshotMaxRetries = this.handleOption("watchOrderBook", "maxRetries", 3);
-        for (object i = 0; isLessThan(i, fetchSnapshotMaxRetries); postFixIncrement(ref i))
-        {
-            try
-            {
-                object orderBook = await this.fetchOrderBook(((string)symbol),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
-                return orderBook;
-            } catch(Exception e)
-            {
-                if (isTrue(isEqual((add(i, 1)), fetchSnapshotMaxRetries)))
-                {
-                    throw e;
-                }
-            }
-        }
-        return null;
-    }
-
-    public async virtual Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
-    {
-        parameters ??= new Dictionary<string, object>();
-        throw new NotSupported ((string)add(this.id, " fetchOrderBook() is not supported yet")) ;
     }
 }
 

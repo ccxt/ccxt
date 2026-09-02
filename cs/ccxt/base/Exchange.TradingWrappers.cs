@@ -6,24 +6,9 @@ namespace ccxt;
 
 public partial class Exchange
 {
-    public async Task<OrderBook> FetchL3OrderBook(string symbol, Int64? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchL3OrderBook(symbol, limit, parameters);
-        return new OrderBook(res);
-    }
     public async Task<Dictionary<string, object>> FetchL2OrderBook(string symbol, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchL2OrderBook(symbol, limit, parameters);
         return ((Dictionary<string, object>)res);
-    }
-    public async Task<string> FetchOrderStatus(string id, string symbol = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchOrderStatus(id, symbol, parameters);
-        return ((string)res);
-    }
-    public async Task<List<Order>> CancelOrders(List<string> ids, string symbol = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.cancelOrders(ids, symbol, parameters);
-        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
 }

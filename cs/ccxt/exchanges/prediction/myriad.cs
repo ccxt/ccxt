@@ -2838,7 +2838,7 @@ public partial class myriad : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
      */
-    public async override Task<object> fetchOrderBook(string outcome, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.PredictionOrderBook> FetchOrderBook(string outcome, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object outcomeObj = await this.loadOutcome(outcome);
@@ -2860,7 +2860,7 @@ public partial class myriad : PredictionExchange
             //         "asks": [ [ "990000000000000000", "151975683890577539072" ] ]
             //     }
             //
-            return this.safePredictionOrderBook(this.parseWeiOrderBook(obResponse, this.safeOutcomeSymbol(outcome, outcomeObj)), outcomeObj);
+            return ccxt.BaseExchange.ToPredictionOrderBook(this.safePredictionOrderBook(this.parseWeiOrderBook(obResponse, this.safeOutcomeSymbol(outcome, outcomeObj)), outcomeObj));
         }
         object request = new Dictionary<string, object>() {
             { "id", marketId },
@@ -2986,7 +2986,7 @@ public partial class myriad : PredictionExchange
             { "datetime", this.iso8601(timestamp) },
             { "nonce", null },
         };
-        return this.safePredictionOrderBook(orderbook, outcomeObj);
+        return ccxt.BaseExchange.ToPredictionOrderBook(this.safePredictionOrderBook(orderbook, outcomeObj));
     }
 
     /**
@@ -3765,7 +3765,7 @@ public partial class myriad : PredictionExchange
     public async virtual Task seedOrderBook(object outcome, object sym, object limit = null)
     {
         // the order book channel streams deltas only, so seed the live book from the REST snapshot
-        object snapshot = await this.fetchOrderBook(((string)outcome),ccxt.BaseExchange.ToInt64Arg(limit));
+        object snapshot = ccxt.BaseExchange.FromPredictionOrderBook(await this.FetchOrderBook(((string)outcome),ccxt.BaseExchange.ToInt64Arg(limit)));
         object orderbook = this.orderBook(new Dictionary<string, object>() {});
         (orderbook as IOrderBook).reset(snapshot);
         ((IDictionary<string,object>)this.orderbooks)[(string)((string)sym)] = orderbook;

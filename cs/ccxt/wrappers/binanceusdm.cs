@@ -6,14 +6,5 @@ namespace ccxt;
 
 public partial class binanceusdm
 {
-    public async Task<TransferEntry> TransferIn(string code, object amount, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.transferIn(code, amount, parameters);
-        return new TransferEntry(res);
-    }
-    public async Task<TransferEntry> TransferOut(string code, object amount, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.transferOut(code, amount, parameters);
-        return new TransferEntry(res);
-    }
+
 }

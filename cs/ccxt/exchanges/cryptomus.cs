@@ -574,7 +574,7 @@ public partial class cryptomus : Exchange
      * @param {int} [params.level] 0 or 1 or 2 or 3 or 4 or 5 - the level of volume
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -612,7 +612,7 @@ public partial class cryptomus : Exchange
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object timestamp = this.safeTimestamp(data, "timestamp");
-        return this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity");
+        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity"));
     }
 
     /**

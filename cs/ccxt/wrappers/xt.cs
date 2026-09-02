@@ -6,79 +6,10 @@ namespace ccxt;
 
 public partial class xt
 {
-    /// <summary>
-    /// fetches the current integer timestamp in milliseconds from the xt server
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://doc.xt.com/docs/spot/Market/GetServerTime"/>  <br/>
-    /// <list type="table">
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>int</term> the current integer timestamp in milliseconds from the xt server.</returns>
-    public async Task<Int64> FetchTime(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchTime(parameters);
-        return (Int64)res;
-    }
     public async Task<List<Dictionary<string, object>>> FetchSwapAndFutureMarkets(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchSwapAndFutureMarkets(parameters);
         return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
-    }
-    /// <summary>
-    /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://doc.xt.com/docs/spot/Market/GetDepthData"/>  <br/>
-    /// See <see href="https://doc.xt.com/docs/futures/MarketData/get-depth-data-of-trading-pairs"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>limit</term>
-    /// <description>
-    /// int : the maximum amount of order book entries to return
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> an [order book structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure}.</returns>
-    public async Task<OrderBook> FetchOrderBook(string symbol, Int64? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchOrderBook(symbol, limit, parameters);
-        return new OrderBook(res);
-    }
-    /// <summary>
-    /// cancel multiple orders
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://doc.xt.com/docs/spot/Order/CancelBatchOrder"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>symbol</term>
-    /// <description>
-    /// string : unified market symbol of the market to cancel orders in
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object[]</term> a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}.</returns>
-    public async Task<List<Order>> CancelOrders(List<string> ids, string symbol = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.cancelOrders(ids, symbol, parameters);
-        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
-    }
-    /// <summary>
-    /// set the level of leverage for a market
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://doc.xt.com/docs/futures/User/Adjust%20Leverage"/>  <br/>
-    /// <list type="table">
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> response from the exchange.</returns>
-    public async Task<Dictionary<string, object>> SetLeverage(Int64 leverage, string symbol = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.setLeverage(leverage, symbol, parameters);
-        return ((Dictionary<string, object>)res);
     }
     /// <summary>
     /// retrieve information on the maximum leverage for different trade sizes
@@ -125,51 +56,5 @@ public partial class xt
     {
         var res = await this.fetchTradingFees(parameters);
         return new TradingFees(res);
-    }
-    /// <summary>
-    /// transfer currency internally between wallets on the same account
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://doc.xt.com/docs/spot/Transfer/TransferBetweenUserSystems"/>  <br/>
-    /// <list type="table">
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}.</returns>
-    public async Task<TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.transfer(code, amount, fromAccount, toAccount, parameters);
-        return new TransferEntry(res);
-    }
-    /// <summary>
-    /// set margin mode to 'cross' or 'isolated'
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://doc.xt.com/docs/futures/User/Change%20Position%20Type"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>symbol</term>
-    /// <description>
-    /// string : required
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.positionSide</term>
-    /// <description>
-    /// string : *required* "long" or "short"
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> response from the exchange.</returns>
-    public async Task<Dictionary<string, object>> SetMarginMode(string marginMode, string symbol = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.setMarginMode(marginMode, symbol, parameters);
-        return ((Dictionary<string, object>)res);
     }
 }

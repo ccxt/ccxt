@@ -1462,7 +1462,7 @@ public partial class phemex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1518,7 +1518,7 @@ public partial class phemex : Exchange
         object timestamp = this.safeIntegerProduct(result, "timestamp", 0.000001);
         object orderbook = this.customParseOrderBook(book, symbol, timestamp, "bids", "asks", 0, 1, market);
         ((IDictionary<string,object>)orderbook)["nonce"] = this.safeInteger(result, "sequence");
-        return orderbook;
+        return ccxt.BaseExchange.ToOrderBook(orderbook);
     }
 
     public virtual object toEn(object n, object scale)
@@ -5028,7 +5028,7 @@ public partial class phemex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public async override Task<object> setMarginMode(string marginMode, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetMarginMode(string marginMode, string symbol = null, object parameters = null)
     {
         object marginModeVar = marginMode;
         parameters ??= new Dictionary<string, object>();
@@ -5062,7 +5062,7 @@ public partial class phemex : Exchange
                 throw new ArgumentsRequired ((string)add(this.id, " setMarginMode() requires a \"leverage\" parameter for USDT markets")) ;
             }
             ((IDictionary<string,object>)request)["leverageRr"] = ((bool) isTrue(isCross)) ? Precise.stringNeg(Precise.stringAbs(currentLeverage)) : Precise.stringAbs(currentLeverage);
-            return await this.privatePutGPositionsLeverage(this.extend(request, parameters));
+            return ccxt.BaseExchange.ToDict(await this.privatePutGPositionsLeverage(this.extend(request, parameters)));
         }
         object leverage = this.safeInteger(parameters, "leverage");
         if (isTrue(isEqual(marginModeVar, "cross")))
@@ -5074,7 +5074,7 @@ public partial class phemex : Exchange
             throw new ArgumentsRequired ((string)add(this.id, " setMarginMode() requires a leverage parameter")) ;
         }
         ((IDictionary<string,object>)request)["leverage"] = leverage;
-        return await this.privatePutPositionsLeverage(this.extend(request, parameters));
+        return ccxt.BaseExchange.ToDict(await this.privatePutPositionsLeverage(this.extend(request, parameters)));
     }
 
     /**
@@ -5087,7 +5087,7 @@ public partial class phemex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public async override Task<object> setPositionMode(object hedged, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetPositionMode(object hedged, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredArgument("setPositionMode", symbol, "symbol");
@@ -5110,7 +5110,7 @@ public partial class phemex : Exchange
         {
             ((IDictionary<string,object>)request)["targetPosMode"] = "OneWay";
         }
-        return await this.privatePutGPositionsSwitchPosModeSync(this.extend(request, parameters));
+        return ccxt.BaseExchange.ToDict(await this.privatePutGPositionsSwitchPosModeSync(this.extend(request, parameters)));
     }
 
     /**
@@ -5332,7 +5332,7 @@ public partial class phemex : Exchange
      * @param {float} [params.shortLeverageRr] *hedged mode only* set the leverage for short positions
      * @returns {object} response from the exchange
      */
-    public async override Task<object> setLeverage(object leverage, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetLeverage(object leverage, string symbol = null, object parameters = null)
     {
         // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
@@ -5375,7 +5375,7 @@ public partial class phemex : Exchange
             ((IDictionary<string,object>)request)["leverage"] = leverage;
             response = await this.privatePutPositionsLeverage(this.extend(request, parameters));
         }
-        return response;
+        return ccxt.BaseExchange.ToDict(response);
     }
 
     /**
@@ -5392,7 +5392,7 @@ public partial class phemex : Exchange
      * @param {string} [params.bizType] for transferring between main and sub-acounts either 'SPOT' or 'PERPETUAL' default is 'SPOT'
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public async override Task<object> transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
+    public async override Task<ccxt.TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -5477,7 +5477,7 @@ public partial class phemex : Exchange
                 ((IDictionary<string,object>)transfer)["currency"] = code;
             }
         }
-        return transfer;
+        return ccxt.BaseExchange.ToTransferEntry(transfer);
     }
 
     /**

@@ -7,26 +7,6 @@ namespace ccxt;
 public partial class whitebit
 {
     /// <summary>
-    /// please use fetchDepositWithdrawFees instead
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.whitebit.com/public/http-v4/#fee"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchTransactionFees(List<String> codes = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchTransactionFees(codes, parameters);
-        return ((Dictionary<string, object>)res);
-    }
-    /// <summary>
     /// fetch the trading fees for multiple markets
     /// </summary>
     /// <remarks>
@@ -45,26 +25,6 @@ public partial class whitebit
     {
         var res = await this.fetchTradingFees(parameters);
         return new TradingFees(res);
-    }
-    /// <summary>
-    /// fetch the trading limits for a market
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.whitebit.com/public/http-v4/#market-info"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a [trading limits structure]{@link https://docs.ccxt.com/?id=trading-limits-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchTradingLimits(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchTradingLimits(symbols, parameters);
-        return ((Dictionary<string, object>)res);
     }
     /// <summary>
     /// fetch the deposit and withdrawal limits for a currency
@@ -86,123 +46,5 @@ public partial class whitebit
     {
         var res = await this.fetchFundingLimits(codes, parameters);
         return ((Dictionary<string, object>)res);
-    }
-    /// <summary>
-    /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.whitebit.com/public/http-v4/#orderbook"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>limit</term>
-    /// <description>
-    /// int : the maximum amount of order book entries to return
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
-    public async Task<OrderBook> FetchOrderBook(string symbol, Int64? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchOrderBook(symbol, limit, parameters);
-        return new OrderBook(res);
-    }
-    /// <summary>
-    /// fetches the current integer timestamp in milliseconds from the exchange server
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.whitebit.com/public/http-v4/#server-time"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>int</term> the current integer timestamp in milliseconds from the exchange server.</returns>
-    public async Task<Int64> FetchTime(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchTime(parameters);
-        return (Int64)res;
-    }
-    /// <summary>
-    /// dead man's switch, cancel all orders after the given timeout
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.whitebit.com/private/http-trade-v4/#sync-kill-switch-timer"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.types</term>
-    /// <description>
-    /// string : Order types value. Example: "spot", "margin", "futures" or null
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.symbol</term>
-    /// <description>
-    /// string : symbol unified symbol of the market the order was made in
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> the api result.</returns>
-    public async Task<Dictionary<string, object>> CancelAllOrdersAfter(Int64 timeout, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.cancelAllOrdersAfter(timeout, parameters);
-        return ((Dictionary<string, object>)res);
-    }
-    /// <summary>
-    /// set the level of leverage for a market
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.whitebit.com/private/http-trade-v4/#change-collateral-account-leverage"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> response from the exchange.</returns>
-    public async Task<Dictionary<string, object>> SetLeverage(Int64 leverage, string symbol = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.setLeverage(leverage, symbol, parameters);
-        return ((Dictionary<string, object>)res);
-    }
-    /// <summary>
-    /// transfer currency internally between wallets on the same account
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.whitebit.com/private/http-main-v4/#transfer-between-main-and-trade-balances"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}.</returns>
-    public async Task<TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.transfer(code, amount, fromAccount, toAccount, parameters);
-        return new TransferEntry(res);
     }
 }

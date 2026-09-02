@@ -7,54 +7,6 @@ namespace ccxt;
 public partial class lbank
 {
     /// <summary>
-    /// fetches the current integer timestamp in milliseconds from the exchange server
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://www.lbank.com/en-US/docs/index.html#get-timestamp"/>  <br/>
-    /// See <see href="https://www.lbank.com/en-US/docs/contract.html#get-the-current-time"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>int</term> the current integer timestamp in milliseconds from the exchange server.</returns>
-    public async Task<Int64> FetchTime(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchTime(parameters);
-        return (Int64)res;
-    }
-    /// <summary>
-    /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://www.lbank.com/en-US/docs/index.html#query-market-depth"/>  <br/>
-    /// See <see href="https://www.lbank.com/en-US/docs/contract.html#get-handicap"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>limit</term>
-    /// <description>
-    /// int : the maximum amount of order book entries to return
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
-    public async Task<OrderBook> FetchOrderBook(string symbol, Int64? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchOrderBook(symbol, limit, parameters);
-        return new OrderBook(res);
-    }
-    /// <summary>
     /// fetch the trading fees for multiple markets
     /// </summary>
     /// <remarks>
@@ -73,25 +25,6 @@ public partial class lbank
     {
         var res = await this.fetchTradingFees(parameters);
         return new TradingFees(res);
-    }
-    /// <summary>
-    /// please use fetchDepositWithdrawFees instead
-    /// </summary>
-    /// <remarks>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchTransactionFees(List<String> codes = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchTransactionFees(codes, parameters);
-        return ((Dictionary<string, object>)res);
     }
     public async Task<Dictionary<string, object>> FetchPrivateTransactionFees(Dictionary<string, object> parameters = null)
     {

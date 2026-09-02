@@ -1400,7 +1400,7 @@ public partial class bitstamp : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1436,7 +1436,7 @@ public partial class bitstamp : Exchange
         object timestamp = this.parseToInt(divide(microtimestamp, 1000));
         object orderbook = this.parseOrderBook(response, getValue(market, "symbol"), timestamp);
         ((IDictionary<string,object>)orderbook)["nonce"] = microtimestamp;
-        return orderbook;
+        return ccxt.BaseExchange.ToOrderBook(orderbook);
     }
 
     public override object parseTicker(object ticker, object market = null)
@@ -2096,7 +2096,7 @@ public partial class bitstamp : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public async override Task<object> fetchTransactionFees(object codes = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> FetchTransactionFees(object codes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2114,7 +2114,7 @@ public partial class bitstamp : Exchange
         //         ...
         //     ]
         //
-        return this.parseTransactionFees(response);
+        return ccxt.BaseExchange.ToDict(this.parseTransactionFees(response));
     }
 
     public virtual object parseTransactionFees(object response, object codes = null)
@@ -2415,7 +2415,7 @@ public partial class bitstamp : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public async override Task<object> fetchOrderStatus(object id, object symbol = null, object parameters = null)
+    public async override Task<string> FetchOrderStatus(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2433,7 +2433,7 @@ public partial class bitstamp : Exchange
             ((IDictionary<string,object>)request)["id"] = id;
         }
         object response = await this.privatePostOrderStatus(this.extend(request, parameters));
-        return this.parseOrderStatus(this.safeString(response, "status"));
+        return ccxt.BaseExchange.ToStringValue(this.parseOrderStatus(this.safeString(response, "status")));
     }
 
     /**
@@ -3352,7 +3352,7 @@ public partial class bitstamp : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public async override Task<object> transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
+    public async override Task<ccxt.TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -3384,7 +3384,7 @@ public partial class bitstamp : Exchange
         ((IDictionary<string,object>)transfer)["amount"] = amount;
         ((IDictionary<string,object>)transfer)["fromAccount"] = fromAccount;
         ((IDictionary<string,object>)transfer)["toAccount"] = toAccount;
-        return transfer;
+        return ccxt.BaseExchange.ToTransferEntry(transfer);
     }
 
     public override object parseTransfer(object transfer, object currency = null)

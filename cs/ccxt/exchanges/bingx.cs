@@ -1167,7 +1167,7 @@ public partial class bingx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the bingx server
      */
-    public async override Task<object> fetchTime(object parameters = null)
+    public async override Task<Int64> FetchTime(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.swapV2PublicGetServerTime(parameters);
@@ -1181,7 +1181,7 @@ public partial class bingx : Exchange
         //    }
         //
         object data = this.safeDict(response, "data");
-        return this.safeInteger(data, "serverTime");
+        return ccxt.BaseExchange.ToInt64Value(this.safeInteger(data, "serverTime"));
     }
 
     /**
@@ -2010,7 +2010,7 @@ public partial class bingx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2122,7 +2122,7 @@ public partial class bingx : Exchange
         object timestamp = this.safeInteger2(orderbook, "T", "ts");
         object result = this.parseOrderBook(orderbook, getValue(market, "symbol"), timestamp, "bids", "asks", 0, 1);
         ((IDictionary<string,object>)result)["nonce"] = nonce;
-        return result;
+        return ccxt.BaseExchange.ToOrderBook(result);
     }
 
     /**
@@ -4709,7 +4709,7 @@ public partial class bingx : Exchange
      * @param {string[]} [params.clientOrderIds] client order ids
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelOrders(object ids, string symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> CancelOrders(object ids, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -4758,7 +4758,7 @@ public partial class bingx : Exchange
         }
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object success = this.safeList2(data, "success", "orders", new List<object>() {});
-        return this.parseOrders(success);
+        return ccxt.BaseExchange.ToOrderList(this.parseOrders(success));
     }
 
     /**
@@ -4772,7 +4772,7 @@ public partial class bingx : Exchange
      * @param {string} [params.type] spot or swap market
      * @returns {object} the api result
      */
-    public async override Task<object> cancelAllOrdersAfter(object timeout, object parameters = null)
+    public async override Task<Dictionary<string, object>> CancelAllOrdersAfter(object timeout, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -4810,7 +4810,7 @@ public partial class bingx : Exchange
         //         }
         //     }
         //
-        return response;
+        return ccxt.BaseExchange.ToDict(response);
     }
 
     /**
@@ -5334,7 +5334,7 @@ public partial class bingx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public async override Task<object> transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
+    public async override Task<ccxt.TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -5388,17 +5388,7 @@ public partial class bingx : Exchange
         //         }
         //     }
         //
-        return new Dictionary<string, object>() {
-            { "info", response },
-            { "id", this.safeString2(data, "transferId", "tranId") },
-            { "timestamp", timestamp },
-            { "datetime", this.iso8601(timestamp) },
-            { "currency", code },
-            { "amount", amount },
-            { "fromAccount", fromAccount },
-            { "toAccount", toAccount },
-            { "status", null },
-        };
+        return ccxt.BaseExchange.ToTransferEntry(new Dictionary<string, object>() {             { "info", response },             { "id", this.safeString2(data, "transferId", "tranId") },             { "timestamp", timestamp },             { "datetime", this.iso8601(timestamp) },             { "currency", code },             { "amount", amount },             { "fromAccount", fromAccount },             { "toAccount", toAccount },             { "status", null },         });
     }
 
     /**
@@ -5894,7 +5884,7 @@ public partial class bingx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public async override Task<object> setMarginMode(string marginMode, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetMarginMode(string marginMode, string symbol = null, object parameters = null)
     {
         object marginModeVar = marginMode;
         parameters ??= new Dictionary<string, object>();
@@ -5930,10 +5920,10 @@ public partial class bingx : Exchange
         parameters = ((IList<object>)subTypeparametersVariable)[1];
         if (isTrue(isEqual(subType, "inverse")))
         {
-            return await this.cswapV1PrivatePostTradeMarginType(this.extend(request, parameters));
+            return ccxt.BaseExchange.ToDict(await this.cswapV1PrivatePostTradeMarginType(this.extend(request, parameters)));
         } else
         {
-            return await this.swapV2PrivatePostTradeMarginType(this.extend(request, parameters));
+            return ccxt.BaseExchange.ToDict(await this.swapV2PrivatePostTradeMarginType(this.extend(request, parameters)));
         }
     }
 
@@ -6109,7 +6099,7 @@ public partial class bingx : Exchange
      * @param {string} [params.side] hedged: ['long' or 'short']. one way: ['both']
      * @returns {object} response from the exchange
      */
-    public async override Task<object> setLeverage(object leverage, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetLeverage(object leverage, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -6131,10 +6121,10 @@ public partial class bingx : Exchange
         };
         if (isTrue(isEqual(getValue(market, "inverse"), true)))
         {
-            return await this.cswapV1PrivatePostTradeLeverage(this.extend(request, parameters));
+            return ccxt.BaseExchange.ToDict(await this.cswapV1PrivatePostTradeLeverage(this.extend(request, parameters)));
         } else
         {
-            return await this.swapV2PrivatePostTradeLeverage(this.extend(request, parameters));
+            return ccxt.BaseExchange.ToDict(await this.swapV2PrivatePostTradeLeverage(this.extend(request, parameters)));
         }
     }
 
@@ -6710,7 +6700,7 @@ public partial class bingx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public async override Task<object> setPositionMode(object hedged, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetPositionMode(object hedged, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object market = null;
@@ -6746,7 +6736,7 @@ public partial class bingx : Exchange
         //         data: { dualSidePosition: 'false' }
         //     }
         //
-        return await this.swapV1PrivatePostPositionSideDual(this.extend(request, parameters));
+        return ccxt.BaseExchange.ToDict(await this.swapV1PrivatePostPositionSideDual(this.extend(request, parameters)));
     }
 
     /**

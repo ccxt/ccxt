@@ -1593,7 +1593,7 @@ public partial class polymarket : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
      */
-    public async override Task<object> fetchOrderBook(string outcome, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.PredictionOrderBook> FetchOrderBook(string outcome, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object outcomeObj = await this.loadOutcome(outcome);
@@ -1624,7 +1624,7 @@ public partial class polymarket : PredictionExchange
         //
         object timestamp = this.safeInteger(response, "timestamp");
         object orderbook = this.parseOrderBook(response, this.safeOutcomeSymbol(outcome, outcomeObj), timestamp, "bids", "asks", "price", "size");
-        return this.safePredictionOrderBook(orderbook, outcomeObj);
+        return ccxt.BaseExchange.ToPredictionOrderBook(this.safePredictionOrderBook(orderbook, outcomeObj));
     }
 
     /**
@@ -1776,14 +1776,14 @@ public partial class polymarket : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current server time in milliseconds
      */
-    public async override Task<object> fetchTime(object parameters = null)
+    public async override Task<Int64> FetchTime(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.clobPublicGetTime(parameters);
         //
         //     1781273248
         //
-        return multiply(this.parseToInt(response), 1000);
+        return ccxt.BaseExchange.ToInt64Value(multiply(this.parseToInt(response), 1000));
     }
 
     /**

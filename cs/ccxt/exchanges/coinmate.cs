@@ -442,7 +442,7 @@ public partial class coinmate : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    public async override Task<object> fetchTime(object parameters = null)
+    public async override Task<Int64> FetchTime(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetSystemTime(parameters);
@@ -451,7 +451,7 @@ public partial class coinmate : Exchange
         //         "serverTime": 1765250628745
         //     }
         //
-        return this.safeInteger(response, "serverTime");
+        return ccxt.BaseExchange.ToInt64Value(this.safeInteger(response, "serverTime"));
     }
 
     /**
@@ -599,7 +599,7 @@ public partial class coinmate : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -614,7 +614,7 @@ public partial class coinmate : Exchange
         object response = await this.publicGetOrderBook(this.extend(request, parameters));
         object orderbook = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object timestamp = this.safeTimestamp(orderbook, "timestamp");
-        return this.parseOrderBook(orderbook, getValue(market, "symbol"), timestamp, "bids", "asks", "price", "amount");
+        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(orderbook, getValue(market, "symbol"), timestamp, "bids", "asks", "price", "amount"));
     }
 
     /**

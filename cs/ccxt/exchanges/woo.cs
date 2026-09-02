@@ -934,7 +934,7 @@ public partial class woo : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    public async override Task<object> fetchTime(object parameters = null)
+    public async override Task<Int64> FetchTime(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.v3PublicGetSystemInfo(parameters);
@@ -949,7 +949,7 @@ public partial class woo : Exchange
         //         "timestamp": 1751442989564
         //     }
         //
-        return this.safeInteger(response, "timestamp");
+        return ccxt.BaseExchange.ToInt64Value(this.safeInteger(response, "timestamp"));
     }
 
     /**
@@ -2117,7 +2117,7 @@ public partial class woo : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the api result
      */
-    public async override Task<object> cancelAllOrdersAfter(object timeout, object parameters = null)
+    public async override Task<Dictionary<string, object>> CancelAllOrdersAfter(object timeout, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2137,7 +2137,7 @@ public partial class woo : Exchange
         //     }
         // }
         //
-        return response;
+        return ccxt.BaseExchange.ToDict(response);
     }
 
     /**
@@ -2527,7 +2527,7 @@ public partial class woo : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2566,7 +2566,7 @@ public partial class woo : Exchange
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object timestamp = this.safeInteger(response, "timestamp");
-        return this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity");
+        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity"));
     }
 
     /**
@@ -3346,7 +3346,7 @@ public partial class woo : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public async override Task<object> transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
+    public async override Task<ccxt.TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -3384,7 +3384,7 @@ public partial class woo : Exchange
             ((IDictionary<string,object>)transfer)["fromAccount"] = fromAccount;
             ((IDictionary<string,object>)transfer)["toAccount"] = toAccount;
         }
-        return transfer;
+        return ccxt.BaseExchange.ToTransferEntry(transfer);
     }
 
     /**
@@ -4143,7 +4143,7 @@ public partial class woo : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public async override Task<object> setPositionMode(object hedged, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetPositionMode(object hedged, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object hedgeMode = null;
@@ -4164,7 +4164,7 @@ public partial class woo : Exchange
         //         "timestamp": 1752550492845
         //     }
         //
-        return response;
+        return ccxt.BaseExchange.ToDict(response);
     }
 
     /**
@@ -4262,7 +4262,7 @@ public partial class woo : Exchange
      * @param {string} [params.positionMode] *for swap markets only* 'ONE_WAY' or 'HEDGE_MODE'
      * @returns {object} response from the exchange
      */
-    public async override Task<object> setLeverage(object leverage, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetLeverage(object leverage, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -4279,7 +4279,7 @@ public partial class woo : Exchange
         }
         if (isTrue(isTrue((isEqual(symbol, null))) || isTrue((isEqual(this.safeBool(market, "spot"), true)))))
         {
-            return await this.v3PrivatePostSpotMarginLeverage(this.extend(request, parameters));
+            return ccxt.BaseExchange.ToDict(await this.v3PrivatePostSpotMarginLeverage(this.extend(request, parameters)));
         } else if (isTrue(isEqual(this.safeBool(market, "swap"), true)))
         {
             ((IDictionary<string,object>)request)["symbol"] = this.safeString(market, "id");
@@ -4288,7 +4288,7 @@ public partial class woo : Exchange
             marginMode = ((IList<object>)marginModeparametersVariable)[0];
             parameters = ((IList<object>)marginModeparametersVariable)[1];
             ((IDictionary<string,object>)request)["marginMode"] = this.encodeMarginMode(marginMode);
-            return await this.v3PrivatePutFuturesLeverage(this.extend(request, parameters));
+            return ccxt.BaseExchange.ToDict(await this.v3PrivatePutFuturesLeverage(this.extend(request, parameters)));
         } else
         {
             throw new NotSupported ((string)add(add(add(this.id, " fetchLeverage() is not supported for "), this.safeString(market, "type")), " markets")) ;

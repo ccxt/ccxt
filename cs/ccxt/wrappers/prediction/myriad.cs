@@ -219,32 +219,6 @@ public partial class myriad
         return ((Dictionary<string, object>)res);
     }
     /// <summary>
-    /// fetches the real order book for order-book markets, or synthesizes a one-level book from the AMM price otherwise
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da8281bba6aaf24dd61f2bb1"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>limit</term>
-    /// <description>
-    /// int : not used by myriad fetchOrderBook
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure).</returns>
-    public async Task<PredictionOrderBook> FetchOrderBook(string outcome, Int64? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchOrderBook(outcome, limit, parameters);
-        return new PredictionOrderBook(res);
-    }
-    /// <summary>
     /// fetches prediction-market events matching the given scope (query/queries/tags/eventId) and caches their markets and outcomes on the instance
     /// </summary>
     /// <remarks>

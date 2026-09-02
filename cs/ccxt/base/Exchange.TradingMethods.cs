@@ -149,7 +149,7 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " watchMarkPrices () is not supported yet")) ;
     }
 
-    public async virtual Task<object> fetchL3OrderBook(object symbol, Int64? limit = null, object parameters = null)
+    public async virtual Task<ccxt.OrderBook> FetchL3OrderBook(object symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new BadRequest ((string)add(this.id, " fetchL3OrderBook() is not supported yet")) ;
@@ -625,7 +625,32 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " watchTrades() is not supported yet")) ;
     }
 
+    public async virtual Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchOrderBook() is not supported yet")) ;
+    }
 
+    public async virtual Task<ccxt.OrderBook> FetchRestOrderBookSafe(object symbol, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object fetchSnapshotMaxRetries = this.handleOption("watchOrderBook", "maxRetries", 3);
+        for (object i = 0; isLessThan(i, fetchSnapshotMaxRetries); postFixIncrement(ref i))
+        {
+            try
+            {
+                object orderBook = ccxt.BaseExchange.FromOrderBook(await this.FetchOrderBook(((string)symbol),ccxt.BaseExchange.ToInt64Arg(limit), parameters));
+                return ccxt.BaseExchange.ToOrderBook(orderBook);
+            } catch(Exception e)
+            {
+                if (isTrue(isEqual((add(i, 1)), fetchSnapshotMaxRetries)))
+                {
+                    throw e;
+                }
+            }
+        }
+        return ccxt.BaseExchange.ToOrderBook(null);
+    }
 
     public async virtual Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
@@ -649,7 +674,7 @@ public partial class Exchange
     public async virtual Task<object> fetchL2OrderBook(object symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object orderbook = await this.fetchOrderBook(((string)symbol),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
+        object orderbook = ccxt.BaseExchange.FromOrderBook(await this.FetchOrderBook(((string)symbol),ccxt.BaseExchange.ToInt64Arg(limit), parameters));
         return this.extend(orderbook, new Dictionary<string, object>() {
             { "asks", this.sortBy(this.aggregate(getValue(orderbook, "asks")), 0) },
             { "bids", this.sortBy(this.aggregate(getValue(orderbook, "bids")), 0, true) },
@@ -780,13 +805,13 @@ public partial class Exchange
         return await this.FetchOrder("",((string)symbol), extendedParams);
     }
 
-    public async virtual Task<object> fetchOrderStatus(object id, object symbol = null, object parameters = null)
+    public async virtual Task<string> FetchOrderStatus(object id, object symbol = null, object parameters = null)
     {
         // TODO: TypeScript: change method signature by replacing
         // Promise<string> with Promise<Order['status']>.
         parameters ??= new Dictionary<string, object>();
         object order = ccxt.BaseExchange.FromOrder(await this.FetchOrder(((string)id),((string)symbol), parameters));
-        return getValue(order, "status");
+        return ccxt.BaseExchange.ToStringValue(getValue(order, "status"));
     }
 
     public async virtual Task<ccxt.Order> FetchUnifiedOrder(object order, object parameters = null)
@@ -1078,7 +1103,7 @@ public partial class Exchange
         return await this.CancelOrder("",((string)symbol), extendedParams);
     }
 
-    public async virtual Task<object> cancelOrders(object ids, string symbol = null, object parameters = null)
+    public async virtual Task<List<ccxt.Order>> CancelOrders(object ids, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " cancelOrders() is not supported yet")) ;
@@ -1099,7 +1124,7 @@ public partial class Exchange
         Dictionary<string, object> extendedParams = this.extend(parameters, new Dictionary<string, object>() {
             { "clientOrderIds", clientOrderIds },
         });
-        return ccxt.BaseExchange.ToOrderList(await this.cancelOrders(new List<object>() {},((string)symbol), extendedParams));
+        return await this.CancelOrders(new List<object>() {},((string)symbol), extendedParams);
     }
 
     public async virtual Task<List<ccxt.Order>> CancelAllOrders(string symbol = null, object parameters = null)

@@ -1077,7 +1077,7 @@ public partial class gemini : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1094,7 +1094,7 @@ public partial class gemini : Exchange
             ((IDictionary<string,object>)request)["limit_asks"] = limit;
         }
         object response = await this.publicGetV1BookSymbol(this.extend(request, parameters));
-        return this.parseOrderBook(response, getValue(market, "symbol"), null, "bids", "asks", "price", "amount");
+        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, getValue(market, "symbol"), null, "bids", "asks", "price", "amount"));
     }
 
     public async virtual Task<ccxt.Ticker> FetchTickerV1(string symbol, object parameters = null)

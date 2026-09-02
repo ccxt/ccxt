@@ -1932,7 +1932,7 @@ public partial class coinbaseinternational : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
      */
-    public async override Task<object> transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
+    public async override Task<ccxt.TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1948,17 +1948,7 @@ public partial class coinbaseinternational : Exchange
         };
         object response = await this.v1PrivatePostPortfoliosTransfer(this.extend(request, parameters));
         object success = this.safeBool(response, "success");
-        return new Dictionary<string, object>() {
-            { "info", response },
-            { "id", null },
-            { "timestamp", null },
-            { "datetime", null },
-            { "currency", code },
-            { "amount", amount },
-            { "fromAccount", fromAccount },
-            { "toAccount", toAccount },
-            { "status", ((bool) isTrue((isEqual(success, true)))) ? "ok" : "failed" },
-        };
+        return ccxt.BaseExchange.ToTransferEntry(new Dictionary<string, object>() {             { "info", response },             { "id", null },             { "timestamp", null },             { "datetime", null },             { "currency", code },             { "amount", amount },             { "fromAccount", fromAccount },             { "toAccount", toAccount },             { "status", ((bool) isTrue((isEqual(success, true)))) ? "ok" : "failed" },         });
     }
 
     /**

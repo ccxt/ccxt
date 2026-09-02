@@ -1097,7 +1097,7 @@ public partial class binance : ccxt.binance
             // 3. Get a depth snapshot from https://www.binance.com/api/v1/depth?symbol=BNBBTC&limit=1000 .
             // todo: this is a synch blocking call - make it async
             // default 100, max 1000, valid limits 5, 10, 20, 50, 100, 500, 1000
-            object snapshot = await this.fetchRestOrderBookSafe(symbol, limit, parameters);
+            object snapshot = ccxt.BaseExchange.FromOrderBook(await this.FetchRestOrderBookSafe(symbol, limit, parameters));
             if (isTrue(isEqual(this.safeValue(this.orderbooks, symbol), null)))
             {
                 // if the orderbook is dropped before the snapshot is received

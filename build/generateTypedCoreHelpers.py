@@ -22,8 +22,15 @@ for const in ('const TYPED_CORES', 'const PREDICTION_TYPED_CORES'):
     table = src[src.index(const):]
     table = table[:table.index('\n};')]
     for csharpType in re.findall(r"^\s*'\w+': '([\w<>]+)',", table, re.M):
+        if csharpType in ('Int64', 'string', 'object'):
+            continue
         if csharpType.startswith('List<'):
-            need[csharpType[5:-1]].add(True)
+            inner = csharpType[5:-1]
+            if inner in ('Int64', 'string', 'object') or inner.startswith('Dictionary'):
+                continue
+            need[inner].add(True)
+        elif csharpType.startswith('Dictionary'):
+            continue
         else:
             need[csharpType].add(False)
 

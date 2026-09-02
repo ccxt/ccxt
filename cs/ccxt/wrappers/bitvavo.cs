@@ -7,26 +7,6 @@ namespace ccxt;
 public partial class bitvavo
 {
     /// <summary>
-    /// fetches the current integer timestamp in milliseconds from the exchange server
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.bitvavo.com/docs/rest-api/get-server-time/"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>int</term> the current integer timestamp in milliseconds from the exchange server.</returns>
-    public async Task<Int64> FetchTime(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchTime(parameters);
-        return (Int64)res;
-    }
-    /// <summary>
     /// fetch the trading fees for multiple markets
     /// </summary>
     /// <remarks>
@@ -46,68 +26,10 @@ public partial class bitvavo
         var res = await this.fetchTradingFees(parameters);
         return new TradingFees(res);
     }
-    /// <summary>
-    /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.bitvavo.com/docs/rest-api/get-order-book/"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>limit</term>
-    /// <description>
-    /// int : the maximum amount of order book entries to return
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
-    public async Task<OrderBook> FetchOrderBook(string symbol, Int64? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchOrderBook(symbol, limit, parameters);
-        return new OrderBook(res);
-    }
     public Dictionary<string, object> FetchOHLCVRequest(string symbol, string timeframe = "1m", Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
         var res = this.fetchOHLCVRequest(symbol, timeframe, since, limit, parameters);
         return ((Dictionary<string, object>)res);
-    }
-    /// <summary>
-    /// transfer currency internally between the master account and a subaccount
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.bitvavo.com/docs/institutional-api/create-transfer/"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.subaccountId</term>
-    /// <description>
-    /// string : the unique identifier for the subaccount
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.clientRequestId</term>
-    /// <description>
-    /// string : client defined unique id
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}.</returns>
-    public async Task<TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.transfer(code, amount, fromAccount, toAccount, parameters);
-        return new TransferEntry(res);
     }
     public Dictionary<string, object> CreateOrderRequest(string symbol, string type, string side, double amount, double? price = null, Dictionary<string, object> parameters = null)
     {
@@ -122,32 +44,6 @@ public partial class bitvavo
     public Dictionary<string, object> CancelOrderRequest(string id, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = this.cancelOrderRequest(id, symbol, parameters);
-        return ((Dictionary<string, object>)res);
-    }
-    /// <summary>
-    /// dead man's switch, cancel all orders after the given timeout
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.bitvavo.com/docs/rest-api/cancel-orders-after/"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.codGroupId</term>
-    /// <description>
-    /// int : your identifier for a group of orders, default is 1
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> the api result.</returns>
-    public async Task<Dictionary<string, object>> CancelAllOrdersAfter(Int64 timeout, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.cancelAllOrdersAfter(timeout, parameters);
         return ((Dictionary<string, object>)res);
     }
     public Dictionary<string, object> FetchOrdersRequest(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)

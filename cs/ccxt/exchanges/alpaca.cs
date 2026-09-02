@@ -538,7 +538,7 @@ public partial class alpaca : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    public async override Task<object> fetchTime(object parameters = null)
+    public async override Task<Int64> FetchTime(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.traderPrivateGetV2Clock(parameters);
@@ -572,7 +572,7 @@ public partial class alpaca : Exchange
         }
         object jetlag = slice(timestamp, jetlagStrStart, jetlagStrEnd);
         object iso = subtract(this.parseToInt(this.parse8601(localTime)), multiply(multiply(this.parseToNumeric(jetlag), 3600), 1000));
-        return iso;
+        return ccxt.BaseExchange.ToInt64Value(iso);
     }
 
     /**
@@ -821,7 +821,7 @@ public partial class alpaca : Exchange
      * @param {string} [params.loc] crypto location, default: us
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -876,7 +876,7 @@ public partial class alpaca : Exchange
         object orderbooks = this.safeDict(response, "orderbooks", new Dictionary<string, object>() {});
         object rawOrderbook = this.safeDict(orderbooks, id, new Dictionary<string, object>() {});
         object timestamp = this.parse8601(this.safeString(rawOrderbook, "t"));
-        return this.parseOrderBook(rawOrderbook, getValue(market, "symbol"), timestamp, "b", "a", "p", "s");
+        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(rawOrderbook, getValue(market, "symbol"), timestamp, "b", "a", "p", "s"));
     }
 
     /**

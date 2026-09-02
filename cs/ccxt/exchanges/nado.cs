@@ -702,7 +702,7 @@ public partial class nado : Exchange
     public async override Task<ccxt.Order> CancelOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object orders = await this.cancelOrders(new List<object>() {id},((string)symbol), parameters);
+        object orders = ccxt.BaseExchange.FromOrderList(await this.CancelOrders(new List<object>() {id},((string)symbol), parameters));
         return ccxt.BaseExchange.ToOrder(this.safeDict(orders, 0));
     }
 
@@ -822,7 +822,7 @@ public partial class nado : Exchange
      * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelOrders(object ids, string symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> CancelOrders(object ids, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
@@ -852,7 +852,7 @@ public partial class nado : Exchange
                 { "status", "canceled" },
             }, getValue(cancelledOrders, i)), market));
         }
-        return result;
+        return ccxt.BaseExchange.ToOrderList(result);
     }
 
     /**
@@ -1638,7 +1638,7 @@ public partial class nado : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    public async override Task<object> fetchTime(object parameters = null)
+    public async override Task<Int64> FetchTime(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object request = new Dictionary<string, object>() {
@@ -1653,7 +1653,7 @@ public partial class nado : Exchange
         //         "server_time": "1780000000123"
         //     }
         //
-        return this.safeInteger(response, "server_time");
+        return ccxt.BaseExchange.ToInt64Value(this.safeInteger(response, "server_time"));
     }
 
     /**
@@ -2216,7 +2216,7 @@ public partial class nado : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -2243,7 +2243,7 @@ public partial class nado : Exchange
         //     }
         //
         object timestamp = this.safeInteger(response, "timestamp");
-        return this.parseOrderBook(response, getValue(market, "symbol"), timestamp);
+        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, getValue(market, "symbol"), timestamp));
     }
 
     /**

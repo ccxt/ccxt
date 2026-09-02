@@ -2523,7 +2523,7 @@ public partial class bybit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    public async override Task<object> fetchTime(object parameters = null)
+    public async override Task<Int64> FetchTime(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetV5MarketTime(parameters);
@@ -2539,7 +2539,7 @@ public partial class bybit : Exchange
         //         "time": "1666879482792"
         //     }
         //
-        return this.safeInteger(response, "time");
+        return ccxt.BaseExchange.ToInt64Value(this.safeInteger(response, "time"));
     }
 
     /**
@@ -4344,7 +4344,7 @@ public partial class bybit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -4410,7 +4410,7 @@ public partial class bybit : Exchange
         //
         object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object timestamp = this.safeInteger(result, "ts");
-        return this.parseOrderBook(result, symbol, timestamp, "b", "a");
+        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(result, symbol, timestamp, "b", "a"));
     }
 
     public override object parseBalance(object response)
@@ -5986,7 +5986,7 @@ public partial class bybit : Exchange
      * @param {string[]} [params.clientOrderIds] client order ids
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelOrders(object ids, string symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> CancelOrders(object ids, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -6071,7 +6071,7 @@ public partial class bybit : Exchange
         //
         object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object row = this.safeList(result, "list", new List<object>() {});
-        return this.parseOrders(row, market);
+        return ccxt.BaseExchange.ToOrderList(this.parseOrders(row, market));
     }
 
     /**
@@ -6084,7 +6084,7 @@ public partial class bybit : Exchange
      * @param {string} [params.product] OPTIONS, DERIVATIVES, SPOT, default is 'DERIVATIVES'
      * @returns {object} the api result
      */
-    public async override Task<object> cancelAllOrdersAfter(object timeout, object parameters = null)
+    public async override Task<Dictionary<string, object>> CancelAllOrdersAfter(object timeout, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -6116,7 +6116,7 @@ public partial class bybit : Exchange
         //     "retMsg": "success"
         // }
         //
-        return response;
+        return ccxt.BaseExchange.ToDict(response);
     }
 
     /**
@@ -8405,7 +8405,7 @@ public partial class bybit : Exchange
      * @param {string} [params.leverage] the rate of leverage, is required if setting trade mode (symbol)
      * @returns {object} response from the exchange
      */
-    public async override Task<object> setMarginMode(string marginMode, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetMarginMode(string marginMode, string symbol = null, object parameters = null)
     {
         object marginModeVar = marginMode;
         parameters ??= new Dictionary<string, object>();
@@ -8515,7 +8515,7 @@ public partial class bybit : Exchange
                 response = await this.privatePostV5PositionSwitchIsolated(this.extend(request, parameters));
             }
         }
-        return response;
+        return ccxt.BaseExchange.ToDict(response);
     }
 
     /**
@@ -8530,7 +8530,7 @@ public partial class bybit : Exchange
      * @param {string} [params.sellLeverage] leverage for sell side
      * @returns {object} response from the exchange
      */
-    public async override Task<object> setLeverage(object leverage, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetLeverage(object leverage, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -8565,7 +8565,7 @@ public partial class bybit : Exchange
             throw new NotSupported ((string)add(this.id, " setLeverage() only support linear and inverse market")) ;
         }
         object response = await this.privatePostV5PositionSetLeverage(this.extend(request, parameters));
-        return response;
+        return ccxt.BaseExchange.ToDict(response);
     }
 
     /**
@@ -8578,7 +8578,7 @@ public partial class bybit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public async override Task<object> setPositionMode(object hedged, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetPositionMode(object hedged, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -8631,7 +8631,7 @@ public partial class bybit : Exchange
         //         "retExtInfo": {},
         //         "time": 1675249072814
         //     }
-        return response;
+        return ccxt.BaseExchange.ToDict(response);
     }
 
     public async virtual Task<List<ccxt.OpenInterest>> FetchDerivativesOpenInterestHistory(object symbol, object timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
@@ -9008,7 +9008,7 @@ public partial class bybit : Exchange
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @returns {object[]} an array of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
      */
-    public async virtual Task<object> fetchBorrowRateHistory(object code, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async virtual Task<List<Dictionary<string, object>>> FetchBorrowRateHistory(object code, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         object sinceVar = since;
         parameters ??= new Dictionary<string, object>();
@@ -9053,7 +9053,7 @@ public partial class bybit : Exchange
         //
         object data = this.safeDict(response, "result");
         object rows = this.safeList(data, "list", new List<object>() {});
-        return this.parseBorrowRateHistory(rows, code, sinceVar, limit);
+        return ccxt.BaseExchange.ToDictList(this.parseBorrowRateHistory(rows, code, sinceVar, limit));
     }
 
     public override object parseBorrowInterest(object info, object market = null)
@@ -9094,7 +9094,7 @@ public partial class bybit : Exchange
      * @param {string} [params.transferId] UUID, which is unique across the platform
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public async override Task<object> transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
+    public async override Task<ccxt.TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -9130,14 +9130,7 @@ public partial class bybit : Exchange
         object transfer = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object statusRaw = this.safeString2(response, "retCode", "retMsg");
         object status = this.parseTransferStatus(statusRaw);
-        return this.extend(this.parseTransfer(transfer, currency), new Dictionary<string, object>() {
-            { "timestamp", timestamp },
-            { "datetime", this.iso8601(timestamp) },
-            { "amount", this.parseNumber(amountToPrecision) },
-            { "fromAccount", fromAccount },
-            { "toAccount", toAccount },
-            { "status", status },
-        });
+        return ccxt.BaseExchange.ToTransferEntry(this.extend(this.parseTransfer(transfer, currency), new Dictionary<string, object>() {             { "timestamp", timestamp },             { "datetime", this.iso8601(timestamp) },             { "amount", this.parseNumber(amountToPrecision) },             { "fromAccount", fromAccount },             { "toAccount", toAccount },             { "status", status },         }));
     }
 
     /**
@@ -9707,7 +9700,7 @@ public partial class bybit : Exchange
      * @param {string} [params.subType] market subType, ['linear', 'inverse']
      * @returns {object[]} a list of [settlement history objects]
      */
-    public async virtual Task<object> fetchSettlementHistory(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async virtual Task<List<Dictionary<string, object>>> FetchSettlementHistory(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -9758,7 +9751,7 @@ public partial class bybit : Exchange
         object data = this.safeList(result, "list", new List<object>() {});
         object settlements = this.parseSettlements(data, market);
         object sorted = this.sortBy(settlements, "timestamp");
-        return this.filterBySymbolSinceLimit(sorted, this.safeString(market, "symbol"), since, limit);
+        return ccxt.BaseExchange.ToDictList(this.filterBySymbolSinceLimit(sorted, this.safeString(market, "symbol"), since, limit));
     }
 
     /**
@@ -9774,7 +9767,7 @@ public partial class bybit : Exchange
      * @param {string} [params.subType] market subType, ['linear', 'inverse']
      * @returns {object[]} a list of [settlement history objects]
      */
-    public async virtual Task<object> fetchMySettlementHistory(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async virtual Task<List<Dictionary<string, object>>> FetchMySettlementHistory(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -9830,7 +9823,7 @@ public partial class bybit : Exchange
         object data = this.safeList(result, "list", new List<object>() {});
         object settlements = this.parseSettlements(data, market);
         object sorted = this.sortBy(settlements, "timestamp");
-        return this.filterBySymbolSinceLimit(sorted, this.safeString(market, "symbol"), since, limit);
+        return ccxt.BaseExchange.ToDictList(this.filterBySymbolSinceLimit(sorted, this.safeString(market, "symbol"), since, limit));
     }
 
     public virtual object parseSettlement(object settlement, object market)

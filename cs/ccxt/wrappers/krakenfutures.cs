@@ -7,32 +7,6 @@ namespace ccxt;
 public partial class krakenfutures
 {
     /// <summary>
-    /// Fetches a list of open orders in a market
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.kraken.com/api/docs/futures-api/trading/get-orderbook"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>limit</term>
-    /// <description>
-    /// int : Not used by krakenfutures
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : exchange specific params
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>undefined</term> undefined.</returns>
-    public async Task<OrderBook> FetchOrderBook(string symbol, Int64? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchOrderBook(symbol, limit, parameters);
-        return new OrderBook(res);
-    }
-    /// <summary>
     /// fetch the trading fees for multiple markets, resolving the account's 30-day usd volume tier when API credentials are set
     /// </summary>
     /// <remarks>
@@ -59,52 +33,6 @@ public partial class krakenfutures
         return ((Dictionary<string, object>)res);
     }
     /// <summary>
-    /// cancel multiple orders
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.kraken.com/api/docs/futures-api/trading/send-batch-order"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>symbol</term>
-    /// <description>
-    /// string : unified market symbol
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
-    public async Task<List<Order>> CancelOrders(List<string> ids, string symbol = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.cancelOrders(ids, symbol, parameters);
-        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
-    }
-    /// <summary>
-    /// dead man's switch, cancel all orders after the given timeout
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.kraken.com/api/docs/futures-api/trading/cancel-all-orders-after"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> the api result.</returns>
-    public async Task<Dictionary<string, object>> CancelAllOrdersAfter(Int64 timeout, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.cancelAllOrdersAfter(timeout, parameters);
-        return ((Dictionary<string, object>)res);
-    }
-    /// <summary>
     /// retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
     /// </summary>
     /// <remarks>
@@ -123,65 +51,5 @@ public partial class krakenfutures
     {
         var res = await this.fetchLeverageTiers(symbols, parameters);
         return new LeverageTiers(res);
-    }
-    /// <summary>
-    /// transfer from futures wallet to spot wallet
-    /// </summary>
-    /// <remarks>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// dict : Exchange specific parameters
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>undefined</term> undefined.</returns>
-    public async Task<TransferEntry> TransferOut(string code, object amount, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.transferOut(code, amount, parameters);
-        return new TransferEntry(res);
-    }
-    /// <summary>
-    /// transfers currencies between sub-accounts
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.kraken.com/api/docs/futures-api/trading/transfer"/>  <br/>
-    /// See <see href="https://docs.kraken.com/api/docs/futures-api/trading/sub-account-transfer"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : Exchange specific parameters
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>undefined</term> undefined.</returns>
-    public async Task<TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.transfer(code, amount, fromAccount, toAccount, parameters);
-        return new TransferEntry(res);
-    }
-    /// <summary>
-    /// set the level of leverage for a market
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.kraken.com/api/docs/futures-api/trading/set-leverage-setting"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> response from the exchange.</returns>
-    public async Task<Dictionary<string, object>> SetLeverage(Int64 leverage, string symbol = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.setLeverage(leverage, symbol, parameters);
-        return ((Dictionary<string, object>)res);
     }
 }

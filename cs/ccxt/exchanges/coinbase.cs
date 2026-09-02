@@ -654,7 +654,7 @@ public partial class coinbase : Exchange
      * @param {string} [params.method] 'v2PublicGetTime' or 'v3PublicGetBrokerageTime' default is 'v2PublicGetTime'
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    public async override Task<object> fetchTime(object parameters = null)
+    public async override Task<Int64> FetchTime(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object defaultMethod = this.safeString(this.options, "fetchTime", "v2PublicGetTime");
@@ -677,7 +677,7 @@ public partial class coinbase : Exchange
         {
             response = await this.v3PublicGetBrokerageTime(parameters);
         }
-        return this.safeTimestamp2(response, "epoch", "epochSeconds");
+        return ccxt.BaseExchange.ToInt64Value(this.safeTimestamp2(response, "epoch", "epochSeconds"));
     }
 
     /**
@@ -3854,7 +3854,7 @@ public partial class coinbase : Exchange
         {
             await this.loadMarkets();
         }
-        object orders = await this.cancelOrders(new List<object>() {id},((string)symbol), parameters);
+        object orders = ccxt.BaseExchange.FromOrderList(await this.CancelOrders(new List<object>() {id},((string)symbol), parameters));
         return ccxt.BaseExchange.ToOrder(this.safeDict(orders, 0, new Dictionary<string, object>() {}));
     }
 
@@ -3868,7 +3868,7 @@ public partial class coinbase : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelOrders(object ids, string symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> CancelOrders(object ids, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -3904,7 +3904,7 @@ public partial class coinbase : Exchange
                 throw new BadRequest ((string)add(this.id, " cancelOrders() has failed, check your arguments and parameters")) ;
             }
         }
-        return this.parseOrders(orders, market);
+        return ccxt.BaseExchange.ToOrderList(this.parseOrders(orders, market));
     }
 
     /**
@@ -4592,7 +4592,7 @@ public partial class coinbase : Exchange
      * @param {boolean} [params.usePrivate] default false, when true will use the private endpoint to fetch the order book
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -4642,7 +4642,7 @@ public partial class coinbase : Exchange
         object data = this.safeDict(response, "pricebook", new Dictionary<string, object>() {});
         object time = this.safeString(data, "time");
         object timestamp = this.parse8601(time);
-        return this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "size");
+        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "size"));
     }
 
     /**
@@ -5366,7 +5366,7 @@ public partial class coinbase : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public async override Task<object> transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
+    public async override Task<ccxt.TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -5389,7 +5389,7 @@ public partial class coinbase : Exchange
         object transfer = this.parseTransfer(response, currency);
         ((IDictionary<string,object>)transfer)["amount"] = amount;
         ((IDictionary<string,object>)transfer)["status"] = "ok";
-        return transfer;
+        return ccxt.BaseExchange.ToTransferEntry(transfer);
     }
 
     public override object parseTransfer(object transfer, object currency = null)

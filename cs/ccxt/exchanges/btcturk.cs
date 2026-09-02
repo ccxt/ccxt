@@ -480,7 +480,7 @@ public partial class btcturk : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -505,7 +505,7 @@ public partial class btcturk : Exchange
         //     }
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object timestamp = this.safeInteger(data, "timestamp");
-        return this.parseOrderBook(data, getValue(market, "symbol"), timestamp, "bids", "asks", 0, 1);
+        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(data, getValue(market, "symbol"), timestamp, "bids", "asks", 0, 1));
     }
 
     public override object parseTicker(object ticker, object market = null)

@@ -6,32 +6,6 @@ namespace ccxt;
 
 public partial class cryptocom
 {
-    /// <summary>
-    /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-book"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>limit</term>
-    /// <description>
-    /// int : the number of order book entries to return, max 50
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
-    public async Task<OrderBook> FetchOrderBook(string symbol, Int64? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchOrderBook(symbol, limit, parameters);
-        return new OrderBook(res);
-    }
     public Dictionary<string, object> CreateOrderRequest(string symbol, string type, string side, double amount, double? price = null, Dictionary<string, object> parameters = null)
     {
         var res = this.createOrderRequest(symbol, type, side, amount, price, parameters);
@@ -46,26 +20,6 @@ public partial class cryptocom
     {
         var res = this.editOrderRequest(id, symbol, amount, price, parameters);
         return ((Dictionary<string, object>)res);
-    }
-    /// <summary>
-    /// cancel multiple orders
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-order-list-list"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
-    public async Task<List<Order>> CancelOrders(List<string> ids, string symbol = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.cancelOrders(ids, symbol, parameters);
-        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
     /// <summary>
     /// fetch a dictionary of addresses for a currency, indexed by network
@@ -86,44 +40,6 @@ public partial class cryptocom
     {
         var res = await this.fetchDepositAddressesByNetwork(code, parameters);
         return ((IList<object>)res).Select(item => new DepositAddress(item)).ToList<DepositAddress>();
-    }
-    /// <summary>
-    /// fetches historical settlement records
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-expired-settlement-price"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>since</term>
-    /// <description>
-    /// int : timestamp in ms
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>limit</term>
-    /// <description>
-    /// int : number of records
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : exchange specific params
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.type</term>
-    /// <description>
-    /// int : 'future', 'option'
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object[]</term> a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}.</returns>
-    public async Task<List<Dictionary<string, object>>> FetchSettlementHistory(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchSettlementHistory(symbol, since, limit, parameters);
-        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
     }
     /// <summary>
     /// fetch the trading fees for multiple markets

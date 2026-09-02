@@ -1066,7 +1066,7 @@ public partial class bigone : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    public async override Task<object> fetchTime(object parameters = null)
+    public async override Task<Int64> FetchTime(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetPing(parameters);
@@ -1083,7 +1083,7 @@ public partial class bigone : Exchange
         {
             throw new ExchangeError ((string)add(this.id, " fetchTime() missing timestamp")) ;
         }
-        return this.parseToInt(divide(timestamp, 1000000));
+        return ccxt.BaseExchange.ToInt64Value(this.parseToInt(divide(timestamp, 1000000)));
     }
 
     /**
@@ -1096,7 +1096,7 @@ public partial class bigone : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1138,7 +1138,7 @@ public partial class bigone : Exchange
             //        from: '0'
             //    }
             //
-            return this.parseContractOrderBook(response, getValue(market, "symbol"), limit);
+            return ccxt.BaseExchange.ToOrderBook(this.parseContractOrderBook(response, getValue(market, "symbol"), limit));
         } else
         {
             object request = new Dictionary<string, object>() {
@@ -1164,7 +1164,7 @@ public partial class bigone : Exchange
             //     }
             //
             object orderbook = this.safeDict(response, "data", new Dictionary<string, object>() {});
-            return this.parseOrderBook(orderbook, getValue(market, "symbol"), null, "bids", "asks", "price", "quantity");
+            return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(orderbook, getValue(market, "symbol"), null, "bids", "asks", "price", "quantity"));
         }
     }
 
@@ -2457,7 +2457,7 @@ public partial class bigone : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public async override Task<object> transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
+    public async override Task<ccxt.TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2493,7 +2493,7 @@ public partial class bigone : Exchange
             ((IDictionary<string,object>)transfer)["amount"] = amount;
             ((IDictionary<string,object>)transfer)["id"] = guid;
         }
-        return transfer;
+        return ccxt.BaseExchange.ToTransferEntry(transfer);
     }
 
     public override object parseTransfer(object transfer, object currency = null)

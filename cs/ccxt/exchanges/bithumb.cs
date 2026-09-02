@@ -843,7 +843,7 @@ public partial class bithumb : Exchange
      * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -934,7 +934,7 @@ public partial class bithumb : Exchange
             data = this.safeDict(response, "data", new Dictionary<string, object>() {});
             timestamp = this.safeInteger(data, "timestamp");
         }
-        return this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity");
+        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity"));
     }
 
     public override object parseTicker(object ticker, object market = null)
@@ -2865,7 +2865,7 @@ public partial class bithumb : Exchange
      * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelOrders(object ids, string symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> CancelOrders(object ids, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2908,7 +2908,7 @@ public partial class bithumb : Exchange
         //     }
         //
         object data = this.safeList(response, "success", new List<object>() {});
-        return this.parseOrders(data, market);
+        return ccxt.BaseExchange.ToOrderList(this.parseOrders(data, market));
     }
 
     public async override Task<ccxt.Order> CancelUnifiedOrder(object order, object parameters = null)

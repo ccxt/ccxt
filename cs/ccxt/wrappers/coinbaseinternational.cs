@@ -6,24 +6,5 @@ namespace ccxt;
 
 public partial class coinbaseinternational
 {
-    /// <summary>
-    /// Transfer an amount of asset from one portfolio to another.
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.cloud.coinbase.com/intx/reference/createportfolioassettransfer"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a [transfer structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}.</returns>
-    public async Task<TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.transfer(code, amount, fromAccount, toAccount, parameters);
-        return new TransferEntry(res);
-    }
+
 }

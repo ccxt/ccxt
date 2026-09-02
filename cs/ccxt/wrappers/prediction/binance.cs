@@ -166,32 +166,6 @@ public partial class binance
         return new PredictionEvent(res);
     }
     /// <summary>
-    /// fetches the order book for a single prediction outcome token
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://developers.binance.com/en/docs/catalog/web3-wallet-prediction-trading/api/rest-api/market-data#query-order-book"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>limit</term>
-    /// <description>
-    /// int : not used by binance fetchOrderBook
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a prediction [order book structure](https://docs.ccxt.com/#/?id=order-book-structure).</returns>
-    public async Task<PredictionOrderBook> FetchOrderBook(string outcome, Int64? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchOrderBook(outcome, limit, parameters);
-        return new PredictionOrderBook(res);
-    }
-    /// <summary>
     /// fetch wallet for user and save the one match the walletAddress user provided
     /// </summary>
     /// <remarks>

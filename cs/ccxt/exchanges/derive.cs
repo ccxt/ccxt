@@ -648,7 +648,7 @@ public partial class derive : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    public async override Task<object> fetchTime(object parameters = null)
+    public async override Task<Int64> FetchTime(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicPostGetTime(parameters);
@@ -658,7 +658,7 @@ public partial class derive : Exchange
         //     "id": "f1c03d21-f886-4c5a-9a9d-33dd06f180f0"
         // }
         //
-        return this.safeInteger(response, "result");
+        return ccxt.BaseExchange.ToInt64Value(this.safeInteger(response, "result"));
     }
 
     /**

@@ -7,32 +7,6 @@ public class  Hyperliquid: hyperliquid { public Hyperliquid(object args = null) 
 public partial class hyperliquid
 {
     /// <summary>
-    /// fetches the L2 order book for an outcome market
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#l2-book-snapshot"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>limit</term>
-    /// <description>
-    /// int : max depth levels (not used by hyperliquid but accepted)
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure).</returns>
-    public async Task<PredictionOrderBook> FetchOrderBook(string outcome, Int64? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchOrderBook(outcome, limit, parameters);
-        return new PredictionOrderBook(res);
-    }
-    /// <summary>
     /// Groups outcome markets by their underlying (e.g. BTC_ABOVE_78213) into event structures. Each event contains both the YES and NO markets.
     /// </summary>
     /// <remarks>

@@ -1161,7 +1161,7 @@ public partial class grvt : Exchange
      * @param {string} [params.loc] crypto location, default: us
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
@@ -1200,7 +1200,7 @@ public partial class grvt : Exchange
         object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object timestamp = this.parse8601(this.safeString(result, "event_time"));
         object marketId = this.safeString(result, "instrument");
-        return this.parseOrderBook(result, this.safeSymbol(marketId), timestamp, "bids", "asks", "price", "size");
+        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(result, this.safeSymbol(marketId), timestamp, "bids", "asks", "price", "size"));
     }
 
     /**
@@ -2067,7 +2067,7 @@ public partial class grvt : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public async override Task<object> transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
+    public async override Task<ccxt.TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
     {
         object fromAccountVar = fromAccount;
         object toAccountVar = toAccount;
@@ -2127,7 +2127,7 @@ public partial class grvt : Exchange
         // }
         //
         object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
-        return this.parseTransfer(result, currency);
+        return ccxt.BaseExchange.ToTransferEntry(this.parseTransfer(result, currency));
     }
 
     public override object parseTransfer(object transfer, object currency = null)
@@ -2842,7 +2842,7 @@ public partial class grvt : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public async override Task<object> setLeverage(object leverage, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetLeverage(object leverage, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -2862,7 +2862,7 @@ public partial class grvt : Exchange
         //        "success": true
         //    }
         //
-        return this.parseLeverage(response, market);
+        return ccxt.BaseExchange.ToDict(this.parseLeverage(response, market));
     }
 
     public override object parseLeverage(object leverage, object market = null)

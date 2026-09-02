@@ -822,7 +822,7 @@ public partial class deribit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    public async override Task<object> fetchTime(object parameters = null)
+    public async override Task<Int64> FetchTime(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetGetTime(parameters);
@@ -836,7 +836,7 @@ public partial class deribit : Exchange
         //         "testnet": false
         //     }
         //
-        return this.safeInteger(response, "result");
+        return ccxt.BaseExchange.ToInt64Value(this.safeInteger(response, "result"));
     }
 
     /**
@@ -2134,7 +2134,7 @@ public partial class deribit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2194,7 +2194,7 @@ public partial class deribit : Exchange
         object nonce = this.safeInteger(result, "change_id");
         object orderbook = this.parseOrderBook(result, getValue(market, "symbol"), timestamp);
         ((IDictionary<string,object>)orderbook)["nonce"] = nonce;
-        return orderbook;
+        return ccxt.BaseExchange.ToOrderBook(orderbook);
     }
 
     public virtual object parseOrderStatus(object status)
@@ -3461,7 +3461,7 @@ public partial class deribit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public async override Task<object> transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
+    public async override Task<ccxt.TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -3507,7 +3507,7 @@ public partial class deribit : Exchange
         //     }
         //
         object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
-        return this.parseTransfer(result, currency);
+        return ccxt.BaseExchange.ToTransferEntry(this.parseTransfer(result, currency));
     }
 
     public override object parseTransfer(object transfer, object currency = null)

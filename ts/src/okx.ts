@@ -3914,7 +3914,10 @@ export default class okx extends Exchange {
         //     }
         //
         const ordersData = this.safeList (response, 'data', []) as List;
-        return this.parseOrders (ordersData, market, undefined, undefined, params);
+        // the request-only keys must not be merged onto every parsed order: a clientOrderId[]
+        // request would otherwise come back as a list under the unified string field
+        const orderParams = this.omit (params, [ 'clOrdId', 'clientOrderId', 'algoId', 'stop', 'trigger', 'trailing', 'method' ]);
+        return this.parseOrders (ordersData, market, undefined, undefined, orderParams);
     }
 
     /**

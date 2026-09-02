@@ -61,6 +61,7 @@ if (platform === 'win32') {
 const TYPED_CORES: Record<string, string> = {
     'cancelAllContractOrders': 'List<Order>',
     'cancelAllOrders': 'List<Order>',
+    'cancelAllOrdersAfter': 'Dictionary<string, object>',
     'cancelAllOrdersWs': 'List<Order>',
     'cancelAllSpotOrders': 'List<Order>',
     'cancelAllUtaOrders': 'List<Order>',
@@ -68,9 +69,8 @@ const TYPED_CORES: Record<string, string> = {
     'cancelOrder': 'Order',
     'cancelOrderWithClientOrderId': 'Order',
     'cancelOrderWs': 'Order',
-    // 'cancelOrders' is deliberately absent: okx merges the caller's `params` onto every
-    // parsed order, so a clientOrderIds[] request comes back with clientOrderId as a list,
-    // which the unified Order struct's `string? clientOrderId` cannot carry.
+    // okx#cancelOrders omits request-only keys (clientOrderId[], trigger, …) before parseOrders
+    'cancelOrders': 'List<Order>',
     'cancelOrdersForSymbols': 'List<Order>',
     'cancelOrdersWithClientOrderIds': 'List<Order>',
     'cancelOrdersWs': 'List<Order>',
@@ -111,6 +111,7 @@ const TYPED_CORES: Record<string, string> = {
     'createPostOnlyOrderWs': 'Order',
     'createReduceOnlyOrder': 'Order',
     'createReduceOnlyOrderWs': 'Order',
+    'createSubAccount': 'Dictionary<string, object>',
     'createSpotOrder': 'Order',
     'createSpotOrders': 'List<Order>',
     'createStopLimitOrder': 'Order',
@@ -165,10 +166,9 @@ const TYPED_CORES: Record<string, string> = {
     'fetchBalance': 'Balances',
     'fetchBalanceWs': 'Balances',
     'fetchBidsAsks': 'Tickers',
-    // TradingFees / LeverageTiers stay untyped: constructors are still not the identity
-    // for every venue, so typing the core would make that wrapper loss live.
-    //   TradingFees  TradingFeeInterface has no `tiers`, which cryptomus returns
-    //   LeverageTiers `info = <whole source dict>` re-nests one level under comparison
+    'fetchBorrowRateHistories': 'Dictionary<string, object>',
+    'fetchBorrowRateHistory': 'List<Dictionary<string, object>>',
+    // TradingFees stay untyped: TradingFeeInterface has no `tiers`, which cryptomus/onetrading emit.
     'fetchContractBalance': 'Balances',
     'fetchContractTickers': 'Tickers',
     'fetchCrossBorrowRates': 'CrossBorrowRates',
@@ -269,8 +269,10 @@ const TYPED_CORES: Record<string, string> = {
     'fetchMyTrades': 'List<Trade>',
     'fetchMyTradesWs': 'List<Trade>',
     'fetchMyUtaTrades': 'List<Trade>',
+    'fetchMySettlementHistory': 'List<Dictionary<string, object>>',
     'fetchOHLCV': 'List<OHLCV>',
     'fetchOHLCVWs': 'List<OHLCV>',
+    'fetchL3OrderBook': 'OrderBook',
     'fetchOpenInterest': 'OpenInterest',
     'fetchOpenInterestHistory': 'List<OpenInterest>',
     'fetchOpenOrder': 'Order',
@@ -286,7 +288,9 @@ const TYPED_CORES: Record<string, string> = {
     'fetchOptionOHLCV': 'List<OHLCV>',
     'fetchOptionPositions': 'List<Position>',
     'fetchOrder': 'Order',
+    'fetchOrderBook': 'OrderBook',
     'fetchOrderBookWs': 'OrderBook',
+    'fetchOrderStatus': 'string',
     'fetchOrderClassic': 'Order',
     'fetchOrderDefault': 'Order',
     'fetchOrderSupplement': 'Order',
@@ -318,10 +322,8 @@ const TYPED_CORES: Record<string, string> = {
     'fetchPositionsRisk': 'List<Position>',
     'fetchPositionsWs': 'List<Position>',
     'fetchPremiumIndexOHLCV': 'List<OHLCV>',
-    // fetchRestOrderBookSafe is deliberately NOT typed: its result is consumed, not
-    // terminal. Exchange.WsBridge.cs feeds it to getCacheIndex() and stored.reset(),
-    // which need the plain dictionary — a boxed ccxt.OrderBook struct silently
-    // produced an empty book (3 binance watchOrderBook static-ws failures).
+    'fetchRestOrderBookSafe': 'OrderBook',
+    'fetchSettlementHistory': 'List<Dictionary<string, object>>',
     'fetchSettlements': 'List<PredictionSettlement>',
     'fetchSpotBalance': 'Balances',
     'fetchSpotMarkets': 'List<MarketInterface>',
@@ -341,11 +343,14 @@ const TYPED_CORES: Record<string, string> = {
     'fetchTickerV2': 'Ticker',
     'fetchTickerV3': 'Ticker',
     'fetchTickerWs': 'Ticker',
+    'fetchTime': 'Int64',
     'fetchTotalBalance': 'Balance',
     'fetchTrades': 'List<Trade>',
     'fetchTradesWs': 'List<Trade>',
     'fetchTradingFee': 'TradingFeeInterface',
     'fetchTradingFeesWs': 'TradingFees',
+    'fetchTradingLimits': 'Dictionary<string, object>',
+    'fetchTransactionFees': 'Dictionary<string, object>',
     'fetchTransactions': 'List<Transaction>',
     'fetchTransactionsByType': 'List<Transaction>',
     // fetchTransactionsHelper is deliberately NOT typed: dydx holds its result in an
@@ -367,10 +372,17 @@ const TYPED_CORES: Record<string, string> = {
     'fetchWithdrawal': 'Transaction',
     'fetchWithdrawals': 'List<Transaction>',
     'fetchWithdrawalsWs': 'List<Transaction>',
+    'setLeverage': 'Dictionary<string, object>',
     'setMargin': 'MarginModification',
-    // the transfer family is deliberately absent: hyperliquid#transfer hands back the raw
-    // venue acknowledgement ({status, response}), not a unified transfer structure, so a
-    // TransferEntry core would silently rewrite it into the unified key set.
+    'setMarginMode': 'Dictionary<string, object>',
+    'setPositionMode': 'Dictionary<string, object>',
+    'transfer': 'TransferEntry',
+    'transferBetweenMainAndSubAccount': 'TransferEntry',
+    'transferBetweenSubAccounts': 'TransferEntry',
+    'transferClassic': 'TransferEntry',
+    'transferIn': 'TransferEntry',
+    'transferOut': 'TransferEntry',
+    'transferUta': 'TransferEntry',
     // --- watch* -------------------------------------------------------------------
     // A watch core hands back the LIVE ws structure (ArrayCache*, the shared balance /
     // ticker dictionaries). Every To* helper materialises a NEW List/struct from the rows,
@@ -503,6 +515,7 @@ const PREDICTION_TYPED_CORES: Record<string, string> = {
     'fetchOrderTrades': 'List<PredictionTrade>',
     'fetchOrders': 'List<PredictionOrder>',
     'fetchOrdersByIds': 'List<PredictionOrder>',
+    'fetchOrderBook': 'PredictionOrderBook',
     'fetchPosition': 'PredictionPosition',
     'fetchPositions': 'List<PredictionPosition>',
     'fetchTicker': 'PredictionTicker',
@@ -1457,6 +1470,18 @@ class NewTranspiler {
         if (snapshot !== undefined) {
             return (isPredictionTier && snapshot.predictionHelper !== undefined) ? snapshot.predictionHelper : snapshot.helper;
         }
+        if (csharpType === 'Dictionary<string, object>') {
+            return 'ccxt.BaseExchange.ToDict';
+        }
+        if (csharpType === 'List<Dictionary<string, object>>') {
+            return 'ccxt.BaseExchange.ToDictList';
+        }
+        if (csharpType === 'Int64') {
+            return 'ccxt.BaseExchange.ToInt64Value';
+        }
+        if (csharpType === 'string') {
+            return 'ccxt.BaseExchange.ToStringValue';
+        }
         return 'ccxt.BaseExchange.To' + this.typedCoreHelperSuffix (csharpType);
     }
 
@@ -1470,6 +1495,10 @@ class NewTranspiler {
     qualifyTypedCoreType (csharpType: string): string {
         if (csharpType.startsWith ('ccxt.')) {
             return csharpType; // SNAPSHOT_CORES already spell the fully qualified name
+        }
+        // raw / primitive core types are not ccxt. structs
+        if (csharpType === 'Int64' || csharpType === 'string' || csharpType === 'Dictionary<string, object>' || csharpType === 'List<Dictionary<string, object>>') {
+            return csharpType;
         }
         if (csharpType.startsWith ('List<') && csharpType.endsWith ('>')) {
             return 'List<ccxt.' + csharpType.substring (5, csharpType.length - 1) + '>';
@@ -1514,6 +1543,18 @@ class NewTranspiler {
     // `object x = await this.fetchOrders(...)` consumer reads dictionary keys off the
     // result, so a boxed struct has to be de-typed first.
     typedCoreFromHelper (csharpType: string): string {
+        if (csharpType === 'Dictionary<string, object>') {
+            return 'ccxt.BaseExchange.FromDict';
+        }
+        if (csharpType === 'List<Dictionary<string, object>>') {
+            return 'ccxt.BaseExchange.FromDictList';
+        }
+        if (csharpType === 'Int64') {
+            return 'ccxt.BaseExchange.FromInt64';
+        }
+        if (csharpType === 'string') {
+            return 'ccxt.BaseExchange.FromStringValue';
+        }
         const family = csharpType.startsWith ('List<') ? csharpType.slice (5, -1) : csharpType;
         if (!REVERSIBLE_FAMILIES.includes (family)) {
             return '';
@@ -2379,13 +2420,12 @@ class NewTranspiler {
 
         // the 62 symbol-based trading methods declared in TS `class Exchange extends BaseExchange`
         const exchangeTierNames = this.getExchangeTierMethodNames (baseExchangeFile);
-        // methods that TS places in `class Exchange` but which C#'s hand-written BaseExchange WS layer
-        // (cs/ccxt/ws/Exchange.WsBridge.cs) depends on, so they must remain reachable from BaseExchange:
-        //   loadOrderBook          — hand-written in WsBridge.cs (drop the transpiled copy)
-        //   fetchRestOrderBookSafe — called by BaseExchange.loadOrderBook
-        //   fetchOrderBook         — called by fetchRestOrderBookSafe (also overridden by every venue)
+        // loadOrderBook is hand-written on partial class Exchange (WsBridge.cs); drop the
+        // transpiled copy. fetchOrderBook / fetchRestOrderBookSafe stay on the Exchange tier
+        // so the prediction sibling can type fetchOrderBook as PredictionOrderBook (CS0508
+        // if either name is declared on shared BaseExchange).
         const droppedOnBase = [ 'loadOrderBook' ];
-        const retainedOnBase = [ 'fetchRestOrderBookSafe', 'fetchOrderBook' ];
+        const retainedOnBase: string[] = [];
         const isExchangeTier = (methodName: string) => exchangeTierNames.has (methodName) && !retainedOnBase.includes (methodName) && !droppedOnBase.includes (methodName);
 
         // create wrappers with specific types — base-tier wrappers stay on BaseExchange (inherited by
@@ -2493,10 +2533,9 @@ class NewTranspiler {
         const jsDelimiter = '// ' + delimiter
         const parts = baseClass.split (jsDelimiter)
         if (parts.length > 1) {
-            // fetchOrderBook erases to the same object-typed signature as the BaseExchange virtual
-            // and must be emitted as an override to avoid hiding it, warning CS0114, see
-            // https://github.com/ccxt/ccxt/pull/29695
-            const baseMethods = parts[1].replaceAll('public async virtual Task<object> fetchOrderBook(object outcome', 'public async override Task<object> fetchOrderBook(object outcome')
+            // fetchOrderBook lives on the Exchange / PredictionExchange siblings, not on
+            // BaseExchange, so the prediction declaration is virtual (not override).
+            const baseMethods = parts[1];
             const fields = [
                 '    public PredictionExchange(object args = null) : base(args) {}',
                 '',

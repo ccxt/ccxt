@@ -828,7 +828,7 @@ public partial class bitso : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -842,7 +842,7 @@ public partial class bitso : Exchange
         object response = await this.publicGetOrderBook(this.extend(request, parameters));
         object orderbook = this.safeValue(response, "payload");
         object timestamp = this.parse8601(this.safeString(orderbook, "updated_at"));
-        return this.parseOrderBook(orderbook, getValue(market, "symbol"), timestamp, "bids", "asks", "price", "amount");
+        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(orderbook, getValue(market, "symbol"), timestamp, "bids", "asks", "price", "amount"));
     }
 
     public override object parseTicker(object ticker, object market = null)
@@ -1364,7 +1364,7 @@ public partial class bitso : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelOrders(object ids, string symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> CancelOrders(object ids, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (!isTrue(((ids is IList<object>) || (ids.GetType().IsGenericType && ids.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
@@ -1394,7 +1394,7 @@ public partial class bitso : Exchange
             object id = getValue(payload, i);
             ((IList<object>)orders).Add(this.parseOrder(id, market));
         }
-        return orders;
+        return ccxt.BaseExchange.ToOrderList(orders);
     }
 
     /**
@@ -1743,7 +1743,7 @@ public partial class bitso : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public async override Task<object> fetchTransactionFees(object codes = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> FetchTransactionFees(object codes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1840,7 +1840,7 @@ public partial class bitso : Exchange
                 };
             }
         }
-        return result;
+        return ccxt.BaseExchange.ToDict(result);
     }
 
     /**

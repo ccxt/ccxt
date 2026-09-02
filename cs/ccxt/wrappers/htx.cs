@@ -7,32 +7,6 @@ namespace ccxt;
 public partial class htx
 {
     /// <summary>
-    /// fetches the current integer timestamp in milliseconds from the exchange server
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://huobiapi.github.io/docs/spot/v1/en/#get-current-timestamp"/>  <br/>
-    /// See <see href="https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-current-system-timestamp"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>int</term> the current integer timestamp in milliseconds from the exchange server.</returns>
-    public async Task<Int64> FetchTime(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchTime(parameters);
-        return (Int64)res;
-    }
-    public async Task<Dictionary<string, object>> FetchTradingLimits(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchTradingLimits(symbols, parameters);
-        return ((Dictionary<string, object>)res);
-    }
-    /// <summary>
     /// undefined
     /// </summary>
     /// <remarks>
@@ -86,35 +60,6 @@ public partial class htx
     {
         var res = await this.fetchMarketsByTypeAndSubType(type, subType, parameters);
         return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
-    }
-    /// <summary>
-    /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://huobiapi.github.io/docs/spot/v1/en/#get-market-depth"/>  <br/>
-    /// See <see href="https://huobiapi.github.io/docs/dm/v1/en/#get-market-depth"/>  <br/>
-    /// See <see href="https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-market-depth"/>  <br/>
-    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-market-depth"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>limit</term>
-    /// <description>
-    /// int : the maximum amount of order book entries to return
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
-    public async Task<OrderBook> FetchOrderBook(string symbol, Int64? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchOrderBook(symbol, limit, parameters);
-        return new OrderBook(res);
     }
     /// <summary>
     /// fetch all the accounts by a type and marginModeassociated with a profile
@@ -241,58 +186,6 @@ public partial class htx
         return ((Dictionary<string, object>)res);
     }
     /// <summary>
-    /// cancel multiple orders
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-195894d0de8"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.trigger</term>
-    /// <description>
-    /// bool : *contract only* if the orders are trigger trigger orders or not
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.stopLossTakeProfit</term>
-    /// <description>
-    /// bool : *contract only* if the orders are stop-loss or take-profit orders
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
-    public async Task<List<Order>> CancelOrders(List<string> ids, string symbol = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.cancelOrders(ids, symbol, parameters);
-        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
-    }
-    /// <summary>
-    /// dead man's switch, cancel all orders after the given timeout
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://huobiapi.github.io/docs/spot/v1/en/#dead-man-s-switch"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> the api result.</returns>
-    public async Task<Dictionary<string, object>> CancelAllOrdersAfter(Int64 timeout, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.cancelAllOrdersAfter(timeout, parameters);
-        return ((Dictionary<string, object>)res);
-    }
-    /// <summary>
     /// fetch a dictionary of addresses for a currency, indexed by network
     /// </summary>
     /// <remarks>
@@ -318,72 +211,6 @@ public partial class htx
         return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
     }
     /// <summary>
-    /// transfer currency internally between wallets on the same account
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://huobiapi.github.io/docs/dm/v1/en/#transfer-margin-between-spot-account-and-future-account"/>  <br/>
-    /// See <see href="https://huobiapi.github.io/docs/spot/v1/en/#transfer-fund-between-spot-account-and-future-contract-account"/>  <br/>
-    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-transfer-margin-between-spot-account-and-usdt-margined-contracts-account"/>  <br/>
-    /// See <see href="https://huobiapi.github.io/docs/spot/v1/en/#transfer-asset-from-spot-trading-account-to-cross-margin-account-cross"/>  <br/>
-    /// See <see href="https://huobiapi.github.io/docs/spot/v1/en/#transfer-asset-from-spot-trading-account-to-isolated-margin-account-isolated"/>  <br/>
-    /// See <see href="https://huobiapi.github.io/docs/spot/v1/en/#transfer-asset-from-cross-margin-account-to-spot-trading-account-cross"/>  <br/>
-    /// See <see href="https://huobiapi.github.io/docs/spot/v1/en/#transfer-asset-from-isolated-margin-account-to-spot-trading-account-isolated"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.symbol</term>
-    /// <description>
-    /// string : used for isolated margin transfer
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.subType</term>
-    /// <description>
-    /// string : 'linear' or 'inverse', only used when transfering to/from swap accounts
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}.</returns>
-    public async Task<TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.transfer(code, amount, fromAccount, toAccount, parameters);
-        return new TransferEntry(res);
-    }
-    /// <summary>
-    /// set the level of leverage for a market
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-1959439f997"/>  <br/>
-    /// See <see href="https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#switch-leverage"/>  <br/>
-    /// See <see href="https://huobiapi.github.io/docs/dm/v1/en/#switch-leverage"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.position_side</term>
-    /// <description>
-    /// string : linear swap supports 'long', 'short' and 'both', 'both' is the default
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> response from the exchange.</returns>
-    public async Task<Dictionary<string, object>> SetLeverage(Int64 leverage, string symbol = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.setLeverage(leverage, symbol, parameters);
-        return ((Dictionary<string, object>)res);
-    }
-    /// <summary>
     /// retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
     /// </summary>
     /// <remarks>
@@ -401,89 +228,5 @@ public partial class htx
     {
         var res = await this.fetchLeverageTiers(symbols, parameters);
         return new LeverageTiers(res);
-    }
-    /// <summary>
-    /// Fetches historical settlement records
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://huobiapi.github.io/docs/dm/v1/en/#query-historical-settlement-records-of-the-platform-interface"/>  <br/>
-    /// See <see href="https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-historical-settlement-records-of-the-platform-interface"/>  <br/>
-    /// See <see href="https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b931869f0"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>since</term>
-    /// <description>
-    /// int : timestamp in ms, value range = current time - 90 days，default = current time - 90 days
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>limit</term>
-    /// <description>
-    /// int : page items, default 20, shall not exceed 50
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : exchange specific params
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.until</term>
-    /// <description>
-    /// int : timestamp in ms, value range = start_time -> current time，default = current time
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.page_index</term>
-    /// <description>
-    /// int : page index, default page 1 if not filled
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.code</term>
-    /// <description>
-    /// int : unified currency code, can be used when symbol is undefined
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object[]</term> a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}.</returns>
-    public async Task<List<Dictionary<string, object>>> FetchSettlementHistory(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchSettlementHistory(symbol, since, limit, parameters);
-        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
-    }
-    /// <summary>
-    /// set hedged to true or false
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-1959443cae3"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>symbol</term>
-    /// <description>
-    /// string : unified market symbol, required for isolated margin mode
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.marginMode</term>
-    /// <description>
-    /// string : "cross" (default) or "isolated"
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> response from the exchange.</returns>
-    public async Task<Dictionary<string, object>> SetPositionMode(bool hedged, string symbol = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.setPositionMode(hedged, symbol, parameters);
-        return ((Dictionary<string, object>)res);
     }
 }

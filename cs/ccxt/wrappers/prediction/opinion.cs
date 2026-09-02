@@ -72,32 +72,6 @@ public partial class opinion
         return new PredictionEvent(res);
     }
     /// <summary>
-    /// fetches the order book for a single outcome token
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.opinion.trade/developer-guide/opinion-open-api/token"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>limit</term>
-    /// <description>
-    /// int : not used by opinion fetchOrderBook
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure).</returns>
-    public async Task<PredictionOrderBook> FetchOrderBook(string outcome, Int64? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchOrderBook(outcome, limit, parameters);
-        return new PredictionOrderBook(res);
-    }
-    /// <summary>
     /// self-service creation of an Open API key linked to this.walletAddress via
     /// </summary>
     /// <remarks>

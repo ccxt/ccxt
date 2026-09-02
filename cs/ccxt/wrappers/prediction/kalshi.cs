@@ -34,32 +34,6 @@ public partial class kalshi
         return ((Dictionary<string, object>)res);
     }
     /// <summary>
-    /// fetches the order book for a single kalshi outcome
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.kalshi.com/api-reference/market/get-market-orderbook"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>limit</term>
-    /// <description>
-    /// int : the maximum number of bids/asks to return (not enforced by kalshis API, reserved for future client-side trimming)
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure).</returns>
-    public async Task<PredictionOrderBook> FetchOrderBook(string outcome, Int64? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchOrderBook(outcome, limit, parameters);
-        return new PredictionOrderBook(res);
-    }
-    /// <summary>
     /// cancels all open orders on kalshi, optionally scoped to one outcome ticker
     /// </summary>
     /// <remarks>

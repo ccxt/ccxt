@@ -1201,7 +1201,7 @@ public partial class pacifica : Exchange
      * @param {int} [params.aggLevel] aggregation level for price grouping. Defaults to 1. Can be 1, 10, 100, 1000, 10000
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1260,7 +1260,7 @@ public partial class pacifica : Exchange
             { "asks", this.safeList(levels, 1, new List<object>() {}) },
         };
         object timestamp = this.safeInteger(data, "t");
-        return this.parseOrderBook(result, this.safeSymbol(null, market), timestamp, "bids", "asks", "p", "a");
+        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(result, this.safeSymbol(null, market), timestamp, "bids", "asks", "p", "a"));
     }
 
     /**
@@ -2034,7 +2034,7 @@ public partial class pacifica : Exchange
      * @param {int} [params.expiryWindow] time to live in milliseconds
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelOrders(object ids, string symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> CancelOrders(object ids, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2090,7 +2090,7 @@ public partial class pacifica : Exchange
                 { "symbol", symbol },
             }));
         }
-        return ordersToReturn;
+        return ccxt.BaseExchange.ToOrderList(ordersToReturn);
     }
 
     public virtual object cancelOrdersRequest(object ids, object symbol = null, object parameters = null)
@@ -3134,7 +3134,7 @@ public partial class pacifica : Exchange
      * @param {int} [params.expiryWindow] time to live in milliseconds
      * @returns {object} response from the exchange
      */
-    public async override Task<object> setMarginMode(string marginMode, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetMarginMode(string marginMode, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string operationType = "update_margin_mode";
@@ -3158,7 +3158,7 @@ public partial class pacifica : Exchange
         // {
         //     "success": true
         // }
-        return response;
+        return ccxt.BaseExchange.ToDict(response);
     }
 
     /**
@@ -3172,7 +3172,7 @@ public partial class pacifica : Exchange
      * @param {int} [params.expiryWindow] time to live in milliseconds
      * @returns {object} response from the exchange
      */
-    public async override Task<object> setLeverage(object leverage, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetLeverage(object leverage, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string operationType = "update_leverage";
@@ -3195,7 +3195,7 @@ public partial class pacifica : Exchange
         // {
         //     "success": true
         // }
-        return response;
+        return ccxt.BaseExchange.ToDict(response);
     }
 
     /**
@@ -3629,7 +3629,7 @@ public partial class pacifica : Exchange
      * @param {int} [params.expiryWindow] time to live in milliseconds
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public async override Task<object> transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
+    public async override Task<ccxt.TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string operationType = "transfer_funds";
@@ -3652,7 +3652,7 @@ public partial class pacifica : Exchange
         // }
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return this.parseTransfer(data);
+        return ccxt.BaseExchange.ToTransferEntry(this.parseTransfer(data));
     }
 
     public override object parseTransfer(object transfer, object currency = null)
@@ -3693,7 +3693,7 @@ public partial class pacifica : Exchange
      * @param {string} [params.subAccountPrivateKey] - The private key of the sub-account to use for creation
      * @returns {object} a response object
      */
-    public async override Task<object> createSubAccount(object name, object parameters = null)
+    public async override Task<Dictionary<string, object>> CreateSubAccount(object name, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object finalHeaders = new Dictionary<string, object>() {};
@@ -3768,7 +3768,7 @@ public partial class pacifica : Exchange
         //   "code": null,
         // }
         //
-        return response;
+        return ccxt.BaseExchange.ToDict(response);
     }
 
     public async virtual Task<object> bindAgentWallet(object agentAddress, object parameters = null)

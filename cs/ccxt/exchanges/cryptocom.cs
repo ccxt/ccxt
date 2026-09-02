@@ -1458,7 +1458,7 @@ public partial class cryptocom : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1496,7 +1496,7 @@ public partial class cryptocom : Exchange
         object data = this.safeList(result, "data", new List<object>() {});
         object orderBook = this.safeValue(data, 0);
         object timestamp = this.safeInteger(orderBook, "t");
-        return this.parseOrderBook(orderBook, symbol, timestamp);
+        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(orderBook, symbol, timestamp));
     }
 
     public override object parseBalance(object response)
@@ -2220,7 +2220,7 @@ public partial class cryptocom : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelOrders(object ids, string symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> CancelOrders(object ids, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -2248,7 +2248,7 @@ public partial class cryptocom : Exchange
         };
         object response = await this.v1PrivatePostPrivateCancelOrderList(this.extend(request, parameters));
         object result = this.safeList(response, "result", new List<object>() {});
-        return this.parseOrders(result, market, null, null, parameters);
+        return ccxt.BaseExchange.ToOrderList(this.parseOrders(result, market, null, null, parameters));
     }
 
     /**
@@ -3526,7 +3526,7 @@ public partial class cryptocom : Exchange
      * @param {int} [params.type] 'future', 'option'
      * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
      */
-    public async virtual Task<object> fetchSettlementHistory(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async virtual Task<List<Dictionary<string, object>>> FetchSettlementHistory(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -3572,7 +3572,7 @@ public partial class cryptocom : Exchange
         object data = this.safeList(result, "data", new List<object>() {});
         object settlements = this.parseSettlements(data, market);
         object sorted = this.sortBy(settlements, "timestamp");
-        return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
+        return ccxt.BaseExchange.ToDictList(this.filterBySymbolSinceLimit(sorted, symbol, since, limit));
     }
 
     public virtual object parseSettlement(object settlement, object market)

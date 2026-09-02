@@ -417,7 +417,7 @@ public partial class hyperliquid : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    public async override Task<object> fetchTime(object parameters = null)
+    public async override Task<Int64> FetchTime(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object request = new Dictionary<string, object>() {
@@ -427,7 +427,7 @@ public partial class hyperliquid : Exchange
         //
         // { specialStatuses: null, time: '1764617438643' }
         //
-        return this.safeInteger(response, "time");
+        return ccxt.BaseExchange.ToInt64Value(this.safeInteger(response, "time"));
     }
 
     /**
@@ -1259,7 +1259,7 @@ public partial class hyperliquid : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1300,7 +1300,7 @@ public partial class hyperliquid : Exchange
             { "asks", this.safeList(data, 1, new List<object>() {}) },
         };
         object timestamp = this.safeInteger(response, "time");
-        return this.parseOrderBook(result, getValue(market, "symbol"), timestamp, "bids", "asks", "px", "sz");
+        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(result, getValue(market, "symbol"), timestamp, "bids", "asks", "px", "sz"));
     }
 
     /**
@@ -2706,7 +2706,7 @@ public partial class hyperliquid : Exchange
             parameters = this.omit(parameters, "twap");
             return await this.CancelTwapOrder(((string)id),((string)symbol), parameters);
         }
-        object orders = await this.cancelOrders(new List<object>() {id},((string)symbol), parameters);
+        object orders = ccxt.BaseExchange.FromOrderList(await this.CancelOrders(new List<object>() {id},((string)symbol), parameters));
         return ccxt.BaseExchange.ToOrder(this.safeDict(orders, 0));
     }
 
@@ -2724,7 +2724,7 @@ public partial class hyperliquid : Exchange
      * @param {string} [params.subAccountAddress] sub account user address
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelOrders(object ids, string symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> CancelOrders(object ids, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
@@ -2764,7 +2764,7 @@ public partial class hyperliquid : Exchange
                 { "status", status },
             }));
         }
-        return orders;
+        return ccxt.BaseExchange.ToOrderList(orders);
     }
 
     /**
@@ -3006,7 +3006,7 @@ public partial class hyperliquid : Exchange
      * @param {string} [params.subAccountAddress] sub account user address
      * @returns {object} the api result
      */
-    public async override Task<object> cancelAllOrdersAfter(object timeout, object parameters = null)
+    public async override Task<Dictionary<string, object>> CancelAllOrdersAfter(object timeout, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
@@ -3044,7 +3044,7 @@ public partial class hyperliquid : Exchange
         //         "response":"Cannot set scheduled cancel time until enough volume traded. Required: $1000000. Traded: $373.47205."
         //     }
         //
-        return response;
+        return ccxt.BaseExchange.ToDict(response);
     }
 
     public virtual object editOrdersRequest(object orders, object parameters = null)
@@ -4332,7 +4332,7 @@ public partial class hyperliquid : Exchange
      * @param {string} [params.subAccountAddress] sub account user address
      * @returns {object} response from the exchange
      */
-    public async override Task<object> setMarginMode(string marginMode, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetMarginMode(string marginMode, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -4389,7 +4389,7 @@ public partial class hyperliquid : Exchange
         //         'status': 'ok'
         //     }
         //
-        return response;
+        return ccxt.BaseExchange.ToDict(response);
     }
 
     /**
@@ -4402,7 +4402,7 @@ public partial class hyperliquid : Exchange
      * @param {string} [params.marginMode] margin mode must be either [isolated, cross], default is cross
      * @returns {object} response from the exchange
      */
-    public async override Task<object> setLeverage(object leverage, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetLeverage(object leverage, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -4450,7 +4450,7 @@ public partial class hyperliquid : Exchange
         //         'status': 'ok'
         //     }
         //
-        return response;
+        return ccxt.BaseExchange.ToDict(response);
     }
 
     /**
@@ -4573,7 +4573,7 @@ public partial class hyperliquid : Exchange
      * @param {string} [params.vaultAddress] the vault address for order
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public async override Task<object> transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
+    public async override Task<ccxt.TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
@@ -4619,7 +4619,13 @@ public partial class hyperliquid : Exchange
                 { "signature", transferSig },
             };
             object transferResponse = await this.privatePostExchange(transferRequest);
-            return transferResponse;
+            //
+            // {'response': {'type': 'default'}, 'status': 'ok'}
+            //
+            // the sub-account branches below already hand back the unified structure; the
+            // spot <> swap branch returned the raw acknowledgement, breaking the shape
+            object currency = this.safeCurrency(code);
+            return ccxt.BaseExchange.ToTransferEntry(this.parseTransfer(transferResponse, currency));
         }
         // transfer between main account and subaccount
         bool isDeposit = false;
@@ -4662,7 +4668,7 @@ public partial class hyperliquid : Exchange
             //
             // {'response': {'type': 'default'}, 'status': 'ok'}
             //
-            return this.parseTransfer(response);
+            return ccxt.BaseExchange.ToTransferEntry(this.parseTransfer(response));
         } else
         {
             // Transfer spot tokens (including spot USDC) with subAccountSpotTransfer - the api
@@ -4690,7 +4696,7 @@ public partial class hyperliquid : Exchange
                 { "signature", sig },
             };
             object response = await this.privatePostExchange(request);
-            return this.parseTransfer(response);
+            return ccxt.BaseExchange.ToTransferEntry(this.parseTransfer(response));
         }
     }
 
@@ -4704,11 +4710,11 @@ public partial class hyperliquid : Exchange
             { "id", null },
             { "timestamp", null },
             { "datetime", null },
-            { "currency", null },
+            { "currency", this.safeCurrencyCode(null, currency) },
             { "amount", null },
             { "fromAccount", null },
             { "toAccount", null },
-            { "status", "ok" },
+            { "status", this.safeString(transfer, "status", "ok") },
         };
     }
 
@@ -5461,7 +5467,7 @@ public partial class hyperliquid : Exchange
      * @param {int} [params.expiresAfter] time in ms after which the sub-account will expire
      * @returns {object} a response object
      */
-    public async override Task<object> createSubAccount(object name, object parameters = null)
+    public async override Task<Dictionary<string, object>> CreateSubAccount(object name, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Int64 nonce = this.milliseconds();
@@ -5482,7 +5488,7 @@ public partial class hyperliquid : Exchange
         ((IDictionary<string,object>)request)["action"] = action;
         ((IDictionary<string,object>)request)["signature"] = signature;
         object response = await this.privatePostExchange(this.extend(request, parameters));
-        return response;
+        return ccxt.BaseExchange.ToDict(response);
     }
 
     public virtual object extractTypeFromDelta(object data = null)

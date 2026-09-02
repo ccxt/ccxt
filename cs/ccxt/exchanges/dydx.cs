@@ -554,7 +554,7 @@ public partial class dydx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    public async override Task<object> fetchTime(object parameters = null)
+    public async override Task<Int64> FetchTime(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.indexerGetTime(parameters);
@@ -564,7 +564,7 @@ public partial class dydx : Exchange
         //     "epoch": 1753024333.466
         // }
         //
-        return this.safeInteger(response, "epoch");
+        return ccxt.BaseExchange.ToInt64Value(this.safeInteger(response, "epoch"));
     }
 
     public override object parseMarket(object market)
@@ -1876,7 +1876,7 @@ public partial class dydx : Exchange
      * @param {int} [params.subAccountId] sub account id, default is 0
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelOrders(object ids, string symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> CancelOrders(object ids, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1939,9 +1939,7 @@ public partial class dydx : Exchange
         // }
         //
         object result = this.safeDict(response, "result");
-        return new List<object> {this.safeOrder(new Dictionary<string, object>() {
-    { "info", result },
-})};
+        return ccxt.BaseExchange.ToOrderList(new List<object> {this.safeOrder(new Dictionary<string, object>() {     { "info", result }, })});
     }
 
     /**
@@ -1954,7 +1952,7 @@ public partial class dydx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1982,7 +1980,7 @@ public partial class dydx : Exchange
         //     ]
         // }
         //
-        return this.parseOrderBook(response, getValue(market, "symbol"), null, "bids", "asks", "price", "size");
+        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, getValue(market, "symbol"), null, "bids", "asks", "price", "size"));
     }
 
     public override object parseLedgerEntry(object item, object currency = null)
@@ -2157,7 +2155,7 @@ public partial class dydx : Exchange
      * @param {string} [params.vaultAddress] the vault address for order
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public async override Task<object> transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
+    public async override Task<ccxt.TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(!isEqual(code, "USDC")))
@@ -2250,7 +2248,7 @@ public partial class dydx : Exchange
         //     }
         // }
         //
-        return this.parseTransfer(response);
+        return ccxt.BaseExchange.ToTransferEntry(this.parseTransfer(response));
     }
 
     public override object parseTransfer(object transfer, object currency = null)

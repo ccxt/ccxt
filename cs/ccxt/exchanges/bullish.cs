@@ -554,7 +554,7 @@ public partial class bullish : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    public async override Task<object> fetchTime(object parameters = null)
+    public async override Task<Int64> FetchTime(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetV1Time(parameters);
@@ -564,7 +564,7 @@ public partial class bullish : Exchange
         //         "timestamp": 1746475550999
         //     }
         //
-        return this.safeInteger(response, "timestamp");
+        return ccxt.BaseExchange.ToInt64Value(this.safeInteger(response, "timestamp"));
     }
 
     /**
@@ -1035,7 +1035,7 @@ public partial class bullish : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1067,7 +1067,7 @@ public partial class bullish : Exchange
         //     }
         //
         object timestamp = this.safeInteger(response, "timestamp");
-        return this.parseOrderBook(response, symbol, timestamp, "bids", "asks", "price", "priceLevelQuantity");
+        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, symbol, timestamp, "bids", "asks", "price", "priceLevelQuantity"));
     }
 
     /**
@@ -3022,7 +3022,7 @@ public partial class bullish : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public async override Task<object> transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
+    public async override Task<ccxt.TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await promiseAll(new List<object> {this.loadMarkets(), this.handleToken()});
@@ -3052,7 +3052,7 @@ public partial class bullish : Exchange
             ((IDictionary<string,object>)transfer)["amount"] = amount;
             ((IDictionary<string,object>)transfer)["currency"] = code;
         }
-        return transfer;
+        return ccxt.BaseExchange.ToTransferEntry(transfer);
     }
 
     public override object parseTransfer(object transfer, object currency = null)
@@ -3122,7 +3122,7 @@ public partial class bullish : Exchange
      * @param {string} params.tradingAccountId the trading account id
      * @returns {object[]} an array of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
      */
-    public async virtual Task<object> fetchBorrowRateHistory(object code, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async virtual Task<List<Dictionary<string, object>>> FetchBorrowRateHistory(object code, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await promiseAll(new List<object> {this.loadMarkets(), this.handleToken()});
@@ -3162,7 +3162,7 @@ public partial class bullish : Exchange
         //         }
         //     ]
         //
-        return this.parseBorrowRateHistory(response, code, since, limit);
+        return ccxt.BaseExchange.ToDictList(this.parseBorrowRateHistory(response, code, since, limit));
     }
 
     public override object parseBorrowRate(object info, object currency = null)

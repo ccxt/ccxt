@@ -609,7 +609,7 @@ public partial class p2b : Exchange
      * @param {string} [params.interval] 0 (default), 0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -652,7 +652,7 @@ public partial class p2b : Exchange
         //
         object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
         object timestamp = this.safeIntegerProduct(response, "current_time", 1000);
-        return this.parseOrderBook(result, getValue(market, "symbol"), timestamp, "bids", "asks", 0, 1);
+        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(result, getValue(market, "symbol"), timestamp, "bids", "asks", 0, 1));
     }
 
     /**

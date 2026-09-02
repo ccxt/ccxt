@@ -354,7 +354,7 @@ public partial class apex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    public async override Task<object> fetchTime(object parameters = null)
+    public async override Task<Int64> FetchTime(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetV3Time(parameters);
@@ -365,7 +365,7 @@ public partial class apex : Exchange
         //    "time": 1738837534454
         //     }
         // }
-        return this.safeInteger(data, "time");
+        return ccxt.BaseExchange.ToInt64Value(this.safeInteger(data, "time"));
     }
 
     public override object parseBalance(object response)
@@ -956,7 +956,7 @@ public partial class apex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
@@ -1004,7 +1004,7 @@ public partial class apex : Exchange
         Int64 timestamp = this.milliseconds();
         object orderbook = this.parseOrderBook(data, getValue(market, "symbol"), timestamp, "b", "a");
         ((IDictionary<string,object>)orderbook)["nonce"] = this.safeInteger(data, "u");
-        return orderbook;
+        return ccxt.BaseExchange.ToOrderBook(orderbook);
     }
 
     /**
@@ -1596,7 +1596,7 @@ public partial class apex : Exchange
      * @param {string} [params.transferId] UUID, which is unique across the platform
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public async override Task<object> transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
+    public async override Task<ccxt.TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1687,13 +1687,7 @@ public partial class apex : Exchange
             object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
             Int64 currentTime = this.milliseconds();
             object parsedAmount = this.parseNumber(amount);
-            return this.extend(this.parseTransfer(data, this.currency(code)), new Dictionary<string, object>() {
-                { "timestamp", currentTime },
-                { "datetime", this.iso8601(currentTime) },
-                { "amount", parsedAmount },
-                { "fromAccount", "contract" },
-                { "toAccount", "spot" },
-            });
+            return ccxt.BaseExchange.ToTransferEntry(this.extend(this.parseTransfer(data, this.currency(code)), new Dictionary<string, object>() {                 { "timestamp", currentTime },                 { "datetime", this.iso8601(currentTime) },                 { "amount", parsedAmount },                 { "fromAccount", "contract" },                 { "toAccount", "spot" },             }));
         } else
         {
             object orderToSign = new Dictionary<string, object>() {
@@ -1729,13 +1723,7 @@ public partial class apex : Exchange
             object response = await this.privatePostV3TransferOut(this.extend(request, parameters));
             object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
             Int64 currentTime = this.milliseconds();
-            return this.extend(this.parseTransfer(data, this.currency(code)), new Dictionary<string, object>() {
-                { "timestamp", currentTime },
-                { "datetime", this.iso8601(currentTime) },
-                { "amount", this.parseNumber(amount) },
-                { "fromAccount", "spot" },
-                { "toAccount", "contract" },
-            });
+            return ccxt.BaseExchange.ToTransferEntry(this.extend(this.parseTransfer(data, this.currency(code)), new Dictionary<string, object>() {                 { "timestamp", currentTime },                 { "datetime", this.iso8601(currentTime) },                 { "amount", this.parseNumber(amount) },                 { "fromAccount", "spot" },                 { "toAccount", "contract" },             }));
         }
     }
 
@@ -2100,7 +2088,7 @@ public partial class apex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public async override Task<object> setLeverage(object leverage, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetLeverage(object leverage, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -2120,7 +2108,7 @@ public partial class apex : Exchange
         };
         object response = await this.privatePostV3SetInitialMarginRate(this.extend(request, parameters));
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return data;
+        return ccxt.BaseExchange.ToDict(data);
     }
 
     /**
