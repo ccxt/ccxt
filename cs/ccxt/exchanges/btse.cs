@@ -1688,7 +1688,10 @@ public partial class btse : Exchange
         object nextFundingTimestamp = this.safeIntegerOmitZero(contract, "nextFundingTime");
         object fundingIntervalMinutes = this.safeInteger(contract, "fundingIntervalMinutes");
         object interval = null;
-        if (isTrue(!isEqual(fundingIntervalMinutes, null)))
+        // a wire value of zero minutes reaches this, and zero hours is not an
+        // interval: a caller annualising a rate divides by it. anything under an
+        // hour rounds to the same string, and the vocabulary has no minutes
+        if (isTrue(isTrue((!isEqual(fundingIntervalMinutes, null))) && isTrue((isGreaterThanOrEqual(fundingIntervalMinutes, 60)))))
         {
             object hours = this.parseToInt(divide(fundingIntervalMinutes, 60));
             interval = add(((object)hours).ToString(), "h");
