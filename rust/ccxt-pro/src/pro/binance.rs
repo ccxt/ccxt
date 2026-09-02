@@ -49,6 +49,20 @@ impl BinanceCore {
         if matches!(__described_rate_limit, crate::Value::Int(_) | crate::Value::Float(_))
             && matches!(self.rateLimit, crate::Value::Int(2000)) {
             self.rateLimit = __described_rate_limit;
+            // The token bucket was already built by after_construct (inside
+            // Exchange::new), i.e. BEFORE the line above corrected rateLimit,
+            // so it carries refillRate = 1/2000 and the limiter spaces every
+            // venue at the base 2000ms rather than its declared rate - binance
+            // 40x too slow, kucoin 267x. TS has no such window: its constructor
+            // applies describe() first and only then runs initRestRateLimiter.
+            // Rebuild the bucket now that rateLimit is right. tokenBucket is
+            // reset first because initRestRateLimiter does extend(default,
+            // existing) and existing wins, so the stale refillRate would
+            // otherwise survive. Resetting loses nothing: no venue declares a
+            // tokenBucket in describe() and apply_config does not accept one,
+            // so the current value is only ever the stale default.
+            self.tokenBucket = crate::Value::Map(indexmap::IndexMap::new());
+            crate::exchange_generated::ExchangeBase::init_rest_rate_limiter(self);
         }
         // Merge describe() options INTO whatever apply_config (or
         // earlier setup) already populated. Caller-supplied options
