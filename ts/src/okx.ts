@@ -3603,10 +3603,10 @@ export default class okx extends Exchange {
                 request['ordId'] = id;
             }
         }
-        let stopLossTriggerPrice = this.safeValue2 (params, 'stopLossPrice', 'newSlTriggerPx');
+        let stopLossTriggerPrice: Num = this.safeNumber2 (params, 'stopLossPrice', 'newSlTriggerPx');
         let stopLossPrice = this.safeNumber (params, 'newSlOrdPx');
         const stopLossTriggerPriceType = this.safeString (params, 'newSlTriggerPxType', 'last');
-        let takeProfitTriggerPrice = this.safeValue2 (params, 'takeProfitPrice', 'newTpTriggerPx');
+        let takeProfitTriggerPrice: Num = this.safeNumber2 (params, 'takeProfitPrice', 'newTpTriggerPx');
         let takeProfitPrice = this.safeNumber (params, 'newTpOrdPx');
         const takeProfitTriggerPriceType = this.safeString (params, 'newTpTriggerPxType', 'last');
         const stopLoss = this.safeValue (params, 'stopLoss');
@@ -5429,7 +5429,7 @@ export default class okx extends Exchange {
         //     },
         //
         if (chain === 'USDT-Polygon') {
-            networkData = this.safeValue2 (networksById, 'USDT-Polygon-Bridge', 'USDT-Polygon');
+            networkData = this.safeDict2 (networksById, 'USDT-Polygon-Bridge', 'USDT-Polygon');
         }
         const network = this.safeString (networkData, 'network');
         const networkCode = this.networkIdToCode (network, code);
