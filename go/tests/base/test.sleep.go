@@ -29,7 +29,14 @@ func testSleepBody(ch chan any) any {
 	// (some runtimes, e.g. .NET ccxt.Task.Delay, may return a few ms early)
 	var marginOfError any = 20
 	var minElapsed any = ccxt.Subtract(sleepAmount, marginOfError)
-	var maxElapsed any = ccxt.Add(sleepAmount, marginOfError)
+	// The ceiling is deliberately far looser than the floor. sleep () promises
+	// a MINIMUM delay in every language, never a maximum: the OS is free to
+	// reschedule late, so a busy machine or a parallel CI runner overshoots by
+	// tens of ms with nothing wrong. Keep a ceiling only to catch a sleep that
+	// is genuinely broken — a seconds/milliseconds mix-up, or one that never
+	// returns.
+	var maxOvershoot any = 2000
+	var maxElapsed any = ccxt.Add(sleepAmount, maxOvershoot)
 	var elapsedBiggerThanSleep bool = ccxt.IsGreaterThanOrEqual(elapsed, minElapsed)
 	var elapsedLessThanMax bool = ccxt.IsLessThanOrEqual(elapsed, maxElapsed)
 	assert(elapsedBiggerThanSleep, ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add("Elapsed time ", ccxt.ToString(elapsed)), "ms is less than minimum "), ccxt.ToString(minElapsed)), "ms (sleep amount "), ccxt.ToString(sleepAmount)), "ms)"))
