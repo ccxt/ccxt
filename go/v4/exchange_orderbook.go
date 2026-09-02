@@ -148,19 +148,25 @@ func (this *WsOrderBook) Limit() any {
 
 func (this *WsOrderBook) Update(snapshot any) any {
 	// Convert JavaScript logic to Go
-	nonce := this.Nonce
-	if nonce == nil {
-		nonce = 0
+	// ws messages are parsed with encoding/json, so numeric fields arrive as
+	// float64 (or json.Number / int / string depending on the transport) —
+	// normalize through ParseInt instead of asserting one concrete type
+	nonce := ParseInt(this.Nonce)
+	snapshotMap, ok := snapshot.(map[string]any)
+	if !ok {
+		return this
 	}
-	if snapshotNonce, ok := snapshot.(map[string]any)["nonce"]; ok {
-		if nonce != 0 && snapshotNonce.(int64) <= nonce.(int64) {
+	if snapshotNonce, ok := snapshotMap["nonce"]; ok && snapshotNonce != nil {
+		snapshotNonceInt := ParseInt(snapshotNonce)
+		if nonce != 0 && snapshotNonceInt <= nonce {
 			return this
 		}
-		this.Nonce = snapshotNonce.(int64)
+		this.Nonce = snapshotNonceInt
 	}
 
-	if timestamp, ok := snapshot.(map[string]any)["timestamp"]; ok {
-		if ts, ok2 := timestamp.(int64); ok2 {
+	if timestamp, ok := snapshotMap["timestamp"]; ok && timestamp != nil {
+		ts := ParseInt(timestamp)
+		if ts != math.MinInt64 {
 			this.Timestamp = &ts
 			this.Datetime = Iso8601(ts)
 		}
