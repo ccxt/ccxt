@@ -8,6 +8,15 @@
     ],
     "outputType": "urlencoded",
     "methods": {
+        "accountV1PrivateGetAccountApiRestrictions": [
+            {
+                "description": "fetch API key restrictions",
+                "method": "accountV1PrivateGetAccountApiRestrictions",
+                "url": "https://open-api.bingx.com/openApi/v1/account/apiRestrictions?timestamp=1769192577322&signature=cb79b63f775ebb592910f320f38c5e2bbf36a8eaac8619e948b017710fb9e1d2",
+                "input": [],
+                "output": null
+            }
+        ],
         "fetchFundingHistory": [
             {
                 "description": "fetchFundingHistory",
@@ -1285,6 +1294,19 @@
                 "method": "fetchDeposits",
                 "url": "https://open-api.bingx.com/openApi/api/v3/capital/deposit/hisrec?timestamp=1699458296035&signature=10ada6f50500dd8090dfb7ecb8c03d093a7278b66be5568f03ad7e0dc4c3b371",
                 "input": []
+            },
+            {
+                "description": "Fetch deposits with time range and capped limit",
+                "method": "fetchDeposits",
+                "url": "https://open-api.bingx.com/openApi/api/v3/capital/deposit/hisrec?endTime=1721961000000&limit=1000&startTime=1721356200000&timestamp=1699458296035&signature=10ada6f50500dd8090dfb7ecb8c03d093a7278b66be5568f03ad7e0dc4c3b371",
+                "input": [
+                    null,
+                    1721356200000,
+                    1500,
+                    {
+                        "until": 1721961000000
+                    }
+                ]
             }
         ],
         "fetchWithdrawals": [
@@ -1293,6 +1315,19 @@
                 "method": "fetchWithdrawals",
                 "url": "https://open-api.bingx.com/openApi/api/v3/capital/withdraw/history?timestamp=1699460637810&signature=b11060a953c0a537fba24da3346f55d0a05196748704bc34f40fcfbf0b0a4ea6",
                 "input": []
+            },
+            {
+                "description": "Fetch withdrawals with time range and capped limit",
+                "method": "fetchWithdrawals",
+                "url": "https://open-api.bingx.com/openApi/api/v3/capital/withdraw/history?endTime=1721961000000&limit=1000&startTime=1721356200000&timestamp=1699460637810&signature=b11060a953c0a537fba24da3346f55d0a05196748704bc34f40fcfbf0b0a4ea6",
+                "input": [
+                    null,
+                    1721356200000,
+                    1500,
+                    {
+                        "until": 1721961000000
+                    }
+                ]
             }
         ],
         "transfer": [
@@ -1751,11 +1786,33 @@
                 ]
             },
             {
+                "description": "spot ohlcv caps limit",
+                "method": "fetchOHLCV",
+                "url": "https://open-api.bingx.com/openApi/spot/v1/market/kline?interval=1m&limit=1440&symbol=BTC-USDT&timeZone=0&timestamp=1709992986762",
+                "input": [
+                    "BTC/USDT",
+                    "1m",
+                    null,
+                    1500
+                ]
+            },
+            {
                 "description": "swap ohlcv",
                 "method": "fetchOHLCV",
                 "url": "https://open-api.bingx.com/openApi/swap/v3/quote/klines?interval=1m&symbol=BTC-USDT&timestamp=1709992987069",
                 "input": [
                     "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "swap ohlcv caps limit",
+                "method": "fetchOHLCV",
+                "url": "https://open-api.bingx.com/openApi/swap/v3/quote/klines?interval=1m&limit=1440&symbol=BTC-USDT&timestamp=1709992987069",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1m",
+                    null,
+                    1500
                 ]
             },
             {
@@ -1767,6 +1824,27 @@
                   "1m",
                   null,
                   3
+                ]
+            },
+            {
+                "description": "inverse swap ohlcv bounds since and caps limit",
+                "method": "fetchOHLCV",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/market/klines?endTime=1720132800000&interval=1m&limit=1000&startTime=1720072799999&symbol=BTC-USD&timestamp=1720124710777",
+                "input": [
+                  "BTC/USD:BTC",
+                  "1m",
+                  1720072800000,
+                  1500
+                ]
+            },
+            {
+                "description": "inverse swap ohlcv bounds since with default limit",
+                "method": "fetchOHLCV",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/market/klines?endTime=1720102800000&interval=1m&startTime=1720072799999&symbol=BTC-USD&timestamp=1720124710777",
+                "input": [
+                  "BTC/USD:BTC",
+                  "1m",
+                  1720072800000
                 ]
             }
         ],

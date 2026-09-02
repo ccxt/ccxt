@@ -8,7 +8,6 @@ from ccxt.abstract.alpaca import ImplicitAPI
 from ccxt.base.types import Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
-from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
@@ -420,12 +419,14 @@ class alpaca(Exchange, ImplicitAPI):
                     '40410000': InvalidOrder,  # {"code": 40410000, "message": "order is not found."}
                     '40010001': BadRequest,  # {"code":40010001,"message":"invalid order type for crypto order"}
                     '40110000': PermissionDenied,  # {"code": 40110000, "message": "request is not authorized"}
-                    '40310000': InsufficientFunds,  # {"available":"0","balance":"0","code":40310000,"message":"insufficient balance for USDT(requested: 221.63, available: 0)","symbol":"USDT"}
                     '42910000': RateLimitExceeded,  # {"code":42910000,"message":"rate limit exceeded"}
                 },
                 'broad': {
                     'Invalid format for parameter': BadRequest,  # {"message":"Invalid format for parameter start: error parsing '0' or 2006-01-02 time: parsing time \"0\" as \"2006-01-02\": cannot parse \"0\" as \"2006\""}
                     'Invalid symbol': BadSymbol,  # {"message":"Invalid symbol(s): BTC/USDdsda does not match ^[A-Z]+/[A-Z]+$"}
+                    'cost basis must be': InvalidOrder,  # {"code":40310000,"message":"cost basis must be >= minimal amount of order 10"}
+                    'insufficient balance for': InsufficientFunds,  # {"available":"0","balance":"0","code":40310000,"message":"insufficient balance for USDT(requested: 221.63, available: 0)","symbol":"USDT"}
+                    'orders are rejected by user request': PermissionDenied,  # {"code":40310000,"message":"new orders are rejected by user request"} — the account has suspend_trade enabled
                 },
             },
         })
@@ -746,6 +747,9 @@ class alpaca(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: timestamp in ms of the latest candle to fetch
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param int [params.paginationCalls]: the maximum number of requests while following next_page_token, default 10 — when the cap is reached the result is silently truncated to the pages already fetched, so raise it for long ranges, 10 requests cover roughly 30 days of 1h candles
         :param str [params.loc]: crypto location, default: us
         :param str [params.method]: method, default: marketPublicGetV1beta3CryptoLocBars
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
@@ -756,6 +760,10 @@ class alpaca(Exchange, ImplicitAPI):
         marketId = market['id']
         loc = self.safe_string(params, 'loc', 'us')
         method = self.safe_string(params, 'method', 'marketPublicGetV1beta3CryptoLocBars')
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate', False)
+        paginationCalls = 10
+        paginationCalls, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginationCalls', 10)
         request = {
             'symbols': marketId,
             'loc': loc,
@@ -766,7 +774,11 @@ class alpaca(Exchange, ImplicitAPI):
             if limit is not None:
                 request['limit'] = limit
             if since is not None:
-                request['start'] = self.yyyymmdd(since)
+                request['start'] = self.iso8601(since)
+            until = self.safe_integer(params, 'until')
+            if until is not None:
+                params = self.omit(params, 'until')
+                request['end'] = self.iso8601(until)
             request['timeframe'] = self.safe_string(self.timeframes, timeframe, timeframe)
             response = self.marketPublicGetV1beta3CryptoLocBars(self.extend(request, params))
             #
@@ -800,6 +812,22 @@ class alpaca(Exchange, ImplicitAPI):
             #
             bars = self.safe_dict(response, 'bars', {})
             ohlcvs = self.safe_list(bars, marketId, [])
+            if paginate:
+                # the endpoint answers with a server-sized page plus a next_page_token regardless of the requested limit
+                pageToken = self.safe_string(response, 'next_page_token')
+                for i in range(1, paginationCalls):
+                    ohlcvsLength = len(ohlcvs)
+                    if (pageToken is None) or ((limit is not None) and (ohlcvsLength >= limit)):
+                        break
+                    request['page_token'] = pageToken
+                    response = self.marketPublicGetV1beta3CryptoLocBars(self.extend(request, params))
+                    bars = self.safe_dict(response, 'bars', {})
+                    page = self.safe_list(bars, marketId, [])
+                    pageLength = len(page)
+                    if pageLength == 0:
+                        break
+                    ohlcvs = self.array_concat(ohlcvs, page)
+                    pageToken = self.safe_string(response, 'next_page_token')
         elif method == 'marketPublicGetV1beta3CryptoLocLatestBars':
             response = self.marketPublicGetV1beta3CryptoLocLatestBars(self.extend(request, params))
             #
@@ -872,15 +900,17 @@ class alpaca(Exchange, ImplicitAPI):
 
         https://docs.alpaca.markets/reference/cryptosnapshots-1
 
-        :param str[] symbols: unified symbols of the markets to fetch tickers for
+        :param str[] [symbols]: unified symbols of the markets to fetch tickers for, defaults to all markets
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.loc]: crypto location, default: us
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        if symbols is None:
-            raise ArgumentsRequired(self.id + ' fetchTickers() requires a symbols argument')
         if self.markets is None:
             self.load_markets()
+        if symbols is None:
+            # every listed market is a crypto market because fetchMarkets requests asset_class=crypto, so default to all of them
+            allSymbols = self.sort(self.symbols)  # symbol iteration order differs per language
+            symbols = allSymbols
         symbols = self.market_symbols(symbols)
         loc = self.safe_string(params, 'loc', 'us')
         ids = self.market_ids(symbols)
@@ -1996,9 +2026,13 @@ class alpaca(Exchange, ImplicitAPI):
         errorCode = self.safe_string(response, 'code')
         if code is not None:
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
-        message = self.safe_value(response, 'message')
+        message = self.safe_string(response, 'message')
         if message is not None:
             self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
-            raise ExchangeError(feedback)
+            codeAsString = str(code)
+            if (code < 400) or not (codeAsString in self.httpExceptions):
+                # an error envelope must always raise — also for statuses the http-status handler has no entry for
+                raise ExchangeError(feedback)
+            # unmapped messages on the remaining error statuses fall through to the default http-status handler
         return None

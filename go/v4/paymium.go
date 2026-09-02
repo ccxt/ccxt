@@ -594,7 +594,7 @@ func (this *PaymiumCore) fetchDepositAddressesBody(ch chan any, optionalArgs ...
 	//         }
 	//     ]
 	//
-	ch <- this.ParseDepositAddresses(response, codes)
+	ch <- this.ParseDepositAddresses(response, codes, false)
 	return nil
 }
 func (this *PaymiumCore) ParseDepositAddress(depositAddress any, optionalArgs ...any) any {

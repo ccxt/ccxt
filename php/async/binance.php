@@ -882,7 +882,7 @@ class binance extends Exchange {
                         'premiumIndex' => array( 'cost' => 1 ),
                         'ticker/24hr' => array( 'cost' => 1, 'noSymbol' => 40 ),
                         'ticker/price' => array( 'cost' => 1, 'noSymbol' => 2 ),
-                        'ticker/bookTicker' => array( 'cost' => 1, 'noSymbol' => 2 ),
+                        'ticker/bookTicker' => array( 'cost' => 2, 'noSymbol' => 5 ),
                         'openInterest' => array( 'cost' => 1 ),
                         'indexInfo' => array( 'cost' => 1 ),
                         'assetIndex' => array( 'cost' => 1, 'noSymbol' => 10 ),
@@ -1355,7 +1355,7 @@ class binance extends Exchange {
                         'spot', // allows CORS in browsers
                         'linear', // allows CORS in browsers
                         'inverse', // allows CORS in browsers
-                        'stock',
+                        // 'stock', // tokenized stocks share the spot symbol namespace, enable explicitly
                         // 'option', // does not allow CORS, enable outside of the browser only
                     ),
                     'loadAllOptions' => false,
@@ -4774,21 +4774,30 @@ class binance extends Exchange {
         list($type, $params) = $this->handle_market_type_and_params('fetchBidsAsks', $market, $params);
         $subType = null;
         list($subType, $params) = $this->handle_sub_type_and_params('fetchBidsAsks', $market, $params);
+        $request = array();
+        if (($symbols !== null) && ($this->is_linear($type, $subType) || $this->is_inverse($type, $subType))) {
+            $symbolsLength = count($symbols);
+            if ($symbolsLength === 1) {
+                $request['symbol'] = $this->market_id($symbols[0]);
+            }
+        }
         $response = null;
         if ($type === 'option') {
             $response = Async\await($this->eapiPublicGetTicker($params));
         } elseif ($this->is_linear($type, $subType)) {
-            $response = Async\await($this->fapiPublicGetTickerBookTicker($params));
+            $response = Async\await($this->fapiPublicGetTickerBookTicker($this->extend($request, $params)));
         } elseif ($this->is_inverse($type, $subType)) {
-            $response = Async\await($this->dapiPublicGetTickerBookTicker($params));
+            $response = Async\await($this->dapiPublicGetTickerBookTicker($this->extend($request, $params)));
         } elseif ($type === 'spot') {
-            $request = array();
             if ($symbols !== null) {
                 $request['symbols'] = $this->json($this->market_ids($symbols));
             }
             $response = Async\await($this->publicGetTickerBookTicker($this->extend($request, $params)));
         } else {
             throw new NotSupported($this->id . ' fetchBidsAsks() does not support ' . $type . ' markets yet');
+        }
+        if ((gettype($response) !== 'array' || array_keys($response) !== array_keys(array_keys($response)))) {
+            $response = array( $response );
         }
         return $this->parse_tickers($response, $symbols);
     }

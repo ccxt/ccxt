@@ -461,6 +461,7 @@ class bingx(Exchange, ImplicitAPI):
                                 'uid': {'cost': 1},
                                 'apiKey/query': {'cost': 2},
                                 'account/apiPermissions': {'cost': 5},
+                                'account/apiRestrictions': {'cost': 5},
                                 'allAccountBalance': {'cost': 2},
                             },
                             'post': {
@@ -746,6 +747,10 @@ class bingx(Exchange, ImplicitAPI):
                 },
                 'defaultForInverse': {
                     'extends': 'defaultForLinear',
+                    'createOrders': None,
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
                     'fetchMyTrades': {
                         'limit': 1000,
                         'daysBack': None,
@@ -1062,6 +1067,8 @@ class bingx(Exchange, ImplicitAPI):
             isActive = True  # swap active
         elif (self.safe_bool(market, 'apiStateSell') is True) and (self.safe_bool(market, 'apiStateBuy') is True) and (self.safe_string(market, 'status') == '1'):
             isActive = True  # spot active
+        elif checkIsInverse and (self.safe_string(market, 'status') == '1'):
+            isActive = True  # inverse swap active
         isInverse = None if (spot) else checkIsInverse
         isLinear = None if (spot) else checkIsLinear
         minAmount = None
@@ -1158,7 +1165,7 @@ class bingx(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
-        :param int [limit]: the maximum amount of candles to fetch
+        :param int [limit]: the maximum amount of candles to fetch(max 1000 for inverse swaps, 1440 otherwise)
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest candle to fetch
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
@@ -1166,23 +1173,28 @@ class bingx(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
+        market = self.market(symbol)
+        maxLimit = 1000 if (market['inverse'] is True) else 1440
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate', False)
         if paginate:
-            return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 1440)
-        market = self.market(symbol)
+            return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimit)
         request = {
             'symbol': market['id'],
         }
         request['interval'] = self.safe_string(self.timeframes, timeframe, timeframe)
+        requestLimit = 500 if (limit is None) else min(limit, maxLimit)
         if since is not None:
             request['startTime'] = max(since - 1, 0)
         if limit is not None:
-            request['limit'] = limit
+            request['limit'] = requestLimit
         until = self.safe_integer_2(params, 'until', 'endTime')
         if until is not None:
             params = self.omit(params, ['until'])
             request['endTime'] = until
+        elif (market['inverse'] is True) and (since is not None):
+            duration = self.parse_timeframe(timeframe) * 1000
+            request['endTime'] = self.sum(since, duration * requestLimit)
         response: dict
         if market['spot'] is True:
             # bingx spot klines are anchored to UTC+8 by default, unlike the swap klines and other exchanges
@@ -3305,7 +3317,7 @@ class bingx(Exchange, ImplicitAPI):
         https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Place%20multiple%20orders
         https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Place%20multiple%20orders
 
-        :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+        :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params, linear swap and spot only
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.sync]: *spot only* if True, multiple orders are ordered serially and all orders do not require the same symbol/side/type
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
@@ -3328,6 +3340,8 @@ class bingx(Exchange, ImplicitAPI):
         symbols = self.market_symbols(marketIds, None, False, True, True)
         symbolsLength = len(symbols)
         market = self.market(symbols[0])
+        if market['inverse'] is True:
+            raise NotSupported(self.id + ' createOrders() is not supported for inverse swap markets')
         request = {}
         response: dict | string
         if market['swap'] is True:
@@ -4978,17 +4992,23 @@ class bingx(Exchange, ImplicitAPI):
             'amount': self.currency_to_precision(code, amount),
         }
         response = self.apiAssetV1PrivatePostTransfer(self.extend(request, params))
+        data = self.safe_dict(response, 'data', {})
+        timestamp = self.safe_integer(response, 'timestamp')
         #
         #     {
-        #         "tranId": 1933130865269936128,
-        #         "transferId": "1051450703949464903736"
+        #         "code": "0",
+        #         "timestamp": "1752202170686",
+        #         "data": {
+        #             "tranId": "1943502883135819776",
+        #             "transferId": "1051461075875997081703"
+        #         }
         #     }
         #
         return {
             'info': response,
-            'id': self.safe_string(response, 'transferId'),
-            'timestamp': None,
-            'datetime': None,
+            'id': self.safe_string_2(data, 'transferId', 'tranId'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
             'currency': code,
             'amount': amount,
             'fromAccount': fromAccount,
@@ -5172,7 +5192,7 @@ class bingx(Exchange, ImplicitAPI):
         currencyId = self.safe_string(depositAddress, 'coin')
         currency = self.safe_currency(currencyId, currency)
         code = currency['code']
-        address = self.safe_string(depositAddress, 'addressWithPrefix')
+        address = self.safe_string_2(depositAddress, 'addressWithPrefix', 'address')
         networkId = self.safe_string(depositAddress, 'network')
         networkCode = self.network_id_to_code(networkId, code)
         # despite its name the addressWithPrefix field sometimes arrives without
@@ -5201,6 +5221,7 @@ class bingx(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch deposits for
         :param int [limit]: the maximum number of deposits structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: the latest time in ms to fetch deposits for
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         if self.markets is None:
@@ -5214,7 +5235,8 @@ class bingx(Exchange, ImplicitAPI):
         if since is not None:
             request['startTime'] = since
         if limit is not None:
-            request['limit'] = limit  # default 1000
+            request['limit'] = min(limit, 1000)  # api maximum 1000
+        request, params = self.handle_until_option('endTime', request, params)
         response = self.spotV3PrivateGetCapitalDepositHisrec(self.extend(request, params))
         #
         #    [
@@ -5245,6 +5267,7 @@ class bingx(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch withdrawals for
         :param int [limit]: the maximum number of withdrawals structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: the latest time in ms to fetch withdrawals for
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         if self.markets is None:
@@ -5258,7 +5281,8 @@ class bingx(Exchange, ImplicitAPI):
         if since is not None:
             request['startTime'] = since
         if limit is not None:
-            request['limit'] = limit  # default 1000
+            request['limit'] = min(limit, 1000)  # api maximum 1000
+        request, params = self.handle_until_option('endTime', request, params)
         response = self.spotV3PrivateGetCapitalWithdrawHistory(self.extend(request, params))
         #
         #    [
@@ -6662,7 +6686,8 @@ class bingx(Exchange, ImplicitAPI):
                 type = 'api/asset'
             version = section[2]
             access = section[3]
-        if path != 'account/apiPermissions':
+        flatAccountPaths = ['account/apiPermissions', 'account/apiRestrictions']
+        if not self.in_array(path, flatAccountPaths):
             if type == 'spot' and version == 'v3':
                 url += '/api'
             else:

@@ -6,7 +6,7 @@ export default class p2b extends p2bRest {
     /**
      * @ignore
      * @method
-     * @description Connects to a websocket channel
+     * @description connects to a websocket channel
      * @param {string} name name of the channel
      * @param {string} messageHash string to look up in handler
      * @param {string[]|float[]} request endpoint parameters

@@ -518,12 +518,14 @@ public partial class alpaca : Exchange
                     { "40410000", typeof(InvalidOrder) },
                     { "40010001", typeof(BadRequest) },
                     { "40110000", typeof(PermissionDenied) },
-                    { "40310000", typeof(InsufficientFunds) },
                     { "42910000", typeof(RateLimitExceeded) },
                 } },
                 { "broad", new Dictionary<string, object>() {
                     { "Invalid format for parameter", typeof(BadRequest) },
                     { "Invalid symbol", typeof(BadSymbol) },
+                    { "cost basis must be", typeof(InvalidOrder) },
+                    { "insufficient balance for", typeof(InsufficientFunds) },
+                    { "orders are rejected by user request", typeof(PermissionDenied) },
                 } },
             } },
         });
@@ -888,6 +890,9 @@ public partial class alpaca : Exchange
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @param {int} [params.paginationCalls] the maximum number of requests while following next_page_token, default 10 — when the cap is reached the result is silently truncated to the pages already fetched, so raise it for long ranges, 10 requests cover roughly 30 days of 1h candles
      * @param {string} [params.loc] crypto location, default: us
      * @param {string} [params.method] method, default: marketPublicGetV1beta3CryptoLocBars
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
@@ -905,6 +910,14 @@ public partial class alpaca : Exchange
         object marketId = getValue(market, "id");
         object loc = this.safeString(parameters, "loc", "us");
         object method = this.safeString(parameters, "method", "marketPublicGetV1beta3CryptoLocBars");
+        object paginate = false;
+        var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
+        paginate = ((IList<object>)paginateparametersVariable)[0];
+        parameters = ((IList<object>)paginateparametersVariable)[1];
+        object paginationCalls = 10;
+        var paginationCallsparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "paginationCalls", 10);
+        paginationCalls = ((IList<object>)paginationCallsparametersVariable)[0];
+        parameters = ((IList<object>)paginationCallsparametersVariable)[1];
         object request = new Dictionary<string, object>() {
             { "symbols", marketId },
             { "loc", loc },
@@ -919,7 +932,13 @@ public partial class alpaca : Exchange
             }
             if (isTrue(!isEqual(since, null)))
             {
-                ((IDictionary<string,object>)request)["start"] = this.yyyymmdd(since);
+                ((IDictionary<string,object>)request)["start"] = this.iso8601(since);
+            }
+            object until = this.safeInteger(parameters, "until");
+            if (isTrue(!isEqual(until, null)))
+            {
+                parameters = this.omit(parameters, "until");
+                ((IDictionary<string,object>)request)["end"] = this.iso8601(until);
             }
             ((IDictionary<string,object>)request)["timeframe"] = this.safeString(this.timeframes, timeframeVar, timeframeVar);
             object response = await this.marketPublicGetV1beta3CryptoLocBars(this.extend(request, parameters));
@@ -954,6 +973,30 @@ public partial class alpaca : Exchange
             //
             object bars = this.safeDict(response, "bars", new Dictionary<string, object>() {});
             ohlcvs = this.safeList(bars, marketId, new List<object>() {});
+            if (isTrue(paginate))
+            {
+                // the endpoint answers with a server-sized page plus a next_page_token regardless of the requested limit
+                object pageToken = this.safeString(response, "next_page_token");
+                for (object i = 1; isLessThan(i, paginationCalls); postFixIncrement(ref i))
+                {
+                    int ohlcvsLength = getArrayLength(ohlcvs);
+                    if (isTrue(isTrue((isEqual(pageToken, null))) || isTrue((isTrue((!isEqual(limit, null))) && isTrue((isGreaterThanOrEqual(ohlcvsLength, limit)))))))
+                    {
+                        break;
+                    }
+                    ((IDictionary<string,object>)request)["page_token"] = pageToken;
+                    response = await this.marketPublicGetV1beta3CryptoLocBars(this.extend(request, parameters));
+                    bars = this.safeDict(response, "bars", new Dictionary<string, object>() {});
+                    object page = this.safeList(bars, marketId, new List<object>() {});
+                    int pageLength = getArrayLength(page);
+                    if (isTrue(isEqual(pageLength, 0)))
+                    {
+                        break;
+                    }
+                    ohlcvs = this.arrayConcat(ohlcvs, page);
+                    pageToken = this.safeString(response, "next_page_token");
+                }
+            }
         } else if (isTrue(isEqual(method, "marketPublicGetV1beta3CryptoLocLatestBars")))
         {
             object response = await this.marketPublicGetV1beta3CryptoLocLatestBars(this.extend(request, parameters));
@@ -1030,7 +1073,7 @@ public partial class alpaca : Exchange
      * @name alpaca#fetchTickers
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
      * @see https://docs.alpaca.markets/reference/cryptosnapshots-1
-     * @param {string[]} symbols unified symbols of the markets to fetch tickers for
+     * @param {string[]} [symbols] unified symbols of the markets to fetch tickers for, defaults to all markets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.loc] crypto location, default: us
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -1038,13 +1081,15 @@ public partial class alpaca : Exchange
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(symbols, null)))
-        {
-            throw new ArgumentsRequired ((string)add(this.id, " fetchTickers() requires a symbols argument")) ;
-        }
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
+        }
+        if (isTrue(isEqual(symbols, null)))
+        {
+            // every listed market is a crypto market because fetchMarkets requests asset_class=crypto, so default to all of them
+            object allSymbols = this.sort(this.symbols); // symbol iteration order differs per language
+            symbols = allSymbols;
         }
         symbols = this.marketSymbols(symbols);
         object loc = this.safeString(parameters, "loc", "us");
@@ -2375,12 +2420,16 @@ public partial class alpaca : Exchange
         {
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
         }
-        object message = this.safeValue(response, "message");
+        object message = this.safeString(response, "message");
         if (isTrue(!isEqual(message, null)))
         {
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);
-            throw new ExchangeError ((string)feedback) ;
+            string codeAsString = ((object)code).ToString();
+            if (isTrue(isTrue((isLessThan(code, 400))) || !isTrue((inOp(this.httpExceptions, codeAsString)))))
+            {
+                throw new ExchangeError ((string)feedback) ;
+            }
         }
         return null;
     }

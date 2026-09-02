@@ -44,7 +44,26 @@ use BN\BN;
 use Sop\ASN1\Type\UnspecifiedType;
 use Exception;
 
-$version = '4.5.75';
+// import global functions so unqualified calls bind directly to the root
+// namespace (skips the ccxt\ fallback lookup and lets opcache use its
+// specialized opcodes for compiler-optimized functions like count/strlen/is_array)
+use function abs, array_change_key_case, array_filter, array_is_list, array_key_exists, array_keys,
+    array_map, array_merge, array_reduce, array_replace, array_replace_recursive, array_reverse, array_shift,
+    array_slice, array_sum, array_unique, array_unshift, array_values, assert, base64_decode, base64_encode,
+    basename, bin2hex, call_user_func, call_user_func_array, ceil, chr, count, curl_close, curl_errno,
+    curl_error, curl_exec, curl_getinfo, curl_init, curl_reset, curl_setopt, curl_setopt_array, date_parse,
+    dechex, dirname, explode, file_exists, file_get_contents, file_put_contents, floatval, floor, fmod,
+    func_get_args, get_class, get_object_vars, gettype, gmdate, hex2bin, hexdec, http_build_query, implode,
+    in_array, ini_get, intval, is_array, is_bool, is_callable, is_countable, is_dir, is_float, is_int,
+    is_null, is_numeric, is_object, is_resource, is_scalar, is_string, json_decode, json_encode, ksort, log10, ltrim,
+    max, mb_convert_encoding, mb_split, mb_strpos, mb_strtoupper, mb_substr, method_exists, microtime, min,
+    mkdir, mt_rand, number_format, ord, pack, pow, preg_match, preg_match_all, preg_quote, preg_replace,
+    preg_replace_callback, print_r, property_exists, random_bytes, realpath, round, rtrim, sizeof, sleep,
+    sort, sprintf, str_ends_with, str_pad, str_repeat, str_replace, str_split, str_starts_with, strcspn,
+    stripos, strlen, strpos, strtolower, strtotime, strtoupper, strtr, strval, substr, sys_get_temp_dir,
+    time, trim, unpack, urldecode, urlencode, usleep, usort, var_export;
+
+$version = '4.5.77';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -63,10 +82,10 @@ const PAD_WITH_ZERO = 6;
 
 class BaseExchange {
 
-    const VERSION = '4.5.75';
+    const VERSION = '4.5.77';
 
     // this is updated by build/vss.js
-    public static $ccxt_version = '4.5.75';
+    public static $ccxt_version = '4.5.77';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -433,6 +452,7 @@ class BaseExchange {
         'paymium',
         'phemex',
         'poloniex',
+        'revolutx',
         'tokocrypto',
         'toobit',
         'upbit',
@@ -535,7 +555,10 @@ class BaseExchange {
     }
 
     public static function safe_timestamp($object, $key, $default_value = null) {
-        return static::safe_integer_product($object, $key, 1000, $default_value);
+        if ($key === null) {
+            return $default_value;
+        }
+        return (isset($object[$key]) && is_numeric($object[$key])) ? (intval($object[$key] * 1000)) : $default_value;
     }
 
     public static function safe_value($object, $key, $default_value = null) {
@@ -549,8 +572,13 @@ class BaseExchange {
     // we're not using safe_float_3 either because those cases are too rare to deserve their own optimization
 
     public static function safe_float_2($object, $key1, $key2, $default_value = null) {
-        $value = static::safe_float($object, $key1);
-        return isset($value) ? $value : static::safe_float($object, $key2, $default_value);
+        if ($key1 !== null && isset($object[$key1]) && is_numeric($object[$key1])) {
+            return (float) $object[$key1];
+        }
+        if ($key2 !== null && isset($object[$key2]) && is_numeric($object[$key2])) {
+            return (float) $object[$key2];
+        }
+        return $default_value;
     }
 
     public static function safe_string_2($object, $key1, $key2, $default_value = null) {
@@ -596,13 +624,23 @@ class BaseExchange {
     }
 
     public static function safe_integer_2($object, $key1, $key2, $default_value = null) {
-        $value = static::safe_integer($object, $key1);
-        return isset($value) ? $value : static::safe_integer($object, $key2, $default_value);
+        if ($key1 !== null && isset($object[$key1]) && is_numeric($object[$key1])) {
+            return intval($object[$key1]);
+        }
+        if ($key2 !== null && isset($object[$key2]) && is_numeric($object[$key2])) {
+            return intval($object[$key2]);
+        }
+        return $default_value;
     }
 
     public static function safe_integer_product_2($object, $key1, $key2, $factor, $default_value = null) {
-        $value = static::safe_integer_product($object, $key1, $factor);
-        return isset($value) ? $value : static::safe_integer_product($object, $key2, $factor, $default_value);
+        if ($key1 !== null && isset($object[$key1]) && is_numeric($object[$key1])) {
+            return intval($object[$key1] * $factor);
+        }
+        if ($key2 !== null && isset($object[$key2]) && is_numeric($object[$key2])) {
+            return intval($object[$key2] * $factor);
+        }
+        return $default_value;
     }
 
     public static function safe_timestamp_2($object, $key1, $key2, $default_value = null) {
@@ -610,8 +648,13 @@ class BaseExchange {
     }
 
     public static function safe_value_2($object, $key1, $key2, $default_value = null) {
-        $value = static::safe_value($object, $key1);
-        return isset($value) ? $value : static::safe_value($object, $key2, $default_value);
+        if ($key1 !== null && isset($object[$key1])) {
+            return $object[$key1];
+        }
+        if ($key2 !== null && isset($object[$key2])) {
+            return $object[$key2];
+        }
+        return $default_value;
     }
 
     // safe_method_n family
@@ -690,12 +733,7 @@ class BaseExchange {
         if ($value === null) {
             return false;
         }
-        if (is_array($value)) {
-            if (count($value) === 0 || array_keys($value) !== array_keys(array_keys($value))) {
-                return true;
-            }
-        }
-        return false;
+        return is_array($value) && ($value === [] || !array_is_list($value));
     }
 
     public static function truncate($number, $precision = 0) {

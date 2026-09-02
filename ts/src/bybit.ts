@@ -2248,7 +2248,7 @@ export default class bybit extends Exchange {
                         'max': this.safeNumber (priceFilter, 'maxPrice'),
                     },
                     'cost': {
-                        'min': undefined,
+                        'min': linear ? this.safeNumber (lotSizeFilter, 'minNotionalValue') : undefined, // https://bybit-exchange.github.io/docs/v5/market/instrument
                         'max': undefined,
                     },
                 },
@@ -8880,7 +8880,7 @@ export default class bybit extends Exchange {
             }
             symbol = market['symbol'];
         }
-        const data = await this.getLeverageTiersPaginated (symbol, this.extend ({ 'paginate': true, 'paginationCalls': 50 }, params));
+        const data = await this.getLeverageTiersPaginated (symbol, this.extend ({ 'paginate': true, 'paginationCalls': 200 }, params));
         symbols = this.marketSymbols (symbols);
         return this.parseLeverageTiers (data, symbols, 'symbol');
     }

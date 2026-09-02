@@ -1522,9 +1522,15 @@ class toobit extends Exchange {
     }
 
     public function parse_bid_ask_custom(mixed $ticker) {
+        // 's' is the exchange id and 't' a millisecond integer, the pair parseTicker
+        // reads through safeMarket and safeInteger. The caller filters on a unified symbol.
+        $marketId = $this->safe_string($ticker, 's');
+        $market = $this->safe_market($marketId);
+        $timestamp = $this->safe_integer($ticker, 't');
         return array(
-            'timestamp' => $this->safe_string($ticker, 't'),
-            'symbol' => $this->safe_string($ticker, 's'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'symbol' => $market['symbol'],
             'bid' => $this->safe_number($ticker, 'b'),
             'bidVolume' => $this->safe_number($ticker, 'bq'),
             'ask' => $this->safe_number($ticker, 'a'),
