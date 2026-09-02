@@ -9,6 +9,12 @@
 //                          subclass exchanges inherit that typed surface
 //                          (mirror + superset of `go/tests/base/test.types.rest.go`).
 //
+//   * `test_throttler_performance` — the rate limiter actually spaces requests
+//                          at the venue's declared rateLimit (mirror of
+//                          `go/tests/base/test.throttlerPerformance.go`). It
+//                          calls `throttle()` directly, so it makes no network
+//                          requests.
+//
 // The futures returned by the typed methods are NEVER `.await`-ed —
 // constructing them is the type-check; dropping them avoids any network
 // traffic. Async fns in Rust are lazy, so an unpolled future is a no-op.
@@ -24,14 +30,7 @@ use ccxt::types::*;
 /// check and performs no I/O.
 fn returns<T>(_f: impl std::future::Future<Output = ccxt::Result<T>>) {}
 
-/// Mirrors (and extends) Go's `TestTypesRest`. Proves that:
-///   1. every unified type in `ccxt::types` is defined and named, and
-///   2. the typed wrapper exposes the unified API with those exact return
-///      types, and
-///   3. alias (`Myokx` → `Okx`) and subclass (`Binanceusdm` → `Binance`)
-///      exchanges inherit the full typed surface via the `Deref` chain the
-///      wrapper generator walks — `fetch_order` is defined nowhere in
-///      `myokx_typed.rs`, yet it's callable on `Myokx`.
+
 pub fn test_types_rest() -> Result<(), String> {
     let n = Value::Null;
     let mut b = Binance::new(None);
@@ -102,10 +101,45 @@ pub fn test_types_rest() -> Result<(), String> {
     Ok(())
 }
 
-/// Aggregator entry point — mirror of Go's `TestLanguageSpecific`.
-/// Runs the typed-surface checks. Future Rust-only suites land here too
-/// (proxy plumbing, runtime panic bridging, …).
+
 pub fn run() -> Result<(), String> {
     test_types_rest()?;
+    Ok(())
+}
+
+/// Drives `throttle()` `num_requests` times with a cost of 1 each and returns
+/// the elapsed milliseconds. No API calls — the limiter is exercised directly,
+/// exactly as Go's `TestThrottlerPerformanceHelper` does.
+async fn throttler_elapsed_ms(num_requests: usize) -> u128 {
+    let mut core = ccxt::exchanges::binance::BinanceCore::new(None);
+    core.exchange.enableRateLimit = Value::Bool(true);
+    let started = std::time::Instant::now();
+    for _ in 0..num_requests {
+        core.exchange.throttle(&[Value::Int(1)]).await;
+    }
+    started.elapsed().as_millis()
+}
+
+
+pub async fn test_throttler_performance() -> Result<(), String> {
+    let elapsed = throttler_elapsed_ms(20).await;
+    println!("throttler: 20 binance requests in {elapsed} ms (rateLimit 50 → expect ~1000)");
+    if elapsed < 500 {
+        return Err(format!(
+            "leaky bucket should take at least half a second for 20 requests, time was: {elapsed}"
+        ));
+    }
+    if elapsed > 3000 {
+        return Err(format!(
+            "20 binance requests took {elapsed}ms; at its declared rateLimit of 50ms that is \
+             ~1000ms, so the token bucket is not tracking rateLimit"
+        ));
+    }
+    Ok(())
+}
+
+
+pub async fn run_async() -> Result<(), String> {
+    test_throttler_performance().await?;
     Ok(())
 }

@@ -88,6 +88,10 @@ async fn main() -> ExitCode {
                 eprintln!("Language-specific tests failed: {e}");
                 return ExitCode::FAILURE;
             }
+            if let Err(e) = language_specific::run_async().await {
+                eprintln!("Language-specific tests failed: {e}");
+                return ExitCode::FAILURE;
+            }
         }
         #[cfg(feature = "transpiled-tests")]
         if !ws_tests {
