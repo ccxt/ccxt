@@ -4985,17 +4985,23 @@ class bingx(Exchange, ImplicitAPI):
             'amount': self.currency_to_precision(code, amount),
         }
         response = await self.apiAssetV1PrivatePostTransfer(self.extend(request, params))
+        data = self.safe_dict(response, 'data', {})
+        timestamp = self.safe_integer(response, 'timestamp')
         #
         #     {
-        #         "tranId": 1933130865269936128,
-        #         "transferId": "1051450703949464903736"
+        #         "code": "0",
+        #         "timestamp": "1752202170686",
+        #         "data": {
+        #             "tranId": "1943502883135819776",
+        #             "transferId": "1051461075875997081703"
+        #         }
         #     }
         #
         return {
             'info': response,
-            'id': self.safe_string(response, 'transferId'),
-            'timestamp': None,
-            'datetime': None,
+            'id': self.safe_string_2(data, 'transferId', 'tranId'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
             'currency': code,
             'amount': amount,
             'fromAccount': fromAccount,
