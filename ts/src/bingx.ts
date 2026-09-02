@@ -736,6 +736,9 @@ export default class bingx extends Exchange {
                 'defaultForInverse': {
                     'extends': 'defaultForLinear',
                     'createOrders': undefined,
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
                     'fetchMyTrades': {
                         'limit': 1000,
                         'daysBack': undefined,
@@ -1170,7 +1173,7 @@ export default class bingx extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
-     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch (max 1000 for inverse swaps, 1440 otherwise)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
@@ -1180,26 +1183,31 @@ export default class bingx extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
+        const market = this.market (symbol);
+        const maxLimit = (market['inverse'] === true) ? 1000 : 1440;
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 1440) as OHLCV[];
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimit) as OHLCV[];
         }
-        const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
         };
         request['interval'] = this.safeString (this.timeframes, timeframe, timeframe);
+        const requestLimit = (limit === undefined) ? 500 : Math.min (limit, maxLimit);
         if (since !== undefined) {
             request['startTime'] = Math.max (since - 1, 0);
         }
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = requestLimit;
         }
         const until = this.safeInteger2 (params, 'until', 'endTime');
         if (until !== undefined) {
             params = this.omit (params, [ 'until' ]);
             request['endTime'] = until;
+        } else if ((market['inverse'] === true) && (since !== undefined)) {
+            const duration = this.parseTimeframe (timeframe) * 1000;
+            request['endTime'] = this.sum (since, duration * requestLimit);
         }
         let response: Dict;
         if (market['spot'] === true) {
@@ -5240,17 +5248,23 @@ export default class bingx extends Exchange {
             'amount': this.currencyToPrecision (code, amount),
         };
         const response = await this.apiAssetV1PrivatePostTransfer (this.extend (request, params));
+        const data = this.safeDict (response, 'data', {});
+        const timestamp = this.safeInteger (response, 'timestamp');
         //
         //     {
-        //         "tranId": 1933130865269936128,
-        //         "transferId": "1051450703949464903736"
+        //         "code": "0",
+        //         "timestamp": "1752202170686",
+        //         "data": {
+        //             "tranId": "1943502883135819776",
+        //             "transferId": "1051461075875997081703"
+        //         }
         //     }
         //
         return {
             'info': response,
-            'id': this.safeString (response, 'transferId'),
-            'timestamp': undefined,
-            'datetime': undefined,
+            'id': this.safeString2 (data, 'transferId', 'tranId'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'currency': code,
             'amount': amount,
             'fromAccount': fromAccount,

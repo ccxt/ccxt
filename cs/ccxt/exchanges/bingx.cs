@@ -1103,6 +1103,9 @@ public partial class bingx : Exchange
                 { "defaultForInverse", new Dictionary<string, object>() {
                     { "extends", "defaultForLinear" },
                     { "createOrders", null },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 1000 },
+                    } },
                     { "fetchMyTrades", new Dictionary<string, object>() {
                         { "limit", 1000 },
                         { "daysBack", null },
@@ -1561,7 +1564,7 @@ public partial class bingx : Exchange
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
-     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch (max 1000 for inverse swaps, 1440 otherwise)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
@@ -1576,32 +1579,38 @@ public partial class bingx : Exchange
         {
             await this.loadMarkets();
         }
+        object market = this.market(symbol);
+        object maxLimit = ((bool) isTrue((isEqual(getValue(market, "inverse"), true)))) ? 1000 : 1440;
         object paginate = false;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
         paginate = ((IList<object>)paginateparametersVariable)[0];
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
-            return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframeVar, parameters, 1440));
+            return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframeVar, parameters, maxLimit));
         }
-        object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
         ((IDictionary<string,object>)request)["interval"] = this.safeString(this.timeframes, timeframeVar, timeframeVar);
+        object requestLimit = ((bool) isTrue((isEqual(limit, null)))) ? 500 : mathMin(limit, maxLimit);
         if (isTrue(!isEqual(since, null)))
         {
             ((IDictionary<string,object>)request)["startTime"] = mathMax(subtract(since, 1), 0);
         }
         if (isTrue(!isEqual(limit, null)))
         {
-            ((IDictionary<string,object>)request)["limit"] = limit;
+            ((IDictionary<string,object>)request)["limit"] = requestLimit;
         }
         object until = this.safeInteger2(parameters, "until", "endTime");
         if (isTrue(!isEqual(until, null)))
         {
             parameters = this.omit(parameters, new List<object>() {"until"});
             ((IDictionary<string,object>)request)["endTime"] = until;
+        } else if (isTrue(isTrue((isEqual(getValue(market, "inverse"), true))) && isTrue((!isEqual(since, null)))))
+        {
+            object duration = multiply(this.parseTimeframe(timeframeVar), 1000);
+            ((IDictionary<string,object>)request)["endTime"] = this.sum(since, multiply(duration, requestLimit));
         }
         object response = null;
         if (isTrue(isEqual(getValue(market, "spot"), true)))
@@ -5367,17 +5376,23 @@ public partial class bingx : Exchange
             { "amount", this.currencyToPrecision(code, amount) },
         };
         object response = await this.apiAssetV1PrivatePostTransfer(this.extend(request, parameters));
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object timestamp = this.safeInteger(response, "timestamp");
         //
         //     {
-        //         "tranId": 1933130865269936128,
-        //         "transferId": "1051450703949464903736"
+        //         "code": "0",
+        //         "timestamp": "1752202170686",
+        //         "data": {
+        //             "tranId": "1943502883135819776",
+        //             "transferId": "1051461075875997081703"
+        //         }
         //     }
         //
         return new Dictionary<string, object>() {
             { "info", response },
-            { "id", this.safeString(response, "transferId") },
-            { "timestamp", null },
-            { "datetime", null },
+            { "id", this.safeString2(data, "transferId", "tranId") },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
             { "currency", code },
             { "amount", amount },
             { "fromAccount", fromAccount },
