@@ -4609,6 +4609,42 @@
                 }
             }
         ],
+        "addMargin": [
+            {
+                "description": "Coin-M add margin with an empty response payload",
+                "method": "addMargin",
+                "input": [
+                    "SOL/USD:SOL",
+                    1,
+                    {
+                        "positionSide": "LONG"
+                    }
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "msg": "",
+                    "timestamp": 1720501467377,
+                    "data": {}
+                },
+                "parsedResponse": {
+                    "info": {
+                        "code": 0,
+                        "msg": "",
+                        "timestamp": 1720501467377,
+                        "data": {}
+                    },
+                    "symbol": "SOL/USD:SOL",
+                    "type": "add",
+                    "marginMode": "isolated",
+                    "amount": 1,
+                    "total": null,
+                    "code": "SOL",
+                    "status": null,
+                    "timestamp": null,
+                    "datetime": null
+                }
+            }
+        ],
         "fetchPositions": [
             {
                 "description": "fetch position",
