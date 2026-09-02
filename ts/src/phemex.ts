@@ -1945,12 +1945,8 @@ export default class phemex extends Exchange {
                 } else if (sideId !== undefined) {
                     side = (sideId === '1') ? 'buy' : 'sell';
                 }
-                const ordType = this.safeString (trade, 'ordType');
-                if (ordType === '1') {
-                    type = 'market';
-                } else if (ordType === '2') {
-                    type = 'limit';
-                }
+                // ordType carries the same numeric encoding in both trade shapes
+                type = this.parseOrderType (this.safeString (trade, 'ordType'));
                 priceString = this.safeString (trade, 'execPriceRp');
                 amountString = this.safeString (trade, 'execQtyRq');
                 costString = this.safeString (trade, 'execValueRv');
@@ -2323,10 +2319,9 @@ export default class phemex extends Exchange {
         const types: Dict = {
             '1': 'market',
             '2': 'limit',
-            // a unified order type is market or limit, and the trigger lives in
-            // triggerPrice, so a code maps to the type its order becomes once
-            // triggered. the numeric and the string encodings of one order have
-            // to agree: 3 is Stop and 4 and 9 are StopLimit
+            // a unified type is market or limit, the trigger living in
+            // triggerPrice, so each code maps to what its order becomes once
+            // triggered. 3 is Stop, 4 and 9 are StopLimit
             '3': 'market',
             '4': 'limit',
             '5': 'market',

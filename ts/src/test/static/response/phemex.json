@@ -1504,7 +1504,7 @@
                 "input": [
                     "LTC/USDT:USDT",
                     null,
-                    1
+                    2
                 ],
                 "httpResponse": {
                     "code": "0",
@@ -1526,6 +1526,27 @@
                             "execFeeRv": "0.0041892",
                             "ordType": "1",
                             "execId": "d789fa5",
+                            "execStatus": "7",
+                            "posSide": "3",
+                            "ptFeeRv": "0",
+                            "ptPriceRp": "0"
+                        },
+                        {
+                            "createdAt": "1700817297607",
+                            "symbol": "LTCUSDT",
+                            "currency": "USDT",
+                            "action": "1",
+                            "tradeType": "1",
+                            "execQtyRq": "0.1",
+                            "execPriceRp": "69.82",
+                            "side": "1",
+                            "orderQtyRq": "0.1",
+                            "priceRp": "71.82",
+                            "execValueRv": "6.982",
+                            "feeRateRr": "0.0006",
+                            "execFeeRv": "0.0041892",
+                            "ordType": "3",
+                            "execId": "d789fa6",
                             "execStatus": "7",
                             "posSide": "3",
                             "ptFeeRv": "0",
@@ -1557,6 +1578,52 @@
                             "ptPriceRp": "0"
                         },
                         "id": "d789fa5",
+                        "symbol": "LTC/USDT:USDT",
+                        "timestamp": 1700817297607,
+                        "datetime": "2023-11-24T09:14:57.607Z",
+                        "order": null,
+                        "type": "market",
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 69.82,
+                        "amount": 0.1,
+                        "cost": 6.982,
+                        "fee": {
+                            "cost": 0.0041892,
+                            "rate": 0.0006,
+                            "currency": "USDT"
+                        },
+                        "fees": [
+                            {
+                                "cost": 0.0041892,
+                                "rate": 0.0006,
+                                "currency": "USDT"
+                            }
+                        ]
+                    },
+                    {
+                        "info": {
+                            "createdAt": "1700817297607",
+                            "symbol": "LTCUSDT",
+                            "currency": "USDT",
+                            "action": "1",
+                            "tradeType": "1",
+                            "execQtyRq": "0.1",
+                            "execPriceRp": "69.82",
+                            "side": "1",
+                            "orderQtyRq": "0.1",
+                            "priceRp": "71.82",
+                            "execValueRv": "6.982",
+                            "feeRateRr": "0.0006",
+                            "execFeeRv": "0.0041892",
+                            "ordType": "3",
+                            "execId": "d789fa6",
+                            "execStatus": "7",
+                            "posSide": "3",
+                            "ptFeeRv": "0",
+                            "ptPriceRp": "0"
+                        },
+                        "id": "d789fa6",
                         "symbol": "LTC/USDT:USDT",
                         "timestamp": 1700817297607,
                         "datetime": "2023-11-24T09:14:57.607Z",
