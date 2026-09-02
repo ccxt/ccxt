@@ -147,28 +147,23 @@ func (this *WsOrderBook) Limit() any {
 }
 
 func (this *WsOrderBook) Update(snapshot any) any {
-	// Convert JavaScript logic to Go
-	// ws messages are parsed with encoding/json, so numeric fields arrive as
-	// float64 (or json.Number / int / string depending on the transport) —
-	// normalize through ParseInt instead of asserting one concrete type
-	nonce := ParseInt(this.Nonce)
+	// mirrors the JS base OrderBook.update: bail out only when the incoming
+	// snapshot is not newer than the current one, otherwise delegate everything
+	// (nonce, timestamp, datetime, symbol) to reset(snapshot) below
 	snapshotMap, ok := snapshot.(map[string]any)
 	if !ok {
 		return this
 	}
-	if snapshotNonce, ok := snapshotMap["nonce"]; ok && snapshotNonce != nil {
-		snapshotNonceInt := ParseInt(snapshotNonce)
-		if nonce != 0 && snapshotNonceInt <= nonce {
+	// ws messages are parsed with encoding/json, so numeric fields arrive as
+	// float64 / json.Number / string depending on the transport — normalize both
+	// sides through ParseInt, ignoring the MinInt64 "not a number" sentinel so a
+	// non-numeric value never masquerades as an older nonce
+	snapshotNonce := SafeValue(snapshotMap, "nonce", nil)
+	if snapshotNonce != nil && this.Nonce != nil {
+		newNonce := ParseInt(snapshotNonce)
+		currentNonce := ParseInt(this.Nonce)
+		if newNonce != math.MinInt64 && currentNonce != math.MinInt64 && newNonce <= currentNonce {
 			return this
-		}
-		this.Nonce = snapshotNonceInt
-	}
-
-	if timestamp, ok := snapshotMap["timestamp"]; ok && timestamp != nil {
-		ts := ParseInt(timestamp)
-		if ts != math.MinInt64 {
-			this.Timestamp = &ts
-			this.Datetime = Iso8601(ts)
 		}
 	}
 
@@ -205,6 +200,11 @@ func (this *WsOrderBook) Reset(optionalArgs ...any) any {
 	if ts, ok := SafeInt64(snapshotMap, "timestamp", nil).(int64); ok {
 		this.Timestamp = &ts
 		this.Datetime = Iso8601(ts)
+	} else {
+		// the JS base reassigns timestamp/datetime from the snapshot unconditionally,
+		// so a snapshot without a timestamp must clear any stale pointer value here
+		this.Timestamp = nil
+		this.Datetime = nil
 	}
 	this.Symbol = SafeString(snapshotMap, "symbol", "").(string)
 	this.Outcome = SafeString(snapshotMap, "outcome", nil)

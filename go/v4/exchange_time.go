@@ -99,10 +99,23 @@ func Iso8601(ts2 any) any {
 	if ts2 == nil {
 		return nil
 	}
-	// reject non-numeric strings (e.g. "123abc" or "") up front; a plain-integer
-	// string like "1755432123456" is still parsed by ParseInt below
-	if s, ok := ts2.(string); ok {
-		if !iso8601PlainIntegerRegex.MatchString(s) {
+	// reject the values the other language implementations reject before the
+	// numeric conversion: non-numeric strings (e.g. "123abc" or ""), NaN/±Inf and
+	// out-of-range float magnitudes. int64(NaN)/int64(±Inf) is implementation
+	// -defined in Go, so guarding here keeps the result identical across archs.
+	// A plain-integer string like "1755432123456" still falls through to ParseInt.
+	switch v := ts2.(type) {
+	case string:
+		if !iso8601PlainIntegerRegex.MatchString(v) {
+			return nil
+		}
+	case float64:
+		if math.IsNaN(v) || math.IsInf(v, 0) || v < 0 || v > 8640000000000000 {
+			return nil
+		}
+	case float32:
+		f := float64(v)
+		if math.IsNaN(f) || math.IsInf(f, 0) || f < 0 || f > 8640000000000000 {
 			return nil
 		}
 	}
