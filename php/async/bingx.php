@@ -742,6 +742,9 @@ class bingx extends Exchange {
                 'defaultForInverse' => array(
                     'extends' => 'defaultForLinear',
                     'createOrders' => null,
+                    'fetchOHLCV' => array(
+                        'limit' => 1000,
+                    ),
                     'fetchMyTrades' => array(
                         'limit' => 1000,
                         'daysBack' => null,
@@ -1205,7 +1208,7 @@ class bingx extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
          * @param {string} $timeframe the length of time each candle represents
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [$limit] the maximum amount of candles to fetch
+         * @param {int} [$limit] the maximum amount of candles to fetch (max 1000 for inverse swaps, 1440 otherwise)
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
@@ -1214,26 +1217,31 @@ class bingx extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
+        $market = $this->market($symbol);
+        $maxLimit = ($market['inverse'] === true) ? 1000 : 1440;
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate', false);
         if ($paginate) {
-            return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, 1440));
+            return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, $maxLimit));
         }
-        $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
         );
         $request['interval'] = $this->safe_string($this->timeframes, $timeframe, $timeframe);
+        $requestLimit = ($limit === null) ? 500 : min($limit, $maxLimit);
         if ($since !== null) {
             $request['startTime'] = max($since - 1, 0);
         }
         if ($limit !== null) {
-            $request['limit'] = $limit;
+            $request['limit'] = $requestLimit;
         }
         $until = $this->safe_integer_2($params, 'until', 'endTime');
         if ($until !== null) {
             $params = $this->omit($params, array( 'until' ));
             $request['endTime'] = $until;
+        } elseif (($market['inverse'] === true) && ($since !== null)) {
+            $duration = $this->parse_timeframe($timeframe) * 1000;
+            $request['endTime'] = $this->sum($since, $duration * $requestLimit);
         }
         if ($market['spot'] === true) {
             // bingx spot klines are anchored to UTC+8 by default, unlike the swap klines and other exchanges
