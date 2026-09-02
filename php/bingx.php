@@ -5203,17 +5203,23 @@ class bingx extends Exchange {
             'amount' => $this->currency_to_precision($code, $amount),
         );
         $response = $this->apiAssetV1PrivatePostTransfer($this->extend($request, $params));
+        $data = $this->safe_dict($response, 'data', array());
+        $timestamp = $this->safe_integer($response, 'timestamp');
         //
         //     {
-        //         "tranId" => 1933130865269936128,
-        //         "transferId" => "1051450703949464903736"
+        //         "code" => "0",
+        //         "timestamp" => "1752202170686",
+        //         "data" => {
+        //             "tranId" => "1943502883135819776",
+        //             "transferId" => "1051461075875997081703"
+        //         }
         //     }
         //
         return array(
             'info' => $response,
-            'id' => $this->safe_string($response, 'transferId'),
-            'timestamp' => null,
-            'datetime' => null,
+            'id' => $this->safe_string_2($data, 'transferId', 'tranId'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
             'currency' => $code,
             'amount' => $amount,
             'fromAccount' => $fromAccount,
