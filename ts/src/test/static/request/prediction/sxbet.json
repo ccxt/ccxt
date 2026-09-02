@@ -3,12 +3,8 @@
     "asyncOnly": true,
     "skipKeys": [
         "salt",
-        "fillSalt",
-        "signature",
-        "takerSig",
-        "apiExpiry",
-        "timestamp",
-        "orderSignature"
+        "orderSignature",
+        "expiry"
     ],
     "outputType": "json",
     "walletAddress": "0xabababababababababababababababababababab",
@@ -149,7 +145,7 @@
                     5,
                     0.5
                 ],
-                "output": "{\"orders\":[{\"marketHash\":\"0xbf06c6379c922d8118612d1d7493b20f6df6929437fbf6022904327f9516a2eb\",\"maker\":\"0xabababababababababababababababababababab\",\"totalBetSize\":\"5000000\",\"percentageOdds\":\"50000000000000000000\",\"salt\":\"0x000000000000000000000000000000000000000000000000000001a01000bbd0\",\"expiry\":0,\"baseToken\":\"0x6629Ce1Cf35Cc1329ebB4F63202F3f197b3F050B\",\"isMakerBettingOutcomeOne\":true,\"timeInForce\":\"GTC\",\"orderSignature\":\"0x52c8fc2fd4a9e607920fc6641bb7ce0b197552491daa8a94b1995bf819f1f67b3e7aa2f8ba427be1d73ce7295733abe2983363766bb7aaa1558b16addef494311b\"}],\"waitForOutcome\":true}"
+                "output": "{\"orders\":[{\"marketHash\":\"0xbf06c6379c922d8118612d1d7493b20f6df6929437fbf6022904327f9516a2eb\",\"maker\":\"0xabababababababababababababababababababab\",\"totalBetSize\":\"5000000\",\"percentageOdds\":\"50000000000000000000\",\"salt\":\"0x000000000000000000000000000000000000000000000000000001a0621beb16\",\"expiry\":1788438791,\"baseToken\":\"0x6629Ce1Cf35Cc1329ebB4F63202F3f197b3F050B\",\"isMakerBettingOutcomeOne\":true,\"timeInForce\":\"GTC\",\"orderSignature\":\"0xbbf28b08e5fc75a1030ed4c1417e3c443b3862149251fe22d8138fed73d282541bb176a620b6fac61301143ab11c71c8c03dc09a2e3d7108d7c13d7e01d188b81c\"}],\"waitForOutcome\":true}"
             },
             {
                 "description": "createOrder limit sell posts the complementary-outcome GTC order",
@@ -161,7 +157,7 @@
                     5,
                     0.5
                 ],
-                "output": "{\"orders\":[{\"marketHash\":\"0xbf06c6379c922d8118612d1d7493b20f6df6929437fbf6022904327f9516a2eb\",\"maker\":\"0xabababababababababababababababababababab\",\"totalBetSize\":\"5000000\",\"percentageOdds\":\"50000000000000000000\",\"salt\":\"0x000000000000000000000000000000000000000000000000000001a01000bbe8\",\"expiry\":0,\"baseToken\":\"0x6629Ce1Cf35Cc1329ebB4F63202F3f197b3F050B\",\"isMakerBettingOutcomeOne\":false,\"timeInForce\":\"GTC\",\"orderSignature\":\"0x8228e1674b997b2f1abb9e75b50b42f62a42f96b76a0132d15961be1f58d56b67fa85d4fde8217ebe92eaa05c5f291ed23b21a52f31f5ad7a84bd87bbcec1db31c\"}],\"waitForOutcome\":true}"
+                "output": "{\"orders\":[{\"marketHash\":\"0xbf06c6379c922d8118612d1d7493b20f6df6929437fbf6022904327f9516a2eb\",\"maker\":\"0xabababababababababababababababababababab\",\"totalBetSize\":\"5000000\",\"percentageOdds\":\"50000000000000000000\",\"salt\":\"0x000000000000000000000000000000000000000000000000000001a0621beb29\",\"expiry\":1788438791,\"baseToken\":\"0x6629Ce1Cf35Cc1329ebB4F63202F3f197b3F050B\",\"isMakerBettingOutcomeOne\":false,\"timeInForce\":\"GTC\",\"orderSignature\":\"0x4590d971a6900b50448669cb8b9ef86b148d875b1af29fc4366971ee57cf8bb3063cfe975503ef306e24f38260fd434dc5b9779daef68879ddbb14e77bcdf1c81c\"}],\"waitForOutcome\":true}"
             },
             {
                 "description": "createOrder market buy posts an IOC order",
@@ -173,7 +169,7 @@
                     1,
                     0.5
                 ],
-                "output": "{\"orders\":[{\"marketHash\":\"0xbf06c6379c922d8118612d1d7493b20f6df6929437fbf6022904327f9516a2eb\",\"maker\":\"0xabababababababababababababababababababab\",\"totalBetSize\":\"1000000\",\"percentageOdds\":\"50000000000000000000\",\"salt\":\"0x000000000000000000000000000000000000000000000000000001a01000bbea\",\"expiry\":0,\"baseToken\":\"0x6629Ce1Cf35Cc1329ebB4F63202F3f197b3F050B\",\"isMakerBettingOutcomeOne\":true,\"timeInForce\":\"IOC\",\"orderSignature\":\"0xf1ebb6bd91544d61d70d7a28f90db71f44355df62ad22f62033be0199045aa940ee12390240237a19381313eb263ffd5134f8cc07d255ef87441c82ab129d8701b\"}],\"waitForOutcome\":true}"
+                "output": "{\"orders\":[{\"marketHash\":\"0xbf06c6379c922d8118612d1d7493b20f6df6929437fbf6022904327f9516a2eb\",\"maker\":\"0xabababababababababababababababababababab\",\"totalBetSize\":\"1000000\",\"percentageOdds\":\"50000000000000000000\",\"salt\":\"0x000000000000000000000000000000000000000000000000000001a0621beb2a\",\"expiry\":1788438791,\"baseToken\":\"0x6629Ce1Cf35Cc1329ebB4F63202F3f197b3F050B\",\"isMakerBettingOutcomeOne\":true,\"timeInForce\":\"IOC\",\"orderSignature\":\"0xf2c1c6e41199c5aeb6a4b95b9eabb1935b8eb601ddac82ac880649a3d33d138f63bf8281b243d2313983dd3cd05870309131e8dba673ee8335573c14f6110f1b1c\"}],\"waitForOutcome\":true}"
             },
             {
                 "description": "createOrder market sell posts the complementary-outcome IOC order",
@@ -185,7 +181,7 @@
                     1,
                     0.5
                 ],
-                "output": "{\"orders\":[{\"marketHash\":\"0xbf06c6379c922d8118612d1d7493b20f6df6929437fbf6022904327f9516a2eb\",\"maker\":\"0xabababababababababababababababababababab\",\"totalBetSize\":\"1000000\",\"percentageOdds\":\"50000000000000000000\",\"salt\":\"0x000000000000000000000000000000000000000000000000000001a01000bbeb\",\"expiry\":0,\"baseToken\":\"0x6629Ce1Cf35Cc1329ebB4F63202F3f197b3F050B\",\"isMakerBettingOutcomeOne\":false,\"timeInForce\":\"IOC\",\"orderSignature\":\"0x13ec2bf0ae5880004e5d7c561374383ea7aa998b82aa40c19ebf880edcf1ffa62e795e2692f78c833a1df085ba1888b63c3092e2ee1540df50486149ac9107f61c\"}],\"waitForOutcome\":true}"
+                "output": "{\"orders\":[{\"marketHash\":\"0xbf06c6379c922d8118612d1d7493b20f6df6929437fbf6022904327f9516a2eb\",\"maker\":\"0xabababababababababababababababababababab\",\"totalBetSize\":\"1000000\",\"percentageOdds\":\"50000000000000000000\",\"salt\":\"0x000000000000000000000000000000000000000000000000000001a0621beb2b\",\"expiry\":1788438791,\"baseToken\":\"0x6629Ce1Cf35Cc1329ebB4F63202F3f197b3F050B\",\"isMakerBettingOutcomeOne\":false,\"timeInForce\":\"IOC\",\"orderSignature\":\"0xc9c4946f5d2364790b82444c326b490fe78dd22398f7b81acf2abd42e63abe7c76eb7e2a16e6abbbac0243e15177887a9c255620e11e5ad894f030bd879e25191b\"}],\"waitForOutcome\":true}"
             },
             {
                 "description": "createOrder honors the timeInForce and clientOrderId overrides",
@@ -201,7 +197,22 @@
                         "clientOrderId": "ccxt-test-1"
                     }
                 ],
-                "output": "{\"orders\":[{\"marketHash\":\"0xbf06c6379c922d8118612d1d7493b20f6df6929437fbf6022904327f9516a2eb\",\"maker\":\"0xabababababababababababababababababababab\",\"totalBetSize\":\"1000000\",\"percentageOdds\":\"50000000000000000000\",\"salt\":\"0x000000000000000000000000000000000000000000000000000001a01000bbec\",\"expiry\":0,\"baseToken\":\"0x6629Ce1Cf35Cc1329ebB4F63202F3f197b3F050B\",\"isMakerBettingOutcomeOne\":true,\"timeInForce\":\"FOK\",\"orderSignature\":\"0x059a489d9b76ddada4354596e81b78d8d9b93eb081be75e380f781c0be5ba02a0ab16c605240251a63a8e47b2708c292cac56fa9db75407531a048205f4d304b1c\",\"clientOrderId\":\"ccxt-test-1\"}],\"waitForOutcome\":true}"
+                "output": "{\"orders\":[{\"marketHash\":\"0xbf06c6379c922d8118612d1d7493b20f6df6929437fbf6022904327f9516a2eb\",\"maker\":\"0xabababababababababababababababababababab\",\"totalBetSize\":\"1000000\",\"percentageOdds\":\"50000000000000000000\",\"salt\":\"0x000000000000000000000000000000000000000000000000000001a0621beb2c\",\"expiry\":1788438791,\"baseToken\":\"0x6629Ce1Cf35Cc1329ebB4F63202F3f197b3F050B\",\"isMakerBettingOutcomeOne\":true,\"timeInForce\":\"FOK\",\"orderSignature\":\"0x1a2fe802066fe991c74fab7c5011b8a090b49722b2366c586f05b0e14d0eddb77c5ca55f1aee633fd0f0c907414ecb365e0d07a694412a741ee946e31777b7951b\",\"clientOrderId\":\"ccxt-test-1\"}],\"waitForOutcome\":true}"
+            },
+            {
+                "description": "createOrder honors an explicit IOC on a limit order",
+                "url": "https://api.sx.bet/orders-v3",
+                "input": [
+                    "CF_MONTREAL_FIELD_CF_MONTREAL_16A2EB:CF_MONTREAL",
+                    "limit",
+                    "buy",
+                    5,
+                    0.5,
+                    {
+                        "timeInForce": "IOC"
+                    }
+                ],
+                "output": "{\"orders\":[{\"marketHash\":\"0xbf06c6379c922d8118612d1d7493b20f6df6929437fbf6022904327f9516a2eb\",\"maker\":\"0xabababababababababababababababababababab\",\"totalBetSize\":\"5000000\",\"percentageOdds\":\"50000000000000000000\",\"salt\":\"0x000000000000000000000000000000000000000000000000000001a0621beb2c\",\"expiry\":1788438791,\"baseToken\":\"0x6629Ce1Cf35Cc1329ebB4F63202F3f197b3F050B\",\"isMakerBettingOutcomeOne\":true,\"timeInForce\":\"IOC\",\"orderSignature\":\"0x03f0e367c63fc936e15e266b73e1f200818ba8649bc42cec735ceb1bf9541ed6630c42e64ef487b305f5604c07592c301196e3e350e0068220fd6e6a57c7b8e51b\"}],\"waitForOutcome\":true}"
             }
         ],
         "cancelOrder": [

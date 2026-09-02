@@ -204,6 +204,8 @@ export default class sxbet extends Exchange {
                     '79479957': { 'rpcUrl': 'https://rpc-rollup.toronto.sx.technology' },
                 },
                 'approveDeadlineSeconds': 7200,
+                // the venue rejects expiry 0 and past values - default resting orders to one day
+                'defaultOrderExpirySeconds': 86400,
                 // the venue caps GET /orders-v3/odds/best at 100 market hashes per request
                 'bestOddsBatchSize': 100,
                 'tradesLimit': 1000,
@@ -945,7 +947,7 @@ export default class sxbet extends Exchange {
      * @param {float} [price] implied probability (0-1) of the requested outcome; required for both order types
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.timeInForce] overrides the derived value - 'GTC', 'IOC' or 'FOK'
-     * @param {int} [params.expiry] unix seconds the order expires at, 0 (default) never expires; an expiry inside the venue's bettingDelay + 2s window is rejected
+     * @param {int} [params.expiry] unix seconds the order expires at; must be in the future (zero and past values are rejected, so is anything inside the venue's bettingDelay + 2s window), defaults to options.defaultOrderExpirySeconds from now
      * @param {string} [params.salt] overrides the random salt differentiating this order
      * @param {string} [params.clientOrderId] caller-chosen id echoed back on reads (max 64 chars)
      * @param {boolean} [params.waitForOutcome] wait for the matching outcome inline (default true)
@@ -996,17 +998,16 @@ export default class sxbet extends Exchange {
         const saltHexRaw = this.intToBase16 (this.parseToInt (saltNumber));
         const saltHexPadded = saltHexRaw.padStart (64, '0');
         const saltHex = '0x' + saltHexPadded;
-        const expiry = this.safeInteger (params, 'expiry', 0);
+        const defaultExpirySeconds = this.safeInteger (this.options, 'defaultOrderExpirySeconds', 86400);
+        const expiry = this.safeInteger (params, 'expiry', this.sum (this.seconds (), defaultExpirySeconds));
         const defaultTif = (type === 'limit') ? 'GTC' : 'IOC';
         let timeInForce = undefined;
         [ timeInForce, params ] = this.handleOptionAndParams (params, 'createOrder', 'timeInForce', defaultTif);
-        // a GTC 'market' order would silently rest and an IOC/FOK 'limit' would silently
-        // self-cancel - contradictory combinations are refused instead of degraded
+        // an explicit IOC/FOK on a 'limit' order is honored as given - the venue executes exactly
+        // that time-in-force. only GTC on a 'market' order is refused: it would silently rest,
+        // contradicting the immediate-fill semantics the type promises
         if ((type === 'market') && (timeInForce === 'GTC')) {
             throw new InvalidOrder (this.id + " createOrder() market orders cannot be GTC - use type 'limit' for a resting order");
-        }
-        if ((type === 'limit') && (timeInForce !== 'GTC')) {
-            throw new InvalidOrder (this.id + " createOrder() limit orders rest as GTC - use type 'market' for an immediate " + timeInForce + ' fill');
         }
         const maker = this.walletAddress;
         const messageTypes: Dict = {
@@ -1520,11 +1521,13 @@ export default class sxbet extends Exchange {
         const response = await this.sxbetPublicGetTradesV3Public (this.extend (request, params));
         const data = this.safeDict (response, 'data', {});
         const rawTrades = this.safeList (data, 'trades', []);
-        const trades: PredictionTrade[] = [];
+        let trades: PredictionTrade[] = [];
         const rawTradesLength = rawTrades.length;
         for (let i = 0; i < rawTradesLength; i++) {
             trades.push (this.parseSxbetV3PublicTrade (rawTrades[i]));
         }
+        // the venue serves the tape newest-first - the unified contract is ascending by timestamp
+        trades = this.sortBy (trades, 'timestamp');
         const sym = this.safeString (outcomeObj, 'outcome');
         return this.filterByValueSinceLimit (trades, 'outcome', sym, since, limit, 'timestamp', true) as PredictionTrade[];
     }
@@ -1559,11 +1562,12 @@ export default class sxbet extends Exchange {
         const response = await this.sxbetPrivateGetFillsV3 (this.extend (request, params));
         const data = this.safeDict (response, 'data', {});
         const rawFills = this.safeList (data, 'fills', []);
-        const trades: PredictionTrade[] = [];
+        let trades: PredictionTrade[] = [];
         const rawFillsLength = rawFills.length;
         for (let i = 0; i < rawFillsLength; i++) {
             trades.push (this.parseSxbetV3Fill (rawFills[i]));
         }
+        trades = this.sortBy (trades, 'timestamp');
         const sym = (outcomeObj !== undefined) ? this.safeString (outcomeObj, 'outcome') : undefined;
         return this.filterByValueSinceLimit (trades, 'outcome', sym, since, limit, 'timestamp', true) as PredictionTrade[];
     }
