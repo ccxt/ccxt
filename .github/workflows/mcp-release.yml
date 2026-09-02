@@ -2,26 +2,41 @@ name: MCP Release
 
 # Publishes the ccxt-mcp sub-package to npm, mirroring the main release workflow
 # (manual dispatch, maintainer allowlist, Node 24, npm publish with provenance via OIDC).
-# Bump mcp/package.json first and run `npm run sync-versions` so manifest/server.json match,
-# then dispatch this workflow. npm auth uses OIDC trusted publishing — configure a trusted
-# publisher for the `ccxt-mcp` package on npmjs pointing at this workflow (one-time setup).
+# The version is bumped by the workflow itself — same `build/smart-bump.sh` + commit-back
+# pattern as release.yml — so a release is a dispatch, never a hand-edited package.json.
+# npm auth uses OIDC trusted publishing — configure a trusted publisher for the `ccxt-mcp`
+# package on npmjs pointing at this workflow (one-time setup).
 on:
   workflow_dispatch:
 
 permissions:
   id-token: write
-  contents: read
+  contents: write
 
 jobs:
   publish:
     runs-on: ubuntu-latest
     environment: Prod
     if: github.ref == 'refs/heads/master' && contains(fromJSON('["kroitor", "frosty00", "carlosmiei", "pcriadoperez"]'), github.actor)
+    outputs:
+      version: ${{ steps.bump.outputs.version }}
     defaults:
       run:
         working-directory: mcp
     steps:
+      # the app token is what lets the version-bump commit land on protected master,
+      # exactly as in release.yml — the default GITHUB_TOKEN is refused by the branch hook
+      - name: Generate App token
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ secrets.CCXT_APP_CLIENT_ID }}
+          private-key: ${{ secrets.CCXT_APP_PRIVATE_KEY }}
+          permission-contents: write
       - uses: actions/checkout@v4
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          fetch-depth: 2
       - uses: actions/setup-node@v6
         with:
           node-version: '24'
@@ -29,8 +44,17 @@ jobs:
           package-manager-cache: false  # never use caching in release builds
       - name: Install
         run: npm ci
-      - name: Verify manifest/server.json versions match package.json
-        run: node scripts/sync-versions.mjs --check
+      # bump before building so the compiled server + doc manifest carry the new version.
+      # smart-bump.sh reads ./package.json relative to cwd, so it bumps the mcp package
+      # (not the root ccxt one) thanks to the job-level working-directory.
+      - name: Set new version
+        id: bump
+        run: |
+          npm config set git-tag-version=false
+          NEW_VERSION=$(../build/smart-bump.sh)
+          npm version "$NEW_VERSION"
+          node scripts/sync-versions.mjs
+          echo "version=${NEW_VERSION}" >> "$GITHUB_OUTPUT"
       - name: Build (tsc + doc manifest)
         run: npm run build
       - name: Test
@@ -40,6 +64,44 @@ jobs:
         run: npm publish --provenance
         env:
           NPM_CONFIG_PROVENANCE: true
+      # commit the bump only after a successful publish, so a failed release leaves
+      # master untouched and the next dispatch retries the same version number
+      - name: Get App bot user ID
+        id: app-user
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          id=$(curl -fsSL -H "Authorization: Bearer ${GH_TOKEN}" \
+            "https://api.github.com/users/${{ steps.app-token.outputs.app-slug }}%5Bbot%5D" \
+            | node -p "JSON.parse(require('fs').readFileSync(0, 'utf8')).id")
+          echo "id=${id}" >> "$GITHUB_OUTPUT"
+      - name: Commit the version bump to master
+        working-directory: ${{ github.workspace }}
+        env:
+          NEW_VERSION: ${{ steps.bump.outputs.version }}
+        run: |
+          git config --global user.name "${{ steps.app-token.outputs.app-slug }}[bot]"
+          git config --global user.email "${{ steps.app-user.outputs.id }}+${{ steps.app-token.outputs.app-slug }}[bot]@users.noreply.github.com"
+          git add mcp/package.json mcp/package-lock.json mcp/mcpb/manifest.json mcp/server.json
+          git commit -m "[Automated changes] ccxt-mcp ${NEW_VERSION}"
+          # same retry pattern as release.yml: master can move while the release builds,
+          # so rebase onto it before every attempt
+          pushed=""
+          for attempt in 1 2 3 4 5; do
+            git fetch origin master
+            git rebase --autostash origin/master
+            if git push origin HEAD:master; then
+              echo "pushed on attempt ${attempt}"
+              pushed="yes"
+              break
+            fi
+            echo "master moved, retrying (${attempt})..."
+            sleep $(( (RANDOM % 5) + 2 ))
+          done
+          if [ -z "$pushed" ]; then
+            echo "::error::push failed after 5 attempts — npm has ${NEW_VERSION} but master does not; re-run will skip that version"
+            exit 1
+          fi
 
   # Build the Claude Desktop .mcpb bundle and attach it to a GitHub Release so users can
   # one-click install (Settings -> Extensions) or curl a stable URL. Runs after the npm
@@ -56,11 +118,25 @@ jobs:
       run:
         working-directory: mcp
     steps:
+      # NB: check out master, not the dispatched SHA — the publish job just committed the
+      # version bump there, and the default ref would still carry the pre-bump version,
+      # silently bundling a .mcpb one version behind what was published to npm
       - uses: actions/checkout@v4
+        with:
+          ref: master
       - uses: actions/setup-node@v6
         with:
           node-version: '24'
           package-manager-cache: false  # never use caching in release builds
+      - name: Verify the checkout carries the version that was just published
+        env:
+          NEW_VERSION: ${{ needs.publish.outputs.version }}
+        run: |
+          CHECKED_OUT="$(node -p "require('./package.json').version")"
+          if [ "$CHECKED_OUT" != "$NEW_VERSION" ]; then
+            echo "::error::master is at ${CHECKED_OUT} but ${NEW_VERSION} was published — refusing to bundle a mismatched version"
+            exit 1
+          fi
       - name: Install
         run: npm ci
       - name: Build the .mcpb desktop bundle
@@ -75,7 +151,7 @@ jobs:
           # versioned archival release (kept out of the repo-wide "latest" pointer) — immutable:
           # a re-run must NOT overwrite an already-published version, it must fail loudly
           if gh release view "$TAG" >/dev/null 2>&1; then
-            echo "::error::release $TAG already exists — bump mcp/package.json before re-releasing (archived .mcpb artifacts are immutable)"
+            echo "::error::release $TAG already exists — archived .mcpb artifacts are immutable"
             exit 1
           else
             gh release create "$TAG" ccxt-mcp.mcpb --title "ccxt-mcp v$VERSION" --notes "$NOTES" --latest=false
