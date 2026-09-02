@@ -5290,16 +5290,13 @@ export default class bingx extends Exchange {
         if ((transferId === undefined) && ((fromId === undefined) || (toId === undefined))) {
             throw new ExchangeError (this.id + ' fetchTransfers() requires params["transferId"] or both params["fromAccount"] and params["toAccount"]');
         }
-        if (transferId !== undefined) {
-            request['transferId'] = transferId;
-        }
         if (fromAccount !== undefined) {
             request['fromAccount'] = fromId;
         }
         if (toAccount !== undefined) {
             request['toAccount'] = toId;
         }
-        params = this.omit (params, [ 'fromAccount', 'toAccount', 'transferId' ]);
+        params = this.omit (params, [ 'fromAccount', 'toAccount' ]);
         const maxLimit = 100;
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchTransfers', 'paginate', false);
