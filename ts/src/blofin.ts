@@ -1201,8 +1201,7 @@ export default class blofin extends Exchange {
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            // `frozen` counts orders only, so on a futures account it misses the margin
-            // behind open positions; safeBalance derives used from total and free
+            // `frozen` counts orders only, so used is derived from total and free
             account['total'] = this.safeString (balance, 'balance');
             account['free'] = this.safeString (balance, 'available');
             result[code as IndexType] = account;

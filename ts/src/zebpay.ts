@@ -1322,8 +1322,7 @@ export default class zebpay extends Exchange {
             'REJECTED': 'rejected',
             'EXPIRED': 'expired',
         };
-        // the keys are upper case and the swap endpoints send lower, so the
-        // lookup folds case rather than carrying each word twice
+        // the keys are upper case and the swap endpoints send lower, so the lookup folds case
         const upper = (status === undefined) ? undefined : status.toUpperCase ();
         return this.safeString (statuses, upper as string, status);
     }

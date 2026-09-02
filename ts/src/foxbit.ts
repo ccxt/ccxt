@@ -1969,8 +1969,7 @@ export default class foxbit extends Exchange {
     }
 
     parseOrderType (type: Str) {
-        // a unified type is market or limit, the trigger living in triggerPrice,
-        // so each of createOrder's five accepted words maps to one of the two
+        // a unified type is market or limit, so each of the five wire words maps to one of the two
         const types: Dict = {
             'MARKET': 'market',
             'LIMIT': 'limit',
