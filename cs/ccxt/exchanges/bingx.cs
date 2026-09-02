@@ -5367,17 +5367,23 @@ public partial class bingx : Exchange
             { "amount", this.currencyToPrecision(code, amount) },
         };
         object response = await this.apiAssetV1PrivatePostTransfer(this.extend(request, parameters));
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object timestamp = this.safeInteger(response, "timestamp");
         //
         //     {
-        //         "tranId": 1933130865269936128,
-        //         "transferId": "1051450703949464903736"
+        //         "code": "0",
+        //         "timestamp": "1752202170686",
+        //         "data": {
+        //             "tranId": "1943502883135819776",
+        //             "transferId": "1051461075875997081703"
+        //         }
         //     }
         //
         return new Dictionary<string, object>() {
             { "info", response },
-            { "id", this.safeString(response, "transferId") },
-            { "timestamp", null },
-            { "datetime", null },
+            { "id", this.safeString2(data, "transferId", "tranId") },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
             { "currency", code },
             { "amount", amount },
             { "fromAccount", fromAccount },
