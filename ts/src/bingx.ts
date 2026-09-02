@@ -2654,7 +2654,7 @@ export default class bingx extends Exchange {
                 const account = this.account ();
                 account['free'] = this.safeString2 (balance, 'availableMargin', 'availableBalance');
                 account['used'] = this.safeString (balance, 'usedMargin');
-                account['total'] = this.safeString (balance, 'maxWithdrawAmount');
+                account['total'] = this.safeString2 (balance, 'balance', 'maxWithdrawAmount');
                 if (code !== undefined) {
                     result[code] = account;
                 }
