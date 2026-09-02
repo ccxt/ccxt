@@ -20,12 +20,14 @@ jobs:
     if: github.ref == 'refs/heads/master' && contains(fromJSON('["kroitor", "frosty00", "carlosmiei", "pcriadoperez"]'), github.actor)
     outputs:
       version: ${{ steps.bump.outputs.version }}
+      sha: ${{ steps.commit.outputs.sha }}
     defaults:
       run:
         working-directory: mcp
     steps:
-      # the app token is what lets the version-bump commit land on protected master,
-      # exactly as in release.yml — the default GITHUB_TOKEN is refused by the branch hook
+      # master is protected, so the commit-back needs an actor allowed to push to it: the
+      # same CCXT app token release.yml uses for its own version bump. A push authenticated
+      # with the default GITHUB_TOKEN would also not trigger any downstream workflow.
       - name: Generate App token
         id: app-token
         uses: actions/create-github-app-token@v3
@@ -76,6 +78,7 @@ jobs:
             | node -p "JSON.parse(require('fs').readFileSync(0, 'utf8')).id")
           echo "id=${id}" >> "$GITHUB_OUTPUT"
       - name: Commit the version bump to master
+        id: commit
         working-directory: ${{ github.workspace }}
         env:
           NEW_VERSION: ${{ steps.bump.outputs.version }}
@@ -99,9 +102,13 @@ jobs:
             sleep $(( (RANDOM % 5) + 2 ))
           done
           if [ -z "$pushed" ]; then
-            echo "::error::push failed after 5 attempts — npm has ${NEW_VERSION} but master does not; re-run will skip that version"
+            # ccxt-mcp@${NEW_VERSION} is already on npm (immutable) but master is still on the
+            # version before it, so smart-bump.sh would recompute ${NEW_VERSION} on the next
+            # dispatch and die at `npm publish` on a 403 — wedging releases until master catches up
+            echo "::error::push failed after 5 attempts — ccxt-mcp@${NEW_VERSION} is published but master is not bumped; set mcp/package.json to ${NEW_VERSION} (and run npm run sync-versions) on master before the next dispatch, or every release will conflict on ${NEW_VERSION}"
             exit 1
           fi
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
   # Build the Claude Desktop .mcpb bundle and attach it to a GitHub Release so users can
   # one-click install (Settings -> Extensions) or curl a stable URL. Runs after the npm
@@ -118,12 +125,12 @@ jobs:
       run:
         working-directory: mcp
     steps:
-      # NB: check out master, not the dispatched SHA — the publish job just committed the
-      # version bump there, and the default ref would still carry the pre-bump version,
-      # silently bundling a .mcpb one version behind what was published to npm
+      # NB: check out the exact commit the publish job pushed, not the dispatched SHA (which
+      # still carries the pre-bump version, silently bundling a .mcpb one version behind npm)
+      # and not the `master` tip (which another merge can move between the two jobs)
       - uses: actions/checkout@v4
         with:
-          ref: master
+          ref: ${{ needs.publish.outputs.sha }}
       - uses: actions/setup-node@v6
         with:
           node-version: '24'
