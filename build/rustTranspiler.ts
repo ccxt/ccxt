@@ -583,6 +583,49 @@ class RustTranspilerBuilder {
     }
 
     /**
+     * Wrap an error constructor that appears directly as a `&[Value]` slice
+     * element in `Value::from(...)`.
+     *
+     * `crate::exchange_errors::x(...)` returns a typed `ExchangeError`, which
+     * is what a `panic!` site wants, but a slice element has to be a `Value` —
+     * `client.reject(&[crate::exchange_errors::exchange_error(...)])` otherwise
+     * fails to compile with "expected `Value`, found `ExchangeError`".
+     *
+     * Anchored on `&[` immediately preceding the constructor: that is the value
+     * position. Deliberately does NOT match a `, `-preceded occurrence, which is
+     * the `panic!("{}", crate::exchange_errors::…)` throw form that must stay a
+     * typed error.
+     */
+    wrapInlineErrorsInValueSlices(content: string): string {
+        const marker = '&[crate::exchange_errors::';
+        let out = '';
+        let i = 0;
+        while (true) {
+            const p = content.indexOf(marker, i);
+            if (p < 0) { out += content.slice(i); break; }
+            // Balance-parse the constructor's argument list.
+            const openParen = content.indexOf('(', p + marker.length);
+            if (openParen < 0) { out += content.slice(i); break; }
+            let depth = 0, j = openParen, inStr = false, esc = false;
+            for (; j < content.length; j++) {
+                const c = content[j];
+                if (esc) { esc = false; continue; }
+                if (c === '\\' && inStr) { esc = true; continue; }
+                if (c === '"') { inStr = !inStr; continue; }
+                if (inStr) continue;
+                if (c === '(') depth++;
+                else if (c === ')') { depth--; if (depth === 0) break; }
+            }
+            if (j >= content.length) { out += content.slice(i); break; }
+            const callStart = p + 2; // past the `&[`
+            out += content.slice(i, callStart);
+            out += `Value::from(${content.slice(callStart, j + 1)})`;
+            i = j + 1;
+        }
+        return out;
+    }
+
+    /**
      * Lower the two ways transpiled WS code awaits a single-flight (the
      * `authenticate` leader election every venue copied from binance, see
      * https://github.com/ccxt/ccxt/issues/29393) onto the runtime's flight
@@ -5484,7 +5527,23 @@ ${arms.join('\n')}
         Box::pin(async move {
             match method {
 ${arms.join('\n')}
-                _ => crate::Value::Null,
+                // Implicit-API endpoints (\`publicGetX\`) exist only as inherent
+                // methods on the venue's \`<id>_api.rs\`, which no name-based
+                // dispatch arm covers — a static-request test named after one
+                // (bingx's accountV1PrivateGetAccountApiRestrictions) otherwise
+                // computes a null url. Route them the way those wrappers do.
+                // Guarded on the api block so a genuinely unknown name still
+                // returns Null rather than panicking inside call_method.
+                _ => {
+                    if self.internals.implicit_api.is_empty() {
+                        self.build_implicit_api();
+                    }
+                    if self.internals.implicit_api.contains_key(method) {
+                        self.call_method(crate::Value::Str(method.to_string()), &args[..]).await
+                    } else {
+                        crate::Value::Null
+                    }
+                }
             }
         })
     }`;
@@ -6073,6 +6132,12 @@ ${arms.join('\n')}
             /(\b\w+\s*=\s*)(crate::exchange_errors::\w+\([^;]+?\))\s*;/g,
             '$1Value::from($2);',
         );
+
+        // The same conversion for an error CONSTRUCTED INLINE inside a Value
+        // slice — `client.reject (new ExchangeError (…))` (bithumb's
+        // handleErrorMessage). The two passes above only cover the cases where
+        // the error first lands in a local.
+        content = this.wrapInlineErrorsInValueSlices(content);
 
         // JS `method.call(this, ...)` passes the `this` value as the
         // first arg. In our Value-shaped stub the receiver is

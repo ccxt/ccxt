@@ -1852,8 +1852,21 @@ impl Exchange {
             }
         };
         let camel_name = format!("{scope_camel}{verb_camel}{camel}");
+        // Snake-cased from the WHOLE camel name, which is what the transpiler
+        // does to produce the call site. It usually equals `snake_name` above,
+        // but the two diverge when a path segment starts with a digit: joining
+        // pre-snaked parts forces a separator the transpiler never inserts, so
+        // revolutx's `1.0/public/tickers` registers as
+        // `public_get_10_public_tickers` while the generated code calls
+        // `public_get10_public_tickers` (toSnakeCase puts no `_` between a
+        // digit and the preceding letter). Register both spellings so either
+        // resolves.
+        let camel_snake_name = Self::to_snake_case(&camel_name);
         let entry = (path.to_string(), scope_segments.to_vec(), verb.to_uppercase(), config);
         out.insert(snake_name, entry.clone());
+        if !out.contains_key(&camel_snake_name) {
+            out.insert(camel_snake_name, entry.clone());
+        }
         if !out.contains_key(&camel_name) {
             out.insert(camel_name, entry);
         }
