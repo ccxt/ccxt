@@ -16,24 +16,4 @@ public partial class toobit
         var res = this.createContractOrderRequest(symbol, type, side, amount, price, parameters);
         return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
     }
-    /// <summary>
-    /// fetch the trading fees for multiple markets
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#user-trade-fee-rate-user-data"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols.</returns>
-    public async Task<TradingFees> FetchTradingFees(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchTradingFees(parameters);
-        return new TradingFees(res);
-    }
 }

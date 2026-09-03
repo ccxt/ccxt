@@ -1304,7 +1304,7 @@ public partial class woo : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    public async override Task<object> fetchTradingFees(object parameters = null)
+    public async override Task<ccxt.TradingFees> FetchTradingFees(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1350,7 +1350,7 @@ public partial class woo : Exchange
         object symbols = this.symbols;
         if (isTrue(isEqual(symbols, null)))
         {
-            return result;
+            return ccxt.BaseExchange.ToTradingFees(result);
         }
         for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
@@ -1364,7 +1364,7 @@ public partial class woo : Exchange
                 { "tierBased", true },
             };
         }
-        return result;
+        return ccxt.BaseExchange.ToTradingFees(result);
     }
 
     /**

@@ -6,26 +6,6 @@ namespace ccxt;
 
 public partial class hibachi
 {
-    /// <summary>
-    /// fetch the trading fee
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://api-doc.hibachi.xyz/#69aafedb-8274-4e21-bbaf-91dace8b8f31"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a map of market symbols to [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}.</returns>
-    public async Task<TradingFees> FetchTradingFees(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchTradingFees(parameters);
-        return new TradingFees(res);
-    }
     public Dictionary<string, object> CreateOrderRequest(double nonce, string symbol, string type, string side, double amount, double? price = null, Dictionary<string, object> parameters = null)
     {
         var res = this.createOrderRequest(nonce, symbol, type, side, amount, price, parameters);

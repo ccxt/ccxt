@@ -6,41 +6,5 @@ namespace ccxt;
 
 public partial class onetrading
 {
-    /// <summary>
-    /// fetch the trading fees for multiple markets
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.onetrading.com/rest/public/fee-groups"/>  <br/>
-    /// See <see href="https://docs.onetrading.com/rest/trading/fees"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.method</term>
-    /// <description>
-    /// string : fetchPrivateTradingFees or fetchPublicTradingFees
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols.</returns>
-    public async Task<TradingFees> FetchTradingFees(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchTradingFees(parameters);
-        return new TradingFees(res);
-    }
-    public async Task<Dictionary<string, object>> FetchPublicTradingFees(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchPublicTradingFees(parameters);
-        return ((Dictionary<string, object>)res);
-    }
-    public async Task<Dictionary<string, object>> FetchPrivateTradingFees(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchPrivateTradingFees(parameters);
-        return ((Dictionary<string, object>)res);
-    }
+
 }

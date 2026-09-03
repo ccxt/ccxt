@@ -41,26 +41,6 @@ public partial class gate
         var res = await this.fetchDepositAddressesByNetwork(code, parameters);
         return ((IList<object>)res).Select(item => new DepositAddress(item)).ToList<DepositAddress>();
     }
-    /// <summary>
-    /// fetch the trading fees for multiple markets
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#query-personal-trading-fees"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols.</returns>
-    public async Task<TradingFees> FetchTradingFees(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchTradingFees(parameters);
-        return new TradingFees(res);
-    }
     public List<Dictionary<string, object>> CreateOrdersRequest(List<OrderRequest> orders, Dictionary<string, object> parameters = null)
     {
         var res = this.createOrdersRequest(orders, parameters);

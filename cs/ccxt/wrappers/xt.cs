@@ -31,30 +31,4 @@ public partial class xt
         var res = await this.fetchLeverageTiers(symbols, parameters);
         return new LeverageTiers(res);
     }
-    /// <summary>
-    /// fetch the trading fees for multiple markets, the same account-level rate applies to all contract markets of the requested subtype
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://doc.xt.com/docs/futures/User/Get%20User's%20Step%20Rate"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.subType</term>
-    /// <description>
-    /// string : 'linear' (default) or 'inverse'
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbol.</returns>
-    public async Task<TradingFees> FetchTradingFees(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchTradingFees(parameters);
-        return new TradingFees(res);
-    }
 }

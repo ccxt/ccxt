@@ -6,26 +6,6 @@ namespace ccxt;
 
 public partial class paradex
 {
-    /// <summary>
-    /// fetch the trading fees for multiple markets
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.paradex.trade/api/prod/markets/get-markets"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols.</returns>
-    public async Task<TradingFees> FetchTradingFees(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchTradingFees(parameters);
-        return new TradingFees(res);
-    }
     public Dictionary<string, object> CreateOrderRequest(string symbol, string type, string side, double amount, double? price = null, Dictionary<string, object> parameters = null)
     {
         var res = this.createOrderRequest(symbol, type, side, amount, price, parameters);

@@ -12719,7 +12719,7 @@ public partial class binance : Exchange
      * @param {string} [params.subType] "linear" or "inverse"
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    public async override Task<object> fetchTradingFees(object parameters = null)
+    public async override Task<ccxt.TradingFees> FetchTradingFees(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -12827,7 +12827,7 @@ public partial class binance : Exchange
                     ((IDictionary<string,object>)result)[(string)symbol] = fee;
                 }
             }
-            return result;
+            return ccxt.BaseExchange.ToTradingFees(result);
         } else if (isTrue(isLinear))
         {
             //
@@ -12878,7 +12878,7 @@ public partial class binance : Exchange
                     };
                 }
             }
-            return result;
+            return ccxt.BaseExchange.ToTradingFees(result);
         } else if (isTrue(isInverse))
         {
             //
@@ -12917,7 +12917,7 @@ public partial class binance : Exchange
                     };
                 }
             }
-            return result;
+            return ccxt.BaseExchange.ToTradingFees(result);
         }
         throw new NotSupported ((string)add(add(add(this.id, " fetchTradingFees() is not supported for "), type), " markets")) ;
     }

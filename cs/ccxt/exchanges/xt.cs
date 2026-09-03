@@ -5803,7 +5803,7 @@ public partial class xt : Exchange
      * @param {string} [params.subType] 'linear' (default) or 'inverse'
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbol
      */
-    public async override Task<object> fetchTradingFees(object parameters = null)
+    public async override Task<ccxt.TradingFees> FetchTradingFees(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -5836,7 +5836,7 @@ public partial class xt : Exchange
                 ((IDictionary<string,object>)result)[(string)symbol] = this.parseTradingFee(fee, market);
             }
         }
-        return result;
+        return ccxt.BaseExchange.ToTradingFees(result);
     }
 
     public virtual object parseTradingFee(object fee, object market = null)

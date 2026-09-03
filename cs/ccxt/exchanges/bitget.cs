@@ -5738,7 +5738,7 @@ public partial class bitget : Exchange
      * @param {boolean} [params.margin] set to true for spot margin
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    public async override Task<object> fetchTradingFees(object parameters = null)
+    public async override Task<ccxt.TradingFees> FetchTradingFees(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -5859,7 +5859,7 @@ public partial class bitget : Exchange
             object fee = this.parseTradingFee(entry, market);
             ((IDictionary<string,object>)result)[(string)symbol] = fee;
         }
-        return result;
+        return ccxt.BaseExchange.ToTradingFees(result);
     }
 
     public virtual object parseTradingFee(object data, object market = null)

@@ -6328,7 +6328,7 @@ public partial class BaseExchange
         throw new NotSupported ((string)add(this.id, " fetchLastPrices() is not supported yet")) ;
     }
 
-    public async virtual Task<object> fetchTradingFees(object parameters = null)
+    public async virtual Task<ccxt.TradingFees> FetchTradingFees(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchTradingFees() is not supported yet")) ;

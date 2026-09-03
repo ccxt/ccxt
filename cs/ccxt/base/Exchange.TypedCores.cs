@@ -5941,6 +5941,10 @@ public partial class BaseExchange
         {
             result["tierBased"] = typed.tierBased;
         }
+        if (typed.tiers != null)
+        {
+            result["tiers"] = typed.tiers;
+        }
         if (typed.info != null)
         {
             result["info"] = typed.info;

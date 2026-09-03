@@ -1313,7 +1313,7 @@ public partial class Exchange
         {
             throw new NotSupported ((string)add(this.id, " fetchTradingFee() is not supported yet")) ;
         }
-        object fees = await this.fetchTradingFees(parameters);
+        object fees = ccxt.BaseExchange.FromTradingFees(await this.FetchTradingFees(parameters));
         return ccxt.BaseExchange.ToTradingFeeInterface(this.safeDict(fees, symbol));
     }
 

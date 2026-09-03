@@ -41,26 +41,6 @@ public partial class gemini
         return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
     }
     /// <summary>
-    /// fetch the trading fees for multiple markets
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.gemini.com/rest-api/#get-notional-volume"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols.</returns>
-    public async Task<TradingFees> FetchTradingFees(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchTradingFees(parameters);
-        return new TradingFees(res);
-    }
-    /// <summary>
     /// fetch a dictionary of addresses for a currency, indexed by network
     /// </summary>
     /// <remarks>

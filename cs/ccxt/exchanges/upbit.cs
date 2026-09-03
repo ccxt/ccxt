@@ -1211,7 +1211,7 @@ public partial class upbit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [trading fee structure]{@link https://docs.ccxt.com/?id=trading-fee-structure}
      */
-    public async override Task<object> fetchTradingFees(object parameters = null)
+    public async override Task<ccxt.TradingFees> FetchTradingFees(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1235,7 +1235,7 @@ public partial class upbit : Exchange
                 ((IDictionary<string,object>)response)[(string)feeSymbol] = element;
             }
         }
-        return response;
+        return ccxt.BaseExchange.ToTradingFees(response);
     }
 
     public override object parseOHLCV(object ohlcv, object market = null)

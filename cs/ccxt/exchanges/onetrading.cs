@@ -629,7 +629,7 @@ public partial class onetrading : Exchange
      * @param {string} [params.method] fetchPrivateTradingFees or fetchPublicTradingFees
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    public async override Task<object> fetchTradingFees(object parameters = null)
+    public async override Task<ccxt.TradingFees> FetchTradingFees(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object method = this.safeString(parameters, "method");
@@ -641,17 +641,17 @@ public partial class onetrading : Exchange
         }
         if (isTrue(isEqual(method, "fetchPrivateTradingFees")))
         {
-            return await this.fetchPrivateTradingFees(parameters);
+            return await this.FetchPrivateTradingFees(parameters);
         } else if (isTrue(isEqual(method, "fetchPublicTradingFees")))
         {
-            return await this.fetchPublicTradingFees(parameters);
+            return await this.FetchPublicTradingFees(parameters);
         } else
         {
             throw new NotSupported ((string)add(add(add(this.id, " fetchTradingFees() does not support "), method), ", fetchPrivateTradingFees and fetchPublicTradingFees are supported")) ;
         }
     }
 
-    public async virtual Task<object> fetchPublicTradingFees(object parameters = null)
+    public async virtual Task<ccxt.TradingFees> FetchPublicTradingFees(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -726,10 +726,10 @@ public partial class onetrading : Exchange
                 { "tiers", spotTiers },
             };
         }
-        return result;
+        return ccxt.BaseExchange.ToTradingFees(result);
     }
 
-    public async virtual Task<object> fetchPrivateTradingFees(object parameters = null)
+    public async virtual Task<ccxt.TradingFees> FetchPrivateTradingFees(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -799,7 +799,7 @@ public partial class onetrading : Exchange
                 { "tiers", null },
             };
         }
-        return result;
+        return ccxt.BaseExchange.ToTradingFees(result);
     }
 
     public virtual object parseFeeTiers(object feeTiers, object market = null)

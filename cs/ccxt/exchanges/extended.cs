@@ -2380,7 +2380,7 @@ public partial class extended : Exchange
      * @param {string} [params.builderId] builder client id
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    public async override Task<object> fetchTradingFees(object parameters = null)
+    public async override Task<ccxt.TradingFees> FetchTradingFees(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -2410,7 +2410,7 @@ public partial class extended : Exchange
                 ((IDictionary<string,object>)result)[(string)symbol] = parsed;
             }
         }
-        return result;
+        return ccxt.BaseExchange.ToTradingFees(result);
     }
 
     public virtual object parseTradingFee(object fee, object market = null)

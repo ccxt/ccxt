@@ -4111,7 +4111,7 @@ public partial class cryptocom : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    public async override Task<object> fetchTradingFees(object parameters = null)
+    public async override Task<ccxt.TradingFees> FetchTradingFees(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -4135,7 +4135,7 @@ public partial class cryptocom : Exchange
         //   }
         //
         object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
-        return this.parseTradingFees(result);
+        return ccxt.BaseExchange.ToTradingFees(this.parseTradingFees(result));
     }
 
     public virtual object parseTradingFees(object response)

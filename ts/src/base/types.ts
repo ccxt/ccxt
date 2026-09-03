@@ -78,6 +78,9 @@ export interface TradingFeeInterface {
     taker: Num;
     percentage: Bool;
     tierBased: Bool;
+    // volume-tier fee schedule where the venue publishes one (cryptomus, onetrading):
+    // { 'maker': [[volume, fee], ...], 'taker': [[volume, fee], ...] }, see wiki/Manual.md "Trading Fees"
+    tiers?: Dict;
 }
 
 export type Fee = FeeInterface | undefined;

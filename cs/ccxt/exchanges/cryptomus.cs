@@ -1148,7 +1148,7 @@ public partial class cryptomus : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    public async override Task<object> fetchTradingFees(object parameters = null)
+    public async override Task<ccxt.TradingFees> FetchTradingFees(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.privateGetV2UserApiExchangeAccountTariffs(parameters);
@@ -1212,7 +1212,7 @@ public partial class cryptomus : Exchange
         object symbols = this.symbols;
         if (isTrue(isEqual(symbols, null)))
         {
-            return result;
+            return ccxt.BaseExchange.ToTradingFees(result);
         }
         for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
@@ -1227,7 +1227,7 @@ public partial class cryptomus : Exchange
                 { "tiers", tiers },
             };
         }
-        return result;
+        return ccxt.BaseExchange.ToTradingFees(result);
     }
 
     public virtual object parseFeeTiers(object feeTiers, object market = null)

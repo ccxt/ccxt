@@ -1046,7 +1046,7 @@ public partial class bitvavo : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    public async override Task<object> fetchTradingFees(object parameters = null)
+    public async override Task<ccxt.TradingFees> FetchTradingFees(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1063,7 +1063,7 @@ public partial class bitvavo : Exchange
         //         }
         //     }
         //
-        return this.parseTradingFees(response);
+        return ccxt.BaseExchange.ToTradingFees(this.parseTradingFees(response));
     }
 
     public virtual object parseTradingFees(object fees, object market = null)

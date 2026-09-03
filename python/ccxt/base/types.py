@@ -89,6 +89,7 @@ class TradingFeeInterface(TypedDict):
     taker: Num
     percentage: Bool
     tierBased: Bool
+    tiers: dict[str, Any]
 
 
 class DepositWithdrawFeeNetwork(TypedDict):

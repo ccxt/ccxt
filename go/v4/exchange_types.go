@@ -75,6 +75,21 @@ func SafeMapToMap(sm *sync.Map) map[string]any {
 	return result
 }
 
+// SafeMapTyped reads a free-form dictionary member (TS `Dict`), nil when absent or not a map.
+func SafeMapTyped(m any, key any) map[string]any {
+	res := SafeValue(m, key, nil)
+	if res == nil {
+		return nil
+	}
+	if asMap, ok := res.(map[string]any); ok {
+		return asMap
+	}
+	if asSyncMap, ok := res.(*sync.Map); ok {
+		return SafeMapToMap(asSyncMap)
+	}
+	return nil
+}
+
 // MarketInterface struct
 type MarketInterface struct {
 	Info           map[string]any
@@ -283,6 +298,7 @@ type TradingFeeInterface struct {
 	Taker      *float64
 	Percentage *bool
 	TierBased  *bool
+	Tiers      map[string]any
 	Info       map[string]any
 }
 
@@ -294,6 +310,7 @@ func NewTradingFeeInterface(data any) TradingFeeInterface {
 		Taker:      SafeFloatTyped(m, "taker"),
 		Percentage: SafeBoolTyped(m, "percentage"),
 		TierBased:  SafeBoolTyped(m, "tierBased"),
+		Tiers:      SafeMapTyped(m, "tiers"),
 		Info:       m,
 	}
 }

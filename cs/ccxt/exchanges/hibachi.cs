@@ -879,7 +879,7 @@ public partial class hibachi : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a map of market symbols to [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public async override Task<object> fetchTradingFees(object parameters = null)
+    public async override Task<ccxt.TradingFees> FetchTradingFees(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -909,7 +909,7 @@ public partial class hibachi : Exchange
                 { "percentage", true },
             };
         }
-        return result;
+        return ccxt.BaseExchange.ToTradingFees(result);
     }
 
     public virtual object orderMessage(object market, object nonce, object feeRate, object type, object side, object amount, object price = null)

@@ -47,32 +47,6 @@ public partial class bybit
         return ((IList<object>)res).Select(item => new DepositAddress(item)).ToList<DepositAddress>();
     }
     /// <summary>
-    /// fetch the trading fees for multiple markets
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://bybit-exchange.github.io/docs/v5/account/fee-rate"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.type</term>
-    /// <description>
-    /// string : market type, ['swap', 'option', 'spot']
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols.</returns>
-    public async Task<TradingFees> FetchTradingFees(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchTradingFees(parameters);
-        return new TradingFees(res);
-    }
-    /// <summary>
     /// fetch the historical volatility of an option market based on an underlying asset
     /// </summary>
     /// <remarks>

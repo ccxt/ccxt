@@ -6,38 +6,6 @@ namespace ccxt;
 
 public partial class extended
 {
-    /// <summary>
-    /// fetch the trading fees for multiple markets
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://api.docs.extended.exchange/#get-fees"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.market</term>
-    /// <description>
-    /// string : exchange market id
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.builderId</term>
-    /// <description>
-    /// string : builder client id
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols.</returns>
-    public async Task<TradingFees> FetchTradingFees(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchTradingFees(parameters);
-        return new TradingFees(res);
-    }
     public async Task<Dictionary<string, object>> FetchExtendedAccount(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchExtendedAccount(parameters);

@@ -168,7 +168,6 @@ const TYPED_CORES: Record<string, string> = {
     'fetchBidsAsks': 'Tickers',
     'fetchBorrowRateHistories': 'Dictionary<string, object>',
     'fetchBorrowRateHistory': 'List<Dictionary<string, object>>',
-    // TradingFees stay untyped: TradingFeeInterface has no `tiers`, which cryptomus/onetrading emit.
     'fetchContractBalance': 'Balances',
     'fetchContractTickers': 'Tickers',
     'fetchCrossBorrowRates': 'CrossBorrowRates',
@@ -348,6 +347,11 @@ const TYPED_CORES: Record<string, string> = {
     'fetchTrades': 'List<Trade>',
     'fetchTradesWs': 'List<Trade>',
     'fetchTradingFee': 'TradingFeeInterface',
+    // TradingFeeInterface.tiers (ts/src/base/types.ts) carries the cryptomus/onetrading
+    // volume-tier schedule, so the TradingFees struct is now lossless for every venue.
+    'fetchTradingFees': 'TradingFees',
+    'fetchPrivateTradingFees': 'TradingFees',
+    'fetchPublicTradingFees': 'TradingFees',
     'fetchTradingFeesWs': 'TradingFees',
     'fetchTradingLimits': 'Dictionary<string, object>',
     'fetchTransactionFees': 'Dictionary<string, object>',

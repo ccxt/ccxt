@@ -105,35 +105,6 @@ public partial class binance
         return ((Dictionary<string, object>)res);
     }
     /// <summary>
-    /// fetch the trading fees for multiple markets
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://developers.binance.com/docs/wallet/asset/trade-fee"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Account-Information"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Config"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.subType</term>
-    /// <description>
-    /// string : "linear" or "inverse"
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols.</returns>
-    public async Task<TradingFees> FetchTradingFees(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchTradingFees(parameters);
-        return new TradingFees(res);
-    }
-    /// <summary>
     /// retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
     /// </summary>
     /// <remarks>

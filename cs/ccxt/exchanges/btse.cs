@@ -3114,7 +3114,7 @@ public partial class btse : Exchange
      * @param {string} [params.type] 'spot', 'swap' or 'future' (default is 'spot')
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    public async override Task<object> fetchTradingFees(object parameters = null)
+    public async override Task<ccxt.TradingFees> FetchTradingFees(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -3161,7 +3161,7 @@ public partial class btse : Exchange
                 { "tierBased", true },
             };
         }
-        return result;
+        return ccxt.BaseExchange.ToTradingFees(result);
     }
 
     public async virtual Task<object> requestWalletHistoryRows(object methodName, object historyTypes, object code = null, object since = null, object limit = null, object parameters = null)

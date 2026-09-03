@@ -26,31 +26,4 @@ public partial class btse
         var res = await this.fetchLeverageTiers(symbols, parameters);
         return new LeverageTiers(res);
     }
-    /// <summary>
-    /// fetch the trading fees for multiple markets
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.btse.com/spot/rest/get-fees"/>  <br/>
-    /// See <see href="https://btsecom.github.io/docs/futuresV2_3/en/#query-account-fee"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.type</term>
-    /// <description>
-    /// string : 'spot', 'swap' or 'future' (default is 'spot')
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols.</returns>
-    public async Task<TradingFees> FetchTradingFees(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchTradingFees(parameters);
-        return new TradingFees(res);
-    }
 }

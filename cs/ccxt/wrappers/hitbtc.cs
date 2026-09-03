@@ -11,27 +11,6 @@ public partial class hitbtc
         var res = await this.fetchTransactionsHelper(types, code, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Transaction(item)).ToList<Transaction>();
     }
-    /// <summary>
-    /// fetch the trading fees for multiple markets
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://api.hitbtc.com/#get-all-trading-commissions"/>  <br/>
-    /// See <see href="https://api.hitbtc.com/#get-all-trading-commissions-2"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols.</returns>
-    public async Task<TradingFees> FetchTradingFees(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchTradingFees(parameters);
-        return new TradingFees(res);
-    }
     public List<Dictionary<string, object>> CreateOrderRequest(Dictionary<string, object> market, string marketType, string type, string side, double amount, double? price = null, string marginMode = null, Dictionary<string, object> parameters = null)
     {
         var res = this.createOrderRequest(market, marketType, type, side, amount, price, marginMode, parameters);

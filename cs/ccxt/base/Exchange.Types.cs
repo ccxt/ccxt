@@ -157,6 +157,7 @@ public struct TradingFeeInterface
     public double? taker;
     public bool? percentage;
     public bool? tierBased;
+    public Dictionary<string, object>? tiers;
     public Dictionary<string, object> info;
 
     public TradingFeeInterface(object tradingFeeInterface2)
@@ -167,6 +168,7 @@ public struct TradingFeeInterface
         taker = Exchange.SafeFloat(tradingFeeInterface, "taker");
         percentage = tradingFeeInterface.ContainsKey("percentage") && tradingFeeInterface["percentage"] != null ? (bool)tradingFeeInterface["percentage"] : null;
         tierBased = tradingFeeInterface.ContainsKey("tierBased") && tradingFeeInterface["tierBased"] != null ? (bool)tradingFeeInterface["tierBased"] : null;
+        tiers = Exchange.SafeValue(tradingFeeInterface, "tiers") != null ? (Dictionary<string, object>)Exchange.SafeValue(tradingFeeInterface, "tiers") : null;
         info = Helper.GetInfo(tradingFeeInterface);
     }
 }

@@ -6,40 +6,6 @@ namespace ccxt;
 
 public partial class bitget
 {
-    /// <summary>
-    /// fetch the trading fees for multiple markets
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://www.bitget.com/api-doc/spot/market/Get-Symbols"/>  <br/>
-    /// See <see href="https://www.bitget.com/api-doc/contract/market/Get-All-Symbols-Contracts"/>  <br/>
-    /// See <see href="https://www.bitget.com/api-doc/margin/common/support-currencies"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.productType</term>
-    /// <description>
-    /// string : *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.margin</term>
-    /// <description>
-    /// boolean : set to true for spot margin
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols.</returns>
-    public async Task<TradingFees> FetchTradingFees(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchTradingFees(parameters);
-        return new TradingFees(res);
-    }
     public Dictionary<string, object> CreateUtaOrderRequest(string symbol, string type, string side, double amount, double? price = null, Dictionary<string, object> parameters = null)
     {
         var res = this.createUtaOrderRequest(symbol, type, side, amount, price, parameters);

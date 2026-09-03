@@ -76,11 +76,6 @@ public partial class BaseExchange
         var res = this.createExpiredOptionMarket(symbol);
         return new MarketInterface(res);
     }
-    public async Task<TradingFees> FetchTradingFees(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchTradingFees(parameters);
-        return new TradingFees(res);
-    }
     public Dictionary<string, Dictionary<string, OHLCV[]>> CreateOHLCVObject(string symbol, string timeframe, object data)
     {
         var res = this.createOHLCVObject(symbol, timeframe, data);
