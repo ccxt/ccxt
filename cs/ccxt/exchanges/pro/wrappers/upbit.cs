@@ -6,9 +6,5 @@ namespace ccxt.pro;
 public class  Upbit: upbit { public Upbit(object args = null) : base(args) { } }
 public partial class upbit
 {
-    public async Task<Dictionary<string, object>> WatchPublicMultiple(List<String> symbols, object channel, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.watchPublicMultiple(symbols, channel, parameters);
-        return ((Dictionary<string, object>)res);
-    }
+
 }

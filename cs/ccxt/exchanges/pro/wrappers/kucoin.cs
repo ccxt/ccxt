@@ -6,9 +6,5 @@ namespace ccxt.pro;
 public class  Kucoin: kucoin { public Kucoin(object args = null) : base(args) { } }
 public partial class kucoin
 {
-    public async Task<Dictionary<string, object>> WatchMultiHelper(object methodName, string channelName, bool isFuturesChannel, List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.watchMultiHelper(methodName, channelName, isFuturesChannel, symbols, parameters);
-        return ((Dictionary<string, object>)res);
-    }
+
 }

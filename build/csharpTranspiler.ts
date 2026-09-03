@@ -1497,6 +1497,27 @@ class NewTranspiler {
             'watchMultiple',
             'watchPrivate',
             'watchPublic',
+            // venue-internal ws transport plumbing: each of these resolves 2+ runtime
+            // shapes across its call sites (ticker dict / live orderbook / ArrayCache /
+            // [symbol, timeframe, stored] tuple / raw message), so no closed C# type
+            // fits and a cast-only `Dictionary<string, object>` wrapper is a lie
+            'watchExecuteRequest',
+            'watchHeartbeat',
+            'watchMany',
+            'watchMultiHelper',
+            'watchMultiTickerHelper',
+            'watchMultipleWrapper',
+            'watchPrivateMultiple',
+            'watchPrivateRequest',
+            'watchPrivateSubscribe',
+            'watchPublicMultiple',
+            'watchRequest',
+            'watchSpotPrivate',
+            'watchSpotPublic',
+            'watchStockMarketStream',
+            'watchSwapPrivate',
+            'watchSwapPublic',
+            'watchTopics',
             'setPositionsCache',
             'setPositionCache'
         ] // improve this later

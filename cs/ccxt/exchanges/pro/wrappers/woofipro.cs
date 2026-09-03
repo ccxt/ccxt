@@ -6,9 +6,5 @@ namespace ccxt.pro;
 public class  Woofipro: woofipro { public Woofipro(object args = null) : base(args) { } }
 public partial class woofipro
 {
-    public async Task<Dictionary<string, object>> WatchPrivateMultiple(object messageHashes, object message, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.watchPrivateMultiple(messageHashes, message, parameters);
-        return ((Dictionary<string, object>)res);
-    }
+
 }

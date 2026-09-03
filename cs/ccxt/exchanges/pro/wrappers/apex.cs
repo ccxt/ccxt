@@ -6,9 +6,5 @@ namespace ccxt.pro;
 public class  Apex: apex { public Apex(object args = null) : base(args) { } }
 public partial class apex
 {
-    public async Task<Dictionary<string, object>> WatchTopics(object url, object messageHashes, object topics, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.watchTopics(url, messageHashes, topics, parameters);
-        return ((Dictionary<string, object>)res);
-    }
+
 }

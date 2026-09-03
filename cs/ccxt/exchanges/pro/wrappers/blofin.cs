@@ -6,9 +6,5 @@ namespace ccxt.pro;
 public class  Blofin: blofin { public Blofin(object args = null) : base(args) { } }
 public partial class blofin
 {
-    public async Task<Dictionary<string, object>> WatchMultipleWrapper(bool isPublic, string channelName, string callerMethodName, object symbolsArray = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.watchMultipleWrapper(isPublic, channelName, callerMethodName, symbolsArray, parameters);
-        return ((Dictionary<string, object>)res);
-    }
+
 }

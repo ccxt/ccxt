@@ -6,9 +6,5 @@ namespace ccxt.pro;
 public class  Woo: woo { public Woo(object args = null) : base(args) { } }
 public partial class woo
 {
-    public async Task<Dictionary<string, object>> WatchPrivateMultiple(object messageHashes, object message, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.watchPrivateMultiple(messageHashes, message, parameters);
-        return ((Dictionary<string, object>)res);
-    }
+
 }

@@ -6,9 +6,5 @@ namespace ccxt.pro;
 public class  Bitmex: bitmex { public Bitmex(object args = null) : base(args) { } }
 public partial class bitmex
 {
-    public async Task<Dictionary<string, object>> WatchHeartbeat(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.watchHeartbeat(parameters);
-        return ((Dictionary<string, object>)res);
-    }
+
 }

@@ -6,9 +6,5 @@ namespace ccxt.pro;
 public class  Deribit: deribit { public Deribit(object args = null) : base(args) { } }
 public partial class deribit
 {
-    public async Task<Dictionary<string, object>> WatchMultipleWrapper(string channelName, string channelDescriptor, object symbolsArray = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.watchMultipleWrapper(channelName, channelDescriptor, symbolsArray, parameters);
-        return ((Dictionary<string, object>)res);
-    }
+
 }

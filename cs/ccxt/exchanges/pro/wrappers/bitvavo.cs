@@ -6,16 +6,6 @@ namespace ccxt.pro;
 public class  Bitvavo: bitvavo { public Bitvavo(object args = null) : base(args) { } }
 public partial class bitvavo
 {
-    public async Task<Dictionary<string, object>> WatchPublicMultiple(object methodName, string channelName, object symbols, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.watchPublicMultiple(methodName, channelName, symbols, parameters);
-        return ((Dictionary<string, object>)res);
-    }
-    public async Task<Dictionary<string, object>> WatchRequest(object action, object request)
-    {
-        var res = await this.watchRequest(action, request);
-        return ((Dictionary<string, object>)res);
-    }
     /// <summary>
     /// fetches all available currencies on an exchange
     /// </summary>

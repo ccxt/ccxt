@@ -6,9 +6,5 @@ namespace ccxt.pro;
 public class  Bybit: bybit { public Bybit(object args = null) : base(args) { } }
 public partial class bybit
 {
-    public async Task<Dictionary<string, object>> WatchTopics(object url, object messageHashes, object topics, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.watchTopics(url, messageHashes, topics, parameters);
-        return ((Dictionary<string, object>)res);
-    }
+
 }

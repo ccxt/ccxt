@@ -6,9 +6,5 @@ namespace ccxt.pro;
 public class  Onetrading: onetrading { public Onetrading(object args = null) : base(args) { } }
 public partial class onetrading
 {
-    public async Task<Dictionary<string, object>> WatchMany(object messageHash, object request, object subscriptionHash, List<String> symbols, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.watchMany(messageHash, request, subscriptionHash, symbols, parameters);
-        return ((Dictionary<string, object>)res);
-    }
+
 }

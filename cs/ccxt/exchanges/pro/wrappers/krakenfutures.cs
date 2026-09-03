@@ -6,9 +6,5 @@ namespace ccxt.pro;
 public class  Krakenfutures: krakenfutures { public Krakenfutures(object args = null) : base(args) { } }
 public partial class krakenfutures
 {
-    public async Task<Dictionary<string, object>> WatchMultiHelper(string unifiedName, string channelName, object symbols = null, object subscriptionArgs = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.watchMultiHelper(unifiedName, channelName, symbols, subscriptionArgs, parameters);
-        return ((Dictionary<string, object>)res);
-    }
+
 }

@@ -6,22 +6,5 @@ namespace ccxt.pro;
 public class  Binance: binance { public Binance(object args = null) : base(args) { } }
 public partial class binance
 {
-    /// <summary>
-    /// subscribe to the tokenized stock market data stream
-    /// </summary>
-    /// <remarks>
-    /// <list type="table">
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> the raw stream subscription response.</returns>
-    public async Task<Dictionary<string, object>> WatchStockMarketStream(List<string> streams, List<string> messageHashes, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.watchStockMarketStream(streams, messageHashes, parameters);
-        return ((Dictionary<string, object>)res);
-    }
-    public async Task<Dictionary<string, object>> WatchMultiTickerHelper(object methodName, string channelName, List<String> symbols = null, Dictionary<string, object> parameters = null, bool isUnsubscribe = false)
-    {
-        var res = await this.watchMultiTickerHelper(methodName, channelName, symbols, parameters, isUnsubscribe);
-        return ((Dictionary<string, object>)res);
-    }
+
 }

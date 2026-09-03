@@ -6,14 +6,5 @@ namespace ccxt.pro;
 public class  Nado: nado { public Nado(object args = null) : base(args) { } }
 public partial class nado
 {
-    public async Task<Dictionary<string, object>> WatchExecuteRequest(string requestIdString, object request)
-    {
-        var res = await this.watchExecuteRequest(requestIdString, request);
-        return ((Dictionary<string, object>)res);
-    }
-    public async Task<Dictionary<string, object>> WatchPublicMultiple(object streamType, object markets, List<string> messageHashes, Dictionary<string, object> parameters = null, object subscriptionParams = null)
-    {
-        var res = await this.watchPublicMultiple(streamType, markets, messageHashes, parameters, subscriptionParams);
-        return ((Dictionary<string, object>)res);
-    }
+
 }

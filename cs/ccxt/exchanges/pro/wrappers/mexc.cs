@@ -6,24 +6,5 @@ namespace ccxt.pro;
 public class  Mexc: mexc { public Mexc(object args = null) : base(args) { } }
 public partial class mexc
 {
-    public async Task<Dictionary<string, object>> WatchSpotPublic(object channel, object messageHash, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.watchSpotPublic(channel, messageHash, parameters);
-        return ((Dictionary<string, object>)res);
-    }
-    public async Task<Dictionary<string, object>> WatchSpotPrivate(object channel, object messageHash, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.watchSpotPrivate(channel, messageHash, parameters);
-        return ((Dictionary<string, object>)res);
-    }
-    public async Task<Dictionary<string, object>> WatchSwapPublic(object channel, object messageHash, object requestParams, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.watchSwapPublic(channel, messageHash, requestParams, parameters);
-        return ((Dictionary<string, object>)res);
-    }
-    public async Task<Dictionary<string, object>> WatchSwapPrivate(object messageHash, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.watchSwapPrivate(messageHash, parameters);
-        return ((Dictionary<string, object>)res);
-    }
+
 }

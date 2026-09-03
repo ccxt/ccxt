@@ -6,9 +6,5 @@ namespace ccxt.pro;
 public class  Bitget: bitget { public Bitget(object args = null) : base(args) { } }
 public partial class bitget
 {
-    public async Task<Dictionary<string, object>> WatchPublicMultiple(object uta, object messageHashes, object argsArray, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.watchPublicMultiple(uta, messageHashes, argsArray, parameters);
-        return ((Dictionary<string, object>)res);
-    }
+
 }

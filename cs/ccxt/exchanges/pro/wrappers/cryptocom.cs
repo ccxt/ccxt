@@ -6,19 +6,5 @@ namespace ccxt.pro;
 public class  Cryptocom: cryptocom { public Cryptocom(object args = null) : base(args) { } }
 public partial class cryptocom
 {
-    public async Task<Dictionary<string, object>> WatchPublicMultiple(object messageHashes, object topics, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.watchPublicMultiple(messageHashes, topics, parameters);
-        return ((Dictionary<string, object>)res);
-    }
-    public async Task<Dictionary<string, object>> WatchPrivateRequest(object nonce, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.watchPrivateRequest(nonce, parameters);
-        return ((Dictionary<string, object>)res);
-    }
-    public async Task<Dictionary<string, object>> WatchPrivateSubscribe(object messageHash, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.watchPrivateSubscribe(messageHash, parameters);
-        return ((Dictionary<string, object>)res);
-    }
+
 }
