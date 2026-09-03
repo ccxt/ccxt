@@ -3930,18 +3930,14 @@ class binance(Exchange, ImplicitAPI):
             assets = self.safe_list(response, 'assets', [])
             for i in range(0, len(assets)):
                 asset = assets[i]
-                marketId = self.safe_string(asset, 'symbol')
-                symbol = self.safe_symbol(marketId, None, None, 'spot')
                 base = self.safe_dict(asset, 'baseAsset', {})
                 quote = self.safe_dict(asset, 'quoteAsset', {})
                 baseCode = self.safe_currency_code(self.safe_string(base, 'asset'))
                 quoteCode = self.safe_currency_code(self.safe_string(quote, 'asset'))
-                subResult = {}
                 if baseCode is not None:
-                    subResult[baseCode] = self.parse_balance_helper(base)
+                    result = self.merge_balance_account(result, baseCode, self.parse_balance_helper(base))
                 if quoteCode is not None:
-                    subResult[quoteCode] = self.parse_balance_helper(quote)
-                result[symbol] = self.safe_balance(subResult)
+                    result = self.merge_balance_account(result, quoteCode, self.parse_balance_helper(quote))
         elif type == 'savings':
             positionAmountVos = self.safe_list(response, 'positionAmountVos', [])
             for i in range(0, len(positionAmountVos)):
@@ -3987,7 +3983,7 @@ class binance(Exchange, ImplicitAPI):
                     result[code] = account
         result['timestamp'] = timestamp
         result['datetime'] = self.iso8601(timestamp)
-        return result if isolated else self.safe_balance(result)
+        return self.safe_balance(result)
 
     def fetch_balance(self, params={}) -> Balances:
         """

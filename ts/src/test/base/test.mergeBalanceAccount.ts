@@ -1,6 +1,3 @@
-
-
-
 import assert from 'assert';
 import ccxt from '../../../ccxt.js';
 import type { Dict } from '../../base/types.js';
@@ -12,26 +9,28 @@ function testMergeBalanceAccount () {
     });
 
     // isolated margin hands one account per market; the same code across two
-    // markets is summed into a single flat entry, missing fields stay undefined
-    const result: Dict = {};
+    // markets is summed into a single flat entry, missing fields stay undefined.
+    // the helper returns the merged dict and callers reassign it: PHP arrays are
+    // passed by value, so mutating the argument alone is invisible there
+    let result: Dict = {};
     const btcAccount = exchange.account ();
     btcAccount['free'] = '1';
     btcAccount['used'] = '0.5';
     btcAccount['debt'] = '0.1';
-    exchange.mergeBalanceAccount (result, 'BTC', btcAccount);
+    result = exchange.mergeBalanceAccount (result, 'BTC', btcAccount);
     assert (exchange.safeString (result['BTC'], 'free') === '1');
     const btcAccount2 = exchange.account ();
     btcAccount2['free'] = '2';
     btcAccount2['used'] = '0.25';
     btcAccount2['total'] = '2.25';
-    exchange.mergeBalanceAccount (result, 'BTC', btcAccount2);
+    result = exchange.mergeBalanceAccount (result, 'BTC', btcAccount2);
     assert (exchange.safeString (result['BTC'], 'free') === '3');
     assert (exchange.safeString (result['BTC'], 'used') === '0.75');
     assert (exchange.safeString (result['BTC'], 'total') === '2.25');
     assert (exchange.safeString (result['BTC'], 'debt') === '0.1');
     const usdtAccount = exchange.account ();
     usdtAccount['free'] = '5';
-    exchange.mergeBalanceAccount (result, 'USDT', usdtAccount);
+    result = exchange.mergeBalanceAccount (result, 'USDT', usdtAccount);
     assert (exchange.safeString (result['USDT'], 'free') === '5');
     assert (exchange.safeString (result['USDT'], 'used') === undefined);
     const keys = Object.keys (result);

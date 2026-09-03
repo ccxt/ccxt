@@ -3790,19 +3790,15 @@ class mexc(Exchange, ImplicitAPI):
         if marketType == 'margin':
             for i in range(0, len(wallet)):
                 entry = wallet[i]
-                marketId = self.safe_string(entry, 'symbol')
-                symbol = self.safe_symbol(marketId)
                 base = self.safe_value(entry, 'baseAsset', {})
                 quote = self.safe_value(entry, 'quoteAsset', {})
                 baseCode = self.safe_currency_code(self.safe_string(base, 'asset'))
                 quoteCode = self.safe_currency_code(self.safe_string(quote, 'asset'))
-                subResult = {}
                 if baseCode is not None:
-                    subResult[baseCode] = self.parse_balance_helper(base)
+                    result = self.merge_balance_account(result, baseCode, self.parse_balance_helper(base))
                 if quoteCode is not None:
-                    subResult[quoteCode] = self.parse_balance_helper(quote)
-                result[symbol] = self.safe_balance(subResult)
-            return result
+                    result = self.merge_balance_account(result, quoteCode, self.parse_balance_helper(quote))
+            return self.safe_balance(result)
         elif marketType == 'swap':
             for i in range(0, len(wallet)):
                 entry = wallet[i]

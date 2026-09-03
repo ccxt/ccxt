@@ -8314,7 +8314,7 @@ export default class kucoin extends Exchange {
         //        }
         //    }
         //
-        const result = {
+        let result = {
             'info': response,
             'timestamp': undefined,
             'datetime': undefined,
@@ -8324,20 +8324,16 @@ export default class kucoin extends Exchange {
             const assets = this.safeValue(data, 'assets', data);
             for (let i = 0; i < assets.length; i++) {
                 const entry = assets[i];
-                const marketId = this.safeString(entry, 'symbol');
-                const symbol = this.safeSymbol(marketId, undefined, '_');
                 const base = this.safeDict(entry, 'baseAsset', {});
                 const quote = this.safeDict(entry, 'quoteAsset', {});
                 const baseCode = this.safeCurrencyCode(this.safeString(base, 'currency'));
                 const quoteCode = this.safeCurrencyCode(this.safeString(quote, 'currency'));
-                const subResult = {};
                 if (baseCode !== undefined) {
-                    subResult[baseCode] = this.parseBalanceHelper(base);
+                    result = this.mergeBalanceAccount(result, baseCode, this.parseBalanceHelper(base));
                 }
                 if (quoteCode !== undefined) {
-                    subResult[quoteCode] = this.parseBalanceHelper(quote);
+                    result = this.mergeBalanceAccount(result, quoteCode, this.parseBalanceHelper(quote));
                 }
-                result[symbol] = this.safeBalance(subResult);
             }
         }
         else if (cross) {
@@ -8370,11 +8366,7 @@ export default class kucoin extends Exchange {
                 }
             }
         }
-        let returnType = result;
-        if (!isolated) {
-            returnType = this.safeBalance(result);
-        }
-        return returnType;
+        return this.safeBalance(result);
     }
     /**
      * @method
@@ -8535,7 +8527,7 @@ export default class kucoin extends Exchange {
         }
         const data = this.safeDict(response, 'data', {});
         const timestamp = this.safeInteger(data, 'ts');
-        const result = {
+        let result = {
             'info': response,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
@@ -8544,19 +8536,15 @@ export default class kucoin extends Exchange {
         if (isIsolated) {
             for (let i = 0; i < accounts.length; i++) {
                 const entry = accounts[i];
-                const marketId = this.safeString(entry, 'accountSubtype');
-                const symbol = this.safeSymbol(marketId, undefined, '-');
-                const subResult = {};
                 const currencies = this.safeList(entry, 'currencies', []);
                 for (let j = 0; j < currencies.length; j++) {
                     const currencyEntry = this.safeDict(currencies, j, {});
                     const currencyId = this.safeString(currencyEntry, 'currency');
                     const currencyCode = this.safeCurrencyCode(currencyId);
                     if (currencyCode !== undefined) {
-                        subResult[currencyCode] = this.parseBalanceHelper(currencyEntry);
+                        result = this.mergeBalanceAccount(result, currencyCode, this.parseBalanceHelper(currencyEntry));
                     }
                 }
-                result[symbol] = this.safeBalance(subResult);
             }
         }
         else {
@@ -8571,11 +8559,7 @@ export default class kucoin extends Exchange {
                 }
             }
         }
-        let returnType = result;
-        if (!isIsolated) {
-            returnType = this.safeBalance(result);
-        }
-        return returnType;
+        return this.safeBalance(result);
     }
     /**
      * @method

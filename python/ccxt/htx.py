@@ -3429,7 +3429,6 @@ class htx(Exchange, ImplicitAPI):
             if isolated:
                 for i in range(0, len(data)):
                     entry = data[i]
-                    symbol = self.safe_symbol(self.safe_string(entry, 'symbol'))
                     balances = self.safe_value(entry, 'list')
                     subResult = {}
                     for j in range(0, len(balances)):
@@ -3438,7 +3437,11 @@ class htx(Exchange, ImplicitAPI):
                         code = self.safe_currency_code(currencyId)
                         if code is not None:
                             subResult[code] = self.parse_margin_balance_helper(balance, code, subResult)
-                    result[symbol] = self.safe_balance(subResult)
+                    subCodes = list(subResult.keys())
+                    for j in range(0, len(subCodes)):
+                        subCode = subCodes[j]
+                        result = self.merge_balance_account(result, subCode, subResult[subCode])
+                result = self.safe_balance(result)
             else:
                 balances = self.safe_value(data, 'list', [])
                 for i in range(0, len(balances)):

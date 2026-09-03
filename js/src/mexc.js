@@ -3984,26 +3984,22 @@ export default class mexc extends Exchange {
         else {
             wallet = this.safeValue(response, 'balances', []);
         }
-        const result = { 'info': response };
+        let result = { 'info': response };
         if (marketType === 'margin') {
             for (let i = 0; i < wallet.length; i++) {
                 const entry = wallet[i];
-                const marketId = this.safeString(entry, 'symbol');
-                const symbol = this.safeSymbol(marketId);
                 const base = this.safeValue(entry, 'baseAsset', {});
                 const quote = this.safeValue(entry, 'quoteAsset', {});
                 const baseCode = this.safeCurrencyCode(this.safeString(base, 'asset'));
                 const quoteCode = this.safeCurrencyCode(this.safeString(quote, 'asset'));
-                const subResult = {};
                 if (baseCode !== undefined) {
-                    subResult[baseCode] = this.parseBalanceHelper(base);
+                    result = this.mergeBalanceAccount(result, baseCode, this.parseBalanceHelper(base));
                 }
                 if (quoteCode !== undefined) {
-                    subResult[quoteCode] = this.parseBalanceHelper(quote);
+                    result = this.mergeBalanceAccount(result, quoteCode, this.parseBalanceHelper(quote));
                 }
-                result[symbol] = this.safeBalance(subResult);
             }
-            return result;
+            return this.safeBalance(result);
         }
         else if (marketType === 'swap') {
             for (let i = 0; i < wallet.length; i++) {

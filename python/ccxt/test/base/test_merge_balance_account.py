@@ -19,26 +19,28 @@ def test_merge_balance_account():
         'id': 'sampleexchange',
     })
     # isolated margin hands one account per market; the same code across two
-    # markets is summed into a single flat entry, missing fields stay undefined
+    # markets is summed into a single flat entry, missing fields stay undefined.
+    # the helper returns the merged dict and callers reassign it: PHP arrays are
+    # passed by value, so mutating the argument alone is invisible there
     result = {}
     btc_account = exchange.account()
     btc_account['free'] = '1'
     btc_account['used'] = '0.5'
     btc_account['debt'] = '0.1'
-    exchange.merge_balance_account(result, 'BTC', btc_account)
+    result = exchange.merge_balance_account(result, 'BTC', btc_account)
     assert exchange.safe_string(result['BTC'], 'free') == '1'
     btc_account_2 = exchange.account()
     btc_account_2['free'] = '2'
     btc_account_2['used'] = '0.25'
     btc_account_2['total'] = '2.25'
-    exchange.merge_balance_account(result, 'BTC', btc_account_2)
+    result = exchange.merge_balance_account(result, 'BTC', btc_account_2)
     assert exchange.safe_string(result['BTC'], 'free') == '3'
     assert exchange.safe_string(result['BTC'], 'used') == '0.75'
     assert exchange.safe_string(result['BTC'], 'total') == '2.25'
     assert exchange.safe_string(result['BTC'], 'debt') == '0.1'
     usdt_account = exchange.account()
     usdt_account['free'] = '5'
-    exchange.merge_balance_account(result, 'USDT', usdt_account)
+    result = exchange.merge_balance_account(result, 'USDT', usdt_account)
     assert exchange.safe_string(result['USDT'], 'free') == '5'
     assert exchange.safe_string(result['USDT'], 'used') is None
     keys = list(result.keys())

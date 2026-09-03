@@ -46,6 +46,7 @@ export interface TradingFeeInterface {
     taker: Num;
     percentage: Bool;
     tierBased: Bool;
+    tiers?: Dict;
 }
 export type Fee = FeeInterface | undefined;
 export type FeeString = FeeStringInterface | undefined;
@@ -57,6 +58,8 @@ export interface Precision {
     amount: Num;
     price: Num;
     cost?: Num;
+    base?: Num;
+    quote?: Num;
 }
 export interface MarketInterface {
     id: Str;
@@ -76,6 +79,7 @@ export interface MarketInterface {
     swap: Bool;
     future: Bool;
     option: Bool;
+    index?: Bool;
     stock?: Bool;
     prediction?: Bool;
     contract: Bool;

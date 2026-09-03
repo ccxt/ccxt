@@ -3944,7 +3944,7 @@ export default class binance extends Exchange {
     }
 
     parseBalanceCustom (response: any, type: Str = undefined, marginMode: Str = undefined, isPortfolioMargin = false): Balances {
-        const result: Dict = {
+        let result: Dict = {
             'info': response,
         };
         let timestamp: Int = undefined;
@@ -4008,10 +4008,10 @@ export default class binance extends Exchange {
                 const baseCode = this.safeCurrencyCode (this.safeString (base, 'asset'));
                 const quoteCode = this.safeCurrencyCode (this.safeString (quote, 'asset'));
                 if (baseCode !== undefined) {
-                    this.mergeBalanceAccount (result, baseCode, this.parseBalanceHelper (base));
+                    result = this.mergeBalanceAccount (result, baseCode, this.parseBalanceHelper (base));
                 }
                 if (quoteCode !== undefined) {
-                    this.mergeBalanceAccount (result, quoteCode, this.parseBalanceHelper (quote));
+                    result = this.mergeBalanceAccount (result, quoteCode, this.parseBalanceHelper (quote));
                 }
             }
         } else if (type === 'savings') {

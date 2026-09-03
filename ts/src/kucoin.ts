@@ -8252,7 +8252,7 @@ export default class kucoin extends Exchange {
         //        }
         //    }
         //
-        const result: Dict = {
+        let result: Dict = {
             'info': response,
             'timestamp': undefined,
             'datetime': undefined,
@@ -8267,10 +8267,10 @@ export default class kucoin extends Exchange {
                 const baseCode = this.safeCurrencyCode (this.safeString (base, 'currency'));
                 const quoteCode = this.safeCurrencyCode (this.safeString (quote, 'currency'));
                 if (baseCode !== undefined) {
-                    this.mergeBalanceAccount (result, baseCode, this.parseBalanceHelper (base));
+                    result = this.mergeBalanceAccount (result, baseCode, this.parseBalanceHelper (base));
                 }
                 if (quoteCode !== undefined) {
-                    this.mergeBalanceAccount (result, quoteCode, this.parseBalanceHelper (quote));
+                    result = this.mergeBalanceAccount (result, quoteCode, this.parseBalanceHelper (quote));
                 }
             }
         } else if (cross) {
@@ -8464,7 +8464,7 @@ export default class kucoin extends Exchange {
         }
         const data = this.safeDict (response, 'data', {});
         const timestamp = this.safeInteger (data, 'ts');
-        const result: Dict = {
+        let result: Dict = {
             'info': response,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -8479,7 +8479,7 @@ export default class kucoin extends Exchange {
                     const currencyId = this.safeString (currencyEntry, 'currency');
                     const currencyCode = this.safeCurrencyCode (currencyId);
                     if (currencyCode !== undefined) {
-                        this.mergeBalanceAccount (result, currencyCode, this.parseBalanceHelper (currencyEntry));
+                        result = this.mergeBalanceAccount (result, currencyCode, this.parseBalanceHelper (currencyEntry));
                     }
                 }
             }

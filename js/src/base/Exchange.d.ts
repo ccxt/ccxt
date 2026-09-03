@@ -941,6 +941,16 @@ export declare class BaseExchange {
     fetchDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
     fetchContractDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
     account(): BalanceAccount;
+    /**
+     * @ignore
+     * @method
+     * @description merges a per-market (isolated margin) account into a flat code-keyed balance dict, summing string fields when the code recurs across markets
+     * @param {object} result the code-keyed balance dict being built
+     * @param {string} code unified currency code
+     * @param {object} account a balance account with string free/used/total/debt
+     * @returns {object} result — callers MUST reassign (`result = this.mergeBalanceAccount (result, ...)`): PHP arrays are passed by value, so the mutation is not visible through the argument
+     */
+    mergeBalanceAccount(result: Dict, code: string, account: Dict): Dict;
     commonCurrencyCode(code: string): string;
     currency(code: Str): CurrencyInterface;
     market(symbol: Str): MarketInterface;

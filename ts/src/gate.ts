@@ -3358,7 +3358,7 @@ export default class gate extends Exchange {
         //         "leverage": "2"
         //     }
         //
-        const result: Dict = {
+        let result: Dict = {
             'info': response,
         };
         const isolated = marginMode === 'margin' && type === 'spot';
@@ -3384,8 +3384,8 @@ export default class gate extends Exchange {
                 const quote = this.safeValue (entry, 'quote', {});
                 const baseCode = this.safeCurrencyCode (this.safeString (base, 'currency'));
                 const quoteCode = this.safeCurrencyCode (this.safeString (quote, 'currency'));
-                this.mergeBalanceAccount (result, baseCode as string, this.parseBalanceHelper (base));
-                this.mergeBalanceAccount (result, quoteCode as string, this.parseBalanceHelper (quote));
+                result = this.mergeBalanceAccount (result, baseCode as string, this.parseBalanceHelper (base));
+                result = this.mergeBalanceAccount (result, quoteCode as string, this.parseBalanceHelper (quote));
             } else {
                 const code = this.safeCurrencyCode (this.safeString (entry, 'currency'));
                 result[code as string] = this.parseBalanceHelper (entry);

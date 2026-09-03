@@ -3955,7 +3955,7 @@ export default class binance extends Exchange {
         return account;
     }
     parseBalanceCustom(response, type = undefined, marginMode = undefined, isPortfolioMargin = false) {
-        const result = {
+        let result = {
             'info': response,
         };
         let timestamp = undefined;
@@ -4019,20 +4019,16 @@ export default class binance extends Exchange {
             const assets = this.safeList(response, 'assets', []);
             for (let i = 0; i < assets.length; i++) {
                 const asset = assets[i];
-                const marketId = this.safeString(asset, 'symbol');
-                const symbol = this.safeSymbol(marketId, undefined, undefined, 'spot');
                 const base = this.safeDict(asset, 'baseAsset', {});
                 const quote = this.safeDict(asset, 'quoteAsset', {});
                 const baseCode = this.safeCurrencyCode(this.safeString(base, 'asset'));
                 const quoteCode = this.safeCurrencyCode(this.safeString(quote, 'asset'));
-                const subResult = {};
                 if (baseCode !== undefined) {
-                    subResult[baseCode] = this.parseBalanceHelper(base);
+                    result = this.mergeBalanceAccount(result, baseCode, this.parseBalanceHelper(base));
                 }
                 if (quoteCode !== undefined) {
-                    subResult[quoteCode] = this.parseBalanceHelper(quote);
+                    result = this.mergeBalanceAccount(result, quoteCode, this.parseBalanceHelper(quote));
                 }
-                result[symbol] = this.safeBalance(subResult);
             }
         }
         else if (type === 'savings') {
@@ -4091,7 +4087,7 @@ export default class binance extends Exchange {
         }
         result['timestamp'] = timestamp;
         result['datetime'] = this.iso8601(timestamp);
-        return isolated ? result : this.safeBalance(result);
+        return this.safeBalance(result);
     }
     /**
      * @method

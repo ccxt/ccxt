@@ -7763,18 +7763,14 @@ class kucoin(Exchange, ImplicitAPI):
             assets = self.safe_value(data, 'assets', data)
             for i in range(0, len(assets)):
                 entry = assets[i]
-                marketId = self.safe_string(entry, 'symbol')
-                symbol = self.safe_symbol(marketId, None, '_')
                 base = self.safe_dict(entry, 'baseAsset', {})
                 quote = self.safe_dict(entry, 'quoteAsset', {})
                 baseCode = self.safe_currency_code(self.safe_string(base, 'currency'))
                 quoteCode = self.safe_currency_code(self.safe_string(quote, 'currency'))
-                subResult = {}
                 if baseCode is not None:
-                    subResult[baseCode] = self.parse_balance_helper(base)
+                    result = self.merge_balance_account(result, baseCode, self.parse_balance_helper(base))
                 if quoteCode is not None:
-                    subResult[quoteCode] = self.parse_balance_helper(quote)
-                result[symbol] = self.safe_balance(subResult)
+                    result = self.merge_balance_account(result, quoteCode, self.parse_balance_helper(quote))
         elif cross:
             data = self.safe_dict(response, 'data', {})
             accounts = self.safe_list(data, 'accounts', [])
@@ -7798,10 +7794,7 @@ class kucoin(Exchange, ImplicitAPI):
                     account['used'] = self.safe_string(balance, 'holds')
                     if codeInner2 is not None:
                         result[codeInner2] = account
-        returnType = result
-        if not isolated:
-            returnType = self.safe_balance(result)
-        return returnType
+        return self.safe_balance(result)
 
     async def fetch_contract_balance(self, params={}) -> Balances:
         """
@@ -7964,17 +7957,13 @@ class kucoin(Exchange, ImplicitAPI):
         if isIsolated:
             for i in range(0, len(accounts)):
                 entry = accounts[i]
-                marketId = self.safe_string(entry, 'accountSubtype')
-                symbol = self.safe_symbol(marketId, None, '-')
-                subResult = {}
                 currencies = self.safe_list(entry, 'currencies', [])
                 for j in range(0, len(currencies)):
                     currencyEntry = self.safe_dict(currencies, j, {})
                     currencyId = self.safe_string(currencyEntry, 'currency')
                     currencyCode = self.safe_currency_code(currencyId)
                     if currencyCode is not None:
-                        subResult[currencyCode] = self.parse_balance_helper(currencyEntry)
-                result[symbol] = self.safe_balance(subResult)
+                        result = self.merge_balance_account(result, currencyCode, self.parse_balance_helper(currencyEntry))
         else:
             firstAccount = self.safe_dict(accounts, 0, {})
             currencies = self.safe_list(firstAccount, 'currencies', [])
@@ -7984,10 +7973,7 @@ class kucoin(Exchange, ImplicitAPI):
                 currencyCode = self.safe_currency_code(currencyId)
                 if currencyCode is not None:
                     result[currencyCode] = self.parse_balance_helper(currencyEntry)
-        returnType = result
-        if not isIsolated:
-            returnType = self.safe_balance(result)
-        return returnType
+        return self.safe_balance(result)
 
     async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """

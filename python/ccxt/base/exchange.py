@@ -6313,6 +6313,29 @@ class BaseExchange(object):
             'total': None,
         }
 
+    def merge_balance_account(self, result: dict, code: str, account: dict):
+        """
+ @ignore
+        merges a per-market(isolated margin) account into a flat code-keyed balance dict, summing string fields when the code recurs across markets
+        :param dict result: the code-keyed balance dict being built
+        :param str code: unified currency code
+        :param dict account: a balance account with string free/used/total/debt
+        :returns dict: result — callers MUST reassign(`result = self.merge_balance_account(result, ...)`): PHP arrays are passed by value, so the mutation is not visible through the argument
+        """
+        if not (code in result):
+            result[code] = account
+            return result
+        fields = ['free', 'used', 'total', 'debt']
+        for i in range(0, len(fields)):
+            field = fields[i]
+            current = self.safe_string(result[code], field)
+            incoming = self.safe_string(account, field)
+            if current is None:
+                result[code][field] = incoming
+            elif incoming is not None:
+                result[code][field] = Precise.string_add(current, incoming)
+        return result
+
     def common_currency_code(self, code: str):
         if not self.substituteCommonCurrencyCodes:
             return code

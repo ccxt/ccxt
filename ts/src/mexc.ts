@@ -3969,7 +3969,7 @@ export default class mexc extends Exchange {
         } else {
             wallet = this.safeValue (response, 'balances', []);
         }
-        const result: Dict = { 'info': response };
+        let result: Dict = { 'info': response };
         if (marketType === 'margin') {
             for (let i = 0; i < wallet.length; i++) {
                 const entry = wallet[i];
@@ -3978,10 +3978,10 @@ export default class mexc extends Exchange {
                 const baseCode = this.safeCurrencyCode (this.safeString (base, 'asset'));
                 const quoteCode = this.safeCurrencyCode (this.safeString (quote, 'asset'));
                 if (baseCode !== undefined) {
-                    this.mergeBalanceAccount (result, baseCode, this.parseBalanceHelper (base));
+                    result = this.mergeBalanceAccount (result, baseCode, this.parseBalanceHelper (base));
                 }
                 if (quoteCode !== undefined) {
-                    this.mergeBalanceAccount (result, quoteCode, this.parseBalanceHelper (quote));
+                    result = this.mergeBalanceAccount (result, quoteCode, this.parseBalanceHelper (quote));
                 }
             }
             return this.safeBalance (result);

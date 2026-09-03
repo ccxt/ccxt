@@ -7280,7 +7280,7 @@ export class BaseExchange {
      * @param {object} result the code-keyed balance dict being built
      * @param {string} code unified currency code
      * @param {object} account a balance account with string free/used/total/debt
-     * @returns {object} result
+     * @returns {object} result — callers MUST reassign (`result = this.mergeBalanceAccount (result, ...)`): PHP arrays are passed by value, so the mutation is not visible through the argument
      */
     mergeBalanceAccount (result: Dict, code: string, account: Dict): Dict {
         if (!(code in result)) {

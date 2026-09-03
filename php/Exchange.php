@@ -7376,6 +7376,33 @@ class BaseExchange {
         );
     }
 
+    public function merge_balance_account(array $result, string $code, array $account) {
+        /**
+         * @ignore
+         * merges a per-market (isolated margin) $account into a flat $code-keyed balance dict, summing string $fields when the $code recurs across markets
+         * @param {array} $result the $code-keyed balance dict being built
+         * @param {string} $code unified currency $code
+         * @param {array} $account a balance $account with string free/used/total/debt
+         * @return {array} $result — callers MUST reassign (`$result = $this->merge_balance_account($result, ...)`) => PHP arrays are passed by value, so the mutation is not visible through the argument
+         */
+        if (!(is_array($result) && array_key_exists($code ?? '', $result))) {
+            $result[$code] = $account;
+            return $result;
+        }
+        $fields = array( 'free', 'used', 'total', 'debt' );
+        for ($i = 0; $i < count($fields); $i++) {
+            $field = $fields[$i];
+            $current = $this->safe_string($result[$code], $field);
+            $incoming = $this->safe_string($account, $field);
+            if ($current === null) {
+                $result[$code][$field] = $incoming;
+            } elseif ($incoming !== null) {
+                $result[$code][$field] = Precise::string_add($current, $incoming);
+            }
+        }
+        return $result;
+    }
+
     public function common_currency_code(string $code) {
         if (!$this->substituteCommonCurrencyCodes) {
             return $code;

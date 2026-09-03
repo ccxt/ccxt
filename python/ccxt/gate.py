@@ -3254,21 +3254,16 @@ class gate(Exchange, ImplicitAPI):
         for i in range(0, len(data)):
             entry = data[i]
             if isolated:
-                marketId = self.safe_string(entry, 'currency_pair')
-                symbolInner = self.safe_symbol(marketId, None, '_', 'margin')
                 base = self.safe_value(entry, 'base', {})
                 quote = self.safe_value(entry, 'quote', {})
                 baseCode = self.safe_currency_code(self.safe_string(base, 'currency'))
                 quoteCode = self.safe_currency_code(self.safe_string(quote, 'currency'))
-                subResult = {}
-                subResult[baseCode] = self.parse_balance_helper(base)
-                subResult[quoteCode] = self.parse_balance_helper(quote)
-                result[symbolInner] = self.safe_balance(subResult)
+                result = self.merge_balance_account(result, baseCode, self.parse_balance_helper(base))
+                result = self.merge_balance_account(result, quoteCode, self.parse_balance_helper(quote))
             else:
                 code = self.safe_currency_code(self.safe_string(entry, 'currency'))
                 result[code] = self.parse_balance_helper(entry)
-        returnResult = result if isolated else self.safe_balance(result)
-        return returnResult
+        return self.safe_balance(result)
 
     def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
         """
