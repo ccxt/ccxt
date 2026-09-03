@@ -4143,7 +4143,13 @@ class hyperliquid extends Exchange {
                 'signature' => $transferSig,
             );
             $transferResponse = $this->privatePostExchange($transferRequest);
-            return $transferResponse;
+            //
+            // array('response' => array('type' => 'default'), 'status' => 'ok')
+            //
+            // the sub-account branches below already hand back the unified structure; the
+            // spot <> swap branch returned the raw acknowledgement, breaking the shape
+            $currency = $this->safe_currency($code);
+            return $this->parse_transfer($transferResponse, $currency);
         }
         // transfer between main account and subaccount
         $isDeposit = false;
@@ -4221,11 +4227,11 @@ class hyperliquid extends Exchange {
             'id' => null,
             'timestamp' => null,
             'datetime' => null,
-            'currency' => null,
+            'currency' => $this->safe_currency_code(null, $currency),
             'amount' => null,
             'fromAccount' => null,
             'toAccount' => null,
-            'status' => 'ok',
+            'status' => $this->safe_string($transfer, 'status', 'ok'),
         );
     }
 

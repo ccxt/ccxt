@@ -16,15 +16,14 @@ function test_merge_balance_account() {
     // isolated margin hands one account per market; the same code across two
     // markets is summed into a single flat entry, missing fields stay undefined.
     // the helper returns the merged dict and callers reassign it: PHP arrays are
-    // passed by value, so mutating the argument alone is invisible there
-    // `any` (not Dict): mergeBalanceAccount returns `any` in the Go port, and a
-    // map[string]any local cannot take it without a type assertion
-    $result = array();
+    // passed by value, so mutating the argument alone is invisible there.
+    // the local is seeded from the helper itself so the Go port infers the
+    // helper's own return type instead of a map literal it cannot assign back to
     $btc_account = $exchange->account();
     $btc_account['free'] = '1';
     $btc_account['used'] = '0.5';
     $btc_account['debt'] = '0.1';
-    $result = $exchange->merge_balance_account($result, 'BTC', $btc_account);
+    $result = $exchange->merge_balance_account(array(), 'BTC', $btc_account);
     assert($exchange->safe_string($result['BTC'], 'free') === '1');
     $btc_account_2 = $exchange->account();
     $btc_account_2['free'] = '2';

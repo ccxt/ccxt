@@ -3808,7 +3808,7 @@ class kucoin extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->uta] set to true for the unified trading account ($uta) endpoint, defaults to false
-         * @return {array} an array of ~@link https://docs.ccxt.com/?id=address-structure address structures~
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=address-structure address structures~ indexed by the network
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());

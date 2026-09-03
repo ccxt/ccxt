@@ -5,7 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.paradex import ImplicitAPI
-from ccxt.base.types import Balances, Currency, FundingHistory, Greeks, Int, Leverage, Liquidation, MarginMode, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currency, FundingHistory, Greeks, AllGreeks, Int, Leverage, Liquidation, MarginMode, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -2879,7 +2879,7 @@ class paradex(Exchange, ImplicitAPI):
         greeks = self.safe_dict(data, 0, {})
         return self.parse_greeks(greeks, market)
 
-    async def fetch_all_greeks(self, symbols: Strings = None, params={}) -> list[Greeks]:
+    async def fetch_all_greeks(self, symbols: Strings = None, params={}) -> AllGreeks:
         """
         fetches all option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
 
@@ -2887,7 +2887,7 @@ class paradex(Exchange, ImplicitAPI):
 
         :param str[] [symbols]: unified symbols of the markets to fetch greeks for, all markets are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `greeks structure <https://docs.ccxt.com/?id=greeks-structure>`
+        :returns dict: a dictionary of `greeks structures <https://docs.ccxt.com/?id=greeks-structure>` indexed by market symbol
         """
         if self.markets is None:
             await self.load_markets()
