@@ -992,6 +992,18 @@
                 ]
             },
             {
+                "description": "Swap cancel all orders after omits subtype",
+                "method": "cancelAllOrdersAfter",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/cancelAllAfter?timeOut=100&type=ACTIVATE&timestamp=1699071702130&signature=aec79b5f9cba90954cc6a34801e466e7e3c1a6945733600fff8cadd10fb0bbec",
+                "input": [
+                    100000,
+                    {
+                        "type": "swap",
+                        "subType": "linear"
+                    }
+                ]
+            },
+            {
                 "description": "Swap close cancel all orders after",
                 "method": "cancelAllOrdersAfter",
                 "url": "https://open-api.bingx.com/openApi/swap/v2/trade/cancelAllAfter?timeOut=0&type=CLOSE&timestamp=1699071702130&signature=581d72f82f5c1c7d133bd0556f0513ae5f22445207a9e49babf5d13d70a421b4",
