@@ -4331,10 +4331,10 @@ public class OkxCore extends OkxApi
         Object triggerPrice = this.safeValueN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("triggerPrice", "stopPrice", "triggerPx")));
         Object timeInForce = this.safeString(parameters, "timeInForce", "GTC");
         // const takeProfitPrice = this.safeValue2 (params, 'takeProfitPrice', 'tpTriggerPx');
-        Object tpOrdPx = this.safeValue(parameters, "tpOrdPx", price);
+        Object tpOrdPx = this.safeNumber(parameters, "tpOrdPx", price);
         Object tpTriggerPxType = this.safeString(parameters, "tpTriggerPxType", "last");
         // const stopLossPrice = this.safeValue2 (params, 'stopLossPrice', 'slTriggerPx');
-        Object slOrdPx = this.safeValue(parameters, "slOrdPx", price);
+        Object slOrdPx = this.safeNumber(parameters, "slOrdPx", price);
         Object slTriggerPxType = this.safeString(parameters, "slTriggerPxType", "last");
         Object clientOrderId = this.safeString2(parameters, "clOrdId", "clientOrderId");
         Object stopLoss = this.safeValue(parameters, "stopLoss");
@@ -4346,7 +4346,7 @@ public class OkxCore extends OkxApi
         Object trailingPrice = this.safeString2(parameters, "trailingPrice", "callbackSpread");
         Object isTrailingPriceOrder = !Helpers.isEqual(trailingPrice, null);
         Object trigger = Helpers.isTrue((!Helpers.isEqual(triggerPrice, null))) || Helpers.isTrue((Helpers.isEqual(type, "trigger")));
-        Object isReduceOnly = Helpers.isTrue((Helpers.isEqual(this.safeValue(parameters, "reduceOnly", false), true))) || Helpers.isTrue((!Helpers.isEqual(closeFraction, null)));
+        Object isReduceOnly = Helpers.isTrue((Helpers.isEqual(this.safeBool(parameters, "reduceOnly", false), true))) || Helpers.isTrue((!Helpers.isEqual(closeFraction, null)));
         Object defaultMarginMode = this.safeString2(this.options, "defaultMarginMode", "marginMode", "cross");
         Object marginMode = this.safeString2(parameters, "marginMode", "tdMode"); // cross or isolated, tdMode not omitted so as to be extended into the request
         Object margin = false;
@@ -4849,11 +4849,11 @@ public class OkxCore extends OkxApi
                 Helpers.addElementToObject(request, "ordId", id);
             }
         }
-        Object stopLossTriggerPrice = this.safeValue2(parameters, "stopLossPrice", "newSlTriggerPx");
-        Object stopLossPrice = this.safeValue(parameters, "newSlOrdPx");
+        Object stopLossTriggerPrice = this.safeNumber2(parameters, "stopLossPrice", "newSlTriggerPx");
+        Object stopLossPrice = this.safeNumber(parameters, "newSlOrdPx");
         Object stopLossTriggerPriceType = this.safeString(parameters, "newSlTriggerPxType", "last");
-        Object takeProfitTriggerPrice = this.safeValue2(parameters, "takeProfitPrice", "newTpTriggerPx");
-        Object takeProfitPrice = this.safeValue(parameters, "newTpOrdPx");
+        Object takeProfitTriggerPrice = this.safeNumber2(parameters, "takeProfitPrice", "newTpTriggerPx");
+        Object takeProfitPrice = this.safeNumber(parameters, "newTpOrdPx");
         Object takeProfitTriggerPriceType = this.safeString(parameters, "newTpTriggerPxType", "last");
         Object stopLoss = this.safeValue(parameters, "stopLoss");
         Object takeProfit = this.safeValue(parameters, "takeProfit");
@@ -4901,8 +4901,8 @@ public class OkxCore extends OkxApi
             }
             if (Helpers.isTrue(hasStopLoss))
             {
-                stopLossTriggerPrice = this.safeValue(stopLoss, "triggerPrice");
-                stopLossPrice = this.safeValue(stopLoss, "price");
+                stopLossTriggerPrice = this.safeNumber(stopLoss, "triggerPrice");
+                stopLossPrice = this.safeNumber(stopLoss, "price");
                 Object stopLossType = this.safeString(stopLoss, "type");
                 Helpers.addElementToObject(request, "newSlTriggerPx", this.priceToPrecision(symbol, stopLossTriggerPrice));
                 Helpers.addElementToObject(request, "newSlOrdPx", ((Helpers.isTrue((Helpers.isEqual(stopLossType, "market"))))) ? "-1" : this.priceToPrecision(symbol, stopLossPrice));
@@ -4910,8 +4910,8 @@ public class OkxCore extends OkxApi
             }
             if (Helpers.isTrue(hasTakeProfit))
             {
-                takeProfitTriggerPrice = this.safeValue(takeProfit, "triggerPrice");
-                takeProfitPrice = this.safeValue(takeProfit, "price");
+                takeProfitTriggerPrice = this.safeNumber(takeProfit, "triggerPrice");
+                takeProfitPrice = this.safeNumber(takeProfit, "price");
                 Object takeProfitType = this.safeString(takeProfit, "type");
                 Helpers.addElementToObject(request, "newTpOrdKind", ((Helpers.isTrue((Helpers.isEqual(takeProfitType, "limit"))))) ? takeProfitType : "condition");
                 Helpers.addElementToObject(request, "newTpTriggerPx", this.priceToPrecision(symbol, takeProfitTriggerPrice));
@@ -5068,7 +5068,7 @@ public class OkxCore extends OkxApi
             Object query = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clOrdId", "clientOrderId")));
             Object response = (this.privatePostTradeCancelOrder(this.extend(request, query))).join();
             // {"code":"0","data":[{"clOrdId":"","ordId":"317251910906576896","sCode":"0","sMsg":""}],"msg":""}
-            Object data = this.safeValue(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object order = this.safeDict(data, 0);
             return this.parseOrder(order, market);
         });
@@ -5124,7 +5124,7 @@ public class OkxCore extends OkxApi
             }
             Object market = this.market(symbol);
             Object request = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object options = this.safeValue(this.options, "cancelOrders", new java.util.HashMap<String, Object>() {{}});
+            Object options = this.safeDict(this.options, "cancelOrders", new java.util.HashMap<String, Object>() {{}});
             Object defaultMethod = this.safeString(options, "method", "privatePostTradeCancelBatchOrders");
             Object method = this.safeString(parameters, "method", defaultMethod);
             Object clientOrderIds = this.parseIds(this.safeValue2(parameters, "clOrdId", "clientOrderId"));
@@ -5736,7 +5736,7 @@ public class OkxCore extends OkxApi
                 put( "instId", Helpers.GetValue(market, "id") );
             }};
             Object clientOrderId = this.safeString2(parameters, "clOrdId", "clientOrderId");
-            Object options = this.safeValue(this.options, "fetchOrder", new java.util.HashMap<String, Object>() {{}});
+            Object options = this.safeDict(this.options, "fetchOrder", new java.util.HashMap<String, Object>() {{}});
             Object defaultMethod = this.safeString(options, "method", "privateGetTradeOrder");
             Object method = this.safeString(parameters, "method", defaultMethod);
             Object trigger = this.safeValue2(parameters, "stop", "trigger");
@@ -5866,7 +5866,7 @@ public class OkxCore extends OkxApi
             //         ]
             //     }
             //
-            Object data = this.safeValue(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object order = this.safeDict(data, 0);
             return this.parseOrder(order, market);
         });
@@ -5923,8 +5923,8 @@ public class OkxCore extends OkxApi
             {
                 Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, maxLimit)); // default 100, max 100
             }
-            Object options = this.safeValue(this.options, "fetchOpenOrders", new java.util.HashMap<String, Object>() {{}});
-            Object algoOrderTypes = this.safeValue(this.options, "algoOrderTypes", new java.util.HashMap<String, Object>() {{}});
+            Object options = this.safeDict(this.options, "fetchOpenOrders", new java.util.HashMap<String, Object>() {{}});
+            Object algoOrderTypes = this.safeDict(this.options, "algoOrderTypes", new java.util.HashMap<String, Object>() {{}});
             Object defaultMethod = this.safeString(options, "method", "privateGetTradeOrdersPending");
             Object method = this.safeString(parameters, "method", defaultMethod);
             Object ordType = this.safeString(parameters, "ordType");
@@ -6100,8 +6100,8 @@ public class OkxCore extends OkxApi
                 Helpers.addElementToObject(request, "limit", limit); // default 100, max 100
             }
             Helpers.addElementToObject(request, "state", "canceled");
-            Object options = this.safeValue(this.options, "fetchCanceledOrders", new java.util.HashMap<String, Object>() {{}});
-            Object algoOrderTypes = this.safeValue(this.options, "algoOrderTypes", new java.util.HashMap<String, Object>() {{}});
+            Object options = this.safeDict(this.options, "fetchCanceledOrders", new java.util.HashMap<String, Object>() {{}});
+            Object algoOrderTypes = this.safeDict(this.options, "algoOrderTypes", new java.util.HashMap<String, Object>() {{}});
             Object defaultMethod = this.safeString(options, "method", "privateGetTradeOrdersHistory");
             Object method = this.safeString(parameters, "method", defaultMethod);
             Object ordType = this.safeString(parameters, "ordType");
@@ -6849,16 +6849,16 @@ public class OkxCore extends OkxApi
         Object tag = this.safeStringN(depositAddress, new java.util.ArrayList<Object>(java.util.Arrays.asList("tag", "pmtId", "memo")));
         if (Helpers.isTrue(Helpers.isEqual(tag, null)))
         {
-            Object addrEx = this.safeValue(depositAddress, "addrEx", new java.util.HashMap<String, Object>() {{}});
+            Object addrEx = this.safeDict(depositAddress, "addrEx", new java.util.HashMap<String, Object>() {{}});
             tag = this.safeString(addrEx, "comment");
         }
         Object currencyId = this.safeString(depositAddress, "ccy");
         currency = this.safeCurrency(currencyId, currency);
         Object code = Helpers.GetValue(currency, "code");
         Object chain = this.safeString(depositAddress, "chain");
-        Object networks = this.safeValue(currency, "networks", new java.util.HashMap<String, Object>() {{}});
+        Object networks = this.safeDict(currency, "networks", new java.util.HashMap<String, Object>() {{}});
         Object networksById = this.indexBy(networks, "id");
-        Object networkData = ((Helpers.isTrue((Helpers.isEqual(chain, null))))) ? null : this.safeValue(networksById, chain);
+        Object networkData = ((Helpers.isTrue((Helpers.isEqual(chain, null))))) ? null : this.safeDict(networksById, chain);
         // inconsistent naming responses from exchange
         // with respect to network naming provided in currency info vs address chain-names and ids
         //
@@ -6902,7 +6902,7 @@ public class OkxCore extends OkxApi
         //
         if (Helpers.isTrue(Helpers.isEqual(chain, "USDT-Polygon")))
         {
-            networkData = this.safeValue2(networksById, "USDT-Polygon-Bridge", "USDT-Polygon");
+            networkData = this.safeDict2(networksById, "USDT-Polygon-Bridge", "USDT-Polygon");
         }
         Object network = this.safeString(networkData, "network");
         Object networkCode = this.networkIdToCode(network, code);
@@ -7229,7 +7229,7 @@ public class OkxCore extends OkxApi
                 Helpers.addElementToObject(request, "ccy", Helpers.GetValue(currency, "id"));
             }
             Object response = (this.privateGetAssetDepositHistory(this.extend(request, parameters))).join();
-            Object data = this.safeValue(response, "data");
+            Object data = this.safeList(response, "data");
             Object deposit = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
             return this.parseTransaction(deposit, currency);
         });
@@ -10238,7 +10238,7 @@ public class OkxCore extends OkxApi
             Object code = this.safeCurrencyCode(currencyId);
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(code, null))) && Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(codes, null))) || Helpers.isTrue((this.inArray(code, codes)))))))
             {
-                Object depositWithdrawFee = this.safeValue(depositWithdrawFees, code);
+                Object depositWithdrawFee = this.safeDict(depositWithdrawFees, code);
                 if (Helpers.isTrue(Helpers.isEqual(depositWithdrawFee, null)))
                 {
                     Helpers.addElementToObject(depositWithdrawFees, code, this.depositWithdrawFee(new java.util.HashMap<String, Object>() {{}}));
@@ -10253,7 +10253,7 @@ public class OkxCore extends OkxApi
                     continue;
                 }
                 Object chainSplit = Helpers.split(chain, "-");
-                Object networkId = this.safeValue(chainSplit, 1);
+                Object networkId = this.safeString(chainSplit, 1);
                 Object withdrawFee = this.safeNumber(feeInfo, "fee");
                 final Object finalWithdrawFee = withdrawFee;
                 Object withdrawResult = new java.util.HashMap<String, Object>() {{
