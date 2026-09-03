@@ -17,6 +17,8 @@ function test_merge_balance_account() {
     // markets is summed into a single flat entry, missing fields stay undefined.
     // the helper returns the merged dict and callers reassign it: PHP arrays are
     // passed by value, so mutating the argument alone is invisible there
+    // `any` (not Dict): mergeBalanceAccount returns `any` in the Go port, and a
+    // map[string]any local cannot take it without a type assertion
     $result = array();
     $btc_account = $exchange->account();
     $btc_account['free'] = '1';

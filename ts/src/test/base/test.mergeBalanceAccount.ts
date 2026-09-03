@@ -1,6 +1,5 @@
 import assert from 'assert';
 import ccxt from '../../../ccxt.js';
-import type { Dict } from '../../base/types.js';
 
 function testMergeBalanceAccount () {
 
@@ -12,7 +11,9 @@ function testMergeBalanceAccount () {
     // markets is summed into a single flat entry, missing fields stay undefined.
     // the helper returns the merged dict and callers reassign it: PHP arrays are
     // passed by value, so mutating the argument alone is invisible there
-    let result: Dict = {};
+    // `any` (not Dict): mergeBalanceAccount returns `any` in the Go port, and a
+    // map[string]any local cannot take it without a type assertion
+    let result: any = {};
     const btcAccount = exchange.account ();
     btcAccount['free'] = '1';
     btcAccount['used'] = '0.5';
