@@ -39,6 +39,7 @@ import testAfterConstructor from './test.afterConstructor.js';
 import testRawencode from './test.rawencode.js';
 import testFetchHistory from './test.fetchHistory.js';
 import testHandleMethods from './test.handleMethods.js';
+import testHandleHttpStatusCode from './test.handleHttpStatusCode.js';
 import testRemoveRepeatedElementsFromArray from './test.removeRepeatedElementsFromArray.js';
 import testUrlencodeWithArrayRepeat from './test.urlencodeWithArrayRepeat.js';
 import testParsePrecision from './test.parsePrecision.js';
@@ -100,6 +101,7 @@ async function baseTestsInit () {
     testInArray ();
     testFilterBy ();
     testHandleMethods ();
+    testHandleHttpStatusCode ();
     testNetworkMethods ();
     testRemoveRepeatedElementsFromArray ();
     testIsEmpty ();
