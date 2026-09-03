@@ -1941,6 +1941,32 @@
                 "input": [
                   "SOL/USD:SOL"
                 ]
+            },
+            {
+                "description": "Linear swap fetch my liquidations caps limit",
+                "method": "fetchMyLiquidations",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/forceOrders?autoCloseType=LIQUIDATION&endTime=1721961000000&limit=100&startTime=1721356200000&symbol=BTC-USDT&timestamp=1721280070629&signature=32b7e26877af1f0ed4f3936811cb38f68bc27eac5e44b63022de5a92123f6b7f",
+                "input": [
+                  "BTC/USDT:USDT",
+                  1721356200000,
+                  150,
+                  {
+                    "until": 1721961000000
+                  }
+                ]
+            },
+            {
+                "description": "Inverse swap fetch my liquidations caps limit",
+                "method": "fetchMyLiquidations",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/trade/forceOrders?autoCloseType=LIQUIDATION&endTime=1721961000000&limit=100&startTime=1721356200000&symbol=SOL-USD&timestamp=1721280070629&signature=32b7e26877af1f0ed4f3936811cb38f68bc27eac5e44b63022de5a92123f6b7f",
+                "input": [
+                  "SOL/USD:SOL",
+                  1721356200000,
+                  150,
+                  {
+                    "until": 1721961000000
+                  }
+                ]
             }
         ],
         "fetchOpenInterest": [
