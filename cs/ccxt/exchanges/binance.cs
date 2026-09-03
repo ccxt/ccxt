@@ -5563,11 +5563,11 @@ public partial class binance : Exchange
                 object quoteCode = this.safeCurrencyCode(this.safeString(quote, "asset"));
                 if (isTrue(!isEqual(baseCode, null)))
                 {
-                    this.mergeBalanceAccount(result, baseCode, this.parseBalanceHelper(bs));
+                    result = this.mergeBalanceAccount(result, baseCode, this.parseBalanceHelper(bs));
                 }
                 if (isTrue(!isEqual(quoteCode, null)))
                 {
-                    this.mergeBalanceAccount(result, quoteCode, this.parseBalanceHelper(quote));
+                    result = this.mergeBalanceAccount(result, quoteCode, this.parseBalanceHelper(quote));
                 }
             }
         } else if (isTrue(isEqual(type, "savings")))

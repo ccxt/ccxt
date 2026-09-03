@@ -4207,8 +4207,8 @@ public partial class gate : Exchange
                 object quote = this.safeValue(entry, "quote", new Dictionary<string, object>() {});
                 object baseCode = this.safeCurrencyCode(this.safeString(bs, "currency"));
                 object quoteCode = this.safeCurrencyCode(this.safeString(quote, "currency"));
-                this.mergeBalanceAccount(result, ((string)baseCode), this.parseBalanceHelper(bs));
-                this.mergeBalanceAccount(result, ((string)quoteCode), this.parseBalanceHelper(quote));
+                result = this.mergeBalanceAccount(result, ((string)baseCode), this.parseBalanceHelper(bs));
+                result = this.mergeBalanceAccount(result, ((string)quoteCode), this.parseBalanceHelper(quote));
             } else
             {
                 object code = this.safeCurrencyCode(this.safeString(entry, "currency"));

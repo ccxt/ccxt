@@ -4620,7 +4620,7 @@ public partial class htx : Exchange
                     for (object j = 0; isLessThan(j, getArrayLength(subCodes)); postFixIncrement(ref j))
                     {
                         object subCode = getValue(subCodes, j);
-                        this.mergeBalanceAccount(result, subCode, getValue(subResult, subCode));
+                        result = this.mergeBalanceAccount(result, subCode, getValue(subResult, subCode));
                     }
                 }
                 result = this.safeBalance(result);

@@ -13,26 +13,28 @@ public partial class BaseTest
                 { "id", "sampleexchange" },
             });
             // isolated margin hands one account per market; the same code across two
-            // markets is summed into a single flat entry, missing fields stay undefined
+            // markets is summed into a single flat entry, missing fields stay undefined.
+            // the helper returns the merged dict and callers reassign it: PHP arrays are
+            // passed by value, so mutating the argument alone is invisible there
             object result = new Dictionary<string, object>() {};
             object btcAccount = exchange.account();
             ((IDictionary<string,object>)btcAccount)["free"] = "1";
             ((IDictionary<string,object>)btcAccount)["used"] = "0.5";
             ((IDictionary<string,object>)btcAccount)["debt"] = "0.1";
-            exchange.mergeBalanceAccount(result, "BTC", btcAccount);
+            result = exchange.mergeBalanceAccount(result, "BTC", btcAccount);
             Assert(isEqual(exchange.safeString(getValue(result, "BTC"), "free"), "1"));
             object btcAccount2 = exchange.account();
             ((IDictionary<string,object>)btcAccount2)["free"] = "2";
             ((IDictionary<string,object>)btcAccount2)["used"] = "0.25";
             ((IDictionary<string,object>)btcAccount2)["total"] = "2.25";
-            exchange.mergeBalanceAccount(result, "BTC", btcAccount2);
+            result = exchange.mergeBalanceAccount(result, "BTC", btcAccount2);
             Assert(isEqual(exchange.safeString(getValue(result, "BTC"), "free"), "3"));
             Assert(isEqual(exchange.safeString(getValue(result, "BTC"), "used"), "0.75"));
             Assert(isEqual(exchange.safeString(getValue(result, "BTC"), "total"), "2.25"));
             Assert(isEqual(exchange.safeString(getValue(result, "BTC"), "debt"), "0.1"));
             object usdtAccount = exchange.account();
             ((IDictionary<string,object>)usdtAccount)["free"] = "5";
-            exchange.mergeBalanceAccount(result, "USDT", usdtAccount);
+            result = exchange.mergeBalanceAccount(result, "USDT", usdtAccount);
             Assert(isEqual(exchange.safeString(getValue(result, "USDT"), "free"), "5"));
             Assert(isEqual(exchange.safeString(getValue(result, "USDT"), "used"), null));
             List<object> keys = new List<object>(((IDictionary<string,object>)result).Keys);

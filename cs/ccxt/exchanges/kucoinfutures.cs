@@ -51,7 +51,7 @@ public partial class kucoinfutures : kucoin
             { "method", "futuresPublicGetAllTickers" },
         };
         Dictionary<string, object> extendedRequest = this.extend(request, parameters);
-        return ccxt.BaseExchange.ToTickers(await this.fetchTickers(symbols, extendedRequest));
+        return await this.FetchTickers(symbols, extendedRequest);
     }
 
     /**
@@ -65,7 +65,7 @@ public partial class kucoinfutures : kucoin
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public async override Task<object> transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
+    public async override Task<ccxt.TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -93,11 +93,7 @@ public partial class kucoinfutures : kucoin
             throw new BadRequest ((string)add(this.id, " transfer() only supports transfers between future/swap, spot and funding accounts")) ;
         }
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return this.extend(this.parseTransfer(data, currency), new Dictionary<string, object>() {
-            { "amount", this.parseNumber(amountToPrecision) },
-            { "fromAccount", fromAccount },
-            { "toAccount", toAccount },
-        });
+        return ccxt.BaseExchange.ToTransferEntry(this.extend(this.parseTransfer(data, currency), new Dictionary<string, object>() {             { "amount", this.parseNumber(amountToPrecision) },             { "fromAccount", fromAccount },             { "toAccount", toAccount },         }));
     }
 
     public virtual object parseTransferType(object transferType)

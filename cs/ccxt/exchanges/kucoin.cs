@@ -9413,11 +9413,11 @@ public partial class kucoin : Exchange
                 object quoteCode = this.safeCurrencyCode(this.safeString(quote, "currency"));
                 if (isTrue(!isEqual(baseCode, null)))
                 {
-                    this.mergeBalanceAccount(result, baseCode, this.parseBalanceHelper(bs));
+                    result = this.mergeBalanceAccount(result, baseCode, this.parseBalanceHelper(bs));
                 }
                 if (isTrue(!isEqual(quoteCode, null)))
                 {
-                    this.mergeBalanceAccount(result, quoteCode, this.parseBalanceHelper(quote));
+                    result = this.mergeBalanceAccount(result, quoteCode, this.parseBalanceHelper(quote));
                 }
             }
         } else if (isTrue(cross))
@@ -9652,7 +9652,7 @@ public partial class kucoin : Exchange
                     object currencyCode = this.safeCurrencyCode(currencyId);
                     if (isTrue(!isEqual(currencyCode, null)))
                     {
-                        this.mergeBalanceAccount(result, currencyCode, this.parseBalanceHelper(currencyEntry));
+                        result = this.mergeBalanceAccount(result, currencyCode, this.parseBalanceHelper(currencyEntry));
                     }
                 }
             }
