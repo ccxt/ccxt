@@ -2916,7 +2916,7 @@ public partial class kucoin : Exchange
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public async override Task<object> fetchTransactionFee(object code, object parameters = null)
+    public async override Task<Dictionary<string, object>> FetchTransactionFee(object code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2943,11 +2943,7 @@ public partial class kucoin : Exchange
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object withdrawFees = new Dictionary<string, object>() {};
         ((IDictionary<string,object>)withdrawFees)[(string)code] = this.safeNumber(data, "withdrawMinFee");
-        return new Dictionary<string, object>() {
-            { "info", response },
-            { "withdraw", withdrawFees },
-            { "deposit", new Dictionary<string, object>() {} },
-        };
+        return ccxt.BaseExchange.ToDict(new Dictionary<string, object>() {             { "info", response },             { "withdraw", withdrawFees },             { "deposit", new Dictionary<string, object>() {} },         });
     }
 
     /**

@@ -102,11 +102,6 @@ public partial class pacifica
         var res = this.editOrderRequest(id, symbol, type, side, amount, price, market, parameters);
         return ((Dictionary<string, object>)res);
     }
-    public async Task<Dictionary<string, object>> FetchApiKeys(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchApiKeys(parameters);
-        return ((Dictionary<string, object>)res);
-    }
     public async Task<List<Dictionary<string, object>>> FetchBuilderApprovals(string address)
     {
         var res = await this.fetchBuilderApprovals(address);

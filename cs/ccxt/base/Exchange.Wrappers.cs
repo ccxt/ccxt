@@ -21,11 +21,6 @@ public partial class BaseExchange
         var res = await this.watchOHLCVForSymbols(symbolsAndTimeframes, since, limit, parameters);
         return Helper.ConvertToDictionaryOHLCVList(res);
     }
-    public async Task<Dictionary<string, object>> FetchPaymentMethods(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchPaymentMethods(parameters);
-        return ((Dictionary<string, object>)res);
-    }
     public Dictionary<string, Market> SetMarkets(object markets, object currencies = null)
     {
         var res = this.setMarkets(markets, currencies);
@@ -36,11 +31,6 @@ public partial class BaseExchange
         var res = this.createCcxtTradeId(timestamp, side, amount, price, takerOrMaker);
         return ((string)res);
     }
-    public async Task<Dictionary<string, object>> FetchBorrowRate(string code, double amount, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchBorrowRate(code, amount, parameters);
-        return ((Dictionary<string, object>)res);
-    }
     public async Task<Dictionary<string, object>> FetchWebEndpoint(object method, object endpointMethod, object returnAsJson, string startRegex = null, string endRegex = null)
     {
         var res = await this.fetchWebEndpoint(method, endpointMethod, returnAsJson, startRegex, endRegex);
@@ -49,11 +39,6 @@ public partial class BaseExchange
     public async Task<Dictionary<string, object>> Fetch2(object path, object api = null, string method = "GET", Dictionary<string, object> parameters = null, object headers = null, object body = null, Dictionary<string, object> config = null)
     {
         var res = await this.fetch2(path, api, method, parameters, headers, body, config);
-        return ((Dictionary<string, object>)res);
-    }
-    public async Task<Dictionary<string, object>> FetchTransactionFee(string code, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchTransactionFee(code, parameters);
         return ((Dictionary<string, object>)res);
     }
     public MarketInterface CreateExpiredOptionMarket(string symbol)

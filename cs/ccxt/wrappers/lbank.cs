@@ -6,24 +6,5 @@ namespace ccxt;
 
 public partial class lbank
 {
-    public async Task<Dictionary<string, object>> FetchPrivateTransactionFees(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchPrivateTransactionFees(parameters);
-        return ((Dictionary<string, object>)res);
-    }
-    public async Task<Dictionary<string, object>> FetchPublicTransactionFees(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchPublicTransactionFees(parameters);
-        return ((Dictionary<string, object>)res);
-    }
-    public async Task<Dictionary<string, object>> FetchPrivateDepositWithdrawFees(List<String> codes = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchPrivateDepositWithdrawFees(codes, parameters);
-        return ((Dictionary<string, object>)res);
-    }
-    public async Task<Dictionary<string, object>> FetchPublicDepositWithdrawFees(List<String> codes = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchPublicDepositWithdrawFees(codes, parameters);
-        return ((Dictionary<string, object>)res);
-    }
+
 }

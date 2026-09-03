@@ -3296,7 +3296,7 @@ public partial class hyperliquid : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the api result
      */
-    public async virtual Task<object> createVault(object name, object description, object initialUsd, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> CreateVault(object name, object description, object initialUsd, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
@@ -3329,7 +3329,7 @@ public partial class hyperliquid : Exchange
         //     }
         // }
         //
-        return response;
+        return ccxt.BaseExchange.ToDict(response);
     }
 
     /**

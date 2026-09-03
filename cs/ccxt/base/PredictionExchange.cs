@@ -890,7 +890,7 @@ public partial class PredictionExchange : BaseExchange
     {
         for (object i = 0; isLessThan(i, getArrayLength(outcomeSymbols)); postFixIncrement(ref i))
         {
-            await this.fetchOutcome(getValue(outcomeSymbols, i));
+            ccxt.BaseExchange.FromDict(await this.FetchOutcome(getValue(outcomeSymbols, i)));
         }
         return ccxt.BaseExchange.ToDict(this.outcomes);
     }
@@ -941,7 +941,7 @@ public partial class PredictionExchange : BaseExchange
                 }
             }
         }
-        return await this.fetchOutcome(outcomeSymbol);
+        return ccxt.BaseExchange.FromDict(await this.FetchOutcome(outcomeSymbol));
     }
 
     public virtual object outcomeSearchQuery(object outcomeSymbol)
@@ -1005,7 +1005,7 @@ public partial class PredictionExchange : BaseExchange
         return String.Join(" ", ((IList<object>)words).ToArray());
     }
 
-    public async virtual Task<object> fetchOutcome(object outcomeSymbol)
+    public async virtual Task<Dictionary<string, object>> FetchOutcome(object outcomeSymbol)
     {
         // fetch just one outcome on demand — never through a bulk listing download. the base has
         // no generic by-id endpoint, so it derives a search query from the handle and resolves it
@@ -1033,7 +1033,7 @@ public partial class PredictionExchange : BaseExchange
             }
             if (isTrue(this.hasOutcome(outcomeSymbol)))
             {
-                return this.safeOutcome(outcomeSymbol);
+                return ccxt.BaseExchange.ToDict(this.safeOutcome(outcomeSymbol));
             }
         }
         throw new BadSymbol ((string)add(add(add(this.id, " could not resolve outcome "), outcomeSymbol), " — call fetchEvents ({ 'query': ... }) first, or pass a known outcomeId")) ;
@@ -2130,10 +2130,5 @@ public partial class PredictionExchange
     {
         var res = this.setMarkets(markets, currencies);
         return ((Dictionary<string, Market>)res);
-    }
-    public async Task<Dictionary<string, object>> FetchOutcome(string outcomeSymbol)
-    {
-        var res = await this.fetchOutcome(outcomeSymbol);
-        return ((Dictionary<string, object>)res);
     }
 }

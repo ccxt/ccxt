@@ -6,20 +6,6 @@ namespace ccxt;
 
 public partial class kucoin
 {
-    /// <summary>
-    /// *DEPRECATED* please use fetchDepositWithdrawFee instead
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://www.kucoin.com/docs-new/rest/account-info/withdrawals/get-withdrawal-quotas"/>  <br/>
-    /// <list type="table">
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchTransactionFee(string code, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchTransactionFee(code, parameters);
-        return ((Dictionary<string, object>)res);
-    }
     public Dictionary<string, object> CreateSpotOrderRequest(string symbol, string type, string side, double amount, double? price = null, Dictionary<string, object> parameters = null)
     {
         var res = this.createSpotOrderRequest(symbol, type, side, amount, price, parameters);

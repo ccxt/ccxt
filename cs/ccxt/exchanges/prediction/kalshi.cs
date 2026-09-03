@@ -474,7 +474,7 @@ public partial class kalshi : PredictionExchange
      * @param {string} outcomeSymbol an outcome id — a kalshi ticker, or a ticker with a '-NO' suffix — or a unified handle like KXBTCD_26JUL1417_53_000_ABOVE:YES
      * @returns {object} the resolved outcome object
      */
-    public async override Task<object> fetchOutcome(object outcomeSymbol)
+    public async override Task<Dictionary<string, object>> FetchOutcome(object outcomeSymbol)
     {
         // a kalshi ticker never contains ':', so only id-form inputs can be fetched by ticker —
         // sending a unified handle (EVENT_MARKET:LABEL) as a ticker is a guaranteed 404.
@@ -522,7 +522,7 @@ public partial class kalshi : PredictionExchange
                 // index only the market just fetched, not a full O(markets x outcomes) rebuild of the
                 // whole cache — on-demand fetchOutcome (loadAllOutcomes false) is the hot path here
                 this.indexMarketOutcomes(parsed);
-                return this.outcome(outcomeSymbol);
+                return ccxt.BaseExchange.ToDict(this.outcome(outcomeSymbol));
             }
         } else
         {
@@ -552,14 +552,14 @@ public partial class kalshi : PredictionExchange
                 }
                 if (isTrue(this.hasOutcome(outcomeSymbol)))
                 {
-                    return this.safeOutcome(outcomeSymbol);
+                    return ccxt.BaseExchange.ToDict(this.safeOutcome(outcomeSymbol));
                 }
             }
         }
         // free-text fallback: the base derives a search query from the handle's words, resolves it
         // through fetchEvents({query}) and re-checks the cache, throwing a guidance-rich BadSymbol
         // on a genuine miss
-        return await base.fetchOutcome(outcomeSymbol);
+        return ccxt.BaseExchange.ToDict(await base.FetchOutcome(outcomeSymbol));
     }
 
     /**
@@ -633,7 +633,7 @@ public partial class kalshi : PredictionExchange
         {
             if (!isTrue(this.hasOutcome(getValue(outcomeSymbols, i))))
             {
-                await this.fetchOutcome(getValue(outcomeSymbols, i));
+                ccxt.BaseExchange.FromDict(await this.FetchOutcome(getValue(outcomeSymbols, i)));
             }
         }
         return ccxt.BaseExchange.ToDict(this.outcomes);

@@ -6,9 +6,5 @@ namespace ccxt;
 
 public partial class coinbaseexchange
 {
-    public async Task<Dictionary<string, object>> FetchPaymentMethods(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchPaymentMethods(parameters);
-        return ((Dictionary<string, object>)res);
-    }
+
 }

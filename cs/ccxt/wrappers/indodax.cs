@@ -6,24 +6,5 @@ namespace ccxt;
 
 public partial class indodax
 {
-    /// <summary>
-    /// fetch the fee for a transaction
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#withdraw-fee-endpoints"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchTransactionFee(string code, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchTransactionFee(code, parameters);
-        return ((Dictionary<string, object>)res);
-    }
+
 }

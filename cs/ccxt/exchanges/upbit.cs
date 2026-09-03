@@ -376,7 +376,7 @@ public partial class upbit : Exchange
         });
     }
 
-    public async virtual Task<object> fetchCurrency(object code, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> FetchCurrency(object code, object parameters = null)
     {
         // this method is for retrieving funding fees and limits per currency
         // it requires private access and API keys properly set up
@@ -386,10 +386,10 @@ public partial class upbit : Exchange
             await this.loadMarkets();
         }
         object currency = this.currency(code);
-        return await this.fetchCurrencyById(getValue(currency, "id"), parameters);
+        return await this.FetchCurrencyById(getValue(currency, "id"), parameters);
     }
 
-    public async virtual Task<object> fetchCurrencyById(object id, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> FetchCurrencyById(object id, object parameters = null)
     {
         // this method is for retrieving funding fees and limits per currency
         // it requires private access and API keys properly set up
@@ -470,21 +470,7 @@ public partial class upbit : Exchange
         }
         object currencyId = this.safeString(currencyInfo, "code");
         object code = this.safeCurrencyCode(currencyId);
-        return new Dictionary<string, object>() {
-            { "info", response },
-            { "id", currencyId },
-            { "code", code },
-            { "name", code },
-            { "active", active },
-            { "fee", this.safeNumber(currencyInfo, "withdraw_fee") },
-            { "precision", null },
-            { "limits", new Dictionary<string, object>() {
-                { "withdraw", new Dictionary<string, object>() {
-                    { "min", this.safeNumber(withdrawLimits, "minimum") },
-                    { "max", this.parseNumber(maxWithdrawLimit) },
-                } },
-            } },
-        };
+        return ccxt.BaseExchange.ToDict(new Dictionary<string, object>() {             { "info", response },             { "id", currencyId },             { "code", code },             { "name", code },             { "active", active },             { "fee", this.safeNumber(currencyInfo, "withdraw_fee") },             { "precision", null },             { "limits", new Dictionary<string, object>() {                 { "withdraw", new Dictionary<string, object>() {                     { "min", this.safeNumber(withdrawLimits, "minimum") },                     { "max", this.parseNumber(maxWithdrawLimit) },                 } },             } },         });
     }
 
     public async virtual Task<ccxt.MarketInterface> FetchMarket(string symbol, object parameters = null)

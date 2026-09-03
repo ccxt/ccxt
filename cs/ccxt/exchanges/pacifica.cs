@@ -3802,13 +3802,13 @@ public partial class pacifica : Exchange
         return await this.privatePostAccountApiKeysRevoke(this.extend(request, parameters));
     }
 
-    public async virtual Task<object> fetchApiKeys(object parameters = null)
+    public async virtual Task<Dictionary<string, object>> FetchApiKeys(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string operationType = "list_api_keys";
         object sigPayload = new Dictionary<string, object>() {};
         object request = this.postActionRequest(operationType, sigPayload, parameters);
-        return await this.privatePostAccountApiKeys(this.extend(request, parameters));
+        return ccxt.BaseExchange.ToDict(await this.privatePostAccountApiKeys(this.extend(request, parameters)));
     }
 
     public async virtual Task<object> approveBuilderCode(object builderCode, object maxFeeRate, object parameters = null)

@@ -1581,7 +1581,7 @@ public partial class coinbase : Exchange
     public async virtual Task<List<ccxt.MarketInterface>> FetchMarketsV2(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object response = await this.fetchCurrenciesFromCache(parameters);
+        object response = ccxt.BaseExchange.FromDict(await this.FetchCurrenciesFromCache(parameters));
         object currencies = this.safeDict(response, "currencies", new Dictionary<string, object>() {});
         object exchangeRates = this.safeDict(response, "exchangeRates", new Dictionary<string, object>() {});
         object data = this.safeList(currencies, "data", new List<object>() {});
@@ -2126,7 +2126,7 @@ public partial class coinbase : Exchange
         });
     }
 
-    public async virtual Task<object> fetchCurrenciesFromCache(object parameters = null)
+    public async virtual Task<Dictionary<string, object>> FetchCurrenciesFromCache(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object options = this.safeDict(this.options, "fetchCurrencies", new Dictionary<string, object>() {});
@@ -2170,7 +2170,7 @@ public partial class coinbase : Exchange
                 { "timestamp", now },
             });
         }
-        return this.safeDict(this.options, "fetchCurrencies", new Dictionary<string, object>() {});
+        return ccxt.BaseExchange.ToDict(this.safeDict(this.options, "fetchCurrencies", new Dictionary<string, object>() {}));
     }
 
     /**
@@ -5178,7 +5178,7 @@ public partial class coinbase : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [deposit id structure]{@link https://docs.ccxt.com/?id=deposit-id-structure}
      */
-    public async virtual Task<object> fetchDepositMethodId(object id, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> FetchDepositMethodId(object id, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -5207,7 +5207,7 @@ public partial class coinbase : Exchange
         //     }
         //
         object result = this.safeDict(response, "payment_method", new Dictionary<string, object>() {});
-        return this.parseDepositMethodId(result);
+        return ccxt.BaseExchange.ToDict(this.parseDepositMethodId(result));
     }
 
     public virtual object parseDepositMethodIds(object ids, object parameters = null)

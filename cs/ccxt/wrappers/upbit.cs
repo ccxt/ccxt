@@ -6,14 +6,5 @@ namespace ccxt;
 
 public partial class upbit
 {
-    public async Task<Dictionary<string, object>> FetchCurrency(string code, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchCurrency(code, parameters);
-        return ((Dictionary<string, object>)res);
-    }
-    public async Task<Dictionary<string, object>> FetchCurrencyById(string id, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchCurrencyById(id, parameters);
-        return ((Dictionary<string, object>)res);
-    }
+
 }

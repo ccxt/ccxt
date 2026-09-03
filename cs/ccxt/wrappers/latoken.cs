@@ -6,14 +6,5 @@ namespace ccxt;
 
 public partial class latoken
 {
-    public async Task<Dictionary<string, object>> FetchPublicTradingFee(string symbol, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchPublicTradingFee(symbol, parameters);
-        return ((Dictionary<string, object>)res);
-    }
-    public async Task<Dictionary<string, object>> FetchPrivateTradingFee(string symbol, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchPrivateTradingFee(symbol, parameters);
-        return ((Dictionary<string, object>)res);
-    }
+
 }

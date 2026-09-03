@@ -16,11 +16,6 @@ public partial class gate
         var res = await this.fetchOptionUnderlyings();
         return ((IList<object>)res).Select(item => (item as string)).ToList();
     }
-    public async Task<Dictionary<string, object>> FetchNetworkDepositAddress(string code, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchNetworkDepositAddress(code, parameters);
-        return ((Dictionary<string, object>)res);
-    }
     public List<Dictionary<string, object>> CreateOrdersRequest(List<OrderRequest> orders, Dictionary<string, object> parameters = null)
     {
         var res = this.createOrdersRequest(orders, parameters);

@@ -6,11 +6,6 @@ namespace ccxt;
 
 public partial class dydx
 {
-    public async Task<Dictionary<string, object>> FetchDydxAccount()
-    {
-        var res = await this.fetchDydxAccount();
-        return ((Dictionary<string, object>)res);
-    }
     public List<Dictionary<string, object>> CreateOrderRequest(string symbol, string type, string side, double amount, double? price = null, Dictionary<string, object> parameters = null)
     {
         var res = this.createOrderRequest(symbol, type, side, amount, price, parameters);

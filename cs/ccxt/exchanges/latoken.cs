@@ -1110,17 +1110,17 @@ public partial class latoken : Exchange
         parameters = this.omit(parameters, "method");
         if (isTrue(isEqual(method, "fetchPrivateTradingFee")))
         {
-            return ccxt.BaseExchange.ToTradingFeeInterface(await this.fetchPrivateTradingFee(symbol, parameters));
+            return ccxt.BaseExchange.ToTradingFeeInterface(await this.FetchPrivateTradingFee(symbol, parameters));
         } else if (isTrue(isEqual(method, "fetchPublicTradingFee")))
         {
-            return ccxt.BaseExchange.ToTradingFeeInterface(await this.fetchPublicTradingFee(symbol, parameters));
+            return ccxt.BaseExchange.ToTradingFeeInterface(await this.FetchPublicTradingFee(symbol, parameters));
         } else
         {
             throw new NotSupported ((string)add(this.id, " not support this method")) ;
         }
     }
 
-    public async virtual Task<object> fetchPublicTradingFee(object symbol, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> FetchPublicTradingFee(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1141,17 +1141,10 @@ public partial class latoken : Exchange
         //         "take": "FEE_SCHEME_TAKE_PROPORTION"
         //     }
         //
-        return new Dictionary<string, object>() {
-            { "info", response },
-            { "symbol", getValue(market, "symbol") },
-            { "maker", this.safeNumber(response, "makerFee") },
-            { "taker", this.safeNumber(response, "takerFee") },
-            { "percentage", null },
-            { "tierBased", null },
-        };
+        return ccxt.BaseExchange.ToDict(new Dictionary<string, object>() {             { "info", response },             { "symbol", getValue(market, "symbol") },             { "maker", this.safeNumber(response, "makerFee") },             { "taker", this.safeNumber(response, "takerFee") },             { "percentage", null },             { "tierBased", null },         });
     }
 
-    public async virtual Task<object> fetchPrivateTradingFee(object symbol, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> FetchPrivateTradingFee(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1172,14 +1165,7 @@ public partial class latoken : Exchange
         //         "take": "FEE_SCHEME_TAKE_PROPORTION"
         //     }
         //
-        return new Dictionary<string, object>() {
-            { "info", response },
-            { "symbol", getValue(market, "symbol") },
-            { "maker", this.safeNumber(response, "makerFee") },
-            { "taker", this.safeNumber(response, "takerFee") },
-            { "percentage", null },
-            { "tierBased", null },
-        };
+        return ccxt.BaseExchange.ToDict(new Dictionary<string, object>() {             { "info", response },             { "symbol", getValue(market, "symbol") },             { "maker", this.safeNumber(response, "makerFee") },             { "taker", this.safeNumber(response, "takerFee") },             { "percentage", null },             { "tierBased", null },         });
     }
 
     /**

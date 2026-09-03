@@ -1368,7 +1368,7 @@ public partial class whitebit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding limits structure]{@link https://docs.ccxt.com/?id=funding-limits-structure}
      */
-    public async virtual Task<object> fetchFundingLimits(object codes = null, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> FetchFundingLimits(object codes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1520,7 +1520,7 @@ public partial class whitebit : Exchange
                 { "limits", limits },
             };
         }
-        return result;
+        return ccxt.BaseExchange.ToDict(result);
     }
 
     /**

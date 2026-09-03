@@ -51,23 +51,4 @@ public partial class hyperliquid
         var res = this.editOrdersRequest(orders, parameters);
         return ((Dictionary<string, object>)res);
     }
-    /// <summary>
-    /// creates a value
-    /// </summary>
-    /// <remarks>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> the api result.</returns>
-    public async Task<Dictionary<string, object>> CreateVault(string name, string description, Int64 initialUsd, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.createVault(name, description, initialUsd, parameters);
-        return ((Dictionary<string, object>)res);
-    }
 }

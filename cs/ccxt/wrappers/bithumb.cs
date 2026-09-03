@@ -31,30 +31,4 @@ public partial class bithumb
         var res = this.createOrderRequest(symbol, type, side, amount, price, parameters);
         return ((Dictionary<string, object>)res);
     }
-    /// <summary>
-    /// fetch a list of allowed withdrawal addresses
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://apidocs.bithumb.com/reference/%EC%B6%9C%EA%B8%88-%ED%97%88%EC%9A%A9-%EC%A3%BC%EC%86%8C-%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EC%A1%B0%ED%9A%8C"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.generation</term>
-    /// <description>
-    /// int : *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object[]</term> a list response from the exchange.</returns>
-    public async Task<Dictionary<string, object>> FetchWithdrawalWhitelist(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchWithdrawalWhitelist(parameters);
-        return ((Dictionary<string, object>)res);
-    }
 }

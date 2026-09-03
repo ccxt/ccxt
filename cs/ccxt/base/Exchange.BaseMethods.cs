@@ -1476,7 +1476,7 @@ public partial class BaseExchange
         throw new NotSupported ((string)add(this.id, " signIn() is not supported yet")) ;
     }
 
-    public async virtual Task<object> fetchPaymentMethods(object parameters = null)
+    public async virtual Task<List<Dictionary<string, object>>> FetchPaymentMethods(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchPaymentMethods() is not supported yet")) ;
@@ -3227,7 +3227,7 @@ public partial class BaseExchange
         });
     }
 
-    public async virtual Task<object> fetchBorrowRate(object code, object amount, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> FetchBorrowRate(object code, object amount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchBorrowRate is deprecated, please use fetchCrossBorrowRate or fetchIsolatedBorrowRate instead")) ;
@@ -4880,14 +4880,14 @@ public partial class BaseExchange
         throw new NotSupported ((string)add(this.id, " fetchStatus() is not supported yet")) ;
     }
 
-    public async virtual Task<object> fetchTransactionFee(object code, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> FetchTransactionFee(object code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isTrue(isEqual(getValue(this.has, "fetchTransactionFees"), null)) || isTrue(isEqual(getValue(this.has, "fetchTransactionFees"), false))))
         {
             throw new NotSupported ((string)add(this.id, " fetchTransactionFee() is not supported yet")) ;
         }
-        return ccxt.BaseExchange.FromDict(await this.FetchTransactionFees(new List<object>() {code}, parameters));
+        return await this.FetchTransactionFees(new List<object>() {code}, parameters);
     }
 
     public async virtual Task<Dictionary<string, object>> FetchTransactionFees(object codes = null, object parameters = null)

@@ -3152,7 +3152,7 @@ public partial class bithumb : Exchange
      * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
      * @returns {object[]} a list response from the exchange
      */
-    public async virtual Task<object> fetchWithdrawalWhitelist(object parameters = null)
+    public async virtual Task<List<Dictionary<string, object>>> FetchWithdrawalWhitelist(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -3182,7 +3182,7 @@ public partial class bithumb : Exchange
         //         },
         //     ]
         //
-        return response;
+        return ccxt.BaseExchange.ToDictList(response);
     }
 
     /**

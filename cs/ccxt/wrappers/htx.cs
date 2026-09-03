@@ -7,26 +7,6 @@ namespace ccxt;
 public partial class htx
 {
     /// <summary>
-    /// undefined
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://huobiapi.github.io/docs/spot/v1/en/#get-current-fee-rate-applied-to-the-user"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> the limits object of a market structure.</returns>
-    public async Task<Dictionary<string, object>> FetchTradingLimitsById(string id, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchTradingLimitsById(id, parameters);
-        return ((Dictionary<string, object>)res);
-    }
-    /// <summary>
     /// retrieves data on all markets of a certain type and/or subtype
     /// </summary>
     /// <remarks>

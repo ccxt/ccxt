@@ -6,11 +6,6 @@ namespace ccxt;
 
 public partial class coinbase
 {
-    public async Task<Dictionary<string, object>> FetchCurrenciesFromCache(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchCurrenciesFromCache(parameters);
-        return ((Dictionary<string, object>)res);
-    }
     /// <summary>
     /// fetch the deposit id for a fiat currency associated with this account
     /// </summary>
@@ -30,26 +25,6 @@ public partial class coinbase
     {
         var res = await this.fetchDepositMethodIds(parameters);
         return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
-    }
-    /// <summary>
-    /// fetch the deposit id for a fiat currency associated with this account
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/payment-methods/get-payment-method"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a [deposit id structure]{@link https://docs.ccxt.com/?id=deposit-id-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchDepositMethodId(string id, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchDepositMethodId(id, parameters);
-        return ((Dictionary<string, object>)res);
     }
     /// <summary>
     /// Fetch details for a specific portfolio by UUID

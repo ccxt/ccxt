@@ -6,9 +6,5 @@ namespace ccxt;
 
 public partial class bittrade
 {
-    public async Task<Dictionary<string, object>> FetchTradingLimitsById(string id, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchTradingLimitsById(id, parameters);
-        return ((Dictionary<string, object>)res);
-    }
+
 }

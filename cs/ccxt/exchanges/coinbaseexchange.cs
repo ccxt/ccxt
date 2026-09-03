@@ -1915,10 +1915,10 @@ public partial class coinbaseexchange : Exchange
         return ccxt.BaseExchange.ToOrderList(new List<object> {this.safeOrder(new Dictionary<string, object>() {     { "info", response }, })});
     }
 
-    public async override Task<object> fetchPaymentMethods(object parameters = null)
+    public async override Task<List<Dictionary<string, object>>> FetchPaymentMethods(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.privateGetPaymentMethods(parameters);
+        return ccxt.BaseExchange.ToDictList(await this.privateGetPaymentMethods(parameters));
     }
 
     /**

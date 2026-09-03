@@ -2955,19 +2955,19 @@ public partial class lbank : Exchange
             parameters = this.omit(parameters, "method");
             if (isTrue(isEqual(method, "fetchPublicTransactionFees")))
             {
-                result = await this.fetchPublicTransactionFees(parameters);
+                result = ccxt.BaseExchange.FromDict(await this.FetchPublicTransactionFees(parameters));
             } else
             {
-                result = await this.fetchPrivateTransactionFees(parameters);
+                result = ccxt.BaseExchange.FromDict(await this.FetchPrivateTransactionFees(parameters));
             }
         } else
         {
-            result = await this.fetchPublicTransactionFees(parameters);
+            result = ccxt.BaseExchange.FromDict(await this.FetchPublicTransactionFees(parameters));
         }
         return ccxt.BaseExchange.ToDict(result);
     }
 
-    public async virtual Task<object> fetchPrivateTransactionFees(object parameters = null)
+    public async virtual Task<Dictionary<string, object>> FetchPrivateTransactionFees(object parameters = null)
     {
         // complete response
         // incl. for coins which undefined in public method
@@ -3036,14 +3036,10 @@ public partial class lbank : Exchange
                 }
             }
         }
-        return new Dictionary<string, object>() {
-            { "withdraw", withdrawFees },
-            { "deposit", new Dictionary<string, object>() {} },
-            { "info", response },
-        };
+        return ccxt.BaseExchange.ToDict(new Dictionary<string, object>() {             { "withdraw", withdrawFees },             { "deposit", new Dictionary<string, object>() {} },             { "info", response },         });
     }
 
-    public async virtual Task<object> fetchPublicTransactionFees(object parameters = null)
+    public async virtual Task<Dictionary<string, object>> FetchPublicTransactionFees(object parameters = null)
     {
         // extremely incomplete response
         // vast majority fees undefined
@@ -3111,11 +3107,7 @@ public partial class lbank : Exchange
                 }
             }
         }
-        return new Dictionary<string, object>() {
-            { "withdraw", withdrawFees },
-            { "deposit", new Dictionary<string, object>() {} },
-            { "info", response },
-        };
+        return ccxt.BaseExchange.ToDict(new Dictionary<string, object>() {             { "withdraw", withdrawFees },             { "deposit", new Dictionary<string, object>() {} },             { "info", response },         });
     }
 
     /**
@@ -3145,19 +3137,19 @@ public partial class lbank : Exchange
             parameters = this.omit(parameters, "method");
             if (isTrue(isEqual(method, "fetchPublicDepositWithdrawFees")))
             {
-                response = await this.fetchPublicDepositWithdrawFees(codes, parameters);
+                response = ccxt.BaseExchange.FromDict(await this.FetchPublicDepositWithdrawFees(codes, parameters));
             } else
             {
-                response = await this.fetchPrivateDepositWithdrawFees(codes, parameters);
+                response = ccxt.BaseExchange.FromDict(await this.FetchPrivateDepositWithdrawFees(codes, parameters));
             }
         } else
         {
-            response = await this.fetchPublicDepositWithdrawFees(codes, parameters);
+            response = ccxt.BaseExchange.FromDict(await this.FetchPublicDepositWithdrawFees(codes, parameters));
         }
         return ccxt.BaseExchange.ToDepositWithdrawFees(response);
     }
 
-    public async virtual Task<object> fetchPrivateDepositWithdrawFees(object codes = null, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> FetchPrivateDepositWithdrawFees(object codes = null, object parameters = null)
     {
         // complete response
         // incl. for coins which undefined in public method
@@ -3198,10 +3190,10 @@ public partial class lbank : Exchange
         //    }
         //
         object data = this.safeList(response, "data", new List<object>() {});
-        return this.parseDepositWithdrawFees(data, codes, "coin");
+        return ccxt.BaseExchange.ToDict(this.parseDepositWithdrawFees(data, codes, "coin"));
     }
 
-    public async virtual Task<object> fetchPublicDepositWithdrawFees(object codes = null, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> FetchPublicDepositWithdrawFees(object codes = null, object parameters = null)
     {
         // extremely incomplete response
         // vast majority fees undefined
@@ -3234,7 +3226,7 @@ public partial class lbank : Exchange
         //    }
         //
         object data = this.safeValue(response, "data", new List<object>() {});
-        return this.parsePublicDepositWithdrawFees(data, codes);
+        return ccxt.BaseExchange.ToDict(this.parsePublicDepositWithdrawFees(data, codes));
     }
 
     public virtual object parsePublicDepositWithdrawFees(object response, object codes = null)

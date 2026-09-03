@@ -7,19 +7,6 @@ public class  Opinion: opinion { public Opinion(object args = null) : base(args)
 public partial class opinion
 {
     /// <summary>
-    /// resolves a single outcome; a bare numeric token id carries no search text for
-    /// </summary>
-    /// <remarks>
-    /// <list type="table">
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> the outcome cache.</returns>
-    public async Task<Dictionary<string, object>> FetchOutcome(string outcomeSymbol)
-    {
-        var res = await this.fetchOutcome(outcomeSymbol);
-        return ((Dictionary<string, object>)res);
-    }
-    /// <summary>
     /// fetches Opinion's categorical markets - scope required via query/queries/tags/eventId/slug/labelId
     /// </summary>
     /// <remarks>

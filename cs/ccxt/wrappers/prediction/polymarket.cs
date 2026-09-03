@@ -65,19 +65,6 @@ public partial class polymarket
         return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
     }
     /// <summary>
-    /// resolves a single outcome by its CLOB token id in one request, so a cache miss
-    /// </summary>
-    /// <remarks>
-    /// <list type="table">
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> the resolved outcome object.</returns>
-    public async Task<Dictionary<string, object>> FetchOutcome(string outcomeSymbol)
-    {
-        var res = await this.fetchOutcome(outcomeSymbol);
-        return ((Dictionary<string, object>)res);
-    }
-    /// <summary>
     /// cancels all open orders on the CLOB, optionally scoped to one outcome token
     /// </summary>
     /// <remarks>

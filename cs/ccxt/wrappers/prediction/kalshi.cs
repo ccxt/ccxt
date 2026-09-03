@@ -7,19 +7,6 @@ public class  Kalshi: kalshi { public Kalshi(object args = null) : base(args) { 
 public partial class kalshi
 {
     /// <summary>
-    /// resolves a single outcome on demand instead of bulk-loading. kalshi has tens of
-    /// </summary>
-    /// <remarks>
-    /// <list type="table">
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> the resolved outcome object.</returns>
-    public async Task<Dictionary<string, object>> FetchOutcome(string outcomeSymbol)
-    {
-        var res = await this.fetchOutcome(outcomeSymbol);
-        return ((Dictionary<string, object>)res);
-    }
-    /// <summary>
     /// cancels all open orders on kalshi, optionally scoped to one outcome ticker
     /// </summary>
     /// <remarks>

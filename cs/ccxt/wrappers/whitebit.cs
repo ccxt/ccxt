@@ -6,25 +6,5 @@ namespace ccxt;
 
 public partial class whitebit
 {
-    /// <summary>
-    /// fetch the deposit and withdrawal limits for a currency
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.whitebit.com/public/http-v4/#asset-status-list"/>  <br/>
-    /// See <see href="https://docs.whitebit.com/public/http-v4/#fee"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a [funding limits structure]{@link https://docs.ccxt.com/?id=funding-limits-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchFundingLimits(List<String> codes = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchFundingLimits(codes, parameters);
-        return ((Dictionary<string, object>)res);
-    }
+
 }

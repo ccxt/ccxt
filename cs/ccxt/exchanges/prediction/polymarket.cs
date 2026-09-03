@@ -1191,7 +1191,7 @@ public partial class polymarket : PredictionExchange
      * @param {string} outcomeSymbol the outcome token id or handle
      * @returns {object} the resolved outcome object
      */
-    public async override Task<object> fetchOutcome(object outcomeSymbol)
+    public async override Task<Dictionary<string, object>> FetchOutcome(object outcomeSymbol)
     {
         // a bare CLOB token id has no ':' (an outcome handle is always "MARKET:LABEL") and no
         // searchable words — outcomeSearchQuery returns undefined only for id-like inputs, so
@@ -1229,11 +1229,11 @@ public partial class polymarket : PredictionExchange
                 object byId = this.safeValue(this.outcomes_by_id, outcomeSymbol);
                 if (isTrue(!isEqual(byId, null)))
                 {
-                    return byId;
+                    return ccxt.BaseExchange.ToDict(byId);
                 }
             }
         }
-        return await base.fetchOutcome(outcomeSymbol);
+        return ccxt.BaseExchange.ToDict(await base.FetchOutcome(outcomeSymbol));
     }
 
     /**
@@ -1309,7 +1309,7 @@ public partial class polymarket : PredictionExchange
         {
             if (!isTrue(this.hasOutcome(getValue(outcomeSymbols, i))))
             {
-                await this.fetchOutcome(getValue(outcomeSymbols, i));
+                ccxt.BaseExchange.FromDict(await this.FetchOutcome(getValue(outcomeSymbols, i)));
             }
         }
         return ccxt.BaseExchange.ToDict(this.outcomes);
