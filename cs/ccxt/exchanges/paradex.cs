@@ -3540,9 +3540,9 @@ public partial class paradex : Exchange
      * @see https://docs.paradex.trade/api/prod/markets/get-markets-summary
      * @param {string[]} [symbols] unified symbols of the markets to fetch greeks for, all markets are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
+     * @returns {object} a dictionary of [greeks structures]{@link https://docs.ccxt.com/?id=greeks-structure} indexed by market symbol
      */
-    public async override Task<object> fetchAllGreeks(object symbols = null, object parameters = null)
+    public async override Task<ccxt.AllGreeks> FetchAllGreeks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -3589,7 +3589,7 @@ public partial class paradex : Exchange
         //     }
         //
         object results = this.safeList(response, "results", new List<object>() {});
-        return this.parseAllGreeks(results, symbols);
+        return ccxt.BaseExchange.ToAllGreeks(this.parseAllGreeks(results, symbols));
     }
 
     public override object parseGreeks(object greeks, object market = null)

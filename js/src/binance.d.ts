@@ -1,5 +1,5 @@
 import Exchange from './abstract/binance.js';
-import type { TransferEntry, Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Market, Greeks, Strings, Currency, MarketInterface, MarginMode, MarginModes, Leverage, Leverages, Num, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CrossBorrowRate, IsolatedBorrowRates, IsolatedBorrowRate, Dict, LeverageTier, LeverageTiers, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, LongShortRatio, BorrowInterest, Position, ADL, List, NullableDict, CurrencyInterface, DepositWithdrawFees, Status, PositionModeInfo, MarginLoan } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Market, Greeks, Strings, Currency, MarketInterface, MarginMode, MarginModes, Leverage, Leverages, Num, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CrossBorrowRate, IsolatedBorrowRates, IsolatedBorrowRate, Dict, LeverageTier, LeverageTiers, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, LongShortRatio, BorrowInterest, Position, ADL, List, NullableDict, CurrencyInterface, DepositWithdrawFees, Status, PositionModeInfo, MarginLoan, AllGreeks } from './base/types.js';
 /**
  * @class binance
  * @augments Exchange
@@ -1546,9 +1546,9 @@ export default class binance extends Exchange {
      * @see https://developers.binance.com/docs/derivatives/option/market-data/Option-Mark-Price
      * @param {string[]} [symbols] unified symbols of the markets to fetch greeks for, all markets are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
+     * @returns {object} a dictionary of [greeks structures]{@link https://docs.ccxt.com/?id=greeks-structure} indexed by market symbol
      */
-    fetchAllGreeks(symbols?: Strings, params?: {}): Promise<Greeks[]>;
+    fetchAllGreeks(symbols?: Strings, params?: {}): Promise<AllGreeks>;
     parseGreeks(greeks: Dict, market?: Market): Greeks;
     fetchTradingLimits(symbols?: Strings, params?: {}): Promise<Dict>;
     /**

@@ -1,5 +1,5 @@
 import Exchange from './abstract/mexc.js';
-import type { Account, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, NullableDict, FundingHistory, FundingRate, FundingRateHistory, IndexType, int, Int, Leverage, LeverageTier, LeverageTiers, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry, DepositWithdrawFees, Status, PositionModeInfo } from './base/types.js';
+import type { Account, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, NullableDict, FundingHistory, FundingRate, FundingRateHistory, IndexType, int, Int, Leverage, LeverageTier, LeverageTiers, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry, DepositWithdrawFees, Status, PositionModeInfo, DepositAddresses } from './base/types.js';
 /**
  * @class mexc
  * @augments Exchange
@@ -533,7 +533,7 @@ export default class mexc extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
      */
-    fetchDepositAddressesByNetwork(code: string, params?: {}): Promise<DepositAddress[]>;
+    fetchDepositAddressesByNetwork(code: string, params?: {}): Promise<DepositAddresses>;
     /**
      * @method
      * @name mexc#createDepositAddress

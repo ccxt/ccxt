@@ -21,24 +21,4 @@ public partial class cryptocom
         var res = this.editOrderRequest(id, symbol, amount, price, parameters);
         return ((Dictionary<string, object>)res);
     }
-    /// <summary>
-    /// fetch a dictionary of addresses for a currency, indexed by network
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-deposit-address"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network.</returns>
-    public async Task<List<DepositAddress>> FetchDepositAddressesByNetwork(string code, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchDepositAddressesByNetwork(code, parameters);
-        return ((IList<object>)res).Select(item => new DepositAddress(item)).ToList<DepositAddress>();
-    }
 }

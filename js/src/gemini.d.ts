@@ -1,5 +1,5 @@
 import Exchange from './abstract/gemini.js';
-import type { Balances, Currencies, Currency, CurrencyInterface, Dict, Int, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress, NullableDict } from './base/types.js';
+import type { Balances, Currencies, Currency, CurrencyInterface, Dict, Int, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress, NullableDict, DepositAddresses } from './base/types.js';
 /**
  * @class gemini
  * @augments Exchange
@@ -224,7 +224,7 @@ export default class gemini extends Exchange {
      * @param {string} [params.network]  *required* The chain of currency
      * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
      */
-    fetchDepositAddressesByNetwork(code: string, params?: {}): Promise<DepositAddress[]>;
+    fetchDepositAddressesByNetwork(code: string, params?: {}): Promise<DepositAddresses>;
     sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
         url: string;
         method: string;

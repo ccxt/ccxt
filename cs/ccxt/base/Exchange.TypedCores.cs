@@ -58,6 +58,30 @@ public partial class BaseExchange
         return result;
     }
 
+    public static AllGreeks ToAllGreeks(object value)
+    {
+        return value is AllGreeks ? (AllGreeks)value : new AllGreeks(value);
+    }
+
+    public static List<AllGreeks> ToAllGreeksList(object values)
+    {
+        if (values == null)
+        {
+            return null;
+        }
+        if (values is List<AllGreeks>)
+        {
+            return (List<AllGreeks>)values;
+        }
+        var rows = (IList<object>)values;
+        var result = new List<AllGreeks>(rows.Count);
+        foreach (var row in rows)
+        {
+            result.Add(row is AllGreeks ? (AllGreeks)row : new AllGreeks(row));
+        }
+        return result;
+    }
+
     public static Balance ToBalance(object value)
     {
         return value is Balance ? (Balance)value : new Balance(value);
@@ -246,6 +270,30 @@ public partial class BaseExchange
         foreach (var row in rows)
         {
             result.Add(row is DepositAddress ? (DepositAddress)row : new DepositAddress(row));
+        }
+        return result;
+    }
+
+    public static DepositAddresses ToDepositAddresses(object value)
+    {
+        return value is DepositAddresses ? (DepositAddresses)value : new DepositAddresses(value);
+    }
+
+    public static List<DepositAddresses> ToDepositAddressesList(object values)
+    {
+        if (values == null)
+        {
+            return null;
+        }
+        if (values is List<DepositAddresses>)
+        {
+            return (List<DepositAddresses>)values;
+        }
+        var rows = (IList<object>)values;
+        var result = new List<DepositAddresses>(rows.Count);
+        foreach (var row in rows)
+        {
+            result.Add(row is DepositAddresses ? (DepositAddresses)row : new DepositAddresses(row));
         }
         return result;
     }
@@ -1526,6 +1574,44 @@ public partial class BaseExchange
         return result;
     }
 
+    public static object FromAllGreeks(object value)
+    {
+        if (!(value is AllGreeks))
+        {
+            return value;
+        }
+        var typed = (AllGreeks)value;
+        var result = new Dictionary<string, object>();
+        if (typed.info != null)
+        {
+            result["info"] = typed.info;
+        }
+        if (typed.greeks != null)
+        {
+            var greeksTarget = result;
+            foreach (var entry in typed.greeks)
+            {
+                    greeksTarget[entry.Key] = FromGreeks(entry.Value);
+            }
+        }
+        return result;
+    }
+
+    public static object FromAllGreeksList(object values)
+    {
+        if (!(values is List<AllGreeks>))
+        {
+            return values;
+        }
+        var typed = (List<AllGreeks>)values;
+        var result = new List<object>(typed.Count);
+        foreach (var row in typed)
+        {
+            result.Add(FromAllGreeks(row));
+        }
+        return result;
+    }
+
     public static object FromBalance(object value)
     {
         if (!(value is Balance))
@@ -2053,6 +2139,13 @@ public partial class BaseExchange
         {
             result["tag"] = typed.tag;
         }
+        if (typed.extra != null)
+        {
+            foreach (var pair in typed.extra)
+            {
+                result[pair.Key] = pair.Value;
+            }
+        }
         return result;
     }
 
@@ -2067,6 +2160,44 @@ public partial class BaseExchange
         foreach (var row in typed)
         {
             result.Add(FromDepositAddress(row));
+        }
+        return result;
+    }
+
+    public static object FromDepositAddresses(object value)
+    {
+        if (!(value is DepositAddresses))
+        {
+            return value;
+        }
+        var typed = (DepositAddresses)value;
+        var result = new Dictionary<string, object>();
+        if (typed.info != null)
+        {
+            result["info"] = typed.info;
+        }
+        if (typed.depositAddresses != null)
+        {
+            var depositAddressesTarget = result;
+            foreach (var entry in typed.depositAddresses)
+            {
+                    depositAddressesTarget[entry.Key] = FromDepositAddress(entry.Value);
+            }
+        }
+        return result;
+    }
+
+    public static object FromDepositAddressesList(object values)
+    {
+        if (!(values is List<DepositAddresses>))
+        {
+            return values;
+        }
+        var typed = (List<DepositAddresses>)values;
+        var result = new List<object>(typed.Count);
+        foreach (var row in typed)
+        {
+            result.Add(FromDepositAddresses(row));
         }
         return result;
     }
@@ -3027,7 +3158,25 @@ public partial class BaseExchange
             return value;
         }
         var typed = (LeverageTiers)value;
-        return typed.info;
+        var result = new Dictionary<string, object>();
+        if (typed.info != null)
+        {
+            result["info"] = typed.info;
+        }
+        if (typed.tiers != null)
+        {
+            var tiersTarget = result;
+            foreach (var entry in typed.tiers)
+            {
+                    var tiersList = new List<object>();
+                    foreach (var item in entry.Value)
+                    {
+                        tiersList.Add(FromLeverageTier(item));
+                    }
+                    tiersTarget[entry.Key] = tiersList;
+            }
+        }
+        return result;
     }
 
     public static object FromLeverageTiersList(object values)
@@ -6196,6 +6345,10 @@ public partial class BaseExchange
                 return FromAccount(value);
             case List<Account> _:
                 return FromAccountList(value);
+            case AllGreeks _:
+                return FromAllGreeks(value);
+            case List<AllGreeks> _:
+                return FromAllGreeksList(value);
             case Balance _:
                 return FromBalance(value);
             case List<Balance> _:
@@ -6236,6 +6389,10 @@ public partial class BaseExchange
                 return FromDepositAddress(value);
             case List<DepositAddress> _:
                 return FromDepositAddressList(value);
+            case DepositAddresses _:
+                return FromDepositAddresses(value);
+            case List<DepositAddresses> _:
+                return FromDepositAddressesList(value);
             case DepositWithdrawFee _:
                 return FromDepositWithdrawFee(value);
             case List<DepositWithdrawFee> _:

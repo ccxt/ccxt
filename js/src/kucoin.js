@@ -3701,7 +3701,7 @@ export default class kucoin extends Exchange {
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta) endpoint, defaults to false
-     * @returns {object} an array of [address structures]{@link https://docs.ccxt.com/?id=address-structure}
+     * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
      */
     async fetchDepositAddressesByNetwork(code, params = {}) {
         if (this.markets === undefined) {

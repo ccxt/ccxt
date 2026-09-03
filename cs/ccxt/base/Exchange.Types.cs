@@ -1040,6 +1040,14 @@ public struct DepositAddress
     public string address;
     public string? tag;
 
+
+    // venue-only source keys with no struct field; kept so the struct round-trips losslessly
+    public Dictionary<string, object>? extra;
+
+    private static readonly HashSet<string> DepositAddressKeys = new HashSet<string> {
+        "info", "currency", "network", "address", "tag",
+    };
+
     public DepositAddress(object depositAddress2)
     {
         var depositAddress = (Dictionary<string, object>)depositAddress2;
@@ -1048,6 +1056,7 @@ public struct DepositAddress
         network = Exchange.SafeString(depositAddress, "network");
         address = Exchange.SafeString(depositAddress, "address");
         tag = Exchange.SafeString(depositAddress, "tag");
+        extra = Helper.GetExtra(depositAddress, DepositAddressKeys);
     }
 }
 
@@ -1569,14 +1578,14 @@ public struct LeverageTier
 
 public struct LeverageTiers
 {
-    public object info;
+    public Dictionary<string, object> info;
     public Dictionary<string, List<LeverageTier>> tiers;
 
     public LeverageTiers(object leverageTiersDict2)
     {
         var leverageTiersDict = (Dictionary<string, object>)leverageTiersDict2;
 
-        info = leverageTiersDict2;
+        info = Helper.GetInfo(leverageTiersDict);
         this.tiers = new Dictionary<string, List<LeverageTier>>();
         foreach (var leverageTier in leverageTiersDict)
         {
@@ -2400,5 +2409,84 @@ public struct ADL
         percentage = Exchange.SafeFloat(ADLObj, "percentage");
         timestamp = Exchange.SafeInteger(ADLObj, "timestamp");
         datetime = Exchange.SafeString(ADLObj, "datetime");
+    }
+}
+
+public struct DepositAddresses
+{
+    public Dictionary<string, object> info;
+    public Dictionary<string, DepositAddress> depositAddresses;
+
+    public DepositAddresses(object depositAddresses2)
+    {
+        var depositAddresses = (Dictionary<string, object>)depositAddresses2;
+
+        info = Helper.GetInfo(depositAddresses);
+        this.depositAddresses = new Dictionary<string, DepositAddress>();
+        foreach (var depositAddress in depositAddresses)
+        {
+            if (depositAddress.Key != "info")
+                this.depositAddresses.Add(depositAddress.Key, new DepositAddress(depositAddress.Value));
+        }
+    }
+
+    // Indexer
+    public DepositAddress this[string key]
+    {
+        get
+        {
+            if (depositAddresses.ContainsKey(key))
+            {
+                return depositAddresses[key];
+            }
+            else
+            {
+                throw new KeyNotFoundException($"The key '{key}' was not found in the depositAddresses.");
+            }
+        }
+        set
+        {
+            depositAddresses[key] = value;
+        }
+    }
+}
+
+
+public struct AllGreeks
+{
+    public Dictionary<string, object> info;
+    public Dictionary<string, Greeks> greeks;
+
+    public AllGreeks(object greeks2)
+    {
+        var greeks = (Dictionary<string, object>)greeks2;
+
+        info = Helper.GetInfo(greeks);
+        this.greeks = new Dictionary<string, Greeks>();
+        foreach (var greek in greeks)
+        {
+            if (greek.Key != "info")
+                this.greeks.Add(greek.Key, new Greeks(greek.Value));
+        }
+    }
+
+    // Indexer
+    public Greeks this[string key]
+    {
+        get
+        {
+            if (greeks.ContainsKey(key))
+            {
+                return greeks[key];
+            }
+            else
+            {
+                throw new KeyNotFoundException($"The key '{key}' was not found in the greeks.");
+            }
+        }
+        set
+        {
+            greeks[key] = value;
+        }
     }
 }

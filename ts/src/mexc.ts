@@ -6,7 +6,7 @@ import Exchange from './abstract/mexc.js';
 import { BadRequest, InvalidNonce, BadSymbol, InvalidOrder, InvalidAddress, ExchangeError, ExchangeNotAvailable, RequestTimeout, ArgumentsRequired, NotSupported, InsufficientFunds, PermissionDenied, AuthenticationError, AccountSuspended, OnMaintenance, RateLimitExceeded } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import type { Account, Balances, Bool, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, NullableDict, List, Fee, FeeString, FundingHistory, FundingRate, FundingRateHistory, IndexType, int, Int, Leverage, LeverageTier, LeverageTiers, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry, DepositWithdrawFees, Status, PositionModeInfo, Endpoint } from './base/types.js';
+import type { Account, Balances, Bool, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, NullableDict, List, Fee, FeeString, FundingHistory, FundingRate, FundingRateHistory, IndexType, int, Int, Leverage, LeverageTier, LeverageTiers, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry, DepositWithdrawFees, Status, PositionModeInfo, Endpoint, DepositAddresses } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -4865,7 +4865,7 @@ export default class mexc extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
      */
-    override async fetchDepositAddressesByNetwork (code: string, params = {}): Promise<DepositAddress[]> {
+    override async fetchDepositAddressesByNetwork (code: string, params = {}): Promise<DepositAddresses> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -4904,7 +4904,7 @@ export default class mexc extends Exchange {
         //    ]
         //
         const addressStructures = this.parseDepositAddresses (response, undefined, false);
-        return this.indexBy (addressStructures, 'network') as DepositAddress[];
+        return this.indexBy (addressStructures, 'network') as DepositAddresses;
     }
 
     /**

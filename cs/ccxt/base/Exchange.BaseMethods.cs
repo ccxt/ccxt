@@ -1278,7 +1278,7 @@ public partial class BaseExchange
         throw new NotSupported ((string)add(this.id, " parseMarketLeverageTiers() is not supported yet")) ;
     }
 
-    public async virtual Task<object> fetchLeverageTiers(object symbols = null, object parameters = null)
+    public async virtual Task<ccxt.LeverageTiers> FetchLeverageTiers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchLeverageTiers() is not supported yet")) ;
@@ -1451,7 +1451,7 @@ public partial class BaseExchange
         throw new NotSupported ((string)add(this.id, " setMarginMode() is not supported yet")) ;
     }
 
-    public async virtual Task<object> fetchDepositAddressesByNetwork(string code, object parameters = null)
+    public async virtual Task<ccxt.DepositAddresses> FetchDepositAddressesByNetwork(string code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchDepositAddressesByNetwork() is not supported yet")) ;
@@ -5411,7 +5411,7 @@ public partial class BaseExchange
         throw new NotSupported ((string)add(this.id, " fetchGreeks() is not supported yet")) ;
     }
 
-    public async virtual Task<object> fetchAllGreeks(object symbols = null, object parameters = null)
+    public async virtual Task<ccxt.AllGreeks> FetchAllGreeks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchAllGreeks() is not supported yet")) ;
@@ -5500,7 +5500,7 @@ public partial class BaseExchange
         {
             object network = this.safeString(parameters, "network");
             parameters = this.omit(parameters, "network");
-            object addressStructures = await this.fetchDepositAddressesByNetwork(((string)code), parameters);
+            object addressStructures = ccxt.BaseExchange.FromDepositAddresses(await this.FetchDepositAddressesByNetwork(((string)code), parameters));
             if (isTrue(!isEqual(network, null)))
             {
                 return ccxt.BaseExchange.ToDepositAddress(this.safeDict(addressStructures, network));
@@ -5894,7 +5894,7 @@ public partial class BaseExchange
             {
                 throw new BadSymbol ((string)add(this.id, " fetchMarketLeverageTiers() supports contract markets only")) ;
             }
-            object tiers = await this.fetchLeverageTiers(new List<object>() {symbol});
+            object tiers = ccxt.BaseExchange.FromLeverageTiers(await this.FetchLeverageTiers(new List<object>() {symbol}));
             return ccxt.BaseExchange.ToLeverageTierList(this.safeValue(tiers, symbol));
         } else
         {

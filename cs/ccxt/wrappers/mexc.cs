@@ -16,44 +16,4 @@ public partial class mexc
         var res = await this.fetchAccountHelper(type, parameters);
         return ((Dictionary<string, object>)res);
     }
-    /// <summary>
-    /// retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes, if a market has a leverage tier of 0, then the leverage tiers cannot be obtained for this market
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://www.mexc.com/api-docs/futures/market-endpoints/get-contract-info"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols.</returns>
-    public async Task<LeverageTiers> FetchLeverageTiers(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchLeverageTiers(symbols, parameters);
-        return new LeverageTiers(res);
-    }
-    /// <summary>
-    /// fetch a dictionary of addresses for a currency, indexed by network
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/deposit-address-supporting-network"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network.</returns>
-    public async Task<List<DepositAddress>> FetchDepositAddressesByNetwork(string code, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchDepositAddressesByNetwork(code, parameters);
-        return ((IList<object>)res).Select(item => new DepositAddress(item)).ToList<DepositAddress>();
-    }
 }

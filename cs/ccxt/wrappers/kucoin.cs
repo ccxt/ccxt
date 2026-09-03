@@ -20,33 +20,6 @@ public partial class kucoin
         var res = await this.fetchTransactionFee(code, parameters);
         return ((Dictionary<string, object>)res);
     }
-    /// <summary>
-    /// fetch the deposit address for a currency associated with this account
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://www.kucoin.com/docs-new/rest/account-info/deposit/get-deposit-address-v3/en"/>  <br/>
-    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/get-deposit-address"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.uta</term>
-    /// <description>
-    /// boolean : set to true for the unified trading account (uta) endpoint, defaults to false
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> an array of [address structures]{@link https://docs.ccxt.com/?id=address-structure}.</returns>
-    public async Task<List<DepositAddress>> FetchDepositAddressesByNetwork(string code, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchDepositAddressesByNetwork(code, parameters);
-        return ((IList<object>)res).Select(item => new DepositAddress(item)).ToList<DepositAddress>();
-    }
     public Dictionary<string, object> CreateSpotOrderRequest(string symbol, string type, string side, double amount, double? price = null, Dictionary<string, object> parameters = null)
     {
         var res = this.createSpotOrderRequest(symbol, type, side, amount, price, parameters);
@@ -61,25 +34,5 @@ public partial class kucoin
     {
         var res = this.createUtaOrderRequest(symbol, type, side, amount, price, parameters);
         return ((Dictionary<string, object>)res);
-    }
-    /// <summary>
-    /// retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/get-position-tiers"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols.</returns>
-    public async Task<LeverageTiers> FetchLeverageTiers(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchLeverageTiers(symbols, parameters);
-        return new LeverageTiers(res);
     }
 }

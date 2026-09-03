@@ -40,30 +40,4 @@ public partial class gemini
         var res = await this.fetchMarketsFromAPI(parameters);
         return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
     }
-    /// <summary>
-    /// fetch a dictionary of addresses for a currency, indexed by network
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.gemini.com/rest-api/#get-deposit-addresses"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.network</term>
-    /// <description>
-    /// string :  *required* The chain of currency
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network.</returns>
-    public async Task<List<DepositAddress>> FetchDepositAddressesByNetwork(string code, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchDepositAddressesByNetwork(code, parameters);
-        return ((IList<object>)res).Select(item => new DepositAddress(item)).ToList<DepositAddress>();
-    }
 }

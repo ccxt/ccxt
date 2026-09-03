@@ -5,7 +5,7 @@ import Exchange from './abstract/gate.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { ExchangeError, BadRequest, ArgumentsRequired, AuthenticationError, PermissionDenied, AccountSuspended, InsufficientFunds, RateLimitExceeded, ExchangeNotAvailable, BadSymbol, InvalidOrder, OrderNotFound, NotSupported, AccountNotEnabled, OrderImmediatelyFillable, NullResponse } from './base/errors.js';
-import type { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OpenInterest, Order, Balances, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Leverage, Leverages, Num, NullableDict, List, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Position, Dict, LeverageTier, LeverageTiers, int, CancellationRequest, LedgerEntry, FundingRate, FundingRates, DepositAddress, Bool, BorrowInterest, IndexType, CurrencyInterface, DepositWithdrawFees, MarginLoan, Endpoint } from './base/types.js';
+import type { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OpenInterest, Order, Balances, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Leverage, Leverages, Num, NullableDict, List, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Position, Dict, LeverageTier, LeverageTiers, int, CancellationRequest, LedgerEntry, FundingRate, FundingRates, DepositAddress, Bool, BorrowInterest, IndexType, CurrencyInterface, DepositWithdrawFees, MarginLoan, Endpoint, DepositAddresses } from './base/types.js';
 
 /**
  * @class gate
@@ -2344,7 +2344,7 @@ export default class gate extends Exchange {
      * @param {object} [params] extra parameters specific to the api endpoint
      * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
      */
-    override async fetchDepositAddressesByNetwork (code: string, params = {}): Promise<DepositAddress[]> {
+    override async fetchDepositAddressesByNetwork (code: string, params = {}): Promise<DepositAddresses> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2357,7 +2357,7 @@ export default class gate extends Exchange {
         const currencyId = this.safeString (response, 'currency');
         currency = this.safeCurrency (currencyId, currency);
         const parsed = this.parseDepositAddresses (chains, undefined, false);
-        return this.indexBy (parsed, 'network') as DepositAddress[];
+        return this.indexBy (parsed, 'network') as DepositAddresses;
     }
 
     /**

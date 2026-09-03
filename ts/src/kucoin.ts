@@ -6,7 +6,7 @@ import Exchange from './abstract/kucoin.js';
 import { AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidAddress, InvalidNonce, InvalidOrder, NotSupported, OrderNotFound, PermissionDenied, RateLimitExceeded, RestrictedLocation } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
-import type { ADL, Account, Balances, Bool, BorrowInterest, CrossBorrowRate, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, Fee, FeeString, FeeStringInterface, FundingHistory, FundingRate, Int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, List, MarginMode, MarginModification, Market, NullableDict, NullableList, Num, OHLCV, OpenInterest, OpenInterests, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry, int, DepositWithdrawFee, DepositWithdrawFees, Status, PositionModeInfo, MarginLoan, Endpoint } from './base/types.js';
+import type { ADL, Account, Balances, Bool, BorrowInterest, CrossBorrowRate, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, Fee, FeeString, FeeStringInterface, FundingHistory, FundingRate, Int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, List, MarginMode, MarginModification, Market, NullableDict, NullableList, Num, OHLCV, OpenInterest, OpenInterests, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry, int, DepositWithdrawFee, DepositWithdrawFees, Status, PositionModeInfo, MarginLoan, Endpoint, DepositAddresses } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -3709,9 +3709,9 @@ export default class kucoin extends Exchange {
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta) endpoint, defaults to false
-     * @returns {object} an array of [address structures]{@link https://docs.ccxt.com/?id=address-structure}
+     * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
      */
-    override async fetchDepositAddressesByNetwork (code: string, params = {}): Promise<DepositAddress[]> {
+    override async fetchDepositAddressesByNetwork (code: string, params = {}): Promise<DepositAddresses> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3775,7 +3775,7 @@ export default class kucoin extends Exchange {
         const parsed = this.parseDepositAddresses (chains, [ currency['code'] ], false, {
             'currency': currency['code'],
         });
-        return this.indexBy (parsed, 'network') as DepositAddress[];
+        return this.indexBy (parsed, 'network') as DepositAddresses;
     }
 
     /**

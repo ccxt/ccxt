@@ -3,7 +3,7 @@ import WsClient from './ws/WsClient.js';
 import type Client from './ws/Client.js';
 import { type FutureInterface } from './ws/Future.js';
 import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook, OrderBook as Ob } from './ws/OrderBook.js';
-import type { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, NullableIndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFee, DepositWithdrawFees, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CancellationRequest, IsolatedBorrowRate, IsolatedBorrowRates, CrossBorrowRates, CrossBorrowRate, Dict, FundingRates, LeverageTiers, Bool, int, DepositAddress, LongShortRatio, OrderBooks, OpenInterests, ConstructorArgs, ADL, NullableDict, SubType, NestedDictionary, List, Status, PositionModeInfo, MarginLoan } from './types.js';
+import type { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, NullableIndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFee, DepositWithdrawFees, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CancellationRequest, IsolatedBorrowRate, IsolatedBorrowRates, CrossBorrowRates, CrossBorrowRate, Dict, FundingRates, LeverageTiers, Bool, int, DepositAddress, LongShortRatio, OrderBooks, OpenInterests, ConstructorArgs, ADL, NullableDict, SubType, NestedDictionary, List, Status, PositionModeInfo, MarginLoan, AllGreeks, DepositAddresses } from './types.js';
 import { ArrayCache, ArrayCacheByTimestamp } from './ws/Cache.js';
 export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, NullableIndexType, Int, Bool, OrderType, OrderSide, Position, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, CrossBorrowRate, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, Conversion, DepositAddress, LongShortRatio, ADL } from './types.js';
 /**
@@ -661,7 +661,7 @@ export declare class BaseExchange {
     fetchLongShortRatioHistory(symbol?: Str, timeframe?: Str, since?: Int, limit?: Int, params?: {}): Promise<LongShortRatio[]>;
     fetchMarginAdjustmentHistory(symbol?: Str, type?: Str, since?: Num, limit?: Num, params?: {}): Promise<MarginModification[]>;
     setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<{}>;
-    fetchDepositAddressesByNetwork(code: string, params?: {}): Promise<DepositAddress[]>;
+    fetchDepositAddressesByNetwork(code: string, params?: {}): Promise<DepositAddresses>;
     fetchOpenInterestHistory(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OpenInterest[]>;
     fetchOpenInterests(symbols?: Strings, params?: {}): Promise<OpenInterests>;
     signIn(params?: {}): Promise<{}>;
@@ -926,7 +926,7 @@ export declare class BaseExchange {
     fetchMyLiquidations(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Liquidation[]>;
     fetchLiquidations(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Liquidation[]>;
     fetchGreeks(symbol: string, params?: {}): Promise<Greeks>;
-    fetchAllGreeks(symbols?: Strings, params?: {}): Promise<Greeks[]>;
+    fetchAllGreeks(symbols?: Strings, params?: {}): Promise<AllGreeks>;
     fetchOptionChain(code: string, params?: {}): Promise<OptionChain>;
     fetchOption(symbol: string, params?: {}): Promise<Option>;
     fetchConvertQuote(fromCode: string, toCode: string, amount?: Num, params?: {}): Promise<Conversion>;
@@ -1042,7 +1042,7 @@ export declare class BaseExchange {
     parseLiquidation(liquidation: any, market?: Market): Liquidation;
     parseLiquidations(liquidations: Dict[], market?: Market, since?: Int, limit?: Int): Liquidation[];
     parseGreeks(greeks: Dict, market?: Market): Greeks;
-    parseAllGreeks(greeks: any, symbols?: Strings, params?: {}): Greeks[];
+    parseAllGreeks(greeks: any, symbols?: Strings, params?: {}): AllGreeks;
     parseOption(chain: Dict, currency?: Currency, market?: Market): Option;
     parseOptionChain(response: object[], currencyKey?: Str, symbolKey?: Str): OptionChain;
     parseMarginModes(response: object[], symbols?: Strings, symbolKey?: Str, marketType?: MarketType | undefined): MarginModes;

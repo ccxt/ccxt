@@ -7172,7 +7172,7 @@ public partial class bybit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
      */
-    public async override Task<object> fetchDepositAddressesByNetwork(string code, object parameters = null)
+    public async override Task<ccxt.DepositAddresses> FetchDepositAddressesByNetwork(string code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -7218,7 +7218,7 @@ public partial class bybit : Exchange
         object parsed = this.parseDepositAddresses(chains, new List<object>() {getValue(currencyFromResponse, "code")}, false, new Dictionary<string, object>() {
             { "currency", getValue(currencyFromResponse, "code") },
         });
-        return this.indexBy(parsed, "network");
+        return ccxt.BaseExchange.ToDepositAddresses(this.indexBy(parsed, "network"));
     }
 
     /**
@@ -7241,7 +7241,7 @@ public partial class bybit : Exchange
         var networkCodeparamsOmitedVariable = this.handleNetworkCodeAndParams(parameters);
         var networkCode = ((IList<object>) networkCodeparamsOmitedVariable)[0];
         var paramsOmited = ((IList<object>) networkCodeparamsOmitedVariable)[1];
-        object indexedAddresses = await this.fetchDepositAddressesByNetwork(((string)code), paramsOmited);
+        object indexedAddresses = ccxt.BaseExchange.FromDepositAddresses(await this.FetchDepositAddressesByNetwork(((string)code), paramsOmited));
         object selectedNetworkCode = this.selectNetworkCodeFromUnifiedNetworks(getValue(currency, "code"), networkCode, indexedAddresses);
         return ccxt.BaseExchange.ToDepositAddress(this.safeValue(indexedAddresses, selectedNetworkCode));
     }
@@ -10039,9 +10039,9 @@ public partial class bybit : Exchange
      * @param {string[]} [symbols] unified symbols of the markets to fetch greeks for, all markets are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.baseCoin] the baseCoin of the symbol, default is BTC
-     * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
+     * @returns {object} a dictionary of [greeks structures]{@link https://docs.ccxt.com/?id=greeks-structure} indexed by market symbol
      */
-    public async override Task<object> fetchAllGreeks(object symbols = null, object parameters = null)
+    public async override Task<ccxt.AllGreeks> FetchAllGreeks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -10107,7 +10107,7 @@ public partial class bybit : Exchange
         //
         object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object data = this.safeList(result, "list", new List<object>() {});
-        return this.parseAllGreeks(data, symbols);
+        return ccxt.BaseExchange.ToAllGreeks(this.parseAllGreeks(data, symbols));
     }
 
     public override object parseGreeks(object greeks, object market = null)
@@ -10367,7 +10367,7 @@ public partial class bybit : Exchange
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
      */
-    public async override Task<object> fetchLeverageTiers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.LeverageTiers> FetchLeverageTiers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -10390,7 +10390,7 @@ public partial class bybit : Exchange
             { "paginationCalls", 200 },
         }, parameters));
         symbols = this.marketSymbols(symbols);
-        return this.parseLeverageTiers(data, symbols, "symbol");
+        return ccxt.BaseExchange.ToLeverageTiers(this.parseLeverageTiers(data, symbols, "symbol"));
     }
 
     public override object parseLeverageTiers(object response, object symbols = null, object marketIdKey = null)

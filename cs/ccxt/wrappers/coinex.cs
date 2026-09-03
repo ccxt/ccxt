@@ -11,24 +11,4 @@ public partial class coinex
         var res = this.createOrderRequest(symbol, type, side, amount, price, parameters);
         return ((Dictionary<string, object>)res);
     }
-    /// <summary>
-    /// retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.coinex.com/api/v2/futures/market/http/list-market-position-level"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols.</returns>
-    public async Task<LeverageTiers> FetchLeverageTiers(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchLeverageTiers(symbols, parameters);
-        return new LeverageTiers(res);
-    }
 }

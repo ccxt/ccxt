@@ -6,23 +6,5 @@ namespace ccxt;
 
 public partial class phemex
 {
-    /// <summary>
-    /// retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
-    /// </summary>
-    /// <remarks>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols.</returns>
-    public async Task<LeverageTiers> FetchLeverageTiers(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchLeverageTiers(symbols, parameters);
-        return new LeverageTiers(res);
-    }
+
 }

@@ -4815,7 +4815,7 @@ public partial class coinbase : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public async override Task<object> fetchDepositAddressesByNetwork(string code, object parameters = null)
+    public async override Task<ccxt.DepositAddresses> FetchDepositAddressesByNetwork(string code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -4885,7 +4885,7 @@ public partial class coinbase : Exchange
         //
         object data = this.safeList(response, "data", new List<object>() {});
         object addressStructures = this.parseDepositAddresses(data, null, false);
-        return this.indexBy(addressStructures, "network");
+        return ccxt.BaseExchange.ToDepositAddresses(this.indexBy(addressStructures, "network"));
     }
 
     public override object parseDepositAddress(object depositAddress, object currency = null)

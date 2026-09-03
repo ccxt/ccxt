@@ -4412,7 +4412,7 @@ public partial class hashkey : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
      */
-    public async override Task<object> fetchLeverageTiers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.LeverageTiers> FetchLeverageTiers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -4423,7 +4423,7 @@ public partial class hashkey : Exchange
         // response is the same as in fetchMarkets()
         object data = this.safeList(response, "contracts", new List<object>() {});
         symbols = this.marketSymbols(symbols);
-        return this.parseLeverageTiers(data, symbols, "symbol");
+        return ccxt.BaseExchange.ToLeverageTiers(this.parseLeverageTiers(data, symbols, "symbol"));
     }
 
     public override object parseMarketLeverageTiers(object info, object market = null)

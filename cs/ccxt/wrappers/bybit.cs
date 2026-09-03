@@ -27,26 +27,6 @@ public partial class bybit
         return ((Dictionary<string, object>)res);
     }
     /// <summary>
-    /// fetch a dictionary of addresses for a currency, indexed by network
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://bybit-exchange.github.io/docs/v5/asset/master-deposit-addr"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network.</returns>
-    public async Task<List<DepositAddress>> FetchDepositAddressesByNetwork(string code, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchDepositAddressesByNetwork(code, parameters);
-        return ((IList<object>)res).Select(item => new DepositAddress(item)).ToList<DepositAddress>();
-    }
-    /// <summary>
     /// fetch the historical volatility of an option market based on an underlying asset
     /// </summary>
     /// <remarks>
@@ -71,63 +51,5 @@ public partial class bybit
     {
         var res = await this.fetchVolatilityHistory(code, parameters);
         return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
-    }
-    /// <summary>
-    /// fetches all option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://bybit-exchange.github.io/docs/api-explorer/v5/market/tickers"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.baseCoin</term>
-    /// <description>
-    /// string : the baseCoin of the symbol, default is BTC
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}.</returns>
-    public async Task<List<Greeks>> FetchAllGreeks(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchAllGreeks(symbols, parameters);
-        return ((IList<object>)res).Select(item => new Greeks(item)).ToList<Greeks>();
-    }
-    /// <summary>
-    /// retrieve information on the maximum leverage, for different trade sizes
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://bybit-exchange.github.io/docs/v5/market/risk-limit"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.subType</term>
-    /// <description>
-    /// string : market subType, ['linear', 'inverse'], default is 'linear'
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.paginate</term>
-    /// <description>
-    /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols.</returns>
-    public async Task<LeverageTiers> FetchLeverageTiers(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchLeverageTiers(symbols, parameters);
-        return new LeverageTiers(res);
     }
 }

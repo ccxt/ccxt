@@ -2669,3 +2669,83 @@ func (d *DepositWithdrawFees) Get(key string) (DepositWithdrawFee, error) {
 func (d *DepositWithdrawFees) Set(key string, fee DepositWithdrawFee) {
 	d.DepositWithdrawFees[key] = fee
 }
+
+// depositAddresses
+// DepositAddresses struct
+type DepositAddresses struct {
+	Info             map[string]any
+	DepositAddresses map[string]DepositAddress
+}
+
+// NewDepositAddresses initializes a DepositAddresses struct from a map.
+func NewDepositAddresses(depositAddressesData2 any) DepositAddresses {
+	depositAddressesData := depositAddressesData2.(map[string]any)
+	info := GetInfo(depositAddressesData)
+	depositAddressesMap := make(map[string]DepositAddress)
+
+	for key, value := range depositAddressesData {
+		if key != "info" {
+			if depositAddressData, ok := value.(map[string]any); ok {
+				depositAddressesMap[key] = NewDepositAddress(depositAddressData)
+			}
+		}
+	}
+
+	return DepositAddresses{
+		Info:             info,
+		DepositAddresses: depositAddressesMap,
+	}
+}
+
+// GetDepositAddress retrieves a DepositAddress by key.
+func (d *DepositAddresses) GetDepositAddress(key string) (DepositAddress, error) {
+	depositAddress, exists := d.DepositAddresses[key]
+	if !exists {
+		return DepositAddress{}, fmt.Errorf("the key '%s' was not found in the depositAddresses", key)
+	}
+	return depositAddress, nil
+}
+
+func (d *DepositAddresses) Set(key string, depositAddress DepositAddress) {
+	d.DepositAddresses[key] = depositAddress
+}
+
+// allGreeks
+// AllGreeks struct
+type AllGreeks struct {
+	Info   map[string]any
+	Greeks map[string]Greeks
+}
+
+// NewAllGreeks initializes an AllGreeks struct from a map.
+func NewAllGreeks(greeksData2 any) AllGreeks {
+	greeksData := greeksData2.(map[string]any)
+	info := GetInfo(greeksData)
+	greeksMap := make(map[string]Greeks)
+
+	for key, value := range greeksData {
+		if key != "info" {
+			if greekData, ok := value.(map[string]any); ok {
+				greeksMap[key] = NewGreeks(greekData)
+			}
+		}
+	}
+
+	return AllGreeks{
+		Info:   info,
+		Greeks: greeksMap,
+	}
+}
+
+// GetGreeks retrieves a Greeks by key.
+func (g *AllGreeks) GetGreeks(key string) (Greeks, error) {
+	greeks, exists := g.Greeks[key]
+	if !exists {
+		return Greeks{}, fmt.Errorf("the key '%s' was not found in the greeks", key)
+	}
+	return greeks, nil
+}
+
+func (g *AllGreeks) Set(key string, greeks Greeks) {
+	g.Greeks[key] = greeks
+}

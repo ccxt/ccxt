@@ -13890,7 +13890,7 @@ public partial class binance : Exchange
      * @param {string} [params.subType] "linear" or "inverse"
      * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
      */
-    public async override Task<object> fetchLeverageTiers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.LeverageTiers> FetchLeverageTiers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -13970,7 +13970,7 @@ public partial class binance : Exchange
         //         }
         //     ]
         //
-        return this.parseLeverageTiers(response, symbols, "symbol");
+        return ccxt.BaseExchange.ToLeverageTiers(this.parseLeverageTiers(response, symbols, "symbol"));
     }
 
     public override object parseMarketLeverageTiers(object info, object market = null)
@@ -17152,9 +17152,9 @@ public partial class binance : Exchange
      * @see https://developers.binance.com/docs/derivatives/option/market-data/Option-Mark-Price
      * @param {string[]} [symbols] unified symbols of the markets to fetch greeks for, all markets are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
+     * @returns {object} a dictionary of [greeks structures]{@link https://docs.ccxt.com/?id=greeks-structure} indexed by market symbol
      */
-    public async override Task<object> fetchAllGreeks(object symbols = null, object parameters = null)
+    public async override Task<ccxt.AllGreeks> FetchAllGreeks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -17191,7 +17191,7 @@ public partial class binance : Exchange
         //         }
         //     ]
         //
-        return this.parseAllGreeks(response, symbols);
+        return ccxt.BaseExchange.ToAllGreeks(this.parseAllGreeks(response, symbols));
     }
 
     public override object parseGreeks(object greeks, object market = null)

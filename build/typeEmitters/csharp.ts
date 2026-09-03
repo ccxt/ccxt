@@ -768,7 +768,10 @@ export function emit (ir: TypesIR, repoRoot: string): EmitterOutput[] {
                 'source': renderStruct (ir, effective),
             });
         }
-        const result: SpliceResult = spliceBlocks (before, blocks, findBraceBlockEnd);
+        // a spec with no existing anchor is a NEW struct: append it rather than
+        // silently skipping, which is how added types went missing from the port
+        const appendStruct = (block: EmittedBlock): string => '\n' + block.source + '\n';
+        const result: SpliceResult = spliceBlocks (before, blocks, findBraceBlockEnd, appendStruct);
         const contents = ensureGeneratedBanner (result.text, '//');
         const changed = result.replaced.concat (result.appended);
         if (contents !== result.text) {

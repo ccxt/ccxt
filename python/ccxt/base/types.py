@@ -372,6 +372,9 @@ class Greeks(TypedDict):
     info: dict[str, Any]
 
 
+AllGreeks = dict[str, Greeks]
+
+
 class Conversion(TypedDict):
     info: dict[str, Any]
     timestamp: Int
@@ -640,6 +643,9 @@ class DepositAddress(TypedDict):
     network: Str
     address: Str
     tag: Str
+
+
+DepositAddresses = dict[str, DepositAddress]
 
 
 class LongShortRatio(TypedDict):

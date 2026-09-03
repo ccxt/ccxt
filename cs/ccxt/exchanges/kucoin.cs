@@ -4248,9 +4248,9 @@ public partial class kucoin : Exchange
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta) endpoint, defaults to false
-     * @returns {object} an array of [address structures]{@link https://docs.ccxt.com/?id=address-structure}
+     * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
      */
-    public async override Task<object> fetchDepositAddressesByNetwork(string code, object parameters = null)
+    public async override Task<ccxt.DepositAddresses> FetchDepositAddressesByNetwork(string code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -4325,7 +4325,7 @@ public partial class kucoin : Exchange
         object parsed = this.parseDepositAddresses(chains, new List<object>() {getValue(currency, "code")}, false, new Dictionary<string, object>() {
             { "currency", getValue(currency, "code") },
         });
-        return this.indexBy(parsed, "network");
+        return ccxt.BaseExchange.ToDepositAddresses(this.indexBy(parsed, "network"));
     }
 
     /**
@@ -12761,7 +12761,7 @@ public partial class kucoin : Exchange
         parameters = ((IList<object>)utaparametersVariable)[1];
         if (isTrue(uta))
         {
-            object result = await this.fetchLeverageTiers(new List<object>() {symbol}, parameters);
+            object result = ccxt.BaseExchange.FromLeverageTiers(await this.FetchLeverageTiers(new List<object>() {symbol}, parameters));
             return ccxt.BaseExchange.ToLeverageTierList(this.safeList(result, symbol, new List<object>() {}));
         }
         object request = new Dictionary<string, object>() {
@@ -12850,7 +12850,7 @@ public partial class kucoin : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
      */
-    public async override Task<object> fetchLeverageTiers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.LeverageTiers> FetchLeverageTiers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -12921,7 +12921,7 @@ public partial class kucoin : Exchange
                 ((IList<object>)getValue(result, symbol)).Add(tier);
             }
         }
-        return result;
+        return ccxt.BaseExchange.ToLeverageTiers(result);
     }
 
     /**

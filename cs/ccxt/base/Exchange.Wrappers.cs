@@ -21,16 +21,6 @@ public partial class BaseExchange
         var res = await this.watchOHLCVForSymbols(symbolsAndTimeframes, since, limit, parameters);
         return Helper.ConvertToDictionaryOHLCVList(res);
     }
-    public async Task<LeverageTiers> FetchLeverageTiers(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchLeverageTiers(symbols, parameters);
-        return new LeverageTiers(res);
-    }
-    public async Task<List<DepositAddress>> FetchDepositAddressesByNetwork(string code, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchDepositAddressesByNetwork(code, parameters);
-        return ((IList<object>)res).Select(item => new DepositAddress(item)).ToList<DepositAddress>();
-    }
     public async Task<Dictionary<string, object>> FetchPaymentMethods(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchPaymentMethods(parameters);
@@ -65,11 +55,6 @@ public partial class BaseExchange
     {
         var res = await this.fetchTransactionFee(code, parameters);
         return ((Dictionary<string, object>)res);
-    }
-    public async Task<List<Greeks>> FetchAllGreeks(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchAllGreeks(symbols, parameters);
-        return ((IList<object>)res).Select(item => new Greeks(item)).ToList<Greeks>();
     }
     public MarketInterface CreateExpiredOptionMarket(string symbol)
     {

@@ -5106,7 +5106,7 @@ public partial class mexc : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
      */
-    public async override Task<object> fetchLeverageTiers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.LeverageTiers> FetchLeverageTiers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -5161,7 +5161,7 @@ public partial class mexc : Exchange
         //     }
         //
         object data = this.safeList(response, "data");
-        return this.parseLeverageTiers(data, symbols, "symbol");
+        return ccxt.BaseExchange.ToLeverageTiers(this.parseLeverageTiers(data, symbols, "symbol"));
     }
 
     public override object parseMarketLeverageTiers(object info, object market = null)
@@ -5282,7 +5282,7 @@ public partial class mexc : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
      */
-    public async override Task<object> fetchDepositAddressesByNetwork(string code, object parameters = null)
+    public async override Task<ccxt.DepositAddresses> FetchDepositAddressesByNetwork(string code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -5328,7 +5328,7 @@ public partial class mexc : Exchange
         //    ]
         //
         object addressStructures = this.parseDepositAddresses(response, null, false);
-        return this.indexBy(addressStructures, "network");
+        return ccxt.BaseExchange.ToDepositAddresses(this.indexBy(addressStructures, "network"));
     }
 
     /**
@@ -5399,7 +5399,7 @@ public partial class mexc : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object network = this.safeString(parameters, "network");
-        object addressStructures = await this.fetchDepositAddressesByNetwork(((string)code), parameters);
+        object addressStructures = ccxt.BaseExchange.FromDepositAddresses(await this.FetchDepositAddressesByNetwork(((string)code), parameters));
         object result = null;
         if (isTrue(!isEqual(network, null)))
         {

@@ -149,10 +149,10 @@ const TYPED_CORES: Record<string, string> = {
     'fetchAccounts': 'List<Account>',
     'fetchAccountsV2': 'List<Account>',
     'fetchAccountsV3': 'List<Account>',
-    // fetchAllGreeks is deliberately NOT typed: parseAllGreeks() ends in
-    // filterByArray(results, 'symbol', symbols), whose `indexed` parameter defaults to
-    // TRUE, so it returns a dict keyed by symbol - not the Greeks[] the TS return
-    // annotation claims. ToGreeksList then throws on a Dictionary.
+    // parseAllGreeks() ends in filterByArray(results, 'symbol', symbols), whose `indexed`
+    // parameter defaults to TRUE, so the runtime value is a symbol-keyed dict, not the
+    // Greeks[] the TS annotation used to claim. AllGreeks is that dict.
+    'fetchAllGreeks': 'AllGreeks',
     'fetchAmmOrders': 'List<PredictionOrder>',
     // The dictionary-like container families (Balances, Tickers, MarginModes, ...) splat the
     // payload into a Dictionary<string, T>; their From* helpers write every entry back under
@@ -209,6 +209,9 @@ const TYPED_CORES: Record<string, string> = {
     'fetchDefaultMarkets': 'List<MarketInterface>',
     'fetchDeposit': 'Transaction',
     'fetchDepositAddress': 'DepositAddress',
+    // parseDepositAddresses(indexed=true) returns a network-keyed dict on every venue;
+    // the old List<DepositAddress> wrapper was a shape lie that threw at runtime
+    'fetchDepositAddressesByNetwork': 'DepositAddresses',
     'fetchDepositAddressDefault': 'DepositAddress',
     'fetchDepositAddressSupplement': 'DepositAddress',
     'fetchDepositAddresses': 'List<DepositAddress>',
@@ -244,6 +247,10 @@ const TYPED_CORES: Record<string, string> = {
     'fetchLedgerEntriesByIds': 'List<LedgerEntry>',
     'fetchLedgerEntry': 'LedgerEntry',
     'fetchLeverage': 'Leverage',
+    // parseLeverageTiers returns a symbol-keyed dict with NO top-level `info`; the struct ctor
+    // splats it (Helper.GetInfo yields null), so FromLeverageTiers inverts it exactly — the
+    // consuming base site (fetchMarketLeverageTiers reads tiers[symbol]) is routed through it
+    'fetchLeverageTiers': 'LeverageTiers',
     'fetchLiquidations': 'List<Liquidation>',
     'fetchLongShortRatio': 'LongShortRatio',
     'fetchLongShortRatioHistory': 'List<LongShortRatio>',
@@ -473,7 +480,7 @@ const SNAPSHOT_CORES: Record<string, { type: string; helper: string; predictionT
 const REVERSIBLE_FAMILIES: string[] = [
     'ADL', 'Account', 'Balance', 'BalanceAccount', 'Balances', 'BorrowInterest',
     'CancellationRequest', 'Conversion', 'CrossBorrowRate', 'CrossBorrowRates', 'Currencies',
-    'Currency', 'CurrencyLimits', 'DepositAddress', 'DepositWithdrawFee',
+    'Currency', 'CurrencyLimits', 'DepositAddress', 'DepositAddresses', 'DepositWithdrawFee',
     'DepositWithdrawFeeNetwork', 'DepositWithdrawFees', 'Fee', 'FundingHistory', 'FundingRate',
     'FundingRateHistory', 'FundingRates', 'Greeks', 'IsolatedBorrowRate', 'IsolatedBorrowRates',
     'LastPrice', 'LastPrices', 'LedgerEntry', 'Leverage', 'LeverageTier', 'LeverageTiers',
@@ -485,6 +492,7 @@ const REVERSIBLE_FAMILIES: string[] = [
     'PredictionOpenInterest', 'PredictionOrder', 'PredictionOrderBook',
     'PredictionOrderRequest', 'PredictionOutcome', 'PredictionPosition', 'PredictionSettlement',
     'PredictionTicker', 'PredictionTickers', 'PredictionTrade', 'PredictionTradingFee',
+    'AllGreeks',
     'Status', 'Ticker', 'Tickers', 'Trade', 'TradingFeeInterface', 'TradingFees', 'Transaction',
     'TransferEntry', 'WithdrawalResponse',
 ];
@@ -1651,7 +1659,10 @@ class NewTranspiler {
         const lines = content.split ('\n');
         // void `Task` bodies (loadBalanceSnapshot, loadPositionsSnapshot) are visited too: they
         // consume typed cores into `object` locals and need the From* funnel like anyone else
-        const sigRe = /^(\s*)public async (virtual|override) Task(?:<object>)? (\w+)\(/;
+        // `Task<...>` with a concrete argument is matched too: a typed core can itself consume
+        // another typed core into an `object` local (okx FetchDepositAddress reads
+        // FetchDepositAddressesByNetwork), and that boxed struct needs the same From* funnel
+        const sigRe = /^(\s*)public async (virtual|override) Task(?:<[\w.<>, ]+>)? (\w+)\(/;
         const typedCallRe = new RegExp ('^await this\\.(' + names.join ('|') + ')\\(');
         for (let i = 0; i < lines.length; i++) {
             const sig = sigRe.exec (lines[i]);

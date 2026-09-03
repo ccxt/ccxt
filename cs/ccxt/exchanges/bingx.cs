@@ -5519,7 +5519,7 @@ public partial class bingx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary [address structures]{@link https://docs.ccxt.com/?id=address-structure}, indexed by the network
      */
-    public async override Task<object> fetchDepositAddressesByNetwork(string code, object parameters = null)
+    public async override Task<ccxt.DepositAddresses> FetchDepositAddressesByNetwork(string code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -5556,7 +5556,7 @@ public partial class bingx : Exchange
         //
         object data = this.safeList(this.safeDict(response, "data"), "data");
         object parsed = this.parseDepositAddresses(data, new List<object>() {getValue(currency, "code")}, false);
-        return this.indexBy(parsed, "network");
+        return ccxt.BaseExchange.ToDepositAddresses(this.indexBy(parsed, "network"));
     }
 
     /**
@@ -5574,7 +5574,7 @@ public partial class bingx : Exchange
         parameters ??= new Dictionary<string, object>();
         object network = this.safeString(parameters, "network");
         parameters = this.omit(parameters, new List<object>() {"network"});
-        object addressStructures = await this.fetchDepositAddressesByNetwork(((string)code), parameters);
+        object addressStructures = ccxt.BaseExchange.FromDepositAddresses(await this.FetchDepositAddressesByNetwork(((string)code), parameters));
         if (isTrue(!isEqual(network, null)))
         {
             return ccxt.BaseExchange.ToDepositAddress(this.safeDict(addressStructures, network));

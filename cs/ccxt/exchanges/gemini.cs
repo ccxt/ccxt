@@ -2224,13 +2224,12 @@ public partial class gemini : Exchange
         {
             await this.loadMarkets();
         }
-        object groupedByNetwork = await this.fetchDepositAddressesByNetwork(((string)code), parameters);
+        object indexedByNetwork = ccxt.BaseExchange.FromDepositAddresses(await this.FetchDepositAddressesByNetwork(((string)code), parameters));
         object networkCode = null;
         var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
         networkCode = ((IList<object>)networkCodeparametersVariable)[0];
         parameters = ((IList<object>)networkCodeparametersVariable)[1];
-        Dictionary<string, object> networkGroup = this.indexBy(this.safeValue(groupedByNetwork, networkCode), "currency");
-        return ccxt.BaseExchange.ToDepositAddress(this.safeValue(networkGroup, code));
+        return ccxt.BaseExchange.ToDepositAddress(this.safeValue(indexedByNetwork, networkCode));
     }
 
     /**
@@ -2243,7 +2242,7 @@ public partial class gemini : Exchange
      * @param {string} [params.network]  *required* The chain of currency
      * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
      */
-    public async override Task<object> fetchDepositAddressesByNetwork(string code, object parameters = null)
+    public async override Task<ccxt.DepositAddresses> FetchDepositAddressesByNetwork(string code, object parameters = null)
     {
         object codeVar = code;
         parameters ??= new Dictionary<string, object>();
@@ -2270,7 +2269,9 @@ public partial class gemini : Exchange
             { "network", networkCode },
             { "currency", codeVar },
         });
-        return this.groupBy(results, "network");
+        // one address structure per network, like every other venue (the endpoint is scoped to a
+        // single network, so the last address the venue lists for it wins — same as before)
+        return ccxt.BaseExchange.ToDepositAddresses(this.indexBy(results, "network"));
     }
 
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)

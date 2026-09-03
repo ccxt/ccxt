@@ -1269,7 +1269,7 @@ public partial class btse : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
      */
-    public async override Task<object> fetchLeverageTiers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.LeverageTiers> FetchLeverageTiers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -1362,7 +1362,7 @@ public partial class btse : Exchange
             // php copies arrays by value, so the mutated list must be written back explicitly
             ((IDictionary<string,object>)result)[(string)symbolKey] = tiersList;
         }
-        return result;
+        return ccxt.BaseExchange.ToLeverageTiers(result);
     }
 
     /**
@@ -1383,7 +1383,7 @@ public partial class btse : Exchange
         {
             throw new BadRequest ((string)add(this.id, " fetchMarketLeverageTiers() supports contract markets only")) ;
         }
-        object result = await this.fetchLeverageTiers(new List<object>() {symbol}, parameters);
+        object result = ccxt.BaseExchange.FromLeverageTiers(await this.FetchLeverageTiers(new List<object>() {symbol}, parameters));
         return ccxt.BaseExchange.ToLeverageTierList(getValue(result, symbol));
     }
 

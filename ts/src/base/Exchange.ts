@@ -43,7 +43,7 @@ import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook, OrderBook
 // ----------------------------------------------------------------------------
 //
 // import types
-import type { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, NullableIndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFee, DepositWithdrawFees, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CancellationRequest, IsolatedBorrowRate, IsolatedBorrowRates, CrossBorrowRates, CrossBorrowRate, Dict, FundingRates, LeverageTiers, Bool, int, DepositAddress, LongShortRatio, OrderBooks, OpenInterests, ConstructorArgs, ADL, NullableDict, SubType, NestedDictionary, List, NullableList, Status, PositionModeInfo, MarginLoan } from './types.js';
+import type { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, NullableIndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFee, DepositWithdrawFees, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CancellationRequest, IsolatedBorrowRate, IsolatedBorrowRates, CrossBorrowRates, CrossBorrowRate, Dict, FundingRates, LeverageTiers, Bool, int, DepositAddress, LongShortRatio, OrderBooks, OpenInterests, ConstructorArgs, ADL, NullableDict, SubType, NestedDictionary, List, NullableList, Status, PositionModeInfo, MarginLoan, AllGreeks, DepositAddresses } from './types.js';
 // ----------------------------------------------------------------------------
 // move this elsewhere.
 import { ArrayCache, ArrayCacheByTimestamp } from './ws/Cache.js';
@@ -4006,7 +4006,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' setMarginMode() is not supported yet');
     }
 
-    async fetchDepositAddressesByNetwork (code: string, params = {}): Promise<DepositAddress[]> {
+    async fetchDepositAddressesByNetwork (code: string, params = {}): Promise<DepositAddresses> {
         throw new NotSupported (this.id + ' fetchDepositAddressesByNetwork() is not supported yet');
     }
 
@@ -7178,7 +7178,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' fetchGreeks() is not supported yet');
     }
 
-    async fetchAllGreeks (symbols: Strings = undefined, params = {}): Promise<Greeks[]> {
+    async fetchAllGreeks (symbols: Strings = undefined, params = {}): Promise<AllGreeks> {
         throw new NotSupported (this.id + ' fetchAllGreeks() is not supported yet');
     }
 
@@ -8762,7 +8762,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' parseGreeks () is not supported yet');
     }
 
-    parseAllGreeks (greeks: any, symbols: Strings = undefined, params = {}): Greeks[] {
+    parseAllGreeks (greeks: any, symbols: Strings = undefined, params = {}): AllGreeks {
         //
         // the value of greeks is either a dict or a list
         //

@@ -6657,7 +6657,7 @@ public partial class okx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
      */
-    public async override Task<object> fetchDepositAddressesByNetwork(string code, object parameters = null)
+    public async override Task<ccxt.DepositAddresses> FetchDepositAddressesByNetwork(string code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -6693,7 +6693,7 @@ public partial class okx : Exchange
         object data = this.safeList(response, "data", new List<object>() {});
         object filtered = this.filterBy(data, "selected", true);
         object parsed = this.parseDepositAddresses(filtered, new List<object>() {getValue(currency, "code")}, false);
-        return this.indexBy(parsed, "network");
+        return ccxt.BaseExchange.ToDepositAddresses(this.indexBy(parsed, "network"));
     }
 
     /**
@@ -6718,7 +6718,7 @@ public partial class okx : Exchange
         parameters = this.omit(parameters, "network");
         codeVar = ((string)this.safeCurrencyCode(codeVar));
         object network = this.networkIdToCode(rawNetwork, codeVar);
-        object responseRaw = await this.fetchDepositAddressesByNetwork(((string)codeVar), parameters);
+        object responseRaw = ccxt.BaseExchange.FromDepositAddresses(await this.FetchDepositAddressesByNetwork(((string)codeVar), parameters));
         object response = responseRaw;
         if (isTrue(!isEqual(network, null)))
         {
@@ -9976,9 +9976,9 @@ public partial class okx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} params.uly Underlying, either uly or instFamily is required
      * @param {string} params.instFamily Instrument family, either uly or instFamily is required
-     * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
+     * @returns {object} a dictionary of [greeks structures]{@link https://docs.ccxt.com/?id=greeks-structure} indexed by market symbol
      */
-    public async override Task<object> fetchAllGreeks(object symbols = null, object parameters = null)
+    public async override Task<ccxt.AllGreeks> FetchAllGreeks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -10054,7 +10054,7 @@ public partial class okx : Exchange
         //     }
         //
         object data = this.safeList(response, "data", new List<object>() {});
-        return this.parseAllGreeks(data, symbols);
+        return ccxt.BaseExchange.ToAllGreeks(this.parseAllGreeks(data, symbols));
     }
 
     public override object parseGreeks(object greeks, object market = null)

@@ -5121,7 +5121,7 @@ public partial class phemex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
      */
-    public async override Task<object> fetchLeverageTiers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.LeverageTiers> FetchLeverageTiers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -5218,7 +5218,7 @@ public partial class phemex : Exchange
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
         object riskLimits = this.safeList(data, "riskLimits");
-        return this.parseLeverageTiers(riskLimits, symbols, "symbol");
+        return ccxt.BaseExchange.ToLeverageTiers(this.parseLeverageTiers(riskLimits, symbols, "symbol"));
     }
 
     public override object parseMarketLeverageTiers(object info, object market = null)

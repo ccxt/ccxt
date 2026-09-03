@@ -598,6 +598,10 @@ export interface DepositAddress {
     tag?: Str;
 }
 
+/** fetchDepositAddressesByNetwork: address structures indexed by unified network code */
+export interface DepositAddresses extends Dictionary<DepositAddress> {
+}
+
 export interface WithdrawalResponse {
     info: any;
     id: string;
@@ -848,6 +852,10 @@ export interface Greeks {
     lastPrice: Num;
     underlyingPrice: Num;
     info: any;
+}
+
+/** fetchAllGreeks: greeks structures indexed by unified market symbol */
+export interface AllGreeks extends Dictionary<Greeks> {
 }
 
 export interface Conversion {

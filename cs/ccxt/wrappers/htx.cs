@@ -185,48 +185,9 @@ public partial class htx
         var res = this.createContractOrderRequest(symbol, type, side, amount, price, parameters);
         return ((Dictionary<string, object>)res);
     }
-    /// <summary>
-    /// fetch a dictionary of addresses for a currency, indexed by network
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://www.htx.com/en-us/opend/newApiPages/?id=7ec50029-7773-11ed-9966-0242ac110003"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network.</returns>
-    public async Task<List<DepositAddress>> FetchDepositAddressesByNetwork(string code, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchDepositAddressesByNetwork(code, parameters);
-        return ((IList<object>)res).Select(item => new DepositAddress(item)).ToList<DepositAddress>();
-    }
     public async Task<List<Dictionary<string, object>>> FetchWithdrawAddresses(string code, string note = null, string networkCode = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchWithdrawAddresses(code, note, networkCode, parameters);
         return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
-    }
-    /// <summary>
-    /// retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
-    /// </summary>
-    /// <remarks>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols.</returns>
-    public async Task<LeverageTiers> FetchLeverageTiers(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchLeverageTiers(symbols, parameters);
-        return new LeverageTiers(res);
     }
 }

@@ -21,26 +21,6 @@ public partial class gate
         var res = await this.fetchNetworkDepositAddress(code, parameters);
         return ((Dictionary<string, object>)res);
     }
-    /// <summary>
-    /// fetch a dictionary of addresses for a currency, indexed by network
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#generate-currency-deposit-address"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the api endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network.</returns>
-    public async Task<List<DepositAddress>> FetchDepositAddressesByNetwork(string code, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchDepositAddressesByNetwork(code, parameters);
-        return ((IList<object>)res).Select(item => new DepositAddress(item)).ToList<DepositAddress>();
-    }
     public List<Dictionary<string, object>> CreateOrdersRequest(List<OrderRequest> orders, Dictionary<string, object> parameters = null)
     {
         var res = this.createOrdersRequest(orders, parameters);
@@ -60,27 +40,6 @@ public partial class gate
     {
         var res = this.fetchOrderRequest(id, symbol, parameters);
         return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
-    }
-    /// <summary>
-    /// retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#query-all-futures-contracts"/>  <br/>
-    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#query-all-futures-contracts-2"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols.</returns>
-    public async Task<LeverageTiers> FetchLeverageTiers(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchLeverageTiers(symbols, parameters);
-        return new LeverageTiers(res);
     }
     /// <summary>
     /// fetches the market ids of underlying assets for a specific contract market type

@@ -3040,7 +3040,7 @@ public partial class gate : Exchange
      * @param {object} [params] extra parameters specific to the api endpoint
      * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
      */
-    public async override Task<object> fetchDepositAddressesByNetwork(string code, object parameters = null)
+    public async override Task<ccxt.DepositAddresses> FetchDepositAddressesByNetwork(string code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -3056,7 +3056,7 @@ public partial class gate : Exchange
         object currencyId = this.safeString(response, "currency");
         currency = this.safeCurrency(currencyId, currency);
         object parsed = this.parseDepositAddresses(chains, null, false);
-        return this.indexBy(parsed, "network");
+        return ccxt.BaseExchange.ToDepositAddresses(this.indexBy(parsed, "network"));
     }
 
     /**
@@ -3080,7 +3080,7 @@ public partial class gate : Exchange
         var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
         networkCode = ((IList<object>)networkCodeparametersVariable)[0];
         parameters = ((IList<object>)networkCodeparametersVariable)[1];
-        object chainsIndexedByIdRaw = await this.fetchDepositAddressesByNetwork(((string)code), parameters);
+        object chainsIndexedByIdRaw = ccxt.BaseExchange.FromDepositAddresses(await this.FetchDepositAddressesByNetwork(((string)code), parameters));
         object chainsIndexedById = chainsIndexedByIdRaw;
         object selectedNetworkIdOrCode = this.selectNetworkCodeFromUnifiedNetworks(code, networkCode, chainsIndexedById);
         return ccxt.BaseExchange.ToDepositAddress(getValue(chainsIndexedById, ((string)selectedNetworkIdOrCode)));
@@ -7805,7 +7805,7 @@ public partial class gate : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
      */
-    public async override Task<object> fetchLeverageTiers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.LeverageTiers> FetchLeverageTiers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -7925,7 +7925,7 @@ public partial class gate : Exchange
         //        }
         //    ]
         //
-        return this.parseLeverageTiers(response, symbols, "name");
+        return ccxt.BaseExchange.ToLeverageTiers(this.parseLeverageTiers(response, symbols, "name"));
     }
 
     /**

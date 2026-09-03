@@ -11,11 +11,6 @@ public partial class coinbase
         var res = await this.fetchCurrenciesFromCache(parameters);
         return ((Dictionary<string, object>)res);
     }
-    public async Task<List<DepositAddress>> FetchDepositAddressesByNetwork(string code, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchDepositAddressesByNetwork(code, parameters);
-        return ((IList<object>)res).Select(item => new DepositAddress(item)).ToList<DepositAddress>();
-    }
     /// <summary>
     /// fetch the deposit id for a fiat currency associated with this account
     /// </summary>

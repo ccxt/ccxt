@@ -2532,7 +2532,7 @@ public partial class cryptocom : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
      */
-    public async override Task<object> fetchDepositAddressesByNetwork(string code, object parameters = null)
+    public async override Task<ccxt.DepositAddresses> FetchDepositAddressesByNetwork(string code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2594,7 +2594,7 @@ public partial class cryptocom : Exchange
                 };
             }
         }
-        return result;
+        return ccxt.BaseExchange.ToDepositAddresses(result);
     }
 
     /**
@@ -2611,7 +2611,7 @@ public partial class cryptocom : Exchange
         parameters ??= new Dictionary<string, object>();
         object network = this.safeStringUpper(parameters, "network");
         parameters = this.omit(parameters, new List<object>() {"network"});
-        object depositAddressesRaw = await this.fetchDepositAddressesByNetwork(((string)code), parameters);
+        object depositAddressesRaw = ccxt.BaseExchange.FromDepositAddresses(await this.FetchDepositAddressesByNetwork(((string)code), parameters));
         object depositAddresses = depositAddressesRaw;
         if (isTrue(inOp(depositAddresses, ((string)network))))
         {

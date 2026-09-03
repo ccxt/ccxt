@@ -105,41 +105,6 @@ public partial class binance
         return ((Dictionary<string, object>)res);
     }
     /// <summary>
-    /// retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Notional-and-Leverage-Brackets"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Notional-Bracket-for-Pair"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/account/UM-Notional-and-Leverage-Brackets"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/account/CM-Notional-and-Leverage-Brackets"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.portfolioMargin</term>
-    /// <description>
-    /// boolean : set to true if you would like to fetch the leverage tiers for a portfolio margin account
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.subType</term>
-    /// <description>
-    /// string : "linear" or "inverse"
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols.</returns>
-    public async Task<LeverageTiers> FetchLeverageTiers(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchLeverageTiers(symbols, parameters);
-        return new LeverageTiers(res);
-    }
-    /// <summary>
     /// create gift code
     /// </summary>
     /// <remarks>
@@ -158,25 +123,5 @@ public partial class binance
     {
         var res = await this.createGiftCode(code, amount, parameters);
         return ((Dictionary<string, object>)res);
-    }
-    /// <summary>
-    /// fetches all option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://developers.binance.com/docs/derivatives/option/market-data/Option-Mark-Price"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}.</returns>
-    public async Task<List<Greeks>> FetchAllGreeks(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchAllGreeks(symbols, parameters);
-        return ((IList<object>)res).Select(item => new Greeks(item)).ToList<Greeks>();
     }
 }
