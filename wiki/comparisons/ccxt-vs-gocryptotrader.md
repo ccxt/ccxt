@@ -1,5 +1,5 @@
 <!-- title: CCXT vs GoCryptoTrader -->
-<!-- description: GoCryptoTrader is a Go trading bot and framework. Compared with CCXT on the part that actually overlaps — the exchange layer — plus coverage, packaging and scope. -->
+<!-- description: GoCryptoTrader is a Go trading bot and framework. Compared with CCXT on the part that overlaps — the exchange layer — plus coverage, packaging and scope. -->
 <!-- group: Multi-exchange libraries and frameworks -->
 <!-- summary: GoCryptoTrader is an application — engine, gRPC server, backtester, database — with a usable exchange package inside it. Only that package competes with CCXT, and it covers 23 venues to CCXT's 104. -->
 <!-- weight: 12 -->
@@ -65,7 +65,7 @@ func main() {
     if err != nil {
         panic(err)
     }
-    fmt.Println(ticker.Last)
+    fmt.Println(*ticker.Last)
 }
 ```
 
@@ -129,7 +129,7 @@ order, err := exchange.CreateOrder("BTC/USDT", "limit", "buy", 0.001,
 if err != nil {
     panic(err)
 }
-fmt.Println(order.Id)
+fmt.Println(*order.Id)
 ```
 
 #### **GoCryptoTrader**
@@ -206,8 +206,9 @@ GoCryptoTrader parses each venue's WebSocket messages and pushes the results ont
 CCXT returns values from the call site:
 
 ```go
+import ccxtpro "github.com/ccxt/ccxt/go/v4/pro"
+
 exchange := ccxtpro.NewBinance(nil)
-defer exchange.Close()
 
 for {
     ob, err := exchange.WatchOrderBook("BTC/USDT")
@@ -259,7 +260,7 @@ Only the exchange layer maps across; the engine, backtester and database have no
 | Candles | OHLCV retrieval via the exchange wrapper | `FetchOHLCV(symbol, timeframe)` |
 | New order | `SubmitOrder(ctx, *order.Submit)` | `CreateOrder(symbol, type, side, amount, WithCreateOrderPrice(price))` |
 | Cancel order | `CancelOrder(ctx, *order.Cancel)` | `CancelOrder(id, symbol)` |
-| Balance | `UpdateAccountInfo(ctx, asset)` | `FetchBalance()` |
+| Balance | `UpdateAccountBalances(ctx, asset)` | `FetchBalance()` |
 | Streams | `Websocket.DataHandler` channel | `Watch*` on `github.com/ccxt/ccxt/go/v4/pro` |
 | Venue-specific calls | the exchange package's exported methods | the same endpoint as an [implicit method](/docs/exchanges/binance/implicit-api) |
 
