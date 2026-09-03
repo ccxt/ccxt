@@ -1,0 +1,353 @@
+---
+title: "마켓 메이킹: 거래소가 말 그대로 돈을 주면서 돌려 달라고 하는 전략"
+description: "마켓 메이커가 spread를 버는 방식, 인벤토리가 진짜 적인 이유, 그리고 watchOrderBook, postOnly 주문, 엄격한 리스크 한도 위에 세운 최소한의 호가 루프."
+author: CCXT Team
+date: 2026-07-07T10:00:00Z
+tags: [market-making, strategies]
+---
+
+모든 거래에는 상대방이 필요하고, 대부분의 경우 그 상대방은 마켓 메이커입니다. 매수 가격과 매도
+가격을 동시에, 끊임없이 제시하며 그 사이의 간격을 버는 사람입니다. 거래소는 그 유동성을 너무나
+원하기 때문에 메이커에게 테이커보다 낮은 수수료를 매깁니다. 종종 0, 때로는 마이너스(리베이트)
+이기도 합니다. 이 글은 그 메커니즘을 설명하고 CCXT로 최소한의 호가 루프를 만듭니다. 프로덕션
+시스템이 아닌 **교육용 뼈대**이며, 실제 규모로 하는 마켓 메이킹은 정말로 어렵고 경쟁이 치열한
+사업입니다.
+
+## 비즈니스 모델
+
+마켓 메이커는 현재 가격 아래에 지정가 매수를, 위에 지정가 매도를 놓습니다. 둘 다 체결되면 — 누군가
+여러분의 매수 호가에 팔고, 다른 누군가 여러분의 매도 호가에서 사면 — 싸게 사서 비싸게 판 것이고,
+spread를 챙긴 채 다시 플랫 상태로 돌아옵니다. 이것을 수천 번 반복합니다.
+
+손익을 좌우하는 숫자는 세 가지입니다.
+
+- 왕복당 **포착한 spread** (제시한 spread에서 불리한 가격 변동을 뺀 값).
+- **메이커 수수료** — 등급을 협상하세요. 메이커는 수수료 체계에 따라 살고 죽습니다.
+  `exchange.markets[symbol]['maker']`를 확인하세요.
+- **인벤토리 손실** — 이것이 공짜 돈이 아닌 이유이자, 관련 문헌 대부분의 주제입니다.
+
+## 인벤토리: 진짜 적
+
+가격이 하락 추세라면 매수 호가는 계속 체결되고 매도 호가는 체결되지 않습니다. 내려가는 내내
+자산이 쌓입니다. 이것이 **adverse selection(역선택)**입니다. 여러분과 거래하는 사람들은 무언가를
+알고 있거나(혹은 단순히 움직임의 선두에 있거나), 여러분은 체계적으로 그 반대편에 서게 됩니다.
+
+진지한 마켓 메이킹 모델은 모두 본질적으로 인벤토리 제어 정책입니다. 고전적인 참고 문헌은
+Avellaneda–Stoikov(2008)입니다. 인벤토리에서 멀어지는 방향으로 기울어진 **reservation price**
+주변에 호가를 제시합니다. 롱 인벤토리는 두 호가를 모두 내리고(팔고 싶고, 사기는 꺼려짐), 숏
+인벤토리는 모두 올립니다. 아래의 뼈대는 그 아이디어의 가장 단순한 버전인 선형 스큐를 사용합니다.
+
+## 최소한의 호가 루프
+
+```javascript tab="JavaScript"
+import ccxt from 'ccxt';
+
+const SYMBOL = 'BTC/USDT';
+const SPREAD = 0.002;            // 20 bps 호가 spread, 수수료 포함
+const ORDER_SIZE = 0.001;
+const MAX_INVENTORY = 0.005;     // 엄격한 포지션 한도, 기초 통화 단위
+const REFRESH = 5000;            // 재호가 간격 (ms)
+
+const exchange = new ccxt.pro.binance({ apiKey: '...', secret: '...' });
+exchange.setSandboxMode(true);   // 테스트넷에서 배우세요
+await exchange.loadMarkets();
+let inventory = 0;               // 실제 코드에서는 watchMyTrades로 추적
+try {
+    while (true) {
+        const book = await exchange.watchOrderBook(SYMBOL);
+        const mid = (book.bids[0][0] + book.asks[0][0]) / 2;
+        // 인벤토리 반대 방향으로 호가를 기울임 (간이 Avellaneda-Stoikov)
+        const skew = -(inventory / MAX_INVENTORY) * (SPREAD / 2);
+        const bid = exchange.priceToPrecision(SYMBOL, mid * (1 - SPREAD / 2 + skew));
+        const ask = exchange.priceToPrecision(SYMBOL, mid * (1 + SPREAD / 2 + skew));
+        await exchange.cancelAllOrders(SYMBOL);
+        if (inventory < MAX_INVENTORY) {
+            await exchange.createOrder(SYMBOL, 'limit', 'buy', ORDER_SIZE, bid, { postOnly: true });
+        }
+        if (inventory > -MAX_INVENTORY) {
+            await exchange.createOrder(SYMBOL, 'limit', 'sell', ORDER_SIZE, ask, { postOnly: true });
+        }
+        await exchange.sleep(REFRESH);
+    }
+} finally {
+    await exchange.cancelAllOrders(SYMBOL);   // 호가를 남겨둔 채 종료하지 않기
+    await exchange.close();
+}
+```
+
+```python tab="Python"
+import asyncio
+import ccxt.pro as ccxtpro
+
+SYMBOL = 'BTC/USDT'
+SPREAD = 0.002            # 20 bps 호가 spread, 수수료 포함
+ORDER_SIZE = 0.001
+MAX_INVENTORY = 0.005     # 엄격한 포지션 한도, 기초 통화 단위
+REFRESH = 5               # 재호가 간격 (초)
+
+
+async def main():
+    exchange = ccxtpro.binance({'apiKey': '...', 'secret': '...'})
+    exchange.set_sandbox_mode(True)          # 테스트넷에서 배우세요
+    await exchange.load_markets()
+    inventory = 0.0                          # 실제 코드에서는 watch_my_trades로 추적
+    try:
+        while True:
+            book = await exchange.watch_order_book(SYMBOL)
+            mid = (book['bids'][0][0] + book['asks'][0][0]) / 2
+            # 인벤토리 반대 방향으로 호가를 기울임 (간이 Avellaneda-Stoikov)
+            skew = -(inventory / MAX_INVENTORY) * (SPREAD / 2)
+            bid = exchange.price_to_precision(SYMBOL, mid * (1 - SPREAD / 2 + skew))
+            ask = exchange.price_to_precision(SYMBOL, mid * (1 + SPREAD / 2 + skew))
+            await exchange.cancel_all_orders(SYMBOL)
+            if inventory < MAX_INVENTORY:
+                await exchange.create_order(SYMBOL, 'limit', 'buy', ORDER_SIZE, bid,
+                                            {'postOnly': True})
+            if inventory > -MAX_INVENTORY:
+                await exchange.create_order(SYMBOL, 'limit', 'sell', ORDER_SIZE, ask,
+                                            {'postOnly': True})
+            await asyncio.sleep(REFRESH)
+    finally:
+        await exchange.cancel_all_orders(SYMBOL)   # 호가를 남겨둔 채 종료하지 않기
+        await exchange.close()
+
+asyncio.run(main())
+```
+
+```php tab="PHP"
+<?php
+use function React\Async\await;
+
+const SYMBOL = 'BTC/USDT';
+const SPREAD = 0.002;            // 20 bps 호가 spread, 수수료 포함
+const ORDER_SIZE = 0.001;
+const MAX_INVENTORY = 0.005;     // 엄격한 포지션 한도, 기초 통화 단위
+const REFRESH = 5;               // 재호가 간격 (초)
+
+$exchange = new \ccxt\pro\binance(['apiKey' => '...', 'secret' => '...']);
+$exchange->set_sandbox_mode(true);   // 테스트넷에서 배우세요
+await($exchange->load_markets());
+$inventory = 0.0;                    // 실제 코드에서는 watch_my_trades로 추적
+$lastQuote = 0;
+try {
+    while (true) {
+        $book = await($exchange->watch_order_book(SYMBOL));
+        if (time() - $lastQuote < REFRESH) {
+            continue;                // 최대 REFRESH초마다 한 번만 재호가
+        }
+        $lastQuote = time();
+        $mid = ($book['bids'][0][0] + $book['asks'][0][0]) / 2;
+        // 인벤토리 반대 방향으로 호가를 기울임 (간이 Avellaneda-Stoikov)
+        $skew = -($inventory / MAX_INVENTORY) * (SPREAD / 2);
+        $bid = $exchange->price_to_precision(SYMBOL, $mid * (1 - SPREAD / 2 + $skew));
+        $ask = $exchange->price_to_precision(SYMBOL, $mid * (1 + SPREAD / 2 + $skew));
+        await($exchange->cancel_all_orders(SYMBOL));
+        if ($inventory < MAX_INVENTORY) {
+            await($exchange->create_order(SYMBOL, 'limit', 'buy', ORDER_SIZE, $bid,
+                ['postOnly' => true]));
+        }
+        if ($inventory > -MAX_INVENTORY) {
+            await($exchange->create_order(SYMBOL, 'limit', 'sell', ORDER_SIZE, $ask,
+                ['postOnly' => true]));
+        }
+    }
+} finally {
+    await($exchange->cancel_all_orders(SYMBOL));   // 호가를 남겨둔 채 종료하지 않기
+    await($exchange->close());
+}
+```
+
+```csharp tab="C#"
+using ccxt;
+
+const string SYMBOL = "BTC/USDT";
+const double SPREAD = 0.002;         // 20 bps 호가 spread, 수수료 포함
+const double ORDER_SIZE = 0.001;
+const double MAX_INVENTORY = 0.005;  // 엄격한 포지션 한도, 기초 통화 단위
+const int REFRESH = 5000;            // 재호가 간격 (ms)
+
+var exchange = new ccxt.pro.binance(new Dictionary<string, object>() {
+    { "apiKey", "..." }, { "secret", "..." },
+});
+exchange.setSandboxMode(true);       // 테스트넷에서 배우세요
+await exchange.LoadMarkets();
+var inventory = 0.0;                 // 실제 코드에서는 WatchMyTrades로 추적
+try
+{
+    while (true)
+    {
+        var book = await exchange.WatchOrderBook(SYMBOL);
+        var mid = (book.bids[0][0] + book.asks[0][0]) / 2;
+        // 인벤토리 반대 방향으로 호가를 기울임 (간이 Avellaneda-Stoikov)
+        var skew = -(inventory / MAX_INVENTORY) * (SPREAD / 2);
+        var bid = Convert.ToDouble(exchange.priceToPrecision(SYMBOL, mid * (1 - SPREAD / 2 + skew)));
+        var ask = Convert.ToDouble(exchange.priceToPrecision(SYMBOL, mid * (1 + SPREAD / 2 + skew)));
+        await exchange.CancelAllOrders(SYMBOL);
+        var parameters = new Dictionary<string, object>() { { "postOnly", true } };
+        if (inventory < MAX_INVENTORY)
+        {
+            await exchange.CreateOrder(SYMBOL, "limit", "buy", ORDER_SIZE, bid, parameters);
+        }
+        if (inventory > -MAX_INVENTORY)
+        {
+            await exchange.CreateOrder(SYMBOL, "limit", "sell", ORDER_SIZE, ask, parameters);
+        }
+        await Task.Delay(REFRESH);
+    }
+}
+finally
+{
+    await exchange.CancelAllOrders(SYMBOL);   // 호가를 남겨둔 채 종료하지 않기
+    await exchange.Close();
+}
+```
+
+```go tab="Go"
+package main
+
+import (
+    "strconv"
+    "time"
+
+    ccxt "github.com/ccxt/ccxt/go/v4"
+    ccxtpro "github.com/ccxt/ccxt/go/v4/pro"
+)
+
+const (
+    symbol       = "BTC/USDT"
+    spread       = 0.002 // 20 bps 호가 spread, 수수료 포함
+    orderSize    = 0.001
+    maxInventory = 0.005 // 엄격한 포지션 한도, 기초 통화 단위
+    refresh      = 5 * time.Second
+)
+
+func toFloat(v any) float64 {
+    f, _ := strconv.ParseFloat(v.(string), 64)
+    return f
+}
+
+func main() {
+    exchange := ccxtpro.NewBinance(nil)
+    exchange.ApiKey = "..."
+    exchange.Secret = "..."
+    exchange.SetSandboxMode(true) // 테스트넷에서 배우세요
+    exchange.LoadMarkets()
+    inventory := 0.0 // 실제 코드에서는 WatchMyTrades로 추적
+    defer func() {
+        exchange.CancelAllOrders(ccxt.WithCancelAllOrdersSymbol(symbol)) // 호가를 남겨둔 채 종료하지 않기
+        exchange.Close()
+    }()
+    for {
+        book, err := exchange.WatchOrderBook(symbol)
+        if err != nil {
+            panic(err)
+        }
+        mid := (book.Bids[0][0] + book.Asks[0][0]) / 2
+        // 인벤토리 반대 방향으로 호가를 기울임 (간이 Avellaneda-Stoikov)
+        skew := -(inventory / maxInventory) * (spread / 2)
+        bid := toFloat(exchange.PriceToPrecision(symbol, mid*(1-spread/2+skew)))
+        ask := toFloat(exchange.PriceToPrecision(symbol, mid*(1+spread/2+skew)))
+        exchange.CancelAllOrders(ccxt.WithCancelAllOrdersSymbol(symbol))
+        params := map[string]interface{}{"postOnly": true}
+        if inventory < maxInventory {
+            exchange.CreateOrder(symbol, "limit", "buy", orderSize,
+                ccxt.WithCreateOrderPrice(bid), ccxt.WithCreateOrderParams(params))
+        }
+        if inventory > -maxInventory {
+            exchange.CreateOrder(symbol, "limit", "sell", orderSize,
+                ccxt.WithCreateOrderPrice(ask), ccxt.WithCreateOrderParams(params))
+        }
+        time.Sleep(refresh)
+    }
+}
+```
+
+```java tab="Java"
+import io.github.ccxt.exchanges.pro.Binance;
+
+import java.util.Map;
+
+public class MarketMaker {
+
+    static final String SYMBOL = "BTC/USDT";
+    static final double SPREAD = 0.002;           // 20 bps 호가 spread, 수수료 포함
+    static final double ORDER_SIZE = 0.001;
+    static final double MAX_INVENTORY = 0.005;    // 엄격한 포지션 한도, 기초 통화 단위
+    static final long REFRESH = 5000;             // 재호가 간격 (ms)
+
+    public static void main(String[] args) throws InterruptedException {
+        var exchange = new Binance();
+        exchange.apiKey = "...";
+        exchange.secret = "...";
+        exchange.setSandboxMode(true);            // 테스트넷에서 배우세요
+        exchange.loadMarkets(false);
+        var inventory = 0.0;                      // 실제 코드에서는 watchMyTrades로 추적
+        try {
+            while (true) {
+                var book = exchange.watchOrderBook(SYMBOL);
+                var mid = (book.bids.get(0).get(0) + book.asks.get(0).get(0)) / 2;
+                // 인벤토리 반대 방향으로 호가를 기울임 (간이 Avellaneda-Stoikov)
+                var skew = -(inventory / MAX_INVENTORY) * (SPREAD / 2);
+                var bid = Double.parseDouble((String) exchange.priceToPrecision(SYMBOL,
+                        mid * (1 - SPREAD / 2 + skew)));
+                var ask = Double.parseDouble((String) exchange.priceToPrecision(SYMBOL,
+                        mid * (1 + SPREAD / 2 + skew)));
+                exchange.cancelAllOrders(SYMBOL, null);
+                var params = Map.<String, Object>of("postOnly", true);
+                if (inventory < MAX_INVENTORY) {
+                    exchange.createOrder(SYMBOL, "limit", "buy", ORDER_SIZE, bid, params);
+                }
+                if (inventory > -MAX_INVENTORY) {
+                    exchange.createOrder(SYMBOL, "limit", "sell", ORDER_SIZE, ask, params);
+                }
+                Thread.sleep(REFRESH);
+            }
+        } finally {
+            exchange.cancelAllOrders(SYMBOL, null);   // 호가를 남겨둔 채 종료하지 않기
+            exchange.close().join();
+        }
+    }
+}
+```
+
+CCXT의 각 부분이 하는 일은 다음과 같습니다.
+
+- **`watchOrderBook`**은 WebSocket으로 order book을 스트리밍합니다
+  ([WebSocket 글](/ko/blog/realtime-market-data-with-websockets) 참고). 폴링한 REST 데이터로
+  호가를 내는 것은 오래된 가격으로 호가를 내는 것입니다.
+- **`postOnly: true`**는 주문이 메이커로 대기하도록 보장합니다. spread를 넘어 테이커로 체결될
+  상황이라면(테이커 수수료를 내고 잘못된 편에 서는 것) 거래소가 대신 주문을 거부합니다. 메이커
+  전략에서는 타협 불가입니다.
+- **`cancelAllOrders` + 다시 넣기**는 단순한 재호가 방식입니다. 거래소가 지원한다면
+  (`exchange.has['editOrder']` 확인) `editOrder`가 가격을 제자리에서 수정합니다. 왕복이 줄고,
+  수량 축소 수정에 대해 대기열 순서를 유지해 주는 거래소에서는 그 순서를 지킬 수 있는 경우가
+  많습니다.
+- **`priceToPrecision`**은 유효하지 않은 틱의 호가가 거부되기 때문에 필요합니다.
+  [실수 #1](/ko/blog/seven-mistakes-crypto-exchange-api-developers-make)을 참고하세요.
+
+의도적으로 빠진 것들: 실제 인벤토리 추적(`watchMyTrades`를 구독하고 체결마다 `inventory`를
+갱신), 변동성을 반영한 spread 산정, order book 불균형 시그널, 다중 레벨 호가. 이것이 여러분의
+로드맵이고, 순서도 그대로입니다.
+
+## 선택이 아닌 리스크 통제
+
+- **엄격한 인벤토리 한도** — 뼈대는 한도에 도달하면 한쪽 호가를 멈춥니다. 실제 시스템은
+  플랫 상태로 적극적으로 되돌리기도 합니다.
+- **테스트해 본 킬 스위치** — 모든 것을 취소하고 포지션을 정리하는 명령 하나.
+  `cancelAllOrders`가 통합 API에 있는 이유가 정확히 이것입니다. 일부 거래소는 거래소별
+  파라미터로 데드맨 스위치 시맨틱(연결 끊김 시 자동 취소)도 지원합니다. 가능한 곳에서는 연결해
+  둘 가치가 있습니다.
+- **변동성 구간의 spread 하한.** order book이 얇아지거나 체결이 여러 레벨을 뚫고 찍히기
+  시작하면 호가를 넓히거나 거두세요. 뉴스 이벤트에서 살아남는 메이커는 그 시간 동안 호가를
+  내지 않은 메이커입니다.
+- **수수료를 반영한 spread.** 제시하는 spread는 왕복 수수료에 예상되는 adverse selection을
+  더한 것보다 커야 합니다. 메이커 수수료가 편도 0.02%라면 0.1% spread의 순수익은 adverse
+  selection *이전에* 0.06%이고, adverse selection이 그 대부분을 가져갑니다.
+
+## 다음으로 갈 곳
+
+이 뼈대를 테스트넷에서 유동성이 풍부한 페어에 대고 돌리고, 추세 구간에서 `inventory`에 어떤
+일이 벌어지는지 지켜보세요. 그 교훈은 어떤 파라미터 튜닝보다 값집니다. 그다음 Avellaneda–Stoikov와
+큐 포지션 관련 문헌을 읽고, 오픈소스 마켓 메이킹 봇들이 같은 루프를 어떻게 구조화하는지
+살펴보세요. 배관 — order book, 호가, 취소, 체결 — 은 처음부터 끝까지 같은 여섯 언어 통합
+API이므로, 여러분의 첫 마켓 메이커는 팀이 이미 쓰는 언어로 만들 수 있습니다.

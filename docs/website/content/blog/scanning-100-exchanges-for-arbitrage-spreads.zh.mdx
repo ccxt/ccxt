@@ -1,0 +1,443 @@
+---
+title: "我们用 50 行代码扫描了 100 家交易所的套利机会——但有个坑"
+description: "一个用 CCXT 编写的、可直接运行的跨交易所价差扫描器——以及一份诚实的清单，说明为什么它找到的大多数价差并不是免费的钱。"
+author: CCXT Team
+date: 2026-07-07T12:00:00Z
+tags: [tutorials, arbitrage]
+---
+
+经典的第一个"量化"项目：同一资产在不同交易所的价格略有差异——把这些差价找出来。因为 CCXT
+给每家交易所提供了同样的 API，整个扫描器只需要大约五十行代码。我们先把它写出来，然后用本文
+的后半部分讨论为什么它找到的大部分机会*并不是*免费的钱——而这一部分才真正能让你变得更强。
+
+## 扫描器
+
+高效的写法：在所有交易所加载市场，找出至少在两个交易场所上市的交易对，然后对每家交易所
+**只发起一次批量的 `fetchTickers` 调用**，而不是狂轰逐个交易对的端点。
+
+```javascript tab="JavaScript"
+import ccxt from 'ccxt';
+
+const ids = ['binance', 'kraken', 'okx', 'bybit', 'kucoin'];
+
+const exchanges = await Promise.all(ids.map(async (id) => {
+    const exchange = new ccxt[id]();
+    await exchange.loadMarkets();
+    return exchange;
+}));
+
+// 至少在两个交易场所上市的现货 USDT 交易对
+const counts = {};
+for (const exchange of exchanges) {
+    for (const symbol in exchange.markets) {
+        const market = exchange.markets[symbol];
+        if (market.spot && market.active !== false && symbol.endsWith('/USDT')) {
+            counts[symbol] = (counts[symbol] ?? 0) + 1;
+        }
+    }
+}
+const shared = Object.keys(counts).filter((symbol) => counts[symbol] >= 2);
+
+// 每家交易所只做一次批量调用
+const perExchange = await Promise.all(exchanges.map((exchange) =>
+    exchange.fetchTickers(shared.filter((symbol) => symbol in exchange.markets))));
+
+const opportunities = [];
+for (const symbol of shared) {
+    const quotes = [];
+    exchanges.forEach((exchange, i) => {
+        const ticker = perExchange[i][symbol];
+        if (ticker && ticker.bid && ticker.ask) {
+            quotes.push({ id: exchange.id, bid: ticker.bid, ask: ticker.ask });
+        }
+    });
+    if (quotes.length < 2) continue;
+    const bestBid = quotes.reduce((a, b) => (b.bid > a.bid ? b : a));
+    const bestAsk = quotes.reduce((a, b) => (b.ask < a.ask ? b : a));
+    const spread = (bestBid.bid - bestAsk.ask) / bestAsk.ask;
+    if (spread > 0) {
+        opportunities.push({ symbol, buyOn: bestAsk.id, sellOn: bestBid.id, spread });
+    }
+}
+
+opportunities.sort((a, b) => b.spread - a.spread);
+for (const o of opportunities.slice(0, 10)) {
+    console.log(`${o.symbol}: buy ${o.buyOn}, sell ${o.sellOn}, ${(o.spread * 100).toFixed(3)}%`);
+}
+
+await Promise.all(exchanges.map((exchange) => exchange.close()));
+```
+
+```python tab="Python"
+import asyncio
+import ccxt.async_support as ccxt
+
+IDS = ['binance', 'kraken', 'okx', 'bybit', 'kucoin']
+
+
+async def main():
+    exchanges = [getattr(ccxt, exchange_id)() for exchange_id in IDS]
+    await asyncio.gather(*[exchange.load_markets() for exchange in exchanges])
+
+    # 至少在两个交易场所上市的现货 USDT 交易对
+    counts = {}
+    for exchange in exchanges:
+        for symbol, market in exchange.markets.items():
+            if market['spot'] and market['active'] is not False and symbol.endswith('/USDT'):
+                counts[symbol] = counts.get(symbol, 0) + 1
+    shared = [symbol for symbol, count in counts.items() if count >= 2]
+
+    # 每家交易所只做一次批量调用
+    per_exchange = await asyncio.gather(*[
+        exchange.fetch_tickers([s for s in shared if s in exchange.markets])
+        for exchange in exchanges
+    ])
+
+    opportunities = []
+    for symbol in shared:
+        quotes = []
+        for exchange, tickers in zip(exchanges, per_exchange):
+            ticker = tickers.get(symbol)
+            if ticker and ticker['bid'] and ticker['ask']:
+                quotes.append((exchange.id, ticker['bid'], ticker['ask']))
+        if len(quotes) < 2:
+            continue
+        sell_on = max(quotes, key=lambda q: q[1])   # 最高买价
+        buy_on = min(quotes, key=lambda q: q[2])    # 最低卖价
+        spread = (sell_on[1] - buy_on[2]) / buy_on[2]
+        if spread > 0:
+            opportunities.append((symbol, buy_on[0], sell_on[0], spread))
+
+    for symbol, buy, sell, spread in sorted(opportunities, key=lambda o: -o[3])[:10]:
+        print(f'{symbol}: buy {buy}, sell {sell}, {spread * 100:.3f}%')
+
+    await asyncio.gather(*[exchange.close() for exchange in exchanges])
+
+asyncio.run(main())
+```
+
+```php tab="PHP"
+<?php
+$ids = ['binance', 'kraken', 'okx', 'bybit', 'kucoin'];
+
+$exchanges = [];
+foreach ($ids as $id) {
+    $class = "\\ccxt\\{$id}";
+    $exchange = new $class();
+    $exchange->load_markets();
+    $exchanges[] = $exchange;
+}
+
+// 至少在两个交易场所上市的现货 USDT 交易对
+$counts = [];
+foreach ($exchanges as $exchange) {
+    foreach ($exchange->markets as $symbol => $market) {
+        if ($market['spot'] && $market['active'] !== false && str_ends_with($symbol, '/USDT')) {
+            $counts[$symbol] = ($counts[$symbol] ?? 0) + 1;
+        }
+    }
+}
+$shared = array_keys(array_filter($counts, fn ($count) => $count >= 2));
+
+// 每家交易所只做一次批量调用（异步版本可以并发执行这些调用）
+$perExchange = [];
+foreach ($exchanges as $exchange) {
+    $symbols = array_values(array_filter($shared, fn ($s) => isset($exchange->markets[$s])));
+    $perExchange[] = $exchange->fetch_tickers($symbols);
+}
+
+$opportunities = [];
+foreach ($shared as $symbol) {
+    $quotes = [];
+    foreach ($exchanges as $i => $exchange) {
+        $ticker = $perExchange[$i][$symbol] ?? null;
+        if ($ticker && $ticker['bid'] && $ticker['ask']) {
+            $quotes[] = ['id' => $exchange->id, 'bid' => $ticker['bid'], 'ask' => $ticker['ask']];
+        }
+    }
+    if (count($quotes) < 2) {
+        continue;
+    }
+    $bestBid = $quotes[0];
+    $bestAsk = $quotes[0];
+    foreach ($quotes as $quote) {
+        if ($quote['bid'] > $bestBid['bid']) $bestBid = $quote;
+        if ($quote['ask'] < $bestAsk['ask']) $bestAsk = $quote;
+    }
+    $spread = ($bestBid['bid'] - $bestAsk['ask']) / $bestAsk['ask'];
+    if ($spread > 0) {
+        $opportunities[] = [$symbol, $bestAsk['id'], $bestBid['id'], $spread];
+    }
+}
+
+usort($opportunities, fn ($a, $b) => $b[3] <=> $a[3]);
+foreach (array_slice($opportunities, 0, 10) as [$symbol, $buy, $sell, $spread]) {
+    printf("%s: buy %s, sell %s, %.3f%%\n", $symbol, $buy, $sell, $spread * 100);
+}
+```
+
+```csharp tab="C#"
+using ccxt;
+
+var ids = new List<string> { "binance", "kraken", "okx", "bybit", "kucoin" };
+
+var exchanges = ids.Select(id => Exchange.DynamicallyCreateInstance(id)).ToList();
+var marketsPerExchange = await Task.WhenAll(exchanges.Select(exchange => exchange.LoadMarkets()));
+
+// 至少在两个交易场所上市的现货 USDT 交易对
+var counts = new Dictionary<string, int>();
+foreach (var markets in marketsPerExchange)
+{
+    foreach (var (symbol, market) in markets)
+    {
+        if (market.spot == true && market.active != false && symbol.EndsWith("/USDT"))
+        {
+            counts[symbol] = counts.GetValueOrDefault(symbol) + 1;
+        }
+    }
+}
+var shared = counts.Where(kv => kv.Value >= 2).Select(kv => kv.Key).ToList();
+
+// 每家交易所只做一次批量调用
+var perExchange = await Task.WhenAll(exchanges.Select((exchange, i) =>
+    exchange.FetchTickers(shared.Where(s => marketsPerExchange[i].ContainsKey(s)).ToList())));
+
+var opportunities = new List<(string Symbol, string BuyOn, string SellOn, double Spread)>();
+foreach (var symbol in shared)
+{
+    var quotes = new List<(string Id, double Bid, double Ask)>();
+    for (var i = 0; i < exchanges.Count; i++)
+    {
+        if (perExchange[i].tickers.TryGetValue(symbol, out var ticker)
+            && ticker.bid != null && ticker.ask != null)
+        {
+            quotes.Add((exchanges[i].id, (double)ticker.bid, (double)ticker.ask));
+        }
+    }
+    if (quotes.Count < 2) continue;
+    var bestBid = quotes.MaxBy(q => q.Bid);
+    var bestAsk = quotes.MinBy(q => q.Ask);
+    var spread = (bestBid.Bid - bestAsk.Ask) / bestAsk.Ask;
+    if (spread > 0) opportunities.Add((symbol, bestAsk.Id, bestBid.Id, spread));
+}
+
+foreach (var o in opportunities.OrderByDescending(o => o.Spread).Take(10))
+{
+    Console.WriteLine($"{o.Symbol}: buy {o.BuyOn}, sell {o.SellOn}, {o.Spread * 100:F3}%");
+}
+```
+
+```go tab="Go"
+package main
+
+import (
+    "fmt"
+    "sort"
+    "strings"
+
+    ccxt "github.com/ccxt/ccxt/go/v4"
+)
+
+type quote struct {
+    id       string
+    bid, ask float64
+}
+
+type opportunity struct {
+    symbol, buyOn, sellOn string
+    spread                float64
+}
+
+func main() {
+    ids := []string{"binance", "kraken", "okx", "bybit", "kucoin"}
+
+    exchanges := make([]ccxt.IExchange, len(ids))
+    marketsPerExchange := make([]map[string]ccxt.MarketInterface, len(ids))
+    for i, id := range ids {
+        exchanges[i] = ccxt.CreateExchange(id, nil)
+        markets, err := exchanges[i].LoadMarkets()
+        if err != nil {
+            panic(err)
+        }
+        marketsPerExchange[i] = markets
+    }
+
+    // 至少在两个交易场所上市的现货 USDT 交易对
+    counts := map[string]int{}
+    for _, markets := range marketsPerExchange {
+        for symbol, market := range markets {
+            if market.Spot != nil && *market.Spot &&
+                (market.Active == nil || *market.Active) &&
+                strings.HasSuffix(symbol, "/USDT") {
+                counts[symbol]++
+            }
+        }
+    }
+    var shared []string
+    for symbol, count := range counts {
+        if count >= 2 {
+            shared = append(shared, symbol)
+        }
+    }
+
+    // 每家交易所只做一次批量调用（用 goroutine 并发执行可以更快）
+    perExchange := make([]map[string]ccxt.Ticker, len(exchanges))
+    for i, exchange := range exchanges {
+        var symbols []string
+        for _, symbol := range shared {
+            if _, ok := marketsPerExchange[i][symbol]; ok {
+                symbols = append(symbols, symbol)
+            }
+        }
+        tickers, err := exchange.FetchTickers(ccxt.WithFetchTickersSymbols(symbols))
+        if err != nil {
+            panic(err)
+        }
+        perExchange[i] = tickers.Tickers
+    }
+
+    var opportunities []opportunity
+    for _, symbol := range shared {
+        var quotes []quote
+        for i, exchange := range exchanges {
+            ticker, ok := perExchange[i][symbol]
+            if !ok || ticker.Bid == nil || ticker.Ask == nil {
+                continue
+            }
+            quotes = append(quotes, quote{exchange.GetId(), *ticker.Bid, *ticker.Ask})
+        }
+        if len(quotes) < 2 {
+            continue
+        }
+        bestBid, bestAsk := quotes[0], quotes[0]
+        for _, q := range quotes {
+            if q.bid > bestBid.bid {
+                bestBid = q
+            }
+            if q.ask < bestAsk.ask {
+                bestAsk = q
+            }
+        }
+        spread := (bestBid.bid - bestAsk.ask) / bestAsk.ask
+        if spread > 0 {
+            opportunities = append(opportunities, opportunity{symbol, bestAsk.id, bestBid.id, spread})
+        }
+    }
+
+    sort.Slice(opportunities, func(a, b int) bool {
+        return opportunities[a].spread > opportunities[b].spread
+    })
+    for _, o := range opportunities[:min(10, len(opportunities))] {
+        fmt.Printf("%s: buy %s, sell %s, %.3f%%\n", o.symbol, o.buyOn, o.sellOn, o.spread*100)
+    }
+}
+```
+
+```java tab="Java"
+import io.github.ccxt.Exchange;
+
+import java.util.*;
+
+public class SpreadScanner {
+
+    record Quote(String id, double bid, double ask) {}
+    record Opportunity(String symbol, String buyOn, String sellOn, double spread) {}
+
+    @SuppressWarnings("unchecked")
+    public static void main(String[] args) {
+        var ids = List.of("binance", "kraken", "okx", "bybit", "kucoin");
+
+        // 动态创建的实例返回无类型的 map（否则请使用按类划分的类型化 API）
+        var exchanges = new ArrayList<Exchange>();
+        var marketsPerExchange = new ArrayList<Map<String, Object>>();
+        for (var id : ids) {
+            var exchange = Exchange.dynamicallyCreateInstance(id, null);
+            exchange.loadMarkets(false).join();
+            exchanges.add(exchange);
+            marketsPerExchange.add((Map<String, Object>) exchange.markets);
+        }
+
+        // 至少在两个交易场所上市的现货 USDT 交易对
+        var counts = new HashMap<String, Integer>();
+        for (var markets : marketsPerExchange) {
+            for (var entry : markets.entrySet()) {
+                var market = (Map<String, Object>) entry.getValue();
+                if (Boolean.TRUE.equals(market.get("spot"))
+                        && !Boolean.FALSE.equals(market.get("active"))
+                        && entry.getKey().endsWith("/USDT")) {
+                    counts.merge(entry.getKey(), 1, Integer::sum);
+                }
+            }
+        }
+        var shared = counts.entrySet().stream()
+                .filter(e -> e.getValue() >= 2).map(Map.Entry::getKey).toList();
+
+        // 每家交易所只做一次批量调用
+        var perExchange = new ArrayList<Map<String, Object>>();
+        for (var i = 0; i < exchanges.size(); i++) {
+            var markets = marketsPerExchange.get(i);
+            var symbols = shared.stream().filter(markets::containsKey).toList();
+            perExchange.add((Map<String, Object>) exchanges.get(i)
+                    .fetchTickers(symbols, null).join());
+        }
+
+        var opportunities = new ArrayList<Opportunity>();
+        for (var symbol : shared) {
+            var quotes = new ArrayList<Quote>();
+            for (var i = 0; i < exchanges.size(); i++) {
+                var ticker = (Map<String, Object>) perExchange.get(i).get(symbol);
+                if (ticker == null) continue;
+                var bid = (Number) ticker.get("bid");
+                var ask = (Number) ticker.get("ask");
+                if (bid != null && ask != null) {
+                    quotes.add(new Quote(exchanges.get(i).id, bid.doubleValue(), ask.doubleValue()));
+                }
+            }
+            if (quotes.size() < 2) continue;
+            var bestBid = quotes.stream().max(Comparator.comparingDouble(Quote::bid)).get();
+            var bestAsk = quotes.stream().min(Comparator.comparingDouble(Quote::ask)).get();
+            var spread = (bestBid.bid() - bestAsk.ask()) / bestAsk.ask();
+            if (spread > 0) {
+                opportunities.add(new Opportunity(symbol, bestAsk.id(), bestBid.id(), spread));
+            }
+        }
+
+        opportunities.sort(Comparator.comparingDouble(Opportunity::spread).reversed());
+        for (var o : opportunities.subList(0, Math.min(10, opportunities.size()))) {
+            System.out.printf("%s: buy %s, sell %s, %.3f%%%n",
+                    o.symbol(), o.buyOn(), o.sellOn(), o.spread() * 100);
+        }
+    }
+}
+```
+
+运行它，你会看到一列正向价差，通常集中在小市值的山寨币上。在你把 `createOrder` 接到榜首那一行
+之前，请先往下读。
+
+## 为什么这些价差大多不是真的
+
+**手续费会吃掉小价差。** 两条腿你都要付 taker 手续费——主流币通常每边约 0.1%，小交易所更高。
+0.15% 的毛价差就是亏损。你的阈值必须把手续费算进去，而每家交易所的费率就在市场结构里
+（`market['taker']`）。
+
+**Ticker 只是某一刻的盘口顶部。** 你打算吃掉的那个买单数量有限，而且等你动手时报价可能已经过时。
+在相信一个价差之前，先用 `fetchOrderBook(symbol)` 看深度，按你的下单量计算*可成交*价格，而不是
+显示出来的价格。若要持续监控，请用 [WebSocket](/zh/blog/realtime-market-data-with-websockets)
+推送 order book，而不是轮询。
+
+**搬币又慢又贵。** 那种朴素的方案——在 A 买入、提币、充值到 B、卖出——需要几分钟到几小时，其间
+价差早已消失。提币手续费往往比利润还大。而且有时提币干脆被暂停，这正是价差存在的*原因*：没人
+能把它抹平。查一下 `fetchCurrencies()`——统一的货币结构里带有按网络划分的 `active`、`deposit`
+和 `withdraw` 标志以及费用。
+
+**长期存在的价差之所以长期存在，是有原因的。** 交易场所风险、地域限制，或者一本吃不下量的
+流动性稀薄的 order book。市场并没有把二十美元的钞票扔在路边；它是在对你尚未定价的风险收费。
+
+## 真正的版本长什么样
+
+严肃的跨交易所套利会在两个交易场所提前备好库存，同时执行两条腿——关键路径上没有任何转账——然后
+偶尔再平衡。这一点，加上资金费率套利和单一交易所内的三角套利，是配套文章的主题：
+[最流行的加密货币套利策略](/zh/blog/crypto-arbitrage-strategies)。
+
+上面这个扫描器依然是正确的第一步：你可以通过它了解价差出现在哪里、消失得多快，以及哪些交易所
+系统性地滞后。只是在任何订单离开你的机器之前，先让它以只读模式跑上一周。

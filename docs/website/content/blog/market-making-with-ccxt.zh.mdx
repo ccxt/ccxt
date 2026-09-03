@@ -1,0 +1,345 @@
+---
+title: "做市：交易所真的会付钱让你跑的策略"
+description: "market maker 如何赚取 spread，为什么库存才是真正的敌人，以及一个基于 watchOrderBook、postOnly 订单和硬性风险限制构建的最小报价循环。"
+author: CCXT Team
+date: 2026-07-07T10:00:00Z
+tags: [market-making, strategies]
+---
+
+每一笔交易都需要一个对手方，而大多数时候这个对手方是一个 market maker：
+一个持续同时报出买价和卖价、赚取两者之间差价的人。
+交易所对这种流动性的渴求，强烈到愿意向 maker 收取比 taker 更低的手续费——常常是零，
+有时甚至是负数（返佣）。这篇文章解释其中的机制，并用 CCXT 搭建一个最小的报价循环——
+这是一个**教学骨架**，不是生产系统；用真实规模做市是一门实打实的艰难且竞争激烈的生意。
+
+## 商业模式
+
+market maker 在当前价格下方挂一个限价买单，在上方挂一个限价卖单。当两者都成交时——
+有人卖进了你的买单，另一个人从你的卖单买走——你就完成了低买高卖，捕获了 spread，
+然后回到空仓。重复几千次。
+
+三个数字决定了盈亏：
+
+- **每个来回捕获的 spread**（你报出的 spread，减去不利的价格变动）。
+- **maker 手续费**——去谈费率档位；maker 的生死全系于费率表。查看
+  `exchange.markets[symbol]['maker']`。
+- **库存损失**——这就是为什么这不是免费的钱，也是大部分文献讨论的主题。
+
+## 库存：真正的敌人
+
+如果价格趋势向下，你的买单不断成交而卖单不成交——你会一路向下持续累积这个资产。
+这就是**逆向选择**：和你交易的人知道一些事情（或者干脆就是一波行情的前沿），
+而你系统性地站在了错误的一边。
+
+每一个严肃的做市模型，本质上都是一套库存控制策略。经典参考是 Avellaneda–Stoikov（2008）：
+围绕一个偏离你库存方向的**保留价格**报价——多头库存把两个报价都往下压（急于卖出、不愿买入），
+空头库存把两个报价都往上抬。下面的骨架用的是这个想法最简单的版本：线性偏斜。
+
+## 一个最小的报价循环
+
+```javascript tab="JavaScript"
+import ccxt from 'ccxt';
+
+const SYMBOL = 'BTC/USDT';
+const SPREAD = 0.002;            // 报价 spread 为 20 bps，已含手续费
+const ORDER_SIZE = 0.001;
+const MAX_INVENTORY = 0.005;     // 硬性持仓上限，以基础货币计
+const REFRESH = 5000;            // 两次重新报价之间的毫秒数
+
+const exchange = new ccxt.pro.binance({ apiKey: '...', secret: '...' });
+exchange.setSandboxMode(true);   // 在测试网上学习
+await exchange.loadMarkets();
+let inventory = 0;               // 真实代码中通过 watchMyTrades 跟踪
+try {
+    while (true) {
+        const book = await exchange.watchOrderBook(SYMBOL);
+        const mid = (book.bids[0][0] + book.asks[0][0]) / 2;
+        // 让报价逆着库存方向倾斜（穷人版 Avellaneda-Stoikov）
+        const skew = -(inventory / MAX_INVENTORY) * (SPREAD / 2);
+        const bid = exchange.priceToPrecision(SYMBOL, mid * (1 - SPREAD / 2 + skew));
+        const ask = exchange.priceToPrecision(SYMBOL, mid * (1 + SPREAD / 2 + skew));
+        await exchange.cancelAllOrders(SYMBOL);
+        if (inventory < MAX_INVENTORY) {
+            await exchange.createOrder(SYMBOL, 'limit', 'buy', ORDER_SIZE, bid, { postOnly: true });
+        }
+        if (inventory > -MAX_INVENTORY) {
+            await exchange.createOrder(SYMBOL, 'limit', 'sell', ORDER_SIZE, ask, { postOnly: true });
+        }
+        await exchange.sleep(REFRESH);
+    }
+} finally {
+    await exchange.cancelAllOrders(SYMBOL);   // 绝不在还有挂单的情况下退出
+    await exchange.close();
+}
+```
+
+```python tab="Python"
+import asyncio
+import ccxt.pro as ccxtpro
+
+SYMBOL = 'BTC/USDT'
+SPREAD = 0.002            # 报价 spread 为 20 bps，已含手续费
+ORDER_SIZE = 0.001
+MAX_INVENTORY = 0.005     # 硬性持仓上限，以基础货币计
+REFRESH = 5               # 两次重新报价之间的秒数
+
+
+async def main():
+    exchange = ccxtpro.binance({'apiKey': '...', 'secret': '...'})
+    exchange.set_sandbox_mode(True)          # 在测试网上学习
+    await exchange.load_markets()
+    inventory = 0.0                          # 真实代码中通过 watch_my_trades 跟踪
+    try:
+        while True:
+            book = await exchange.watch_order_book(SYMBOL)
+            mid = (book['bids'][0][0] + book['asks'][0][0]) / 2
+            # 让报价逆着库存方向倾斜（穷人版 Avellaneda-Stoikov）
+            skew = -(inventory / MAX_INVENTORY) * (SPREAD / 2)
+            bid = exchange.price_to_precision(SYMBOL, mid * (1 - SPREAD / 2 + skew))
+            ask = exchange.price_to_precision(SYMBOL, mid * (1 + SPREAD / 2 + skew))
+            await exchange.cancel_all_orders(SYMBOL)
+            if inventory < MAX_INVENTORY:
+                await exchange.create_order(SYMBOL, 'limit', 'buy', ORDER_SIZE, bid,
+                                            {'postOnly': True})
+            if inventory > -MAX_INVENTORY:
+                await exchange.create_order(SYMBOL, 'limit', 'sell', ORDER_SIZE, ask,
+                                            {'postOnly': True})
+            await asyncio.sleep(REFRESH)
+    finally:
+        await exchange.cancel_all_orders(SYMBOL)   # 绝不在还有挂单的情况下退出
+        await exchange.close()
+
+asyncio.run(main())
+```
+
+```php tab="PHP"
+<?php
+use function React\Async\await;
+
+const SYMBOL = 'BTC/USDT';
+const SPREAD = 0.002;            // 报价 spread 为 20 bps，已含手续费
+const ORDER_SIZE = 0.001;
+const MAX_INVENTORY = 0.005;     // 硬性持仓上限，以基础货币计
+const REFRESH = 5;               // 两次重新报价之间的秒数
+
+$exchange = new \ccxt\pro\binance(['apiKey' => '...', 'secret' => '...']);
+$exchange->set_sandbox_mode(true);   // 在测试网上学习
+await($exchange->load_markets());
+$inventory = 0.0;                    // 真实代码中通过 watch_my_trades 跟踪
+$lastQuote = 0;
+try {
+    while (true) {
+        $book = await($exchange->watch_order_book(SYMBOL));
+        if (time() - $lastQuote < REFRESH) {
+            continue;                // 最多每 REFRESH 秒重新报价一次
+        }
+        $lastQuote = time();
+        $mid = ($book['bids'][0][0] + $book['asks'][0][0]) / 2;
+        // 让报价逆着库存方向倾斜（穷人版 Avellaneda-Stoikov）
+        $skew = -($inventory / MAX_INVENTORY) * (SPREAD / 2);
+        $bid = $exchange->price_to_precision(SYMBOL, $mid * (1 - SPREAD / 2 + $skew));
+        $ask = $exchange->price_to_precision(SYMBOL, $mid * (1 + SPREAD / 2 + $skew));
+        await($exchange->cancel_all_orders(SYMBOL));
+        if ($inventory < MAX_INVENTORY) {
+            await($exchange->create_order(SYMBOL, 'limit', 'buy', ORDER_SIZE, $bid,
+                ['postOnly' => true]));
+        }
+        if ($inventory > -MAX_INVENTORY) {
+            await($exchange->create_order(SYMBOL, 'limit', 'sell', ORDER_SIZE, $ask,
+                ['postOnly' => true]));
+        }
+    }
+} finally {
+    await($exchange->cancel_all_orders(SYMBOL));   // 绝不在还有挂单的情况下退出
+    await($exchange->close());
+}
+```
+
+```csharp tab="C#"
+using ccxt;
+
+const string SYMBOL = "BTC/USDT";
+const double SPREAD = 0.002;         // 报价 spread 为 20 bps，已含手续费
+const double ORDER_SIZE = 0.001;
+const double MAX_INVENTORY = 0.005;  // 硬性持仓上限，以基础货币计
+const int REFRESH = 5000;            // 两次重新报价之间的毫秒数
+
+var exchange = new ccxt.pro.binance(new Dictionary<string, object>() {
+    { "apiKey", "..." }, { "secret", "..." },
+});
+exchange.setSandboxMode(true);       // 在测试网上学习
+await exchange.LoadMarkets();
+var inventory = 0.0;                 // 真实代码中通过 WatchMyTrades 跟踪
+try
+{
+    while (true)
+    {
+        var book = await exchange.WatchOrderBook(SYMBOL);
+        var mid = (book.bids[0][0] + book.asks[0][0]) / 2;
+        // 让报价逆着库存方向倾斜（穷人版 Avellaneda-Stoikov）
+        var skew = -(inventory / MAX_INVENTORY) * (SPREAD / 2);
+        var bid = Convert.ToDouble(exchange.priceToPrecision(SYMBOL, mid * (1 - SPREAD / 2 + skew)));
+        var ask = Convert.ToDouble(exchange.priceToPrecision(SYMBOL, mid * (1 + SPREAD / 2 + skew)));
+        await exchange.CancelAllOrders(SYMBOL);
+        var parameters = new Dictionary<string, object>() { { "postOnly", true } };
+        if (inventory < MAX_INVENTORY)
+        {
+            await exchange.CreateOrder(SYMBOL, "limit", "buy", ORDER_SIZE, bid, parameters);
+        }
+        if (inventory > -MAX_INVENTORY)
+        {
+            await exchange.CreateOrder(SYMBOL, "limit", "sell", ORDER_SIZE, ask, parameters);
+        }
+        await Task.Delay(REFRESH);
+    }
+}
+finally
+{
+    await exchange.CancelAllOrders(SYMBOL);   // 绝不在还有挂单的情况下退出
+    await exchange.Close();
+}
+```
+
+```go tab="Go"
+package main
+
+import (
+    "strconv"
+    "time"
+
+    ccxt "github.com/ccxt/ccxt/go/v4"
+    ccxtpro "github.com/ccxt/ccxt/go/v4/pro"
+)
+
+const (
+    symbol       = "BTC/USDT"
+    spread       = 0.002 // 报价 spread 为 20 bps，已含手续费
+    orderSize    = 0.001
+    maxInventory = 0.005 // 硬性持仓上限，以基础货币计
+    refresh      = 5 * time.Second
+)
+
+func toFloat(v any) float64 {
+    f, _ := strconv.ParseFloat(v.(string), 64)
+    return f
+}
+
+func main() {
+    exchange := ccxtpro.NewBinance(nil)
+    exchange.ApiKey = "..."
+    exchange.Secret = "..."
+    exchange.SetSandboxMode(true) // 在测试网上学习
+    exchange.LoadMarkets()
+    inventory := 0.0 // 真实代码中通过 WatchMyTrades 跟踪
+    defer func() {
+        exchange.CancelAllOrders(ccxt.WithCancelAllOrdersSymbol(symbol)) // 绝不在还有挂单的情况下退出
+        exchange.Close()
+    }()
+    for {
+        book, err := exchange.WatchOrderBook(symbol)
+        if err != nil {
+            panic(err)
+        }
+        mid := (book.Bids[0][0] + book.Asks[0][0]) / 2
+        // 让报价逆着库存方向倾斜（穷人版 Avellaneda-Stoikov）
+        skew := -(inventory / maxInventory) * (spread / 2)
+        bid := toFloat(exchange.PriceToPrecision(symbol, mid*(1-spread/2+skew)))
+        ask := toFloat(exchange.PriceToPrecision(symbol, mid*(1+spread/2+skew)))
+        exchange.CancelAllOrders(ccxt.WithCancelAllOrdersSymbol(symbol))
+        params := map[string]interface{}{"postOnly": true}
+        if inventory < maxInventory {
+            exchange.CreateOrder(symbol, "limit", "buy", orderSize,
+                ccxt.WithCreateOrderPrice(bid), ccxt.WithCreateOrderParams(params))
+        }
+        if inventory > -maxInventory {
+            exchange.CreateOrder(symbol, "limit", "sell", orderSize,
+                ccxt.WithCreateOrderPrice(ask), ccxt.WithCreateOrderParams(params))
+        }
+        time.Sleep(refresh)
+    }
+}
+```
+
+```java tab="Java"
+import io.github.ccxt.exchanges.pro.Binance;
+
+import java.util.Map;
+
+public class MarketMaker {
+
+    static final String SYMBOL = "BTC/USDT";
+    static final double SPREAD = 0.002;           // 报价 spread 为 20 bps，已含手续费
+    static final double ORDER_SIZE = 0.001;
+    static final double MAX_INVENTORY = 0.005;    // 硬性持仓上限，以基础货币计
+    static final long REFRESH = 5000;             // 两次重新报价之间的毫秒数
+
+    public static void main(String[] args) throws InterruptedException {
+        var exchange = new Binance();
+        exchange.apiKey = "...";
+        exchange.secret = "...";
+        exchange.setSandboxMode(true);            // 在测试网上学习
+        exchange.loadMarkets(false);
+        var inventory = 0.0;                      // 真实代码中通过 watchMyTrades 跟踪
+        try {
+            while (true) {
+                var book = exchange.watchOrderBook(SYMBOL);
+                var mid = (book.bids.get(0).get(0) + book.asks.get(0).get(0)) / 2;
+                // 让报价逆着库存方向倾斜（穷人版 Avellaneda-Stoikov）
+                var skew = -(inventory / MAX_INVENTORY) * (SPREAD / 2);
+                var bid = Double.parseDouble((String) exchange.priceToPrecision(SYMBOL,
+                        mid * (1 - SPREAD / 2 + skew)));
+                var ask = Double.parseDouble((String) exchange.priceToPrecision(SYMBOL,
+                        mid * (1 + SPREAD / 2 + skew)));
+                exchange.cancelAllOrders(SYMBOL, null);
+                var params = Map.<String, Object>of("postOnly", true);
+                if (inventory < MAX_INVENTORY) {
+                    exchange.createOrder(SYMBOL, "limit", "buy", ORDER_SIZE, bid, params);
+                }
+                if (inventory > -MAX_INVENTORY) {
+                    exchange.createOrder(SYMBOL, "limit", "sell", ORDER_SIZE, ask, params);
+                }
+                Thread.sleep(REFRESH);
+            }
+        } finally {
+            exchange.cancelAllOrders(SYMBOL, null);   // 绝不在还有挂单的情况下退出
+            exchange.close().join();
+        }
+    }
+}
+```
+
+这些 CCXT 组件各自在做什么：
+
+- **`watchOrderBook`** 通过 WebSocket 流式推送 order book（见
+  [WebSocket 那篇文章](/zh/blog/realtime-market-data-with-websockets)）——基于轮询的 REST 数据报价，
+  就等于基于过时的价格报价。
+- **`postOnly: true`** 保证你的订单以 maker 身份挂在盘口上。如果它会穿过 spread 并以 taker 身份成交
+  （付 taker 手续费，还站错了边），交易所会直接拒绝它。对 maker 策略来说这一点没有商量余地。
+- **`cancelAllOrders` + 重新下单** 是最简单的重新报价方式。在交易所支持的地方
+  （检查 `exchange.has['editOrder']`），`editOrder` 可以原地修改价格——更少的往返，
+  而且在那些为缩量修改保留队列位置的交易所上，你常常能保住队列位置。
+- **`priceToPrecision`**，因为价格不在有效 tick 上的报价会被拒绝——见
+  [错误 #1](/zh/blog/seven-mistakes-crypto-exchange-api-developers-make)。
+
+有意省略的部分：真正的库存跟踪（订阅 `watchMyTrades`，并在每次成交时更新 `inventory`）、
+考虑波动率的 spread 定尺、order book 不平衡信号，以及多档报价。这些就是你的路线图，按此顺序。
+
+## 不可省略的风险控制
+
+- **硬性库存上限**——骨架在触及上限时停止某一侧的报价。真实系统还会主动把仓位平回空仓。
+- **一个你测试过的紧急停止开关**——一条命令就能取消所有订单并平仓。
+  统一 API 里的 `cancelAllOrders` 正是为此而存在。有些交易所还通过交易所特定参数支持
+  dead-man's-switch 语义（断线自动撤单）——在可用的地方值得接上。
+- **波动期间的 spread 下限。** 当盘口变薄，或者成交开始穿透多个档位时，拉宽或撤掉报价。
+  能在新闻事件中活下来的 maker，是那些没有在事件期间继续报价的人。
+- **考虑手续费的 spread。** 你报出的 spread 必须超过来回手续费加上预期的逆向选择损失。
+  如果你的 maker 手续费是每边 0.02%，那么 0.1% 的 spread 在逆向选择*之前*净赚 0.06%——
+  而逆向选择会吃掉其中的大部分。
+
+## 接下来往哪走
+
+在测试网上对一个流动性好的交易对运行这个骨架，观察一波趋势期间 `inventory` 会发生什么——
+这一课比任何参数调优都值钱。然后去读 Avellaneda–Stoikov 和关于队列位置的文献，
+看看开源做市机器人是如何组织同一个循环的。底层管道——盘口、报价、撤单、成交——
+自始至终都是同一套六语言统一 API，这意味着你的第一个 market maker
+可以用你团队已经会说的语言来搭建。

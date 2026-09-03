@@ -1,0 +1,449 @@
+---
+title: "코드 50줄로 100개 거래소의 아비트라지를 스캔했습니다 — 그런데 함정이 있습니다"
+description: "CCXT로 만드는 실제 동작하는 크로스 거래소 스프레드 스캐너 — 그리고 스캐너가 찾아낸 스프레드 대부분이 공짜 돈이 아닌 이유를 솔직하게 정리했습니다."
+author: CCXT Team
+date: 2026-07-07T12:00:00Z
+tags: [tutorials, arbitrage]
+---
+
+전형적인 첫 번째 "퀀트" 프로젝트입니다. 같은 자산이 거래소마다 조금씩 다른 가격에 거래되니,
+그 차이를 찾아내는 것이죠. CCXT는 모든 거래소에 동일한 API를 제공하므로, 스캐너 전체가
+50줄 남짓에 들어갑니다. 먼저 스캐너를 만들고, 이 글의 후반부는 스캐너가 찾아내는 것 대부분이
+*공짜 돈이 아닌* 이유에 할애하겠습니다. 사실 이 부분이 여러분의 실력을 진짜로 키워주는 부분입니다.
+
+## 스캐너
+
+효율적인 구조는 이렇습니다. 모든 거래소의 마켓을 로드하고, 최소 두 개 거래소에 상장된 심볼을 찾은 뒤,
+심볼별 엔드포인트를 두드리는 대신 **거래소당 한 번의 일괄 `fetchTickers` 호출**을 수행합니다.
+
+```javascript tab="JavaScript"
+import ccxt from 'ccxt';
+
+const ids = ['binance', 'kraken', 'okx', 'bybit', 'kucoin'];
+
+const exchanges = await Promise.all(ids.map(async (id) => {
+    const exchange = new ccxt[id]();
+    await exchange.loadMarkets();
+    return exchange;
+}));
+
+// 최소 두 개 거래소에 상장된 현물 USDT 심볼
+const counts = {};
+for (const exchange of exchanges) {
+    for (const symbol in exchange.markets) {
+        const market = exchange.markets[symbol];
+        if (market.spot && market.active !== false && symbol.endsWith('/USDT')) {
+            counts[symbol] = (counts[symbol] ?? 0) + 1;
+        }
+    }
+}
+const shared = Object.keys(counts).filter((symbol) => counts[symbol] >= 2);
+
+// 거래소당 한 번의 일괄 호출
+const perExchange = await Promise.all(exchanges.map((exchange) =>
+    exchange.fetchTickers(shared.filter((symbol) => symbol in exchange.markets))));
+
+const opportunities = [];
+for (const symbol of shared) {
+    const quotes = [];
+    exchanges.forEach((exchange, i) => {
+        const ticker = perExchange[i][symbol];
+        if (ticker && ticker.bid && ticker.ask) {
+            quotes.push({ id: exchange.id, bid: ticker.bid, ask: ticker.ask });
+        }
+    });
+    if (quotes.length < 2) continue;
+    const bestBid = quotes.reduce((a, b) => (b.bid > a.bid ? b : a));
+    const bestAsk = quotes.reduce((a, b) => (b.ask < a.ask ? b : a));
+    const spread = (bestBid.bid - bestAsk.ask) / bestAsk.ask;
+    if (spread > 0) {
+        opportunities.push({ symbol, buyOn: bestAsk.id, sellOn: bestBid.id, spread });
+    }
+}
+
+opportunities.sort((a, b) => b.spread - a.spread);
+for (const o of opportunities.slice(0, 10)) {
+    console.log(`${o.symbol}: buy ${o.buyOn}, sell ${o.sellOn}, ${(o.spread * 100).toFixed(3)}%`);
+}
+
+await Promise.all(exchanges.map((exchange) => exchange.close()));
+```
+
+```python tab="Python"
+import asyncio
+import ccxt.async_support as ccxt
+
+IDS = ['binance', 'kraken', 'okx', 'bybit', 'kucoin']
+
+
+async def main():
+    exchanges = [getattr(ccxt, exchange_id)() for exchange_id in IDS]
+    await asyncio.gather(*[exchange.load_markets() for exchange in exchanges])
+
+    # 최소 두 개 거래소에 상장된 현물 USDT 심볼
+    counts = {}
+    for exchange in exchanges:
+        for symbol, market in exchange.markets.items():
+            if market['spot'] and market['active'] is not False and symbol.endswith('/USDT'):
+                counts[symbol] = counts.get(symbol, 0) + 1
+    shared = [symbol for symbol, count in counts.items() if count >= 2]
+
+    # 거래소당 한 번의 일괄 호출
+    per_exchange = await asyncio.gather(*[
+        exchange.fetch_tickers([s for s in shared if s in exchange.markets])
+        for exchange in exchanges
+    ])
+
+    opportunities = []
+    for symbol in shared:
+        quotes = []
+        for exchange, tickers in zip(exchanges, per_exchange):
+            ticker = tickers.get(symbol)
+            if ticker and ticker['bid'] and ticker['ask']:
+                quotes.append((exchange.id, ticker['bid'], ticker['ask']))
+        if len(quotes) < 2:
+            continue
+        sell_on = max(quotes, key=lambda q: q[1])   # 가장 높은 매수 호가
+        buy_on = min(quotes, key=lambda q: q[2])    # 가장 낮은 매도 호가
+        spread = (sell_on[1] - buy_on[2]) / buy_on[2]
+        if spread > 0:
+            opportunities.append((symbol, buy_on[0], sell_on[0], spread))
+
+    for symbol, buy, sell, spread in sorted(opportunities, key=lambda o: -o[3])[:10]:
+        print(f'{symbol}: buy {buy}, sell {sell}, {spread * 100:.3f}%')
+
+    await asyncio.gather(*[exchange.close() for exchange in exchanges])
+
+asyncio.run(main())
+```
+
+```php tab="PHP"
+<?php
+$ids = ['binance', 'kraken', 'okx', 'bybit', 'kucoin'];
+
+$exchanges = [];
+foreach ($ids as $id) {
+    $class = "\\ccxt\\{$id}";
+    $exchange = new $class();
+    $exchange->load_markets();
+    $exchanges[] = $exchange;
+}
+
+// 최소 두 개 거래소에 상장된 현물 USDT 심볼
+$counts = [];
+foreach ($exchanges as $exchange) {
+    foreach ($exchange->markets as $symbol => $market) {
+        if ($market['spot'] && $market['active'] !== false && str_ends_with($symbol, '/USDT')) {
+            $counts[$symbol] = ($counts[$symbol] ?? 0) + 1;
+        }
+    }
+}
+$shared = array_keys(array_filter($counts, fn ($count) => $count >= 2));
+
+// 거래소당 한 번의 일괄 호출 (async 버전을 쓰면 동시에 실행할 수 있습니다)
+$perExchange = [];
+foreach ($exchanges as $exchange) {
+    $symbols = array_values(array_filter($shared, fn ($s) => isset($exchange->markets[$s])));
+    $perExchange[] = $exchange->fetch_tickers($symbols);
+}
+
+$opportunities = [];
+foreach ($shared as $symbol) {
+    $quotes = [];
+    foreach ($exchanges as $i => $exchange) {
+        $ticker = $perExchange[$i][$symbol] ?? null;
+        if ($ticker && $ticker['bid'] && $ticker['ask']) {
+            $quotes[] = ['id' => $exchange->id, 'bid' => $ticker['bid'], 'ask' => $ticker['ask']];
+        }
+    }
+    if (count($quotes) < 2) {
+        continue;
+    }
+    $bestBid = $quotes[0];
+    $bestAsk = $quotes[0];
+    foreach ($quotes as $quote) {
+        if ($quote['bid'] > $bestBid['bid']) $bestBid = $quote;
+        if ($quote['ask'] < $bestAsk['ask']) $bestAsk = $quote;
+    }
+    $spread = ($bestBid['bid'] - $bestAsk['ask']) / $bestAsk['ask'];
+    if ($spread > 0) {
+        $opportunities[] = [$symbol, $bestAsk['id'], $bestBid['id'], $spread];
+    }
+}
+
+usort($opportunities, fn ($a, $b) => $b[3] <=> $a[3]);
+foreach (array_slice($opportunities, 0, 10) as [$symbol, $buy, $sell, $spread]) {
+    printf("%s: buy %s, sell %s, %.3f%%\n", $symbol, $buy, $sell, $spread * 100);
+}
+```
+
+```csharp tab="C#"
+using ccxt;
+
+var ids = new List<string> { "binance", "kraken", "okx", "bybit", "kucoin" };
+
+var exchanges = ids.Select(id => Exchange.DynamicallyCreateInstance(id)).ToList();
+var marketsPerExchange = await Task.WhenAll(exchanges.Select(exchange => exchange.LoadMarkets()));
+
+// 최소 두 개 거래소에 상장된 현물 USDT 심볼
+var counts = new Dictionary<string, int>();
+foreach (var markets in marketsPerExchange)
+{
+    foreach (var (symbol, market) in markets)
+    {
+        if (market.spot == true && market.active != false && symbol.EndsWith("/USDT"))
+        {
+            counts[symbol] = counts.GetValueOrDefault(symbol) + 1;
+        }
+    }
+}
+var shared = counts.Where(kv => kv.Value >= 2).Select(kv => kv.Key).ToList();
+
+// 거래소당 한 번의 일괄 호출
+var perExchange = await Task.WhenAll(exchanges.Select((exchange, i) =>
+    exchange.FetchTickers(shared.Where(s => marketsPerExchange[i].ContainsKey(s)).ToList())));
+
+var opportunities = new List<(string Symbol, string BuyOn, string SellOn, double Spread)>();
+foreach (var symbol in shared)
+{
+    var quotes = new List<(string Id, double Bid, double Ask)>();
+    for (var i = 0; i < exchanges.Count; i++)
+    {
+        if (perExchange[i].tickers.TryGetValue(symbol, out var ticker)
+            && ticker.bid != null && ticker.ask != null)
+        {
+            quotes.Add((exchanges[i].id, (double)ticker.bid, (double)ticker.ask));
+        }
+    }
+    if (quotes.Count < 2) continue;
+    var bestBid = quotes.MaxBy(q => q.Bid);
+    var bestAsk = quotes.MinBy(q => q.Ask);
+    var spread = (bestBid.Bid - bestAsk.Ask) / bestAsk.Ask;
+    if (spread > 0) opportunities.Add((symbol, bestAsk.Id, bestBid.Id, spread));
+}
+
+foreach (var o in opportunities.OrderByDescending(o => o.Spread).Take(10))
+{
+    Console.WriteLine($"{o.Symbol}: buy {o.BuyOn}, sell {o.SellOn}, {o.Spread * 100:F3}%");
+}
+```
+
+```go tab="Go"
+package main
+
+import (
+    "fmt"
+    "sort"
+    "strings"
+
+    ccxt "github.com/ccxt/ccxt/go/v4"
+)
+
+type quote struct {
+    id       string
+    bid, ask float64
+}
+
+type opportunity struct {
+    symbol, buyOn, sellOn string
+    spread                float64
+}
+
+func main() {
+    ids := []string{"binance", "kraken", "okx", "bybit", "kucoin"}
+
+    exchanges := make([]ccxt.IExchange, len(ids))
+    marketsPerExchange := make([]map[string]ccxt.MarketInterface, len(ids))
+    for i, id := range ids {
+        exchanges[i] = ccxt.CreateExchange(id, nil)
+        markets, err := exchanges[i].LoadMarkets()
+        if err != nil {
+            panic(err)
+        }
+        marketsPerExchange[i] = markets
+    }
+
+    // 최소 두 개 거래소에 상장된 현물 USDT 심볼
+    counts := map[string]int{}
+    for _, markets := range marketsPerExchange {
+        for symbol, market := range markets {
+            if market.Spot != nil && *market.Spot &&
+                (market.Active == nil || *market.Active) &&
+                strings.HasSuffix(symbol, "/USDT") {
+                counts[symbol]++
+            }
+        }
+    }
+    var shared []string
+    for symbol, count := range counts {
+        if count >= 2 {
+            shared = append(shared, symbol)
+        }
+    }
+
+    // 거래소당 한 번의 일괄 호출 (속도를 위해 고루틴으로 실행하세요)
+    perExchange := make([]map[string]ccxt.Ticker, len(exchanges))
+    for i, exchange := range exchanges {
+        var symbols []string
+        for _, symbol := range shared {
+            if _, ok := marketsPerExchange[i][symbol]; ok {
+                symbols = append(symbols, symbol)
+            }
+        }
+        tickers, err := exchange.FetchTickers(ccxt.WithFetchTickersSymbols(symbols))
+        if err != nil {
+            panic(err)
+        }
+        perExchange[i] = tickers.Tickers
+    }
+
+    var opportunities []opportunity
+    for _, symbol := range shared {
+        var quotes []quote
+        for i, exchange := range exchanges {
+            ticker, ok := perExchange[i][symbol]
+            if !ok || ticker.Bid == nil || ticker.Ask == nil {
+                continue
+            }
+            quotes = append(quotes, quote{exchange.GetId(), *ticker.Bid, *ticker.Ask})
+        }
+        if len(quotes) < 2 {
+            continue
+        }
+        bestBid, bestAsk := quotes[0], quotes[0]
+        for _, q := range quotes {
+            if q.bid > bestBid.bid {
+                bestBid = q
+            }
+            if q.ask < bestAsk.ask {
+                bestAsk = q
+            }
+        }
+        spread := (bestBid.bid - bestAsk.ask) / bestAsk.ask
+        if spread > 0 {
+            opportunities = append(opportunities, opportunity{symbol, bestAsk.id, bestBid.id, spread})
+        }
+    }
+
+    sort.Slice(opportunities, func(a, b int) bool {
+        return opportunities[a].spread > opportunities[b].spread
+    })
+    for _, o := range opportunities[:min(10, len(opportunities))] {
+        fmt.Printf("%s: buy %s, sell %s, %.3f%%\n", o.symbol, o.buyOn, o.sellOn, o.spread*100)
+    }
+}
+```
+
+```java tab="Java"
+import io.github.ccxt.Exchange;
+
+import java.util.*;
+
+public class SpreadScanner {
+
+    record Quote(String id, double bid, double ask) {}
+    record Opportunity(String symbol, String buyOn, String sellOn, double spread) {}
+
+    @SuppressWarnings("unchecked")
+    public static void main(String[] args) {
+        var ids = List.of("binance", "kraken", "okx", "bybit", "kucoin");
+
+        // 동적 인스턴스는 타입이 없는 맵을 반환합니다 (타입이 필요하면 클래스별 타입 API를 참고하세요)
+        var exchanges = new ArrayList<Exchange>();
+        var marketsPerExchange = new ArrayList<Map<String, Object>>();
+        for (var id : ids) {
+            var exchange = Exchange.dynamicallyCreateInstance(id, null);
+            exchange.loadMarkets(false).join();
+            exchanges.add(exchange);
+            marketsPerExchange.add((Map<String, Object>) exchange.markets);
+        }
+
+        // 최소 두 개 거래소에 상장된 현물 USDT 심볼
+        var counts = new HashMap<String, Integer>();
+        for (var markets : marketsPerExchange) {
+            for (var entry : markets.entrySet()) {
+                var market = (Map<String, Object>) entry.getValue();
+                if (Boolean.TRUE.equals(market.get("spot"))
+                        && !Boolean.FALSE.equals(market.get("active"))
+                        && entry.getKey().endsWith("/USDT")) {
+                    counts.merge(entry.getKey(), 1, Integer::sum);
+                }
+            }
+        }
+        var shared = counts.entrySet().stream()
+                .filter(e -> e.getValue() >= 2).map(Map.Entry::getKey).toList();
+
+        // 거래소당 한 번의 일괄 호출
+        var perExchange = new ArrayList<Map<String, Object>>();
+        for (var i = 0; i < exchanges.size(); i++) {
+            var markets = marketsPerExchange.get(i);
+            var symbols = shared.stream().filter(markets::containsKey).toList();
+            perExchange.add((Map<String, Object>) exchanges.get(i)
+                    .fetchTickers(symbols, null).join());
+        }
+
+        var opportunities = new ArrayList<Opportunity>();
+        for (var symbol : shared) {
+            var quotes = new ArrayList<Quote>();
+            for (var i = 0; i < exchanges.size(); i++) {
+                var ticker = (Map<String, Object>) perExchange.get(i).get(symbol);
+                if (ticker == null) continue;
+                var bid = (Number) ticker.get("bid");
+                var ask = (Number) ticker.get("ask");
+                if (bid != null && ask != null) {
+                    quotes.add(new Quote(exchanges.get(i).id, bid.doubleValue(), ask.doubleValue()));
+                }
+            }
+            if (quotes.size() < 2) continue;
+            var bestBid = quotes.stream().max(Comparator.comparingDouble(Quote::bid)).get();
+            var bestAsk = quotes.stream().min(Comparator.comparingDouble(Quote::ask)).get();
+            var spread = (bestBid.bid() - bestAsk.ask()) / bestAsk.ask();
+            if (spread > 0) {
+                opportunities.add(new Opportunity(symbol, bestAsk.id(), bestBid.id(), spread));
+            }
+        }
+
+        opportunities.sort(Comparator.comparingDouble(Opportunity::spread).reversed());
+        for (var o : opportunities.subList(0, Math.min(10, opportunities.size()))) {
+            System.out.printf("%s: buy %s, sell %s, %.3f%%%n",
+                    o.symbol(), o.buyOn(), o.sellOn(), o.spread() * 100);
+        }
+    }
+}
+```
+
+실행해 보면 양(+)의 스프레드 목록이 나오는데, 대개 소형 알트코인에 몰려 있습니다.
+맨 윗줄에 `createOrder`를 연결하기 전에, 계속 읽어 주십시오.
+
+## 그 스프레드 대부분이 진짜가 아닌 이유
+
+**작은 스프레드는 수수료가 잡아먹습니다.** 두 다리(leg) 모두에서 테이커 수수료를 내야 합니다. 주요 코인은
+보통 편도 0.1% 정도이고, 소규모 거래소는 더 높습니다. 총 스프레드 0.15%는 곧 손실입니다. 임계값은
+수수료를 반영한 값이어야 하며, 거래소별 수수료는 마켓 구조(`market['taker']`)에 들어 있습니다.
+
+**티커는 한 틱 동안의 최우선 호가일 뿐입니다.** 여러분이 체결하려는 매수 호가는 수량이 한정되어 있고,
+실제로 행동할 즈음에는 이미 오래된 호가일 수 있습니다. 스프레드를 믿기 전에 `fetchOrderBook(symbol)`로
+호가창 깊이를 확인하고, 표시된 가격이 아니라 여러분의 수량에 대해 *실제 체결 가능한* 가격을 계산하십시오.
+지속적인 모니터링이라면 폴링 대신
+[WebSocket](/ko/blog/realtime-market-data-with-websockets)으로 호가창을 스트리밍하십시오.
+
+**코인 이동은 느리고 비쌉니다.** 순진한 계획 — A에서 사서, 출금하고, B에 입금한 뒤, 판다 — 은
+수 분에서 수 시간이 걸리고, 그 사이 스프레드는 사라집니다. 출금 수수료가 엣지보다 큰 경우도 흔합니다.
+그리고 때로는 출금이 아예 중단되어 있는데, 바로 그것이 스프레드가 존재하는 *이유*입니다. 아무도 그 차이를
+메울 수 없기 때문이죠. `fetchCurrencies()`를 확인하십시오. 통합 통화 구조에는 네트워크별
+`active`, `deposit`, `withdraw` 플래그와 수수료가 담겨 있습니다.
+
+**지속되는 스프레드는 지속되는 이유가 있습니다.** 거래소 리스크, 지역 제한, 혹은 물량을 소화하지 못하는
+비유동적 호가창 때문입니다. 시장은 길바닥에 지폐를 흘리고 다니지 않습니다. 여러분이 아직 가격을 매기지 않은
+리스크에 대해 값을 청구하고 있을 뿐입니다.
+
+## 진짜 버전은 어떤 모습인가
+
+본격적인 크로스 거래소 아비트라지는 양쪽 거래소에 미리 재고를 예치해 두고 두 다리를
+동시에 실행합니다. 핵심 경로에 전송이 없고, 가끔씩만 리밸런싱합니다. 이 방식과 더불어
+펀딩비 아비트라지, 한 거래소 안에서의 삼각 아비트라지는 짝이 되는 글에서 다룹니다:
+[가장 인기 있는 크립토 아비트라지 전략](/ko/blog/crypto-arbitrage-strategies).
+
+위의 스캐너는 여전히 올바른 첫걸음입니다. 스프레드가 어디에 존재하는지, 얼마나 빨리 닫히는지,
+어떤 거래소가 체계적으로 뒤처지는지를 배우는 방법이니까요. 다만 어떤 주문이든 여러분의 머신을 떠나기 전에,
+일주일 정도는 읽기 전용으로만 돌려 보십시오.

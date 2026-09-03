@@ -1,0 +1,271 @@
+---
+title: "别再轮询了：你的交易机器人正在用过期价格做决定"
+description: "别再轮询了。如何用 CCXT 通过 WebSocket 流式获取 ticker、order book、成交以及你自己的订单——以及库在底层替你做了什么。"
+author: CCXT Team
+date: 2026-07-07T14:00:00Z
+tags: [tutorials, websockets]
+---
+
+每个机器人的第一个版本都在轮询：循环调用 `fetchTicker`，睡一会儿，再来一遍。它能用——直到你想要
+不止一个交易对、或者更快的反应，或者撞上了交易所的 rate limit。轮询给你的是每次请求一张快照；
+而市场在你两次请求之间已经动了。
+
+交易所用 WebSocket 流来解决这个问题：你订阅一次，交易所把每次更新推送给你。CCXT 在你已有的
+同一个包里内置了 WebSocket 支持，六种语言全部覆盖，其 API 与 REST 一一对应：REST 有
+`fetchOrderBook`，WebSocket 就有 `watchOrderBook`。
+
+## watch 循环
+
+每当有新更新到达时，`watch*` 方法就会 resolve 一次，所以实时代码就只是一个循环：
+
+```javascript tab="JavaScript"
+import ccxt from 'ccxt';
+
+const exchange = new ccxt.pro.binance();
+
+while (true) {
+    const orderbook = await exchange.watchOrderBook('BTC/USDT');
+    console.log(orderbook.bids[0], orderbook.asks[0]);
+}
+```
+
+```python tab="Python"
+import asyncio
+import ccxt.pro
+
+
+async def main():
+    exchange = ccxt.pro.binance()
+    while True:
+        orderbook = await exchange.watch_order_book('BTC/USDT')
+        print(orderbook['bids'][0], orderbook['asks'][0])
+
+asyncio.run(main())
+```
+
+```php tab="PHP"
+<?php
+use function React\Async\await;
+
+$exchange = new \ccxt\pro\binance();
+
+while (true) {
+    $orderbook = await($exchange->watch_order_book('BTC/USDT'));
+    echo json_encode($orderbook['bids'][0]), ' ', json_encode($orderbook['asks'][0]), "\n";
+}
+```
+
+```csharp tab="C#"
+using ccxt;
+
+var exchange = new ccxt.pro.binance(new Dictionary<string, object>() {});
+
+while (true)
+{
+    var orderbook = await exchange.WatchOrderBook("BTC/USDT");
+    Console.WriteLine($"{orderbook.bids[0][0]} {orderbook.asks[0][0]}");
+}
+```
+
+```go tab="Go"
+package main
+
+import (
+    "fmt"
+    "log"
+
+    ccxtpro "github.com/ccxt/ccxt/go/v4/pro"
+)
+
+func main() {
+    exchange := ccxtpro.NewBinance(nil)
+
+    for {
+        orderbook, err := exchange.WatchOrderBook("BTC/USDT")
+        if err != nil {
+            log.Println(err)
+            break
+        }
+        fmt.Println(orderbook.Bids[0], orderbook.Asks[0])
+    }
+}
+```
+
+```java tab="Java"
+import io.github.ccxt.exchanges.pro.Binance;
+
+var exchange = new Binance();
+
+while (true) {
+    var orderbook = exchange.watchOrderBook("BTC/USDT");
+    System.out.println(orderbook.bids.get(0) + " " + orderbook.asks.get(0));
+}
+```
+
+第一次调用打开连接并订阅；之后的每次调用只是等待下一次更新。同样的模式适用于 `watchTicker`、
+`watchTrades`、`watchOHLCV`，以及——配合 API 密钥——用于你自己成交的 `watchBalance`、
+`watchOrders` 和 `watchMyTrades`。
+
+## CCXT 在底层替你做了什么
+
+交易所原始的 WebSocket API 很混乱，这也是大多数手写集成出错的地方。当你调用 `watchOrderBook`
+时，CCXT 会：
+
+- **从增量更新维护 order book。** 大多数交易所先发送一份初始快照，然后发送增量更新。CCXT 按
+  顺序应用它们，检查序列号，并每次都交给你一份完整、有序的 order book——而不是一条原始的
+  diff 消息。
+- **管理连接。** 每个流组一个 WebSocket，在你的各个订阅之间共享。订阅五十个交易对，CCXT 会
+  按该交易所的方式正确地复用它们。
+- **重连并重新订阅。** 交易所会例行地断开连接（例如 Binance 会在 24 小时后切断每个连接）。CCXT
+  会自动重连、重新认证并重新订阅；你的循环只管继续接收更新。
+- **处理保活**——ping/pong 帧、心跳消息，以及那些你原本要在凌晨三点才会发现的交易所特有的
+  怪癖。
+
+## 多个交易对，多家交易所
+
+对于仪表盘、扫描器和做市来说，你很少只想要一条流。`watchTickers` 一次性订阅一组交易对，
+返回一个以交易对为键的结构，并随事件到达而更新：
+
+```javascript tab="JavaScript"
+const symbols = ['BTC/USDT', 'ETH/USDT', 'SOL/USDT'];
+while (true) {
+    const tickers = await exchange.watchTickers(symbols);
+    console.log(tickers['BTC/USDT'].last);
+}
+```
+
+```python tab="Python"
+symbols = ['BTC/USDT', 'ETH/USDT', 'SOL/USDT']
+while True:
+    tickers = await exchange.watch_tickers(symbols)
+    print(tickers['BTC/USDT']['last'])
+```
+
+```php tab="PHP"
+$symbols = ['BTC/USDT', 'ETH/USDT', 'SOL/USDT'];
+while (true) {
+    $tickers = await($exchange->watch_tickers($symbols));
+    echo $tickers['BTC/USDT']['last'], "\n";
+}
+```
+
+```csharp tab="C#"
+var symbols = new List<string>() { "BTC/USDT", "ETH/USDT", "SOL/USDT" };
+while (true)
+{
+    var tickers = await exchange.WatchTickers(symbols);
+    Console.WriteLine(tickers["BTC/USDT"].last);
+}
+```
+
+```go tab="Go"
+symbols := []string{"BTC/USDT", "ETH/USDT", "SOL/USDT"}
+for {
+    tickers, err := exchange.WatchTickers(ccxt.WithWatchTickersSymbols(symbols))
+    if err != nil {
+        log.Println(err)
+        break
+    }
+    fmt.Println(*tickers.Tickers["BTC/USDT"].Last)
+}
+```
+
+```java tab="Java"
+var symbols = java.util.List.of("BTC/USDT", "ETH/USDT", "SOL/USDT");
+while (true) {
+    var tickers = exchange.watchTickers(symbols, null);
+    System.out.println(tickers.tickers.get("BTC/USDT").last);
+}
+```
+
+当你需要用一个循环覆盖多个市场时，还有 `...ForSymbols` 变体（`watchTradesForSymbols`、
+`watchOrderBookForSymbols`、`watchOHLCVForSymbols`），而并发运行多家交易所也不过是多个循环——
+在 JavaScript/Python/PHP/C#/Java 里每家交易所一个异步任务，在 Go 里每家交易所一个 goroutine。
+
+## 监听你自己的订单
+
+同样的机制也覆盖私有数据，这就是机器人无需轮询 `fetchOrder` 就能追踪成交的方式：
+
+```javascript tab="JavaScript"
+const exchange = new ccxt.pro.binance({ apiKey: KEY, secret: SECRET });
+while (true) {
+    const orders = await exchange.watchOrders();
+    for (const order of orders) {
+        console.log(order.id, order.status, order.filled);
+    }
+}
+```
+
+```python tab="Python"
+exchange = ccxt.pro.binance({'apiKey': KEY, 'secret': SECRET})
+while True:
+    orders = await exchange.watch_orders()
+    for order in orders:
+        print(order['id'], order['status'], order['filled'])
+```
+
+```php tab="PHP"
+$exchange = new \ccxt\pro\binance(['apiKey' => $key, 'secret' => $secret]);
+while (true) {
+    $orders = await($exchange->watch_orders());
+    foreach ($orders as $order) {
+        echo $order['id'], ' ', $order['status'], ' ', $order['filled'], "\n";
+    }
+}
+```
+
+```csharp tab="C#"
+var exchange = new ccxt.pro.binance(new Dictionary<string, object>() {
+    { "apiKey", key }, { "secret", secret },
+});
+while (true)
+{
+    var orders = await exchange.WatchOrders();
+    foreach (var order in orders)
+    {
+        Console.WriteLine($"{order.id} {order.status} {order.filled}");
+    }
+}
+```
+
+```go tab="Go"
+exchange := ccxtpro.NewBinance(nil)
+exchange.ApiKey = key
+exchange.Secret = secret
+for {
+    orders, err := exchange.WatchOrders()
+    if err != nil {
+        log.Println(err)
+        break
+    }
+    for _, order := range orders {
+        fmt.Println(*order.Id, *order.Status, *order.Filled)
+    }
+}
+```
+
+```java tab="Java"
+var exchange = new Binance();
+exchange.apiKey = key;
+exchange.secret = secret;
+while (true) {
+    var orders = exchange.watchOrders();
+    for (var order : orders) {
+        System.out.println(order.id + " " + order.status + " " + order.filled);
+    }
+}
+```
+
+## 实用提示
+
+- **先检查支持情况。** 并非每家交易所都实现了每一种流。能力标志会在运行时告诉你：
+  `exchange.has['watchOrderBook']`、`exchange.has['watchOrders']` 等等。
+- **关闭程序时务必 `close()`。** WebSocket 连接会持有套接字和后台任务；在程序退出时调用
+  `await exchange.close()`。
+- **REST 仍然有它的工作。** 下单和撤单、获取历史记录以及一次性查询是 REST 的领地。标准架构是：
+  用 WebSocket 监听你关注的状态（价格、order book、成交），用 REST 执行你要采取的动作。
+- **对大多数人来说，吞吐量比延迟更重要。** WebSocket 带来的现实收益不是微秒——而是可以同时监听
+  数百个市场而不触碰 rate limit，这在轮询模式下根本不可能。
+
+如果你正在朝着需要这些能力的策略前进——扫描器、做市——后续文章正好从这里接上：
+[套利策略](/zh/blog/crypto-arbitrage-strategies)和[做市](/zh/blog/market-making-with-ccxt)。

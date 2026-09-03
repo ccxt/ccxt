@@ -1,0 +1,278 @@
+---
+title: "폴링을 멈추십시오: 여러분의 트레이딩 봇은 오래된 가격으로 움직이고 있습니다"
+description: "폴링을 멈추십시오. CCXT로 티커, 호가창, 체결, 그리고 자신의 주문을 WebSocket으로 스트리밍하는 방법 — 그리고 라이브러리가 내부에서 대신 처리해 주는 것들."
+author: CCXT Team
+date: 2026-07-07T14:00:00Z
+tags: [tutorials, websockets]
+---
+
+모든 봇의 첫 버전은 폴링합니다. 루프 안에서 `fetchTicker`를 호출하고, 잠들고, 반복하는 것이죠.
+동작은 합니다. 심볼이 하나 이상 필요해지거나, 더 빠른 반응이 필요해지거나, 거래소의 rate limit에 부딪히기
+전까지는요. 폴링은 요청당 스냅샷 하나를 줄 뿐이고, 시장은 여러분의 요청 사이에 움직입니다.
+
+거래소는 이 문제를 WebSocket 스트림으로 해결합니다. 한 번 구독하면 거래소가 모든 업데이트를 여러분에게
+푸시합니다. CCXT는 여러분이 이미 갖고 있는 바로 그 패키지 안에, 여섯 개 언어 모두에서, REST API를
+그대로 반영한 API 뒤에 WebSocket 지원을 담아 제공합니다. REST에 `fetchOrderBook`이 있다면,
+WebSocket에는 `watchOrderBook`이 있습니다.
+
+## watch 루프
+
+`watch*` 메서드는 새 업데이트가 도착할 때마다 resolve되므로, 실시간 코드는 그저 루프입니다:
+
+```javascript tab="JavaScript"
+import ccxt from 'ccxt';
+
+const exchange = new ccxt.pro.binance();
+
+while (true) {
+    const orderbook = await exchange.watchOrderBook('BTC/USDT');
+    console.log(orderbook.bids[0], orderbook.asks[0]);
+}
+```
+
+```python tab="Python"
+import asyncio
+import ccxt.pro
+
+
+async def main():
+    exchange = ccxt.pro.binance()
+    while True:
+        orderbook = await exchange.watch_order_book('BTC/USDT')
+        print(orderbook['bids'][0], orderbook['asks'][0])
+
+asyncio.run(main())
+```
+
+```php tab="PHP"
+<?php
+use function React\Async\await;
+
+$exchange = new \ccxt\pro\binance();
+
+while (true) {
+    $orderbook = await($exchange->watch_order_book('BTC/USDT'));
+    echo json_encode($orderbook['bids'][0]), ' ', json_encode($orderbook['asks'][0]), "\n";
+}
+```
+
+```csharp tab="C#"
+using ccxt;
+
+var exchange = new ccxt.pro.binance(new Dictionary<string, object>() {});
+
+while (true)
+{
+    var orderbook = await exchange.WatchOrderBook("BTC/USDT");
+    Console.WriteLine($"{orderbook.bids[0][0]} {orderbook.asks[0][0]}");
+}
+```
+
+```go tab="Go"
+package main
+
+import (
+    "fmt"
+    "log"
+
+    ccxtpro "github.com/ccxt/ccxt/go/v4/pro"
+)
+
+func main() {
+    exchange := ccxtpro.NewBinance(nil)
+
+    for {
+        orderbook, err := exchange.WatchOrderBook("BTC/USDT")
+        if err != nil {
+            log.Println(err)
+            break
+        }
+        fmt.Println(orderbook.Bids[0], orderbook.Asks[0])
+    }
+}
+```
+
+```java tab="Java"
+import io.github.ccxt.exchanges.pro.Binance;
+
+var exchange = new Binance();
+
+while (true) {
+    var orderbook = exchange.watchOrderBook("BTC/USDT");
+    System.out.println(orderbook.bids.get(0) + " " + orderbook.asks.get(0));
+}
+```
+
+첫 번째 호출이 연결을 열고 구독합니다. 이후의 모든 호출은 다음 업데이트를 기다릴 뿐입니다. 같은 패턴이
+`watchTicker`, `watchTrades`, `watchOHLCV`, 그리고 API 키가 있다면 자신의 체결을 위한
+`watchBalance`, `watchOrders`, `watchMyTrades`에도 적용됩니다.
+
+## CCXT가 내부에서 대신 처리해 주는 것
+
+거래소의 원시 WebSocket API는 지저분하며, 직접 만든 연동 대부분이 여기서 잘못됩니다. `watchOrderBook`을
+호출하면 CCXT는:
+
+- **델타로부터 호가창을 유지합니다.** 대부분의 거래소는 초기 스냅샷을 보낸 뒤 증분 업데이트를 보냅니다.
+  CCXT는 이를 순서대로 적용하고, 시퀀스 번호를 확인하고, 매번 완전하고 정렬된 호가창을 건네줍니다.
+  원시 diff 메시지가 아니라요.
+- **연결을 관리합니다.** 스트림 그룹당 WebSocket 하나를 여러분의 구독들이 공유합니다. 50개 심볼을
+  구독하면 CCXT가 해당 거래소에 맞게 제대로 멀티플렉싱합니다.
+- **재연결하고 재구독합니다.** 거래소는 일상적으로 연결을 끊습니다 (예를 들어 Binance는 모든 연결을
+  24시간 후에 끊습니다). CCXT는 자동으로 재연결하고, 재인증하고, 재구독합니다. 여러분의 루프는 그저
+  계속 업데이트를 받습니다.
+- **킵얼라이브를 처리합니다** — ping/pong 프레임, 하트비트 메시지, 그리고 그렇지 않았다면 새벽 3시에
+  발견했을 거래소별 특이점들.
+
+## 여러 심볼, 여러 거래소
+
+대시보드, 스캐너, 마켓 메이킹에서는 단일 스트림만 원하는 경우가 드뭅니다. `watchTickers`는 심볼 목록을
+한 번에 구독하고, 이벤트가 도착할 때마다 갱신되는 심볼 키 구조체를 반환합니다:
+
+```javascript tab="JavaScript"
+const symbols = ['BTC/USDT', 'ETH/USDT', 'SOL/USDT'];
+while (true) {
+    const tickers = await exchange.watchTickers(symbols);
+    console.log(tickers['BTC/USDT'].last);
+}
+```
+
+```python tab="Python"
+symbols = ['BTC/USDT', 'ETH/USDT', 'SOL/USDT']
+while True:
+    tickers = await exchange.watch_tickers(symbols)
+    print(tickers['BTC/USDT']['last'])
+```
+
+```php tab="PHP"
+$symbols = ['BTC/USDT', 'ETH/USDT', 'SOL/USDT'];
+while (true) {
+    $tickers = await($exchange->watch_tickers($symbols));
+    echo $tickers['BTC/USDT']['last'], "\n";
+}
+```
+
+```csharp tab="C#"
+var symbols = new List<string>() { "BTC/USDT", "ETH/USDT", "SOL/USDT" };
+while (true)
+{
+    var tickers = await exchange.WatchTickers(symbols);
+    Console.WriteLine(tickers["BTC/USDT"].last);
+}
+```
+
+```go tab="Go"
+symbols := []string{"BTC/USDT", "ETH/USDT", "SOL/USDT"}
+for {
+    tickers, err := exchange.WatchTickers(ccxt.WithWatchTickersSymbols(symbols))
+    if err != nil {
+        log.Println(err)
+        break
+    }
+    fmt.Println(*tickers.Tickers["BTC/USDT"].Last)
+}
+```
+
+```java tab="Java"
+var symbols = java.util.List.of("BTC/USDT", "ETH/USDT", "SOL/USDT");
+while (true) {
+    var tickers = exchange.watchTickers(symbols, null);
+    System.out.println(tickers.tickers.get("BTC/USDT").last);
+}
+```
+
+여러 마켓을 하나의 루프로 돌려야 할 때를 위한 `...ForSymbols` 변형(`watchTradesForSymbols`,
+`watchOrderBookForSymbols`, `watchOHLCVForSymbols`)이 있고, 여러 거래소를 동시에 돌리는 것은
+그저 여러 개의 루프입니다. JavaScript/Python/PHP/C#/Java에서는 거래소당 비동기 태스크 하나,
+Go에서는 거래소당 고루틴 하나입니다.
+
+## 자신의 주문 지켜보기
+
+같은 메커니즘이 비공개 데이터도 다룹니다. 봇이 `fetchOrder`를 폴링하지 않고 체결을 추적하는 방법이
+바로 이것입니다:
+
+```javascript tab="JavaScript"
+const exchange = new ccxt.pro.binance({ apiKey: KEY, secret: SECRET });
+while (true) {
+    const orders = await exchange.watchOrders();
+    for (const order of orders) {
+        console.log(order.id, order.status, order.filled);
+    }
+}
+```
+
+```python tab="Python"
+exchange = ccxt.pro.binance({'apiKey': KEY, 'secret': SECRET})
+while True:
+    orders = await exchange.watch_orders()
+    for order in orders:
+        print(order['id'], order['status'], order['filled'])
+```
+
+```php tab="PHP"
+$exchange = new \ccxt\pro\binance(['apiKey' => $key, 'secret' => $secret]);
+while (true) {
+    $orders = await($exchange->watch_orders());
+    foreach ($orders as $order) {
+        echo $order['id'], ' ', $order['status'], ' ', $order['filled'], "\n";
+    }
+}
+```
+
+```csharp tab="C#"
+var exchange = new ccxt.pro.binance(new Dictionary<string, object>() {
+    { "apiKey", key }, { "secret", secret },
+});
+while (true)
+{
+    var orders = await exchange.WatchOrders();
+    foreach (var order in orders)
+    {
+        Console.WriteLine($"{order.id} {order.status} {order.filled}");
+    }
+}
+```
+
+```go tab="Go"
+exchange := ccxtpro.NewBinance(nil)
+exchange.ApiKey = key
+exchange.Secret = secret
+for {
+    orders, err := exchange.WatchOrders()
+    if err != nil {
+        log.Println(err)
+        break
+    }
+    for _, order := range orders {
+        fmt.Println(*order.Id, *order.Status, *order.Filled)
+    }
+}
+```
+
+```java tab="Java"
+var exchange = new Binance();
+exchange.apiKey = key;
+exchange.secret = secret;
+while (true) {
+    var orders = exchange.watchOrders();
+    for (var order : orders) {
+        System.out.println(order.id + " " + order.status + " " + order.filled);
+    }
+}
+```
+
+## 실용적인 참고 사항
+
+- **지원 여부부터 확인하십시오.** 모든 거래소가 모든 스트림을 구현하는 것은 아닙니다. 기능 플래그가
+  런타임에 알려 줍니다: `exchange.has['watchOrderBook']`, `exchange.has['watchOrders']` 등.
+- **종료 시 항상 `close()`를 호출하십시오.** WebSocket 연결은 소켓과 백그라운드 태스크를 붙들고
+  있습니다. 프로그램이 종료될 때 `await exchange.close()`를 호출하십시오.
+- **REST에도 여전히 할 일이 있습니다.** 주문 제출과 취소, 히스토리 조회, 일회성 쿼리는 REST의
+  영역입니다. 표준 아키텍처는 이렇습니다. 지켜보는 상태(가격, 호가창, 체결)는 WebSocket, 취하는
+  행동은 REST.
+- **대부분의 사람에게는 지연 시간보다 처리량이 중요합니다.** WebSocket의 현실적인 이점은 마이크로초가
+  아닙니다. rate limit을 건드리지 않고 수백 개의 마켓을 동시에 지켜보는 것이며, 이는 폴링으로는 그냥
+  불가능합니다.
+
+이것이 필요한 전략 — 스캐너, 마켓 메이킹 — 을 향해 가고 계시다면, 후속 글들이 정확히 여기서 이어집니다:
+[아비트라지 전략](/ko/blog/crypto-arbitrage-strategies)과
+[마켓 메이킹](/ko/blog/market-making-with-ccxt).

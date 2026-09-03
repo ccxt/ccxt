@@ -1,0 +1,341 @@
+---
+title: "Sept erreurs qui font exploser les bots de trading crypto (vous faites probablement la n°1 en ce moment)"
+description: "Argent en virgule flottante, bannissements pour rate limit, confusions de symboles, retries à l'aveugle — les modes de défaillance classiques du code de trading, et la mécanique de la bibliothèque qui existe à cause d'eux."
+author: CCXT Team
+date: 2026-07-07T13:00:00Z
+tags: [best-practices]
+---
+
+Le code de trading échoue de façon prévisible. Après une décennie à maintenir des intégrations
+avec plus de 100 exchanges, nous avons vu les sept mêmes erreurs faire tomber des bots encore et
+encore — nombre des décisions de conception de CCXT existent précisément à cause d'elles. Les
+voici, à peu près dans l'ordre où elles vous mordront.
+
+## 1. Faire des calculs d'argent avec des flottants
+
+```javascript tab="JavaScript"
+console.log(0.1 + 0.2);
+// 0.30000000000000004
+```
+
+```python tab="Python"
+print(0.1 + 0.2)
+# 0.30000000000000004
+```
+
+```php tab="PHP"
+var_dump(0.1 + 0.2 == 0.3);
+// bool(false)
+```
+
+```csharp tab="C#"
+Console.WriteLine(0.1 + 0.2);
+// 0.30000000000000004
+```
+
+```go tab="Go"
+fmt.Println(0.1 + 0.2)
+// 0.30000000000000004
+```
+
+```java tab="Java"
+System.out.println(0.1 + 0.2);
+// 0.30000000000000004
+```
+
+Les flottants binaires ne peuvent pas représenter la plupart des fractions décimales — dans tous
+les langages. Dans du code de trading, ce n'est pas une anecdote : cela produit des montants
+d'ordre que l'exchange rejette, ou pire, des tailles de position silencieusement fausses qui se
+cumulent sur des milliers de trades.
+
+En interne, toute l'arithmétique de CCXT passe par `Precise` — du calcul décimal sur chaînes de
+caractères, sans le moindre flottant, dans tous les langages. Pour votre propre code, les outils
+importants sont les helpers de précision, qui arrondissent n'importe quelle valeur exactement à
+ce que l'exchange accepte :
+
+```javascript tab="JavaScript"
+const amount = exchange.amountToPrecision('BTC/USDT', rawAmount);
+const price = exchange.priceToPrecision('BTC/USDT', rawPrice);
+```
+
+```python tab="Python"
+amount = exchange.amount_to_precision('BTC/USDT', raw_amount)
+price = exchange.price_to_precision('BTC/USDT', raw_price)
+```
+
+```php tab="PHP"
+$amount = $exchange->amount_to_precision('BTC/USDT', $rawAmount);
+$price = $exchange->price_to_precision('BTC/USDT', $rawPrice);
+```
+
+```csharp tab="C#"
+var amount = exchange.amountToPrecision("BTC/USDT", rawAmount);
+var price = exchange.priceToPrecision("BTC/USDT", rawPrice);
+```
+
+```go tab="Go"
+amount := exchange.AmountToPrecision("BTC/USDT", rawAmount)
+price := exchange.PriceToPrecision("BTC/USDT", rawPrice)
+```
+
+```java tab="Java"
+var amount = exchange.amountToPrecision("BTC/USDT", rawAmount);
+var price = exchange.priceToPrecision("BTC/USDT", rawPrice);
+```
+
+Chaque marché porte aussi sa `precision` et ses `limits` (montant minimum, coût minimum) dans la
+structure de marché — vérifiez-les avant de passer l'ordre au lieu d'analyser les erreurs de rejet
+après coup.
+
+## 2. Ignorer les rate limits jusqu'au bannissement
+
+Chaque exchange impose des limites de fréquence de requêtes ; dépassez-les et vous récoltez des
+HTTP 429, puis un bannissement temporaire de l'IP — généralement en plein trade, quand votre
+boucle est au plus occupée.
+
+Le limiteur de débit intégré à CCXT, de type token bucket, est **activé par défaut** et connaît
+les coûts par endpoint de chaque exchange : les appels lourds consomment une plus grande part du
+budget que les appels légers. Laissez-le activé, et concevez en fonction de lui : mettez
+`loadMarkets()` en cache au démarrage au lieu de le recharger, groupez avec
+`fetchTickers(symbols)` au lieu de multiplier les appels `fetchTicker`, et utilisez les
+[WebSockets](/fr/blog/realtime-market-data-with-websockets) pour tout ce que vous interrogez plus de
+quelques fois par minute.
+
+## 3. Coder en dur les symboles propres à chaque exchange
+
+`BTCUSDT`, `XBTUSDT`, `BTC-USDT`, `tBTCUSD` — chaque exchange nomme le même marché différemment,
+et un code parsemé d'identifiants bruts meurt le jour où vous ajoutez un second exchange.
+
+La règle de CCXT : **symboles unifiés dans votre code, identifiants d'exchange sur le fil, jamais
+mélangés.** Vous écrivez `BTC/USDT` partout (les dérivés ont aussi leurs formes unifiées :
+`BTC/USDT:USDT` pour le swap perpétuel linéaire), et la bibliothèque fait la correspondance avec
+l'identifiant de l'exchange en interne. Si vous avez un jour besoin de l'identifiant brut — pour
+un endpoint spécifique à un exchange, disons — dérivez-le, ne le codez pas en dur :
+
+```javascript tab="JavaScript"
+const market = exchange.market('BTC/USDT');
+console.log(market.id);   // 'BTCUSDT' sur binance, 'XBTUSDT' ailleurs
+```
+
+```python tab="Python"
+market = exchange.market('BTC/USDT')
+print(market['id'])   # 'BTCUSDT' sur binance, 'XBTUSDT' ailleurs
+```
+
+```php tab="PHP"
+$market = $exchange->market('BTC/USDT');
+echo $market['id'];   // 'BTCUSDT' sur binance, 'XBTUSDT' ailleurs
+```
+
+```csharp tab="C#"
+var markets = await exchange.LoadMarkets();
+Console.WriteLine(markets["BTC/USDT"].id);   // 'BTCUSDT' sur binance
+```
+
+```go tab="Go"
+markets, _ := exchange.LoadMarkets()
+fmt.Println(*markets["BTC/USDT"].Id)   // 'BTCUSDT' sur binance
+```
+
+```java tab="Java"
+var markets = exchange.loadMarkets(false);
+System.out.println(markets.get("BTC/USDT").id);   // 'BTCUSDT' sur binance
+```
+
+## 4. Traiter toutes les erreurs de la même façon
+
+Les deux variantes mortelles : planter à la moindre erreur (le bot meurt au premier accroc à
+2 h du matin), ou tout réessayer aveuglément (le bot resoumet un ordre que l'exchange a déjà
+rejeté — ou pire, déjà **accepté**).
+
+CCXT normalise le zoo d'erreurs de chaque exchange en une seule hiérarchie typée, pour que votre
+gestionnaire soit une politique, pas de la comparaison de chaînes :
+
+- **Famille `NetworkError`** — `RequestTimeout`, `ExchangeNotAvailable`, `DDoSProtection`,
+  `RateLimitExceeded`. Transitoires. Reculez et réessayez.
+- **Famille `ExchangeError`** — `InvalidOrder`, `InsufficientFunds`, `AuthenticationError`,
+  `BadSymbol`. Votre requête est fausse, ou votre état l'est. Réessayer avec une entrée identique
+  donne un échec identique — corrigez la cause à la place.
+
+```javascript tab="JavaScript"
+try {
+    const order = await exchange.createOrder(symbol, 'limit', side, amount, price);
+} catch (e) {
+    if (e instanceof ccxt.NetworkError) {
+        checkIfItWentThrough();   // voir ci-dessous, puis éventuellement réessayer
+    } else if (e instanceof ccxt.ExchangeError) {
+        logAndStop(e);            // ne JAMAIS réessayer celles-ci à l'aveugle
+    }
+}
+```
+
+```python tab="Python"
+import ccxt
+
+try:
+    order = exchange.create_order(symbol, 'limit', side, amount, price)
+except ccxt.NetworkError:
+    check_if_it_went_through()   # voir ci-dessous, puis éventuellement réessayer
+except ccxt.ExchangeError as e:
+    log_and_stop(e)              # ne JAMAIS réessayer celles-ci à l'aveugle
+```
+
+```php tab="PHP"
+try {
+    $order = $exchange->create_order($symbol, 'limit', $side, $amount, $price);
+} catch (\ccxt\NetworkError $e) {
+    check_if_it_went_through();   // voir ci-dessous, puis éventuellement réessayer
+} catch (\ccxt\ExchangeError $e) {
+    log_and_stop($e);             // ne JAMAIS réessayer celles-ci à l'aveugle
+}
+```
+
+```csharp tab="C#"
+try
+{
+    var order = await exchange.CreateOrder(symbol, "limit", side, amount, price);
+}
+catch (NetworkError e)
+{
+    CheckIfItWentThrough();   // voir ci-dessous, puis éventuellement réessayer
+}
+catch (ExchangeError e)
+{
+    LogAndStop(e);            // ne JAMAIS réessayer celles-ci à l'aveugle
+}
+```
+
+```go tab="Go"
+order, err := exchange.CreateOrder(symbol, "limit", side, amount,
+    ccxt.WithCreateOrderPrice(price))
+if err != nil {
+    if ccxtErr, ok := err.(*ccxt.Error); ok {
+        switch ccxtErr.Type {
+        case ccxt.RequestTimeoutErrType, ccxt.RateLimitExceededErrType,
+            ccxt.ExchangeNotAvailableErrType:
+            checkIfItWentThrough() // transitoire — puis éventuellement réessayer
+        default:
+            logAndStop(ccxtErr) // ne JAMAIS réessayer celles-ci à l'aveugle
+        }
+    }
+}
+```
+
+```java tab="Java"
+try {
+    var order = exchange.createOrder(symbol, "limit", side, amount, price, null);
+} catch (io.github.ccxt.errors.NetworkError e) {
+    checkIfItWentThrough();   // voir ci-dessous, puis éventuellement réessayer
+} catch (io.github.ccxt.errors.ExchangeError e) {
+    logAndStop(e);            // ne JAMAIS réessayer celles-ci à l'aveugle
+}
+```
+
+Le cas subtil est un **timeout sur `createOrder`** : l'exchange peut avoir accepté l'ordre alors
+même que votre requête a expiré. Réessayer naïvement double votre position. La solution est
+l'idempotence — envoyez votre propre `clientOrderId` dans `params`, et en cas de timeout,
+interrogez-le avant de réessayer.
+
+## 5. Supposer que la pagination fonctionne toute seule
+
+`fetchOHLCV`, `fetchTrades` et `fetchMyTrades` renvoient **une seule page**, plafonnée à un
+maximum propre à chaque exchange (souvent 500 à 1000 lignes). Un code qui les appelle une fois et
+suppose avoir obtenu « l'historique » calcule silencieusement ses indicateurs sur des données
+partielles.
+
+Récupérer une plage signifie boucler : requête avec `since`, prendre l'horodatage de la dernière
+ligne, requêter à nouveau à partir de là, s'arrêter quand rien de nouveau n'arrive. Respectez le
+plafond de page de chaque exchange (l'argument `limit`), et rappelez-vous que le limiteur de débit
+dépense du budget à chaque page.
+
+## 6. Laisser dériver votre horloge
+
+Les requêtes signées embarquent un horodatage, et les exchanges rejettent les requêtes dont
+l'horodatage est trop éloigné de l'heure de leur serveur. Une horloge décalée de quelques secondes
+produit des échecs d'authentification déconcertants qui vont et viennent — classiquement sur un VPS
+ou un Raspberry Pi sans NTP.
+
+Faites tourner NTP. Et la plupart des exchanges câblés pour cela dans CCXT acceptent une option
+qui mesure et corrige le décalage pour vous :
+
+```javascript tab="JavaScript"
+const exchange = new ccxt.binance({
+    apiKey: KEY,
+    secret: SECRET,
+    options: {
+        adjustForTimeDifference: true,
+    },
+});
+```
+
+```python tab="Python"
+exchange = ccxt.binance({
+    'apiKey': KEY,
+    'secret': SECRET,
+    'options': {
+        'adjustForTimeDifference': True,
+    },
+})
+```
+
+```php tab="PHP"
+$exchange = new \ccxt\binance([
+    'apiKey' => $key,
+    'secret' => $secret,
+    'options' => [
+        'adjustForTimeDifference' => true,
+    ],
+]);
+```
+
+```csharp tab="C#"
+var exchange = new Binance(new Dictionary<string, object>() {
+    { "apiKey", key },
+    { "secret", secret },
+    { "options", new Dictionary<string, object>() {
+        { "adjustForTimeDifference", true },
+    } },
+});
+```
+
+```go tab="Go"
+exchange := ccxt.NewBinance(map[string]interface{}{
+    "apiKey": key,
+    "secret": secret,
+    "options": map[string]interface{}{
+        "adjustForTimeDifference": true,
+    },
+})
+```
+
+```java tab="Java"
+var config = new java.util.HashMap<String, Object>();
+config.put("apiKey", key);
+config.put("secret", secret);
+config.put("options", java.util.Map.of("adjustForTimeDifference", true));
+var exchange = new Binance(config);
+```
+
+## 7. Tester avec de l'argent réel
+
+Personne ne prévoit de tester en production ; les gens ignorent simplement que les alternatives
+existent :
+
+- **`exchange.setSandboxMode(true)`** bascule CCXT vers le testnet ou l'environnement de démo de
+  l'exchange lorsqu'il en existe un (Binance, Bybit, OKX et bien d'autres). Argent fictif, vraie
+  API.
+- **Des clés avec retraits désactivés + liste blanche d'IP** — un bot de trading n'a jamais besoin
+  de la permission de retrait. Cela transforme une clé qui fuite de catastrophe en simple
+  désagrément.
+- **Des tailles d'ordre minimales** lors des premiers passages en réel, avec un interrupteur
+  d'urgence que vous avez réellement testé.
+
+---
+
+Aucune de ces erreurs n'est exotique — c'est justement le point. C'est l'impôt standard que chaque
+développeur de bot de trading paie une fois. CCXT ne peut pas vous empêcher de le payer, mais il
+peut faire de la bonne solution la solution par défaut : calcul sur chaînes, rate limiting activé
+par défaut, symboles unifiés, erreurs typées, mode sandbox à un appel de distance.
+
+Vous découvrez la bibliothèque ? Commencez par
+[Construisez votre premier bot de trading crypto](/fr/blog/build-your-first-crypto-trading-bot).

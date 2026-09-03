@@ -1,0 +1,125 @@
+---
+title: "Você só usa dois tipos de ordem — um tour por stops, trailing stops e post-only"
+description: "Market e limit são só o começo. Ordens com gatilho, stop-losses, take-profits, trailing stops e modificadores de execução como postOnly e reduceOnly — unificados entre exchanges por meio dos params do CCXT."
+author: CCXT Team
+date: 2026-07-08T12:00:00Z
+tags: [tutorials, orders]
+---
+
+A maioria dos bots usa exatamente dois tipos de ordem — `market` e `limit` — e reimplementa todo
+o resto no código da aplicação: observando preços em um loop, disparando uma ordem a mercado quando um nível
+rompe. Isso funciona até o seu processo travar, sua conexão cair ou você estar dormindo enquanto
+acontece. As exchanges já executam esses tipos de ordem nativamente, do lado do servidor, de graça.
+
+O porém sempre foi que cada exchange nomeia e modela esses tipos de forma diferente. O CCXT
+os unifica por meio de `params` no mesmo `createOrder` que você já usa.
+
+## Ordens com gatilho (stop)
+
+Uma **ordem com gatilho** dorme na exchange até o mercado tocar o seu preço de gatilho, e então
+ativa como uma ordem normal a mercado ou limitada. É o bloco de construção para stop-losses e
+entradas em rompimento — e vive do lado do servidor, então dispara mesmo se o seu bot estiver fora do ar:
+
+```javascript tab="JavaScript"
+// vende 0.01 BTC a mercado se o preço cair para 60.000 — um stop-loss clássico
+const order = await exchange.createOrder('BTC/USDT', 'market', 'sell', 0.01, undefined, {
+    triggerPrice: 60000,
+});
+```
+
+```python tab="Python"
+# vende 0.01 BTC a mercado se o preço cair para 60.000 — um stop-loss clássico
+order = exchange.create_order('BTC/USDT', 'market', 'sell', 0.01, None, {
+    'triggerPrice': 60000,
+})
+```
+
+```php tab="PHP"
+// vende 0.01 BTC a mercado se o preço cair para 60.000 — um stop-loss clássico
+$order = $exchange->create_order('BTC/USDT', 'market', 'sell', 0.01, null, [
+    'triggerPrice' => 60000,
+]);
+```
+
+```csharp tab="C#"
+// vende 0.01 BTC a mercado se o preço cair para 60.000 — um stop-loss clássico
+var order = await exchange.CreateOrder("BTC/USDT", "market", "sell", 0.01, null,
+    new Dictionary<string, object>() { { "triggerPrice", 60000 } });
+```
+
+```go tab="Go"
+// vende 0.01 BTC a mercado se o preço cair para 60.000 — um stop-loss clássico
+order, err := exchange.CreateOrder("BTC/USDT", "market", "sell", 0.01,
+    ccxt.WithCreateOrderParams(map[string]interface{}{
+        "triggerPrice": 60000,
+    }))
+```
+
+```java tab="Java"
+// vende 0.01 BTC a mercado se o preço cair para 60.000 — um stop-loss clássico
+var order = exchange.createOrder("BTC/USDT", "market", "sell", 0.01, null,
+        java.util.Map.of("triggerPrice", 60000));
+```
+
+Use `'limit'` em vez de `'market'` (e passe um preço) para um stop-limit: você controla a
+pior execução, com o risco de não executar de jeito nenhum em um mercado rápido.
+
+## Stops de proteção e take-profits
+
+Dois params irmãos distinguem *proteger uma posição* de um gatilho genérico:
+
+- **`stopLossPrice`** — gatilho que fecha uma posição quando o mercado se move *contra* você.
+- **`takeProfitPrice`** — gatilho que fecha quando o mercado se move *a seu favor*.
+
+Em derivativos, combine-os com **`reduceOnly: true`** para que a ordem só possa reduzir a sua
+posição — uma ordem "de proteção" mal dimensionada que pode *virar* você para vendido é um ferimento autoinfligido
+clássico. Muitas exchanges também suportam anexar ambos à própria ordem de entrada em uma única chamada
+atômica (uma ordem bracket) — o CCXT expõe isso como `createOrderWithTakeProfitAndStopLoss` onde
+a exchange dá suporte.
+
+## Trailing stops
+
+Um trailing stop segue o preço a uma distância fixa e só se move a seu favor — trave
+ganhos sem escolher uma saída de antemão. Unificado como `trailingPercent` (ou
+`trailingAmount`):
+
+```python
+# vende a mercado se o preço recuar 2% do pico atingido após a ordem
+order = exchange.create_order('BTC/USDT:USDT', 'market', 'sell', 0.01, None, {
+    'trailingPercent': 2,
+    'reduceOnly': True,
+})
+```
+
+O mesmo dicionário `params` funciona em toda linguagem — troque a sintaxe conforme as abas acima.
+
+## Modificadores de execução
+
+Não são tipos de ordem, mas flags que mudam *como* sua ordem executa — e importam tanto quanto:
+
+- **`postOnly: true`** — rejeita a ordem se ela fosse executar imediatamente como taker.
+  Garante taxas de maker; a espinha dorsal do [market making](/pt/blog/market-making-with-ccxt).
+- **`timeInForce: 'IOC'`** (immediate-or-cancel) — executa o que estiver disponível *agora mesmo*,
+  cancela o resto. O jeito honesto de "cruzar o spread por tamanho" sem deixar uma ordem
+  parada para trás.
+- **`timeInForce: 'FOK'`** (fill-or-kill) — tudo ou nada, imediatamente. Para pernas de uma
+  negociação em várias partes onde uma execução parcial é pior do que nenhuma (pense em
+  [arbitragem triangular](/pt/blog/crypto-arbitrage-strategies)).
+- **`reduceOnly: true`** — apenas derivativos; a ordem pode reduzir uma posição, mas nunca aumentá-la
+  ou invertê-la.
+- **`clientOrderId`** — sua própria chave de idempotência, a solução para a armadilha de repetir-após-timeout
+  do [erro #4](/pt/blog/seven-mistakes-crypto-exchange-api-developers-make).
+
+## Verifique o suporte antes de depender dele
+
+Nem toda exchange suporta todo tipo, e o CCXT não vai emular silenciosamente um stop do lado do servidor
+no lado do cliente — isso anularia o propósito. Dois lugares dizem o que uma exchange consegue fazer em
+tempo de execução: as flags grosseiras `has` (`exchange.has['createTriggerOrder']`,
+`has['createTrailingPercentOrder']`), e o bloco mais granular `exchange.features`, que
+por tipo de mercado declara se `createOrder` suporta `triggerPrice`, `stopLossPrice`,
+`trailingPercent` e companhia. Condicione sua estratégia a eles em vez de descobrir lacunas de suporte
+por ordens rejeitadas em produção.
+
+Um aviso honesto para fechar: um stop-loss do lado do servidor é uma *ferramenta de risco*, não um preço
+garantido. Em um gap ou um flash crash, um stop-market executa onde quer que haja liquidez, e um stop-limit
+pode não executar de jeito nenhum. Stops limitam suas perdas ordinárias; o dimensionamento limita as catastróficas.

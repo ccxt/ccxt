@@ -1,0 +1,125 @@
+---
+title: "여러분은 주문 유형을 두 가지만 쓰고 있습니다 — 스탑, 트레일링 스탑, post-only 둘러보기"
+description: "시장가와 지정가는 시작에 불과합니다. 트리거 주문, 스탑로스, 테이크프로핏, 트레일링 스탑, 그리고 postOnly와 reduceOnly 같은 실행 옵션까지 — CCXT의 params를 통해 거래소 전반에서 통일된 방식으로 다룹니다."
+author: CCXT Team
+date: 2026-07-08T12:00:00Z
+tags: [tutorials, orders]
+---
+
+대부분의 봇은 정확히 두 가지 주문 유형, `market`과 `limit`만 사용하고, 나머지는 모두 애플리케이션
+코드에서 다시 구현합니다. 루프로 가격을 감시하다가 특정 레벨이 깨지면 시장가 주문을 쏘는 식입니다.
+프로세스가 죽거나, 연결이 끊기거나, 그 일이 벌어지는 동안 여러분이 자고 있기 전까지는 잘
+작동합니다. 거래소는 이미 이런 주문 유형을 서버 측에서 네이티브로, 무료로 실행해 줍니다.
+
+문제는 언제나 거래소마다 이름과 형태가 제각각이라는 점이었습니다. CCXT는 여러분이 이미 쓰고 있는
+바로 그 `createOrder`의 `params`를 통해 이를 통일합니다.
+
+## 트리거(스탑) 주문
+
+**트리거 주문**은 시장이 트리거 가격에 닿을 때까지 거래소에서 잠들어 있다가, 그 순간 일반 시장가
+또는 지정가 주문으로 활성화됩니다. 스탑로스와 돌파 진입의 기본 구성 요소이며, 서버 측에
+존재하므로 봇이 꺼져 있어도 발동합니다.
+
+```javascript tab="JavaScript"
+// 가격이 60,000까지 떨어지면 0.01 BTC를 시장가로 매도 — 고전적인 스탑로스
+const order = await exchange.createOrder('BTC/USDT', 'market', 'sell', 0.01, undefined, {
+    triggerPrice: 60000,
+});
+```
+
+```python tab="Python"
+# 가격이 60,000까지 떨어지면 0.01 BTC를 시장가로 매도 — 고전적인 스탑로스
+order = exchange.create_order('BTC/USDT', 'market', 'sell', 0.01, None, {
+    'triggerPrice': 60000,
+})
+```
+
+```php tab="PHP"
+// 가격이 60,000까지 떨어지면 0.01 BTC를 시장가로 매도 — 고전적인 스탑로스
+$order = $exchange->create_order('BTC/USDT', 'market', 'sell', 0.01, null, [
+    'triggerPrice' => 60000,
+]);
+```
+
+```csharp tab="C#"
+// 가격이 60,000까지 떨어지면 0.01 BTC를 시장가로 매도 — 고전적인 스탑로스
+var order = await exchange.CreateOrder("BTC/USDT", "market", "sell", 0.01, null,
+    new Dictionary<string, object>() { { "triggerPrice", 60000 } });
+```
+
+```go tab="Go"
+// 가격이 60,000까지 떨어지면 0.01 BTC를 시장가로 매도 — 고전적인 스탑로스
+order, err := exchange.CreateOrder("BTC/USDT", "market", "sell", 0.01,
+    ccxt.WithCreateOrderParams(map[string]interface{}{
+        "triggerPrice": 60000,
+    }))
+```
+
+```java tab="Java"
+// 가격이 60,000까지 떨어지면 0.01 BTC를 시장가로 매도 — 고전적인 스탑로스
+var order = exchange.createOrder("BTC/USDT", "market", "sell", 0.01, null,
+        java.util.Map.of("triggerPrice", 60000));
+```
+
+`'market'` 대신 `'limit'`을 쓰고 가격을 넘기면 스탑리밋이 됩니다. 최악의 체결 가격을 통제할 수
+있지만, 급변하는 시장에서는 아예 체결되지 않을 위험이 있습니다.
+
+## 보호용 스탑과 테이크프로핏
+
+*포지션을 보호하는* 것과 일반적인 트리거를 구분해 주는 형제 param 두 가지가 있습니다.
+
+- **`stopLossPrice`** — 시장이 여러분에게 *불리하게* 움직일 때 포지션을 청산하는 트리거.
+- **`takeProfitPrice`** — 시장이 여러분에게 *유리하게* 움직일 때 청산하는 트리거.
+
+파생상품에서는 **`reduceOnly: true`**와 함께 사용해 주문이 포지션을 줄이는 것만 가능하도록
+하세요. 수량을 잘못 잡은 "보호용" 주문이 여러분을 숏으로 *뒤집어* 버리는 것은 고전적인 자해
+사고입니다. 많은 거래소가 진입 주문 자체에 두 가지를 모두 붙여 한 번의 원자적 호출로 처리하는
+것(브래킷 주문)도 지원하며, CCXT는 거래소가 지원하는 경우 이를
+`createOrderWithTakeProfitAndStopLoss`로 제공합니다.
+
+## 트레일링 스탑
+
+트레일링 스탑은 가격을 일정 거리에서 따라가며 여러분에게 유리한 방향으로만 움직입니다. 출구를
+미리 정하지 않고도 이익을 잠글 수 있습니다. `trailingPercent`(또는 `trailingAmount`)로
+통일되어 있습니다.
+
+```python
+# 주문 이후 고점에서 2% 되돌리면 시장가 매도
+order = exchange.create_order('BTC/USDT:USDT', 'market', 'sell', 0.01, None, {
+    'trailingPercent': 2,
+    'reduceOnly': True,
+})
+```
+
+같은 `params` 딕셔너리가 모든 언어에서 동작합니다. 문법은 위의 탭에 맞게 바꾸시면 됩니다.
+
+## 실행 옵션
+
+주문 유형은 아니지만, 주문이 *어떻게* 실행되는지를 바꾸는 플래그이며, 그만큼 중요합니다.
+
+- **`postOnly: true`** — 즉시 테이커로 체결될 주문이라면 거부합니다. 메이커 수수료를
+  보장하며, [마켓 메이킹](/ko/blog/market-making-with-ccxt)의 근간입니다.
+- **`timeInForce: 'IOC'`** (immediate-or-cancel) — *지금 당장* 가능한 만큼 체결하고 나머지는
+  취소합니다. 대기 주문을 남기지 않고 "물량을 위해 spread를 건너는" 정직한 방법입니다.
+- **`timeInForce: 'FOK'`** (fill-or-kill) — 즉시 전부 아니면 전무. 부분 체결이 미체결보다
+  나쁜 다단계 거래의 한 다리에 씁니다
+  ([삼각 차익거래](/ko/blog/crypto-arbitrage-strategies)를 떠올려 보세요).
+- **`reduceOnly: true`** — 파생상품 전용. 주문이 포지션을 줄일 수는 있지만 키우거나 뒤집을
+  수는 없습니다.
+- **`clientOrderId`** — 여러분만의 멱등성 키로,
+  [실수 #4](/ko/blog/seven-mistakes-crypto-exchange-api-developers-make)의 타임아웃 후 재시도
+  함정을 해결합니다.
+
+## 의존하기 전에 지원 여부를 확인하세요
+
+모든 거래소가 모든 유형을 지원하는 것은 아니며, CCXT는 서버 측 스탑을 클라이언트 측에서 몰래
+에뮬레이션하지 않습니다. 그러면 애초의 목적이 무너지기 때문입니다. 런타임에 거래소가 무엇을 할 수
+있는지 알려 주는 곳은 두 군데입니다. 거친 단위의 `has` 플래그(`exchange.has['createTriggerOrder']`,
+`has['createTrailingPercentOrder']`)와, 더 세밀한 `exchange.features` 블록입니다. 후자는 마켓
+유형별로 `createOrder`가 `triggerPrice`, `stopLossPrice`, `trailingPercent` 등을 지원하는지
+선언합니다. 프로덕션에서 거부된 주문을 통해 지원 공백을 발견하는 대신, 이 값들로 전략을
+게이팅하세요.
+
+마무리로 솔직한 경고 하나. 서버 측 스탑로스는 *리스크 도구*이지 보장된 가격이 아닙니다. 갭이나
+플래시 크래시 상황에서 스탑마켓은 유동성이 있는 곳 어디서든 체결되고, 스탑리밋은 아예 체결되지
+않을 수 있습니다. 스탑은 평범한 손실을 제한하고, 포지션 사이징은 재앙적 손실을 제한합니다.

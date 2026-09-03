@@ -1,0 +1,284 @@
+---
+title: "Deja de hacer polling: tu bot de trading está actuando sobre precios obsoletos"
+description: "Deja de hacer polling. Cómo transmitir tickers, order books, trades y tus propias órdenes por WebSockets con CCXT — y lo que la librería hace por ti bajo el capó."
+author: CCXT Team
+date: 2026-07-07T14:00:00Z
+tags: [tutorials, websockets]
+---
+
+La primera versión de todo bot hace polling: llama a `fetchTicker` en un bucle, duerme, repite.
+Funciona — hasta que quieres más de un símbolo, o reacciones más rápidas, o te topas con el rate
+limit del exchange. El polling te da una instantánea por petición; los mercados se mueven entre tus
+peticiones.
+
+Los exchanges resuelven esto con streams de WebSocket: te suscribes una vez y el exchange te envía
+cada actualización. CCXT incluye soporte de WebSocket en el mismo paquete que ya tienes, en los
+seis lenguajes, detrás de una API que refleja la REST: donde REST tiene `fetchOrderBook`, los
+WebSockets tienen `watchOrderBook`.
+
+## El bucle de watch
+
+Un método `watch*` se resuelve cada vez que llega una nueva actualización, así que el código en
+tiempo real es simplemente un bucle:
+
+```javascript tab="JavaScript"
+import ccxt from 'ccxt';
+
+const exchange = new ccxt.pro.binance();
+
+while (true) {
+    const orderbook = await exchange.watchOrderBook('BTC/USDT');
+    console.log(orderbook.bids[0], orderbook.asks[0]);
+}
+```
+
+```python tab="Python"
+import asyncio
+import ccxt.pro
+
+
+async def main():
+    exchange = ccxt.pro.binance()
+    while True:
+        orderbook = await exchange.watch_order_book('BTC/USDT')
+        print(orderbook['bids'][0], orderbook['asks'][0])
+
+asyncio.run(main())
+```
+
+```php tab="PHP"
+<?php
+use function React\Async\await;
+
+$exchange = new \ccxt\pro\binance();
+
+while (true) {
+    $orderbook = await($exchange->watch_order_book('BTC/USDT'));
+    echo json_encode($orderbook['bids'][0]), ' ', json_encode($orderbook['asks'][0]), "\n";
+}
+```
+
+```csharp tab="C#"
+using ccxt;
+
+var exchange = new ccxt.pro.binance(new Dictionary<string, object>() {});
+
+while (true)
+{
+    var orderbook = await exchange.WatchOrderBook("BTC/USDT");
+    Console.WriteLine($"{orderbook.bids[0][0]} {orderbook.asks[0][0]}");
+}
+```
+
+```go tab="Go"
+package main
+
+import (
+    "fmt"
+    "log"
+
+    ccxtpro "github.com/ccxt/ccxt/go/v4/pro"
+)
+
+func main() {
+    exchange := ccxtpro.NewBinance(nil)
+
+    for {
+        orderbook, err := exchange.WatchOrderBook("BTC/USDT")
+        if err != nil {
+            log.Println(err)
+            break
+        }
+        fmt.Println(orderbook.Bids[0], orderbook.Asks[0])
+    }
+}
+```
+
+```java tab="Java"
+import io.github.ccxt.exchanges.pro.Binance;
+
+var exchange = new Binance();
+
+while (true) {
+    var orderbook = exchange.watchOrderBook("BTC/USDT");
+    System.out.println(orderbook.bids.get(0) + " " + orderbook.asks.get(0));
+}
+```
+
+La primera llamada abre la conexión y se suscribe; cada llamada siguiente solo espera la próxima
+actualización. El mismo patrón funciona para `watchTicker`, `watchTrades`, `watchOHLCV` y — con
+claves API — `watchBalance`, `watchOrders` y `watchMyTrades` para tus propias ejecuciones.
+
+## Lo que CCXT hace por ti bajo el capó
+
+Las APIs de WebSocket crudas de los exchanges son un desastre, y aquí es donde la mayoría de las
+integraciones hechas a mano se equivocan. Cuando llamas a `watchOrderBook`, CCXT:
+
+- **Mantiene el libro a partir de deltas.** La mayoría de los exchanges envían una instantánea
+  inicial y luego actualizaciones incrementales. CCXT las aplica en orden, comprueba los números de
+  secuencia y te entrega cada vez un order book completo y ordenado — no un mensaje diff crudo.
+- **Gestiona las conexiones.** Un WebSocket por grupo de streams, compartido entre tus
+  suscripciones. Suscríbete a cincuenta símbolos y CCXT los multiplexa correctamente para ese
+  exchange.
+- **Reconecta y vuelve a suscribirse.** Los exchanges cortan conexiones de forma rutinaria
+  (Binance, por ejemplo, corta cada conexión pasadas 24 horas). CCXT reconecta, vuelve a
+  autenticarse y se vuelve a suscribir automáticamente; tu bucle simplemente sigue recibiendo
+  actualizaciones.
+- **Se ocupa de los keepalives** — frames ping/pong, mensajes de heartbeat y las peculiaridades
+  específicas de cada exchange que de otro modo descubrirías a las 3 de la madrugada.
+
+## Muchos símbolos, muchos exchanges
+
+Para dashboards, escáneres y market making rara vez quieres un solo stream. `watchTickers` se
+suscribe a una lista de símbolos de una sola vez y devuelve una estructura indexada por símbolo,
+actualizada a medida que llegan los eventos:
+
+```javascript tab="JavaScript"
+const symbols = ['BTC/USDT', 'ETH/USDT', 'SOL/USDT'];
+while (true) {
+    const tickers = await exchange.watchTickers(symbols);
+    console.log(tickers['BTC/USDT'].last);
+}
+```
+
+```python tab="Python"
+symbols = ['BTC/USDT', 'ETH/USDT', 'SOL/USDT']
+while True:
+    tickers = await exchange.watch_tickers(symbols)
+    print(tickers['BTC/USDT']['last'])
+```
+
+```php tab="PHP"
+$symbols = ['BTC/USDT', 'ETH/USDT', 'SOL/USDT'];
+while (true) {
+    $tickers = await($exchange->watch_tickers($symbols));
+    echo $tickers['BTC/USDT']['last'], "\n";
+}
+```
+
+```csharp tab="C#"
+var symbols = new List<string>() { "BTC/USDT", "ETH/USDT", "SOL/USDT" };
+while (true)
+{
+    var tickers = await exchange.WatchTickers(symbols);
+    Console.WriteLine(tickers["BTC/USDT"].last);
+}
+```
+
+```go tab="Go"
+symbols := []string{"BTC/USDT", "ETH/USDT", "SOL/USDT"}
+for {
+    tickers, err := exchange.WatchTickers(ccxt.WithWatchTickersSymbols(symbols))
+    if err != nil {
+        log.Println(err)
+        break
+    }
+    fmt.Println(*tickers.Tickers["BTC/USDT"].Last)
+}
+```
+
+```java tab="Java"
+var symbols = java.util.List.of("BTC/USDT", "ETH/USDT", "SOL/USDT");
+while (true) {
+    var tickers = exchange.watchTickers(symbols, null);
+    System.out.println(tickers.tickers.get("BTC/USDT").last);
+}
+```
+
+Hay variantes `...ForSymbols` (`watchTradesForSymbols`, `watchOrderBookForSymbols`,
+`watchOHLCVForSymbols`) para cuando necesitas un solo bucle sobre muchos mercados, y ejecutar
+varios exchanges de forma concurrente es simplemente tener varios bucles — una tarea async por
+exchange en JavaScript/Python/PHP/C#/Java, una goroutine por exchange en Go.
+
+## Vigilar tus propias órdenes
+
+El mismo mecanismo cubre los datos privados, que es como los bots siguen las ejecuciones sin hacer
+polling a `fetchOrder`:
+
+```javascript tab="JavaScript"
+const exchange = new ccxt.pro.binance({ apiKey: KEY, secret: SECRET });
+while (true) {
+    const orders = await exchange.watchOrders();
+    for (const order of orders) {
+        console.log(order.id, order.status, order.filled);
+    }
+}
+```
+
+```python tab="Python"
+exchange = ccxt.pro.binance({'apiKey': KEY, 'secret': SECRET})
+while True:
+    orders = await exchange.watch_orders()
+    for order in orders:
+        print(order['id'], order['status'], order['filled'])
+```
+
+```php tab="PHP"
+$exchange = new \ccxt\pro\binance(['apiKey' => $key, 'secret' => $secret]);
+while (true) {
+    $orders = await($exchange->watch_orders());
+    foreach ($orders as $order) {
+        echo $order['id'], ' ', $order['status'], ' ', $order['filled'], "\n";
+    }
+}
+```
+
+```csharp tab="C#"
+var exchange = new ccxt.pro.binance(new Dictionary<string, object>() {
+    { "apiKey", key }, { "secret", secret },
+});
+while (true)
+{
+    var orders = await exchange.WatchOrders();
+    foreach (var order in orders)
+    {
+        Console.WriteLine($"{order.id} {order.status} {order.filled}");
+    }
+}
+```
+
+```go tab="Go"
+exchange := ccxtpro.NewBinance(nil)
+exchange.ApiKey = key
+exchange.Secret = secret
+for {
+    orders, err := exchange.WatchOrders()
+    if err != nil {
+        log.Println(err)
+        break
+    }
+    for _, order := range orders {
+        fmt.Println(*order.Id, *order.Status, *order.Filled)
+    }
+}
+```
+
+```java tab="Java"
+var exchange = new Binance();
+exchange.apiKey = key;
+exchange.secret = secret;
+while (true) {
+    var orders = exchange.watchOrders();
+    for (var order : orders) {
+        System.out.println(order.id + " " + order.status + " " + order.filled);
+    }
+}
+```
+
+## Notas prácticas
+
+- **Comprueba el soporte primero.** No todos los exchanges implementan todos los streams. Los
+  flags de capacidad te lo dicen en tiempo de ejecución: `exchange.has['watchOrderBook']`,
+  `exchange.has['watchOrders']`, y así sucesivamente.
+- **Llama siempre a `close()` al apagar.** Las conexiones WebSocket mantienen sockets y tareas en
+  segundo plano; llama a `await exchange.close()` cuando tu programa termine.
+- **REST sigue teniendo un trabajo.** Colocar y cancelar órdenes, obtener historial y las
+  consultas puntuales son territorio de REST. La arquitectura estándar es: WebSockets para el
+  estado que observas (precios, libros, ejecuciones), REST para las acciones que tomas.
+- **El throughput le gana a la latencia para la mayoría.** La ganancia realista de los WebSockets
+  no son los microsegundos — es observar cientos de mercados simultáneamente sin rozar un rate
+  limit, algo sencillamente imposible con polling.
+
+Si estás construyendo hacia estrategias que necesitan esto — escáneres, market making — los posts
+de continuación retoman exactamente aquí: [estrategias de arbitraje](/es/blog/crypto-arbitrage-strategies) y
+[market making](/es/blog/market-making-with-ccxt).

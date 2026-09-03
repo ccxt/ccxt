@@ -1,0 +1,182 @@
+---
+title: "S-1을 앞질러 가기: CCXT로 Anthropic 대 OpenAI IPO 경주 트레이딩하기"
+description: "\"Anthropic과 OpenAI 중 어느 쪽이 먼저 IPO할까?\"라는 바이너리 마켓을 통해 CCXT의 예측 시장 API를 살펴봅니다 — 여러 거래소의 확률 읽기, 트윗 기반 시그널, 그리고 크로스 거래소 아비트라지."
+author: CCXT Team
+date: 2026-08-21T12:00:00Z
+tags: [tutorials, prediction-markets]
+---
+
+"Anthropic과 OpenAI 중 어느 쪽이 먼저 IPO할까?"라는 질문에 대한 마켓이 있고, 지금 이 순간 여러
+예측 시장 거래소에서 거래되고 있습니다. 바이너리 마켓입니다. 한 회사가 먼저 상장 신청을 하고, 다른
+회사는 그러지 못하죠. 그래서 CCXT의 예측 시장 지원을 살펴보기에 좋고 단순한 사례입니다. 이 글은
+몇몇 거래소에서 확률을 읽어 오고, 장난감 수준의 시그널을 만들고, 크로스 거래소 아비트라지가 어디에서
+나오는지 보여 드립니다.
+
+## 가격은 확률입니다
+
+예측 시장의 셰어는 주식과 다릅니다. YES 셰어는 `0.00`과 `1.00` 사이에서 거래되며, 이벤트가
+발생하면 정확히 `1.00 USDC`로, 발생하지 않으면 `0.00`으로 정산됩니다. 따라서 가격은 시장이 추정하는
+확률입니다. "Anthropic이 먼저 IPO한다"가 `0.55`에 거래된다면, 시장은 55%의 확률을 매기고 있는
+것입니다. YES 셰어 10개의 비용은 `5.50`이고, Anthropic이 먼저 상장하면 `10.00`을 지급하고, 아니면
+아무것도 지급하지 않습니다.
+
+CCXT의 나머지 부분과의 대응은 간단합니다:
+
+| 크립토 거래소 | 예측 시장 거래소 |
+|---|---|
+| `symbol` (`BTC/USDT`) | `outcome` 핸들 (`ANTHROPIC_FIRST:YES`) |
+| 달러 단위 가격 | 가격 = 확률, `0.00`~`1.00` |
+| 매도해서 청산 | `1.00` 또는 `0.00`으로 정산 |
+
+데이터는 세 단계로 구성되며, 거래 가능한 단위는 맨 아래 단계입니다:
+
+- **event** — 질문, 예: "어느 AI 연구소가 먼저 IPO할까?", `fetchEvents`가 반환
+- **market** — 이벤트 안의 바이너리 질문, `PredictionMarket`
+- **outcome** — YES 또는 NO 다리(leg), `outcome` 핸들로 지정
+
+## 창업자의 타임라인에서 나오는 시그널
+
+시장 데이터에 앞서, 진지하지 않은 아이디어 하나. 창업자들은 때때로 상장 신청을 미리 암시합니다. CEO가
+"S-1을 제출했고, 다음 주에 로드쇼를 합니다"라고 올리면 그것은 정보이며, 키워드 스캔만으로도 방향성 있는
+추측으로 바꾸기에 충분합니다:
+
+```ts
+// 이 마켓에서 YES는 "Anthropic이 먼저 IPO한다"를 뜻하므로, 신청/상장 관련 단어는 YES를 가리킵니다
+const BULLISH = [ 's-1', 'roadshow', 'filing', 'filed', 'prospectus', 'listing', 'nasdaq', 'ipo' ];
+const BEARISH = [ 'no plans', 'staying private', 'delay', 'next year' ];
+
+function darioSignal (tweet: string): string {
+    const text = tweet.toLowerCase ();
+    let score = 0;
+    for (const kw of BULLISH) if (text.indexOf (kw) !== -1) score += 1;
+    for (const kw of BEARISH) if (text.indexOf (kw) !== -1) score -= 1;
+    return (score > 0) ? 'buy YES' : ((score < 0) ? 'buy NO' : 'no lean');
+}
+
+darioSignal ('excited to share we confidentially filed our S-1 — roadshow soon');
+// => 'buy YES'
+```
+
+분명히 해 두자면, CCXT는 Twitter/X를 읽지 않습니다. `darioSignal()`은 여러분이 연결할 어떤 트윗
+소스든 대신하는 자리표시자입니다. 이 글의 요점은 그 아래에 오는 부분, 즉 실제 CCXT 호출입니다. 시그널은
+농담으로, 배관 작업은 교훈으로 받아들이십시오.
+
+## 여러 거래소의 확률 읽기
+
+같은 마켓이 두 곳 이상의 거래소에 상장되어 있고, 각각 자체 호가창을 가지므로 가격이 다릅니다. CCXT에서는
+거래소 id만 바꾸면 같은 코드로 모두 읽을 수 있습니다:
+
+```ts
+import ccxt from 'ccxt';
+
+async function readYes (venueId: string) {
+    const ex = new ccxt.prediction[venueId] ();
+    try {
+        const events = await ex.fetchEvents ({ 'query': 'Anthropic IPO', 'sort': 'volume' });
+        const market = events[0].markets[0];
+        // 레이블은 일부 거래소(예: Limitless)에서는 소문자, 다른 곳(Polymarket)에서는 대문자로 시작합니다
+        const yes = market.outcomes.find ((o) => o.label.toLowerCase () === 'yes');
+        const ob = await ex.fetchOrderBook (yes.outcome);        // yes.outcome이 거래 가능한 핸들입니다
+        return { venueId, 'bid': ob.bids[0]?.[0], 'ask': ob.asks[0]?.[0] };
+    } finally {
+        await ex.close ();
+    }
+}
+
+const board = await Promise.all ([ 'polymarket', 'limitless', 'myriad' ].map (readYes));
+```
+
+결과는 거래소별 파싱 없이 세 거래소를 아우르는 하나의 표입니다:
+
+```text
+polymarket   YES 0.54 / 0.55   (~55%)
+limitless    YES 0.51 / 0.52   (~52%)
+myriad       YES 0.56 / 0.57   (~57%)
+```
+
+전략은 한 번만 작성하고, 각 거래소의 특이점은 라이브러리가 처리하도록 두면 됩니다. 이처럼 가격이
+고르지 않게 늘어서 있을 때, 아비트라지가 있을지도 모릅니다.
+
+## 크로스 거래소 아비트라지는 어디에서 나오는가
+
+바이너리 마켓에는 YES와 NO 두 종류의 셰어가 있고, 정확히 그중 하나가 `1.00 USDC`로 정산됩니다.
+NO 셰어를 사는 것은 YES 셰어를 파는 것과 같으므로, NO의 비용은 `1 - (YES bid)`입니다. 더 싼
+거래소에서 YES 하나를 사고 다른 거래소에서 NO 하나를 사서 합산 비용이 `1.00` 미만이라면, 이 쌍은
+누가 먼저 신청하든 정산 시 `1.00`을 지급하므로 그 차액이 확정됩니다:
+
+```ts
+function findArb (board) {
+    for (const a of board) for (const b of board) {
+        if (a.venueId === b.venueId) continue;
+        const noAsk = 1 - b.bid;         // 거래소 B에서 NO 매수 = 거래소 B에서 YES 매도
+        const cost  = a.ask + noAsk;     // YES 다리 하나 + NO 다리 하나
+        const edge  = 1 - cost;          // 정산은 항상 정확히 1.00을 지급
+        if (edge > 0) console.log (`BUY YES @${a.venueId} + NO @${b.venueId} => +${(edge * 100).toFixed (1)}% risk-free`);
+    }
+}
+```
+
+몇 가지 주의 사항이 있습니다. 보통 이 아이디어가 깨지는 지점이기 때문입니다. 두 다리는 같은 이벤트로
+정산되어야 합니다. "Anthropic이 2026년에 IPO할까?"와 "Anthropic과 OpenAI 중 먼저?"를 짝지으면
+헤지가 아니라 열린 포지션이므로, 모든 거래소에서 정확히 같은 정면 대결 마켓을 맞추십시오. 수수료와
+슬리피지가 얇은 엣지를 갉아먹고, 두 주문이 모두 실제로 체결되어야 하며, 자본은 마켓이 해소될 때까지
+묶입니다. 실제로 진짜 엣지는 작고 오래가지 않으며, 대부분의 경우 스캔은 아무것도 반환하지 않습니다.
+그것이 효율적인 시장에 대한 올바른 답입니다. 코드로 하는 것의 장점은, 거래소들에 걸친 `Promise.all`이
+손으로 하는 것보다 빠르게 확인해 준다는 점입니다.
+
+## 주문과 정산
+
+거래에는 자격 증명이 필요합니다. 온체인 거래소에서는 지갑이죠. 주문은 단일 호출이며, 수량은 셰어 단위,
+가격은 확률입니다:
+
+```ts
+const poly = new ccxt.prediction.polymarket ({ privateKey, walletAddress });
+
+// YES(Anthropic 먼저) 5개를 0.25 이하에 매수
+const order = await poly.createOrder (outcome, 'limit', 'buy', 5, 0.25);
+
+// 한 회사가 신청한 뒤에는, 마켓이 해소되어야만 의미가 있는 필드들이 포지션에 담깁니다
+const [ pos ] = await poly.fetchPositions ([ outcome ]);
+console.log (pos.resolved ? (pos.won ? `won — payout ${pos.payout}` : 'lost') : `open, PnL ${pos.unrealizedPnl}`);
+```
+
+`resolved`, `won`, `payout`은 일반 거래소에는 존재하지 않습니다. `BTC/USDT` 포지션은 결코
+"실현"되지 않기 때문입니다. 예측 시장 포지션은 실현되며, 이를 지원하는 거래소에서는
+`fetchSettlements()`가 장부에 기록된 결과를 알려 줍니다. 실제로 이것을 연결하신다면, 체결되지 않도록
+호가창보다 한참 아래에 지정가 주문을 넣고, 거래당 작은 한도 아래로 유지하고, 그 뒤에 취소하십시오.
+다른 예측 시장 예제들이 사용하는 것과 같은 왕복 과정입니다.
+
+## 다른 언어와 CLI
+
+같은 API가 지원되는 모든 언어로 트랜스파일되므로, Python으로 프로토타입을 만들고 새로 배울 것 없이
+Go로 배포할 수 있습니다:
+
+```python
+import ccxt.prediction            # 예측 시장 클래스는 비동기 전용입니다: ccxt.prediction.<id>
+
+ex = ccxt.prediction.polymarket ()
+events = await ex.fetch_events ({ 'query': 'Anthropic IPO' })
+outcome = events[0]['markets'][0]['outcomes'][0]['outcome']
+ticker = await ex.fetch_ticker (outcome)
+print (f"market-implied: {ticker['last'] * 100:.1f}%")
+await ex.close ()
+```
+
+터미널에서는 모든 CLI가 `-p` / `--prediction`을 받습니다:
+
+```bash
+npm run cli.ts -- -p polymarket fetchEvents '{"query":"Anthropic IPO"}'
+```
+
+뉴스가 터졌을 때의 실시간 업데이트를 위해, WebSocket을 지원하는 거래소는 가격이 바뀔 때마다 푸시하는
+`watchTicker(outcome)`를 제공합니다.
+
+## 요약
+
+예측 시장은 예/아니오 질문에 정산 가능한 가격을 매기고, CCXT는 모든 거래소에 같은 인터페이스를
+제공하므로, 하나의 전략으로 모두를 읽고 그 차이에 따라 행동할 수 있습니다. 이것은 실제 돈, 수수료,
+정산 리스크가 있는 실제 시장이므로, 아비트라지는 항상 거기 있는 것이 아니라 찾아봐야 할 대상으로
+취급하십시오.
+
+[예측 시장 가이드](/ko/docs/prediction)는 모든 거래소, 전체 데이터 모델, 그리고 위에서 사용한
+통합 메서드를 다룹니다.

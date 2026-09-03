@@ -20,7 +20,8 @@ export function GET(): Response {
   });
 
   // Latest 20 only — feed readers re-download this file on every poll, and the
-  // full archive lives in the sitemap/index, not the feed.
+  // full archive lives in the sitemap/index, not the feed. The feed stays English
+  // (default locale); translated posts are reachable from the locale-prefixed index.
   for (const post of getSortedPosts().slice(0, 20)) {
     const url = postCanonicalUrl(post);
     feed.addItem({

@@ -1,0 +1,187 @@
+---
+title: "Wie weit ist deine Börse entfernt? Krypto-API-Latenz rund um die Welt kartiert"
+description: "Wir haben denselben fetchOrderBook-Aufruf an zehn Venues — Spot-Börsen, eine Perps-DEX und einen Prediction Market — aus acht Städten auf sechs Kontinenten gestoppt. Je nachdem, wo du ihn ausführst, reicht es von 6 ms bis über eine Sekunde. Hier ist die Karte."
+author: CCXT Team
+date: 2026-07-16T12:00:00Z
+tags: [engineering, best-practices]
+---
+
+import { LatencyMap } from '@/components/latency-map';
+
+Jedes CCXT-Tutorial endet gleich: `await exchange.fetchOrderBook(symbol)`. Was keines davon
+dir sagt: Die *Kosten* dieser einen Zeile — wie viele Millisekunden vergehen, bis die Bytes
+zurückkommen — hängen weniger von der Börse ab als davon, **wo dein Code läuft, wenn er fragt**.
+
+Wir haben es gemessen. Zehn Venues — sieben Spot-Börsen, eine Perpetuals-DEX (Hyperliquid) und,
+jetzt wo CCXT [Prediction Markets unterstützt](/de/docs), ein Prediction Market (Polymarket) —
+jede an ihrem öffentlichen Orderbuch-Endpunkt aus acht Städten auf sechs Kontinenten
+angesprochen. Die Streuung ist nicht subtil: Derselbe Aufruf, der aus der richtigen Stadt in
+**6 ms** zurückkommt, braucht aus der falschen über eine **Sekunde**.
+
+<LatencyMap />
+
+Wähl oben eine Venue aus und schau, wohin die Pakete wollen. Ein paar Muster springen sofort
+ins Auge.
+
+## Börsen haben ein Zuhause, und man sieht es
+
+Die zehn Venues teilen sich sauber in zwei Lager, je nachdem, von wo sie am schnellsten
+antworten:
+
+- **Im Westen gehostet** — **Coinbase** (10 ms aus New York *und* London), **Kraken** (16 ms aus
+  London) und, interessanterweise, **Polymarket** (17 ms aus London) leben in US-/EU-Infrastruktur
+  und werden zunehmend langsamer, je weiter östlich du misst.
+- **In Asien gehostet** — **Binance, Bybit, Gate.io, OKX, KuCoin, Bitget** und die
+  **Hyperliquid**-Perps-DEX antworten alle am schnellsten aus Tokio, Singapur oder Hongkong
+  (Hyperliquid erreicht **6 ms** aus Tokio, die schnellste Zahl der ganzen Studie) und zahlen
+  eine Steuer von 100–350 ms, wenn sie aus Amerika oder Europa aufgerufen werden.
+
+Es gibt keine global „schnelle“ Venue. Es gibt nur *schnell von dort, wo du bist*. Lass eine
+Coinbase-Strategie aus Singapur laufen, oder eine Binance-Strategie aus São Paulo, und du hast
+dich stillschweigend für ein Viertelsekunden-Handicap bei jeder Anfrage angemeldet — vor Rate
+Limits, vor der Matching-Engine-Zeit, vor allem, was du in deinem eigenen Code optimieren kannst.
+
+## Dieselbe Codezeile, 10–100× auseinander
+
+Die Venue festhalten und nur den Standort ändern:
+
+| Venue | Typ | Schnellste Stadt | Langsamste Stadt | Streuung |
+|---|---|---|---|---|
+| Coinbase | Spot | New York — 10 ms | Sydney — 1109 ms | ~111× |
+| Hyperliquid | Perps-DEX | Tokio — 6 ms | London — 274 ms | ~46× |
+| Gate.io | Spot | Tokio — 7 ms | São Paulo — 281 ms | ~40× |
+| Binance | Spot | Tokio — 8 ms | São Paulo — 259 ms | ~32× |
+| Bybit | Spot | Singapur — 10 ms | São Paulo — 325 ms | ~32× |
+| Bitget | Spot | Tokio — 16 ms | Frankfurt — 278 ms | ~17× |
+| Kraken | Spot | London — 16 ms | Sydney — 268 ms | ~17× |
+| Polymarket | Prediction | London — 17 ms | Sydney — 264 ms | ~16× |
+| KuCoin | Spot | Tokio — 21 ms | São Paulo — 320 ms | ~15× |
+| OKX | Spot | Hongkong — 29 ms | São Paulo — 353 ms | ~12× |
+
+Coinbase aus Sydney sticht heraus: **über eine Sekunde** bis zum ersten Byte, und das ist kein
+Ausreißer — über fünf Runden hielt sich der Median bei ~1,1 s. Coinbase hat für seine API keinen
+Point of Presence im asiatisch-pazifischen Raum, also macht eine Anfrage aus Australien eine
+Haarnadelkurve über den Pazifik zur US-Infrastruktur und zurück. Wenn du ein Orderbuch einmal
+pro Sekunde pollst, ist diese Anfrage nie fertig, bevor die nächste fällig ist.
+
+## „Aber haben die nicht Server in meiner Nähe?“
+
+Ein fairer Einwand: Große Börsen betreiben globale Infrastruktur — es gibt doch sicher eine
+Binance-Kiste in der Nähe von Frankfurt? Um das zu beantworten, haben wir den **TCP-Handshake**
+(wie lange das *Verbinden* dauert) getrennt von der **Time-to-First-Byte** (wie lange, bis die
+Orderbuch-*Daten* ankommen) gemessen. Binance:
+
+| Von | TCP-Verbindung | TTFB (Daten) | Daten-Roundtrip |
+|---|---|---|---|
+| Tokio | 2 ms | 8 ms | ~6 ms |
+| Sydney | 1 ms | 107 ms | ~106 ms |
+| London | 3 ms | 229 ms | ~226 ms |
+| São Paulo | 1 ms | 259 ms | ~258 ms |
+
+Die Antwort ist **beides, und die Unterscheidung ist die ganze Geschichte**. Der TCP-Handshake
+dauert **1–3 ms von überall** — es *gibt* einen Edge-Point-of-Presence in deiner Nähe, der deine
+Verbindung lokal terminiert (eine Anycast-/CDN-Eingangstür). Du machst keinen TCP-Roundtrip nach
+Tokio. Aber ein Orderbuch sind Live-Daten pro Anfrage — sie können nicht aus einem Edge-Cache
+bedient werden —, also leitet die Eingangstür deine Anfrage nur an den Origin in Asien weiter
+und reicht die Antwort zurück. Dieser weitergeleitete Hop ist die letzte Spalte, und er skaliert
+sauber mit der Entfernung. Der lokale PoP spart dir die *Verbindungsaufbau*-Kosten; er spart dir
+**nicht** die *Datenabruf*-Kosten. Für das, was dich wirklich interessiert, antwortet Binance
+effektiv immer aus Tokio. (Cachebare Endpunkte wie `exchangeInfo` verhalten sich anders — die
+*können* vom Edge kommen und sehen überall schnell aus. Es sind die Live-Reads, die den
+Origin-Roundtrip bezahlen.)
+
+## Es geht nicht nur um Geschwindigkeit — es geht um Zugang
+
+Latenz setzt voraus, dass du überhaupt verbinden kannst. Von unseren New-York-Probes aus sind
+zwei Venues nicht langsam, sie sind *Mauern*:
+
+- **Binance liefert HTTP 451** („Unavailable For Legal Reasons“) — die bekannte US-Geoblockade.
+  Sie war bei 3 von 5 Samples blockiert; `api.binance.com` bedient die meisten US-IPs nicht, bei
+  keiner Latenz.
+- **Bybit liefert HTTP 403** aus Datacenter-IP-Bereichen (4 von 5 Samples, in
+  DigitalOcean-/M247-artigen Netzen). Das ist netzabhängig und keine pauschale Geoblockade — ein
+  anderer US-Probe bekam gelegentlich eine 200 —, aber wenn du in den falschen US-Cloud-Bereich
+  deployst, wirst du abgewiesen.
+
+Diese erscheinen auf der Karte und in der Tabelle als `blocked`. „In welcher Region soll ich
+deployen?“ wird manchmal *für* dich beantwortet — durch die Compliance-Regeln der Venue, nicht
+durch eine Ping-Zeit. (Amüsanterweise hat Polymarket — das US-*Trader* blockiert — seinen
+Orderbuch-Endpunkt unserem New-York-Probe bereitwillig in 87 ms ausgeliefert. Der API-Host und die
+Handelsberechtigung sind zwei verschiedene Tore.)
+
+## Wie wir gemessen haben (und wie du es selbst nachmachen kannst)
+
+Die ganze Studie ist kostenlos und reproduzierbar — keine Cloud-Rechnung, keine Flotte von VMs
+zum Hochfahren.
+
+**Das Probe-Netzwerk.** Wir haben [Globalping](https://globalping.io) genutzt, jsDelivrs
+kostenloses, community-betriebenes Netzwerk von Mess-Probes, über seine öffentliche HTTP-API
+(kein Key nötig). Es führt einen HTTPS-`GET` von einem echten Probe in jeder Zielstadt aus und
+liefert Timings pro Phase: DNS, TCP-Handshake, TLS und **Time to First Byte (TTFB)** — die Zahl,
+die wir berichten.
+
+**Die Anfrage.** Für jede Venue haben wir den öffentlichen Orderbuch-(Depth-)Endpunkt
+angesprochen, auf den ein CCXT-`fetchOrderBook` unter der Haube abbildet — zum Beispiel
+`api.binance.com/api/v3/depth`, `api.exchange.coinbase.com/products/BTC-USD/book` und
+`clob.polymarket.com/book` (mit einer zur Laufzeit aufgelösten Live-Token-ID). Zwei brauchen
+eine Fußnote: **Polymarkets** Orderbuch ist über einen rotierenden Markt-Token parametrisiert,
+also holen wir bei jedem Lauf einen aktuellen; **Hyperliquids** Daten-API ist nur per POST
+erreichbar, also stoppen wir ein `GET /info`, das sein Origin mit einer 405 beantwortet — immer
+noch ein echter Roundtrip, nur keine Orderbuch-Payload.
+
+**Die Zahlen.** Jedes Venue-×-Stadt-Paar wurde über fünf Runden gesampelt; wir berichten den
+**Median der TTFB über gültige Roundtrips**, was Jitter glättet. Eine Zelle, in der die
+Mehrheit der Samples abgewiesen wurde (die 451er und 403er), wird als blockiert markiert, statt
+eine Latenz zu bekommen.
+
+Der Collector ist ein einzelnes Node-Skript, das zusammen mit diesem Beitrag im CCXT-Repo
+eingecheckt ist:
+[`docs/website/scripts/collect-latency.mjs`](https://github.com/ccxt/ccxt/blob/master/docs/website/scripts/collect-latency.mjs).
+Der Snapshot, den es erzeugt hat, ist ebenfalls eingecheckt
+([`latency-data.json`](https://github.com/ccxt/ccxt/blob/master/docs/website/src/data/latency-data.json)),
+sodass du unsere Zahlen sowohl prüfen als auch neu erzeugen kannst. Klone das Repo und lass es
+für eine frische Messung erneut laufen — keine Abhängigkeiten außer Node 18+:
+
+```bash
+git clone https://github.com/ccxt/ccxt.git
+cd ccxt/docs/website
+node scripts/collect-latency.mjs 5   # 5 Runden -> src/data/latency-data.json
+```
+
+### Ehrliche Vorbehalte
+
+- **TTFB enthält die Server-Verarbeitung, nicht nur das Netzwerk.** Es ist die Zahl, die für
+  dich wirklich zählt — Gesamtzeit, bis Daten ankommen —, aber sie ist keine reine Netzwerk-RTT.
+- **Langstrecken-Zellen sind volatil.** Transpazifische Routen springen hin und her:
+  Coinbase→Sydney reichte über die Runden von 328 ms bis 1119 ms. Die Karte zeigt den Median;
+  fahre mit der Maus über eine Tabellenzelle für die Spanne.
+- **Börsen sitzen hinter CDNs und Load Balancern**, also misst du oft den nächstgelegenen
+  Edge-PoP, nicht eine einzelne Origin-Kiste (siehe den TCP-vs-TTFB-Abschnitt oben). Das sind
+  *Zugangs*-Latenzen, keine Co-Location-Distanzen.
+- **Die Probes sind im Datacenter gehostet** — hier ein Feature: Es spiegelt wider, wo
+  Trading-Bots tatsächlich laufen (AWS-/GCP-Regionen), nicht das heimische WLAN.
+- **Es ist ein Schnappschuss zu einem Zeitpunkt.** Routing und PoP-Platzierung ändern sich.
+  Betrachte die Form der Karte als dauerhaft und die exakten Millisekunden als eine Messung.
+
+## Was du damit anfangen kannst
+
+1. **Deploye in der Nähe deiner Venue, nicht in deiner eigenen.** Der größte Latenzgewinn, der
+   den meisten Bots zur Verfügung steht, ist kein Code — es ist die Wahl der Cloud-Region, die
+   dem Ort am nächsten liegt, von dem deine Venue antwortet. Für Binance oder Hyperliquid ist
+   das Tokio; für Coinbase US-East; für Polymarket Europa.
+2. **Mehrere Venues? Wähl deinen Kompromiss bewusst.** Wenn du Coinbase *und* Binance von einer
+   Kiste aus handelst, ist keine Region für beide gut. Akzeptiere die Aufteilung, verteile
+   Worker über Regionen, oder leite Orderbuch-Reads über
+   [WebSockets](/de/blog/realtime-market-data-with-websockets), damit du den Roundtrip einmal
+   beim Abonnieren zahlst statt bei jedem Poll.
+3. **Miss aus deiner tatsächlichen Deployment-Region.** Der Ping deines Laptops ist nicht dein
+   Produktions-Ping. Lass den Collector (oder CCXT selbst) auf der Kiste laufen, auf der du
+   deployen wirst.
+4. **Bestätige den Zugang, bevor du optimierst.** Eine Geoblockade oder eine 403 ist kein
+   Latenzproblem, das du wegtunen kannst. Prüfe, ob deine Venue deine Region überhaupt bedient.
+
+CCXT gibt dir [eine API über 100+ Börsen](/de/docs) — jetzt inklusive Perps-DEXes und
+Prediction Markets —, sodass du eine Strategie zwischen Venues verschieben kannst, indem du
+einen einzigen Identifier änderst. Diese Karte ist die andere Hälfte dieser Geschichte: Der Code
+ist portabel, aber die *Physik* ist es nicht. Wisse, wo deine Börse lebt, bevor du entscheidest,
+wo dein Bot lebt.

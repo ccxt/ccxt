@@ -1,0 +1,356 @@
+---
+title: "Market making : la stratégie que les exchanges vous paient littéralement pour exécuter"
+description: "Comment les market makers gagnent le spread, pourquoi l'inventaire est le véritable ennemi, et une boucle de cotation minimale construite sur watchOrderBook, des ordres postOnly et des limites de risque strictes."
+author: CCXT Team
+date: 2026-07-07T10:00:00Z
+tags: [market-making, strategies]
+---
+
+Chaque transaction a besoin d'une contrepartie, et la plupart du temps cette contrepartie est un market maker :
+quelqu'un qui cote en continu à la fois un prix d'achat et un prix de vente, en gagnant l'écart entre les deux.
+Les exchanges veulent tellement cette liquidité qu'ils facturent aux makers des frais plus bas qu'aux takers — souvent zéro,
+parfois négatifs (un rebate). Cet article explique les mécanismes et construit une boucle de cotation
+minimale avec CCXT — un **squelette pédagogique**, pas un système de production, et le market making avec
+de la taille réelle est un métier véritablement difficile et compétitif.
+
+## Le modèle économique
+
+Un market maker place un achat limite sous le prix courant et une vente limite au-dessus. Quand
+les deux sont exécutés — quelqu'un vend dans votre bid, quelqu'un d'autre achète à votre ask — vous avez acheté bas
+et vendu haut, capturé le spread, et vous voilà de retour à plat. Répétez des milliers de fois.
+
+Trois nombres gouvernent le P&L :
+
+- **Le spread capturé** par aller-retour (votre spread coté, moins le mouvement de prix adverse).
+- **Les frais maker** — négociez le palier ; les makers vivent et meurent par les grilles de frais. Consultez
+  `exchange.markets[symbol]['maker']`.
+- **Les pertes d'inventaire** — la raison pour laquelle ce n'est pas de l'argent gratuit, et le sujet de la plupart de la
+  littérature.
+
+## L'inventaire : le véritable ennemi
+
+Si le prix baisse en tendance, vos bids continuent d'être exécutés et vos asks non — vous accumulez l'actif
+tout au long de la descente. C'est la **sélection adverse** : les gens qui tradent avec vous savent quelque chose
+(ou sont simplement le front d'un mouvement), et vous êtes systématiquement du mauvais côté.
+
+Tout modèle sérieux de market making est au fond une politique de contrôle de l'inventaire. La référence
+classique est Avellaneda–Stoikov (2008) : coter autour d'un **prix de réservation** qui s'éloigne
+de votre inventaire — un inventaire long pousse les deux cotations vers le bas (pressé de vendre, réticent à
+acheter), un inventaire short les pousse vers le haut. Notre squelette ci-dessous utilise la version la plus simple de cette
+idée : un biais linéaire.
+
+## Une boucle de cotation minimale
+
+```javascript tab="JavaScript"
+import ccxt from 'ccxt';
+
+const SYMBOL = 'BTC/USDT';
+const SPREAD = 0.002;            // spread coté de 20 bps, frais inclus
+const ORDER_SIZE = 0.001;
+const MAX_INVENTORY = 0.005;     // borne stricte de position, en devise de base
+const REFRESH = 5000;            // ms entre deux re-cotations
+
+const exchange = new ccxt.pro.binance({ apiKey: '...', secret: '...' });
+exchange.setSandboxMode(true);   // apprenez sur le testnet
+await exchange.loadMarkets();
+let inventory = 0;               // à suivre via watchMyTrades dans du vrai code
+try {
+    while (true) {
+        const book = await exchange.watchOrderBook(SYMBOL);
+        const mid = (book.bids[0][0] + book.asks[0][0]) / 2;
+        // incliner les cotations contre l'inventaire (Avellaneda-Stoikov du pauvre)
+        const skew = -(inventory / MAX_INVENTORY) * (SPREAD / 2);
+        const bid = exchange.priceToPrecision(SYMBOL, mid * (1 - SPREAD / 2 + skew));
+        const ask = exchange.priceToPrecision(SYMBOL, mid * (1 + SPREAD / 2 + skew));
+        await exchange.cancelAllOrders(SYMBOL);
+        if (inventory < MAX_INVENTORY) {
+            await exchange.createOrder(SYMBOL, 'limit', 'buy', ORDER_SIZE, bid, { postOnly: true });
+        }
+        if (inventory > -MAX_INVENTORY) {
+            await exchange.createOrder(SYMBOL, 'limit', 'sell', ORDER_SIZE, ask, { postOnly: true });
+        }
+        await exchange.sleep(REFRESH);
+    }
+} finally {
+    await exchange.cancelAllOrders(SYMBOL);   // ne jamais quitter avec des cotations en attente
+    await exchange.close();
+}
+```
+
+```python tab="Python"
+import asyncio
+import ccxt.pro as ccxtpro
+
+SYMBOL = 'BTC/USDT'
+SPREAD = 0.002            # spread coté de 20 bps, frais inclus
+ORDER_SIZE = 0.001
+MAX_INVENTORY = 0.005     # borne stricte de position, en devise de base
+REFRESH = 5               # secondes entre deux re-cotations
+
+
+async def main():
+    exchange = ccxtpro.binance({'apiKey': '...', 'secret': '...'})
+    exchange.set_sandbox_mode(True)          # apprenez sur le testnet
+    await exchange.load_markets()
+    inventory = 0.0                          # à suivre via watch_my_trades dans du vrai code
+    try:
+        while True:
+            book = await exchange.watch_order_book(SYMBOL)
+            mid = (book['bids'][0][0] + book['asks'][0][0]) / 2
+            # incliner les cotations contre l'inventaire (Avellaneda-Stoikov du pauvre)
+            skew = -(inventory / MAX_INVENTORY) * (SPREAD / 2)
+            bid = exchange.price_to_precision(SYMBOL, mid * (1 - SPREAD / 2 + skew))
+            ask = exchange.price_to_precision(SYMBOL, mid * (1 + SPREAD / 2 + skew))
+            await exchange.cancel_all_orders(SYMBOL)
+            if inventory < MAX_INVENTORY:
+                await exchange.create_order(SYMBOL, 'limit', 'buy', ORDER_SIZE, bid,
+                                            {'postOnly': True})
+            if inventory > -MAX_INVENTORY:
+                await exchange.create_order(SYMBOL, 'limit', 'sell', ORDER_SIZE, ask,
+                                            {'postOnly': True})
+            await asyncio.sleep(REFRESH)
+    finally:
+        await exchange.cancel_all_orders(SYMBOL)   # ne jamais quitter avec des cotations en attente
+        await exchange.close()
+
+asyncio.run(main())
+```
+
+```php tab="PHP"
+<?php
+use function React\Async\await;
+
+const SYMBOL = 'BTC/USDT';
+const SPREAD = 0.002;            // spread coté de 20 bps, frais inclus
+const ORDER_SIZE = 0.001;
+const MAX_INVENTORY = 0.005;     // borne stricte de position, en devise de base
+const REFRESH = 5;               // secondes entre deux re-cotations
+
+$exchange = new \ccxt\pro\binance(['apiKey' => '...', 'secret' => '...']);
+$exchange->set_sandbox_mode(true);   // apprenez sur le testnet
+await($exchange->load_markets());
+$inventory = 0.0;                    // à suivre via watch_my_trades dans du vrai code
+$lastQuote = 0;
+try {
+    while (true) {
+        $book = await($exchange->watch_order_book(SYMBOL));
+        if (time() - $lastQuote < REFRESH) {
+            continue;                // re-coter au plus toutes les REFRESH secondes
+        }
+        $lastQuote = time();
+        $mid = ($book['bids'][0][0] + $book['asks'][0][0]) / 2;
+        // incliner les cotations contre l'inventaire (Avellaneda-Stoikov du pauvre)
+        $skew = -($inventory / MAX_INVENTORY) * (SPREAD / 2);
+        $bid = $exchange->price_to_precision(SYMBOL, $mid * (1 - SPREAD / 2 + $skew));
+        $ask = $exchange->price_to_precision(SYMBOL, $mid * (1 + SPREAD / 2 + $skew));
+        await($exchange->cancel_all_orders(SYMBOL));
+        if ($inventory < MAX_INVENTORY) {
+            await($exchange->create_order(SYMBOL, 'limit', 'buy', ORDER_SIZE, $bid,
+                ['postOnly' => true]));
+        }
+        if ($inventory > -MAX_INVENTORY) {
+            await($exchange->create_order(SYMBOL, 'limit', 'sell', ORDER_SIZE, $ask,
+                ['postOnly' => true]));
+        }
+    }
+} finally {
+    await($exchange->cancel_all_orders(SYMBOL));   // ne jamais quitter avec des cotations en attente
+    await($exchange->close());
+}
+```
+
+```csharp tab="C#"
+using ccxt;
+
+const string SYMBOL = "BTC/USDT";
+const double SPREAD = 0.002;         // spread coté de 20 bps, frais inclus
+const double ORDER_SIZE = 0.001;
+const double MAX_INVENTORY = 0.005;  // borne stricte de position, en devise de base
+const int REFRESH = 5000;            // ms entre deux re-cotations
+
+var exchange = new ccxt.pro.binance(new Dictionary<string, object>() {
+    { "apiKey", "..." }, { "secret", "..." },
+});
+exchange.setSandboxMode(true);       // apprenez sur le testnet
+await exchange.LoadMarkets();
+var inventory = 0.0;                 // à suivre via WatchMyTrades dans du vrai code
+try
+{
+    while (true)
+    {
+        var book = await exchange.WatchOrderBook(SYMBOL);
+        var mid = (book.bids[0][0] + book.asks[0][0]) / 2;
+        // incliner les cotations contre l'inventaire (Avellaneda-Stoikov du pauvre)
+        var skew = -(inventory / MAX_INVENTORY) * (SPREAD / 2);
+        var bid = Convert.ToDouble(exchange.priceToPrecision(SYMBOL, mid * (1 - SPREAD / 2 + skew)));
+        var ask = Convert.ToDouble(exchange.priceToPrecision(SYMBOL, mid * (1 + SPREAD / 2 + skew)));
+        await exchange.CancelAllOrders(SYMBOL);
+        var parameters = new Dictionary<string, object>() { { "postOnly", true } };
+        if (inventory < MAX_INVENTORY)
+        {
+            await exchange.CreateOrder(SYMBOL, "limit", "buy", ORDER_SIZE, bid, parameters);
+        }
+        if (inventory > -MAX_INVENTORY)
+        {
+            await exchange.CreateOrder(SYMBOL, "limit", "sell", ORDER_SIZE, ask, parameters);
+        }
+        await Task.Delay(REFRESH);
+    }
+}
+finally
+{
+    await exchange.CancelAllOrders(SYMBOL);   // ne jamais quitter avec des cotations en attente
+    await exchange.Close();
+}
+```
+
+```go tab="Go"
+package main
+
+import (
+    "strconv"
+    "time"
+
+    ccxt "github.com/ccxt/ccxt/go/v4"
+    ccxtpro "github.com/ccxt/ccxt/go/v4/pro"
+)
+
+const (
+    symbol       = "BTC/USDT"
+    spread       = 0.002 // spread coté de 20 bps, frais inclus
+    orderSize    = 0.001
+    maxInventory = 0.005 // borne stricte de position, en devise de base
+    refresh      = 5 * time.Second
+)
+
+func toFloat(v any) float64 {
+    f, _ := strconv.ParseFloat(v.(string), 64)
+    return f
+}
+
+func main() {
+    exchange := ccxtpro.NewBinance(nil)
+    exchange.ApiKey = "..."
+    exchange.Secret = "..."
+    exchange.SetSandboxMode(true) // apprenez sur le testnet
+    exchange.LoadMarkets()
+    inventory := 0.0 // à suivre via WatchMyTrades dans du vrai code
+    defer func() {
+        exchange.CancelAllOrders(ccxt.WithCancelAllOrdersSymbol(symbol)) // ne jamais quitter avec des cotations en attente
+        exchange.Close()
+    }()
+    for {
+        book, err := exchange.WatchOrderBook(symbol)
+        if err != nil {
+            panic(err)
+        }
+        mid := (book.Bids[0][0] + book.Asks[0][0]) / 2
+        // incliner les cotations contre l'inventaire (Avellaneda-Stoikov du pauvre)
+        skew := -(inventory / maxInventory) * (spread / 2)
+        bid := toFloat(exchange.PriceToPrecision(symbol, mid*(1-spread/2+skew)))
+        ask := toFloat(exchange.PriceToPrecision(symbol, mid*(1+spread/2+skew)))
+        exchange.CancelAllOrders(ccxt.WithCancelAllOrdersSymbol(symbol))
+        params := map[string]interface{}{"postOnly": true}
+        if inventory < maxInventory {
+            exchange.CreateOrder(symbol, "limit", "buy", orderSize,
+                ccxt.WithCreateOrderPrice(bid), ccxt.WithCreateOrderParams(params))
+        }
+        if inventory > -maxInventory {
+            exchange.CreateOrder(symbol, "limit", "sell", orderSize,
+                ccxt.WithCreateOrderPrice(ask), ccxt.WithCreateOrderParams(params))
+        }
+        time.Sleep(refresh)
+    }
+}
+```
+
+```java tab="Java"
+import io.github.ccxt.exchanges.pro.Binance;
+
+import java.util.Map;
+
+public class MarketMaker {
+
+    static final String SYMBOL = "BTC/USDT";
+    static final double SPREAD = 0.002;           // spread coté de 20 bps, frais inclus
+    static final double ORDER_SIZE = 0.001;
+    static final double MAX_INVENTORY = 0.005;    // borne stricte de position, en devise de base
+    static final long REFRESH = 5000;             // ms entre deux re-cotations
+
+    public static void main(String[] args) throws InterruptedException {
+        var exchange = new Binance();
+        exchange.apiKey = "...";
+        exchange.secret = "...";
+        exchange.setSandboxMode(true);            // apprenez sur le testnet
+        exchange.loadMarkets(false);
+        var inventory = 0.0;                      // à suivre via watchMyTrades dans du vrai code
+        try {
+            while (true) {
+                var book = exchange.watchOrderBook(SYMBOL);
+                var mid = (book.bids.get(0).get(0) + book.asks.get(0).get(0)) / 2;
+                // incliner les cotations contre l'inventaire (Avellaneda-Stoikov du pauvre)
+                var skew = -(inventory / MAX_INVENTORY) * (SPREAD / 2);
+                var bid = Double.parseDouble((String) exchange.priceToPrecision(SYMBOL,
+                        mid * (1 - SPREAD / 2 + skew)));
+                var ask = Double.parseDouble((String) exchange.priceToPrecision(SYMBOL,
+                        mid * (1 + SPREAD / 2 + skew)));
+                exchange.cancelAllOrders(SYMBOL, null);
+                var params = Map.<String, Object>of("postOnly", true);
+                if (inventory < MAX_INVENTORY) {
+                    exchange.createOrder(SYMBOL, "limit", "buy", ORDER_SIZE, bid, params);
+                }
+                if (inventory > -MAX_INVENTORY) {
+                    exchange.createOrder(SYMBOL, "limit", "sell", ORDER_SIZE, ask, params);
+                }
+                Thread.sleep(REFRESH);
+            }
+        } finally {
+            exchange.cancelAllOrders(SYMBOL, null);   // ne jamais quitter avec des cotations en attente
+            exchange.close().join();
+        }
+    }
+}
+```
+
+Ce que font les briques CCXT :
+
+- **`watchOrderBook`** diffuse le carnet en streaming via WebSockets (voir
+  [l'article sur les WebSockets](/fr/blog/realtime-market-data-with-websockets)) — coter à partir de données REST
+  interrogées par polling, c'est coter sur des prix périmés.
+- **`postOnly: true`** garantit que votre ordre reste en attente en tant que maker. S'il devait traverser le spread
+  et s'exécuter en taker (en payant des frais taker et en prenant le mauvais côté), l'exchange le rejette
+  à la place. Non négociable pour une stratégie maker.
+- **`cancelAllOrders` + replacer** est la re-cotation simple. Là où l'exchange le prend en charge
+  (vérifiez `exchange.has['editOrder']`), `editOrder` modifie le prix sur place — moins d'allers-retours,
+  et vous conservez souvent votre position dans la file sur les exchanges qui la préservent pour les modifications
+  à la baisse de taille.
+- **`priceToPrecision`** parce que les cotations à des ticks invalides sont rejetées — voir
+  [l'erreur n°1](/fr/blog/seven-mistakes-crypto-exchange-api-developers-make).
+
+Ce qui manque délibérément : un vrai suivi de l'inventaire (abonnez-vous à `watchMyTrades` et
+mettez à jour `inventory` à chaque exécution), un dimensionnement du spread tenant compte de la volatilité, des signaux
+de déséquilibre de l'order book, et une cotation multi-niveaux. C'est votre feuille de route, dans cet ordre.
+
+## Des contrôles de risque qui ne sont pas optionnels
+
+- **Des bornes d'inventaire strictes** — le squelette arrête de coter un côté à la borne. Les vrais systèmes
+  se ramènent aussi activement vers le plat.
+- **Un kill switch que vous avez testé** — une commande qui annule tout et aplatit la position.
+  `cancelAllOrders` existe dans l'API unifiée exactement pour cela. Certains exchanges prennent aussi en charge
+  une sémantique de dead-man's-switch (annulation automatique à la déconnexion) via des paramètres spécifiques à l'exchange —
+  cela vaut la peine de la brancher là où elle est disponible.
+- **Des planchers de spread pendant la volatilité.** Quand le carnet s'amincit ou que les transactions commencent à
+  traverser les niveaux, élargissez ou retirez vos cotations. Les makers qui survivent aux événements d'actualité sont ceux qui
+  ne cotaient pas pendant.
+- **Un spread tenant compte des frais.** Votre spread coté doit dépasser les frais aller-retour plus la sélection adverse
+  attendue. Si vos frais maker sont de 0,02 % par côté, un spread de 0,1 % rapporte net 0,06 % *avant* sélection
+  adverse — qui en réclamera l'essentiel.
+
+## Et ensuite
+
+Faites tourner le squelette sur un testnet sur une paire liquide et observez ce qui arrive à `inventory`
+pendant une tendance — cette leçon vaut plus que n'importe quel réglage de paramètres. Lisez ensuite
+Avellaneda–Stoikov et la littérature sur la position dans la file, et regardez comment les bots de market making
+open source structurent la même boucle. La plomberie — carnets, cotations, annulations, exécutions —
+est la même API unifiée en six langages du début à la fin, ce qui signifie que votre premier market maker peut être
+construit dans le langage que votre équipe parle déjà.

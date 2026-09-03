@@ -1,0 +1,118 @@
+---
+title: "Comment les bots de trading se font vider : la checklist de sécurité des clés API"
+description: "La plupart des histoires de fonds volés commencent par une clé API qui a fuité, pas par un exchange piraté. Les permissions, le stockage et les habitudes de surveillance qui font d'une fuite de clé un non-événement."
+author: CCXT Team
+date: 2026-07-08T11:00:00Z
+tags: [best-practices, security]
+---
+
+La plupart des histoires du genre « mes fonds ont disparu » n'impliquent pas un exchange piraté. Elles impliquent une clé API
+qui a fuité — poussée dans un dépôt public, cuite dans une image Docker, hameçonnée par un faux
+« portfolio tracker », ou lue sur un VPS compromis — et une clé qui était autorisée à faire bien
+plus que ce que son travail exigeait. La bonne nouvelle : deux ou trois habitudes ennuyeuses transforment une clé qui fuit d'une
+catastrophe en une corvée de révocation-rotation.
+
+## Les règles de permissions (là où réside l'essentiel de la sécurité)
+
+**1. N'activez jamais les retraits. Jamais.** Un bot de trading trade ; il ne retire pas. Sans
+permission de retrait, le meilleur coup d'un voleur est de passer des trades bizarres — mauvais, borné, et
+réversible en révoquant la clé. Avec elle, votre solde disparaît en un seul appel API. Tout
+exchange sérieux vous permet de créer des clés avec les retraits désactivés ; il n'existe aucune architecture
+de bot qui justifie de ne pas le faire.
+
+**2. Liste blanche d'IP.** Liez la clé à l'IP de votre serveur. Une clé volée qui ne fonctionne que depuis
+votre machine est un problème bien plus petit — l'attaquant a maintenant besoin de votre clé *et* de votre
+infrastructure. Bonus : plusieurs exchanges assouplissent les rate limits ou prolongent l'expiration des clés pour
+les clés restreintes par IP.
+
+**3. Moindre privilège, une clé par tâche.** Un tableau de bord a besoin d'un accès en lecture seule. Un bot de trading a besoin de
+la permission de trader sur des marchés spécifiques si l'exchange prend en charge le scoping. Rien n'a besoin de « toutes
+les permissions » — cette case à cocher est la façon dont une fuite dégénère. Des clés séparées par bot signifient aussi
+qu'en révoquer une ne fait pas tomber les autres, et que les journaux d'accès de l'exchange vous disent *quel*
+déploiement a fuité.
+
+**4. Les sous-comptes comme contrôle du rayon d'explosion.** Les grands exchanges prennent en charge des sous-comptes avec leurs
+propres soldes et clés. Un bot qui vit dans un sous-compte contenant deux semaines de capital
+de trading ne peut perdre que deux semaines de capital de trading.
+
+## Stockage : les clés ne vivent jamais dans le code
+
+La règle tient en une phrase : **les identifiants viennent de l'environnement, pas du code source.** Le
+même motif dans chaque langage :
+
+```javascript tab="JavaScript"
+const exchange = new ccxt.binance({
+    apiKey: process.env.BINANCE_APIKEY,
+    secret: process.env.BINANCE_SECRET,
+});
+```
+
+```python tab="Python"
+exchange = ccxt.binance({
+    'apiKey': os.environ['BINANCE_APIKEY'],
+    'secret': os.environ['BINANCE_SECRET'],
+})
+```
+
+```php tab="PHP"
+$exchange = new \ccxt\binance([
+    'apiKey' => getenv('BINANCE_APIKEY'),
+    'secret' => getenv('BINANCE_SECRET'),
+]);
+```
+
+```csharp tab="C#"
+var exchange = new Binance();
+exchange.apiKey = Environment.GetEnvironmentVariable("BINANCE_APIKEY");
+exchange.secret = Environment.GetEnvironmentVariable("BINANCE_SECRET");
+```
+
+```go tab="Go"
+exchange := ccxt.NewBinance(nil)
+exchange.ApiKey = os.Getenv("BINANCE_APIKEY")
+exchange.Secret = os.Getenv("BINANCE_SECRET")
+```
+
+```java tab="Java"
+var exchange = new Binance();
+exchange.apiKey = System.getenv("BINANCE_APIKEY");
+exchange.secret = System.getenv("BINANCE_SECRET");
+```
+
+Puis fermez les failles autour :
+
+- **Les fichiers `.env` sont réservés au développement** — et ont leur place dans `.gitignore` *avant* le premier
+  commit. L'historique Git est éternel ; une clé qui a été commitée un jour est grillée, même si vous
+  l'avez supprimée au commit suivant. Faites-la tourner.
+- **La production veut un gestionnaire de secrets** (Vault, les gestionnaires de secrets AWS/GCP, ou au minimum
+  les credentials systemd / secrets Docker) — pas des variables d'environnement cuites dans des images,
+  que n'importe qui avec `docker inspect` peut lire.
+- **Méfiez-vous de `--verbose`.** Le mode debug de CCXT affiche les requêtes HTTP complètes, y compris
+  les en-têtes d'authentification. Formidable pour déboguer, radioactif dans des journaux partagés — nettoyez avant
+  de coller dans une issue GitHub ou un canal Discord.
+- **La chaîne d'approvisionnement compte aussi.** Une dépendance malveillante peut lire votre environnement. Épinglez
+  les dépendances, gardez la machine du bot minimale, et ne faites pas tourner votre bot de trading à côté de votre
+  navigateur.
+
+## Détection : supposez la fuite, attrapez-la vite
+
+- **Surveillez votre propre compte.** Vous êtes déjà connecté — `watchBalance` et `watchOrders`
+  (voir [WebSockets](/fr/blog/realtime-market-data-with-websockets)) font une alarme « ordres que je
+  n'ai pas passés » en cinq lignes. `fetchLedger` couvre la piste d'audit.
+- **Consultez de temps en temps les journaux d'utilisation des clés de l'exchange** — des IP inconnues sont la preuve flagrante.
+- **Faites tourner les clés selon un calendrier**, et *immédiatement* à la moindre bizarrerie : les clés sont gratuites, l'expertise
+  légale non. Les exchanges font de plus en plus expirer les clés automatiquement (souvent plus vite sans liste blanche
+  d'IP) — traitez l'expiration comme une fonctionnalité, pas comme une gêne.
+- **Testez le chemin de révocation.** Sachez à quelle vitesse vous pouvez tuer une clé à 3 h du matin — c'est votre vrai
+  plan de réponse aux incidents.
+
+## La checklist
+
+Retraits désactivés · liste blanche d'IP activée · une clé par bot, moindre privilège · rayon d'explosion
+par sous-compte · clés depuis l'env/gestionnaire de secrets, jamais dans git · sortie `--verbose` nettoyée ·
+surveillance des soldes/ordres activée · rotation planifiée · chemin de révocation testé.
+
+Rien de tout cela n'est exotique — c'est l'équivalent, pour les clés API, de fermer sa porte à clé. Faites-le une fois par
+bot, et le jour où une clé fuite, c'est un mardi comme les autres, pas un post-mortem. Ensuite, allez vérifier que le bot
+lui-même ne commet pas [les sept erreurs
+classiques](/fr/blog/seven-mistakes-crypto-exchange-api-developers-make).

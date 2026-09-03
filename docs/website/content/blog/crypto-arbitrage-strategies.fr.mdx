@@ -1,0 +1,225 @@
+---
+title: "Le playbook de l'arbitrage crypto : ce qui paie encore en 2026 (et ce qui est un piège)"
+description: "Arbitrage inter-exchanges, triangulaire, de taux de financement, de base et statistique — comment chacun fonctionne réellement, quels sont les vrais risques, et quelles méthodes CCXT les alimentent."
+author: CCXT Team
+date: 2026-07-07T11:00:00Z
+tags: [arbitrage, strategies]
+---
+
+« Arbitrage » recouvre une demi-douzaine de stratégies réellement différentes, avec des besoins en
+capital, des exigences de vitesse et des risques différents. Ce billet cartographie les plus
+populaires — en quoi consiste le trade, pourquoi l'avantage existe, et la mécanique CCXT sur
+laquelle chacune repose. Il accompagne le tutoriel pratique du
+[scanner de spreads](/fr/blog/scanning-100-exchanges-for-arbitrage-spreads) ; ici, c'est la couche
+stratégie au-dessus.
+
+## 1. Arbitrage inter-exchanges (spatial)
+
+**Le trade :** le même actif est moins cher sur la plateforme A que sur la plateforme B. Acheter
+sur A, vendre sur B.
+
+La version naïve — acheter, retirer, déposer, vendre — survit rarement au contact avec la réalité :
+les transferts prennent de quelques minutes à plusieurs heures et le spread a disparu bien avant
+l'arrivée des coins. La version qui fonctionne est **basée sur l'inventaire** : détenir à l'avance
+à la fois l'actif et la devise de cotation sur les deux plateformes, exécuter les deux jambes
+simultanément, et rééquilibrer l'inventaire de temps en temps pendant les périodes calmes (ou
+accepter la dérive). Aucun transfert ne se trouve sur le chemin critique ; le coût du transfert
+devient un coût de rééquilibrage amorti.
+
+**D'où vient l'avantage :** la liquidité fragmentée. Les plateformes plus petites accusent
+quelques secondes de retard sur les grandes, et le flux retail fait bouger les prix sur les
+plateformes où les carnets sont peu profonds.
+
+**Ce que CCXT vous donne :** une seule API sur toutes les plateformes — `fetchTickers` /
+`watchOrderBook` des deux côtés, `createOrder` des deux côtés, `fetchCurrencies` pour vérifier si
+les dépôts/retraits sur un réseau sont actifs avant de compter dessus pour rééquilibrer. Cette
+stratégie est *la raison* pour laquelle on se tourne vers une bibliothèque multi-exchange en
+premier lieu.
+
+## 2. Arbitrage triangulaire
+
+**Le trade :** trois marchés sur **un seul** exchange forment un cycle — par exemple BTC/USDT,
+ETH/BTC, ETH/USDT. Multipliez les taux implicites autour de la boucle ; si le produit dépasse 1,0
+après trois séries de frais, convertissez autour du cycle et terminez avec plus que ce que vous
+aviez au départ.
+
+Comme tout se passe sur une seule plateforme, il n'y a ni risque de transfert ni inventaire à
+répartir — mais la boucle doit s'exécuter vite, les trois jambes ne sont pas atomiques (la jambe
+deux peut échouer après que la jambe une a été exécutée), et sur les grands exchanges ces écarts
+sont traqués par des acteurs très rapides. Les opportunités réalistes se concentrent sur les paires
+moins liquides, où le slippage fait contrepoids.
+
+**Ce que CCXT vous donne :** `loadMarkets()` pour construire le graphe des devises et énumérer
+les cycles, `watchOrderBookForSymbols` pour streamer les trois carnets dans une seule boucle, et
+les métadonnées de précision/limites pour que le montant de chaque jambe soit valide avant de la
+lancer.
+
+## 3. Arbitrage de taux de financement (le cash-and-carry de la crypto)
+
+**Le trade :** les swaps perpétuels paient un **funding** entre longs et shorts toutes les
+quelques heures pour maintenir le perp accroché au spot. Quand le funding est positif (l'état
+courant en marché haussier), les shorts sont payés. Donc : acheter du spot, shorter le même
+notionnel sur le perp. Le risque de prix se neutralise à peu près ; vous encaissez le funding.
+
+C'est le favori des institutionnels parce que ça passe à l'échelle et n'exige pas de vitesse. Les
+risques sont plus subtils : le funding passe en négatif et le portage devient un coût ; la jambe
+perp a besoin de marge et peut être liquidée si elle est sous-collatéralisée pendant que la base
+bouge ; et l'exécution à l'entrée/sortie coûte deux spreads.
+
+**Ce que CCXT vous donne :** `fetchFundingRates()` pour un instantané à l'échelle de la
+plateforme, `fetchFundingRateHistory` pour backtester le portage, des symboles de dérivés unifiés
+(`BTC/USDT:USDT` est le perp linéaire), plus les données de position et de marge côté privé. Un
+scanner de funding tient en quelques lignes :
+
+```javascript tab="JavaScript"
+import ccxt from 'ccxt';
+
+for (const id of ['binance', 'bybit', 'okx', 'gate']) {
+    const exchange = new ccxt[id]();
+    const rates = await exchange.fetchFundingRates();
+    for (const [symbol, entry] of Object.entries(rates)) {
+        if (entry.fundingRate && Math.abs(entry.fundingRate) > 0.0005) {
+            console.log(id.padEnd(10), symbol.padEnd(22),
+                `${(entry.fundingRate * 100).toFixed(4)}%`);
+        }
+    }
+    await exchange.close();
+}
+```
+
+```python tab="Python"
+import ccxt
+
+for exchange_id in ['binance', 'bybit', 'okx', 'gate']:
+    exchange = getattr(ccxt, exchange_id)()
+    rates = exchange.fetch_funding_rates()
+    for symbol, entry in rates.items():
+        rate = entry['fundingRate']
+        if rate and abs(rate) > 0.0005:          # 0,05 % par intervalle
+            print(f'{exchange_id:10} {symbol:22} {rate * 100:+.4f}%')
+```
+
+```php tab="PHP"
+<?php
+foreach (['binance', 'bybit', 'okx', 'gate'] as $id) {
+    $class = "\\ccxt\\{$id}";
+    $exchange = new $class();
+    $rates = $exchange->fetch_funding_rates();
+    foreach ($rates as $symbol => $entry) {
+        $rate = $entry['fundingRate'];
+        if ($rate && abs($rate) > 0.0005) {      // 0,05 % par intervalle
+            printf("%-10s %-22s %+.4f%%\n", $id, $symbol, $rate * 100);
+        }
+    }
+}
+```
+
+```csharp tab="C#"
+using ccxt;
+
+foreach (var id in new[] { "binance", "bybit", "okx", "gate" })
+{
+    var exchange = Exchange.DynamicallyCreateInstance(id);
+    var rates = await exchange.FetchFundingRates();
+    foreach (var (symbol, entry) in rates.fundingRates)
+    {
+        if (entry.fundingRate is double rate && Math.Abs(rate) > 0.0005)
+        {
+            Console.WriteLine($"{id,-10} {symbol,-22} {rate * 100:+0.0000;-0.0000}%");
+        }
+    }
+}
+```
+
+```go tab="Go"
+package main
+
+import (
+    "fmt"
+    "math"
+
+    ccxt "github.com/ccxt/ccxt/go/v4"
+)
+
+func main() {
+    for _, id := range []string{"binance", "bybit", "okx", "gate"} {
+        exchange := ccxt.CreateExchange(id, nil)
+        rates, err := exchange.FetchFundingRates()
+        if err != nil {
+            panic(err)
+        }
+        for symbol, entry := range rates.FundingRates {
+            if entry.FundingRate != nil && math.Abs(*entry.FundingRate) > 0.0005 {
+                fmt.Printf("%-10s %-22s %+.4f%%\n", id, symbol, *entry.FundingRate*100)
+            }
+        }
+    }
+}
+```
+
+```java tab="Java"
+import io.github.ccxt.Exchange;
+
+import java.util.Map;
+
+public class FundingScanner {
+
+    @SuppressWarnings("unchecked")
+    public static void main(String[] args) {
+        for (var id : new String[] { "binance", "bybit", "okx", "gate" }) {
+            var exchange = Exchange.dynamicallyCreateInstance(id, null);
+            var rates = (Map<String, Object>) exchange.fetchFundingRates().join();
+            for (var entry : rates.entrySet()) {
+                var data = (Map<String, Object>) entry.getValue();
+                var rate = (Number) data.get("fundingRate");
+                if (rate != null && Math.abs(rate.doubleValue()) > 0.0005) {
+                    System.out.printf("%-10s %-22s %+.4f%%%n",
+                            id, entry.getKey(), rate.doubleValue() * 100);
+                }
+            }
+        }
+    }
+}
+```
+
+À 0,05 % toutes les 8 heures, le portage brut annualisé est d'environ 55 % — c'est pourquoi les
+trades encombrés le compressent rapidement. Comparez entre plateformes : le même perp se finance
+souvent très différemment d'un exchange à l'autre, et shorter là où le funding est le plus élevé
+constitue en soi un avantage de sélection.
+
+## 4. Trades de base spot–futures
+
+Le cousin à échéance datée de l'arbitrage de funding : les futures trimestriels se négocient avec
+une prime par rapport au spot, et cette prime doit converger vers zéro à l'expiration. Acheter du
+spot, shorter le future, conserver jusqu'à l'expiration, empocher la base — un rendement à terme
+fixe, connu à l'avance, au prix de l'efficacité du capital et de la gestion de marge sur la jambe
+courte. CCXT expose les futures datés comme des marchés unifiés (`market['future']`) avec des
+métadonnées d'expiration, de sorte que scanner la structure par terme suit le même schéma
+`loadMarkets` + `fetchTickers` que tout le reste.
+
+## 5. Arbitrage statistique
+
+Tout ce qui précède est (quasi) sans risque en principe. Le stat-arb ne l'est pas : il parie
+qu'une *relation* de prix historique — entre altcoins corrélés, ou entre un altcoin et son
+secteur — reviendra à la moyenne après avoir divergé. Modélisez le spread, entrez à un seuil de
+z-score, sortez au retour à la moyenne. L'« arbitrage » du nom est une aspiration : les relations
+se brisent, et la cointégration de 2021 est la divergence de 2022.
+
+**Ce que CCXT vous donne :** `fetchOHLCV` sur des centaines de plateformes pour la recherche, et
+la même couche d'exécution que tout le reste quand le signal se déclenche. La partie difficile ici,
+ce sont les statistiques, pas la plomberie.
+
+## Conseils honnêtes pour en choisir une
+
+- **Commencez par le scan des taux de financement.** C'est lent, mesurable à l'avance, et cela
+  enseigne la mécanique des dérivés. Lancez-le en lecture seule ; vous apprendrez le rythme du
+  portage du marché.
+- **L'arbitrage inter-exchanges basé sur l'inventaire** est le cas d'usage classique de CCXT,
+  mais traitez-le comme un projet d'ingénierie d'exécution : l'avantage réside dans votre latence,
+  votre dimensionnement et votre choix de plateformes, pas dans l'idée.
+- **Le triangulaire sur les grandes paires est surtout pédagogique** en 2026 — construisez-le
+  pour apprendre la mécanique des order books, ne vous attendez pas à ce qu'il rapporte.
+- Quoi que vous choisissiez : les frais d'abord (`market['taker']`, `market['maker']`), la
+  profondeur avant les tickers, les testnets avant le mainnet, et les
+  [sept erreurs classiques](/fr/blog/seven-mistakes-crypto-exchange-api-developers-make) s'appliquent
+  doublement quand deux plateformes sont impliquées.

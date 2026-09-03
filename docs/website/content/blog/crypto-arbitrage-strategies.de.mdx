@@ -1,0 +1,224 @@
+---
+title: "Das Krypto-Arbitrage-Playbook: Was sich 2026 noch lohnt (und was eine Falle ist)"
+description: "Cross-Exchange-, triangulare, Funding-Rate-, Basis- und statistische Arbitrage — wie jede davon wirklich funktioniert, wo die echten Risiken liegen und welche CCXT-Methoden sie antreiben."
+author: CCXT Team
+date: 2026-07-07T11:00:00Z
+tags: [arbitrage, strategies]
+---
+
+„Arbitrage“ umfasst ein halbes Dutzend wirklich unterschiedlicher Strategien, mit
+unterschiedlichen Kapitalanforderungen, Geschwindigkeitsanforderungen und Risiken. Dieser
+Beitrag kartiert die beliebten — was der Trade ist, warum der Edge existiert und auf welcher
+CCXT-Mechanik jede läuft. Er gehört zum praktischen
+[Spread-Scanner-Tutorial](/de/blog/scanning-100-exchanges-for-arbitrage-spreads); das hier ist
+die Strategieebene darüber.
+
+## 1. Cross-Exchange-Arbitrage (räumliche Arbitrage)
+
+**Der Trade:** Dasselbe Asset ist auf Börse A günstiger als auf Börse B. Auf A kaufen, auf B
+verkaufen.
+
+Die naive Version — kaufen, abheben, einzahlen, verkaufen — überlebt den Kontakt mit der
+Realität selten: Transfers dauern Minuten bis Stunden, und der Spread ist längst weg, bevor
+die Coins ankommen. Die Version, die funktioniert, ist **bestandsbasiert**: Halte sowohl das
+Asset als auch die Quote-Währung vorab auf beiden Börsen, führe die beiden Beine gleichzeitig
+aus und gleiche den Bestand gelegentlich in ruhigen Phasen wieder aus (oder akzeptiere die
+Drift). Kein Transfer liegt auf dem kritischen Pfad; die Transferkosten werden zu
+amortisierten Rebalancing-Kosten.
+
+**Woher der Edge kommt:** fragmentierte Liquidität. Kleinere Börsen hinken größeren um
+Sekunden hinterher, und Retail-Flow schiebt Preise auf Börsen mit dünnen Orderbüchern hin und
+her.
+
+**CCXT gibt dir:** eine API über alle Börsen hinweg — `fetchTickers` / `watchOrderBook` auf
+beiden Seiten, `createOrder` auf beiden Seiten, `fetchCurrencies`, um zu prüfen, ob
+Ein-/Auszahlungen auf einem Netzwerk gerade aktiv sind, bevor du dich beim Rebalancing darauf
+verlässt. Diese Strategie ist *der Grund*, warum Leute überhaupt zu einer
+Multi-Exchange-Bibliothek greifen.
+
+## 2. Triangulare Arbitrage
+
+**Der Trade:** Drei Märkte auf **einer** Börse bilden einen Zyklus — zum Beispiel BTC/USDT,
+ETH/BTC, ETH/USDT. Multipliziere die impliziten Kurse einmal um die Schleife; wenn das Produkt
+nach drei Gebührensätzen über 1,0 liegt, tausche einmal um den Zyklus und ende mit mehr, als du
+angefangen hast.
+
+Weil alles auf einer Börse passiert, gibt es kein Transferrisiko und keine Aufteilung des
+Bestands — aber die Schleife muss schnell ausgeführt werden, die drei Beine sind nicht atomar
+(Bein zwei kann scheitern, nachdem Bein eins gefüllt wurde), und auf großen Börsen werden diese
+Lücken von sehr schnellen Spielern gejagt. Realistische Gelegenheiten häufen sich in weniger
+liquiden Paaren, wo Slippage das Gegengewicht ist.
+
+**CCXT gibt dir:** `loadMarkets()`, um den Währungsgraphen zu bauen und Zyklen aufzuzählen,
+`watchOrderBookForSymbols`, um alle drei Orderbücher in einem Loop zu streamen, und
+Precision-/Limits-Metadaten, damit die Menge jedes Beins gültig ist, bevor du es abfeuerst.
+
+## 3. Funding-Rate-Arbitrage (das Cash-and-Carry der Kryptowelt)
+
+**Der Trade:** Perpetual Swaps zahlen alle paar Stunden **Funding** zwischen Longs und Shorts,
+um den Perp am Spotpreis festzuhalten. Wenn das Funding positiv ist (der übliche Zustand in
+Bullenmärkten), werden Shorts bezahlt. Also: Spot kaufen, denselben Nominalwert im Perp
+shorten. Das Preisrisiko hebt sich ungefähr auf; du kassierst das Funding.
+
+Das ist der Favorit der Institutionellen, weil es skaliert und keine Geschwindigkeit braucht.
+Die Risiken sind subtiler: Das Funding kippt ins Negative und der Carry wird zu Kosten; das
+Perp-Bein braucht Margin und kann liquidiert werden, wenn es unterbesichert ist, während sich
+die Basis bewegt; und die Ausführung von Ein- und Ausstieg kostet zwei Spreads.
+
+**CCXT gibt dir:** `fetchFundingRates()` für einen börsenweiten Schnappschuss,
+`fetchFundingRateHistory` zum Backtesten des Carry, vereinheitlichte Derivate-Symbole
+(`BTC/USDT:USDT` ist der lineare Perp), plus Positions- und Margin-Daten auf der privaten
+Seite. Ein Funding-Scanner sind ein paar Zeilen:
+
+```javascript tab="JavaScript"
+import ccxt from 'ccxt';
+
+for (const id of ['binance', 'bybit', 'okx', 'gate']) {
+    const exchange = new ccxt[id]();
+    const rates = await exchange.fetchFundingRates();
+    for (const [symbol, entry] of Object.entries(rates)) {
+        if (entry.fundingRate && Math.abs(entry.fundingRate) > 0.0005) {
+            console.log(id.padEnd(10), symbol.padEnd(22),
+                `${(entry.fundingRate * 100).toFixed(4)}%`);
+        }
+    }
+    await exchange.close();
+}
+```
+
+```python tab="Python"
+import ccxt
+
+for exchange_id in ['binance', 'bybit', 'okx', 'gate']:
+    exchange = getattr(ccxt, exchange_id)()
+    rates = exchange.fetch_funding_rates()
+    for symbol, entry in rates.items():
+        rate = entry['fundingRate']
+        if rate and abs(rate) > 0.0005:          # 0,05 % pro Intervall
+            print(f'{exchange_id:10} {symbol:22} {rate * 100:+.4f}%')
+```
+
+```php tab="PHP"
+<?php
+foreach (['binance', 'bybit', 'okx', 'gate'] as $id) {
+    $class = "\\ccxt\\{$id}";
+    $exchange = new $class();
+    $rates = $exchange->fetch_funding_rates();
+    foreach ($rates as $symbol => $entry) {
+        $rate = $entry['fundingRate'];
+        if ($rate && abs($rate) > 0.0005) {      // 0,05 % pro Intervall
+            printf("%-10s %-22s %+.4f%%\n", $id, $symbol, $rate * 100);
+        }
+    }
+}
+```
+
+```csharp tab="C#"
+using ccxt;
+
+foreach (var id in new[] { "binance", "bybit", "okx", "gate" })
+{
+    var exchange = Exchange.DynamicallyCreateInstance(id);
+    var rates = await exchange.FetchFundingRates();
+    foreach (var (symbol, entry) in rates.fundingRates)
+    {
+        if (entry.fundingRate is double rate && Math.Abs(rate) > 0.0005)
+        {
+            Console.WriteLine($"{id,-10} {symbol,-22} {rate * 100:+0.0000;-0.0000}%");
+        }
+    }
+}
+```
+
+```go tab="Go"
+package main
+
+import (
+    "fmt"
+    "math"
+
+    ccxt "github.com/ccxt/ccxt/go/v4"
+)
+
+func main() {
+    for _, id := range []string{"binance", "bybit", "okx", "gate"} {
+        exchange := ccxt.CreateExchange(id, nil)
+        rates, err := exchange.FetchFundingRates()
+        if err != nil {
+            panic(err)
+        }
+        for symbol, entry := range rates.FundingRates {
+            if entry.FundingRate != nil && math.Abs(*entry.FundingRate) > 0.0005 {
+                fmt.Printf("%-10s %-22s %+.4f%%\n", id, symbol, *entry.FundingRate*100)
+            }
+        }
+    }
+}
+```
+
+```java tab="Java"
+import io.github.ccxt.Exchange;
+
+import java.util.Map;
+
+public class FundingScanner {
+
+    @SuppressWarnings("unchecked")
+    public static void main(String[] args) {
+        for (var id : new String[] { "binance", "bybit", "okx", "gate" }) {
+            var exchange = Exchange.dynamicallyCreateInstance(id, null);
+            var rates = (Map<String, Object>) exchange.fetchFundingRates().join();
+            for (var entry : rates.entrySet()) {
+                var data = (Map<String, Object>) entry.getValue();
+                var rate = (Number) data.get("fundingRate");
+                if (rate != null && Math.abs(rate.doubleValue()) > 0.0005) {
+                    System.out.printf("%-10s %-22s %+.4f%%%n",
+                            id, entry.getKey(), rate.doubleValue() * 100);
+                }
+            }
+        }
+    }
+}
+```
+
+Bei 0,05 % alle 8 Stunden liegt der annualisierte Brutto-Carry bei grob 55 % — weshalb
+überfüllte Trades ihn schnell zusammendrücken. Vergleiche über Börsen hinweg: Derselbe Perp
+fundet auf verschiedenen Börsen oft sehr unterschiedlich, und dort zu shorten, wo das Funding am
+höchsten ist, ist selbst schon ein Selektions-Edge.
+
+## 4. Spot-Futures-Basis-Trades
+
+Der Cousin der Funding-Arbitrage mit datierten Futures: Quartals-Futures handeln mit einem
+Aufschlag zum Spot, und der Aufschlag muss bei Verfall gegen null konvergieren. Spot kaufen,
+den Future shorten, bis zum Verfall halten, die Basis einstreichen — eine Rendite mit fester
+Laufzeit, die im Voraus bekannt ist, zum Preis von Kapitaleffizienz und Margin-Management auf
+dem Short-Bein. CCXT stellt datierte Futures als vereinheitlichte Märkte (`market['future']`)
+mit Verfallsmetadaten bereit, sodass das Scannen der Terminstruktur dasselbe
+`loadMarkets`-plus-`fetchTickers`-Muster ist wie alles andere.
+
+## 5. Statistische Arbitrage
+
+Alles oben ist im Prinzip (nahezu) risikolos. Stat-Arb ist es nicht: Es wettet darauf, dass
+eine historische Preis-*Beziehung* — zwischen korrelierten Alts oder einem Alt und seinem
+Sektor — nach einer Abweichung zum Mittelwert zurückkehrt. Den Spread modellieren, bei einem
+Z-Score-Schwellenwert einsteigen, bei Rückkehr aussteigen. Die „Arbitrage“ im Namen ist
+Wunschdenken: Beziehungen brechen, und die Kointegration von 2021 ist die Divergenz von 2022.
+
+**CCXT gibt dir:** `fetchOHLCV` über Hunderte Börsen für die Recherche und dieselbe
+Ausführungsschicht wie alles andere, wenn das Signal feuert. Der schwierige Teil hier ist die
+Statistik, nicht die Verkabelung.
+
+## Ehrlicher Rat zur Auswahl
+
+- **Fang mit dem Funding-Rate-Scan an.** Er ist gemächlich, im Voraus messbar und lehrt die
+  Mechanik von Derivaten. Lass ihn nur lesend laufen; du lernst den Rhythmus des Carry im
+  Markt.
+- **Cross-Exchange-Bestands-Arbitrage** ist der klassische CCXT-Anwendungsfall, aber behandle
+  sie als Execution-Engineering-Projekt: Der Edge liegt in deiner Latenz, deiner
+  Positionsgröße und deiner Börsenauswahl, nicht in der Idee.
+- **Triangular auf Majors ist 2026 überwiegend lehrreich** — bau es, um Orderbuch-Mechanik zu
+  lernen, erwarte nicht, dass es sich auszahlt.
+- Was auch immer du wählst: Gebühren zuerst (`market['taker']`, `market['maker']`), Tiefe vor
+  Tickern, Testnets vor Mainnet, und die
+  [sieben klassischen Fehler](/de/blog/seven-mistakes-crypto-exchange-api-developers-make)
+  gelten doppelt, wenn zwei Börsen beteiligt sind.

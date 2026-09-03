@@ -1,0 +1,206 @@
+---
+title: "베팅하기 전에 백테스트하세요: 어떤 거래소에서든 수년치 캔들을 무료로 가져오기"
+description: "모든 거래소는 같은 CCXT 호출 하나로 가격 히스토리를 무료로 제공합니다. 수년치 OHLCV 데이터를 제대로 내려받는 방법과, 지는 전략을 이기는 전략처럼 보이게 만드는 백테스팅 함정을 다룹니다."
+author: CCXT Team
+date: 2026-07-08T13:00:00Z
+tags: [tutorials, backtesting]
+---
+
+새벽 2시에는 모든 전략 아이디어가 기막히게 느껴집니다. 정말 그런지 확인하는 가장 값싼 방법은
+저축에 대고 돌려 보기 전에 과거 데이터에 대고 돌려 보는 것입니다. 거래소는 그 히스토리를 무료로
+내어 줍니다. 캔들(OHLCV: 시가, 고가, 저가, 종가, 거래량)을 공개 엔드포인트로, API 키 없이
+제공하며, CCXT는 이 모두를 호출 하나로 노출합니다. 바로 `fetchOHLCV`입니다.
+
+함정은 [실수 #5](/ko/blog/seven-mistakes-crypto-exchange-api-developers-make)에서 다룬 것처럼,
+호출 한 번은 **한 페이지**만 반환하고 그 크기는 거래소마다 제한된다는 점입니다(보통 500–1000개
+캔들). 수년치 데이터를 내려받으려면 루프가 필요합니다. 제대로 만든 루프는 이렇습니다.
+
+## 전체 히스토리 내려받기
+
+시작 시각부터 요청하고, 마지막으로 받은 캔들 다음으로 `since`를 전진시키며, 페이지가 짧게
+돌아오면 멈춥니다.
+
+```javascript tab="JavaScript"
+import ccxt from 'ccxt';
+
+const exchange = new ccxt.binance();
+const symbol = 'BTC/USDT';
+const timeframe = '1d';
+let since = exchange.parse8601('2020-01-01T00:00:00Z');
+const all = [];
+
+while (true) {
+    const candles = await exchange.fetchOHLCV(symbol, timeframe, since, 1000);
+    if (candles.length === 0) {
+        break;
+    }
+    all.push(...candles);
+    since = candles[candles.length - 1][0] + 1;   // 마지막 캔들에서 1 ms 뒤
+    if (candles.length < 1000) {
+        break;                                     // 짧은 페이지 = 따라잡음
+    }
+}
+console.log(`fetched ${all.length} candles`);
+await exchange.close();
+```
+
+```python tab="Python"
+import ccxt
+
+exchange = ccxt.binance()
+symbol = 'BTC/USDT'
+timeframe = '1d'
+since = exchange.parse8601('2020-01-01T00:00:00Z')
+all_candles = []
+
+while True:
+    candles = exchange.fetch_ohlcv(symbol, timeframe, since, 1000)
+    if not candles:
+        break
+    all_candles += candles
+    since = candles[-1][0] + 1        # 마지막 캔들에서 1 ms 뒤
+    if len(candles) < 1000:
+        break                          # 짧은 페이지 = 따라잡음
+
+print(f'fetched {len(all_candles)} candles')
+```
+
+```php tab="PHP"
+<?php
+$exchange = new \ccxt\binance();
+$symbol = 'BTC/USDT';
+$timeframe = '1d';
+$since = $exchange->parse8601('2020-01-01T00:00:00Z');
+$all = [];
+
+while (true) {
+    $candles = $exchange->fetch_ohlcv($symbol, $timeframe, $since, 1000);
+    if (count($candles) === 0) {
+        break;
+    }
+    $all = array_merge($all, $candles);
+    $since = $candles[count($candles) - 1][0] + 1;   // 마지막 캔들에서 1 ms 뒤
+    if (count($candles) < 1000) {
+        break;                                        // 짧은 페이지 = 따라잡음
+    }
+}
+echo 'fetched ', count($all), " candles\n";
+```
+
+```csharp tab="C#"
+using ccxt;
+
+var exchange = new Binance();
+var symbol = "BTC/USDT";
+var since = Convert.ToInt64(exchange.parse8601("2020-01-01T00:00:00Z"));
+var all = new List<OHLCV>();
+
+while (true)
+{
+    var candles = await exchange.FetchOHLCV(symbol, "1d", since, 1000);
+    if (candles.Count == 0) break;
+    all.AddRange(candles);
+    since = (long)candles[^1].timestamp + 1;   // 마지막 캔들에서 1 ms 뒤
+    if (candles.Count < 1000) break;           // 짧은 페이지 = 따라잡음
+}
+Console.WriteLine($"fetched {all.Count} candles");
+```
+
+```go tab="Go"
+package main
+
+import (
+    "fmt"
+
+    ccxt "github.com/ccxt/ccxt/go/v4"
+)
+
+func main() {
+    exchange := ccxt.NewBinance(nil)
+    symbol := "BTC/USDT"
+    since := int64(1577836800000) // 2020-01-01T00:00:00Z (ms 단위)
+    var all []ccxt.OHLCV
+
+    for {
+        candles, err := exchange.FetchOHLCV(symbol,
+            ccxt.WithFetchOHLCVTimeframe("1d"),
+            ccxt.WithFetchOHLCVSince(since),
+            ccxt.WithFetchOHLCVLimit(1000))
+        if err != nil {
+            panic(err)
+        }
+        if len(candles) == 0 {
+            break
+        }
+        all = append(all, candles...)
+        since = candles[len(candles)-1].Timestamp + 1 // 마지막 캔들에서 1 ms 뒤
+        if len(candles) < 1000 {
+            break // 짧은 페이지 = 따라잡음
+        }
+    }
+    fmt.Println("fetched", len(all), "candles")
+}
+```
+
+```java tab="Java"
+import io.github.ccxt.exchanges.Binance;
+import io.github.ccxt.types.OHLCV;
+
+import java.util.ArrayList;
+
+var exchange = new Binance();
+var symbol = "BTC/USDT";
+var since = 1577836800000L; // 2020-01-01T00:00:00Z (ms 단위)
+var all = new ArrayList<OHLCV>();
+
+while (true) {
+    var candles = exchange.fetchOHLCV(symbol, "1d", since, 1000L, null);
+    if (candles.isEmpty()) break;
+    all.addAll(candles);
+    since = candles.get(candles.size() - 1).timestamp + 1;   // 마지막 캔들에서 1 ms 뒤
+    if (candles.size() < 1000) break;                        // 짧은 페이지 = 따라잡음
+}
+System.out.println("fetched " + all.size() + " candles");
+```
+
+내장 rate limiter가 루프의 속도를 알아서 조절합니다. 2020년 이후의 일봉은 몇 페이지면 다
+도착하고, 같은 기간의 분봉은 약 300만 행입니다. 여전히 충분히 가능하지만, 모든 것을 메모리에
+쥐고 있지 말고 그냥 돌리면서 디스크에 써 나가세요. CSV/Parquet으로 한 번 저장한 뒤 오프라인에서
+전략을 반복 개선하세요. 실행할 때마다 히스토리를 다시 내려받는 것이 "그냥 백테스트 중"에
+rate limit 차단을 당하는 전형적인 경로입니다.
+
+## 나쁜 전략을 좋아 보이게 만드는 네 가지 함정
+
+캔들을 내려받는 것은 쉬운 절반입니다. 손수 만든 백테스트 대부분은 네 가지 방식 중 하나로 망가져
+있고, 언제나 듣기 좋은 방향으로 망가져 있습니다.
+
+**1. 룩어헤드 편향(lookahead bias).** 시그널이 거래 시점에 존재하지 않았던 정보를 사용하는
+경우입니다. 고전적인 예는 캔들이 진행되는 *도중에* 그 캔들의 종가로 행동하거나, 현재 바를 포함한
+윈도우로 지표를 계산하는 것입니다. 규칙: 캔들 N에서 계산된 시그널은 잘해야 **캔들 N+1의 시가**에
+실행됩니다.
+
+**2. 수수료 없음, 슬리피지 없음.** 모든 체결에 테이커 수수료(`market['taker']`, 보통 ~0.1%)를
+더하고, 그 위에 슬리피지 손실분을 얹으세요. 비용 0에서 훌륭해 보이는 고빈도 전략은 보통
+수수료 2배에서 죽습니다. 거래당 엣지가 왕복 비용보다 작다면 엣지가 있는 것이 아니라, 수수료
+생성 기계를 갖고 있는 것입니다.
+
+**3. 비현실적인 체결.** 가격이 여러분의 레벨에 *닿기만* 하면 지정가 주문이 체결된다고 가정하는
+백테스트는 거짓말을 하고 있습니다. 실제로는 대기열 맨 뒤에 있고, *실제로* 받는 체결은 시장이
+여러분의 가격을 뚫고 지나가는 순간에 편중됩니다(adverse selection,
+[마켓 메이킹 글](/ko/blog/market-making-with-ccxt)에 나온 바로 그 적입니다).
+
+**4. 생존 편향과 과최적화.** 이미 살아남은 것을 알고 있는 코인인 BTC/ETH만으로 테스트하면
+결과가 부풀려집니다. 과거가 완벽해 보일 때까지 파라미터를 조정하는 것도 마찬가지입니다. 끝까지
+손대지 않을 기간을 따로 떼어 두고, `rsi_period = 13`에서만 작동하고 12나 14에서는 작동하지
+않는 전략은 시그널이 아니라 노이즈로 취급하세요.
+
+## 캔들에서 판정까지
+
+파이프라인을 정직하고 지루하게 유지하세요. 위의 루프로 한 번 내려받기 → 디스크에 저장 → 실시간인
+것처럼 바 단위로 시그널 계산 → 수수료와 슬리피지를 적용한 다음 바 실행 → 매수 후 보유(buy-and-hold)와
+비교. 아무것도 하지 않는 것보다 못한 봇은 비싼 오락거리이기 때문입니다. 이 모든 것을 *그리고*
+표본 외 기간까지 통과한다면 `setSandboxMode(true)`로 테스트넷에 승격시키세요. 실시간 가격에 대고
+하는 페이퍼 트레이딩은 과거 데이터로는 채점할 수 없는 마지막 시험입니다.
+
+거기서부터는 [첫 번째 봇 튜토리얼](/ko/blog/build-your-first-crypto-trading-bot)이 실행 측면을,
+[WebSocket](/ko/blog/realtime-market-data-with-websockets)이 실시간 데이터 피드를 다룹니다.

@@ -1,0 +1,451 @@
+---
+title: "Escaneamos 100 exchanges em busca de arbitragem com 50 linhas de código — e aqui está a pegadinha"
+description: "Um scanner funcional de spreads entre exchanges com CCXT — e a lista honesta de motivos pelos quais a maioria dos spreads que ele encontra não é dinheiro de graça."
+author: CCXT Team
+date: 2026-07-07T12:00:00Z
+tags: [tutorials, arbitrage]
+---
+
+O clássico primeiro projeto "quant": o mesmo ativo é negociado a preços ligeiramente diferentes em
+exchanges diferentes — encontre as brechas. Como o CCXT dá a todas as exchanges a mesma API, o
+scanner inteiro cabe em cerca de cinquenta linhas. Vamos construí-lo e depois dedicar a segunda metade
+deste post a explicar por que a maior parte do que ele encontra *não* é dinheiro de graça — que é a parte
+que realmente faz você melhorar nisso.
+
+## O scanner
+
+O formato eficiente: carregar os mercados em todo lugar, encontrar símbolos listados em pelo menos duas venues
+e então fazer **uma chamada `fetchTickers` em lote por exchange**, em vez de martelar os
+endpoints por símbolo.
+
+```javascript tab="JavaScript"
+import ccxt from 'ccxt';
+
+const ids = ['binance', 'kraken', 'okx', 'bybit', 'kucoin'];
+
+const exchanges = await Promise.all(ids.map(async (id) => {
+    const exchange = new ccxt[id]();
+    await exchange.loadMarkets();
+    return exchange;
+}));
+
+// símbolos spot em USDT listados em pelo menos duas venues
+const counts = {};
+for (const exchange of exchanges) {
+    for (const symbol in exchange.markets) {
+        const market = exchange.markets[symbol];
+        if (market.spot && market.active !== false && symbol.endsWith('/USDT')) {
+            counts[symbol] = (counts[symbol] ?? 0) + 1;
+        }
+    }
+}
+const shared = Object.keys(counts).filter((symbol) => counts[symbol] >= 2);
+
+// uma chamada em lote por exchange
+const perExchange = await Promise.all(exchanges.map((exchange) =>
+    exchange.fetchTickers(shared.filter((symbol) => symbol in exchange.markets))));
+
+const opportunities = [];
+for (const symbol of shared) {
+    const quotes = [];
+    exchanges.forEach((exchange, i) => {
+        const ticker = perExchange[i][symbol];
+        if (ticker && ticker.bid && ticker.ask) {
+            quotes.push({ id: exchange.id, bid: ticker.bid, ask: ticker.ask });
+        }
+    });
+    if (quotes.length < 2) continue;
+    const bestBid = quotes.reduce((a, b) => (b.bid > a.bid ? b : a));
+    const bestAsk = quotes.reduce((a, b) => (b.ask < a.ask ? b : a));
+    const spread = (bestBid.bid - bestAsk.ask) / bestAsk.ask;
+    if (spread > 0) {
+        opportunities.push({ symbol, buyOn: bestAsk.id, sellOn: bestBid.id, spread });
+    }
+}
+
+opportunities.sort((a, b) => b.spread - a.spread);
+for (const o of opportunities.slice(0, 10)) {
+    console.log(`${o.symbol}: buy ${o.buyOn}, sell ${o.sellOn}, ${(o.spread * 100).toFixed(3)}%`);
+}
+
+await Promise.all(exchanges.map((exchange) => exchange.close()));
+```
+
+```python tab="Python"
+import asyncio
+import ccxt.async_support as ccxt
+
+IDS = ['binance', 'kraken', 'okx', 'bybit', 'kucoin']
+
+
+async def main():
+    exchanges = [getattr(ccxt, exchange_id)() for exchange_id in IDS]
+    await asyncio.gather(*[exchange.load_markets() for exchange in exchanges])
+
+    # símbolos spot em USDT listados em pelo menos duas venues
+    counts = {}
+    for exchange in exchanges:
+        for symbol, market in exchange.markets.items():
+            if market['spot'] and market['active'] is not False and symbol.endswith('/USDT'):
+                counts[symbol] = counts.get(symbol, 0) + 1
+    shared = [symbol for symbol, count in counts.items() if count >= 2]
+
+    # uma chamada em lote por exchange
+    per_exchange = await asyncio.gather(*[
+        exchange.fetch_tickers([s for s in shared if s in exchange.markets])
+        for exchange in exchanges
+    ])
+
+    opportunities = []
+    for symbol in shared:
+        quotes = []
+        for exchange, tickers in zip(exchanges, per_exchange):
+            ticker = tickers.get(symbol)
+            if ticker and ticker['bid'] and ticker['ask']:
+                quotes.append((exchange.id, ticker['bid'], ticker['ask']))
+        if len(quotes) < 2:
+            continue
+        sell_on = max(quotes, key=lambda q: q[1])   # maior bid
+        buy_on = min(quotes, key=lambda q: q[2])    # menor ask
+        spread = (sell_on[1] - buy_on[2]) / buy_on[2]
+        if spread > 0:
+            opportunities.append((symbol, buy_on[0], sell_on[0], spread))
+
+    for symbol, buy, sell, spread in sorted(opportunities, key=lambda o: -o[3])[:10]:
+        print(f'{symbol}: buy {buy}, sell {sell}, {spread * 100:.3f}%')
+
+    await asyncio.gather(*[exchange.close() for exchange in exchanges])
+
+asyncio.run(main())
+```
+
+```php tab="PHP"
+<?php
+$ids = ['binance', 'kraken', 'okx', 'bybit', 'kucoin'];
+
+$exchanges = [];
+foreach ($ids as $id) {
+    $class = "\\ccxt\\{$id}";
+    $exchange = new $class();
+    $exchange->load_markets();
+    $exchanges[] = $exchange;
+}
+
+// símbolos spot em USDT listados em pelo menos duas venues
+$counts = [];
+foreach ($exchanges as $exchange) {
+    foreach ($exchange->markets as $symbol => $market) {
+        if ($market['spot'] && $market['active'] !== false && str_ends_with($symbol, '/USDT')) {
+            $counts[$symbol] = ($counts[$symbol] ?? 0) + 1;
+        }
+    }
+}
+$shared = array_keys(array_filter($counts, fn ($count) => $count >= 2));
+
+// uma chamada em lote por exchange (a versão async pode executá-las concorrentemente)
+$perExchange = [];
+foreach ($exchanges as $exchange) {
+    $symbols = array_values(array_filter($shared, fn ($s) => isset($exchange->markets[$s])));
+    $perExchange[] = $exchange->fetch_tickers($symbols);
+}
+
+$opportunities = [];
+foreach ($shared as $symbol) {
+    $quotes = [];
+    foreach ($exchanges as $i => $exchange) {
+        $ticker = $perExchange[$i][$symbol] ?? null;
+        if ($ticker && $ticker['bid'] && $ticker['ask']) {
+            $quotes[] = ['id' => $exchange->id, 'bid' => $ticker['bid'], 'ask' => $ticker['ask']];
+        }
+    }
+    if (count($quotes) < 2) {
+        continue;
+    }
+    $bestBid = $quotes[0];
+    $bestAsk = $quotes[0];
+    foreach ($quotes as $quote) {
+        if ($quote['bid'] > $bestBid['bid']) $bestBid = $quote;
+        if ($quote['ask'] < $bestAsk['ask']) $bestAsk = $quote;
+    }
+    $spread = ($bestBid['bid'] - $bestAsk['ask']) / $bestAsk['ask'];
+    if ($spread > 0) {
+        $opportunities[] = [$symbol, $bestAsk['id'], $bestBid['id'], $spread];
+    }
+}
+
+usort($opportunities, fn ($a, $b) => $b[3] <=> $a[3]);
+foreach (array_slice($opportunities, 0, 10) as [$symbol, $buy, $sell, $spread]) {
+    printf("%s: buy %s, sell %s, %.3f%%\n", $symbol, $buy, $sell, $spread * 100);
+}
+```
+
+```csharp tab="C#"
+using ccxt;
+
+var ids = new List<string> { "binance", "kraken", "okx", "bybit", "kucoin" };
+
+var exchanges = ids.Select(id => Exchange.DynamicallyCreateInstance(id)).ToList();
+var marketsPerExchange = await Task.WhenAll(exchanges.Select(exchange => exchange.LoadMarkets()));
+
+// símbolos spot em USDT listados em pelo menos duas venues
+var counts = new Dictionary<string, int>();
+foreach (var markets in marketsPerExchange)
+{
+    foreach (var (symbol, market) in markets)
+    {
+        if (market.spot == true && market.active != false && symbol.EndsWith("/USDT"))
+        {
+            counts[symbol] = counts.GetValueOrDefault(symbol) + 1;
+        }
+    }
+}
+var shared = counts.Where(kv => kv.Value >= 2).Select(kv => kv.Key).ToList();
+
+// uma chamada em lote por exchange
+var perExchange = await Task.WhenAll(exchanges.Select((exchange, i) =>
+    exchange.FetchTickers(shared.Where(s => marketsPerExchange[i].ContainsKey(s)).ToList())));
+
+var opportunities = new List<(string Symbol, string BuyOn, string SellOn, double Spread)>();
+foreach (var symbol in shared)
+{
+    var quotes = new List<(string Id, double Bid, double Ask)>();
+    for (var i = 0; i < exchanges.Count; i++)
+    {
+        if (perExchange[i].tickers.TryGetValue(symbol, out var ticker)
+            && ticker.bid != null && ticker.ask != null)
+        {
+            quotes.Add((exchanges[i].id, (double)ticker.bid, (double)ticker.ask));
+        }
+    }
+    if (quotes.Count < 2) continue;
+    var bestBid = quotes.MaxBy(q => q.Bid);
+    var bestAsk = quotes.MinBy(q => q.Ask);
+    var spread = (bestBid.Bid - bestAsk.Ask) / bestAsk.Ask;
+    if (spread > 0) opportunities.Add((symbol, bestAsk.Id, bestBid.Id, spread));
+}
+
+foreach (var o in opportunities.OrderByDescending(o => o.Spread).Take(10))
+{
+    Console.WriteLine($"{o.Symbol}: buy {o.BuyOn}, sell {o.SellOn}, {o.Spread * 100:F3}%");
+}
+```
+
+```go tab="Go"
+package main
+
+import (
+    "fmt"
+    "sort"
+    "strings"
+
+    ccxt "github.com/ccxt/ccxt/go/v4"
+)
+
+type quote struct {
+    id       string
+    bid, ask float64
+}
+
+type opportunity struct {
+    symbol, buyOn, sellOn string
+    spread                float64
+}
+
+func main() {
+    ids := []string{"binance", "kraken", "okx", "bybit", "kucoin"}
+
+    exchanges := make([]ccxt.IExchange, len(ids))
+    marketsPerExchange := make([]map[string]ccxt.MarketInterface, len(ids))
+    for i, id := range ids {
+        exchanges[i] = ccxt.CreateExchange(id, nil)
+        markets, err := exchanges[i].LoadMarkets()
+        if err != nil {
+            panic(err)
+        }
+        marketsPerExchange[i] = markets
+    }
+
+    // símbolos spot em USDT listados em pelo menos duas venues
+    counts := map[string]int{}
+    for _, markets := range marketsPerExchange {
+        for symbol, market := range markets {
+            if market.Spot != nil && *market.Spot &&
+                (market.Active == nil || *market.Active) &&
+                strings.HasSuffix(symbol, "/USDT") {
+                counts[symbol]++
+            }
+        }
+    }
+    var shared []string
+    for symbol, count := range counts {
+        if count >= 2 {
+            shared = append(shared, symbol)
+        }
+    }
+
+    // uma chamada em lote por exchange (execute-as em goroutines para ganhar velocidade)
+    perExchange := make([]map[string]ccxt.Ticker, len(exchanges))
+    for i, exchange := range exchanges {
+        var symbols []string
+        for _, symbol := range shared {
+            if _, ok := marketsPerExchange[i][symbol]; ok {
+                symbols = append(symbols, symbol)
+            }
+        }
+        tickers, err := exchange.FetchTickers(ccxt.WithFetchTickersSymbols(symbols))
+        if err != nil {
+            panic(err)
+        }
+        perExchange[i] = tickers.Tickers
+    }
+
+    var opportunities []opportunity
+    for _, symbol := range shared {
+        var quotes []quote
+        for i, exchange := range exchanges {
+            ticker, ok := perExchange[i][symbol]
+            if !ok || ticker.Bid == nil || ticker.Ask == nil {
+                continue
+            }
+            quotes = append(quotes, quote{exchange.GetId(), *ticker.Bid, *ticker.Ask})
+        }
+        if len(quotes) < 2 {
+            continue
+        }
+        bestBid, bestAsk := quotes[0], quotes[0]
+        for _, q := range quotes {
+            if q.bid > bestBid.bid {
+                bestBid = q
+            }
+            if q.ask < bestAsk.ask {
+                bestAsk = q
+            }
+        }
+        spread := (bestBid.bid - bestAsk.ask) / bestAsk.ask
+        if spread > 0 {
+            opportunities = append(opportunities, opportunity{symbol, bestAsk.id, bestBid.id, spread})
+        }
+    }
+
+    sort.Slice(opportunities, func(a, b int) bool {
+        return opportunities[a].spread > opportunities[b].spread
+    })
+    for _, o := range opportunities[:min(10, len(opportunities))] {
+        fmt.Printf("%s: buy %s, sell %s, %.3f%%\n", o.symbol, o.buyOn, o.sellOn, o.spread*100)
+    }
+}
+```
+
+```java tab="Java"
+import io.github.ccxt.Exchange;
+
+import java.util.*;
+
+public class SpreadScanner {
+
+    record Quote(String id, double bid, double ask) {}
+    record Opportunity(String symbol, String buyOn, String sellOn, double spread) {}
+
+    @SuppressWarnings("unchecked")
+    public static void main(String[] args) {
+        var ids = List.of("binance", "kraken", "okx", "bybit", "kucoin");
+
+        // instâncias dinâmicas retornam maps sem tipo (caso contrário, veja a API tipada por classe)
+        var exchanges = new ArrayList<Exchange>();
+        var marketsPerExchange = new ArrayList<Map<String, Object>>();
+        for (var id : ids) {
+            var exchange = Exchange.dynamicallyCreateInstance(id, null);
+            exchange.loadMarkets(false).join();
+            exchanges.add(exchange);
+            marketsPerExchange.add((Map<String, Object>) exchange.markets);
+        }
+
+        // símbolos spot em USDT listados em pelo menos duas venues
+        var counts = new HashMap<String, Integer>();
+        for (var markets : marketsPerExchange) {
+            for (var entry : markets.entrySet()) {
+                var market = (Map<String, Object>) entry.getValue();
+                if (Boolean.TRUE.equals(market.get("spot"))
+                        && !Boolean.FALSE.equals(market.get("active"))
+                        && entry.getKey().endsWith("/USDT")) {
+                    counts.merge(entry.getKey(), 1, Integer::sum);
+                }
+            }
+        }
+        var shared = counts.entrySet().stream()
+                .filter(e -> e.getValue() >= 2).map(Map.Entry::getKey).toList();
+
+        // uma chamada em lote por exchange
+        var perExchange = new ArrayList<Map<String, Object>>();
+        for (var i = 0; i < exchanges.size(); i++) {
+            var markets = marketsPerExchange.get(i);
+            var symbols = shared.stream().filter(markets::containsKey).toList();
+            perExchange.add((Map<String, Object>) exchanges.get(i)
+                    .fetchTickers(symbols, null).join());
+        }
+
+        var opportunities = new ArrayList<Opportunity>();
+        for (var symbol : shared) {
+            var quotes = new ArrayList<Quote>();
+            for (var i = 0; i < exchanges.size(); i++) {
+                var ticker = (Map<String, Object>) perExchange.get(i).get(symbol);
+                if (ticker == null) continue;
+                var bid = (Number) ticker.get("bid");
+                var ask = (Number) ticker.get("ask");
+                if (bid != null && ask != null) {
+                    quotes.add(new Quote(exchanges.get(i).id, bid.doubleValue(), ask.doubleValue()));
+                }
+            }
+            if (quotes.size() < 2) continue;
+            var bestBid = quotes.stream().max(Comparator.comparingDouble(Quote::bid)).get();
+            var bestAsk = quotes.stream().min(Comparator.comparingDouble(Quote::ask)).get();
+            var spread = (bestBid.bid() - bestAsk.ask()) / bestAsk.ask();
+            if (spread > 0) {
+                opportunities.add(new Opportunity(symbol, bestAsk.id(), bestBid.id(), spread));
+            }
+        }
+
+        opportunities.sort(Comparator.comparingDouble(Opportunity::spread).reversed());
+        for (var o : opportunities.subList(0, Math.min(10, opportunities.size()))) {
+            System.out.printf("%s: buy %s, sell %s, %.3f%%%n",
+                    o.symbol(), o.buyOn(), o.sellOn(), o.spread() * 100);
+        }
+    }
+}
+```
+
+Execute e você verá uma lista de spreads positivos, geralmente concentrados em altcoins de baixa capitalização. Antes
+de ligar `createOrder` à primeira linha, continue lendo.
+
+## Por que a maioria desses spreads não é real
+
+**As taxas devoram os pequenos.** Você paga taxas de taker nas duas pernas — normalmente em torno de 0,1% por lado
+nos principais ativos, mais nas venues pequenas. Um spread bruto de 0,15% é prejuízo. Seu limiar precisa ser
+calculado com as taxas incluídas, e as taxas por exchange ficam na estrutura de mercado (`market['taker']`).
+
+**Tickers são o topo do book por um único tick.** O bid que você planeja atacar tem tamanho finito, e a
+cotação pode estar desatualizada quando você agir. Antes de confiar num spread, olhe a profundidade com
+`fetchOrderBook(symbol)` e calcule o preço *executável* para o seu tamanho, não o preço exibido.
+Para monitoramento contínuo, transmita os books via
+[WebSockets](/pt/blog/realtime-market-data-with-websockets) em vez de fazer polling.
+
+**Mover moedas é lento e caro.** O plano ingênuo — comprar em A, sacar, depositar em B,
+vender — leva de minutos a horas, e nesse intervalo o spread já foi embora. As taxas de saque costumam ser
+maiores do que a vantagem. E às vezes os saques estão simplesmente suspensos, o que é *exatamente* o motivo de o
+spread existir: ninguém consegue fechá-lo. Consulte `fetchCurrencies()` — a estrutura unificada de moeda
+carrega flags `active`, `deposit` e `withdraw` por rede, além das taxas.
+
+**Os spreads persistentes são persistentes por um motivo.** Risco da venue, restrições geográficas
+ou um book ilíquido que não consegue absorver volume. O mercado não está deixando notas de vinte na
+calçada; ele está cobrando por riscos que você ainda não precificou.
+
+## Como é a versão de verdade
+
+A arbitragem séria entre exchanges pré-financia o estoque nas duas venues e executa as duas pernas
+simultaneamente — sem transferências no caminho crítico — e depois rebalanceia de vez em quando. Isso, mais
+a arbitragem de funding rate e a arbitragem triangular dentro de uma única venue, é o assunto do
+post complementar: [As estratégias de arbitragem cripto mais populares](/pt/blog/crypto-arbitrage-strategies).
+
+O scanner acima continua sendo o primeiro passo certo: é assim que você aprende onde os spreads vivem, com que
+rapidez eles fecham e quais venues ficam sistematicamente atrasadas. Só deixe-o rodar em modo somente leitura por uma semana
+antes que qualquer ordem saia da sua máquina.

@@ -1,0 +1,210 @@
+---
+title: "Backtestez avant de parier : récupérez des années de bougies gratuites depuis n'importe quel exchange"
+description: "Chaque exchange donne son historique de prix via le même appel CCXT. Comment télécharger correctement des années de données OHLCV — et les pièges du backtesting qui font passer des stratégies perdantes pour gagnantes."
+author: CCXT Team
+date: 2026-07-08T13:00:00Z
+tags: [tutorials, backtesting]
+---
+
+Toute idée de stratégie paraît brillante à 2 h du matin. La façon la moins chère de savoir si elle
+l'est vraiment : la faire tourner sur l'historique avant de la faire tourner sur vos économies. Les exchanges
+donnent cet historique gratuitement — des bougies (OHLCV : open, high, low, close, volume) via des endpoints
+publics, sans clé API — et CCXT les expose tous à travers un seul appel :
+`fetchOHLCV`.
+
+Le hic, comme vu dans
+[l'erreur n°5](/fr/blog/seven-mistakes-crypto-exchange-api-developers-make) : un appel renvoie
+**une page**, plafonnée par exchange (généralement 500 à 1000 bougies). Télécharger des années de données
+implique de boucler. Voici la boucle faite correctement.
+
+## Télécharger l'historique complet
+
+Demandez à partir d'un instant de départ, avancez `since` au-delà de la dernière bougie reçue, arrêtez quand une page
+revient incomplète :
+
+```javascript tab="JavaScript"
+import ccxt from 'ccxt';
+
+const exchange = new ccxt.binance();
+const symbol = 'BTC/USDT';
+const timeframe = '1d';
+let since = exchange.parse8601('2020-01-01T00:00:00Z');
+const all = [];
+
+while (true) {
+    const candles = await exchange.fetchOHLCV(symbol, timeframe, since, 1000);
+    if (candles.length === 0) {
+        break;
+    }
+    all.push(...candles);
+    since = candles[candles.length - 1][0] + 1;   // 1 ms après la dernière bougie
+    if (candles.length < 1000) {
+        break;                                     // page incomplète = à jour
+    }
+}
+console.log(`fetched ${all.length} candles`);
+await exchange.close();
+```
+
+```python tab="Python"
+import ccxt
+
+exchange = ccxt.binance()
+symbol = 'BTC/USDT'
+timeframe = '1d'
+since = exchange.parse8601('2020-01-01T00:00:00Z')
+all_candles = []
+
+while True:
+    candles = exchange.fetch_ohlcv(symbol, timeframe, since, 1000)
+    if not candles:
+        break
+    all_candles += candles
+    since = candles[-1][0] + 1        # 1 ms après la dernière bougie
+    if len(candles) < 1000:
+        break                          # page incomplète = à jour
+
+print(f'fetched {len(all_candles)} candles')
+```
+
+```php tab="PHP"
+<?php
+$exchange = new \ccxt\binance();
+$symbol = 'BTC/USDT';
+$timeframe = '1d';
+$since = $exchange->parse8601('2020-01-01T00:00:00Z');
+$all = [];
+
+while (true) {
+    $candles = $exchange->fetch_ohlcv($symbol, $timeframe, $since, 1000);
+    if (count($candles) === 0) {
+        break;
+    }
+    $all = array_merge($all, $candles);
+    $since = $candles[count($candles) - 1][0] + 1;   // 1 ms après la dernière bougie
+    if (count($candles) < 1000) {
+        break;                                        // page incomplète = à jour
+    }
+}
+echo 'fetched ', count($all), " candles\n";
+```
+
+```csharp tab="C#"
+using ccxt;
+
+var exchange = new Binance();
+var symbol = "BTC/USDT";
+var since = Convert.ToInt64(exchange.parse8601("2020-01-01T00:00:00Z"));
+var all = new List<OHLCV>();
+
+while (true)
+{
+    var candles = await exchange.FetchOHLCV(symbol, "1d", since, 1000);
+    if (candles.Count == 0) break;
+    all.AddRange(candles);
+    since = (long)candles[^1].timestamp + 1;   // 1 ms après la dernière bougie
+    if (candles.Count < 1000) break;           // page incomplète = à jour
+}
+Console.WriteLine($"fetched {all.Count} candles");
+```
+
+```go tab="Go"
+package main
+
+import (
+    "fmt"
+
+    ccxt "github.com/ccxt/ccxt/go/v4"
+)
+
+func main() {
+    exchange := ccxt.NewBinance(nil)
+    symbol := "BTC/USDT"
+    since := int64(1577836800000) // 2020-01-01T00:00:00Z en ms
+    var all []ccxt.OHLCV
+
+    for {
+        candles, err := exchange.FetchOHLCV(symbol,
+            ccxt.WithFetchOHLCVTimeframe("1d"),
+            ccxt.WithFetchOHLCVSince(since),
+            ccxt.WithFetchOHLCVLimit(1000))
+        if err != nil {
+            panic(err)
+        }
+        if len(candles) == 0 {
+            break
+        }
+        all = append(all, candles...)
+        since = candles[len(candles)-1].Timestamp + 1 // 1 ms après la dernière bougie
+        if len(candles) < 1000 {
+            break // page incomplète = à jour
+        }
+    }
+    fmt.Println("fetched", len(all), "candles")
+}
+```
+
+```java tab="Java"
+import io.github.ccxt.exchanges.Binance;
+import io.github.ccxt.types.OHLCV;
+
+import java.util.ArrayList;
+
+var exchange = new Binance();
+var symbol = "BTC/USDT";
+var since = 1577836800000L; // 2020-01-01T00:00:00Z en ms
+var all = new ArrayList<OHLCV>();
+
+while (true) {
+    var candles = exchange.fetchOHLCV(symbol, "1d", since, 1000L, null);
+    if (candles.isEmpty()) break;
+    all.addAll(candles);
+    since = candles.get(candles.size() - 1).timestamp + 1;   // 1 ms après la dernière bougie
+    if (candles.size() < 1000) break;                        // page incomplète = à jour
+}
+System.out.println("fetched " + all.size() + " candles");
+```
+
+Le rate limiter intégré cadence la boucle pour vous. Les bougies journalières depuis 2020 arrivent en quelques
+pages ; les bougies à la minute sur la même période représentent ~3 millions de lignes — toujours parfaitement faisable, laissez
+simplement tourner et écrivez sur disque au fur et à mesure au lieu de tout garder en mémoire. Sauvegardez en
+CSV/Parquet une fois et itérez sur votre stratégie hors ligne ; retélécharger l'historique à chaque exécution,
+c'est ainsi qu'on se fait bannir pour rate limit alors qu'on « ne faisait que backtester ».
+
+## Les quatre pièges qui font paraître bonnes de mauvaises stratégies
+
+Télécharger des bougies est la moitié facile. La plupart des backtests maison sont cassés d'une de quatre
+façons — toujours dans le sens flatteur :
+
+**1. Le biais de lookahead.** Votre signal utilise une information qui n'était pas disponible au moment du trade —
+la version classique consiste à agir sur la clôture d'une bougie *pendant* cette bougie, ou à calculer un
+indicateur sur une fenêtre qui inclut la barre courante. Règle : les signaux calculés sur la bougie N
+s'exécutent à **l'ouverture de la bougie N+1**, au mieux.
+
+**2. Ni frais, ni slippage.** Ajoutez les frais taker (`market['taker']`, généralement ~0,1 %) à chaque
+exécution, et une décote de slippage par-dessus. Les stratégies à haute fréquence qui paraissent formidables à coût zéro
+meurent généralement à 2× les frais. Si votre avantage par trade est plus petit que les coûts aller-retour, vous n'avez
+pas d'avantage — vous avez une machine à générer des frais.
+
+**3. Des exécutions irréalistes.** Un backtest qui exécute les ordres limite dès que le prix *touche* votre
+niveau vous ment — en réalité vous êtes en queue de file, et les exécutions que vous obtenez *effectivement*
+penchent vers les moments où le marché traverse votre prix en trombe (la sélection adverse, le même
+ennemi que dans [l'article sur le market making](/fr/blog/market-making-with-ccxt)).
+
+**4. Survivorship et overfitting.** Tester uniquement sur BTC/ETH — des coins dont vous savez déjà qu'ils
+ont survécu — gonfle les résultats ; tout comme régler les paramètres jusqu'à ce que l'historique paraisse parfait. Mettez de côté
+une période que vous ne touchez jamais avant la fin, et traitez une stratégie qui ne fonctionne qu'avec
+`rsi_period = 13` (mais pas 12 ni 14) comme du bruit, pas comme un signal.
+
+## Des bougies au verdict
+
+Gardez le pipeline honnête et ennuyeux : téléchargez une fois avec la boucle ci-dessus → stockez sur disque →
+calculez les signaux barre par barre comme en direct → exécution à la barre suivante avec frais et slippage → comparez
+au buy-and-hold, parce qu'un bot qui fait moins bien que ne rien faire est un divertissement
+coûteux. S'il survit à tout cela *et* à une période hors échantillon, promouvez-le sur le
+testnet avec `setSandboxMode(true)` — le paper trading sur des prix réels est l'examen final
+que l'historique ne peut pas noter.
+
+De là, le [tutoriel du premier bot](/fr/blog/build-your-first-crypto-trading-bot) couvre le
+côté exécution, et [les WebSockets](/fr/blog/realtime-market-data-with-websockets) le flux de données
+en direct.

@@ -20,7 +20,9 @@ export const docs = defineDocs({
 });
 
 // Blog posts are hand-written MDX committed under content/blog (unlike content/docs,
-// which is generated from wiki/). English-only — no per-locale variants.
+// which is generated from wiki/). English is <slug>.mdx; translations sit alongside as
+// <slug>.<locale>.mdx and are picked up by the i18n loader in lib/blog.ts (locales
+// without a translation fall back to English).
 export const blogPosts = defineCollections({
   type: 'doc',
   dir: 'content/blog',

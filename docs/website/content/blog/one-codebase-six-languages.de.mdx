@@ -1,0 +1,103 @@
+---
+title: "Wie wir eine Codebasis in sechs Sprachen ausliefern (ohne sechs Codebasen zu pflegen)"
+description: "Die Engineering-Geschichte hinter der ungewöhnlichsten Designentscheidung von CCXT — eine einzige TypeScript-Quelle der Wahrheit, transpiliert in fünf weitere Sprachen und in allen getestet."
+author: CCXT Team
+date: 2026-07-07T16:00:00Z
+tags: [engineering, transpiler]
+---
+
+CCXT liefert eine einheitliche Trading-API für über 100 Kryptobörsen in JavaScript/TypeScript,
+Python, PHP, C#, Go und Java. Börsen-APIs ändern sich jede Woche — Endpunkte ziehen um, Signaturen
+ändern sich, neue Märkte tauchen auf. Sechs unabhängige Ports von Hand synchron zu halten wäre unmöglich,
+und der Friedhof verlassener „Exchange-API-Wrapper“-Bibliotheken beweist das seit Jahren.
+
+Unsere Antwort ist ungewöhnlich: **Es gibt genau eine Implementierung**. Jede Exchange-Klasse wird
+einmal geschrieben, in TypeScript, unter `ts/src/`. Alles andere — das Python-Paket auf PyPI, das PHP-Paket
+auf Packagist, das C#-Paket auf NuGet, das Go-Modul, das Java-Artefakt auf Maven
+Central — wird maschinell aus dieser einen Quelle generiert.
+
+## Die Pipeline
+
+Eine Änderung an `ts/src/binance.ts` fließt so nach außen:
+
+- **JavaScript** — schlichtes `tsc`. Das npm-Paket ist das kompilierte TypeScript.
+- **C#, Go und Java** — [`ast-transpiler`](https://github.com/ccxt/ast-transpiler), unser
+  quelloffener AST-basierter Transpiler, wandelt den TypeScript-Syntaxbaum in jede Zielsprache
+  um. Die meisten Sprachen von CCXT laufen heute über diesen Pfad.
+- **Python und PHP** — der ursprüngliche regex-basierte Transpiler (`build/transpile.ts`), der
+  den Quelltext Zeile für Zeile mit ein paar hundert Ersetzungsregeln umschreibt.
+
+Zwei Generierungstricks sind erwähnenswert. Die **synchrone** Python-API wird aus der
+asynchronen erzeugt — `await`-Ausdrücke werden entfernt und der aiohttp-Transport gegen
+`requests`-artige Aufrufe getauscht, weshalb die synchrone und die asynchrone Python-API nie auseinanderdriften. PHP
+funktioniert andersherum: Die **asynchrone** (ReactPHP-)Variante wird aus der synchronen generiert.
+
+## Der AST-Transpiler
+
+[`ast-transpiler`](https://github.com/ccxt/ast-transpiler) nutzt die TypeScript-Compiler-API, um
+jede Datei in einen abstrakten Syntaxbaum zu parsen, läuft dann den Baum ab und gibt äquivalenten Code in
+der Zielsprache aus: Typen werden abgebildet (`string` → `string`/`str`/`String`), aus `async/await`
+werden C#-`Task`s, Java-Futures oder schlichte Go-Aufrufe mit `(value, error)`-Rückgaben, und
+JavaScript-Idiome werden in die Standardbibliothek der jeweiligen Sprache übersetzt.
+
+Auf dem AST statt auf Text zu arbeiten macht die Ausgaben für C#, Go und Java deutlich robuster
+als Regex-Umschreibungen: Der Transpiler *versteht*, dass etwas ein Methodenaufruf oder ein
+Property-Zugriff ist, also bringen ihn Formatierung, Zeilenumbrüche und Verschachtelung nicht aus dem Tritt. Jede Sprache hat
+trotzdem noch einen dünnen Treiber im CCXT-Repo (`build/csharpTranspiler.ts`, `build/goTranspiler.ts`,
+`build/javaTranspiler.ts`), der den sprachspezifischen Kleber übernimmt: Wrapper-Klassen mit
+typisierten Signaturen, das Package-Layout und die Standardbibliotheks-Shims pro Sprache.
+
+Der Regex-Transpiler ist älter und generiert weiterhin Python und PHP. Er ist notorisch zerbrechlich —
+er hängt von der exakten Formatierung des TypeScript-Quelltexts ab — aber er hat über die Jahre Millionen
+Zeilen verarbeitet, und die Einschränkungen, die er erzwingt, haben sich als Feature statt als Bug herausgestellt.
+
+## Wir schreiben kein TypeScript — wir schreiben TypeScript im CCXT-Dialekt
+
+Damit eine Codebasis fünf Konvertierungen übersteht, muss sie in einem Dialekt bleiben, den jedes
+Backend verkraftet. Contributors stoßen bei ihrem ersten Pull Request auf diese Regeln:
+
+- **Kein Punkt-Property-Zugriff auf Daten.** Immer `order['price']`, nie `order.price` — die
+  Transpiler machen aus Klammerzugriffen Dictionaries, Arrays und Maps.
+- **Keine native Arithmetik auf Preisen oder Mengen.** Alle numerischen Rechnungen laufen über die
+  string-basierte `Precise`-Klasse — `Precise.stringAdd (a, b)` —, weil sich Floats in jeder Sprache
+  anders verhalten (und Floats Geld verlieren; mehr dazu in
+  [Sieben Fehler](/de/blog/seven-mistakes-crypto-exchange-api-developers-make)).
+- **Typisierte Safe-Accessors überall.** `this.safeString (obj, 'key')`,
+  `this.safeInteger (...)`, `this.safeDict (...)` statt Rohzugriff mit `||`-Fallbacks,
+  die sich in Python oder PHP anders verhalten würden.
+- **Eine Teilmenge der Syntax.** Kein `Array.includes` (daraus wird `indexOf (x) !== -1`), keine Arrow-
+  Callbacks in Exchange-Klassen, Ternaries immer in Klammern, eine Anweisung pro Zeile.
+
+Die ESLint-Konfiguration erzwingt das meiste davon mechanisch. Das Ergebnis liest sich für einen
+TypeScript-Puristen etwas seltsam, aber es kompiliert in sechs Sprachen.
+
+## Was *nicht* transpiliert wird
+
+Transport und Kryptografie lassen sich nicht generieren — dort unterscheiden sich die Sprachen wirklich.
+Jede Sprache hat eine handgeschriebene Basisschicht: den HTTP-Client (fetch, aiohttp, curl,
+HttpClient, net/http, OkHttp-artig), den WebSocket-Transport und die Krypto-Primitiven
+(HMAC-, RSA-, ECDSA-, EdDSA-Signierung). Die einheitliche Basisklassen-Logik, die *über* dieser Schicht sitzt —
+Symbolauflösung, Order-Parsing, Präzisionsbehandlung, Rate Limiting — wird aus
+`ts/src/base/Exchange.ts` in jede Sprache transpiliert, unterhalb einer Markierungszeile in jeder Datei.
+
+## Sechs Sprachen gleichzeitig testen
+
+Generierter Code, den du nicht testest, ist generierter Code, dem du nicht trauen kannst. Jede Exchange-Methode ist
+durch **statische Fixtures** abgedeckt: aufgezeichnete Request-URLs und Response-Payloads, eingecheckt ins
+Repo, bei jedem CI-Lauf offline gegen alle sechs Implementierungen abgespielt. Wenn der Python-Build
+eine Binance-Order anders parst als der Go-Build, schlägt CI vor dem Release fehl. Obendrauf
+treffen Live-Smoke-Tests pro Sprache echte öffentliche Endpunkte, und die gesamte Matrix — transpilieren,
+kompilieren, testen — läuft bei jedem Merge in parallelen CI-Pipelines für jede Sprache.
+
+## Hat es sich gelohnt?
+
+Die Kompromisse sind real: Contributors müssen den Dialekt lernen, Debugging bedeutet manchmal,
+generiertes Python zu lesen, um einen Bug zu finden, den du dann in TypeScript behebst, und die Transpiler selbst
+sind eine Codebasis, die gepflegt werden will. Aber der Lohn ist, dass ein Fix in **sechs Package-Registries
+gleichzeitig** landet, mit einem Review, aus einem Diff. Kein Port hinkt hinterher; keine Sprache bekommt die
+„zweitklassige“ Version einer neuen Börse.
+
+Wenn dich die Idee anspricht: [`ast-transpiler`](https://github.com/ccxt/ast-transpiler) ist MIT-
+lizenziert und auch außerhalb von CCXT nutzbar — und wenn du den Dialekt in der Praxis sehen willst, ist jede
+Exchange-Datei in [`ts/src/`](https://github.com/ccxt/ccxt/tree/master/ts/src) das echte
+Ding.

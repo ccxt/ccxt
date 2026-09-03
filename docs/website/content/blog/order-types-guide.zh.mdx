@@ -1,0 +1,117 @@
+---
+title: "你只用了两种订单类型——止损单、追踪止损单和 post-only 一览"
+description: "市价单和限价单只是开始。触发单、止损、止盈、追踪止损，以及 postOnly 和 reduceOnly 这样的执行修饰符——通过 CCXT 的 params 在各交易所之间统一。"
+author: CCXT Team
+date: 2026-07-08T12:00:00Z
+tags: [tutorials, orders]
+---
+
+大多数机器人恰好只用两种订单类型——`market` 和 `limit`——然后在应用代码里重新实现其他一切：
+在循环里盯着价格，当某个价位被突破时发出一笔市价单。这在你的进程崩溃、连接断开、
+或者事情发生时你正在睡觉之前都没问题。而交易所早就在服务端原生地、免费地运行着这些订单类型了。
+
+问题一直在于每家交易所对它们的命名和形态都不一样。CCXT 通过你已经在用的同一个 `createOrder`
+上的 `params` 把它们统一起来。
+
+## 触发（止损）订单
+
+一笔**触发单**会在交易所上沉睡，直到市场触及你的触发价格，然后激活为一笔普通的市价单或限价单。
+这是止损单和突破入场的基本构件——而且它存在于服务端，所以即使你的机器人挂了它也会触发：
+
+```javascript tab="JavaScript"
+// 如果价格跌到 60,000 就以市价卖出 0.01 BTC——经典的止损
+const order = await exchange.createOrder('BTC/USDT', 'market', 'sell', 0.01, undefined, {
+    triggerPrice: 60000,
+});
+```
+
+```python tab="Python"
+# 如果价格跌到 60,000 就以市价卖出 0.01 BTC——经典的止损
+order = exchange.create_order('BTC/USDT', 'market', 'sell', 0.01, None, {
+    'triggerPrice': 60000,
+})
+```
+
+```php tab="PHP"
+// 如果价格跌到 60,000 就以市价卖出 0.01 BTC——经典的止损
+$order = $exchange->create_order('BTC/USDT', 'market', 'sell', 0.01, null, [
+    'triggerPrice' => 60000,
+]);
+```
+
+```csharp tab="C#"
+// 如果价格跌到 60,000 就以市价卖出 0.01 BTC——经典的止损
+var order = await exchange.CreateOrder("BTC/USDT", "market", "sell", 0.01, null,
+    new Dictionary<string, object>() { { "triggerPrice", 60000 } });
+```
+
+```go tab="Go"
+// 如果价格跌到 60,000 就以市价卖出 0.01 BTC——经典的止损
+order, err := exchange.CreateOrder("BTC/USDT", "market", "sell", 0.01,
+    ccxt.WithCreateOrderParams(map[string]interface{}{
+        "triggerPrice": 60000,
+    }))
+```
+
+```java tab="Java"
+// 如果价格跌到 60,000 就以市价卖出 0.01 BTC——经典的止损
+var order = exchange.createOrder("BTC/USDT", "market", "sell", 0.01, null,
+        java.util.Map.of("triggerPrice", 60000));
+```
+
+用 `'limit'` 代替 `'market'`（并传入一个价格）就得到了止损限价单：你控制了最差的成交价，
+代价是在快速行情中可能完全不成交。
+
+## 保护性止损与止盈
+
+两个同族参数把*保护一个仓位*与一般的触发区分开来：
+
+- **`stopLossPrice`**——当市场朝*不利于*你的方向移动时平掉仓位的触发。
+- **`takeProfitPrice`**——当市场朝*有利于*你的方向移动时平仓的触发。
+
+在衍生品上，把它们与 **`reduceOnly: true`** 组合使用，这样订单只能缩小你的仓位——
+一笔数量算错、能把你*反手*成空头的"保护性"订单，是经典的自伤事故。很多交易所还支持在
+一次原子调用中把两者直接附加到入场订单上（bracket 订单）——在交易所支持的地方，
+CCXT 以 `createOrderWithTakeProfitAndStopLoss` 的形式暴露它。
+
+## 追踪止损
+
+追踪止损以固定距离跟随价格，并且只朝对你有利的方向移动——不用提前选定出场点就能锁住利润。
+统一为 `trailingPercent`（或 `trailingAmount`）：
+
+```python
+# 如果价格从下单后的峰值回撤 2%，就以市价卖出
+order = exchange.create_order('BTC/USDT:USDT', 'market', 'sell', 0.01, None, {
+    'trailingPercent': 2,
+    'reduceOnly': True,
+})
+```
+
+同一个 `params` 字典在每种语言里都能用——按上面的标签页换一下语法即可。
+
+## 执行修饰符
+
+它们不是订单类型，而是改变你的订单*如何*执行的标志——而且同样重要：
+
+- **`postOnly: true`**——如果订单会以 taker 身份立即成交，就拒绝它。
+  保证拿到 maker 手续费；[做市](/zh/blog/market-making-with-ccxt)的支柱。
+- **`timeInForce: 'IOC'`**（immediate-or-cancel）——*立刻*成交所有能成交的部分，
+  取消剩余的。想要"为了数量穿过 spread"却不留下挂单的诚实做法。
+- **`timeInForce: 'FOK'`**（fill-or-kill）——全部成交或全部取消，立即执行。用于多段交易中
+  部分成交比不成交更糟的那些腿（想想
+  [三角套利](/zh/blog/crypto-arbitrage-strategies)）。
+- **`reduceOnly: true`**——仅限衍生品；订单可以缩小仓位，但永远不能扩大或反转它。
+- **`clientOrderId`**——你自己的幂等键，也是
+  [错误 #4](/zh/blog/seven-mistakes-crypto-exchange-api-developers-make) 中超时后重试陷阱的解药。
+
+## 依赖之前先检查支持情况
+
+不是每家交易所都支持每一种类型，而 CCXT 也不会在客户端悄悄模拟一个服务端止损——那会违背初衷。
+有两个地方能在运行时告诉你一个交易场所能做什么：粗粒度的 `has` 标志（`exchange.has['createTriggerOrder']`、
+`has['createTrailingPercentOrder']`），以及更细粒度的 `exchange.features` 块，它按市场类型声明
+`createOrder` 是否支持 `triggerPrice`、`stopLossPrice`、`trailingPercent` 等等。
+用这些来给你的策略把关，而不是在生产环境里通过被拒绝的订单来发现支持上的缺口。
+
+结尾说一句诚实的警告：服务端止损是一种*风险工具*，不是一个有保证的价格。在跳空或闪崩中，
+止损市价单会在任何有流动性的地方成交，而止损限价单可能根本不成交。止损限制的是你的日常亏损；
+仓位大小限制的才是你的灾难性亏损。

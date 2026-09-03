@@ -1,29 +1,32 @@
 import Link from 'next/link';
 import { ArrowLeft, ArrowRight, Rss } from 'lucide-react';
-import { blogDescription, formatPostDate, type BlogPost } from '@/lib/blog';
+import { blogStrings, formatPostDate, localePrefix, type BlogPost } from '@/lib/blog';
 
-// Page 1 lives at /blog, later pages at /blog/page/N. Un-prefixed paths — <Link>
-// prepends the basePath itself.
-function pageHref(page: number): string {
-  return page <= 1 ? '/blog' : `/blog/page/${page}`;
+// Page 1 lives at /blog, later pages at /blog/page/N — under the locale prefix for
+// non-default locales. Un-prefixed by basePath: <Link> prepends that itself.
+function pageHref(lang: string, page: number): string {
+  const prefix = localePrefix(lang);
+  return page <= 1 ? `${prefix}/blog` : `${prefix}/blog/page/${page}`;
 }
 
-export function BlogIndex({ posts, page, totalPages }: {
+export function BlogIndex({ lang, posts, page, totalPages }: {
+  lang: string;
   posts: BlogPost[];
   page: number;
   totalPages: number;
 }) {
+  const t = blogStrings(lang);
   return (
     <main className="flex-1 w-full max-w-3xl mx-auto px-4 py-12">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-4xl font-bold">Blog</h1>
-          <p className="mt-3 text-fd-muted-foreground">{blogDescription}</p>
+          <h1 className="text-4xl font-bold">{t.blog}</h1>
+          <p className="mt-3 text-fd-muted-foreground">{t.description}</p>
         </div>
         <Link
           href="/blog/rss.xml"
           className="flex shrink-0 items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium text-fd-muted-foreground transition-colors hover:bg-fd-accent hover:text-fd-accent-foreground"
-          title="Subscribe via RSS"
+          title={t.rss}
         >
           <Rss className="size-4" aria-hidden />
           RSS
@@ -33,6 +36,7 @@ export function BlogIndex({ posts, page, totalPages }: {
         {posts.map((post) => (
           <Link
             key={post.url}
+            // post.url already carries the locale prefix for non-default locales
             href={post.url}
             className="block rounded-xl border bg-fd-card p-6 transition-colors hover:bg-fd-accent"
           >
@@ -40,7 +44,7 @@ export function BlogIndex({ posts, page, totalPages }: {
               dateTime={new Date(post.data.date).toISOString()}
               className="text-sm text-fd-muted-foreground"
             >
-              {formatPostDate(post.data.date)}
+              {formatPostDate(post.data.date, lang)}
             </time>
             <h2 className="mt-1 text-xl font-semibold text-fd-foreground">{post.data.title}</h2>
             {post.data.description ? (
@@ -50,27 +54,25 @@ export function BlogIndex({ posts, page, totalPages }: {
         ))}
       </div>
       {totalPages > 1 ? (
-        <nav aria-label="Blog pagination" className="mt-10 flex items-center justify-between text-sm">
+        <nav aria-label={t.pagination} className="mt-10 flex items-center justify-between text-sm">
           {page > 1 ? (
             <Link
-              href={pageHref(page - 1)}
+              href={pageHref(lang, page - 1)}
               className="flex items-center gap-1.5 rounded-lg border px-3 py-2 font-medium text-fd-muted-foreground transition-colors hover:bg-fd-accent hover:text-fd-accent-foreground"
             >
               <ArrowLeft className="size-4" aria-hidden />
-              Newer
+              {t.newer}
             </Link>
           ) : (
             <span />
           )}
-          <span className="text-fd-muted-foreground">
-            Page {page} of {totalPages}
-          </span>
+          <span className="text-fd-muted-foreground">{t.pageOf(page, totalPages)}</span>
           {page < totalPages ? (
             <Link
-              href={pageHref(page + 1)}
+              href={pageHref(lang, page + 1)}
               className="flex items-center gap-1.5 rounded-lg border px-3 py-2 font-medium text-fd-muted-foreground transition-colors hover:bg-fd-accent hover:text-fd-accent-foreground"
             >
-              Older
+              {t.older}
               <ArrowRight className="size-4" aria-hidden />
             </Link>
           ) : (

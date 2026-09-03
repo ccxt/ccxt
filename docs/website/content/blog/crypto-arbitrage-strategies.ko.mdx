@@ -1,0 +1,207 @@
+---
+title: "크립토 아비트라지 플레이북: 2026년에도 여전히 수익이 나는 것 (그리고 함정인 것)"
+description: "크로스 거래소, 삼각, 펀딩비, 베이시스, 통계적 아비트라지 — 각각이 실제로 어떻게 작동하는지, 진짜 리스크는 무엇인지, 그리고 어떤 CCXT 메서드가 이를 뒷받침하는지 정리했습니다."
+author: CCXT Team
+date: 2026-07-07T11:00:00Z
+tags: [arbitrage, strategies]
+---
+
+"아비트라지"라는 말은 자본 요구량, 속도 요구량, 리스크가 서로 다른, 진짜로 다른 대여섯 가지 전략을
+아우릅니다. 이 글은 인기 있는 전략들을 지도로 그립니다. 거래가 무엇인지, 엣지가 왜 존재하는지, 그리고
+각각이 어떤 CCXT 장치 위에서 돌아가는지. 실습 위주의
+[스프레드 스캐너 튜토리얼](/ko/blog/scanning-100-exchanges-for-arbitrage-spreads)과 짝을 이루며,
+이 글은 그 위에 놓이는 전략 계층입니다.
+
+## 1. 크로스 거래소(공간적) 아비트라지
+
+**거래:** 같은 자산이 거래소 B보다 거래소 A에서 더 쌉니다. A에서 사서 B에서 팝니다.
+
+순진한 버전 — 사고, 출금하고, 입금하고, 판다 — 은 현실과 맞닥뜨리면 거의 살아남지 못합니다. 전송에
+수 분에서 수 시간이 걸리고, 코인이 도착하기 한참 전에 스프레드는 사라집니다. 작동하는 버전은
+**재고 기반**입니다. 양쪽 거래소에 자산과 견적 통화를 미리 보유하고, 두 다리를 동시에 실행하며, 조용한
+시기에 가끔씩 재고를 리밸런싱합니다 (또는 편차를 감수합니다). 핵심 경로에 전송이 없고, 전송 비용은
+분할 상각되는 리밸런싱 비용이 됩니다.
+
+**엣지가 나오는 곳:** 파편화된 유동성. 작은 거래소는 큰 거래소보다 몇 초 뒤처지고, 호가창이 얇은
+거래소에서는 리테일 주문 흐름이 가격을 이리저리 밀어냅니다.
+
+**CCXT가 제공하는 것:** 모든 거래소에 걸친 하나의 API — 양쪽에서 `fetchTickers` / `watchOrderBook`,
+양쪽에서 `createOrder`, 그리고 특정 네트워크를 통한 리밸런싱에 의존하기 전에 그 네트워크의
+입출금이 살아 있는지 확인하는 `fetchCurrencies`. 이 전략이 바로 사람들이 애초에 멀티 거래소
+라이브러리를 찾는 *이유*입니다.
+
+## 2. 삼각 아비트라지
+
+**거래:** **하나의** 거래소 안의 세 마켓이 순환 고리를 이룹니다. 예를 들어 BTC/USDT, ETH/BTC,
+ETH/USDT. 고리를 따라 내재 환율을 곱했을 때, 세 번의 수수료를 제하고도 곱이 1.0을 넘는다면, 고리를
+따라 환전해서 시작보다 많은 양으로 끝납니다.
+
+모든 것이 한 거래소 안에서 일어나므로 전송 리스크도 재고 분산도 없습니다. 하지만 고리는 빠르게 실행되어야
+하고, 세 다리는 원자적이지 않으며 (첫 번째 다리가 체결된 뒤 두 번째 다리가 실패할 수 있습니다), 주요
+거래소에서 이런 틈은 매우 빠른 플레이어들이 사냥하고 있습니다. 현실적인 기회는 유동성이 낮은 페어에
+몰려 있으며, 그곳에서는 슬리피지가 균형추 역할을 합니다.
+
+**CCXT가 제공하는 것:** 통화 그래프를 만들고 순환 고리를 열거하기 위한 `loadMarkets()`, 세 호가창을
+하나의 루프로 스트리밍하는 `watchOrderBookForSymbols`, 그리고 각 다리의 수량이 발사 전에 유효하도록
+해 주는 precision/limits 메타데이터.
+
+## 3. 펀딩비 아비트라지 (크립토판 캐시 앤 캐리)
+
+**거래:** 무기한 스왑은 perp을 현물에 묶어 두기 위해 몇 시간마다 롱과 숏 사이에 **펀딩**을 지급합니다.
+펀딩이 양(+)일 때 (강세장에서 흔한 상태) 숏이 돈을 받습니다. 그러니 현물을 사고, 같은 명목 금액을
+perp에서 숏합니다. 가격 리스크는 대략 0으로 상쇄되고, 여러분은 펀딩을 수취합니다.
+
+이것은 규모를 키울 수 있고 속도가 필요 없기 때문에 기관이 가장 선호하는 전략입니다. 리스크는 더
+미묘합니다. 펀딩이 음(-)으로 뒤집히면 캐리가 비용이 됩니다. perp 다리에는 마진이 필요하며, 베이시스가
+움직이는 동안 담보가 부족하면 청산될 수 있습니다. 그리고 진입/청산 실행에 스프레드 두 번의 비용이
+듭니다.
+
+**CCXT가 제공하는 것:** 거래소 전체 스냅샷을 위한 `fetchFundingRates()`, 캐리를 백테스트하기 위한
+`fetchFundingRateHistory`, 통합 파생상품 심볼 (`BTC/USDT:USDT`가 선형 perp입니다), 그리고 비공개
+측의 포지션 및 마진 데이터. 펀딩 스캐너는 몇 줄이면 됩니다:
+
+```javascript tab="JavaScript"
+import ccxt from 'ccxt';
+
+for (const id of ['binance', 'bybit', 'okx', 'gate']) {
+    const exchange = new ccxt[id]();
+    const rates = await exchange.fetchFundingRates();
+    for (const [symbol, entry] of Object.entries(rates)) {
+        if (entry.fundingRate && Math.abs(entry.fundingRate) > 0.0005) {
+            console.log(id.padEnd(10), symbol.padEnd(22),
+                `${(entry.fundingRate * 100).toFixed(4)}%`);
+        }
+    }
+    await exchange.close();
+}
+```
+
+```python tab="Python"
+import ccxt
+
+for exchange_id in ['binance', 'bybit', 'okx', 'gate']:
+    exchange = getattr(ccxt, exchange_id)()
+    rates = exchange.fetch_funding_rates()
+    for symbol, entry in rates.items():
+        rate = entry['fundingRate']
+        if rate and abs(rate) > 0.0005:          # 간격당 0.05%
+            print(f'{exchange_id:10} {symbol:22} {rate * 100:+.4f}%')
+```
+
+```php tab="PHP"
+<?php
+foreach (['binance', 'bybit', 'okx', 'gate'] as $id) {
+    $class = "\\ccxt\\{$id}";
+    $exchange = new $class();
+    $rates = $exchange->fetch_funding_rates();
+    foreach ($rates as $symbol => $entry) {
+        $rate = $entry['fundingRate'];
+        if ($rate && abs($rate) > 0.0005) {      // 간격당 0.05%
+            printf("%-10s %-22s %+.4f%%\n", $id, $symbol, $rate * 100);
+        }
+    }
+}
+```
+
+```csharp tab="C#"
+using ccxt;
+
+foreach (var id in new[] { "binance", "bybit", "okx", "gate" })
+{
+    var exchange = Exchange.DynamicallyCreateInstance(id);
+    var rates = await exchange.FetchFundingRates();
+    foreach (var (symbol, entry) in rates.fundingRates)
+    {
+        if (entry.fundingRate is double rate && Math.Abs(rate) > 0.0005)
+        {
+            Console.WriteLine($"{id,-10} {symbol,-22} {rate * 100:+0.0000;-0.0000}%");
+        }
+    }
+}
+```
+
+```go tab="Go"
+package main
+
+import (
+    "fmt"
+    "math"
+
+    ccxt "github.com/ccxt/ccxt/go/v4"
+)
+
+func main() {
+    for _, id := range []string{"binance", "bybit", "okx", "gate"} {
+        exchange := ccxt.CreateExchange(id, nil)
+        rates, err := exchange.FetchFundingRates()
+        if err != nil {
+            panic(err)
+        }
+        for symbol, entry := range rates.FundingRates {
+            if entry.FundingRate != nil && math.Abs(*entry.FundingRate) > 0.0005 {
+                fmt.Printf("%-10s %-22s %+.4f%%\n", id, symbol, *entry.FundingRate*100)
+            }
+        }
+    }
+}
+```
+
+```java tab="Java"
+import io.github.ccxt.Exchange;
+
+import java.util.Map;
+
+public class FundingScanner {
+
+    @SuppressWarnings("unchecked")
+    public static void main(String[] args) {
+        for (var id : new String[] { "binance", "bybit", "okx", "gate" }) {
+            var exchange = Exchange.dynamicallyCreateInstance(id, null);
+            var rates = (Map<String, Object>) exchange.fetchFundingRates().join();
+            for (var entry : rates.entrySet()) {
+                var data = (Map<String, Object>) entry.getValue();
+                var rate = (Number) data.get("fundingRate");
+                if (rate != null && Math.abs(rate.doubleValue()) > 0.0005) {
+                    System.out.printf("%-10s %-22s %+.4f%%%n",
+                            id, entry.getKey(), rate.doubleValue() * 100);
+                }
+            }
+        }
+    }
+}
+```
+
+8시간마다 0.05%라면 연환산 총 캐리는 대략 55%입니다. 그래서 붐비는 거래에서는 금세 압축되죠.
+거래소 간에 비교해 보십시오. 같은 perp이라도 거래소마다 펀딩이 매우 다른 경우가 흔하며, 펀딩이 가장 높은
+곳에서 숏하는 것 자체가 하나의 선택 엣지입니다.
+
+## 4. 현물–선물 베이시스 거래
+
+펀딩 아비트라지의 만기 선물 사촌입니다. 분기 선물은 현물 대비 프리미엄에 거래되며, 그 프리미엄은 만기에
+0으로 수렴해야 합니다. 현물을 사고, 선물을 숏하고, 만기까지 보유해서 베이시스를 챙깁니다. 고정 기간의,
+미리 알 수 있는 수익률이며, 그 대가는 자본 효율성과 숏 다리의 마진 관리입니다. CCXT는 만기 선물을
+만기 메타데이터가 담긴 통합 마켓(`market['future']`)으로 노출하므로, 기간 구조를 스캔하는 것은 다른
+모든 것과 같은 `loadMarkets` + `fetchTickers` 패턴입니다.
+
+## 5. 통계적 아비트라지
+
+위의 모든 것은 원칙적으로 (거의) 무위험입니다. 스탯 아브(stat-arb)는 그렇지 않습니다. 상관관계가 있는
+알트코인들 사이, 혹은 알트코인과 그 섹터 사이의 과거 가격 *관계*가 벌어진 뒤 평균으로 회귀할 것이라는
+데 베팅합니다. 스프레드를 모델링하고, z-score 임계값에서 진입하고, 회귀 시 청산합니다. 이름 속의
+"아비트라지"는 희망 사항입니다. 관계는 깨지며, 2021년의 공적분은 2022년의 발산입니다.
+
+**CCXT가 제공하는 것:** 리서치를 위한 수백 개 거래소에 걸친 `fetchOHLCV`, 그리고 시그널이 발동했을 때
+다른 모든 것과 같은 실행 계층. 여기서 어려운 부분은 배관이 아니라 통계입니다.
+
+## 하나를 고르는 데 대한 솔직한 조언
+
+- **펀딩비 스캔부터 시작하십시오.** 느긋한 속도이고, 미리 측정 가능하며, 파생상품 메커니즘을 가르쳐
+  줍니다. 읽기 전용으로 돌려 보십시오. 시장 캐리의 리듬을 배우게 될 것입니다.
+- **크로스 거래소 재고 아비트라지**는 전형적인 CCXT 사용 사례이지만, 실행 엔지니어링 프로젝트로
+  취급하십시오. 엣지는 아이디어가 아니라 여러분의 지연 시간, 사이징, 거래소 선택에 있습니다.
+- **주요 코인의 삼각 아비트라지는 2026년에는 대체로 교육용입니다.** 호가창 메커니즘을 배우기 위해
+  만들되, 수익을 기대하지는 마십시오.
+- 무엇을 고르든: 수수료 먼저 (`market['taker']`, `market['maker']`), 티커보다 호가창 깊이 먼저,
+  메인넷보다 테스트넷 먼저, 그리고
+  [일곱 가지 전형적인 실수](/ko/blog/seven-mistakes-crypto-exchange-api-developers-make)는
+  거래소가 두 곳 관련될 때 두 배로 적용됩니다.

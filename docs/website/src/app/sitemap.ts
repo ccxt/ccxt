@@ -2,7 +2,7 @@ import type { MetadataRoute } from 'next';
 import { readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { source } from '@/lib/source';
-import { blog, getTotalPages } from '@/lib/blog';
+import { blog, getTotalPages, postAlternates } from '@/lib/blog';
 import { basePath, siteUrl } from '@/lib/shared';
 import { i18n } from '@/lib/i18n';
 
@@ -63,13 +63,25 @@ export default function sitemap(): MetadataRoute.Sitemap {
     }
   }
 
-  // blog — English-only, one canonical un-prefixed URL per post (no hreflang variants)
-  entries.push({ url: `${base}/blog`, changeFrequency: 'weekly' });
-  for (let page = 2; page <= getTotalPages(); page++) {
-    entries.push({ url: `${base}/blog/page/${page}`, changeFrequency: 'weekly' });
+  // blog index pages — the chrome and post titles are translated in every locale
+  const indexPaths = ['/blog'];
+  for (let page = 2; page <= getTotalPages(); page++) indexPaths.push(`/blog/page/${page}`);
+  for (const path of indexPaths) {
+    const languages = hreflang(path);
+    for (const locale of i18n.languages) {
+      entries.push({ url: locUrl(locale, path), changeFrequency: 'weekly', alternates: { languages } });
+    }
   }
-  for (const post of blog.getPages()) {
-    entries.push({ url: `${base}${post.url}`, lastModified: new Date(post.data.date), changeFrequency: 'monthly' });
+  // blog posts — one entry per locale that has a real translation (content/blog/
+  // <slug>.<locale>.mdx); locales served the English fallback aren't listed, and the
+  // hreflang set only names the translated ones (x-default -> English).
+  for (const post of blog.getPages(i18n.defaultLanguage)) {
+    const languages = postAlternates(post);
+    const lastModified = new Date(post.data.date);
+    for (const locale of i18n.languages) {
+      if (!(locale in languages)) continue;
+      entries.push({ url: languages[locale], lastModified, changeFrequency: 'monthly', alternates: { languages } });
+    }
   }
 
   return entries;

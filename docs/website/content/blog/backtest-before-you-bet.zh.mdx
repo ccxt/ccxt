@@ -1,0 +1,200 @@
+---
+title: "下注之前先 backtest：从任何交易所免费拉取数年 K 线"
+description: "每家交易所都通过同一个 CCXT 调用免费提供它的价格历史。如何正确下载数年的 OHLCV 数据——以及那些让亏钱策略看起来像赢家的 backtest 陷阱。"
+author: CCXT Team
+date: 2026-07-08T13:00:00Z
+tags: [tutorials, backtesting]
+---
+
+每一个策略想法在凌晨 2 点都显得无比聪明。要弄清它是否真的聪明，最便宜的办法是：
+在拿它去跑你的积蓄之前，先拿它去跑历史。交易所免费提供这些历史——
+通过公开端点提供 K 线（OHLCV：开盘价、最高价、最低价、收盘价、成交量），不需要 API key——
+而 CCXT 用一个调用就把它们全部暴露出来：`fetchOHLCV`。
+
+问题在于，正如
+[错误 #5](/zh/blog/seven-mistakes-crypto-exchange-api-developers-make) 所讲的：一次调用只返回
+**一页**，上限因交易所而异（通常是 500–1000 根 K 线）。要下载数年的数据就意味着要循环。
+下面是这个循环的正确写法。
+
+## 下载完整历史
+
+从一个起始时间开始请求，把 `since` 推进到最后收到的那根 K 线之后，当某一页返回的数量不足时停止：
+
+```javascript tab="JavaScript"
+import ccxt from 'ccxt';
+
+const exchange = new ccxt.binance();
+const symbol = 'BTC/USDT';
+const timeframe = '1d';
+let since = exchange.parse8601('2020-01-01T00:00:00Z');
+const all = [];
+
+while (true) {
+    const candles = await exchange.fetchOHLCV(symbol, timeframe, since, 1000);
+    if (candles.length === 0) {
+        break;
+    }
+    all.push(...candles);
+    since = candles[candles.length - 1][0] + 1;   // 最后一根 K 线之后 1 ms
+    if (candles.length < 1000) {
+        break;                                     // 不满一页 = 已追上最新
+    }
+}
+console.log(`fetched ${all.length} candles`);
+await exchange.close();
+```
+
+```python tab="Python"
+import ccxt
+
+exchange = ccxt.binance()
+symbol = 'BTC/USDT'
+timeframe = '1d'
+since = exchange.parse8601('2020-01-01T00:00:00Z')
+all_candles = []
+
+while True:
+    candles = exchange.fetch_ohlcv(symbol, timeframe, since, 1000)
+    if not candles:
+        break
+    all_candles += candles
+    since = candles[-1][0] + 1        # 最后一根 K 线之后 1 ms
+    if len(candles) < 1000:
+        break                          # 不满一页 = 已追上最新
+
+print(f'fetched {len(all_candles)} candles')
+```
+
+```php tab="PHP"
+<?php
+$exchange = new \ccxt\binance();
+$symbol = 'BTC/USDT';
+$timeframe = '1d';
+$since = $exchange->parse8601('2020-01-01T00:00:00Z');
+$all = [];
+
+while (true) {
+    $candles = $exchange->fetch_ohlcv($symbol, $timeframe, $since, 1000);
+    if (count($candles) === 0) {
+        break;
+    }
+    $all = array_merge($all, $candles);
+    $since = $candles[count($candles) - 1][0] + 1;   // 最后一根 K 线之后 1 ms
+    if (count($candles) < 1000) {
+        break;                                        // 不满一页 = 已追上最新
+    }
+}
+echo 'fetched ', count($all), " candles\n";
+```
+
+```csharp tab="C#"
+using ccxt;
+
+var exchange = new Binance();
+var symbol = "BTC/USDT";
+var since = Convert.ToInt64(exchange.parse8601("2020-01-01T00:00:00Z"));
+var all = new List<OHLCV>();
+
+while (true)
+{
+    var candles = await exchange.FetchOHLCV(symbol, "1d", since, 1000);
+    if (candles.Count == 0) break;
+    all.AddRange(candles);
+    since = (long)candles[^1].timestamp + 1;   // 最后一根 K 线之后 1 ms
+    if (candles.Count < 1000) break;           // 不满一页 = 已追上最新
+}
+Console.WriteLine($"fetched {all.Count} candles");
+```
+
+```go tab="Go"
+package main
+
+import (
+    "fmt"
+
+    ccxt "github.com/ccxt/ccxt/go/v4"
+)
+
+func main() {
+    exchange := ccxt.NewBinance(nil)
+    symbol := "BTC/USDT"
+    since := int64(1577836800000) // 2020-01-01T00:00:00Z，以毫秒计
+    var all []ccxt.OHLCV
+
+    for {
+        candles, err := exchange.FetchOHLCV(symbol,
+            ccxt.WithFetchOHLCVTimeframe("1d"),
+            ccxt.WithFetchOHLCVSince(since),
+            ccxt.WithFetchOHLCVLimit(1000))
+        if err != nil {
+            panic(err)
+        }
+        if len(candles) == 0 {
+            break
+        }
+        all = append(all, candles...)
+        since = candles[len(candles)-1].Timestamp + 1 // 最后一根 K 线之后 1 ms
+        if len(candles) < 1000 {
+            break // 不满一页 = 已追上最新
+        }
+    }
+    fmt.Println("fetched", len(all), "candles")
+}
+```
+
+```java tab="Java"
+import io.github.ccxt.exchanges.Binance;
+import io.github.ccxt.types.OHLCV;
+
+import java.util.ArrayList;
+
+var exchange = new Binance();
+var symbol = "BTC/USDT";
+var since = 1577836800000L; // 2020-01-01T00:00:00Z，以毫秒计
+var all = new ArrayList<OHLCV>();
+
+while (true) {
+    var candles = exchange.fetchOHLCV(symbol, "1d", since, 1000L, null);
+    if (candles.isEmpty()) break;
+    all.addAll(candles);
+    since = candles.get(candles.size() - 1).timestamp + 1;   // 最后一根 K 线之后 1 ms
+    if (candles.size() < 1000) break;                        // 不满一页 = 已追上最新
+}
+System.out.println("fetched " + all.size() + " candles");
+```
+
+内置的 rate limiter 会替你控制循环的节奏。2020 年以来的日线几页就能取完；
+同一时期的分钟线大约是 300 万行——仍然完全可行，只要让它跑着、边取边写入磁盘，
+而不是把所有东西都攥在内存里。存成 CSV/Parquet 一次，然后离线迭代你的策略；
+每次运行都重新下载历史，正是人们在"只是做个 backtest"时被 rate limit 封禁的原因。
+
+## 让烂策略显得很好的四个陷阱
+
+下载 K 线是容易的那一半。大多数自制的 backtest 都在四种方式中的某一种上坏掉了——
+而且总是朝着好看的方向坏：
+
+**1. 前视偏差。** 你的信号用到了交易时刻还不可得的信息——经典版本是在一根 K 线*期间*
+就根据它的收盘价行动，或者在一个包含当前 bar 的窗口上计算指标。规则：在第 N 根 K 线上
+计算出的信号，最早也要在**第 N+1 根 K 线的开盘价**执行。
+
+**2. 不算手续费，不算滑点。** 在每一笔成交上加上 taker 手续费（`market['taker']`，通常约 0.1%），
+再在上面加一层滑点折扣。在零成本下看起来很棒的高频策略，通常在 2 倍手续费下就死了。
+如果你每笔交易的优势比来回成本还小，那你没有优势——你有的是一台手续费生产机。
+
+**3. 不切实际的成交。** 一个只要价格*触及*你的价位就把限价单算成成交的 backtest 是在骗你——
+现实中你排在队列的末尾，而你*真正*得到的成交，会偏向市场穿透你价位的那些时刻
+（逆向选择，也就是[做市那篇文章](/zh/blog/market-making-with-ccxt)里的那个敌人）。
+
+**4. 幸存者偏差与过拟合。** 只在 BTC/ETH 上测试——那些你已经知道活下来的币——会抬高结果；
+把参数调到历史看起来完美为止也是一样。留出一段直到最后都不碰的时间段，
+并且把一个只在 `rsi_period = 13`（而 12 或 14 都不行）下才有效的策略当作噪声，而不是信号。
+
+## 从 K 线到裁决
+
+让流水线保持诚实和无聊：用上面的循环下载一次 → 存到磁盘 → 像实盘一样逐 bar 计算信号 →
+带手续费和滑点的下一 bar 执行 → 与买入持有对比，因为一个跑不过"什么都不做"的机器人
+是昂贵的娱乐。如果它挺过了这一切*并且*挺过了样本外时段，就用 `setSandboxMode(true)`
+把它升级到测试网——对着实时价格做模拟交易，是历史无法评分的期末考试。
+
+从那里开始，[第一个机器人教程](/zh/blog/build-your-first-crypto-trading-bot) 讲执行侧，
+[WebSocket](/zh/blog/realtime-market-data-with-websockets) 讲实时数据流。

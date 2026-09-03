@@ -1,0 +1,120 @@
+---
+title: "So werden Trading-Bots leergeräumt: die API-Key-Sicherheitscheckliste"
+description: "Die meisten Geschichten über gestohlene Gelder beginnen mit einem geleakten API-Key, nicht mit einer gehackten Exchange. Die Berechtigungs-, Speicher- und Monitoring-Gewohnheiten, die aus einem geleakten Key ein Nicht-Ereignis machen."
+author: CCXT Team
+date: 2026-07-08T11:00:00Z
+tags: [best-practices, security]
+---
+
+Die meisten „mein Geld ist weg“-Geschichten haben nichts mit einer gehackten Exchange zu tun. Sie
+handeln von einem API-Key, der geleakt ist – in ein öffentliches Repo gepusht, in ein Docker-Image
+eingebacken, von einem gefälschten „Portfolio-Tracker“ abgephisht oder von einem kompromittierten
+VPS ausgelesen – und von einem Key, der weit mehr durfte, als seine Aufgabe verlangte. Die gute
+Nachricht: Zwei oder drei langweilige Gewohnheiten verwandeln einen geleakten Key von einer
+Katastrophe in eine Widerrufen-und-Rotieren-Routine.
+
+## Die Berechtigungsregeln (hier steckt der Großteil der Sicherheit)
+
+**1. Auszahlungen niemals aktivieren. Nie.** Ein Trading-Bot handelt; er zahlt nicht aus. Ohne
+Auszahlungsberechtigung besteht der beste Zug eines Diebes darin, seltsame Trades zu machen –
+schlecht, aber begrenzt und durch Widerruf des Keys zu stoppen. Mit ihr ist dein Guthaben mit einem
+einzigen API-Call weg. Jede seriöse Exchange lässt dich Keys mit deaktivierten Auszahlungen
+anlegen; es gibt keine Bot-Architektur, die rechtfertigt, das nicht zu tun.
+
+**2. IP-Allowlisting.** Binde den Key an die IP deines Servers. Ein gestohlener Key, der nur von
+deiner Maschine aus funktioniert, ist ein viel kleineres Problem – der Angreifer braucht jetzt
+deinen Key *und* deine Infrastruktur. Bonus: Mehrere Exchanges lockern für IP-beschränkte Keys
+die Rate Limits oder verlängern deren Ablaufzeit.
+
+**3. Least Privilege, ein Key pro Aufgabe.** Ein Dashboard braucht nur Lesezugriff. Ein Trading-Bot
+braucht Trade-Berechtigung auf bestimmten Märkten, falls die Exchange so eine Einschränkung
+unterstützt. Nichts braucht „alle Berechtigungen“ – diese Checkbox ist der Grund, warum ein Leak
+eskaliert. Getrennte Keys pro Bot bedeuten außerdem, dass der Widerruf eines Keys nicht die
+anderen lahmlegt, und die Zugriffslogs der Exchange verraten dir, *welches* Deployment geleakt hat.
+
+**4. Sub-Accounts zur Begrenzung des Schadensradius.** Große Exchanges unterstützen Sub-Accounts
+mit eigenen Guthaben und eigenen Keys. Ein Bot, der in einem Sub-Account mit zwei Wochen
+Trading-Kapital lebt, kann nur zwei Wochen Trading-Kapital verlieren.
+
+## Speicherung: Keys gehören nie in den Code
+
+Die Regel ist ein einziger Satz: **Credentials kommen aus der Umgebung, nicht aus dem Quellcode.**
+Dasselbe Muster in jeder Sprache:
+
+```javascript tab="JavaScript"
+const exchange = new ccxt.binance({
+    apiKey: process.env.BINANCE_APIKEY,
+    secret: process.env.BINANCE_SECRET,
+});
+```
+
+```python tab="Python"
+exchange = ccxt.binance({
+    'apiKey': os.environ['BINANCE_APIKEY'],
+    'secret': os.environ['BINANCE_SECRET'],
+})
+```
+
+```php tab="PHP"
+$exchange = new \ccxt\binance([
+    'apiKey' => getenv('BINANCE_APIKEY'),
+    'secret' => getenv('BINANCE_SECRET'),
+]);
+```
+
+```csharp tab="C#"
+var exchange = new Binance();
+exchange.apiKey = Environment.GetEnvironmentVariable("BINANCE_APIKEY");
+exchange.secret = Environment.GetEnvironmentVariable("BINANCE_SECRET");
+```
+
+```go tab="Go"
+exchange := ccxt.NewBinance(nil)
+exchange.ApiKey = os.Getenv("BINANCE_APIKEY")
+exchange.Secret = os.Getenv("BINANCE_SECRET")
+```
+
+```java tab="Java"
+var exchange = new Binance();
+exchange.apiKey = System.getenv("BINANCE_APIKEY");
+exchange.secret = System.getenv("BINANCE_SECRET");
+```
+
+Dann schließe die Schlupflöcher drumherum:
+
+- **`.env`-Dateien sind nur für die Entwicklung** – und gehören in die `.gitignore`, *bevor* der
+  erste Commit passiert. Die Git-Historie ist für immer; ein Key, der jemals committet wurde, ist
+  verbrannt, selbst wenn du ihn im nächsten Commit gelöscht hast. Rotiere ihn.
+- **Produktion will einen Secret Manager** (Vault, die Secret Manager von AWS/GCP oder zumindest
+  systemd-Credentials / Docker-Secrets) – keine Umgebungsvariablen, die in Images eingebacken
+  sind und die jeder mit `docker inspect` lesen kann.
+- **Vorsicht mit `--verbose`.** Der Debug-Modus von CCXT gibt vollständige HTTP-Requests aus,
+  inklusive Authentifizierungs-Headern. Großartig zum Debuggen, radioaktiv in geteilten Logs –
+  bereinige die Ausgabe, bevor du sie in ein GitHub-Issue oder einen Discord-Kanal einfügst.
+- **Die Supply Chain zählt auch.** Eine bösartige Abhängigkeit kann deine Umgebung auslesen. Pinne
+  Abhängigkeiten, halte die Maschine des Bots minimal und lass deinen Trading-Bot nicht neben
+  deinem Browser laufen.
+
+## Erkennung: geh vom Leak aus und erwisch es schnell
+
+- **Beobachte deinen eigenen Account.** Du bist ohnehin verbunden – `watchBalance` und `watchOrders`
+  (siehe [WebSockets](/de/blog/realtime-market-data-with-websockets)) ergeben in fünf Zeilen einen
+  „Orders, die ich nicht platziert habe“-Alarm. `fetchLedger` deckt den Audit-Trail ab.
+- **Schau gelegentlich in die Key-Nutzungslogs der Exchange** – unbekannte IPs sind der eindeutige
+  Beweis.
+- **Rotiere nach Zeitplan** und *sofort* bei jeder Merkwürdigkeit: Keys sind kostenlos, Forensik
+  nicht. Exchanges lassen Keys zunehmend automatisch ablaufen (ohne IP-Allowlist oft schneller) –
+  betrachte den Ablauf als Feature, nicht als Ärgernis.
+- **Teste den Widerrufspfad.** Wisse, wie schnell du einen Key um 3 Uhr nachts abschalten kannst –
+  das ist dein echter Incident-Response-Plan.
+
+## Die Checkliste
+
+Auszahlungen deaktiviert · IP-Allowlist aktiv · ein Key pro Bot, Least Privilege · Sub-Account als
+Schadensradius · Keys aus Env/Secret Manager, nie in Git · `--verbose`-Ausgabe bereinigt ·
+Guthaben-/Order-Monitoring aktiv · Rotation geplant · Widerrufspfad getestet.
+
+Nichts davon ist exotisch – es ist das API-Key-Äquivalent dazu, die Haustür abzuschließen. Mach es
+einmal pro Bot, und der Tag, an dem ein Key leakt, ist ein ganz normaler Dienstag und kein
+Post-mortem. Und dann stell sicher, dass der Bot selbst nicht [die sieben klassischen
+Fehler](/de/blog/seven-mistakes-crypto-exchange-api-developers-make) macht.

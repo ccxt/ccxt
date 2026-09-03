@@ -1,0 +1,288 @@
+---
+title: "15 分钟搭建你的第一个加密货币交易机器人——用你已经会的任何语言"
+description: "连接交易所、读取余额和价格、下你的第一笔订单——用 JavaScript、Python、PHP、C#、Go 和 Java 实现，并从一开始就带上安全护栏。"
+author: CCXT Team
+date: 2026-07-07T15:00:00Z
+tags: [tutorials]
+---
+
+每一个交易机器人都从同样的四步开始：连接交易所、加载它的市场、读取一些数据、下一笔订单。
+这篇教程做的正是这些——而且因为 CCXT 在六种语言中提供同一套 API，下面的每一步都用全部六种语言展示。
+挑一个你的标签页，然后待在里面。
+
+## 第零条规则：不要用真钱学习
+
+在写任何代码之前：
+
+- **使用测试网。** 大多数主流交易所（Binance、Bybit、OKX 等）都提供带有虚拟资金的沙盒或模拟环境。
+  CCXT 用一个调用就能切换过去——`setSandboxMode(true)`——见下文。
+- **创建禁用提现的 API key**，并设置 IP 白名单。交易机器人永远不需要提现权限。
+- **从交易所的最小下单量开始**，即使在测试网上也是如此，这样习惯才能迁移到实盘。
+
+## 第 1 步——安装
+
+```bash tab="JavaScript"
+npm install ccxt
+```
+
+```bash tab="Python"
+pip install ccxt
+```
+
+```bash tab="PHP"
+composer require ccxt/ccxt
+```
+
+```bash tab="C#"
+dotnet add package ccxt
+```
+
+```bash tab="Go"
+go get github.com/ccxt/ccxt/go/v4
+```
+
+```kotlin tab="Java"
+// build.gradle.kts
+implementation("io.github.ccxt:ccxt:4.5.64")
+```
+
+## 第 2 步——连接并加载市场
+
+`loadMarkets()` 会下载交易所的可交易交易对、精度规则和限制。在启动时调用一次；其余一切都建立在它之上。
+
+```javascript tab="JavaScript"
+import ccxt from 'ccxt';
+
+const exchange = new ccxt.binance({
+    apiKey: process.env.API_KEY,
+    secret: process.env.SECRET,
+});
+exchange.setSandboxMode(true); // 测试网——只有在你真的确定时才移除
+
+await exchange.loadMarkets();
+console.log(`${exchange.id}: ${Object.keys(exchange.markets).length} markets`);
+```
+
+```python tab="Python"
+import os
+import ccxt
+
+exchange = ccxt.binance({
+    'apiKey': os.environ['API_KEY'],
+    'secret': os.environ['SECRET'],
+})
+exchange.set_sandbox_mode(True)  # 测试网——只有在你真的确定时才移除
+
+exchange.load_markets()
+print(exchange.id, len(exchange.markets), 'markets')
+```
+
+```php tab="PHP"
+<?php
+$exchange = new \ccxt\binance([
+    'apiKey' => getenv('API_KEY'),
+    'secret' => getenv('SECRET'),
+]);
+$exchange->set_sandbox_mode(true); // 测试网——只有在你真的确定时才移除
+
+$exchange->load_markets();
+echo $exchange->id, ': ', count($exchange->markets), " markets\n";
+```
+
+```csharp tab="C#"
+using ccxt;
+
+var exchange = new Binance();
+exchange.apiKey = Environment.GetEnvironmentVariable("API_KEY");
+exchange.secret = Environment.GetEnvironmentVariable("SECRET");
+exchange.setSandboxMode(true); // 测试网——只有在你真的确定时才移除
+
+await exchange.LoadMarkets();
+Console.WriteLine($"{exchange.id}: markets loaded");
+```
+
+```go tab="Go"
+package main
+
+import (
+    "fmt"
+    "os"
+
+    ccxt "github.com/ccxt/ccxt/go/v4"
+)
+
+func main() {
+    exchange := ccxt.NewBinance(nil)
+    exchange.ApiKey = os.Getenv("API_KEY")
+    exchange.Secret = os.Getenv("SECRET")
+    exchange.SetSandboxMode(true) // 测试网——只有在你真的确定时才移除
+
+    exchange.LoadMarkets()
+    fmt.Println(exchange.Id, "markets loaded")
+}
+```
+
+```java tab="Java"
+import io.github.ccxt.exchanges.Binance;
+
+var exchange = new Binance();
+exchange.apiKey = System.getenv("API_KEY");
+exchange.secret = System.getenv("SECRET");
+exchange.setSandboxMode(true); // 测试网——只有在你真的确定时才移除
+
+exchange.loadMarkets();
+System.out.println("markets loaded");
+```
+
+CCXT 的 rate limiter **默认开启**——请求会自动间隔开以遵守交易所的限制，所以一个简单的循环不会让你的 IP 被封。
+
+## 第 3 步——读取行情和你的余额
+
+```javascript tab="JavaScript"
+const ticker = await exchange.fetchTicker('BTC/USDT');
+console.log('last price:', ticker.last);
+
+const balance = await exchange.fetchBalance();
+console.log('free USDT:', balance['USDT'].free);
+```
+
+```python tab="Python"
+ticker = exchange.fetch_ticker('BTC/USDT')
+print('last price:', ticker['last'])
+
+balance = exchange.fetch_balance()
+print('free USDT:', balance['USDT']['free'])
+```
+
+```php tab="PHP"
+$ticker = $exchange->fetch_ticker('BTC/USDT');
+echo 'last price: ', $ticker['last'], "\n";
+
+$balance = $exchange->fetch_balance();
+echo 'free USDT: ', $balance['USDT']['free'], "\n";
+```
+
+```csharp tab="C#"
+var ticker = await exchange.FetchTicker("BTC/USDT");
+Console.WriteLine($"last price: {ticker.last}");
+
+var balance = await exchange.FetchBalance();
+Console.WriteLine($"free USDT: {balance["USDT"].Free}");
+```
+
+```go tab="Go"
+ticker, err := exchange.FetchTicker("BTC/USDT")
+if err != nil {
+    panic(err)
+}
+fmt.Println("last price:", *ticker.Last)
+
+balance, err := exchange.FetchBalance()
+if err != nil {
+    panic(err)
+}
+fmt.Println("free USDT:", *balance.Free["USDT"])
+```
+
+```java tab="Java"
+var ticker = exchange.fetchTicker("BTC/USDT");
+System.out.println("last price: " + ticker.last);
+
+var balance = exchange.fetchBalance((java.util.Map<String, Object>) null);
+System.out.println(balance);
+```
+
+注意这个交易对符号：`BTC/USDT` 是 CCXT 的**统一符号**格式。你在每家交易所都写同样的符号——
+CCXT 会把它翻译成交易所内部使用的任何叫法（`BTCUSDT`、`XBTUSDT`、`BTC-USDT`……）。
+
+## 第 4 步——下一笔限价单，然后取消它
+
+我们在市价下方 20% 的位置挂一笔买单，这样在你试验的时候它不会成交，然后再取消它。
+
+```javascript tab="JavaScript"
+const price = exchange.priceToPrecision('BTC/USDT', ticker.last * 0.8);
+const amount = 0.001;
+
+const order = await exchange.createOrder('BTC/USDT', 'limit', 'buy', amount, price);
+console.log('placed:', order.id);
+
+await exchange.cancelOrder(order.id, 'BTC/USDT');
+console.log('canceled');
+```
+
+```python tab="Python"
+price = exchange.price_to_precision('BTC/USDT', ticker['last'] * 0.8)
+amount = 0.001
+
+order = exchange.create_order('BTC/USDT', 'limit', 'buy', amount, price)
+print('placed:', order['id'])
+
+exchange.cancel_order(order['id'], 'BTC/USDT')
+print('canceled')
+```
+
+```php tab="PHP"
+$price = $exchange->price_to_precision('BTC/USDT', $ticker['last'] * 0.8);
+$amount = 0.001;
+
+$order = $exchange->create_order('BTC/USDT', 'limit', 'buy', $amount, $price);
+echo 'placed: ', $order['id'], "\n";
+
+$exchange->cancel_order($order['id'], 'BTC/USDT');
+echo "canceled\n";
+```
+
+```csharp tab="C#"
+var price = (double)ticker.last * 0.8;
+var amount = 0.001;
+
+var order = await exchange.CreateOrder("BTC/USDT", "limit", "buy", amount, price);
+Console.WriteLine($"placed: {order.id}");
+
+await exchange.CancelOrder(order.id, "BTC/USDT");
+Console.WriteLine("canceled");
+```
+
+```go tab="Go"
+price := *ticker.Last * 0.8
+amount := 0.001
+
+order, err := exchange.CreateOrder("BTC/USDT", "limit", "buy", amount,
+    ccxt.WithCreateOrderPrice(price))
+if err != nil {
+    panic(err)
+}
+fmt.Println("placed:", *order.Id)
+
+_, err = exchange.CancelOrder(*order.Id, ccxt.WithCancelOrderSymbol("BTC/USDT"))
+if err != nil {
+    panic(err)
+}
+fmt.Println("canceled")
+```
+
+```java tab="Java"
+double price = ticker.last * 0.8;
+double amount = 0.001;
+
+var order = exchange.createOrder("BTC/USDT", "limit", "buy", amount, price, null);
+System.out.println("placed: " + order.id);
+
+exchange.cancelOrder(order.id, "BTC/USDT", null);
+System.out.println("canceled");
+```
+
+区分玩具脚本和真正机器人的两个细节，在这里都能看到：
+
+- **精度辅助函数。** `priceToPrecision` / `amountToPrecision` 会把数值舍入到交易所真正接受的形式。
+  直接发送 `26418.377777` 会让你的订单被拒绝。
+- **调用 `cancelOrder` 时始终传入交易对符号。** 很多交易所要求它，统一的代码应该假定它是必需的。
+
+## 接下来往哪走
+
+你现在拥有了完整的循环：连接、读取、行动、撤销。从这里出发：
+
+- **永远不要在循环里轮询实时价格**——改用 WebSocket，见
+  [用 WebSocket 获取实时行情数据](/zh/blog/realtime-market-data-with-websockets)。
+- 在把真钱投入其中之前，**先读一读 [七个错误](/zh/blog/seven-mistakes-crypto-exchange-api-developers-make)**。
+- [手册](/zh/docs/manual) 记录了统一 API 提供的一切——100 多家交易所、现货和衍生品、公开和私有端点。

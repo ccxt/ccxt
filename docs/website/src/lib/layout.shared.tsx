@@ -40,8 +40,9 @@ export function baseOptions(locale: string = i18n.defaultLanguage): BaseLayoutPr
       { text: t.exchanges, url: `${prefix}/docs/exchanges/binance` },
       { text: t.prediction, url: `${prefix}/docs/prediction` },
       { text: t.examples, url: `${prefix}/docs/examples` },
-      // The blog is English-only, so it always lives at the un-prefixed /blog.
-      { text: t.blog, url: '/blog' },
+      // The blog is translated per locale (content/blog/<slug>.<locale>.mdx), so it
+      // follows the same prefix rule as the docs.
+      { text: t.blog, url: `${prefix}/blog` },
       // Playground lives at the site root (not under /v2), so use an absolute URL.
       { text: 'Playground', url: 'https://docs.ccxt.com/playground', external: true },
       // Discord icon in the secondary nav (next to GitHub) — currentColor matches the

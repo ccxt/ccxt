@@ -1,0 +1,297 @@
+---
+title: "15분 만에 첫 번째 크립토 트레이딩 봇 만들기 — 이미 알고 있는 언어로"
+description: "거래소에 연결하고, 잔고와 가격을 읽고, 첫 주문을 넣어 봅니다 — JavaScript, Python, PHP, C#, Go, Java로, 처음부터 안전장치를 켠 채로."
+author: CCXT Team
+date: 2026-07-07T15:00:00Z
+tags: [tutorials]
+---
+
+모든 트레이딩 봇은 같은 네 가지 동작으로 시작합니다. 거래소에 연결하고, 마켓을 로드하고, 데이터를
+읽고, 주문을 넣는 것입니다. 이 튜토리얼은 정확히 그것을 하며, CCXT는 같은 API를 여섯 개 언어로
+제공하므로 아래의 모든 단계를 여섯 언어 모두로 보여 드립니다. 탭을 하나 고르고 그 탭에
+머무르세요.
+
+## 규칙 0: 실제 돈으로 배우지 마세요
+
+코드를 한 줄이라도 쓰기 전에:
+
+- **테스트넷을 사용하세요.** 대부분의 주요 거래소(Binance, Bybit, OKX 등)는 가상 자금으로
+  돌아가는 샌드박스 또는 데모 환경을 제공합니다. CCXT는 호출 한 번, `setSandboxMode(true)`로
+  전환합니다. 아래에서 보여 드립니다.
+- **출금이 비활성화된 API 키를 만들고** IP 허용 목록을 설정하세요. 트레이딩 봇에 출금 권한이
+  필요한 경우는 없습니다.
+- **거래소의 최소 주문 수량으로 시작하세요.** 테스트넷에서도 그렇게 해야 습관이 옮겨 갑니다.
+
+## 1단계 — 설치
+
+```bash tab="JavaScript"
+npm install ccxt
+```
+
+```bash tab="Python"
+pip install ccxt
+```
+
+```bash tab="PHP"
+composer require ccxt/ccxt
+```
+
+```bash tab="C#"
+dotnet add package ccxt
+```
+
+```bash tab="Go"
+go get github.com/ccxt/ccxt/go/v4
+```
+
+```kotlin tab="Java"
+// build.gradle.kts
+implementation("io.github.ccxt:ccxt:4.5.64")
+```
+
+## 2단계 — 연결하고 마켓 로드하기
+
+`loadMarkets()`는 거래소의 거래 가능 심볼, 정밀도 규칙, 한도를 내려받습니다. 시작할 때 한 번
+호출하세요. 다른 모든 것이 그 위에 쌓입니다.
+
+```javascript tab="JavaScript"
+import ccxt from 'ccxt';
+
+const exchange = new ccxt.binance({
+    apiKey: process.env.API_KEY,
+    secret: process.env.SECRET,
+});
+exchange.setSandboxMode(true); // 테스트넷 — 정말 확신이 있을 때만 제거하세요
+
+await exchange.loadMarkets();
+console.log(`${exchange.id}: ${Object.keys(exchange.markets).length} markets`);
+```
+
+```python tab="Python"
+import os
+import ccxt
+
+exchange = ccxt.binance({
+    'apiKey': os.environ['API_KEY'],
+    'secret': os.environ['SECRET'],
+})
+exchange.set_sandbox_mode(True)  # 테스트넷 — 정말 확신이 있을 때만 제거하세요
+
+exchange.load_markets()
+print(exchange.id, len(exchange.markets), 'markets')
+```
+
+```php tab="PHP"
+<?php
+$exchange = new \ccxt\binance([
+    'apiKey' => getenv('API_KEY'),
+    'secret' => getenv('SECRET'),
+]);
+$exchange->set_sandbox_mode(true); // 테스트넷 — 정말 확신이 있을 때만 제거하세요
+
+$exchange->load_markets();
+echo $exchange->id, ': ', count($exchange->markets), " markets\n";
+```
+
+```csharp tab="C#"
+using ccxt;
+
+var exchange = new Binance();
+exchange.apiKey = Environment.GetEnvironmentVariable("API_KEY");
+exchange.secret = Environment.GetEnvironmentVariable("SECRET");
+exchange.setSandboxMode(true); // 테스트넷 — 정말 확신이 있을 때만 제거하세요
+
+await exchange.LoadMarkets();
+Console.WriteLine($"{exchange.id}: markets loaded");
+```
+
+```go tab="Go"
+package main
+
+import (
+    "fmt"
+    "os"
+
+    ccxt "github.com/ccxt/ccxt/go/v4"
+)
+
+func main() {
+    exchange := ccxt.NewBinance(nil)
+    exchange.ApiKey = os.Getenv("API_KEY")
+    exchange.Secret = os.Getenv("SECRET")
+    exchange.SetSandboxMode(true) // 테스트넷 — 정말 확신이 있을 때만 제거하세요
+
+    exchange.LoadMarkets()
+    fmt.Println(exchange.Id, "markets loaded")
+}
+```
+
+```java tab="Java"
+import io.github.ccxt.exchanges.Binance;
+
+var exchange = new Binance();
+exchange.apiKey = System.getenv("API_KEY");
+exchange.secret = System.getenv("SECRET");
+exchange.setSandboxMode(true); // 테스트넷 — 정말 확신이 있을 때만 제거하세요
+
+exchange.loadMarkets();
+System.out.println("markets loaded");
+```
+
+CCXT의 rate limiter는 **기본으로 켜져 있습니다.** 요청이 거래소의 한도에 맞춰 자동으로 간격을
+두고 나가므로, 단순한 루프 때문에 IP가 차단되는 일은 없습니다.
+
+## 3단계 — 시장과 잔고 읽기
+
+```javascript tab="JavaScript"
+const ticker = await exchange.fetchTicker('BTC/USDT');
+console.log('last price:', ticker.last);
+
+const balance = await exchange.fetchBalance();
+console.log('free USDT:', balance['USDT'].free);
+```
+
+```python tab="Python"
+ticker = exchange.fetch_ticker('BTC/USDT')
+print('last price:', ticker['last'])
+
+balance = exchange.fetch_balance()
+print('free USDT:', balance['USDT']['free'])
+```
+
+```php tab="PHP"
+$ticker = $exchange->fetch_ticker('BTC/USDT');
+echo 'last price: ', $ticker['last'], "\n";
+
+$balance = $exchange->fetch_balance();
+echo 'free USDT: ', $balance['USDT']['free'], "\n";
+```
+
+```csharp tab="C#"
+var ticker = await exchange.FetchTicker("BTC/USDT");
+Console.WriteLine($"last price: {ticker.last}");
+
+var balance = await exchange.FetchBalance();
+Console.WriteLine($"free USDT: {balance["USDT"].Free}");
+```
+
+```go tab="Go"
+ticker, err := exchange.FetchTicker("BTC/USDT")
+if err != nil {
+    panic(err)
+}
+fmt.Println("last price:", *ticker.Last)
+
+balance, err := exchange.FetchBalance()
+if err != nil {
+    panic(err)
+}
+fmt.Println("free USDT:", *balance.Free["USDT"])
+```
+
+```java tab="Java"
+var ticker = exchange.fetchTicker("BTC/USDT");
+System.out.println("last price: " + ticker.last);
+
+var balance = exchange.fetchBalance((java.util.Map<String, Object>) null);
+System.out.println(balance);
+```
+
+심볼을 눈여겨보세요. `BTC/USDT`는 CCXT의 **통합 심볼** 형식입니다. 모든 거래소에서 같은 심볼을
+쓰면 CCXT가 거래소 내부 명칭(`BTCUSDT`, `XBTUSDT`, `BTC-USDT`, ...)으로 변환해 줍니다.
+
+## 4단계 — 지정가 주문을 넣고, 취소하기
+
+실험하는 동안 체결되지 않도록 시장가보다 20% 아래에 매수 주문을 넣고, 그다음 취소합니다.
+
+```javascript tab="JavaScript"
+const price = exchange.priceToPrecision('BTC/USDT', ticker.last * 0.8);
+const amount = 0.001;
+
+const order = await exchange.createOrder('BTC/USDT', 'limit', 'buy', amount, price);
+console.log('placed:', order.id);
+
+await exchange.cancelOrder(order.id, 'BTC/USDT');
+console.log('canceled');
+```
+
+```python tab="Python"
+price = exchange.price_to_precision('BTC/USDT', ticker['last'] * 0.8)
+amount = 0.001
+
+order = exchange.create_order('BTC/USDT', 'limit', 'buy', amount, price)
+print('placed:', order['id'])
+
+exchange.cancel_order(order['id'], 'BTC/USDT')
+print('canceled')
+```
+
+```php tab="PHP"
+$price = $exchange->price_to_precision('BTC/USDT', $ticker['last'] * 0.8);
+$amount = 0.001;
+
+$order = $exchange->create_order('BTC/USDT', 'limit', 'buy', $amount, $price);
+echo 'placed: ', $order['id'], "\n";
+
+$exchange->cancel_order($order['id'], 'BTC/USDT');
+echo "canceled\n";
+```
+
+```csharp tab="C#"
+var price = (double)ticker.last * 0.8;
+var amount = 0.001;
+
+var order = await exchange.CreateOrder("BTC/USDT", "limit", "buy", amount, price);
+Console.WriteLine($"placed: {order.id}");
+
+await exchange.CancelOrder(order.id, "BTC/USDT");
+Console.WriteLine("canceled");
+```
+
+```go tab="Go"
+price := *ticker.Last * 0.8
+amount := 0.001
+
+order, err := exchange.CreateOrder("BTC/USDT", "limit", "buy", amount,
+    ccxt.WithCreateOrderPrice(price))
+if err != nil {
+    panic(err)
+}
+fmt.Println("placed:", *order.Id)
+
+_, err = exchange.CancelOrder(*order.Id, ccxt.WithCancelOrderSymbol("BTC/USDT"))
+if err != nil {
+    panic(err)
+}
+fmt.Println("canceled")
+```
+
+```java tab="Java"
+double price = ticker.last * 0.8;
+double amount = 0.001;
+
+var order = exchange.createOrder("BTC/USDT", "limit", "buy", amount, price, null);
+System.out.println("placed: " + order.id);
+
+exchange.cancelOrder(order.id, "BTC/USDT", null);
+System.out.println("canceled");
+```
+
+장난감 스크립트와 진짜 봇을 가르는 두 가지 디테일이 여기에 모두 보입니다.
+
+- **정밀도 헬퍼.** `priceToPrecision` / `amountToPrecision`은 값을 거래소가 실제로 받아들이는
+  형태로 반올림합니다. `26418.377777`을 그대로 보내면 주문이 거부됩니다.
+- **`cancelOrder`에는 항상 심볼을 넘기세요.** 많은 거래소가 이를 요구하며, 통합 코드는 필요하다고
+  가정하고 작성해야 합니다.
+
+## 다음 단계
+
+이제 전체 루프를 갖추셨습니다. 연결, 읽기, 행동, 되돌리기. 여기서부터는:
+
+- **실시간 가격을 루프로 폴링하지 마세요.** 대신 WebSocket을 사용하세요.
+  [WebSocket으로 실시간 시장 데이터 받기](/ko/blog/realtime-market-data-with-websockets)에서
+  다룹니다.
+- 이 중 어느 것에든 실제 자금을 넣기 전에
+  **[일곱 가지 실수](/ko/blog/seven-mistakes-crypto-exchange-api-developers-make)를 읽으세요.**
+- [매뉴얼](/ko/docs/manual)은 통합 API가 제공하는 모든 것을 문서화합니다. 100개 이상의 거래소,
+  현물과 파생상품, 공개 및 비공개 엔드포인트까지.

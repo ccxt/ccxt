@@ -1,0 +1,119 @@
+---
+title: "Cómo vacían a los bots de trading: la lista de verificación de seguridad de API keys"
+description: "La mayoría de las historias de fondos robados empiezan con una API key filtrada, no con un exchange hackeado. Los permisos, el almacenamiento y los hábitos de monitoreo que convierten una key filtrada en un no-evento."
+author: CCXT Team
+date: 2026-07-08T11:00:00Z
+tags: [best-practices, security]
+---
+
+La mayoría de las historias de "mis fondos desaparecieron" no involucran un exchange hackeado.
+Involucran una API key que se filtró — subida a un repositorio público, horneada en una imagen de
+Docker, robada por phishing con un falso "rastreador de portafolio", o leída de un VPS
+comprometido — y una key a la que se le permitía hacer mucho más de lo que su trabajo requería. La
+buena noticia: dos o tres hábitos aburridos convierten una key filtrada de una catástrofe en una
+tarea rutinaria de revocar y rotar.
+
+## Las reglas de permisos (donde vive la mayor parte de la seguridad)
+
+**1. Nunca habilites retiros. Jamás.** Un bot de trading opera; no retira. Sin permiso de retiro, la
+mejor jugada de un ladrón es hacer operaciones raras — malo, acotado y reversible revocando la key.
+Con él, tu saldo desaparece en una sola llamada a la API. Todo exchange serio te permite crear keys
+con los retiros deshabilitados; no existe arquitectura de bot que justifique no hacerlo.
+
+**2. Lista blanca de IPs.** Vincula la key a la IP de tu servidor. Una key robada que solo funciona
+desde tu máquina es un problema mucho más pequeño — el atacante ahora necesita tu key *y* tu
+infraestructura. Bonus: varios exchanges relajan los rate limits o extienden la caducidad de las
+keys restringidas por IP.
+
+**3. Mínimo privilegio, una key por trabajo.** Un dashboard necesita solo lectura. Un bot de
+trading necesita permiso de trading en mercados específicos si el exchange soporta ese alcance.
+Nada necesita "todos los permisos" — esa casilla es la forma en que una filtración escala. Keys
+separadas por bot también significa que revocar una no tumba al resto, y los registros de acceso
+del exchange te dicen *cuál* despliegue se filtró.
+
+**4. Subcuentas como control del radio de daño.** Los grandes exchanges soportan subcuentas con
+sus propios saldos y keys. Un bot que vive en una subcuenta con dos semanas de capital de trading
+solo puede perder dos semanas de capital de trading.
+
+## Almacenamiento: las keys nunca viven en el código
+
+La regla cabe en una frase: **las credenciales vienen del entorno, no del código fuente.** El mismo
+patrón en todos los lenguajes:
+
+```javascript tab="JavaScript"
+const exchange = new ccxt.binance({
+    apiKey: process.env.BINANCE_APIKEY,
+    secret: process.env.BINANCE_SECRET,
+});
+```
+
+```python tab="Python"
+exchange = ccxt.binance({
+    'apiKey': os.environ['BINANCE_APIKEY'],
+    'secret': os.environ['BINANCE_SECRET'],
+})
+```
+
+```php tab="PHP"
+$exchange = new \ccxt\binance([
+    'apiKey' => getenv('BINANCE_APIKEY'),
+    'secret' => getenv('BINANCE_SECRET'),
+]);
+```
+
+```csharp tab="C#"
+var exchange = new Binance();
+exchange.apiKey = Environment.GetEnvironmentVariable("BINANCE_APIKEY");
+exchange.secret = Environment.GetEnvironmentVariable("BINANCE_SECRET");
+```
+
+```go tab="Go"
+exchange := ccxt.NewBinance(nil)
+exchange.ApiKey = os.Getenv("BINANCE_APIKEY")
+exchange.Secret = os.Getenv("BINANCE_SECRET")
+```
+
+```java tab="Java"
+var exchange = new Binance();
+exchange.apiKey = System.getenv("BINANCE_APIKEY");
+exchange.secret = System.getenv("BINANCE_SECRET");
+```
+
+Luego cierra las grietas a su alrededor:
+
+- **Los archivos `.env` son solo para desarrollo** — y van en el `.gitignore` *antes* del primer
+  commit. El historial de Git es para siempre; una key que alguna vez fue commiteada está quemada,
+  aunque la hayas borrado en el siguiente commit. Rótala.
+- **Producción quiere un gestor de secretos** (Vault, los gestores de secretos de AWS/GCP, o como
+  mínimo credenciales de systemd / secretos de Docker) — no variables de entorno horneadas en
+  imágenes, que cualquiera con `docker inspect` puede leer.
+- **Cuidado con `--verbose`.** El modo de depuración de CCXT imprime las peticiones HTTP completas,
+  incluidos los encabezados de autenticación. Genial para depurar, radiactivo en logs compartidos —
+  límpialos antes de pegarlos en un issue de GitHub o un canal de Discord.
+- **La cadena de suministro también cuenta.** Una dependencia maliciosa puede leer tu entorno. Fija
+  las versiones de las dependencias, mantén la máquina del bot mínima y no ejecutes tu bot de
+  trading junto a tu navegador.
+
+## Detección: asume la filtración, atrápala rápido
+
+- **Vigila tu propia cuenta.** Ya estás conectado — `watchBalance` y `watchOrders` (ver
+  [WebSockets](/es/blog/realtime-market-data-with-websockets)) te dan una alarma de "órdenes que
+  yo no coloqué" en cinco líneas. `fetchLedger` cubre la pista de auditoría.
+- **Revisa los registros de uso de keys del exchange** de vez en cuando — las IPs desconocidas son
+  la prueba definitiva.
+- **Rota con un calendario**, e *inmediatamente* ante cualquier rareza: las keys son gratis, el
+  análisis forense no. Los exchanges caducan las keys automáticamente cada vez más (a menudo más
+  rápido sin lista blanca de IPs) — trata la caducidad como una función, no como una molestia.
+- **Prueba la ruta de revocación.** Sabe qué tan rápido puedes matar una key a las 3 de la
+  madrugada — ese es tu verdadero plan de respuesta a incidentes.
+
+## La lista de verificación
+
+Retiros deshabilitados · lista blanca de IPs activa · una key por bot, mínimo privilegio · radio de
+daño por subcuenta · keys desde el entorno/gestor de secretos, nunca en git · salida de `--verbose`
+limpiada · monitoreo de saldo/órdenes activo · rotación programada · ruta de revocación probada.
+
+Nada de esto es exótico — es el equivalente de las API keys a cerrar la puerta con llave. Hazlo una
+vez por bot, y el día que una key se filtre será un martes cualquiera, no un post-mortem. Luego ve a
+asegurarte de que el bot en sí no esté cometiendo [los siete errores
+clásicos](/es/blog/seven-mistakes-crypto-exchange-api-developers-make).

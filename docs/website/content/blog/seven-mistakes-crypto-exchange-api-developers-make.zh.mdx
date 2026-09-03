@@ -1,0 +1,315 @@
+---
+title: "让加密货币交易机器人爆炸的七个错误（第 1 个你现在可能正在犯）"
+description: "用浮点数算钱、被 rate limit 封禁、交易对写错、盲目重试——交易代码的经典失败模式，以及正因为它们而存在的库机制。"
+author: CCXT Team
+date: 2026-07-07T13:00:00Z
+tags: [best-practices]
+---
+
+交易代码总是以可预测的方式失败。在维护 100 多家交易所集成的十年里，我们一次又一次看到同样的
+七个错误搞垮机器人——CCXT 的许多设计决策正是因为它们而存在。下面按它们大致会咬到你的顺序列出。
+
+## 1. 用浮点数做金额运算
+
+```javascript tab="JavaScript"
+console.log(0.1 + 0.2);
+// 0.30000000000000004
+```
+
+```python tab="Python"
+print(0.1 + 0.2)
+# 0.30000000000000004
+```
+
+```php tab="PHP"
+var_dump(0.1 + 0.2 == 0.3);
+// bool(false)
+```
+
+```csharp tab="C#"
+Console.WriteLine(0.1 + 0.2);
+// 0.30000000000000004
+```
+
+```go tab="Go"
+fmt.Println(0.1 + 0.2)
+// 0.30000000000000004
+```
+
+```java tab="Java"
+System.out.println(0.1 + 0.2);
+// 0.30000000000000004
+```
+
+二进制浮点数无法表示大多数十进制小数——在每种语言里都是如此。在交易代码里这不是一个冷知识：
+它会产生交易所拒绝的下单数量，或者更糟，产生悄无声息的错误仓位大小，在数千笔交易中不断累积。
+
+在内部，CCXT 的所有算术都经过 `Precise`——十进制字符串运算，完全不碰浮点数，每种语言都是如此。
+对于你自己的代码，重要的工具是精度辅助方法，它们会把任何数值精确地舍入到交易所接受的形式：
+
+```javascript tab="JavaScript"
+const amount = exchange.amountToPrecision('BTC/USDT', rawAmount);
+const price = exchange.priceToPrecision('BTC/USDT', rawPrice);
+```
+
+```python tab="Python"
+amount = exchange.amount_to_precision('BTC/USDT', raw_amount)
+price = exchange.price_to_precision('BTC/USDT', raw_price)
+```
+
+```php tab="PHP"
+$amount = $exchange->amount_to_precision('BTC/USDT', $rawAmount);
+$price = $exchange->price_to_precision('BTC/USDT', $rawPrice);
+```
+
+```csharp tab="C#"
+var amount = exchange.amountToPrecision("BTC/USDT", rawAmount);
+var price = exchange.priceToPrecision("BTC/USDT", rawPrice);
+```
+
+```go tab="Go"
+amount := exchange.AmountToPrecision("BTC/USDT", rawAmount)
+price := exchange.PriceToPrecision("BTC/USDT", rawPrice)
+```
+
+```java tab="Java"
+var amount = exchange.amountToPrecision("BTC/USDT", rawAmount);
+var price = exchange.priceToPrecision("BTC/USDT", rawPrice);
+```
+
+每个市场的市场结构里还带有它的 `precision` 和 `limits`（最小数量、最小成本）——下单之前先检查
+它们，而不是事后去解析拒绝错误。
+
+## 2. 无视 rate limit，直到被封
+
+每家交易所都会强制执行请求频率限制；超出后你会先收到 HTTP 429，然后是临时 IP 封禁——通常发生在
+交易进行中，也就是你的循环最忙的时候。
+
+CCXT 内置的令牌桶 rate limiter **默认开启**，并且知道每家交易所每个端点的开销：重量级调用消耗
+的预算份额比轻量级调用更大。保持它开启，并围绕它来设计：在启动时缓存 `loadMarkets()` 而不是反复
+获取，用 `fetchTickers(symbols)` 批量获取而不是多次调用 `fetchTicker`，并且对任何每分钟轮询
+超过几次的数据使用 [WebSocket](/zh/blog/realtime-market-data-with-websockets)。
+
+## 3. 硬编码交易所特有的交易对
+
+`BTCUSDT`、`XBTUSDT`、`BTC-USDT`、`tBTCUSD`——每家交易所对同一个市场的命名都不一样，而到处
+散落着原始 ID 的代码，会在你接入第二家交易所的那天死掉。
+
+CCXT 的规则：**代码里用统一符号，到线路上用交易所 ID，绝不混用。** 你在所有地方都写
+`BTC/USDT`（衍生品也有统一形式：`BTC/USDT:USDT` 是线性永续合约），库会在内部映射到交易所的 ID。
+如果你确实需要原始 ID——比如为了某个交易所特有的端点——请推导它，而不是硬编码：
+
+```javascript tab="JavaScript"
+const market = exchange.market('BTC/USDT');
+console.log(market.id);   // binance 上是 'BTCUSDT'，其他地方是 'XBTUSDT'
+```
+
+```python tab="Python"
+market = exchange.market('BTC/USDT')
+print(market['id'])   # binance 上是 'BTCUSDT'，其他地方是 'XBTUSDT'
+```
+
+```php tab="PHP"
+$market = $exchange->market('BTC/USDT');
+echo $market['id'];   // binance 上是 'BTCUSDT'，其他地方是 'XBTUSDT'
+```
+
+```csharp tab="C#"
+var markets = await exchange.LoadMarkets();
+Console.WriteLine(markets["BTC/USDT"].id);   // binance 上是 'BTCUSDT'
+```
+
+```go tab="Go"
+markets, _ := exchange.LoadMarkets()
+fmt.Println(*markets["BTC/USDT"].Id)   // binance 上是 'BTCUSDT'
+```
+
+```java tab="Java"
+var markets = exchange.loadMarkets(false);
+System.out.println(markets.get("BTC/USDT").id);   // binance 上是 'BTCUSDT'
+```
+
+## 4. 一视同仁地对待所有错误
+
+两种致命的变体：遇到任何错误就崩溃（机器人在凌晨两点的第一次小故障时就死了），或者盲目重试
+一切（机器人重新提交一个交易所已经拒绝的订单——或者更糟，一个已经**接受**的订单）。
+
+CCXT 把每家交易所五花八门的错误归一化为一个带类型的层次结构，因此你的处理程序可以是策略，
+而不是字符串匹配：
+
+- **`NetworkError` 家族**——`RequestTimeout`、`ExchangeNotAvailable`、`DDoSProtection`、
+  `RateLimitExceeded`。瞬时性的。退避后重试。
+- **`ExchangeError` 家族**——`InvalidOrder`、`InsufficientFunds`、`AuthenticationError`、
+  `BadSymbol`。你的请求有错，或者你的状态有错。用相同的输入重试只会得到相同的失败——去修复
+  原因吧。
+
+```javascript tab="JavaScript"
+try {
+    const order = await exchange.createOrder(symbol, 'limit', side, amount, price);
+} catch (e) {
+    if (e instanceof ccxt.NetworkError) {
+        checkIfItWentThrough();   // 见下文，然后视情况重试
+    } else if (e instanceof ccxt.ExchangeError) {
+        logAndStop(e);            // 千万不要盲目重试这些
+    }
+}
+```
+
+```python tab="Python"
+import ccxt
+
+try:
+    order = exchange.create_order(symbol, 'limit', side, amount, price)
+except ccxt.NetworkError:
+    check_if_it_went_through()   # 见下文，然后视情况重试
+except ccxt.ExchangeError as e:
+    log_and_stop(e)              # 千万不要盲目重试这些
+```
+
+```php tab="PHP"
+try {
+    $order = $exchange->create_order($symbol, 'limit', $side, $amount, $price);
+} catch (\ccxt\NetworkError $e) {
+    check_if_it_went_through();   // 见下文，然后视情况重试
+} catch (\ccxt\ExchangeError $e) {
+    log_and_stop($e);             // 千万不要盲目重试这些
+}
+```
+
+```csharp tab="C#"
+try
+{
+    var order = await exchange.CreateOrder(symbol, "limit", side, amount, price);
+}
+catch (NetworkError e)
+{
+    CheckIfItWentThrough();   // 见下文，然后视情况重试
+}
+catch (ExchangeError e)
+{
+    LogAndStop(e);            // 千万不要盲目重试这些
+}
+```
+
+```go tab="Go"
+order, err := exchange.CreateOrder(symbol, "limit", side, amount,
+    ccxt.WithCreateOrderPrice(price))
+if err != nil {
+    if ccxtErr, ok := err.(*ccxt.Error); ok {
+        switch ccxtErr.Type {
+        case ccxt.RequestTimeoutErrType, ccxt.RateLimitExceededErrType,
+            ccxt.ExchangeNotAvailableErrType:
+            checkIfItWentThrough() // 瞬时错误——然后视情况重试
+        default:
+            logAndStop(ccxtErr) // 千万不要盲目重试这些
+        }
+    }
+}
+```
+
+```java tab="Java"
+try {
+    var order = exchange.createOrder(symbol, "limit", side, amount, price, null);
+} catch (io.github.ccxt.errors.NetworkError e) {
+    checkIfItWentThrough();   // 见下文，然后视情况重试
+} catch (io.github.ccxt.errors.ExchangeError e) {
+    logAndStop(e);            // 千万不要盲目重试这些
+}
+```
+
+微妙的情况是 **`createOrder` 超时**：即使你的请求超时了，交易所也可能已经接受了订单。天真地
+重试会让你的仓位翻倍。解决办法是幂等性——在 `params` 里发送你自己的 `clientOrderId`，超时后
+先查询它，再决定是否重试。
+
+## 5. 假设分页会自动搞定
+
+`fetchOHLCV`、`fetchTrades` 和 `fetchMyTrades` 只返回**一页**，上限是交易所特定的最大值
+（通常是 500–1000 行）。只调用一次就以为拿到了"全部历史"的代码，会悄无声息地在不完整的数据上
+计算指标。
+
+获取一个时间范围意味着循环：带 `since` 请求，取最后一行的时间戳，从那里再次请求，直到没有新数据
+为止。尊重每家交易所的分页上限（`limit` 参数），并且记住 rate limiter 在每一页上都在消耗预算。
+
+## 6. 放任时钟漂移
+
+签名请求内嵌了时间戳，而交易所会拒绝时间戳与其服务器时间相差过大的请求。一个偏差几秒的时钟会
+产生令人困惑、时有时无的认证失败——典型场景是没有 NTP 的 VPS 或树莓派。
+
+运行 NTP。而且 CCXT 中大多数已接入的交易所都接受一个选项，替你测量并修正时间偏移：
+
+```javascript tab="JavaScript"
+const exchange = new ccxt.binance({
+    apiKey: KEY,
+    secret: SECRET,
+    options: {
+        adjustForTimeDifference: true,
+    },
+});
+```
+
+```python tab="Python"
+exchange = ccxt.binance({
+    'apiKey': KEY,
+    'secret': SECRET,
+    'options': {
+        'adjustForTimeDifference': True,
+    },
+})
+```
+
+```php tab="PHP"
+$exchange = new \ccxt\binance([
+    'apiKey' => $key,
+    'secret' => $secret,
+    'options' => [
+        'adjustForTimeDifference' => true,
+    ],
+]);
+```
+
+```csharp tab="C#"
+var exchange = new Binance(new Dictionary<string, object>() {
+    { "apiKey", key },
+    { "secret", secret },
+    { "options", new Dictionary<string, object>() {
+        { "adjustForTimeDifference", true },
+    } },
+});
+```
+
+```go tab="Go"
+exchange := ccxt.NewBinance(map[string]interface{}{
+    "apiKey": key,
+    "secret": secret,
+    "options": map[string]interface{}{
+        "adjustForTimeDifference": true,
+    },
+})
+```
+
+```java tab="Java"
+var config = new java.util.HashMap<String, Object>();
+config.put("apiKey", key);
+config.put("secret", secret);
+config.put("options", java.util.Map.of("adjustForTimeDifference", true));
+var exchange = new Binance(config);
+```
+
+## 7. 用真钱做测试
+
+没有人计划在生产环境里测试；人们只是不知道还有别的选择：
+
+- **`exchange.setSandboxMode(true)`** 会把 CCXT 切换到交易所的测试网或模拟环境（如果有的话，
+  比如 Binance、Bybit、OKX 以及许多其他交易所）。假钱，真 API。
+- **禁用提币的密钥 + IP 白名单**——交易机器人永远不需要提币权限。这能把密钥泄露从一场灾难
+  变成一点不便。
+- 前几次实盘运行用**最小下单量**，并配一个你真正测试过的紧急停止开关。
+
+---
+
+这些错误没有一个是稀奇的——这正是重点。它们是每个交易机器人开发者都要交一次的标准学费。CCXT
+不能阻止你交这笔学费，但它能让正确的做法成为默认的做法：字符串运算、默认开启的 rate limiting、
+统一符号、带类型的错误、一次调用即可进入的沙盒模式。
+
+刚接触这个库？从
+[构建你的第一个加密货币交易机器人](/zh/blog/build-your-first-crypto-trading-bot)开始。

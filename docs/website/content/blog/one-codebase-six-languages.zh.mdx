@@ -1,0 +1,103 @@
+---
+title: "我们如何用一套代码库发布六种语言（而不用维护六套代码库）"
+description: "CCXT 最不寻常的设计决策背后的工程故事——唯一的 TypeScript 事实来源，被转译成另外五种语言，并在所有语言中接受测试。"
+author: CCXT Team
+date: 2026-07-07T16:00:00Z
+tags: [engineering, transpiler]
+---
+
+CCXT 为 100 多家加密货币交易所提供统一的交易 API，支持 JavaScript/TypeScript、
+Python、PHP、C#、Go 和 Java。交易所 API 每周都在变——端点迁移、签名方式
+改变、新市场出现。靠人工让六个独立的移植版本保持同步是不可能的，
+多年来那些被遗弃的"交易所 API 封装库"的坟场已经证明了这一点。
+
+我们的答案很不寻常：**实现有且只有一份**。每个交易所类都只用 TypeScript
+编写一次，放在 `ts/src/` 下。其余的一切——PyPI 上的 Python 包、Packagist 上的 PHP
+包、NuGet 上的 C# 包、Go 模块、Maven Central 上的 Java
+构件——都是从这唯一的源码机器生成的。
+
+## 流水线
+
+对 `ts/src/binance.ts` 的一次改动会这样流出去：
+
+- **JavaScript**——直接 `tsc`。npm 包就是编译后的 TypeScript。
+- **C#、Go 和 Java**——[`ast-transpiler`](https://github.com/ccxt/ast-transpiler)，我们
+  开源的基于 AST 的转译器，把 TypeScript 语法树转换成每种目标
+  语言。如今 CCXT 的大多数语言都走这条路径。
+- **Python 和 PHP**——最初的基于正则表达式的转译器（`build/transpile.ts`），它
+  用几百条替换规则逐行重写源码。
+
+有两个生成技巧值得一提。Python 的**同步** API 是从
+异步版本生成的——去掉 `await` 表达式，并把 aiohttp 传输层换成
+`requests` 风格的调用，这就是为什么同步和异步的 Python API 永远不会出现偏差。PHP
+则反过来：**异步**（ReactPHP）版本是从同步版本生成的。
+
+## AST 转译器
+
+[`ast-transpiler`](https://github.com/ccxt/ast-transpiler) 使用 TypeScript 编译器 API
+把每个文件解析成抽象语法树，然后遍历这棵树，用目标语言输出
+等价的代码：类型被映射（`string` → `string`/`str`/`String`），`async/await`
+变成 C# 的 `Task`、Java 的 future，或者返回 `(value, error)` 的普通 Go 调用，
+JavaScript 惯用写法则被改写成每种语言的标准库形式。
+
+在 AST 而不是文本上工作，使得 C#、Go 和 Java 的输出比正则重写健壮
+得多：转译器*理解*某个东西是方法调用还是
+属性访问，所以格式、换行和嵌套都不会把它弄坏。每种语言在 CCXT 仓库里仍然
+有一个薄薄的驱动层（`build/csharpTranspiler.ts`、`build/goTranspiler.ts`、
+`build/javaTranspiler.ts`），负责处理语言特有的粘合工作：带类型签名的
+包装类、包布局，以及每种语言的标准库垫片。
+
+正则转译器比它更早出现，至今仍在生成 Python 和 PHP。它出了名地脆弱——
+它依赖 TypeScript 源码的精确格式——但多年来它已经处理了数百万
+行代码，而它施加的约束最终被证明是特性，而不是缺陷。
+
+## 我们写的不是 TypeScript——而是 CCXT 风味的 TypeScript
+
+要让一套代码库经受住五次转换，它必须待在每个
+后端都能处理的方言之内。贡献者在第一个 pull request 上就会撞上这些规则：
+
+- **禁止对数据使用点号属性访问。** 永远写 `order['price']`，绝不写 `order.price`——
+  转译器会把方括号访问转换成字典、数组和 map。
+- **禁止对价格或数量做原生算术。** 所有数值运算都经过
+  基于字符串的 `Precise` 类——`Precise.stringAdd (a, b)`——因为浮点数的行为在各语言间
+  并不一致（而且浮点数会让你亏钱；详见
+  [七个错误](/zh/blog/seven-mistakes-crypto-exchange-api-developers-make)）。
+- **到处使用带类型的安全访问器。** 用 `this.safeString (obj, 'key')`、
+  `this.safeInteger (...)`、`this.safeDict (...)` 代替带 `||` 回退的原始访问，
+  后者在 Python 或 PHP 中的行为会不一样。
+- **只用语法的一个子集。** 不用 `Array.includes`（它会变成 `indexOf (x) !== -1`），交易所类中不用箭头
+  回调，三元表达式必须加括号，一行只写一条语句。
+
+ESLint 配置以机械方式强制执行其中大部分规则。结果在 TypeScript 纯粹主义者
+看来有点怪，但它能编译成六种语言。
+
+## 哪些*不*被转译
+
+传输层和密码学无法生成——这正是各语言真正不同的地方。
+每种语言都有一个手写的基础层：HTTP 客户端（fetch、aiohttp、curl、
+HttpClient、net/http、OkHttp 风格）、WebSocket 传输层，以及密码学原语
+（HMAC、RSA、ECDSA、EdDSA 签名）。位于该层*之上*的统一基类逻辑——
+符号解析、订单解析、精度处理、rate limiting——则从
+`ts/src/base/Exchange.ts` 转译到每种语言，放在每个文件中一条标记行的下方。
+
+## 同时测试六种语言
+
+不测试的生成代码，就是不能信任的生成代码。每个交易所方法都被
+**静态 fixture** 覆盖：录制下来的请求 URL 和响应载荷，提交进
+仓库，在每次 CI 运行时离线回放到全部六个实现上。如果 Python 构建
+解析 Binance 订单的方式和 Go 构建不同，CI 会在发布前失败。在此之上，
+每种语言的实时冒烟测试会访问真实的公开端点，而整个矩阵——转译、
+编译、测试——在每次合并时都会针对每种语言在并行的 CI 流水线中运行。
+
+## 值得吗？
+
+代价是真实存在的：贡献者必须学习这套方言，调试有时意味着
+读生成的 Python 代码去找一个要在 TypeScript 里修的 bug，而转译器本身
+也是一套需要维护的代码库。但回报是，一个修复只需一次评审、一个 diff，就能**同时落地到
+六个包注册表**。没有哪个移植版本会落后；没有哪种语言会拿到新交易所的
+"二等"版本。
+
+如果你对这个想法感兴趣，[`ast-transpiler`](https://github.com/ccxt/ast-transpiler) 采用 MIT
+许可证，可以在 CCXT 之外使用——如果你想看看这套方言的实际样子，
+[`ts/src/`](https://github.com/ccxt/ccxt/tree/master/ts/src) 里的任何一个交易所文件都是
+真家伙。

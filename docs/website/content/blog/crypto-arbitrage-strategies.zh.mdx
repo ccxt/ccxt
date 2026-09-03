@@ -1,0 +1,200 @@
+---
+title: "加密货币套利手册：2026 年什么还能赚钱（什么是陷阱）"
+description: "跨交易所套利、三角套利、资金费率套利、基差套利和统计套利——每一种到底如何运作、真正的风险是什么，以及支撑它们的 CCXT 方法。"
+author: CCXT Team
+date: 2026-07-07T11:00:00Z
+tags: [arbitrage, strategies]
+---
+
+"套利"涵盖了半打截然不同的策略，各自有不同的资金要求、速度要求和风险。本文梳理其中最流行的
+几种——交易是什么、优势从何而来，以及每一种所依赖的 CCXT 机制。它与实操性的
+[价差扫描器教程](/zh/blog/scanning-100-exchanges-for-arbitrage-spreads)配套；本文是它上面的
+策略层。
+
+## 1. 跨交易所（空间）套利
+
+**交易内容：** 同一资产在交易所 A 比在交易所 B 便宜。在 A 买入，在 B 卖出。
+
+朴素的版本——买入、提币、充值、卖出——几乎从来经不起现实的考验：转账要花几分钟到几小时，
+而价差早在币到账之前就消失了。能行得通的版本是**基于库存的**：提前在两个交易所同时持有该资产
+和计价货币，同时执行两条腿，并在平静时段偶尔再平衡库存（或者接受漂移）。关键路径上没有任何
+转账；转账成本变成了摊销的再平衡成本。
+
+**优势从何而来：** 流动性碎片化。较小的交易所比大交易所滞后几秒，而零售订单流会在盘口稀薄的
+交易所上推动价格。
+
+**CCXT 提供给你的：** 覆盖所有交易所的一套 API——两边的 `fetchTickers` / `watchOrderBook`、
+两边的 `createOrder`、以及用 `fetchCurrencies` 在你指望通过某个网络再平衡之前，检查该网络的
+充值/提币是否正常。这个策略正是人们一开始就选择多交易所库的*原因*。
+
+## 2. 三角套利
+
+**交易内容：** **同一家**交易所上的三个市场构成一个环——例如 BTC/USDT、ETH/BTC、ETH/USDT。
+把环上的隐含汇率相乘；如果扣除三次手续费后乘积仍大于 1.0，就沿着这个环兑换一圈，最终得到的比
+起点更多。
+
+因为一切都发生在一个交易所上，没有转账风险，也不需要拆分库存——但这个环必须快速执行，三条腿
+不是原子的（第一腿成交后第二腿可能失败），而且在主流交易所上这些缺口被非常快的玩家猎杀着。
+现实中的机会集中在流动性较差的交易对上，而那里的滑点是反向的制衡力量。
+
+**CCXT 提供给你的：** 用 `loadMarkets()` 构建货币图并枚举环路，用 `watchOrderBookForSymbols`
+在一个循环里流式获取全部三本 order book，以及精度/限制元数据，确保每一腿的数量在下单前都是
+有效的。
+
+## 3. 资金费率套利（加密货币版的现金套利）
+
+**交易内容：** 永续合约每隔几小时在多头和空头之间支付**资金费用**，以使永续价格钉住现货。
+当资金费率为正时（牛市中的常态），空头会收钱。于是：买入现货，在永续合约里做空相同名义价值。
+价格风险大致相互抵消；你收取资金费用。
+
+这是机构的最爱，因为它可以扩展规模，而且不需要速度。风险更加微妙：资金费率翻负，持仓收益变成
+成本；永续那条腿需要保证金，在基差移动时若抵押不足可能被强平；而进出场的执行成本是两个
+spread。
+
+**CCXT 提供给你的：** 用 `fetchFundingRates()` 获取全交易所快照，用 `fetchFundingRateHistory`
+回测持仓收益，统一的衍生品符号（`BTC/USDT:USDT` 是线性永续合约），再加上私有端的仓位和保证金
+数据。一个资金费率扫描器只需要几行：
+
+```javascript tab="JavaScript"
+import ccxt from 'ccxt';
+
+for (const id of ['binance', 'bybit', 'okx', 'gate']) {
+    const exchange = new ccxt[id]();
+    const rates = await exchange.fetchFundingRates();
+    for (const [symbol, entry] of Object.entries(rates)) {
+        if (entry.fundingRate && Math.abs(entry.fundingRate) > 0.0005) {
+            console.log(id.padEnd(10), symbol.padEnd(22),
+                `${(entry.fundingRate * 100).toFixed(4)}%`);
+        }
+    }
+    await exchange.close();
+}
+```
+
+```python tab="Python"
+import ccxt
+
+for exchange_id in ['binance', 'bybit', 'okx', 'gate']:
+    exchange = getattr(ccxt, exchange_id)()
+    rates = exchange.fetch_funding_rates()
+    for symbol, entry in rates.items():
+        rate = entry['fundingRate']
+        if rate and abs(rate) > 0.0005:          # 每个周期 0.05%
+            print(f'{exchange_id:10} {symbol:22} {rate * 100:+.4f}%')
+```
+
+```php tab="PHP"
+<?php
+foreach (['binance', 'bybit', 'okx', 'gate'] as $id) {
+    $class = "\\ccxt\\{$id}";
+    $exchange = new $class();
+    $rates = $exchange->fetch_funding_rates();
+    foreach ($rates as $symbol => $entry) {
+        $rate = $entry['fundingRate'];
+        if ($rate && abs($rate) > 0.0005) {      // 每个周期 0.05%
+            printf("%-10s %-22s %+.4f%%\n", $id, $symbol, $rate * 100);
+        }
+    }
+}
+```
+
+```csharp tab="C#"
+using ccxt;
+
+foreach (var id in new[] { "binance", "bybit", "okx", "gate" })
+{
+    var exchange = Exchange.DynamicallyCreateInstance(id);
+    var rates = await exchange.FetchFundingRates();
+    foreach (var (symbol, entry) in rates.fundingRates)
+    {
+        if (entry.fundingRate is double rate && Math.Abs(rate) > 0.0005)
+        {
+            Console.WriteLine($"{id,-10} {symbol,-22} {rate * 100:+0.0000;-0.0000}%");
+        }
+    }
+}
+```
+
+```go tab="Go"
+package main
+
+import (
+    "fmt"
+    "math"
+
+    ccxt "github.com/ccxt/ccxt/go/v4"
+)
+
+func main() {
+    for _, id := range []string{"binance", "bybit", "okx", "gate"} {
+        exchange := ccxt.CreateExchange(id, nil)
+        rates, err := exchange.FetchFundingRates()
+        if err != nil {
+            panic(err)
+        }
+        for symbol, entry := range rates.FundingRates {
+            if entry.FundingRate != nil && math.Abs(*entry.FundingRate) > 0.0005 {
+                fmt.Printf("%-10s %-22s %+.4f%%\n", id, symbol, *entry.FundingRate*100)
+            }
+        }
+    }
+}
+```
+
+```java tab="Java"
+import io.github.ccxt.Exchange;
+
+import java.util.Map;
+
+public class FundingScanner {
+
+    @SuppressWarnings("unchecked")
+    public static void main(String[] args) {
+        for (var id : new String[] { "binance", "bybit", "okx", "gate" }) {
+            var exchange = Exchange.dynamicallyCreateInstance(id, null);
+            var rates = (Map<String, Object>) exchange.fetchFundingRates().join();
+            for (var entry : rates.entrySet()) {
+                var data = (Map<String, Object>) entry.getValue();
+                var rate = (Number) data.get("fundingRate");
+                if (rate != null && Math.abs(rate.doubleValue()) > 0.0005) {
+                    System.out.printf("%-10s %-22s %+.4f%%%n",
+                            id, entry.getKey(), rate.doubleValue() * 100);
+                }
+            }
+        }
+    }
+}
+```
+
+按每 8 小时 0.05% 计算，毛年化收益大约是 55%——这正是拥挤的交易会迅速把它压缩的原因。跨交易所
+比较一下：同一个永续合约在不同交易所的资金费率往往差异很大，而在资金费率最高的地方做空本身
+就是一种选择优势。
+
+## 4. 现货–期货基差交易
+
+资金费率套利的交割期货表亲：季度期货相对现货有溢价，而这个溢价在到期时必须收敛到零。买入现货，
+做空期货，持有到期，把基差收入囊中——一个固定期限、事先已知的收益，代价是资本效率以及空头那
+一腿的保证金管理。CCXT 把交割期货作为统一市场（`market['future']`）暴露出来，并带有到期元数据，
+所以扫描期限结构和其他一切一样，都是同样的 `loadMarkets` + `fetchTickers` 模式。
+
+## 5. 统计套利
+
+上面的一切在原则上都是（近乎）无风险的。统计套利不是：它押注历史上的价格*关系*——相关的山寨币
+之间，或者某个山寨币与其板块之间——在偏离之后会均值回归。对 spread 建模，在 z 分数阈值处入场，
+回归时出场。名字里的"套利"是个美好愿望：关系会破裂，2021 年的协整就是 2022 年的分道扬镳。
+
+**CCXT 提供给你的：** 跨数百家交易所的 `fetchOHLCV` 用于研究，以及在信号触发时与其他一切相同的
+执行层。这里难的是统计学，而不是管道。
+
+## 关于如何选择的坦诚建议
+
+- **从资金费率扫描开始。** 它节奏缓慢、可以事先衡量，并且能教会你衍生品的机制。以只读模式
+  运行它；你会学到市场持仓收益的节奏。
+- **跨交易所库存套利**是 CCXT 的经典用例，但请把它当作一个执行工程项目来对待：优势在于你的
+  延迟、仓位规模和交易所选择，而不在于这个想法本身。
+- **主流币上的三角套利在 2026 年主要是教学用途**——构建它来学习 order book 的机制，别指望
+  它赚钱。
+- 无论你选哪个：先算手续费（`market['taker']`、`market['maker']`），看深度而不是看 ticker，
+  先上测试网再上主网，而且
+  [七个经典错误](/zh/blog/seven-mistakes-crypto-exchange-api-developers-make)在涉及两家
+  交易所时要加倍适用。

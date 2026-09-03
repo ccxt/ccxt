@@ -1,0 +1,106 @@
+---
+title: "交易机器人是怎么被掏空的：API key 安全检查清单"
+description: "大多数资金被盗的故事始于一个泄露的 API key，而不是被黑的交易所。让泄露的 key 变成一件无关紧要的小事所需要的权限、存储和监控习惯。"
+author: CCXT Team
+date: 2026-07-08T11:00:00Z
+tags: [best-practices, security]
+---
+
+大多数"我的资金没了"的故事并不涉及被黑的交易所。它们涉及的是一个泄露了的 API key——
+推到了公开仓库、烤进了 Docker 镜像、被一个假的"投资组合追踪器"钓走、或者从一台被攻陷的 VPS 上读走——
+而且这个 key 被允许做的事情远远超出了它的职责所需。好消息是：两三个无聊的习惯，
+就能把一个泄露的 key 从一场灾难变成一件"撤销再轮换"的杂务。
+
+## 权限规则（大部分安全性所在的地方）
+
+**1. 永远不要开启提现权限。永远。** 交易机器人负责交易；它不负责提现。没有提现权限，
+小偷的最佳选择就是做一些奇怪的交易——糟糕，但有限，而且撤销 key 就能止损。有了提现权限，
+你的余额一次 API 调用就没了。每一家严肃的交易所都允许你创建禁用提现的 key；
+没有任何一种机器人架构能为不这么做找到理由。
+
+**2. IP 白名单。** 把 key 绑定到你服务器的 IP。一个只能从你的机器上使用的被盗 key 是个小得多的问题——
+攻击者现在需要你的 key *和*你的基础设施。附带好处：好几家交易所会为 IP 受限的 key
+放宽 rate limit 或延长 key 的有效期。
+
+**3. 最小权限，一个任务一个 key。** 仪表盘只需要只读。交易机器人需要交易权限，
+如果交易所支持限定范围的话就只针对特定市场。没有什么东西需要"所有权限"——
+那个复选框正是泄露升级为灾难的途径。每个机器人使用独立的 key 还意味着撤销一个不会拖垮其余的，
+而且交易所的访问日志能告诉你*哪一个*部署泄露了。
+
+**4. 用子账户控制爆炸半径。** 大交易所支持拥有独立余额和 key 的子账户。
+一个生活在只持有两周交易资金的子账户里的机器人，最多只能损失两周的交易资金。
+
+## 存储：key 绝不放在代码里
+
+规则只有一句话：**凭据来自环境，而不是来自源码。** 每种语言里都是同一个模式：
+
+```javascript tab="JavaScript"
+const exchange = new ccxt.binance({
+    apiKey: process.env.BINANCE_APIKEY,
+    secret: process.env.BINANCE_SECRET,
+});
+```
+
+```python tab="Python"
+exchange = ccxt.binance({
+    'apiKey': os.environ['BINANCE_APIKEY'],
+    'secret': os.environ['BINANCE_SECRET'],
+})
+```
+
+```php tab="PHP"
+$exchange = new \ccxt\binance([
+    'apiKey' => getenv('BINANCE_APIKEY'),
+    'secret' => getenv('BINANCE_SECRET'),
+]);
+```
+
+```csharp tab="C#"
+var exchange = new Binance();
+exchange.apiKey = Environment.GetEnvironmentVariable("BINANCE_APIKEY");
+exchange.secret = Environment.GetEnvironmentVariable("BINANCE_SECRET");
+```
+
+```go tab="Go"
+exchange := ccxt.NewBinance(nil)
+exchange.ApiKey = os.Getenv("BINANCE_APIKEY")
+exchange.Secret = os.Getenv("BINANCE_SECRET")
+```
+
+```java tab="Java"
+var exchange = new Binance();
+exchange.apiKey = System.getenv("BINANCE_APIKEY");
+exchange.secret = System.getenv("BINANCE_SECRET");
+```
+
+然后把它周围的漏洞堵上：
+
+- **`.env` 文件只用于开发**——并且要在第一次提交*之前*就加进 `.gitignore`。Git 历史是永久的；
+  一个曾经被提交过的 key 就已经废了，哪怕你在下一次提交里删掉了它。轮换它。
+- **生产环境需要一个密钥管理器**（Vault、AWS/GCP 的密钥管理器，或者至少是
+  systemd credentials / Docker secrets）——而不是烤进镜像的环境变量，
+  任何能运行 `docker inspect` 的人都能读到那些。
+- **当心 `--verbose`。** CCXT 的调试模式会打印完整的 HTTP 请求，包括认证头。
+  调试时很棒，在共享日志里则是放射性的——粘贴到 GitHub issue 或 Discord 频道之前先清理干净。
+- **供应链也算在内。** 一个恶意依赖可以读取你的环境。锁定依赖版本，让机器人所在的机器保持精简，
+  并且不要把交易机器人和你的浏览器跑在同一台机器上。
+
+## 检测：假设已经泄露，然后快速抓住它
+
+- **盯住你自己的账户。** 你本来就已经连上了——`watchBalance` 和 `watchOrders`
+  （见 [WebSocket](/zh/blog/realtime-market-data-with-websockets)）五行代码就能做出一个
+  "不是我下的订单"警报。`fetchLedger` 负责审计记录。
+- **偶尔检查一下交易所的 key 使用日志**——陌生的 IP 就是铁证。
+- **按计划轮换**，一有任何异常就*立刻*轮换：key 是免费的，事后取证可不是。
+  交易所越来越多地会自动让 key 过期（没有 IP 白名单的话往往更快）——把过期当作一项功能，而不是麻烦。
+- **测试撤销路径。** 知道凌晨 3 点你能多快干掉一个 key——那才是你真正的事件响应计划。
+
+## 检查清单
+
+禁用提现 · 开启 IP 白名单 · 每个机器人一个 key，最小权限 · 子账户控制爆炸半径 ·
+key 来自环境变量/密钥管理器，绝不进 git · `--verbose` 输出已清理 ·
+余额/订单监控已开启 · 已安排轮换 · 撤销路径已测试。
+
+这些都不是什么稀奇的东西——它们就是 API key 世界里的"锁好门"。每个机器人做一次，
+到了某个 key 泄露的那天，它只是一个普通的星期二，而不是一份事故复盘。然后去确认机器人本身
+没有在犯[那七个经典错误](/zh/blog/seven-mistakes-crypto-exchange-api-developers-make)。

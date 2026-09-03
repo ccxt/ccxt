@@ -1,0 +1,171 @@
+---
+title: "抢跑 S-1：用 CCXT 交易 Anthropic 与 OpenAI 的 IPO 竞赛"
+description: "以二元市场\"Anthropic 和 OpenAI 谁先 IPO？\"为例，走一遍 CCXT 的预测市场 API——跨交易场所读取赔率、一个基于推文的信号，以及跨场所套利。"
+author: CCXT Team
+date: 2026-08-21T12:00:00Z
+tags: [tutorials, prediction-markets]
+---
+
+有一个市场在问"Anthropic 和 OpenAI 谁先 IPO？"，而且它此刻正在好几个预测市场平台上交易。这是
+一个二元市场——一家公司先提交申请，另一家没有——这让它成为演示 CCXT 预测市场支持的一个简单
+而合适的案例。本文从几个平台读取赔率，构建一个玩具信号，并展示跨场所套利会从哪里产生。
+
+## 价格就是概率
+
+预测市场的份额与股票不同。一份 YES 份额在 `0.00` 到 `1.00` 之间交易，如果事件发生就恰好以
+`1.00 USDC` 结算，否则为 `0.00`。因此价格就是市场对概率的估计。如果"Anthropic 先 IPO"以 `0.55`
+交易，市场定价的是 55% 的概率。十份 YES 份额花费 `5.50`；如果 Anthropic 先上市，它们支付
+`10.00`，否则一无所得。
+
+映射到 CCXT 的其余部分很直接：
+
+| 加密货币交易所 | 预测市场交易所 |
+|---|---|
+| 一个 `symbol`（`BTC/USDT`） | 一个 `outcome` 句柄（`ANTHROPIC_FIRST:YES`） |
+| 以美元计的价格 | 价格 = 概率，`0.00`–`1.00` |
+| 你卖出以退出 | 它以 `1.00` 或 `0.00` 结算 |
+
+数据分为三个层级，可交易的单位是最底层的那个：
+
+- **event（事件）**——问题本身，例如"哪家 AI 实验室先 IPO？"，由 `fetchEvents` 返回
+- **market（市场）**——事件内部的二元问题，一个 `PredictionMarket`
+- **outcome（结果）**——YES 或 NO 那一腿，通过它的 `outcome` 句柄来寻址
+
+## 来自创始人时间线的信号
+
+在看市场数据之前，先说一个不那么严肃的点子。创始人有时会提前暗示提交申请。如果某位 CEO 发帖说
+"我们提交了 S-1，下周路演"，那就是信息，而一次关键词扫描就足以把它变成一个方向性猜测：
+
+```ts
+// 在这个市场里 YES 意味着"Anthropic 先 IPO"，所以申请/上市相关的词指向 YES
+const BULLISH = [ 's-1', 'roadshow', 'filing', 'filed', 'prospectus', 'listing', 'nasdaq', 'ipo' ];
+const BEARISH = [ 'no plans', 'staying private', 'delay', 'next year' ];
+
+function darioSignal (tweet: string): string {
+    const text = tweet.toLowerCase ();
+    let score = 0;
+    for (const kw of BULLISH) if (text.indexOf (kw) !== -1) score += 1;
+    for (const kw of BEARISH) if (text.indexOf (kw) !== -1) score -= 1;
+    return (score > 0) ? 'buy YES' : ((score < 0) ? 'buy NO' : 'no lean');
+}
+
+darioSignal ('excited to share we confidentially filed our S-1 — roadshow soon');
+// => 'buy YES'
+```
+
+说清楚一点，CCXT 并不读取 Twitter/X。`darioSignal()` 只是你接入的任何推文源的占位符；本文的
+重点是它下面的部分，那些才是真正的 CCXT 调用。把这个信号当作玩笑，把这些管道当作教训。
+
+## 跨交易场所读取赔率
+
+同一个市场在不止一家交易所上市，每家都有自己的 order book，所以价格各不相同。在 CCXT 里你用
+同样的代码读取所有这些价格，只需改变交易所 id：
+
+```ts
+import ccxt from 'ccxt';
+
+async function readYes (venueId: string) {
+    const ex = new ccxt.prediction[venueId] ();
+    try {
+        const events = await ex.fetchEvents ({ 'query': 'Anthropic IPO', 'sort': 'volume' });
+        const market = events[0].markets[0];
+        // 有些平台的标签是小写（如 Limitless），有些是首字母大写（如 Polymarket）
+        const yes = market.outcomes.find ((o) => o.label.toLowerCase () === 'yes');
+        const ob = await ex.fetchOrderBook (yes.outcome);        // yes.outcome 是可交易的句柄
+        return { venueId, 'bid': ob.bids[0]?.[0], 'ask': ob.asks[0]?.[0] };
+    } finally {
+        await ex.close ();
+    }
+}
+
+const board = await Promise.all ([ 'polymarket', 'limitless', 'myriad' ].map (readYes));
+```
+
+结果是一张横跨三个平台的表格，不需要针对每个平台单独解析：
+
+```text
+polymarket   YES 0.54 / 0.55   (~55%)
+limitless    YES 0.51 / 0.52   (~52%)
+myriad       YES 0.56 / 0.57   (~57%)
+```
+
+你只写一次策略，让库来处理每个平台的怪癖。当价格像这样参差不齐地排列时，可能就存在套利机会。
+
+## 跨场所套利从哪里来
+
+二元市场有两种份额，YES 和 NO，恰好有一种会以 `1.00 USDC` 结算。买入一份 NO 等价于卖出一份
+YES，所以一份 NO 的成本是 `1 - (YES bid)`。如果你在更便宜的平台买一份 YES，在另一个平台买
+一份 NO，两者合计成本低于 `1.00`，那么无论谁先提交申请，这一对在结算时都会支付 `1.00`，差额就
+被锁定了：
+
+```ts
+function findArb (board) {
+    for (const a of board) for (const b of board) {
+        if (a.venueId === b.venueId) continue;
+        const noAsk = 1 - b.bid;         // 在平台 B 买 NO = 在平台 B 卖 YES
+        const cost  = a.ask + noAsk;     // 一条 YES 腿 + 一条 NO 腿
+        const edge  = 1 - cost;          // 结算总是恰好支付 1.00
+        if (edge > 0) console.log (`BUY YES @${a.venueId} + NO @${b.venueId} => +${(edge * 100).toFixed (1)}% risk-free`);
+    }
+}
+```
+
+有几点需要注意，因为这个想法通常就是在这里出问题的。两条腿必须在同一个事件上结算：把"Anthropic
+会在 2026 年 IPO 吗？"和"Anthropic 还是 OpenAI 先？"配对不是对冲，而是一个敞口头寸，所以要在
+每个平台上匹配完全相同的正面对决市场。手续费和滑点会侵蚀本就微薄的利润，两个订单都必须真正
+成交，而且资金要被占用到市场结算为止。实际上真正的利润很小且转瞬即逝，大多数时候扫描什么也
+返回不了——对一个有效的市场来说这才是正确答案。用代码来做的好处在于，一次跨平台的
+`Promise.all` 检查得比你手动快得多。
+
+## 下单与结算
+
+交易需要凭证——在链上平台上就是一个钱包。下单只需一次调用，数量以份额计，价格以概率计：
+
+```ts
+const poly = new ccxt.prediction.polymarket ({ privateKey, walletAddress });
+
+// 以 0.25 或更优的价格买入 5 份 YES（Anthropic 先）
+const order = await poly.createOrder (outcome, 'limit', 'buy', 5, 0.25);
+
+// 在某家公司提交申请之后，持仓会携带只有在市场结算后才有意义的字段
+const [ pos ] = await poly.fetchPositions ([ outcome ]);
+console.log (pos.resolved ? (pos.won ? `won — payout ${pos.payout}` : 'lost') : `open, PnL ${pos.unrealizedPnl}`);
+```
+
+`resolved`、`won` 和 `payout` 在普通交易所上并不存在，因为一个 `BTC/USDT` 仓位永远不会"成真"。
+预测市场的仓位会，而在支持的平台上 `fetchSettlements()` 会给你记账后的结果。如果你真的把这些
+接起来，请把限价单挂在远低于盘口的位置以确保它不会成交，把它控制在一个很小的单笔上限之内，
+并在之后取消它——和其他预测市场示例使用的往返流程一样。
+
+## 其他语言与 CLI
+
+同一套 API 会转译到每种受支持的语言，所以你可以用 Python 做原型、用 Go 部署，而无需重新学习
+任何东西：
+
+```python
+import ccxt.prediction            # 预测市场类只有异步版本：ccxt.prediction.<id>
+
+ex = ccxt.prediction.polymarket ()
+events = await ex.fetch_events ({ 'query': 'Anthropic IPO' })
+outcome = events[0]['markets'][0]['outcomes'][0]['outcome']
+ticker = await ex.fetch_ticker (outcome)
+print (f"market-implied: {ticker['last'] * 100:.1f}%")
+await ex.close ()
+```
+
+在终端里，每个 CLI 都接受 `-p` / `--prediction`：
+
+```bash
+npm run cli.ts -- -p polymarket fetchEvents '{"query":"Anthropic IPO"}'
+```
+
+若要在新闻爆出时获得实时更新，支持 WebSocket 的平台提供 `watchTicker(outcome)`，它会在每次
+价格变动时推送。
+
+## 总结
+
+预测市场给一个是/否问题标上了一个可结算的价格，而 CCXT 给每个平台提供了同样的接口，所以一个
+策略可以读取所有平台并基于差异采取行动。这些是真实的市场，有真实的资金、手续费和结算风险，
+所以请把套利当作需要去寻找的东西，而不是永远都在那里的东西。
+
+[预测市场指南](/zh/docs/prediction)涵盖了每个平台、完整的数据模型，以及上面用到的统一方法。

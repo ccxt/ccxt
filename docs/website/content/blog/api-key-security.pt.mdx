@@ -1,0 +1,118 @@
+---
+title: "Como bots de trading são drenados: o checklist de segurança de chaves de API"
+description: "A maioria das histórias de fundos roubados começa com uma chave de API vazada, não com uma exchange hackeada. Os hábitos de permissões, armazenamento e monitoramento que transformam uma chave vazada em um não-evento."
+author: CCXT Team
+date: 2026-07-08T11:00:00Z
+tags: [best-practices, security]
+---
+
+A maioria das histórias de "meus fundos sumiram" não envolve uma exchange hackeada. Envolve uma chave de API
+que vazou — enviada para um repositório público, embutida em uma imagem Docker, capturada por phishing de um falso
+"rastreador de portfólio", ou lida de um VPS comprometido — e uma chave que tinha permissão para fazer muito
+mais do que seu trabalho exigia. A boa notícia: dois ou três hábitos entediantes transformam uma chave vazada de
+uma catástrofe em uma tarefa de revogar-e-rotacionar.
+
+## As regras de permissão (onde mora a maior parte da segurança)
+
+**1. Nunca habilite saques. Nunca.** Um bot de trading negocia; ele não saca. Sem
+permissão de saque, a melhor jogada de um ladrão é fazer negociações estranhas — ruim, limitado e
+reversível ao revogar a chave. Com ela, seu saldo some em uma única chamada de API. Toda
+exchange séria permite criar chaves com saques desabilitados; não existe arquitetura de bot
+que justifique não fazer isso.
+
+**2. Lista de IPs permitidos.** Vincule a chave ao IP do seu servidor. Uma chave roubada que só funciona a partir
+da sua máquina é um problema muito menor — o atacante agora precisa da sua chave *e* da sua
+infraestrutura. Bônus: várias exchanges relaxam os rate limits ou estendem a validade de chaves
+restritas por IP.
+
+**3. Privilégio mínimo, uma chave por tarefa.** Um dashboard precisa de somente leitura. Um bot de trading precisa de
+permissão de negociação em mercados específicos, se a exchange suportar esse escopo. Nada precisa de "todas as
+permissões" — essa caixinha é como um vazamento escala. Chaves separadas por bot também significam que
+revogar uma não derruba as outras, e os logs de acesso da exchange dizem *qual*
+implantação vazou.
+
+**4. Subcontas como controle de raio de explosão.** As grandes exchanges suportam subcontas com seus
+próprios saldos e chaves. Um bot que vive em uma subconta com duas semanas de capital de
+trading só pode perder duas semanas de capital de trading.
+
+## Armazenamento: chaves nunca vivem no código
+
+A regra cabe em uma frase: **credenciais vêm do ambiente, não do código-fonte.** O
+mesmo padrão em toda linguagem:
+
+```javascript tab="JavaScript"
+const exchange = new ccxt.binance({
+    apiKey: process.env.BINANCE_APIKEY,
+    secret: process.env.BINANCE_SECRET,
+});
+```
+
+```python tab="Python"
+exchange = ccxt.binance({
+    'apiKey': os.environ['BINANCE_APIKEY'],
+    'secret': os.environ['BINANCE_SECRET'],
+})
+```
+
+```php tab="PHP"
+$exchange = new \ccxt\binance([
+    'apiKey' => getenv('BINANCE_APIKEY'),
+    'secret' => getenv('BINANCE_SECRET'),
+]);
+```
+
+```csharp tab="C#"
+var exchange = new Binance();
+exchange.apiKey = Environment.GetEnvironmentVariable("BINANCE_APIKEY");
+exchange.secret = Environment.GetEnvironmentVariable("BINANCE_SECRET");
+```
+
+```go tab="Go"
+exchange := ccxt.NewBinance(nil)
+exchange.ApiKey = os.Getenv("BINANCE_APIKEY")
+exchange.Secret = os.Getenv("BINANCE_SECRET")
+```
+
+```java tab="Java"
+var exchange = new Binance();
+exchange.apiKey = System.getenv("BINANCE_APIKEY");
+exchange.secret = System.getenv("BINANCE_SECRET");
+```
+
+Depois feche as brechas ao redor:
+
+- **Arquivos `.env` são só para desenvolvimento** — e pertencem ao `.gitignore` *antes* do primeiro
+  commit. O histórico do Git é para sempre; uma chave que um dia foi commitada está queimada, mesmo que você
+  a tenha apagado no commit seguinte. Rotacione-a.
+- **Produção pede um gerenciador de segredos** (Vault, os gerenciadores de segredos da AWS/GCP, ou no mínimo
+  credenciais do systemd / Docker secrets) — não variáveis de ambiente embutidas em imagens,
+  que qualquer um com `docker inspect` consegue ler.
+- **Cuidado com `--verbose`.** O modo de depuração do CCXT imprime as requisições HTTP completas, incluindo
+  os cabeçalhos de autenticação. Ótimo para depurar, radioativo em logs compartilhados — limpe antes
+  de colar em uma issue do GitHub ou em um canal do Discord.
+- **A cadeia de suprimentos também conta.** Uma dependência maliciosa pode ler seu ambiente. Fixe
+  as versões das dependências, mantenha a máquina do bot minimalista e não rode seu bot de trading ao lado do seu
+  navegador.
+
+## Detecção: presuma o vazamento, pegue-o rápido
+
+- **Vigie sua própria conta.** Você já está conectado — `watchBalance` e `watchOrders`
+  (veja [WebSockets](/pt/blog/realtime-market-data-with-websockets)) formam um alarme de cinco linhas de "ordens que
+  eu não coloquei". `fetchLedger` cobre a trilha de auditoria.
+- **Verifique os logs de uso de chaves da exchange** de vez em quando — IPs desconhecidos são a prova irrefutável.
+- **Rotacione em um cronograma**, e *imediatamente* diante de qualquer estranheza: chaves são de graça, perícia forense
+  não é. As exchanges cada vez mais expiram chaves automaticamente (muitas vezes mais rápido sem uma lista de IPs
+  permitidos) — trate a expiração como um recurso, não como um incômodo.
+- **Teste o caminho de revogação.** Saiba quão rápido você consegue matar uma chave às 3 da manhã — esse é o seu verdadeiro
+  plano de resposta a incidentes.
+
+## O checklist
+
+Saques desabilitados · lista de IPs permitidos ativada · uma chave por bot, privilégio mínimo · raio de explosão
+por subconta · chaves do ambiente/gerenciador de segredos, nunca no git · saída do `--verbose` limpa ·
+monitoramento de saldo/ordens ativado · rotação agendada · caminho de revogação testado.
+
+Nada disso é exótico — é o equivalente, para chaves de API, a trancar a porta de casa. Faça uma vez por
+bot, e no dia em que uma chave vazar será uma terça-feira qualquer, não um post-mortem. Depois vá garantir que o próprio bot
+não está cometendo [os sete erros
+clássicos](/pt/blog/seven-mistakes-crypto-exchange-api-developers-make).

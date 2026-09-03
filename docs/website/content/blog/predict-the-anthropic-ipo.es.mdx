@@ -1,0 +1,185 @@
+---
+title: "Adelantándose al S-1: operar la carrera por la IPO de Anthropic vs OpenAI con CCXT"
+description: "Un recorrido por la API de mercados de predicción de CCXT usando el mercado binario \"¿Quién saldrá a bolsa primero, Anthropic u OpenAI?\" — leer las cuotas en varios venues, una señal basada en tweets y arbitraje entre venues."
+author: CCXT Team
+date: 2026-08-21T12:00:00Z
+tags: [tutorials, prediction-markets]
+---
+
+Existe un mercado para la pregunta "¿Quién saldrá a bolsa primero, Anthropic u OpenAI?", y ahora
+mismo cotiza en varios venues de predicción. Es binario — una empresa presenta la solicitud
+primero, la otra no — lo que lo convierte en un caso bueno y sencillo para recorrer el soporte de
+mercados de predicción de CCXT. Este post lee las cuotas en varios venues, construye una señal de
+juguete y muestra de dónde saldría un arbitraje entre venues.
+
+## Los precios son probabilidades
+
+Una acción de un mercado de predicción es distinta de una acción bursátil. Una acción YES cotiza
+entre `0.00` y `1.00` y se liquida exactamente a `1.00 USDC` si el evento ocurre, o a `0.00` si no.
+El precio es, por tanto, la estimación del mercado de la probabilidad. Si "Anthropic sale a bolsa
+primero" cotiza a `0.55`, el mercado está poniendo en precio una probabilidad del 55%. Diez
+acciones YES cuestan `5.50`; si Anthropic se lista primero pagan `10.00`, si no, nada.
+
+El mapeo sobre el resto de CCXT es directo:
+
+| Exchange cripto | Exchange de predicción |
+|---|---|
+| un `symbol` (`BTC/USDT`) | un handle de `outcome` (`ANTHROPIC_FIRST:YES`) |
+| precio en dólares | precio = probabilidad, `0.00`–`1.00` |
+| vendes para salir | se liquida a `1.00` o `0.00` |
+
+Los datos se organizan en tres niveles, y la unidad operable es la de abajo:
+
+- **event** — la pregunta, p. ej. "¿Qué laboratorio de IA sale a bolsa primero?", devuelto por `fetchEvents`
+- **market** — la pregunta binaria dentro del evento, un `PredictionMarket`
+- **outcome** — la pata YES o NO, direccionada por su handle de `outcome`
+
+## Una señal desde el timeline del fundador
+
+Antes de los datos de mercado, una idea nada seria. Los fundadores a veces telegrafían una
+solicitud. Si un CEO publica "presentamos nuestro S-1, roadshow la semana que viene", eso es
+información, y un escaneo de palabras clave basta para convertirlo en una apuesta direccional:
+
+```ts
+// YES en este mercado significa "Anthropic sale a bolsa primero", así que las palabras de solicitud/listado apuntan a YES
+const BULLISH = [ 's-1', 'roadshow', 'filing', 'filed', 'prospectus', 'listing', 'nasdaq', 'ipo' ];
+const BEARISH = [ 'no plans', 'staying private', 'delay', 'next year' ];
+
+function darioSignal (tweet: string): string {
+    const text = tweet.toLowerCase ();
+    let score = 0;
+    for (const kw of BULLISH) if (text.indexOf (kw) !== -1) score += 1;
+    for (const kw of BEARISH) if (text.indexOf (kw) !== -1) score -= 1;
+    return (score > 0) ? 'buy YES' : ((score < 0) ? 'buy NO' : 'no lean');
+}
+
+darioSignal ('excited to share we confidentially filed our S-1 — roadshow soon');
+// => 'buy YES'
+```
+
+Para que quede claro: CCXT no lee Twitter/X. `darioSignal()` es un marcador de posición para la
+fuente de tweets que quieras conectar; lo importante del post son las partes de abajo, que son
+llamadas reales a CCXT. Trata la señal como una broma y la fontanería como la lección.
+
+## Leer las cuotas en varios venues
+
+El mismo mercado está listado en más de un exchange, y cada uno tiene su propio order book, así que
+los precios difieren. En CCXT los lees todos con el mismo código, cambiando solo el id del exchange:
+
+```ts
+import ccxt from 'ccxt';
+
+async function readYes (venueId: string) {
+    const ex = new ccxt.prediction[venueId] ();
+    try {
+        const events = await ex.fetchEvents ({ 'query': 'Anthropic IPO', 'sort': 'volume' });
+        const market = events[0].markets[0];
+        // las etiquetas van en minúsculas en algunos venues (p. ej. Limitless) y capitalizadas en otros (Polymarket)
+        const yes = market.outcomes.find ((o) => o.label.toLowerCase () === 'yes');
+        const ob = await ex.fetchOrderBook (yes.outcome);        // yes.outcome es el handle operable
+        return { venueId, 'bid': ob.bids[0]?.[0], 'ask': ob.asks[0]?.[0] };
+    } finally {
+        await ex.close ();
+    }
+}
+
+const board = await Promise.all ([ 'polymarket', 'limitless', 'myriad' ].map (readYes));
+```
+
+El resultado es una tabla a través de tres venues, sin parseo específico por venue:
+
+```text
+polymarket   YES 0.54 / 0.55   (~55%)
+limitless    YES 0.51 / 0.52   (~52%)
+myriad       YES 0.56 / 0.57   (~57%)
+```
+
+Escribes la estrategia una vez y dejas que la librería se encargue de las peculiaridades de cada
+venue. Cuando los precios se alinean de forma tan desigual como aquí, puede haber un arbitraje.
+
+## De dónde sale el arbitraje entre venues
+
+Un mercado binario tiene dos acciones, YES y NO, y exactamente una de ellas se liquida a
+`1.00 USDC`. Comprar una acción NO equivale a vender una acción YES, así que un NO cuesta
+`1 - (YES bid)`. Si compras un YES en el venue más barato y un NO en otro por un coste combinado
+inferior a `1.00`, el par paga `1.00` en la liquidación sin importar quién presente la solicitud
+primero, así que la diferencia queda asegurada:
+
+```ts
+function findArb (board) {
+    for (const a of board) for (const b of board) {
+        if (a.venueId === b.venueId) continue;
+        const noAsk = 1 - b.bid;         // comprar NO en el venue B = vender YES en el venue B
+        const cost  = a.ask + noAsk;     // una pata YES + una pata NO
+        const edge  = 1 - cost;          // la liquidación siempre paga exactamente 1.00
+        if (edge > 0) console.log (`BUY YES @${a.venueId} + NO @${b.venueId} => +${(edge * 100).toFixed (1)}% risk-free`);
+    }
+}
+```
+
+Unas cuantas advertencias, porque aquí es donde la idea suele romperse. Ambas patas tienen que
+liquidarse sobre el mismo evento: emparejar "¿Anthropic sale a bolsa en 2026?" con "¿Anthropic u
+OpenAI primero?" no es una cobertura, es una posición abierta, así que asegúrate de que sea
+exactamente el mismo mercado cara a cara en cada venue. Las comisiones y el slippage se comen una
+ventaja fina, ambas órdenes tienen que ejecutarse de verdad, y el capital queda inmovilizado hasta
+que el mercado se resuelve. En la práctica las ventajas reales son pequeñas y efímeras, y la
+mayoría de las veces el escaneo no devuelve nada, que es la respuesta correcta para un mercado
+eficiente. La ventaja de hacerlo en código es que un `Promise.all` a través de varios venues
+comprueba más rápido de lo que tú puedes a mano.
+
+## Colocar y liquidar
+
+Operar requiere credenciales — una billetera en los venues on-chain. Una orden es una sola
+llamada, con la cantidad en acciones y el precio como probabilidad:
+
+```ts
+const poly = new ccxt.prediction.polymarket ({ privateKey, walletAddress });
+
+// comprar 5 YES (Anthropic primero) a 0.25 o mejor
+const order = await poly.createOrder (outcome, 'limit', 'buy', 5, 0.25);
+
+// cuando una empresa presenta la solicitud, las posiciones llevan campos que solo tienen sentido una vez que el mercado se resuelve
+const [ pos ] = await poly.fetchPositions ([ outcome ]);
+console.log (pos.resolved ? (pos.won ? `won — payout ${pos.payout}` : 'lost') : `open, PnL ${pos.unrealizedPnl}`);
+```
+
+`resolved`, `won` y `payout` no existen en un exchange normal, porque una posición en `BTC/USDT`
+nunca "se cumple". Una posición de predicción sí, y en los venues que lo soportan
+`fetchSettlements()` te da el resultado contabilizado. Si conectas esto de verdad, coloca una orden
+límite bien por debajo del libro para que no pueda ejecutarse, mantenla bajo un tope pequeño por
+operación y cancélala después — el mismo ciclo que usan los demás ejemplos de predicción.
+
+## Otros lenguajes y la CLI
+
+La misma API se transpila a todos los lenguajes soportados, así que puedes prototipar en Python y
+desplegar en Go sin volver a aprender nada:
+
+```python
+import ccxt.prediction            # las clases de predicción son solo async: ccxt.prediction.<id>
+
+ex = ccxt.prediction.polymarket ()
+events = await ex.fetch_events ({ 'query': 'Anthropic IPO' })
+outcome = events[0]['markets'][0]['outcomes'][0]['outcome']
+ticker = await ex.fetch_ticker (outcome)
+print (f"market-implied: {ticker['last'] * 100:.1f}%")
+await ex.close ()
+```
+
+Desde la terminal, todas las CLI aceptan `-p` / `--prediction`:
+
+```bash
+npm run cli.ts -- -p polymarket fetchEvents '{"query":"Anthropic IPO"}'
+```
+
+Para actualizaciones en vivo cuando salta una noticia, los venues con soporte de WebSocket exponen
+`watchTicker(outcome)`, que envía un push con cada cambio de precio.
+
+## Resumen
+
+Un mercado de predicción pone un precio liquidable a una pregunta de sí/no, y CCXT le da a cada
+venue la misma interfaz, de modo que una sola estrategia puede leerlos todos y actuar sobre las
+diferencias. Son mercados reales con dinero real, comisiones y riesgo de liquidación, así que trata
+el arbitraje como algo que buscar y no como algo que siempre está ahí.
+
+La [guía de Mercados de Predicción](/es/docs/prediction) cubre todos los venues, el modelo de datos
+completo y los métodos unificados usados arriba.

@@ -1,0 +1,116 @@
+---
+title: "트레이딩 봇의 자금은 이렇게 털립니다: API 키 보안 체크리스트"
+description: "자금 도난 사건의 대부분은 해킹당한 거래소가 아니라 유출된 API 키에서 시작됩니다. 유출된 키를 대수롭지 않은 일로 만들어 주는 권한, 저장, 모니터링 습관을 소개합니다."
+author: CCXT Team
+date: 2026-07-08T11:00:00Z
+tags: [best-practices, security]
+---
+
+"내 자금이 사라졌다"는 이야기의 대부분은 해킹당한 거래소와 무관합니다. 유출된 API 키가 원인입니다.
+공개 저장소에 푸시되었거나, Docker 이미지에 구워져 들어갔거나, 가짜 "포트폴리오 트래커"에
+피싱당했거나, 침해된 VPS에서 읽혀 나간 키, 그리고 맡은 일에 비해 훨씬 많은 권한이 허용되어 있던
+키가 문제입니다. 다행인 점은, 지루한 습관 두세 가지만으로 유출된 키를 재앙이 아니라
+폐기하고 교체하면 끝나는 잡일로 바꿀 수 있다는 것입니다.
+
+## 권한 규칙 (안전의 대부분이 여기에 있습니다)
+
+**1. 출금 권한은 절대 활성화하지 마세요. 절대로.** 트레이딩 봇은 거래를 하는 것이지 출금을 하는 것이
+아닙니다. 출금 권한이 없으면 도둑이 할 수 있는 최선은 이상한 거래를 하는 것뿐입니다. 나쁘긴 하지만
+한계가 있고, 키를 폐기하면 되돌릴 수 있습니다. 출금 권한이 있으면 API 호출 한 번에 잔고가
+사라집니다. 제대로 된 거래소라면 모두 출금이 비활성화된 키를 만들 수 있게 해 줍니다. 이를 하지
+않아도 되는 봇 아키텍처는 존재하지 않습니다.
+
+**2. IP 허용 목록.** 키를 서버의 IP에 묶으세요. 여러분의 서버에서만 작동하는 도난 키는 훨씬 작은
+문제입니다. 공격자에게는 이제 키 *그리고* 여러분의 인프라가 모두 필요하기 때문입니다. 덤으로,
+여러 거래소가 IP 제한 키에 대해 rate limit을 완화하거나 키 만료 기간을 연장해 줍니다.
+
+**3. 최소 권한, 작업당 키 하나.** 대시보드에는 읽기 전용이면 충분합니다. 트레이딩 봇에는 거래
+권한, 그리고 거래소가 범위 지정을 지원한다면 특정 마켓에 한정된 권한이면 됩니다. "모든 권한"이
+필요한 것은 없습니다. 그 체크박스가 바로 유출이 확대되는 통로입니다. 봇마다 키를 분리해 두면
+하나를 폐기해도 나머지가 멈추지 않고, 거래소의 접근 로그가 *어느* 배포가 유출되었는지
+알려 줍니다.
+
+**4. 피해 범위 통제 수단으로서의 서브계정.** 대형 거래소는 자체 잔고와 키를 가진 서브계정을
+지원합니다. 2주치 거래 자본만 들어 있는 서브계정에서 사는 봇은 2주치 거래 자본만 잃을 수
+있습니다.
+
+## 저장: 키는 절대 코드 안에 살지 않습니다
+
+규칙은 한 문장입니다. **자격 증명은 소스가 아니라 환경에서 옵니다.** 모든 언어에서 같은
+패턴입니다.
+
+```javascript tab="JavaScript"
+const exchange = new ccxt.binance({
+    apiKey: process.env.BINANCE_APIKEY,
+    secret: process.env.BINANCE_SECRET,
+});
+```
+
+```python tab="Python"
+exchange = ccxt.binance({
+    'apiKey': os.environ['BINANCE_APIKEY'],
+    'secret': os.environ['BINANCE_SECRET'],
+})
+```
+
+```php tab="PHP"
+$exchange = new \ccxt\binance([
+    'apiKey' => getenv('BINANCE_APIKEY'),
+    'secret' => getenv('BINANCE_SECRET'),
+]);
+```
+
+```csharp tab="C#"
+var exchange = new Binance();
+exchange.apiKey = Environment.GetEnvironmentVariable("BINANCE_APIKEY");
+exchange.secret = Environment.GetEnvironmentVariable("BINANCE_SECRET");
+```
+
+```go tab="Go"
+exchange := ccxt.NewBinance(nil)
+exchange.ApiKey = os.Getenv("BINANCE_APIKEY")
+exchange.Secret = os.Getenv("BINANCE_SECRET")
+```
+
+```java tab="Java"
+var exchange = new Binance();
+exchange.apiKey = System.getenv("BINANCE_APIKEY");
+exchange.secret = System.getenv("BINANCE_SECRET");
+```
+
+그다음 주변의 허점을 막으세요.
+
+- **`.env` 파일은 개발 용도로만** 쓰고, 첫 커밋 *이전에* `.gitignore`에 넣어야 합니다. Git
+  히스토리는 영원합니다. 한 번이라도 커밋된 키는 다음 커밋에서 지웠더라도 이미 노출된 것입니다.
+  교체하세요.
+- **프로덕션에는 시크릿 매니저가 필요합니다** (Vault, AWS/GCP 시크릿 매니저, 최소한
+  systemd credentials / Docker secrets). 이미지에 구워 넣은 환경 변수는 `docker inspect`를
+  할 수 있는 누구나 읽을 수 있으므로 안 됩니다.
+- **`--verbose`를 조심하세요.** CCXT의 디버그 모드는 인증 헤더를 포함한 전체 HTTP 요청을
+  출력합니다. 디버깅에는 훌륭하지만 공유 로그에서는 방사능 물질입니다. GitHub 이슈나 Discord
+  채널에 붙여 넣기 전에 반드시 지우세요.
+- **공급망도 중요합니다.** 악성 의존성은 여러분의 환경을 읽을 수 있습니다. 의존성을 고정하고,
+  봇이 도는 머신을 최소한으로 유지하며, 브라우저 옆에서 트레이딩 봇을 돌리지 마세요.
+
+## 탐지: 유출을 전제하고, 빠르게 잡아내세요
+
+- **자기 계정을 감시하세요.** 이미 연결되어 있습니다. `watchBalance`와 `watchOrders`
+  ([WebSocket](/ko/blog/realtime-market-data-with-websockets) 참고)만 있으면 "내가 내지 않은
+  주문" 알람을 다섯 줄로 만들 수 있습니다. 감사 추적은 `fetchLedger`가 담당합니다.
+- **거래소의 키 사용 로그를 가끔 확인하세요.** 모르는 IP가 결정적 증거입니다.
+- **정기적으로 교체하고**, 이상한 낌새가 있으면 *즉시* 교체하세요. 키는 공짜지만 포렌식은
+  아닙니다. 거래소들은 점점 더 키를 자동으로 만료시키고 있습니다(IP 허용 목록이 없으면 더 빨리
+  만료되는 경우가 많습니다). 만료를 성가심이 아니라 기능으로 받아들이세요.
+- **폐기 경로를 테스트하세요.** 새벽 3시에 키를 얼마나 빨리 죽일 수 있는지 알아 두세요. 그것이
+  여러분의 진짜 사고 대응 계획입니다.
+
+## 체크리스트
+
+출금 비활성화 · IP 허용 목록 켜기 · 봇당 키 하나, 최소 권한 · 서브계정으로 피해 범위 제한 ·
+키는 환경 변수/시크릿 매니저에서, 절대 git에 넣지 않기 · `--verbose` 출력 정리 ·
+잔고/주문 모니터링 켜기 · 교체 일정 잡기 · 폐기 경로 테스트.
+
+여기에 특별한 것은 하나도 없습니다. 문을 잠그는 것의 API 키 버전일 뿐입니다. 봇마다 한 번만
+해 두면, 키가 유출되는 날은 사후 분석이 아니라 평범한 화요일이 됩니다. 그다음에는 봇 자체가
+[일곱 가지 고전적인 실수](/ko/blog/seven-mistakes-crypto-exchange-api-developers-make)를
+저지르고 있지 않은지 확인하러 가세요.

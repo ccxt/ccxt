@@ -1,0 +1,324 @@
+---
+title: "크립토 트레이딩 봇을 터뜨리는 일곱 가지 실수 (1번은 지금도 하고 계실 겁니다)"
+description: "부동소수점으로 계산한 돈, rate limit 차단, 심볼 혼동, 무작정 재시도 — 트레이딩 코드의 전형적인 실패 유형과, 바로 그 실수들 때문에 존재하는 라이브러리 장치들을 정리했습니다."
+author: CCXT Team
+date: 2026-07-07T13:00:00Z
+tags: [best-practices]
+---
+
+트레이딩 코드는 예측 가능한 방식으로 실패합니다. 100개가 넘는 거래소와의 연동을 10년간 유지보수하면서,
+우리는 같은 일곱 가지 실수가 봇을 반복해서 무너뜨리는 것을 지켜봤습니다. CCXT의 설계 결정 상당수는
+바로 이 실수들 때문에 존재합니다. 여러분을 물어뜯을 순서대로 대략 정리해 보았습니다.
+
+## 1. 부동소수점으로 돈 계산하기
+
+```javascript tab="JavaScript"
+console.log(0.1 + 0.2);
+// 0.30000000000000004
+```
+
+```python tab="Python"
+print(0.1 + 0.2)
+# 0.30000000000000004
+```
+
+```php tab="PHP"
+var_dump(0.1 + 0.2 == 0.3);
+// bool(false)
+```
+
+```csharp tab="C#"
+Console.WriteLine(0.1 + 0.2);
+// 0.30000000000000004
+```
+
+```go tab="Go"
+fmt.Println(0.1 + 0.2)
+// 0.30000000000000004
+```
+
+```java tab="Java"
+System.out.println(0.1 + 0.2);
+// 0.30000000000000004
+```
+
+이진 부동소수점은 대부분의 십진 소수를 표현할 수 없습니다. 어떤 언어에서든 마찬가지입니다. 트레이딩
+코드에서 이것은 상식 퀴즈가 아닙니다. 거래소가 거부하는 주문 수량을 만들어내거나, 더 나쁘게는 수천 건의
+거래에 걸쳐 누적되는 조용히 틀린 포지션 크기를 만들어냅니다.
+
+내부적으로 CCXT의 모든 산술 연산은 `Precise`를 거칩니다. 모든 언어에서, 부동소수점이 전혀 없는
+십진 문자열 연산입니다. 여러분의 코드에서 중요한 도구는 정밀도 헬퍼로, 어떤 값이든 거래소가 받아들이는
+정확한 형태로 반올림해 줍니다:
+
+```javascript tab="JavaScript"
+const amount = exchange.amountToPrecision('BTC/USDT', rawAmount);
+const price = exchange.priceToPrecision('BTC/USDT', rawPrice);
+```
+
+```python tab="Python"
+amount = exchange.amount_to_precision('BTC/USDT', raw_amount)
+price = exchange.price_to_precision('BTC/USDT', raw_price)
+```
+
+```php tab="PHP"
+$amount = $exchange->amount_to_precision('BTC/USDT', $rawAmount);
+$price = $exchange->price_to_precision('BTC/USDT', $rawPrice);
+```
+
+```csharp tab="C#"
+var amount = exchange.amountToPrecision("BTC/USDT", rawAmount);
+var price = exchange.priceToPrecision("BTC/USDT", rawPrice);
+```
+
+```go tab="Go"
+amount := exchange.AmountToPrecision("BTC/USDT", rawAmount)
+price := exchange.PriceToPrecision("BTC/USDT", rawPrice)
+```
+
+```java tab="Java"
+var amount = exchange.amountToPrecision("BTC/USDT", rawAmount);
+var price = exchange.priceToPrecision("BTC/USDT", rawPrice);
+```
+
+모든 마켓은 마켓 구조 안에 `precision`과 `limits`(최소 수량, 최소 금액)도 담고 있습니다. 주문 후
+거부 오류를 파싱하는 대신, 주문 전에 이 값들을 확인하십시오.
+
+## 2. 차단당할 때까지 rate limit 무시하기
+
+모든 거래소는 요청 속도 제한을 시행합니다. 이를 초과하면 HTTP 429가 오고, 그다음에는 일시적인 IP
+차단이 옵니다. 대개 여러분의 루프가 가장 바쁠 때, 거래 도중에 말이죠.
+
+CCXT에 내장된 토큰 버킷 rate limiter는 **기본적으로 활성화**되어 있으며, 각 거래소의 엔드포인트별
+비용을 알고 있습니다. 무거운 호출은 가벼운 호출보다 예산을 더 많이 소모합니다. 이 기능을 켜 두고,
+그에 맞춰 설계하십시오. 시작 시 `loadMarkets()`를 캐시하고 다시 가져오지 말 것, 여러 번의
+`fetchTicker` 대신 `fetchTickers(symbols)`로 일괄 처리할 것, 그리고 1분에 몇 번 이상 폴링하는
+것은 무엇이든 [WebSocket](/ko/blog/realtime-market-data-with-websockets)을 사용할 것.
+
+## 3. 거래소별 심볼을 하드코딩하기
+
+`BTCUSDT`, `XBTUSDT`, `BTC-USDT`, `tBTCUSD` — 모든 거래소가 같은 마켓에 다른 이름을 붙이며,
+원시 ID가 여기저기 흩뿌려진 코드는 두 번째 거래소를 추가하는 날 죽습니다.
+
+CCXT의 규칙은 이렇습니다. **코드에는 통합 심볼, 전송 계층에는 거래소 ID, 절대 섞지 말 것.** 여러분은
+어디서나 `BTC/USDT`라고 쓰고 (파생상품에도 통합 형식이 있습니다. 선형 무기한 스왑은
+`BTC/USDT:USDT`입니다), 라이브러리가 내부적으로 거래소의 ID로 매핑합니다. 원시 ID가 꼭 필요하다면
+— 예를 들어 거래소 전용 엔드포인트를 위해 — 하드코딩하지 말고 도출하십시오:
+
+```javascript tab="JavaScript"
+const market = exchange.market('BTC/USDT');
+console.log(market.id);   // binance에서는 'BTCUSDT', 다른 곳에서는 'XBTUSDT'
+```
+
+```python tab="Python"
+market = exchange.market('BTC/USDT')
+print(market['id'])   # binance에서는 'BTCUSDT', 다른 곳에서는 'XBTUSDT'
+```
+
+```php tab="PHP"
+$market = $exchange->market('BTC/USDT');
+echo $market['id'];   // binance에서는 'BTCUSDT', 다른 곳에서는 'XBTUSDT'
+```
+
+```csharp tab="C#"
+var markets = await exchange.LoadMarkets();
+Console.WriteLine(markets["BTC/USDT"].id);   // binance에서는 'BTCUSDT'
+```
+
+```go tab="Go"
+markets, _ := exchange.LoadMarkets()
+fmt.Println(*markets["BTC/USDT"].Id)   // binance에서는 'BTCUSDT'
+```
+
+```java tab="Java"
+var markets = exchange.loadMarkets(false);
+System.out.println(markets.get("BTC/USDT").id);   // binance에서는 'BTCUSDT'
+```
+
+## 4. 모든 오류를 똑같이 취급하기
+
+치명적인 두 가지 변종이 있습니다. 어떤 오류에든 크래시하기 (새벽 2시에 첫 번째 딸꾹질에 봇이 죽습니다),
+아니면 모든 것을 맹목적으로 재시도하기 (거래소가 이미 거부한 주문을 봇이 다시 제출합니다 — 더 나쁘게는
+이미 **접수된** 주문을 말이죠).
+
+CCXT는 모든 거래소의 오류 동물원을 하나의 타입 계층으로 정규화하므로, 여러분의 핸들러는 문자열 매칭이
+아니라 정책이 될 수 있습니다:
+
+- **`NetworkError` 계열** — `RequestTimeout`, `ExchangeNotAvailable`, `DDoSProtection`,
+  `RateLimitExceeded`. 일시적입니다. 잠시 물러났다가 재시도하십시오.
+- **`ExchangeError` 계열** — `InvalidOrder`, `InsufficientFunds`, `AuthenticationError`,
+  `BadSymbol`. 요청이 잘못되었거나 여러분의 상태가 잘못된 것입니다. 동일한 입력을 재시도하면 동일한
+  실패가 돌아옵니다. 대신 원인을 고치십시오.
+
+```javascript tab="JavaScript"
+try {
+    const order = await exchange.createOrder(symbol, 'limit', side, amount, price);
+} catch (e) {
+    if (e instanceof ccxt.NetworkError) {
+        checkIfItWentThrough();   // 아래 참조, 그런 다음 재시도할 수도 있음
+    } else if (e instanceof ccxt.ExchangeError) {
+        logAndStop(e);            // 이런 오류는 절대 맹목적으로 재시도하지 말 것
+    }
+}
+```
+
+```python tab="Python"
+import ccxt
+
+try:
+    order = exchange.create_order(symbol, 'limit', side, amount, price)
+except ccxt.NetworkError:
+    check_if_it_went_through()   # 아래 참조, 그런 다음 재시도할 수도 있음
+except ccxt.ExchangeError as e:
+    log_and_stop(e)              # 이런 오류는 절대 맹목적으로 재시도하지 말 것
+```
+
+```php tab="PHP"
+try {
+    $order = $exchange->create_order($symbol, 'limit', $side, $amount, $price);
+} catch (\ccxt\NetworkError $e) {
+    check_if_it_went_through();   // 아래 참조, 그런 다음 재시도할 수도 있음
+} catch (\ccxt\ExchangeError $e) {
+    log_and_stop($e);             // 이런 오류는 절대 맹목적으로 재시도하지 말 것
+}
+```
+
+```csharp tab="C#"
+try
+{
+    var order = await exchange.CreateOrder(symbol, "limit", side, amount, price);
+}
+catch (NetworkError e)
+{
+    CheckIfItWentThrough();   // 아래 참조, 그런 다음 재시도할 수도 있음
+}
+catch (ExchangeError e)
+{
+    LogAndStop(e);            // 이런 오류는 절대 맹목적으로 재시도하지 말 것
+}
+```
+
+```go tab="Go"
+order, err := exchange.CreateOrder(symbol, "limit", side, amount,
+    ccxt.WithCreateOrderPrice(price))
+if err != nil {
+    if ccxtErr, ok := err.(*ccxt.Error); ok {
+        switch ccxtErr.Type {
+        case ccxt.RequestTimeoutErrType, ccxt.RateLimitExceededErrType,
+            ccxt.ExchangeNotAvailableErrType:
+            checkIfItWentThrough() // 일시적 — 그런 다음 재시도할 수도 있음
+        default:
+            logAndStop(ccxtErr) // 이런 오류는 절대 맹목적으로 재시도하지 말 것
+        }
+    }
+}
+```
+
+```java tab="Java"
+try {
+    var order = exchange.createOrder(symbol, "limit", side, amount, price, null);
+} catch (io.github.ccxt.errors.NetworkError e) {
+    checkIfItWentThrough();   // 아래 참조, 그런 다음 재시도할 수도 있음
+} catch (io.github.ccxt.errors.ExchangeError e) {
+    logAndStop(e);            // 이런 오류는 절대 맹목적으로 재시도하지 말 것
+}
+```
+
+미묘한 경우는 **`createOrder`의 타임아웃**입니다. 여러분의 요청은 타임아웃되었지만 거래소는 주문을
+접수했을 수 있습니다. 순진하게 재시도하면 포지션이 두 배가 됩니다. 해결책은 멱등성입니다. `params`에
+여러분만의 `clientOrderId`를 담아 보내고, 타임아웃 시 재시도하기 전에 그 ID로 조회하십시오.
+
+## 5. 페이지네이션이 알아서 되리라 가정하기
+
+`fetchOHLCV`, `fetchTrades`, `fetchMyTrades`는 **한 페이지**를 반환하며, 거래소별 최대치
+(보통 500~1000행)로 제한됩니다. 이들을 한 번 호출하고 "전체 히스토리"를 받았다고 가정하는 코드는
+조용히 부분 데이터로 지표를 계산합니다.
+
+범위를 가져오려면 루프가 필요합니다. `since`로 요청하고, 마지막 행의 타임스탬프를 취해 거기서부터 다시
+요청하고, 새로운 것이 오지 않으면 멈춥니다. 각 거래소의 페이지 상한(`limit` 인자)을 지키고, rate
+limiter가 페이지마다 예산을 쓰고 있다는 점을 기억하십시오.
+
+## 6. 시계가 어긋나도록 방치하기
+
+서명된 요청에는 타임스탬프가 포함되며, 거래소는 타임스탬프가 서버 시간과 너무 차이 나는 요청을
+거부합니다. 몇 초 어긋난 시계는 나타났다 사라지는 당혹스러운 인증 실패를 만들어냅니다. NTP가 없는
+VPS나 Raspberry Pi에서 전형적으로 발생하죠.
+
+NTP를 실행하십시오. 그리고 CCXT에서 지원하는 대부분의 거래소는 오프셋을 측정하고 보정해 주는 옵션을
+받습니다:
+
+```javascript tab="JavaScript"
+const exchange = new ccxt.binance({
+    apiKey: KEY,
+    secret: SECRET,
+    options: {
+        adjustForTimeDifference: true,
+    },
+});
+```
+
+```python tab="Python"
+exchange = ccxt.binance({
+    'apiKey': KEY,
+    'secret': SECRET,
+    'options': {
+        'adjustForTimeDifference': True,
+    },
+})
+```
+
+```php tab="PHP"
+$exchange = new \ccxt\binance([
+    'apiKey' => $key,
+    'secret' => $secret,
+    'options' => [
+        'adjustForTimeDifference' => true,
+    ],
+]);
+```
+
+```csharp tab="C#"
+var exchange = new Binance(new Dictionary<string, object>() {
+    { "apiKey", key },
+    { "secret", secret },
+    { "options", new Dictionary<string, object>() {
+        { "adjustForTimeDifference", true },
+    } },
+});
+```
+
+```go tab="Go"
+exchange := ccxt.NewBinance(map[string]interface{}{
+    "apiKey": key,
+    "secret": secret,
+    "options": map[string]interface{}{
+        "adjustForTimeDifference": true,
+    },
+})
+```
+
+```java tab="Java"
+var config = new java.util.HashMap<String, Object>();
+config.put("apiKey", key);
+config.put("secret", secret);
+config.put("options", java.util.Map.of("adjustForTimeDifference", true));
+var exchange = new Binance(config);
+```
+
+## 7. 실제 돈으로 테스트하기
+
+아무도 프로덕션에서 테스트할 계획을 세우지는 않습니다. 그저 대안이 있다는 것을 모를 뿐입니다:
+
+- **`exchange.setSandboxMode(true)`**는 테스트넷이나 데모 환경이 있는 거래소(Binance, Bybit,
+  OKX 등 다수)에서 CCXT를 그 환경으로 전환합니다. 가짜 돈, 진짜 API입니다.
+- **출금이 비활성화된 키 + IP 허용 목록** — 트레이딩 봇에는 출금 권한이 전혀 필요 없습니다. 이것만으로
+  키 유출이 재앙에서 불편함 정도로 바뀝니다.
+- 첫 실전 실행에서는 **최소 주문 수량**으로, 그리고 실제로 테스트해 본 킬 스위치와 함께.
+
+---
+
+이 실수들 중 어느 것도 이국적이지 않습니다. 그게 핵심입니다. 모든 트레이딩 봇 개발자가 한 번은 치르는
+표준 세금이죠. CCXT가 그 세금을 면제해 줄 수는 없지만, 올바른 것을 기본값으로 만들 수는 있습니다.
+문자열 연산, 기본으로 켜진 rate limit, 통합 심볼, 타입이 있는 오류, 호출 한 번이면 되는 샌드박스 모드.
+
+라이브러리가 처음이신가요?
+[첫 크립토 트레이딩 봇 만들기](/ko/blog/build-your-first-crypto-trading-bot)부터 시작하십시오.
