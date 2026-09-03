@@ -313,7 +313,7 @@ public struct PredictionTickers
 
     public PredictionTickers(object tickers2)
     {
-        var tickers = (Dictionary<string, object>)tickers2;
+        var tickers = (IDictionary<string, object>)tickers2;
         info = Helper.GetInfo(tickers);
         this.tickers = new Dictionary<string, PredictionTicker>();
         foreach (var ticker in tickers)

@@ -501,7 +501,7 @@ public struct Tickers
 
     public Tickers(object tickers2)
     {
-        var tickers = (Dictionary<string, object>)tickers2;
+        var tickers = (IDictionary<string, object>)tickers2;
 
         info = Helper.GetInfo(tickers);
         this.tickers = new Dictionary<string, Ticker>();
@@ -645,7 +645,7 @@ public struct LastPrices
 
     public LastPrices(object lastPrices2)
     {
-        var lastPrices = (Dictionary<string, object>)lastPrices2;
+        var lastPrices = (IDictionary<string, object>)lastPrices2;
 
         info = Helper.GetInfo(lastPrices);
         this.lastPrices = new Dictionary<string, LastPrice>();
@@ -684,7 +684,7 @@ public struct Currencies
 
     public Currencies(object currencies2)
     {
-        var currencies = (Dictionary<string, object>)currencies2;
+        var currencies = (IDictionary<string, object>)currencies2;
 
         info = Helper.GetInfo(currencies);
         this.currencies = new Dictionary<string, Currency>();
@@ -723,7 +723,7 @@ public struct TradingFees
 
     public TradingFees(object tradingFees2)
     {
-        var tradingFees = (Dictionary<string, object>)tradingFees2;
+        var tradingFees = (IDictionary<string, object>)tradingFees2;
 
         info = Helper.GetInfo(tradingFees);
         this.tradingFees = new Dictionary<string, TradingFeeInterface>();
@@ -835,7 +835,7 @@ public struct OrderBooks
 
     public OrderBooks(object tickers2)
     {
-        var orderbooks = (Dictionary<string, object>)tickers2;
+        var orderbooks = (IDictionary<string, object>)tickers2;
 
         info = Helper.GetInfo(orderbooks);
         this.orderbooks = new Dictionary<string, OrderBook>();
@@ -1088,7 +1088,7 @@ public struct CrossBorrowRates
 
     public CrossBorrowRates(object crossBorrowRates2)
     {
-        var crossBorrowRates = (Dictionary<string, object>)crossBorrowRates2;
+        var crossBorrowRates = (IDictionary<string, object>)crossBorrowRates2;
 
         info = Helper.GetInfo(crossBorrowRates);
         this.crossBorrowRates = new Dictionary<string, CrossBorrowRate>();
@@ -1154,7 +1154,7 @@ public struct IsolatedBorrowRates
 
     public IsolatedBorrowRates(object isolatedBorrowRates2)
     {
-        var isolatedBorrowRates = (Dictionary<string, object>)isolatedBorrowRates2;
+        var isolatedBorrowRates = (IDictionary<string, object>)isolatedBorrowRates2;
 
         info = Helper.GetInfo(isolatedBorrowRates);
         this.isolatedBorrowRates = new Dictionary<string, IsolatedBorrowRate>();
@@ -1274,7 +1274,7 @@ public struct OpenInterests
 
     public OpenInterests(object fr2)
     {
-        var rates = (Dictionary<string, object>)fr2;
+        var rates = (IDictionary<string, object>)fr2;
 
         info = Helper.GetInfo(rates);
         this.openInterests = new Dictionary<string, OpenInterest>();
@@ -1357,7 +1357,7 @@ public struct FundingRates
 
     public FundingRates(object fr2)
     {
-        var rates = (Dictionary<string, object>)fr2;
+        var rates = (IDictionary<string, object>)fr2;
 
         info = Helper.GetInfo(rates);
         this.fundingRates = new Dictionary<string, FundingRate>();
@@ -2170,7 +2170,7 @@ public struct MarginModes
 
     public MarginModes(object marginMode2)
     {
-        var marginModes = (Dictionary<string, object>)marginMode2;
+        var marginModes = (IDictionary<string, object>)marginMode2;
 
         info = Helper.GetInfo(marginModes);
         this.marginModes = new Dictionary<string, MarginMode>();
@@ -2209,7 +2209,7 @@ public struct Leverages
 
     public Leverages(object leverage2)
     {
-        var leverages = (Dictionary<string, object>)leverage2;
+        var leverages = (IDictionary<string, object>)leverage2;
 
         info = Helper.GetInfo(leverages);
         this.leverages = new Dictionary<string, Leverage>();
@@ -2337,7 +2337,7 @@ public struct OptionChain
 
     public OptionChain(object optionchains2)
     {
-        var optionChains = (Dictionary<string, object>)optionchains2;
+        var optionChains = (IDictionary<string, object>)optionchains2;
 
         info = Helper.GetInfo(optionChains);
         this.chains = new Dictionary<string, Option>();
@@ -2419,7 +2419,7 @@ public struct DepositAddresses
 
     public DepositAddresses(object depositAddresses2)
     {
-        var depositAddresses = (Dictionary<string, object>)depositAddresses2;
+        var depositAddresses = (IDictionary<string, object>)depositAddresses2;
 
         info = Helper.GetInfo(depositAddresses);
         this.depositAddresses = new Dictionary<string, DepositAddress>();
@@ -2459,7 +2459,7 @@ public struct AllGreeks
 
     public AllGreeks(object greeks2)
     {
-        var greeks = (Dictionary<string, object>)greeks2;
+        var greeks = (IDictionary<string, object>)greeks2;
 
         info = Helper.GetInfo(greeks);
         this.greeks = new Dictionary<string, Greeks>();

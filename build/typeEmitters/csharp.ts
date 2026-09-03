@@ -560,7 +560,10 @@ function renderWrapper (ir: TypesIR, spec: StructSpec): string {
         }
     }
     const bind = spec.b === undefined ? spec.p : spec.b;
-    const cast = spec.bc === undefined ? 'Dictionary<string, object>' : spec.bc;
+    // IDictionary, not Dictionary: ws venues resolve the live `this.tickers` /
+    // `this.bidsasks` cache (a ccxt.pro.CustomConcurrentDictionary) straight into the
+    // struct, and a concrete Dictionary cast throws InvalidCastException on it
+    const cast = spec.bc === undefined ? 'IDictionary<string, object>' : spec.bc;
     const lines: string[] = [];
     lines.push ('public struct ' + spec.n);
     lines.push ('{');
