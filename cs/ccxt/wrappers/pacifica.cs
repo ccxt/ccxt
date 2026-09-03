@@ -102,9 +102,4 @@ public partial class pacifica
         var res = this.editOrderRequest(id, symbol, type, side, amount, price, market, parameters);
         return ((Dictionary<string, object>)res);
     }
-    public async Task<List<Dictionary<string, object>>> FetchBuilderApprovals(string address)
-    {
-        var res = await this.fetchBuilderApprovals(address);
-        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
-    }
 }

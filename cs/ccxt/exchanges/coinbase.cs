@@ -5138,7 +5138,7 @@ public partial class coinbase : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an array of [deposit id structures]{@link https://docs.ccxt.com/?id=deposit-id-structure}
      */
-    public async virtual Task<object> fetchDepositMethodIds(object parameters = null)
+    public async virtual Task<List<Dictionary<string, object>>> FetchDepositMethodIds(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -5166,7 +5166,7 @@ public partial class coinbase : Exchange
         //     }
         //
         object result = this.safeList(response, "payment_methods", new List<object>() {});
-        return this.parseDepositMethodIds(result);
+        return ccxt.BaseExchange.ToDictList(this.parseDepositMethodIds(result));
     }
 
     /**
@@ -5771,7 +5771,7 @@ public partial class coinbase : Exchange
      * @param {Dict} [params] Extra parameters specific to the exchange API endpoint
      * @returns {any[]} An account structure <https://docs.ccxt.com/?id=account-structure>
      */
-    public async virtual Task<object> fetchPortfolioDetails(object portfolioUuid, object parameters = null)
+    public async virtual Task<List<Dictionary<string, object>>> FetchPortfolioDetails(object portfolioUuid, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -5783,7 +5783,7 @@ public partial class coinbase : Exchange
         };
         object response = await this.v3PrivateGetBrokeragePortfoliosPortfolioUuid(this.extend(request, parameters));
         object result = this.parsePortfolioDetails(response);
-        return result;
+        return ccxt.BaseExchange.ToDictList(result);
     }
 
     public virtual object parsePortfolioDetails(object portfolioData)

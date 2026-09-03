@@ -133,9 +133,4 @@ public partial class htx
         var res = this.createContractOrderRequest(symbol, type, side, amount, price, parameters);
         return ((Dictionary<string, object>)res);
     }
-    public async Task<List<Dictionary<string, object>>> FetchWithdrawAddresses(string code, string note = null, string networkCode = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchWithdrawAddresses(code, note, networkCode, parameters);
-        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
-    }
 }

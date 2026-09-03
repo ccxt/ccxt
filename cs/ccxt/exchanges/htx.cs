@@ -7730,7 +7730,7 @@ public partial class htx : Exchange
         return ccxt.BaseExchange.ToDepositAddress(this.safeValue(indexedAddresses, selectedNetworkCode));
     }
 
-    public async virtual Task<object> fetchWithdrawAddresses(object code, object note = null, object networkCode = null, object parameters = null)
+    public async virtual Task<List<Dictionary<string, object>>> FetchWithdrawAddresses(object code, object note = null, object networkCode = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -7769,7 +7769,7 @@ public partial class htx : Exchange
                 ((IList<object>)addresses).Add(address);
             }
         }
-        return addresses;
+        return ccxt.BaseExchange.ToDictList(addresses);
     }
 
     /**

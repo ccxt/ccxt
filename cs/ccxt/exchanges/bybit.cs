@@ -9907,7 +9907,7 @@ public partial class bybit : Exchange
      * @param {int} [params.period] the period in days to fetch the volatility for: 7,14,21,30,60,90,180,270
      * @returns {object[]} a list of [volatility history objects]{@link https://docs.ccxt.com/?id=volatility-structure}
      */
-    public async virtual Task<object> fetchVolatilityHistory(object code, object parameters = null)
+    public async virtual Task<List<Dictionary<string, object>>> FetchVolatilityHistory(object code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -9935,7 +9935,7 @@ public partial class bybit : Exchange
         //     }
         //
         object volatility = this.safeList(response, "result", new List<object>() {});
-        return this.parseVolatilityHistory(volatility);
+        return ccxt.BaseExchange.ToDictList(this.parseVolatilityHistory(volatility));
     }
 
     public virtual object parseVolatilityHistory(object volatility)

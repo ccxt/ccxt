@@ -16,11 +16,6 @@ public partial class dydx
         var res = this.createOrderIdFromParts(address, subAccountNumber, clientOrderId, orderFlags, clobPairId);
         return ((string)res);
     }
-    public async Task<double> FetchLatestBlockHeight(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchLatestBlockHeight(parameters);
-        return (double)res;
-    }
     public async Task<List<Dictionary<string, object>>> FetchTransactionsHelper(string code = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTransactionsHelper(code, since, limit, parameters);

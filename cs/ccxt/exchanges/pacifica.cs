@@ -3823,12 +3823,12 @@ public partial class pacifica : Exchange
         return await this.privatePostAccountBuilderCodesApprove(this.extend(request, parameters));
     }
 
-    public async virtual Task<object> fetchBuilderApprovals(object address)
+    public async virtual Task<List<Dictionary<string, object>>> FetchBuilderApprovals(object address)
     {
         object request = new Dictionary<string, object>() {
             { "account", address },
         };
-        return await this.publicGetAccountBuilderCodesApprovals(this.extend(request));
+        return ccxt.BaseExchange.ToDictList(await this.publicGetAccountBuilderCodesApprovals(this.extend(request)));
     }
 
     public async virtual Task<object> revokeBuilderCode(object builderCode, object parameters = null)

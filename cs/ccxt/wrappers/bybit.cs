@@ -26,30 +26,4 @@ public partial class bybit
         var res = this.cancelOrderRequest(id, symbol, parameters);
         return ((Dictionary<string, object>)res);
     }
-    /// <summary>
-    /// fetch the historical volatility of an option market based on an underlying asset
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://bybit-exchange.github.io/docs/v5/market/iv"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.period</term>
-    /// <description>
-    /// int : the period in days to fetch the volatility for: 7,14,21,30,60,90,180,270
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object[]</term> a list of [volatility history objects]{@link https://docs.ccxt.com/?id=volatility-structure}.</returns>
-    public async Task<List<Dictionary<string, object>>> FetchVolatilityHistory(string code, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchVolatilityHistory(code, parameters);
-        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
-    }
 }

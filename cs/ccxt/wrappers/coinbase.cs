@@ -6,46 +6,6 @@ namespace ccxt;
 
 public partial class coinbase
 {
-    /// <summary>
-    /// fetch the deposit id for a fiat currency associated with this account
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/payment-methods/list-payment-methods"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> an array of [deposit id structures]{@link https://docs.ccxt.com/?id=deposit-id-structure}.</returns>
-    public async Task<List<Dictionary<string, object>>> FetchDepositMethodIds(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchDepositMethodIds(parameters);
-        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
-    }
-    /// <summary>
-    /// Fetch details for a specific portfolio by UUID
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/portfolios/get-portfolio-breakdown"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// Dict : Extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>any[]</term> An account structure <https://docs.ccxt.com/?id=account-structure>.</returns>
-    public async Task<List<Dictionary<string, object>>> FetchPortfolioDetails(string portfolioUuid, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchPortfolioDetails(portfolioUuid, parameters);
-        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
-    }
     public string CreateAuthToken(Int64 seconds, string method = null, string url = null, bool useEddsa = false)
     {
         var res = this.createAuthToken(seconds, method, url, useEddsa);

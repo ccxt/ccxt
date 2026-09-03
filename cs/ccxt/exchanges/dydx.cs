@@ -1655,7 +1655,7 @@ public partial class dydx : Exchange
         return this.uuid5(nameSp, orderInfo);
     }
 
-    public async virtual Task<object> fetchLatestBlockHeight(object parameters = null)
+    public async virtual Task<Int64> FetchLatestBlockHeight(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.nodeRpcGetAbciInfo(parameters);
@@ -1680,7 +1680,7 @@ public partial class dydx : Exchange
         {
             throw new ExchangeError ((string)add(this.id, " fetchLatestBlockHeight() could not parse last_block_height")) ;
         }
-        return height;
+        return ccxt.BaseExchange.ToInt64Value(height);
     }
 
     /**
@@ -1714,7 +1714,7 @@ public partial class dydx : Exchange
         }
         object credentials = this.retrieveCredentials();
         object account = ccxt.BaseExchange.FromDict(await this.FetchDydxAccount());
-        object lastBlockHeight = await this.fetchLatestBlockHeight();
+        object lastBlockHeight = ccxt.BaseExchange.FromInt64(await this.FetchLatestBlockHeight());
         // params['latestBlockHeight'] = lastBlockHeight;
         Dictionary<string, object> newParams = this.extend(parameters, new Dictionary<string, object>() {
             { "latestBlockHeight", lastBlockHeight },
@@ -1818,7 +1818,7 @@ public partial class dydx : Exchange
         {
             if (isTrue(isEqual(goodTillBlock, null)))
             {
-                object latestBlockHeight = await this.fetchLatestBlockHeight();
+                object latestBlockHeight = ccxt.BaseExchange.FromInt64(await this.FetchLatestBlockHeight());
                 goodTillBlock = add(latestBlockHeight, 20);
             }
         }
@@ -1896,7 +1896,7 @@ public partial class dydx : Exchange
         object goodTillBlock = this.safeInteger(parameters, "goodTillBlock");
         if (isTrue(isEqual(goodTillBlock, null)))
         {
-            object latestBlockHeight = await this.fetchLatestBlockHeight();
+            object latestBlockHeight = ccxt.BaseExchange.FromInt64(await this.FetchLatestBlockHeight());
             goodTillBlock = add(latestBlockHeight, 20);
         }
         parameters = this.omit(parameters, new List<object>() {"clientOrderIds", "goodTillBlock", "subaccountId"});
