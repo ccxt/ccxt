@@ -71,44 +71,4 @@ public partial class opinion
         var res = await this.fetchEvent(id, parameters);
         return new PredictionEvent(res);
     }
-    /// <summary>
-    /// self-service creation of an Open API key linked to this.walletAddress via
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.opinion.trade/developer-guide/opinion-open-api/authentication"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> the api credentials { apiKey, walletAddress }.</returns>
-    public async Task<Dictionary<string, object>> CreateApiKey(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.createApiKey(parameters);
-        return ((Dictionary<string, object>)res);
-    }
-    /// <summary>
-    /// fetches the currently active Open API key for this.walletAddress
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.opinion.trade/developer-guide/opinion-open-api/authentication"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> the api credentials { apiKey, walletAddress }.</returns>
-    public async Task<Dictionary<string, object>> FetchApiKey(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchApiKey(parameters);
-        return ((Dictionary<string, object>)res);
-    }
 }

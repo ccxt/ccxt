@@ -956,9 +956,9 @@ func (this *Paradex) FetchGreeks(symbol string, options ...FetchGreeksOptions) (
  * @see https://docs.paradex.trade/api/prod/markets/get-markets-summary
  * @param {string[]} [symbols] unified symbols of the markets to fetch greeks for, all markets are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
+ * @returns {object} a dictionary of [greeks structures]{@link https://docs.ccxt.com/?id=greeks-structure} indexed by market symbol
  */
-func (this *Paradex) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
+func (this *Paradex) FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks, error) {
 
 	opts := FetchAllGreeksOptionsStruct{}
 
@@ -971,9 +971,9 @@ func (this *Paradex) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks,
 	var params *map[string]any = opts.Params
 	res := <-this.Core.FetchAllGreeks(symbols, params)
 	if IsError(res) {
-		return nil, CreateReturnError(res)
+		return AllGreeks{}, CreateReturnError(res)
 	}
-	return NewGreeksArray(res), nil
+	return NewAllGreeks(res), nil
 }
 
 /**
@@ -1189,7 +1189,7 @@ func (this *Paradex) FetchDepositAddress(code string, options ...FetchDepositAdd
 func (this *Paradex) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
 	return this.exchangeTyped.FetchDepositAddresses(options...)
 }
-func (this *Paradex) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
+func (this *Paradex) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error) {
 	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
 }
 func (this *Paradex) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {

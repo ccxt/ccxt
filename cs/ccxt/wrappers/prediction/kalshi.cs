@@ -20,20 +20,6 @@ public partial class kalshi
         return ((Dictionary<string, object>)res);
     }
     /// <summary>
-    /// resolves several uncached outcomes at once — ticker-shaped ids are batched through the markets listing's tickers filter (100 per request); anything left unresolved (handle-shaped symbols, unknown tickers) falls back to the single fetch and its guidance-rich BadSymbol
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.kalshi.com/api-reference/market/get-markets"/>  <br/>
-    /// <list type="table">
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> the outcome cache.</returns>
-    public async Task<Dictionary<string, object>> FetchOutcomes(List<string> outcomeSymbols)
-    {
-        var res = await this.fetchOutcomes(outcomeSymbols);
-        return ((Dictionary<string, object>)res);
-    }
-    /// <summary>
     /// cancels all open orders on kalshi, optionally scoped to one outcome ticker
     /// </summary>
     /// <remarks>
@@ -133,25 +119,6 @@ public partial class kalshi
     {
         var res = await this.fetchEventsByQuery(queries, limit, rest);
         return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
-    }
-    /// <summary>
-    /// fetches a single raw kalshi event object (with nested markets) by its event ticker
-    /// </summary>
-    /// <remarks>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra params forwarded verbatim to the events endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> the raw kalshi event object with nested markets.</returns>
-    public async Task<Dictionary<string, object>> FetchRawEventByTicker(string ticker, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchRawEventByTicker(ticker, parameters);
-        return ((Dictionary<string, object>)res);
     }
     /// <summary>
     /// fetches the canonical events (with nested markets) of the given kalshi series, cursor-paginated per series and stopping once `limit` events are gathered

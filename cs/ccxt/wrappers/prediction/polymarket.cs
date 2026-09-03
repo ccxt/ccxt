@@ -78,20 +78,6 @@ public partial class polymarket
         return ((Dictionary<string, object>)res);
     }
     /// <summary>
-    /// resolves several uncached outcomes at once — bare CLOB token ids are batched into gamma markets requests (repeated clob_token_ids params, 50 per request to keep the URL bounded); handle-shaped symbols fall back to the single fetch and its search path
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.polymarket.com/api-reference/markets/list-markets"/>  <br/>
-    /// <list type="table">
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> the outcome cache.</returns>
-    public async Task<Dictionary<string, object>> FetchOutcomes(List<string> outcomeSymbols)
-    {
-        var res = await this.fetchOutcomes(outcomeSymbols);
-        return ((Dictionary<string, object>)res);
-    }
-    /// <summary>
     /// cancels all open orders on the CLOB, optionally scoped to one outcome token
     /// </summary>
     /// <remarks>
@@ -213,51 +199,5 @@ public partial class polymarket
     {
         var res = await this.fetchEvent(id, parameters);
         return new PredictionEvent(res);
-    }
-    /// <summary>
-    /// creates new L2 api credentials (apiKey, secret, passphrase) for the wallet private key
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.polymarket.com/developers/CLOB/authentication"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.nonce</term>
-    /// <description>
-    /// int : the nonce used to create the credentials, defaults to 0
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> the api credentials { apiKey, secret, passphrase }.</returns>
-    public async Task<Dictionary<string, object>> CreateApiKey(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.createApiKey(parameters);
-        return ((Dictionary<string, object>)res);
-    }
-    /// <summary>
-    /// derives the existing L2 api credentials for the wallet private key, creating them if none exist yet
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.polymarket.com/developers/CLOB/authentication"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> the api credentials { apiKey, secret, passphrase }.</returns>
-    public async Task<Dictionary<string, object>> CreateOrDeriveApiKey(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.createOrDeriveApiKey(parameters);
-        return ((Dictionary<string, object>)res);
     }
 }

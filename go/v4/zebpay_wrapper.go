@@ -748,7 +748,7 @@ func (this *Zebpay) EditOrders(orders []OrderRequest, options ...EditOrdersOptio
 func (this *Zebpay) FetchAccounts(params ...any) ([]Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
 }
-func (this *Zebpay) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
+func (this *Zebpay) FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks, error) {
 	return this.exchangeTyped.FetchAllGreeks(options...)
 }
 func (this *Zebpay) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error) {
@@ -790,7 +790,7 @@ func (this *Zebpay) FetchDepositAddress(code string, options ...FetchDepositAddr
 func (this *Zebpay) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
 	return this.exchangeTyped.FetchDepositAddresses(options...)
 }
-func (this *Zebpay) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
+func (this *Zebpay) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error) {
 	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
 }
 func (this *Zebpay) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {

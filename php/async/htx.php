@@ -3242,7 +3242,8 @@ class htx extends Exchange {
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$account-structure $account structures~ indexed by the $account $type
          */
         $accounts = Async\await($this->load_accounts());
-        $accountId = $this->safe_value_2($params, 'accountId', 'account-id');
+        // the id is a request field (is_array(the htx api) && array_key_exists(string ?? '', the htx api)), so a numeric override is stringified here
+        $accountId = $this->safe_string_2($params, 'accountId', 'account-id');
         if ($accountId !== null) {
             return $accountId;
         }

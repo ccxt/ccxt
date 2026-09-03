@@ -80,10 +80,12 @@ const TYPED_CORES: Record<string, string> = {
     'cancelUtaOrder': 'Order',
     'cancelUtaOrders': 'List<Order>',
     'createAmmOrder': 'PredictionOrder',
+    'createApiKey': 'Dictionary<string, object>',
     'createContractOrder': 'Order',
     'createContractOrders': 'List<Order>',
     'createConvertTrade': 'Conversion',
     'createDepositAddress': 'DepositAddress',
+    'createExtendedOrderRequest': 'Dictionary<string, object>',
     'createLimitBuyOrder': 'Order',
     'createLimitBuyOrderWs': 'Order',
     'createLimitOrder': 'Order',
@@ -105,6 +107,7 @@ const TYPED_CORES: Record<string, string> = {
     'createOrderWithTakeProfitAndStopLossWs': 'Order',
     'createOrderWs': 'Order',
     'createOrderbookOrder': 'PredictionOrder',
+    'createOrDeriveApiKey': 'Dictionary<string, object>',
     'createOrders': 'List<Order>',
     'createOrdersWs': 'List<Order>',
     'createPostOnlyOrder': 'Order',
@@ -145,8 +148,11 @@ const TYPED_CORES: Record<string, string> = {
     'editSpotOrder': 'Order',
     'fetchADLRank': 'ADL',
     'fetchAccount': 'Account',
+    // htx: every path is safeString(...) — the params override is stringified in TS too
+    'fetchAccountIdByType': 'string',
     'fetchAccountPositions': 'List<Position>',
     'fetchAccounts': 'List<Account>',
+    'fetchAccountSettings': 'Dictionary<string, object>',
     'fetchAccountsV2': 'List<Account>',
     'fetchAccountsV3': 'List<Account>',
     // parseAllGreeks() ends in filterByArray(results, 'symbol', symbols), whose `indexed`
@@ -154,6 +160,7 @@ const TYPED_CORES: Record<string, string> = {
     // Greeks[] the TS annotation used to claim. AllGreeks is that dict.
     'fetchAllGreeks': 'AllGreeks',
     'fetchAmmOrders': 'List<PredictionOrder>',
+    'fetchApiKey': 'Dictionary<string, object>',
     // The dictionary-like container families (Balances, Tickers, MarginModes, ...) splat the
     // payload into a Dictionary<string, T>; their From* helpers write every entry back under
     // its own key, so a consuming site (`object x = await this.fetchTickers(...)` then
@@ -226,6 +233,7 @@ const TYPED_CORES: Record<string, string> = {
     'fetchDepositsWs': 'List<Transaction>',
     'fetchDerivativesMarketLeverageTiers': 'List<LeverageTier>',
     'fetchDerivativesOpenInterestHistory': 'List<OpenInterest>',
+    'fetchExtendedAccount': 'Dictionary<string, object>',
     // 'fetchEvent' is deliberately absent: PredictionEvent.markets is List<PredictionMarket>,
     // which carries none of the unified market-interface keys (base/quote/spot/swap/precision
     // /limits/...) the fixtures store on each nested market. See fetchEvents below.
@@ -279,6 +287,7 @@ const TYPED_CORES: Record<string, string> = {
     'fetchOHLCV': 'List<OHLCV>',
     'fetchOHLCVWs': 'List<OHLCV>',
     'fetchL3OrderBook': 'OrderBook',
+    'fetchNonce': 'Int64',
     'fetchOpenInterest': 'OpenInterest',
     'fetchOpenInterestHistory': 'List<OpenInterest>',
     'fetchOpenOrder': 'Order',
@@ -313,6 +322,7 @@ const TYPED_CORES: Record<string, string> = {
     'fetchOrdersClassic': 'List<Order>',
     'fetchOrdersWithMethod': 'List<Order>',
     'fetchOrdersWs': 'List<Order>',
+    'fetchOutcomes': 'Dictionary<string, object>',
     'fetchPartialBalance': 'Balance',
     'fetchPortfolios': 'List<Account>',
     'fetchPosition': 'Position',
@@ -359,6 +369,12 @@ const TYPED_CORES: Record<string, string> = {
     'fetchTradingFees': 'TradingFees',
     'fetchPrivateTradingFees': 'TradingFees',
     'fetchPublicTradingFees': 'TradingFees',
+    'fetchQuote': 'Dictionary<string, object>',
+    'fetchRawEventByTicker': 'Dictionary<string, object>',
+    'fetchRawMarketById': 'Dictionary<string, object>',
+    'fetchRawQuestionById': 'Dictionary<string, object>',
+    'fetchRawTopicDetail': 'Dictionary<string, object>',
+    'fetchTradeQuote': 'Dictionary<string, object>',
     'fetchTradingFeesWs': 'TradingFees',
     'fetchTradingLimits': 'Dictionary<string, object>',
     'fetchTransactionFees': 'Dictionary<string, object>',
@@ -380,6 +396,7 @@ const TYPED_CORES: Record<string, string> = {
     'fetchUtaCanceledAndClosedOrders': 'List<Order>',
     'fetchUtaOrder': 'Order',
     'fetchUtaOrdersByStatus': 'List<Order>',
+    'fetchWallet': 'Dictionary<string, object>',
     'fetchWithdrawal': 'Transaction',
     'fetchWithdrawals': 'List<Transaction>',
     'fetchWithdrawalsWs': 'List<Transaction>',

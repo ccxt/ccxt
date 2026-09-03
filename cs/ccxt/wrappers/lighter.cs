@@ -60,9 +60,4 @@ public partial class lighter
         var res = this.createOrderRequest(symbol, type, side, amount, price, parameters);
         return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
     }
-    public async Task<Int64> FetchNonce(object accountIndex, object apiKeyIndex, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchNonce(accountIndex, apiKeyIndex, parameters);
-        return ((Int64)res);
-    }
 }

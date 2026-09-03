@@ -2469,9 +2469,9 @@ func (this *Binance) FetchGreeks(symbol string, options ...FetchGreeksOptions) (
  * @see https://developers.binance.com/docs/derivatives/option/market-data/Option-Mark-Price
  * @param {string[]} [symbols] unified symbols of the markets to fetch greeks for, all markets are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
+ * @returns {object} a dictionary of [greeks structures]{@link https://docs.ccxt.com/?id=greeks-structure} indexed by market symbol
  */
-func (this *Binance) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
+func (this *Binance) FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks, error) {
 
 	opts := FetchAllGreeksOptionsStruct{}
 
@@ -2484,9 +2484,9 @@ func (this *Binance) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks,
 	var params *map[string]any = opts.Params
 	res := <-this.Core.FetchAllGreeks(symbols, params)
 	if IsError(res) {
-		return nil, CreateReturnError(res)
+		return AllGreeks{}, CreateReturnError(res)
 	}
-	return NewGreeksArray(res), nil
+	return NewAllGreeks(res), nil
 }
 func (this *Binance) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]any, error) {
 
@@ -3011,7 +3011,7 @@ func (this *Binance) FetchCrossBorrowRates(params ...any) (CrossBorrowRates, err
 func (this *Binance) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
 	return this.exchangeTyped.FetchDepositAddresses(options...)
 }
-func (this *Binance) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
+func (this *Binance) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error) {
 	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
 }
 func (this *Binance) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {

@@ -968,7 +968,7 @@ func (this *Okx) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, erro
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
  */
-func (this *Okx) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
+func (this *Okx) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error) {
 
 	opts := FetchDepositAddressesByNetworkOptionsStruct{}
 
@@ -979,9 +979,9 @@ func (this *Okx) FetchDepositAddressesByNetwork(code string, options ...FetchDep
 	var params *map[string]any = opts.Params
 	res := <-this.Core.FetchDepositAddressesByNetwork(code, params)
 	if IsError(res) {
-		return nil, CreateReturnError(res)
+		return DepositAddresses{}, CreateReturnError(res)
 	}
-	return NewDepositAddressArray(res), nil
+	return NewDepositAddresses(res), nil
 }
 
 /**
@@ -1958,9 +1958,9 @@ func (this *Okx) FetchGreeks(symbol string, options ...FetchGreeksOptions) (Gree
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} params.uly Underlying, either uly or instFamily is required
  * @param {string} params.instFamily Instrument family, either uly or instFamily is required
- * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
+ * @returns {object} a dictionary of [greeks structures]{@link https://docs.ccxt.com/?id=greeks-structure} indexed by market symbol
  */
-func (this *Okx) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
+func (this *Okx) FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks, error) {
 
 	opts := FetchAllGreeksOptionsStruct{}
 
@@ -1973,9 +1973,9 @@ func (this *Okx) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, err
 	var params *map[string]any = opts.Params
 	res := <-this.Core.FetchAllGreeks(symbols, params)
 	if IsError(res) {
-		return nil, CreateReturnError(res)
+		return AllGreeks{}, CreateReturnError(res)
 	}
-	return NewGreeksArray(res), nil
+	return NewAllGreeks(res), nil
 }
 
 /**

@@ -581,7 +581,7 @@ func (this *Coinmate) EditOrders(orders []OrderRequest, options ...EditOrdersOpt
 func (this *Coinmate) FetchAccounts(params ...any) ([]Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
 }
-func (this *Coinmate) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
+func (this *Coinmate) FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks, error) {
 	return this.exchangeTyped.FetchAllGreeks(options...)
 }
 func (this *Coinmate) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error) {
@@ -626,7 +626,7 @@ func (this *Coinmate) FetchDepositAddress(code string, options ...FetchDepositAd
 func (this *Coinmate) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
 	return this.exchangeTyped.FetchDepositAddresses(options...)
 }
-func (this *Coinmate) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
+func (this *Coinmate) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error) {
 	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
 }
 func (this *Coinmate) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {

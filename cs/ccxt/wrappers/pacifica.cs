@@ -7,32 +7,6 @@ namespace ccxt;
 public partial class pacifica
 {
     /// <summary>
-    /// fetch account's market settings. Settings are cached for walletAddress. To refresh the cache, call loadAccountSettings with refresh=true
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-settings"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.account</term>
-    /// <description>
-    /// string : will default to walletAddress if not provided
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> Dict repacked from list by symbol key.</returns>
-    public async Task<Dictionary<string, object>> FetchAccountSettings(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchAccountSettings(parameters);
-        return ((Dictionary<string, object>)res);
-    }
-    /// <summary>
     /// create a trade order
     /// </summary>
     /// <remarks>
@@ -126,11 +100,6 @@ public partial class pacifica
     public Dictionary<string, object> EditOrderRequest(string id, string symbol, string type, string side, double amount, double price, MarketInterface market, Dictionary<string, object> parameters = null)
     {
         var res = this.editOrderRequest(id, symbol, type, side, amount, price, market, parameters);
-        return ((Dictionary<string, object>)res);
-    }
-    public async Task<Dictionary<string, object>> CreateApiKey(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.createApiKey(parameters);
         return ((Dictionary<string, object>)res);
     }
     public async Task<Dictionary<string, object>> FetchApiKeys(Dictionary<string, object> parameters = null)

@@ -2458,15 +2458,14 @@ func (this *GeminiCore) fetchDepositAddressBody(ch chan any, code any, optionalA
 		PanicOnError(retRes195212)
 	}
 
-	groupedByNetwork := (<-this.FetchDepositAddressesByNetwork(code, params))
-	PanicOnError(groupedByNetwork)
+	indexedByNetwork := (<-this.FetchDepositAddressesByNetwork(code, params))
+	PanicOnError(indexedByNetwork)
 	var networkCode any = nil
 	networkCodeparamsVariable := this.HandleNetworkCodeAndParams(params)
 	networkCode = GetValue(networkCodeparamsVariable, 0)
 	params = GetValue(networkCodeparamsVariable, 1)
-	var networkGroup map[string]any = this.IndexBy(this.SafeValue(groupedByNetwork, networkCode), "currency")
 
-	ch <- this.SafeValue(networkGroup, code)
+	ch <- this.SafeValue(indexedByNetwork, networkCode)
 	return nil
 }
 
@@ -2492,8 +2491,8 @@ func (this *GeminiCore) fetchDepositAddressesByNetworkBody(ch chan any, code any
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes197312 := (<-this.LoadMarkets())
-		PanicOnError(retRes197312)
+		retRes197212 := (<-this.LoadMarkets())
+		PanicOnError(retRes197212)
 	}
 	var currency any = this.Currency(code)
 	code = GetValue(currency, "code")
@@ -2516,7 +2515,9 @@ func (this *GeminiCore) fetchDepositAddressesByNetworkBody(ch chan any, code any
 		"currency": code,
 	})
 
-	ch <- this.GroupBy(results, "network")
+	// one address structure per network, like every other venue (the endpoint is scoped to a
+	// single network, so the last address the venue lists for it wins — same as before)
+	ch <- this.IndexBy(results, "network")
 	return nil
 }
 func (this *GeminiCore) Sign(path any, optionalArgs ...any) any {
@@ -2618,8 +2619,8 @@ func (this *GeminiCore) createDepositAddressBody(ch chan any, code any, optional
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes206612 := (<-this.LoadMarkets())
-		PanicOnError(retRes206612)
+		retRes206712 := (<-this.LoadMarkets())
+		PanicOnError(retRes206712)
 	}
 	var currency any = this.Currency(code)
 	var request map[string]any = map[string]any{
@@ -2671,8 +2672,8 @@ func (this *GeminiCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes209812 := (<-this.LoadMarkets())
-		PanicOnError(retRes209812)
+		retRes209912 := (<-this.LoadMarkets())
+		PanicOnError(retRes209912)
 	}
 	var market any = this.Market(symbol)
 	var timeframeId any = this.SafeString(this.Timeframes, timeframe, timeframe)
@@ -2720,8 +2721,8 @@ func (this *GeminiCore) fetchOpenInterestBody(ch chan any, symbol any, optionalA
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes213212 := (<-this.LoadMarkets())
-		PanicOnError(retRes213212)
+		retRes213312 := (<-this.LoadMarkets())
+		PanicOnError(retRes213312)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{

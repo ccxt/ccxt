@@ -625,7 +625,7 @@ func (this *Indodax) EditOrders(orders []OrderRequest, options ...EditOrdersOpti
 func (this *Indodax) FetchAccounts(params ...any) ([]Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
 }
-func (this *Indodax) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
+func (this *Indodax) FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks, error) {
 	return this.exchangeTyped.FetchAllGreeks(options...)
 }
 func (this *Indodax) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error) {
@@ -664,7 +664,7 @@ func (this *Indodax) FetchCurrencies(params ...any) (Currencies, error) {
 func (this *Indodax) FetchDepositAddress(code string, options ...FetchDepositAddressOptions) (DepositAddress, error) {
 	return this.exchangeTyped.FetchDepositAddress(code, options...)
 }
-func (this *Indodax) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
+func (this *Indodax) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error) {
 	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
 }
 func (this *Indodax) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {

@@ -2047,7 +2047,7 @@ public partial class extended : Exchange
         {
             throw new BadRequest ((string)add(this.id, " withdraw() requires a Starknet address for STRK withdrawals, EVM withdrawals require the bridge quote flow")) ;
         }
-        object account = await this.fetchExtendedAccount();
+        object account = ccxt.BaseExchange.FromDict(await this.FetchExtendedAccount());
         object amountString = this.currencyToPrecision(code, amount);
         object accountId = this.safeString(account, "accountId");
         object settlement = this.createWithdrawalSettlementData(address, ((string)amountString), currency, account, parameters);
@@ -2148,7 +2148,7 @@ public partial class extended : Exchange
         this.checkRequiredCredentials();
         await this.loadMarkets();
         object currency = this.currency(code);
-        object account = await this.fetchExtendedAccount();
+        object account = ccxt.BaseExchange.FromDict(await this.FetchExtendedAccount());
         object currentAccountId = this.safeString(account, "accountId", "");
         if (isTrue(isEqual(fromAccountVar, null)))
         {
@@ -2752,18 +2752,18 @@ public partial class extended : Exchange
         return result;
     }
 
-    public async virtual Task<object> fetchExtendedAccount(object parameters = null)
+    public async virtual Task<Dictionary<string, object>> FetchExtendedAccount(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object account = this.safeDict(this.options, "account");
         if (isTrue(!isEqual(account, null)))
         {
-            return account;
+            return ccxt.BaseExchange.ToDict(account);
         }
         object accountData = ccxt.BaseExchange.FromAccount(await this.FetchAccount(parameters));
         account = getValue(accountData, "info");
         ((IDictionary<string,object>)this.options)["account"] = account;
-        return account;
+        return ccxt.BaseExchange.ToDict(account);
     }
 
     public virtual object createOrderSettlementData(object isBuy, object amountString, object priceString, object parameters = null)
@@ -2883,7 +2883,7 @@ public partial class extended : Exchange
         return settlement;
     }
 
-    public async virtual Task<object> createExtendedOrderRequest(object symbol, object type, object side, double amount, double? price = null, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> CreateExtendedOrderRequest(object symbol, object type, object side, double amount, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(type, null)))
@@ -2945,7 +2945,7 @@ public partial class extended : Exchange
         object expiryEpochMillis = this.safeInteger(parameters, "expiryEpochMillis", add(now, 3600000));
         object settlementExpiration = this.safeInteger(parameters, "settlementExpiration", add(this.parseToInt(divide((add(expiryEpochMillis, 999)), 1000)), 1209600));
         object nonce = this.numberToString(this.nonce());
-        object account = await this.fetchExtendedAccount();
+        object account = ccxt.BaseExchange.FromDict(await this.FetchExtendedAccount());
         object starkKey = this.safeString(account, "l2Key");
         object collateralPosition = this.safeString(account, "l2Vault");
         object info = this.safeDict(market, "info", new Dictionary<string, object>() {});
@@ -3111,14 +3111,7 @@ public partial class extended : Exchange
             }
         }
         parameters = this.omit(parameters, new List<object>() {"clientOrderId", "client_id", "timeInForce", "postOnly", "reduceOnly", "reduce_only", "fee", "nonce", "expiryEpochMillis", "settlementExpiration", "cancelId", "previousOrderId", "brokerId", "referralCode", "triggerPrice", "stopPrice", "triggerDirection", "stopLossPrice", "takeProfitPrice", "stopLoss", "takeProfit"});
-        return new Dictionary<string, object>() {
-            { "request", this.extend(request, parameters) },
-            { "market", market },
-            { "timestamp", now },
-            { "clientOrderId", clientOrderId },
-            { "price", priceString },
-            { "amount", amountString },
-        };
+        return ccxt.BaseExchange.ToDict(new Dictionary<string, object>() {             { "request", this.extend(request, parameters) },             { "market", market },             { "timestamp", now },             { "clientOrderId", clientOrderId },             { "price", priceString },             { "amount", amountString },         });
     }
 
     /**
@@ -3156,7 +3149,7 @@ public partial class extended : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
-        object extendedOrderRequest = await this.createExtendedOrderRequest(symbol, type, side,ccxt.BaseExchange.ToDoubleArgRequired(amount),ccxt.BaseExchange.ToDoubleArg(price), parameters);
+        object extendedOrderRequest = ccxt.BaseExchange.FromDict(await this.CreateExtendedOrderRequest(symbol, type, side,ccxt.BaseExchange.ToDoubleArgRequired(amount),ccxt.BaseExchange.ToDoubleArg(price), parameters));
         object request = this.safeDict(extendedOrderRequest, "request", new Dictionary<string, object>() {});
         object response = await this.v1PrivatePostUserOrder(request);
         //
@@ -3250,7 +3243,7 @@ public partial class extended : Exchange
             { "cancelId", cancelId },
             { "expiryEpochMillis", expiryEpochMillis },
         });
-        object extendedOrderRequest = await this.createExtendedOrderRequest(symbol, type, side,ccxt.BaseExchange.ToDoubleArgRequired(amountVar),ccxt.BaseExchange.ToDoubleArg(priceVar), requestParams);
+        object extendedOrderRequest = ccxt.BaseExchange.FromDict(await this.CreateExtendedOrderRequest(symbol, type, side,ccxt.BaseExchange.ToDoubleArgRequired(amountVar),ccxt.BaseExchange.ToDoubleArg(priceVar), requestParams));
         object request = this.safeDict(extendedOrderRequest, "request", new Dictionary<string, object>() {});
         object editResponse = await this.v1PrivatePostUserOrder(request);
         //

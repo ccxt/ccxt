@@ -504,7 +504,7 @@ func (this *Independentreserve) EditOrders(orders []OrderRequest, options ...Edi
 func (this *Independentreserve) FetchAccounts(params ...any) ([]Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
 }
-func (this *Independentreserve) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
+func (this *Independentreserve) FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks, error) {
 	return this.exchangeTyped.FetchAllGreeks(options...)
 }
 func (this *Independentreserve) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error) {
@@ -543,7 +543,7 @@ func (this *Independentreserve) FetchCurrencies(params ...any) (Currencies, erro
 func (this *Independentreserve) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
 	return this.exchangeTyped.FetchDepositAddresses(options...)
 }
-func (this *Independentreserve) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
+func (this *Independentreserve) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error) {
 	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
 }
 func (this *Independentreserve) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {

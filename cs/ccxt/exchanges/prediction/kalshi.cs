@@ -571,7 +571,7 @@ public partial class kalshi : PredictionExchange
      * @param {string[]} outcomeSymbols kalshi tickers (optionally with a '-NO' suffix) or outcome handles
      * @returns {object} the outcome cache
      */
-    public async override Task<object> fetchOutcomes(object outcomeSymbols)
+    public async override Task<Dictionary<string, object>> FetchOutcomes(object outcomeSymbols)
     {
         object tickers = new List<object>() {};
         object seen = new Dictionary<string, object>() {};
@@ -636,7 +636,7 @@ public partial class kalshi : PredictionExchange
                 await this.fetchOutcome(getValue(outcomeSymbols, i));
             }
         }
-        return this.outcomes;
+        return ccxt.BaseExchange.ToDict(this.outcomes);
     }
 
     public override object handleErrors(object code, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)
@@ -2590,7 +2590,7 @@ public partial class kalshi : PredictionExchange
         } else if (isTrue(!isEqual(eventId, null)))
         {
             // kalshi's event id (and slug) is the event_ticker — fetch it directly
-            object fullEvent = await this.fetchRawEventByTicker(eventId, rest);
+            object fullEvent = ccxt.BaseExchange.FromDict(await this.FetchRawEventByTicker(eventId, rest));
             rawEvents = new List<object>() {fullEvent};
         } else
         {
@@ -2679,7 +2679,7 @@ public partial class kalshi : PredictionExchange
             }
             try
             {
-                object fullEvent = await this.fetchRawEventByTicker(getValue(eventTickers, ei), rest);
+                object fullEvent = ccxt.BaseExchange.FromDict(await this.FetchRawEventByTicker(getValue(eventTickers, ei), rest));
                 ((IList<object>)rawEvents).Add(fullEvent);
             } catch(Exception e)
             {
@@ -2701,7 +2701,7 @@ public partial class kalshi : PredictionExchange
      * @param {object} [params] extra params forwarded verbatim to the events endpoint
      * @returns {object} the raw kalshi event object with nested markets
      */
-    public async virtual Task<object> fetchRawEventByTicker(object ticker, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> FetchRawEventByTicker(object ticker, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object request = new Dictionary<string, object>() {
@@ -2715,7 +2715,7 @@ public partial class kalshi : PredictionExchange
         {
             ((IDictionary<string,object>)fullEvent)["markets"] = this.safeList(response, "markets", new List<object>() {});
         }
-        return fullEvent;
+        return ccxt.BaseExchange.ToDict(fullEvent);
     }
 
     /**
@@ -2879,7 +2879,7 @@ public partial class kalshi : PredictionExchange
     public async override Task<object> fetchEvent(string id, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object fullEvent = await this.fetchRawEventByTicker(id, parameters);
+        object fullEvent = ccxt.BaseExchange.FromDict(await this.FetchRawEventByTicker(id, parameters));
         object eventVar = this.parseEvent(fullEvent);
         this.indexEventOutcomes(eventVar);
         return eventVar;

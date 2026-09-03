@@ -258,7 +258,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
      */
-    fetchAccountIdByType(type: string, marginMode?: Str, symbol?: Str, params?: {}): Promise<any>;
+    fetchAccountIdByType(type: string, marginMode?: Str, symbol?: Str, params?: {}): Promise<Str>;
     /**
      * @method
      * @name htx#fetchCurrencies

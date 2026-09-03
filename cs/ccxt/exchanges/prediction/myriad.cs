@@ -425,12 +425,12 @@ public partial class myriad : PredictionExchange
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isLessThan(getIndexOf(id, ":"), 0)))
         {
-            object rawQuestion = await this.fetchRawQuestionById(id, parameters);
+            object rawQuestion = ccxt.BaseExchange.FromDict(await this.FetchRawQuestionById(id, parameters));
             object orderBookEvent = this.parseEvent(rawQuestion);
             this.indexEventOutcomes(orderBookEvent);
             return orderBookEvent;
         }
-        object response = await this.fetchRawMarketById(id, parameters);
+        object response = ccxt.BaseExchange.FromDict(await this.FetchRawMarketById(id, parameters));
         object market = this.parseMyriadMarket(response);
         object eventVar = this.parseMarketToEvent(response, market);
         this.indexEventOutcomes(eventVar);
@@ -446,7 +446,7 @@ public partial class myriad : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the raw myriad market object
      */
-    public async virtual Task<object> fetchRawMarketById(object id, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> FetchRawMarketById(object id, object parameters = null)
     {
         // the unified event id is a composite networkId:marketId
         parameters ??= new Dictionary<string, object>();
@@ -461,7 +461,7 @@ public partial class myriad : PredictionExchange
         {
             ((IDictionary<string,object>)request)["id"] = id;
         }
-        return await this.myriadPublicGetMarketsId(this.extend(request, parameters));
+        return ccxt.BaseExchange.ToDict(await this.myriadPublicGetMarketsId(this.extend(request, parameters)));
     }
 
     /**
@@ -473,7 +473,7 @@ public partial class myriad : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the raw question object
      */
-    public async virtual Task<object> fetchRawQuestionById(object id, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> FetchRawQuestionById(object id, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object request = new Dictionary<string, object>() {
@@ -506,12 +506,12 @@ public partial class myriad : PredictionExchange
                 object qHandle = this.shortenSlug(qSlug);
                 if (isTrue(isTrue(isTrue(isTrue((isEqual(((string)qId).ToLower(), idLower))) || isTrue((isEqual(((string)qSlug).ToLower(), idLower)))) || isTrue((isEqual(((string)qTitle).ToLower(), idLower)))) || isTrue((isTrue((!isEqual(qHandle, null))) && isTrue((isEqual(((string)qHandle).ToLower(), idLower)))))))
                 {
-                    return q;
+                    return ccxt.BaseExchange.ToDict(q);
                 }
             }
             throw e;
         }
-        return result;
+        return ccxt.BaseExchange.ToDict(result);
     }
 
     /**
@@ -754,7 +754,7 @@ public partial class myriad : PredictionExchange
      * @param {float} [params.slippage] maximum slippage tolerance (default 0.005)
      * @returns {object} a quote object with price, shares, fees and the on-chain calldata
      */
-    public async virtual Task<object> fetchTradeQuote(object outcome, object side, double amount, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> FetchTradeQuote(object outcome, object side, double amount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadOutcome(outcome);
@@ -797,9 +797,7 @@ public partial class myriad : PredictionExchange
         //         }
         //     }
         //
-        return this.parseTradeQuote(this.extend(response, new Dictionary<string, object>() {
-            { "action", sideStr },
-        }), ((object)outcomeObj));
+        return ccxt.BaseExchange.ToDict(this.parseTradeQuote(this.extend(response, new Dictionary<string, object>() {             { "action", sideStr },         }), ((object)outcomeObj)));
     }
 
     /**
@@ -1248,7 +1246,7 @@ public partial class myriad : PredictionExchange
         object quote = this.safeDict(parameters, "quote");
         if (isTrue(isEqual(quote, null)))
         {
-            quote = await this.fetchTradeQuote(outcome, sideStr,ccxt.BaseExchange.ToDoubleArgRequired(amount), quoteParams);
+            quote = ccxt.BaseExchange.FromDict(await this.FetchTradeQuote(outcome, sideStr,ccxt.BaseExchange.ToDoubleArgRequired(amount), quoteParams));
         }
         object calldata = this.safeString(this.safeDict(quote, "info", new Dictionary<string, object>() {}), "calldata");
         if (isTrue(isEqual(calldata, null)))
@@ -3410,11 +3408,11 @@ public partial class myriad : PredictionExchange
         {
             if (isTrue(isGreaterThan(getIndexOf(eventId, ":"), -1)))
             {
-                object rawMarket = await this.fetchRawMarketById(eventId, rest);
+                object rawMarket = ccxt.BaseExchange.FromDict(await this.FetchRawMarketById(eventId, rest));
                 rawMarkets = new List<object>() {rawMarket};
             } else
             {
-                object rawQuestion = await this.fetchRawQuestionById(eventId, rest);
+                object rawQuestion = ccxt.BaseExchange.FromDict(await this.FetchRawQuestionById(eventId, rest));
                 rawQuestions = new List<object>() {rawQuestion};
             }
         } else

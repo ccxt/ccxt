@@ -1002,7 +1002,7 @@ public partial class pacifica : Exchange
             object request = new Dictionary<string, object>() {
                 { "account", userAccount },
             };
-            settings = await this.fetchAccountSettings(this.extend(request, parameters));
+            settings = ccxt.BaseExchange.FromDict(await this.FetchAccountSettings(this.extend(request, parameters)));
         }
         object setting = this.safeDict(settings, symbol);
         if (isTrue(isEqual(setting, null)))
@@ -1061,7 +1061,7 @@ public partial class pacifica : Exchange
      * @param {string} [params.account] will default to walletAddress if not provided
      * @returns {object} Dict repacked from list by symbol key
      */
-    public async virtual Task<object> fetchAccountSettings(object parameters = null)
+    public async virtual Task<Dictionary<string, object>> FetchAccountSettings(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object userAccount = null;
@@ -1086,7 +1086,7 @@ public partial class pacifica : Exchange
         //   "error": null,
         //   "code": null
         // }
-        return this.parseAccountSettings(this.safeList(response, "data", new List<object>() {}));
+        return ccxt.BaseExchange.ToDict(this.parseAccountSettings(this.safeList(response, "data", new List<object>() {})));
     }
 
     public async virtual Task loadAccountSettings(object refresh = null, object parameters = null)
@@ -1097,7 +1097,7 @@ public partial class pacifica : Exchange
         if (isTrue(isTrue((isEqual(settings, null))) || isTrue((isEqual(refresh, true)))))
         {
             ((IDictionary<string,object>)this.options)["settings"] = this.createSafeDictionary();
-            settings = await this.fetchAccountSettings(parameters);
+            settings = ccxt.BaseExchange.FromDict(await this.FetchAccountSettings(parameters));
             ((IDictionary<string,object>)this.options)["settings"] = settings;
         }
     }
@@ -1148,7 +1148,7 @@ public partial class pacifica : Exchange
             object request = new Dictionary<string, object>() {
                 { "account", userAccount },
             };
-            settings = await this.fetchAccountSettings(this.extend(request, parameters));
+            settings = ccxt.BaseExchange.FromDict(await this.FetchAccountSettings(this.extend(request, parameters)));
         }
         // {
         //   "WLFI/USDC:USDC": {
@@ -3782,13 +3782,13 @@ public partial class pacifica : Exchange
         return await this.privatePostAgentBind(this.extend(request, parameters));
     }
 
-    public async virtual Task<object> createApiKey(object parameters = null)
+    public async virtual Task<Dictionary<string, object>> CreateApiKey(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string operationType = "create_api_key";
         object sigPayload = new Dictionary<string, object>() {};
         object request = this.postActionRequest(operationType, sigPayload, parameters);
-        return await this.privatePostAccountApiKeysCreate(this.extend(request, parameters));
+        return ccxt.BaseExchange.ToDict(await this.privatePostAccountApiKeysCreate(this.extend(request, parameters)));
     }
 
     public async virtual Task<object> revokeApiKey(object apiKey, object parameters = null)

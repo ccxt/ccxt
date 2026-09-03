@@ -3039,7 +3039,8 @@ class htx(Exchange, ImplicitAPI):
         :returns dict: a dictionary of `account structures <https://docs.ccxt.com/?id=account-structure>` indexed by the account type
         """
         accounts = await self.load_accounts()
-        accountId = self.safe_value_2(params, 'accountId', 'account-id')
+        # the id is a request field(string in the htx api), so a numeric override is stringified here
+        accountId = self.safe_string_2(params, 'accountId', 'account-id')
         if accountId is not None:
             return accountId
         if type == 'spot':

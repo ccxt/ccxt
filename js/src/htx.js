@@ -3195,7 +3195,8 @@ export default class htx extends Exchange {
      */
     async fetchAccountIdByType(type, marginMode = undefined, symbol = undefined, params = {}) {
         const accounts = await this.loadAccounts();
-        const accountId = this.safeValue2(params, 'accountId', 'account-id');
+        // the id is a request field (string in the htx api), so a numeric override is stringified here
+        const accountId = this.safeString2(params, 'accountId', 'account-id');
         if (accountId !== undefined) {
             return accountId;
         }

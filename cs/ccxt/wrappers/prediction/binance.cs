@@ -27,25 +27,6 @@ public partial class binance
         return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
     }
     /// <summary>
-    /// fetches a single raw market topic (with nested markets and outcome tokens) by its id
-    /// </summary>
-    /// <remarks>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra params forwarded verbatim to the detail endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> the raw market topic object.</returns>
-    public async Task<Dictionary<string, object>> FetchRawTopicDetail(string topicId, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchRawTopicDetail(topicId, parameters);
-        return ((Dictionary<string, object>)res);
-    }
-    /// <summary>
     /// fetches prediction-market events (market topics); the call must be scoped by query/queries/tags, eventId, or an l1Category/l2Category listing filter
     /// </summary>
     /// <remarks>
@@ -164,81 +145,5 @@ public partial class binance
     {
         var res = await this.fetchEvent(id, parameters);
         return new PredictionEvent(res);
-    }
-    /// <summary>
-    /// fetch wallet for user and save the one match the walletAddress user provided
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://developers.binance.com/en/docs/catalog/web3-wallet-prediction-trading/api/rest-api/wallet#list-prediction-wallets"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>methodName</term>
-    /// <description>
-    /// string : method name
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a wallet.</returns>
-    public async Task<Dictionary<string, object>> FetchWallet(string methodName, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchWallet(methodName, parameters);
-        return ((Dictionary<string, object>)res);
-    }
-    /// <summary>
-    /// request for quote from binance server
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://developers.binance.com/en/docs/catalog/web3-wallet-prediction-trading/api/rest-api/trade#get-quote"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>request</term>
-    /// <description>
-    /// object : request to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.chainId</term>
-    /// <description>
-    /// string : Chain ID. Default 56 (BSC)
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.feeRateBps</term>
-    /// <description>
-    /// integer : Fee rate in basis points. Default 200, range 1–10000
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.fundingSource</term>
-    /// <description>
-    /// string : Funding source. Enum: MPC, CEX. Default MPC
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.fundTransferAmount</term>
-    /// <description>
-    /// string : Auto-transfer amount before order (wei). Must be > 0 if provided
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a quote.</returns>
-    public async Task<Dictionary<string, object>> FetchQuote(Dictionary<string, object> request, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchQuote(request, parameters);
-        return ((Dictionary<string, object>)res);
     }
 }

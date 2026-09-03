@@ -744,7 +744,7 @@ func (this *Luno) EditOrderWithClientOrderId(clientOrderId string, symbol string
 func (this *Luno) EditOrders(orders []OrderRequest, options ...EditOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.EditOrders(orders, options...)
 }
-func (this *Luno) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
+func (this *Luno) FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks, error) {
 	return this.exchangeTyped.FetchAllGreeks(options...)
 }
 func (this *Luno) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error) {
@@ -780,7 +780,7 @@ func (this *Luno) FetchCrossBorrowRates(params ...any) (CrossBorrowRates, error)
 func (this *Luno) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
 	return this.exchangeTyped.FetchDepositAddresses(options...)
 }
-func (this *Luno) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
+func (this *Luno) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error) {
 	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
 }
 func (this *Luno) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {

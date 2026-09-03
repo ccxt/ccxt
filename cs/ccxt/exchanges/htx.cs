@@ -4117,14 +4117,15 @@ public partial class htx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
      */
-    public async virtual Task<object> fetchAccountIdByType(object type, object marginMode = null, object symbol = null, object parameters = null)
+    public async virtual Task<string> FetchAccountIdByType(object type, object marginMode = null, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object accounts = await this.loadAccounts();
-        object accountId = this.safeValue2(parameters, "accountId", "account-id");
+        // the id is a request field (string in the htx api), so a numeric override is stringified here
+        object accountId = this.safeString2(parameters, "accountId", "account-id");
         if (isTrue(!isEqual(accountId, null)))
         {
-            return accountId;
+            return ccxt.BaseExchange.ToStringValue(accountId);
         }
         if (isTrue(isEqual(type, "spot")))
         {
@@ -4151,15 +4152,15 @@ public partial class htx : Exchange
             {
                 if (isTrue(isEqual(subtype, marketId)))
                 {
-                    return this.safeString(account, "id");
+                    return ccxt.BaseExchange.ToStringValue(this.safeString(account, "id"));
                 }
             } else if (isTrue(isEqual(type, typeFromAccount)))
             {
-                return this.safeString(account, "id");
+                return ccxt.BaseExchange.ToStringValue(this.safeString(account, "id"));
             }
         }
         object defaultAccount = this.safeValue(accounts, 0, new Dictionary<string, object>() {});
-        return this.safeString(defaultAccount, "id");
+        return ccxt.BaseExchange.ToStringValue(this.safeString(defaultAccount, "id"));
     }
 
     /**
@@ -4420,7 +4421,7 @@ public partial class htx : Exchange
             } else
             {
                 await this.loadAccounts();
-                object accountId = await this.fetchAccountIdByType(type, null, null, parameters);
+                object accountId = ccxt.BaseExchange.FromStringValue(await this.FetchAccountIdByType(type, null, null, parameters));
                 ((IDictionary<string,object>)request)["account-id"] = accountId;
                 response = await this.spotPrivateGetV1AccountAccountsAccountIdBalance(this.extend(request, parameters));
             }
@@ -6201,7 +6202,7 @@ public partial class htx : Exchange
         var marginModeparametersVariable = this.handleMarginModeAndParams("createOrder", parameters);
         marginMode = ((IList<object>)marginModeparametersVariable)[0];
         parameters = ((IList<object>)marginModeparametersVariable)[1];
-        object accountId = await this.fetchAccountIdByType(getValue(market, "type"), marginMode, symbol);
+        object accountId = ccxt.BaseExchange.FromStringValue(await this.FetchAccountIdByType(getValue(market, "type"), marginMode, symbol));
         object request = new Dictionary<string, object>() {
             { "account-id", accountId },
             { "symbol", getValue(market, "id") },
@@ -9763,7 +9764,7 @@ public partial class htx : Exchange
         {
             return ccxt.BaseExchange.ToLedgerEntryList(await this.fetchPaginatedCallDynamic("fetchLedger", code, since, limit, parameters, 500));
         }
-        object accountId = await this.fetchAccountIdByType("spot", null, null, parameters);
+        object accountId = ccxt.BaseExchange.FromStringValue(await this.FetchAccountIdByType("spot", null, null, parameters));
         object request = new Dictionary<string, object>() {
             { "accountId", accountId },
         };
@@ -10358,7 +10359,7 @@ public partial class htx : Exchange
             await this.loadMarkets();
         }
         object currency = this.currency(code);
-        object accountId = await this.fetchAccountIdByType("spot", "isolated", symbol, parameters);
+        object accountId = ccxt.BaseExchange.FromStringValue(await this.FetchAccountIdByType("spot", "isolated", symbol, parameters));
         object request = new Dictionary<string, object>() {
             { "currency", getValue(currency, "id") },
             { "amount", this.currencyToPrecision(code, amount) },
@@ -10403,7 +10404,7 @@ public partial class htx : Exchange
             await this.loadMarkets();
         }
         object currency = this.currency(code);
-        object accountId = await this.fetchAccountIdByType("spot", "cross", null, parameters);
+        object accountId = ccxt.BaseExchange.FromStringValue(await this.FetchAccountIdByType("spot", "cross", null, parameters));
         object request = new Dictionary<string, object>() {
             { "currency", getValue(currency, "id") },
             { "amount", this.currencyToPrecision(code, amount) },

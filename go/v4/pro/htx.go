@@ -2358,7 +2358,6 @@ func (this *HtxCore) HandleBalance(client any, message any) {
 			messageHash = ccxt.Add(messageHash, ccxt.Add(".", ccxt.ToLower(currencyId)))
 			subscription = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 		}
-		var typeVar any = this.SafeString(subscription, "type")
 		var subType any = this.SafeString(subscription, "subType")
 		if ccxt.IsTrue(ccxt.IsEqual(topic, "accounts_unify")) {
 			// {
@@ -2388,30 +2387,16 @@ func (this *HtxCore) HandleBalance(client any, message any) {
 		} else if ccxt.IsTrue(ccxt.IsEqual(subType, "linear")) {
 			var margin any = this.SafeString(subscription, "margin")
 			if ccxt.IsTrue(ccxt.IsEqual(margin, "cross")) {
-				var fieldName any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(typeVar, "future"))), "futures_contract_detail", "contract_detail")
-				var balances any = this.SafeValue(first, fieldName, []any{})
-				var balancesLength int = ccxt.GetArrayLength(balances)
-				if ccxt.IsTrue(ccxt.IsGreaterThan(balancesLength, 0)) {
-					for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(balances)); i++ {
-						var balance any = ccxt.GetValue(balances, i)
-						var marketId any = this.SafeString2(balance, "contract_code", "margin_account")
-						var market any = this.SafeMarket(marketId)
-						var currencyId any = this.SafeString(balance, "margin_asset")
-						var currency any = this.SafeCurrency(currencyId)
-						var code any = this.SafeString(market, "settle", ccxt.GetValue(currency, "code"))
-						// the exchange outputs positions for delisted markets
-						// https://www.huobi.com/support/en-us/detail/74882968522337
-						// we skip it if the market was delisted
-						if ccxt.IsTrue(!ccxt.IsEqual(code, nil)) {
-							var account any = this.Account()
-							ccxt.AddElementToObject(account, "free", this.SafeString2(balance, "margin_balance", "margin_available"))
-							ccxt.AddElementToObject(account, "used", this.SafeString(balance, "margin_frozen"))
-							var accountsByCode map[string]any = map[string]any{}
-							ccxt.AddElementToObject(accountsByCode, code, account)
-							var symbol any = ccxt.GetValue(market, "symbol")
-							ccxt.AddElementToObject(this.Balance, symbol, this.SafeBalance(accountsByCode))
-						}
-					}
+				// the cross account is one shared margin balance, keyed by the settle currency
+				var currencyId any = this.SafeString2(first, "margin_asset", "margin_account")
+				var code any = this.SafeCurrencyCode(currencyId)
+				if ccxt.IsTrue(!ccxt.IsEqual(code, nil)) {
+					var account any = this.Account()
+					ccxt.AddElementToObject(account, "free", this.SafeString2(first, "withdraw_available", "margin_available"))
+					ccxt.AddElementToObject(account, "used", this.SafeString(first, "margin_frozen"))
+					ccxt.AddElementToObject(account, "total", this.SafeString(first, "margin_balance"))
+					ccxt.AddElementToObject(this.Balance, code, account)
+					this.Balance = this.SafeBalance(this.Balance)
 				}
 			} else {
 				// isolated margin
@@ -2668,10 +2653,10 @@ func (this *HtxCore) pongBody(ch chan any, client any, message any) any {
 			var ping any = this.SafeInteger(message, "ping")
 			if ccxt.IsTrue(!ccxt.IsEqual(ping, nil)) {
 
-				retRes237616 := (<-client.(ccxt.ClientInterface).Send(map[string]any{
+				retRes236116 := (<-client.(ccxt.ClientInterface).Send(map[string]any{
 					"pong": ping,
 				}))
-				ccxt.PanicOnError(retRes237616)
+				ccxt.PanicOnError(retRes236116)
 
 				return nil
 			}
@@ -2680,13 +2665,13 @@ func (this *HtxCore) pongBody(ch chan any, client any, message any) any {
 				var data any = this.SafeValue(message, "data")
 				var pingTs any = this.SafeInteger(data, "ts")
 
-				retRes238316 := (<-client.(ccxt.ClientInterface).Send(map[string]any{
+				retRes236816 := (<-client.(ccxt.ClientInterface).Send(map[string]any{
 					"action": "pong",
 					"data": map[string]any{
 						"ts": pingTs,
 					},
 				}))
-				ccxt.PanicOnError(retRes238316)
+				ccxt.PanicOnError(retRes236816)
 
 				return nil
 			}
@@ -2694,11 +2679,11 @@ func (this *HtxCore) pongBody(ch chan any, client any, message any) any {
 			if ccxt.IsTrue(ccxt.IsEqual(op, "ping")) {
 				var pingTs any = this.SafeInteger(message, "ts")
 
-				retRes238916 := (<-client.(ccxt.ClientInterface).Send(map[string]any{
+				retRes237416 := (<-client.(ccxt.ClientInterface).Send(map[string]any{
 					"op": "pong",
 					"ts": pingTs,
 				}))
-				ccxt.PanicOnError(retRes238916)
+				ccxt.PanicOnError(retRes237416)
 			}
 			return nil
 		}(this)
@@ -3250,9 +3235,9 @@ func (this *HtxCore) subscribePublicBody(ch chan any, url any, symbol any, messa
 		ccxt.AddElementToObject(subscription, "method", method)
 	}
 
-	retRes289015 := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash, subscription))
-	ccxt.PanicOnError(retRes289015)
-	ch <- retRes289015
+	retRes287515 := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash, subscription))
+	ccxt.PanicOnError(retRes287515)
+	ch <- retRes287515
 	return nil
 }
 func (this *HtxCore) UnsubscribePublic(market any, subMessageHash any, topic any, optionalArgs ...any) <-chan any {
@@ -3290,9 +3275,9 @@ func (this *HtxCore) unsubscribePublicBody(ch chan any, market any, subMessageHa
 		params = this.Omit(params, "symbolsAndTimeframes")
 	}
 
-	retRes291815 := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash, subscription))
-	ccxt.PanicOnError(retRes291815)
-	ch <- retRes291815
+	retRes290315 := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash, subscription))
+	ccxt.PanicOnError(retRes290315)
+	ch <- retRes290315
 	return nil
 }
 func (this *HtxCore) SubscribePrivate(channel any, messageHash any, typeVar any, subtype any, optionalArgs ...any) <-chan any {
@@ -3337,12 +3322,12 @@ func (this *HtxCore) subscribePrivateBody(ch chan any, channel any, messageHash 
 		"hostname": hostname,
 	}
 
-	retRes29518 := (<-this.Authenticate(authParams))
-	ccxt.PanicOnError(retRes29518)
+	retRes29368 := (<-this.Authenticate(authParams))
+	ccxt.PanicOnError(retRes29368)
 
-	retRes295215 := (<-this.Watch(url, messageHash, this.Extend(request, params), channel, extendedSubsription))
-	ccxt.PanicOnError(retRes295215)
-	ch <- retRes295215
+	retRes293715 := (<-this.Watch(url, messageHash, this.Extend(request, params), channel, extendedSubsription))
+	ccxt.PanicOnError(retRes293715)
+	ch <- retRes293715
 	return nil
 }
 func (this *HtxCore) Authenticate(optionalArgs ...any) <-chan any {
@@ -3424,9 +3409,9 @@ func (this *HtxCore) authenticateBody(ch chan any, optionalArgs ...any) any {
 		this.Watch(url, messageHash, request, messageHash, subscription)
 	}
 
-	retRes302415 := <-future.(*ccxt.Future).Await()
-	ccxt.PanicOnError(retRes302415)
-	ch <- retRes302415
+	retRes300915 := <-future.(*ccxt.Future).Await()
+	ccxt.PanicOnError(retRes300915)
+	ch <- retRes300915
 	return nil
 }
 

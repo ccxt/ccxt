@@ -966,7 +966,17 @@ public partial class BaseExchange
 
     public static string ToStringValue(object value)
     {
-        return value as string;
+        // a string-typed core may tail-return a numeric id read off user params
+        // (htx fetchAccountIdByType); stringify primitives instead of nulling them
+        if (value is string s)
+        {
+            return s;
+        }
+        if (value is Int64 || value is int || value is double || value is decimal || value is float)
+        {
+            return Convert.ToString(value, System.Globalization.CultureInfo.InvariantCulture);
+        }
+        return null;
     }
 
     public static object FromDict(object value)

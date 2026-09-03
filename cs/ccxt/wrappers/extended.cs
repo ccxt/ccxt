@@ -6,11 +6,6 @@ namespace ccxt;
 
 public partial class extended
 {
-    public async Task<Dictionary<string, object>> FetchExtendedAccount(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchExtendedAccount(parameters);
-        return ((Dictionary<string, object>)res);
-    }
     public Dictionary<string, object> CreateOrderSettlementData(bool isBuy, string amountString, string priceString, Dictionary<string, object> parameters = null)
     {
         var res = this.createOrderSettlementData(isBuy, amountString, priceString, parameters);
@@ -24,11 +19,6 @@ public partial class extended
     public Dictionary<string, object> CreateTransferSettlementData(string amountString, Currency currency, Dictionary<string, object> account, string toVault, string toL2Key, Dictionary<string, object> parameters = null)
     {
         var res = this.createTransferSettlementData(amountString, currency, account, toVault, toL2Key, parameters);
-        return ((Dictionary<string, object>)res);
-    }
-    public async Task<Dictionary<string, object>> CreateExtendedOrderRequest(string symbol, string type, string side, double amount, double? price = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.createExtendedOrderRequest(symbol, type, side, amount, price, parameters);
         return ((Dictionary<string, object>)res);
     }
 }

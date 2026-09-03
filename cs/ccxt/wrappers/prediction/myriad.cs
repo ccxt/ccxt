@@ -85,44 +85,6 @@ public partial class myriad
         return new PredictionEvent(res);
     }
     /// <summary>
-    /// fetches a single raw myriad market object by its unified event id (a composite networkId:marketId)
-    /// </summary>
-    /// <remarks>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> the raw myriad market object.</returns>
-    public async Task<Dictionary<string, object>> FetchRawMarketById(string id, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchRawMarketById(id, parameters);
-        return ((Dictionary<string, object>)res);
-    }
-    /// <summary>
-    /// fetches a single raw myriad question object by question id; falls back to keyword search by id/slug/title when direct lookup is unavailable
-    /// </summary>
-    /// <remarks>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> the raw question object.</returns>
-    public async Task<Dictionary<string, object>> FetchRawQuestionById(string id, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchRawQuestionById(id, parameters);
-        return ((Dictionary<string, object>)res);
-    }
-    /// <summary>
     /// fetches raw myriad question objects matching the given search terms via the questions keyword filter
     /// </summary>
     /// <remarks>
@@ -165,32 +127,6 @@ public partial class myriad
     {
         var res = await this.fetchRawQuestionsList(parameters);
         return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
-    }
-    /// <summary>
-    /// fetches a trade quote — price, shares, fees and the on-chain calldata — for buying or selling an outcome. Myriad settles trades on-chain, so this returns the calldata to submit to the prediction-market contract rather than placing an off-chain order
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.myriad.markets/builders/myriad-api-reference"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.slippage</term>
-    /// <description>
-    /// float : maximum slippage tolerance (default 0.005)
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a quote object with price, shares, fees and the on-chain calldata.</returns>
-    public async Task<Dictionary<string, object>> FetchTradeQuote(string outcome, string side, double amount, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchTradeQuote(outcome, side, amount, parameters);
-        return ((Dictionary<string, object>)res);
     }
     /// <summary>
     /// cancels all open order book orders for the wallet, optionally scoped to one market (gasless)

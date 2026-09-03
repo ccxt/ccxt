@@ -865,7 +865,7 @@ public partial class PredictionExchange : BaseExchange
             }
             if (isTrue(isGreaterThan(missingLength, 0)))
             {
-                await this.fetchOutcomes(missing);
+                ccxt.BaseExchange.FromDict(await this.FetchOutcomes(missing));
             }
             return this.outcomes;
         }
@@ -886,13 +886,13 @@ public partial class PredictionExchange : BaseExchange
      * @param {string[]} outcomeSymbols the uncached outcome handles or ids to resolve
      * @returns {object} the outcome cache
      */
-    public async virtual Task<object> fetchOutcomes(object outcomeSymbols)
+    public async virtual Task<Dictionary<string, object>> FetchOutcomes(object outcomeSymbols)
     {
         for (object i = 0; isLessThan(i, getArrayLength(outcomeSymbols)); postFixIncrement(ref i))
         {
             await this.fetchOutcome(getValue(outcomeSymbols, i));
         }
-        return this.outcomes;
+        return ccxt.BaseExchange.ToDict(this.outcomes);
     }
 
     public async virtual Task<object> loadOutcome(object outcomeSymbol, object reload = null)
@@ -2130,19 +2130,6 @@ public partial class PredictionExchange
     {
         var res = this.setMarkets(markets, currencies);
         return ((Dictionary<string, Market>)res);
-    }
-    /// <summary>
-    /// resolves several uncached outcomes. the base has no batch by-id endpoint, so it fetches them one by one through fetchOutcome (which throws BadSymbol for an unresolvable one); venues with a batch endpoint (kalshi, polymarket) override this to collapse the list into one request
-    /// </summary>
-    /// <remarks>
-    /// <list type="table">
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> the outcome cache.</returns>
-    public async Task<Dictionary<string, object>> FetchOutcomes(List<string> outcomeSymbols)
-    {
-        var res = await this.fetchOutcomes(outcomeSymbols);
-        return ((Dictionary<string, object>)res);
     }
     public async Task<Dictionary<string, object>> FetchOutcome(string outcomeSymbol)
     {

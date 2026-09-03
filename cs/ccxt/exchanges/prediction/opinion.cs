@@ -1758,12 +1758,12 @@ public partial class opinion : PredictionExchange
      * @param {object} [params] extra parameters
      * @returns {object} the api credentials { apiKey, walletAddress }
      */
-    public async virtual Task<object> createApiKey(object parameters = null)
+    public async virtual Task<Dictionary<string, object>> CreateApiKey(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.opinionPrivatePostAuthApiKey(parameters);
         object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
-        return this.setApiCredentials(result);
+        return ccxt.BaseExchange.ToDict(this.setApiCredentials(result));
     }
 
     /**
@@ -1774,12 +1774,12 @@ public partial class opinion : PredictionExchange
      * @param {object} [params] extra parameters
      * @returns {object} the api credentials { apiKey, walletAddress }
      */
-    public async virtual Task<object> fetchApiKey(object parameters = null)
+    public async virtual Task<Dictionary<string, object>> FetchApiKey(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.opinionPrivateGetAuthApiKey(parameters);
         object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
-        return this.setApiCredentials(result);
+        return ccxt.BaseExchange.ToDict(this.setApiCredentials(result));
     }
 
     /**
@@ -1831,12 +1831,12 @@ public partial class opinion : PredictionExchange
         object creds = null;
         try
         {
-            creds = await this.fetchApiKey();
+            creds = ccxt.BaseExchange.FromDict(await this.FetchApiKey());
         } catch(Exception e)
         {
             // no key exists for this wallet yet (11010) - self-issue one; any other
             // failure (unregistered wallet, disabled issuance) surfaces from the create call
-            creds = await this.createApiKey();
+            creds = ccxt.BaseExchange.FromDict(await this.CreateApiKey());
         }
         return this.safeString(creds, "apiKey");
     }

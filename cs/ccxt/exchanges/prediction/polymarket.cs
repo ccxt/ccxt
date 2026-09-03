@@ -1245,7 +1245,7 @@ public partial class polymarket : PredictionExchange
      * @param {string[]} outcomeSymbols outcome token ids or handles
      * @returns {object} the outcome cache
      */
-    public async override Task<object> fetchOutcomes(object outcomeSymbols)
+    public async override Task<Dictionary<string, object>> FetchOutcomes(object outcomeSymbols)
     {
         object tokenIds = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(outcomeSymbols)); postFixIncrement(ref i))
@@ -1312,7 +1312,7 @@ public partial class polymarket : PredictionExchange
                 await this.fetchOutcome(getValue(outcomeSymbols, i));
             }
         }
-        return this.outcomes;
+        return ccxt.BaseExchange.ToDict(this.outcomes);
     }
 
     /**
@@ -3518,11 +3518,11 @@ public partial class polymarket : PredictionExchange
      * @param {int} [params.nonce] the nonce used to create the credentials, defaults to 0
      * @returns {object} the api credentials { apiKey, secret, passphrase }
      */
-    public async virtual Task<object> createApiKey(object parameters = null)
+    public async virtual Task<Dictionary<string, object>> CreateApiKey(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.clobPrivatePostAuthApiKey(parameters);
-        return this.setApiCredentials(response);
+        return ccxt.BaseExchange.ToDict(this.setApiCredentials(response));
     }
 
     /**
@@ -3533,7 +3533,7 @@ public partial class polymarket : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the api credentials { apiKey, secret, passphrase }
      */
-    public async virtual Task<object> createOrDeriveApiKey(object parameters = null)
+    public async virtual Task<Dictionary<string, object>> CreateOrDeriveApiKey(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object creds = null;
@@ -3542,13 +3542,13 @@ public partial class polymarket : PredictionExchange
             creds = await this.deriveApiKey(parameters);
         } catch(Exception e)
         {
-            creds = await this.createApiKey(parameters);
+            creds = ccxt.BaseExchange.FromDict(await this.CreateApiKey(parameters));
         }
         if (isTrue(isEqual(creds, null)))
         {
             throw new ExchangeError ((string)add(this.id, " createOrDeriveApiKey() returned no credentials")) ;
         }
-        return creds;
+        return ccxt.BaseExchange.ToDict(creds);
     }
 
     public virtual object setApiCredentials(object response)
@@ -3585,7 +3585,7 @@ public partial class polymarket : PredictionExchange
             object alreadyDerived = this.safeString(this.options, "l2ApiKey");
             if (isTrue(isEqual(alreadyDerived, null)))
             {
-                await this.createOrDeriveApiKey();
+                ccxt.BaseExchange.FromDict(await this.CreateOrDeriveApiKey());
             }
             return;
         }

@@ -702,7 +702,7 @@ func (this *Limitless) CreateOrders(orders []ccxt.PredictionOrderRequest, option
 	}
 	return ccxt.NewPredictionOrderArray(res), nil
 }
-func (this *Limitless) FetchAllGreeks(options ...ccxt.FetchAllGreeksOptions) ([]ccxt.Greeks, error) {
+func (this *Limitless) FetchAllGreeks(options ...ccxt.FetchAllGreeksOptions) (ccxt.AllGreeks, error) {
 	return this.exchangeTyped.FetchAllGreeks(options...)
 }
 func (this *Limitless) FetchBalance(params ...any) (ccxt.Balances, error) {
@@ -741,7 +741,7 @@ func (this *Limitless) FetchDepositAddress(code string, options ...ccxt.FetchDep
 func (this *Limitless) FetchDepositAddresses(options ...ccxt.FetchDepositAddressesOptions) ([]ccxt.DepositAddress, error) {
 	return this.exchangeTyped.FetchDepositAddresses(options...)
 }
-func (this *Limitless) FetchDepositAddressesByNetwork(code string, options ...ccxt.FetchDepositAddressesByNetworkOptions) ([]ccxt.DepositAddress, error) {
+func (this *Limitless) FetchDepositAddressesByNetwork(code string, options ...ccxt.FetchDepositAddressesByNetworkOptions) (ccxt.DepositAddresses, error) {
 	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
 }
 func (this *Limitless) FetchDeposits(options ...ccxt.FetchDepositsOptions) ([]ccxt.Transaction, error) {

@@ -4673,28 +4673,24 @@ func (this *MexcCore) CustomParseBalance(response any, marketType any) any {
 	} else {
 		wallet = this.SafeValue(response, "balances", []any{})
 	}
-	var result map[string]any = map[string]any{
+	var result any = map[string]any{
 		"info": response,
 	}
 	if IsTrue(IsEqual(marketType, "margin")) {
 		for i := 0; IsLessThan(i, GetArrayLength(wallet)); i++ {
 			var entry any = GetValue(wallet, i)
-			var marketId any = this.SafeString(entry, "symbol")
-			var symbol any = this.SafeSymbol(marketId)
 			var base any = this.SafeValue(entry, "baseAsset", map[string]any{})
 			var quote any = this.SafeValue(entry, "quoteAsset", map[string]any{})
 			var baseCode any = this.SafeCurrencyCode(this.SafeString(base, "asset"))
 			var quoteCode any = this.SafeCurrencyCode(this.SafeString(quote, "asset"))
-			var subResult map[string]any = map[string]any{}
 			if IsTrue(!IsEqual(baseCode, nil)) {
-				AddElementToObject(subResult, baseCode, this.ParseBalanceHelper(base))
+				result = this.MergeBalanceAccount(result, baseCode, this.ParseBalanceHelper(base))
 			}
 			if IsTrue(!IsEqual(quoteCode, nil)) {
-				AddElementToObject(subResult, quoteCode, this.ParseBalanceHelper(quote))
+				result = this.MergeBalanceAccount(result, quoteCode, this.ParseBalanceHelper(quote))
 			}
-			AddElementToObject(result, symbol, this.SafeBalance(subResult))
 		}
-		return result
+		return this.SafeBalance(result)
 	} else if IsTrue(IsEqual(marketType, "swap")) {
 		for i := 0; IsLessThan(i, GetArrayLength(wallet)); i++ {
 			var entry any = GetValue(wallet, i)
@@ -4757,8 +4753,8 @@ func (this *MexcCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes404412 := (<-this.LoadMarkets())
-		PanicOnError(retRes404412)
+		retRes404012 := (<-this.LoadMarkets())
+		PanicOnError(retRes404012)
 	}
 	var marketType any = nil
 	var request map[string]any = map[string]any{}
@@ -4925,8 +4921,8 @@ func (this *MexcCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes418512 := (<-this.LoadMarkets())
-		PanicOnError(retRes418512)
+		retRes418112 := (<-this.LoadMarkets())
+		PanicOnError(retRes418112)
 	}
 	var market any = this.Market(symbol)
 	var marketType any = nil
@@ -5027,8 +5023,8 @@ func (this *MexcCore) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes428312 := (<-this.LoadMarkets())
-		PanicOnError(retRes428312)
+		retRes427912 := (<-this.LoadMarkets())
+		PanicOnError(retRes427912)
 	}
 	var request map[string]any = map[string]any{}
 	var market any = nil
@@ -5098,8 +5094,8 @@ func (this *MexcCore) modifyMarginHelperBody(ch chan any, symbol any, amount any
 	}
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes435712 := (<-this.LoadMarkets())
-		PanicOnError(retRes435712)
+		retRes435312 := (<-this.LoadMarkets())
+		PanicOnError(retRes435312)
 	}
 	var request map[string]any = map[string]any{
 		"positionId": positionId,
@@ -5140,9 +5136,9 @@ func (this *MexcCore) reduceMarginBody(ch chan any, symbol any, amount any, opti
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes438415 := (<-this.ModifyMarginHelper(symbol, amount, "SUB", params))
-	PanicOnError(retRes438415)
-	ch <- retRes438415
+	retRes438015 := (<-this.ModifyMarginHelper(symbol, amount, "SUB", params))
+	PanicOnError(retRes438015)
+	ch <- retRes438015
 	return nil
 }
 
@@ -5167,9 +5163,9 @@ func (this *MexcCore) addMarginBody(ch chan any, symbol any, amount any, optiona
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes439815 := (<-this.ModifyMarginHelper(symbol, amount, "ADD", params))
-	PanicOnError(retRes439815)
-	ch <- retRes439815
+	retRes439415 := (<-this.ModifyMarginHelper(symbol, amount, "ADD", params))
+	PanicOnError(retRes439415)
+	ch <- retRes439415
 	return nil
 }
 
@@ -5197,8 +5193,8 @@ func (this *MexcCore) setLeverageBody(ch chan any, leverage any, optionalArgs ..
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes441312 := (<-this.LoadMarkets())
-		PanicOnError(retRes441312)
+		retRes440912 := (<-this.LoadMarkets())
+		PanicOnError(retRes440912)
 	}
 	var request map[string]any = map[string]any{
 		"leverage": leverage,
@@ -5219,9 +5215,9 @@ func (this *MexcCore) setLeverageBody(ch chan any, leverage any, optionalArgs ..
 		AddElementToObject(request, "positionId", positionId)
 	}
 
-	retRes443315 := (<-this.ContractPrivatePostPositionChangeLeverage(this.Extend(request, params)))
-	PanicOnError(retRes443315)
-	ch <- retRes443315
+	retRes442915 := (<-this.ContractPrivatePostPositionChangeLeverage(this.Extend(request, params)))
+	PanicOnError(retRes442915)
+	ch <- retRes442915
 	return nil
 }
 
@@ -5254,8 +5250,8 @@ func (this *MexcCore) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes444912 := (<-this.LoadMarkets())
-		PanicOnError(retRes444912)
+		retRes444512 := (<-this.LoadMarkets())
+		PanicOnError(retRes444512)
 	}
 	var market any = nil
 	var request map[string]any = map[string]any{}
@@ -5395,9 +5391,9 @@ func (this *MexcCore) fetchFundingIntervalBody(ch chan any, symbol any, optional
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes457915 := (<-this.FetchFundingRate(symbol, params))
-	PanicOnError(retRes457915)
-	ch <- retRes457915
+	retRes457515 := (<-this.FetchFundingRate(symbol, params))
+	PanicOnError(retRes457515)
+	ch <- retRes457515
 	return nil
 }
 
@@ -5422,8 +5418,8 @@ func (this *MexcCore) fetchFundingRateBody(ch chan any, symbol any, optionalArgs
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes459312 := (<-this.LoadMarkets())
-		PanicOnError(retRes459312)
+		retRes458912 := (<-this.LoadMarkets())
+		PanicOnError(retRes458912)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -5485,8 +5481,8 @@ func (this *MexcCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	}
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes463512 := (<-this.LoadMarkets())
-		PanicOnError(retRes463512)
+		retRes463112 := (<-this.LoadMarkets())
+		PanicOnError(retRes463112)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -5567,8 +5563,8 @@ func (this *MexcCore) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) a
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes470212 := (<-this.LoadMarkets())
-		PanicOnError(retRes470212)
+		retRes469812 := (<-this.LoadMarkets())
+		PanicOnError(retRes469812)
 	}
 	symbols = this.MarketSymbols(symbols, "swap", true, true)
 
@@ -5753,8 +5749,8 @@ func (this *MexcCore) fetchDepositAddressesByNetworkBody(ch chan any, code any, 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes487312 := (<-this.LoadMarkets())
-		PanicOnError(retRes487312)
+		retRes486912 := (<-this.LoadMarkets())
+		PanicOnError(retRes486912)
 	}
 	var currency any = this.Currency(code)
 	var request map[string]any = map[string]any{
@@ -5820,8 +5816,8 @@ func (this *MexcCore) createDepositAddressBody(ch chan any, code any, optionalAr
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes492512 := (<-this.LoadMarkets())
-		PanicOnError(retRes492512)
+		retRes492112 := (<-this.LoadMarkets())
+		PanicOnError(retRes492112)
 	}
 	var currency any = this.Currency(code)
 	var request map[string]any = map[string]any{
@@ -5936,8 +5932,8 @@ func (this *MexcCore) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes500712 := (<-this.LoadMarkets())
-		PanicOnError(retRes500712)
+		retRes500312 := (<-this.LoadMarkets())
+		PanicOnError(retRes500312)
 	}
 	var request map[string]any = map[string]any{}
 	var currency any = nil
@@ -6017,8 +6013,8 @@ func (this *MexcCore) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes507312 := (<-this.LoadMarkets())
-		PanicOnError(retRes507312)
+		retRes506912 := (<-this.LoadMarkets())
+		PanicOnError(retRes506912)
 	}
 	var request map[string]any = map[string]any{}
 	var currency any = nil
@@ -6225,8 +6221,8 @@ func (this *MexcCore) closeAllPositionsBody(ch chan any, optionalArgs ...any) an
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes527012 := (<-this.LoadMarkets())
-		PanicOnError(retRes527012)
+		retRes526612 := (<-this.LoadMarkets())
+		PanicOnError(retRes526612)
 	}
 
 	response := (<-this.ContractPrivatePostPositionCloseAll(params))
@@ -6265,8 +6261,8 @@ func (this *MexcCore) fetchPositionBody(ch chan any, symbol any, optionalArgs ..
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes529512 := (<-this.LoadMarkets())
-		PanicOnError(retRes529512)
+		retRes529112 := (<-this.LoadMarkets())
+		PanicOnError(retRes529112)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -6303,8 +6299,8 @@ func (this *MexcCore) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes531612 := (<-this.LoadMarkets())
-		PanicOnError(retRes531612)
+		retRes531212 := (<-this.LoadMarkets())
+		PanicOnError(retRes531212)
 	}
 
 	response := (<-this.ContractPrivateGetPositionOpenPositions(params))
@@ -6477,8 +6473,8 @@ func (this *MexcCore) fetchTransferBody(ch chan any, id any, optionalArgs ...any
 	query := GetValue(marketTypequeryVariable, 1)
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes547012 := (<-this.LoadMarkets())
-		PanicOnError(retRes547012)
+		retRes546612 := (<-this.LoadMarkets())
+		PanicOnError(retRes546612)
 	}
 	if IsTrue(IsEqual(marketType, "spot")) {
 		var request map[string]any = map[string]any{
@@ -6546,8 +6542,8 @@ func (this *MexcCore) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	params = GetValue(marketTypeparamsVariable, 1)
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes551612 := (<-this.LoadMarkets())
-		PanicOnError(retRes551612)
+		retRes551212 := (<-this.LoadMarkets())
+		PanicOnError(retRes551212)
 	}
 	var request map[string]any = map[string]any{}
 	var currency any = nil
@@ -6652,8 +6648,8 @@ func (this *MexcCore) transferBody(ch chan any, code any, amount any, fromAccoun
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes562512 := (<-this.LoadMarkets())
-		PanicOnError(retRes562512)
+		retRes562112 := (<-this.LoadMarkets())
+		PanicOnError(retRes562112)
 	}
 	var currency any = this.Currency(code)
 	var accounts map[string]any = map[string]any{
@@ -6826,8 +6822,8 @@ func (this *MexcCore) withdrawBody(ch chan any, code any, amount any, address an
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes578312 := (<-this.LoadMarkets())
-		PanicOnError(retRes578312)
+		retRes577912 := (<-this.LoadMarkets())
+		PanicOnError(retRes577912)
 	}
 	var currency any = this.Currency(code)
 	tagparamsVariable := this.HandleWithdrawTagAndParams(tag, params)
@@ -6989,8 +6985,8 @@ func (this *MexcCore) fetchTransactionFeesBody(ch chan any, optionalArgs ...any)
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes589312 := (<-this.LoadMarkets())
-		PanicOnError(retRes589312)
+		retRes588912 := (<-this.LoadMarkets())
+		PanicOnError(retRes588912)
 	}
 
 	response := (<-this.SpotPrivateGetCapitalConfigGetall(params))
@@ -7111,8 +7107,8 @@ func (this *MexcCore) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ...
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes599612 := (<-this.LoadMarkets())
-		PanicOnError(retRes599612)
+		retRes599212 := (<-this.LoadMarkets())
+		PanicOnError(retRes599212)
 	}
 
 	response := (<-this.SpotPrivateGetCapitalConfigGetall(params))
@@ -7222,8 +7218,8 @@ func (this *MexcCore) fetchLeverageBody(ch chan any, symbol any, optionalArgs ..
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes609112 := (<-this.LoadMarkets())
-		PanicOnError(retRes609112)
+		retRes608712 := (<-this.LoadMarkets())
+		PanicOnError(retRes608712)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -7350,8 +7346,8 @@ func (this *MexcCore) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes619212 := (<-this.LoadMarkets())
-		PanicOnError(retRes619212)
+		retRes618812 := (<-this.LoadMarkets())
+		PanicOnError(retRes618812)
 	}
 	var request map[string]any = map[string]any{}
 	if IsTrue(!IsEqual(symbols, nil)) {
@@ -7440,8 +7436,8 @@ func (this *MexcCore) setMarginModeBody(ch chan any, marginMode any, optionalArg
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes626512 := (<-this.LoadMarkets())
-		PanicOnError(retRes626512)
+		retRes626112 := (<-this.LoadMarkets())
+		PanicOnError(retRes626112)
 	}
 	var market any = this.Market(symbol)
 	if IsTrue(IsEqual(GetValue(market, "spot"), true)) {

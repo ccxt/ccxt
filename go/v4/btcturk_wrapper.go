@@ -475,7 +475,7 @@ func (this *Btcturk) EditOrders(orders []OrderRequest, options ...EditOrdersOpti
 func (this *Btcturk) FetchAccounts(params ...any) ([]Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
 }
-func (this *Btcturk) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
+func (this *Btcturk) FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks, error) {
 	return this.exchangeTyped.FetchAllGreeks(options...)
 }
 func (this *Btcturk) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error) {
@@ -520,7 +520,7 @@ func (this *Btcturk) FetchDepositAddress(code string, options ...FetchDepositAdd
 func (this *Btcturk) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
 	return this.exchangeTyped.FetchDepositAddresses(options...)
 }
-func (this *Btcturk) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
+func (this *Btcturk) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error) {
 	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
 }
 func (this *Btcturk) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {

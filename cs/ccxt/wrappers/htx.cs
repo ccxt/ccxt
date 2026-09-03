@@ -62,38 +62,6 @@ public partial class htx
         return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
     }
     /// <summary>
-    /// fetch all the accounts by a type and marginModeassociated with a profile
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://huobiapi.github.io/docs/spot/v1/en/#get-all-accounts-of-the-current-user"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>marginMode</term>
-    /// <description>
-    /// string : 'cross' or 'isolated'
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>symbol</term>
-    /// <description>
-    /// string : unified ccxt market symbol
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type.</returns>
-    public async Task<Dictionary<string, object>> FetchAccountIdByType(string type, string marginMode = null, string symbol = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchAccountIdByType(type, marginMode, symbol, parameters);
-        return ((Dictionary<string, object>)res);
-    }
-    /// <summary>
     /// helper function to build request
     /// </summary>
     /// <remarks>
