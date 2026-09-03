@@ -1,7 +1,7 @@
 <!-- title: CCXT vs ccapi -->
 <!-- description: ccapi is a header-only C++ library connecting your server straight to exchanges. Compared with CCXT on latency, build complexity, coverage and language reach. -->
 <!-- group: Multi-exchange libraries and frameworks -->
-<!-- summary: ccapi trades breadth for speed — compiled C++17 with nothing between your server and the venue, across roughly twenty exchanges. CCXT covers 104 venues from a package install, in seven languages. -->
+<!-- summary: ccapi trades breadth for speed — compiled C++17 with nothing between your server and the venue, across roughly twenty exchanges. CCXT covers 104 venues from a package install, in eight languages. -->
 <!-- weight: 14 -->
 
 # CCXT vs ccapi
@@ -187,7 +187,7 @@ ccapi is a source build. For C++ you supply C++17 and OpenSSL (`libssl`, `libcry
 
 The bindings are a second build on top: SWIG and CMake, `cmake -DBUILD_PYTHON=ON -DBUILD_VERSION=1.0.0 ..`, then artifacts under `binding/build/<language>/packaging/<version>`. Running them needs the shared library on the right path — `java.library.path` for Java, `LD_LIBRARY_PATH` for C#, `source export_compiler_options.sh` before `go build` for Go, node-gyp for JavaScript. That is all documented and it works; it is simply a different amount of setup from a package manager install.
 
-### Seven languages as first-class targets
+### Eight languages as first-class targets
 
 CCXT's non-TypeScript builds are generated from the same source and published as native packages, with the same method names and return structures in each. ccapi's bindings are SWIG wrappers over the C++ library — the README says each "is nearly identical to C++ API and covers nearly all the functionalities from C++ API" — which means the API you learn is the C++ one, expressed in Python or Go, and the runtime is still the C++ library you compiled.
 

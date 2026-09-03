@@ -27,7 +27,7 @@ That is accurate down to the code. OctoBot-Trading, the engine package, lists `c
 | Exchanges | 104 REST, 76 with WebSocket | "15+" per the README; several dozen exchange tentacles in OctoBot-Tentacles, plus a generic CCXT REST tentacle for the rest |
 | Venues named in the README | n/a — all 104 are supported the same way | Binance, Coinbase, Bybit, Hyperliquid, MEXC, KuCoin, HollaEx-powered exchanges, OKX, Binance US, Crypto.com, HTX, Bitget, BingX, CoinEx, BitMart, Phemex, Gate.io, Ascendex |
 | Prediction markets | 7 venues in `ccxt.prediction` | a Polymarket tentacle |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java | Python |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust | Python |
 | How you use it | import a library, write code | install, then configure a profile; Python only if you write a tentacle |
 | Install | `pip install ccxt` / `npm i ccxt` | executables for Windows, macOS, Linux and Raspberry Pi, Docker image, DigitalOcean one-click, or from source |
 | Strategy engine | none — you write the loop | trading modes: grid, DCA, crypto basket, market making, TradingView, ChatGPT/Ollama |
@@ -190,7 +190,7 @@ You already have it — it is installed as a dependency. You would use it direct
 OctoBot-Trading pins an exact version rather than a range — `ccxt==4.5.28` when this page was written, against CCXT v{{CCXT_VERSION}} current. Pinning is deliberate: the requirements file asks for authenticated exchange tests to pass before the pin changes. If you need something newer, calling CCXT yourself is the way to get it.
 
 **Is CCXT a trading bot?**
-No. CCXT is the exchange-access layer: markets, tickers, order books, candles, orders, balances, positions, funding and transfers, unified across 104 venues in seven languages. It has no strategies, no scheduler, no UI and no backtester. OctoBot is one example of the kind of application built on top of it.
+No. CCXT is the exchange-access layer: markets, tickers, order books, candles, orders, balances, positions, funding and transfers, unified across 104 venues in eight languages. It has no strategies, no scheduler, no UI and no backtester. OctoBot is one example of the kind of application built on top of it.
 
 **Is CCXT's WebSocket support a paid add-on?**
 No. CCXT Pro is bundled in the `ccxt` package under MIT, the same package OctoBot depends on. Use `ccxt.pro.<exchange>` and the `watch*` methods.

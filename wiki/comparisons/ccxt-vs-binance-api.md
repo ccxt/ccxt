@@ -21,7 +21,7 @@ Both work. They optimise for different things, and the right answer depends on o
 | | **CCXT** | **Official Binance SDKs** |
 | --- | --- | --- |
 | Exchanges covered | 104 (Binance is one of them) | Binance only |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | Python, TypeScript/JS, Java, Go, Rust, PHP, Ruby, C# — separate codebases, coverage varies |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | Python, TypeScript/JS, Java, Go, Rust, PHP, Ruby, C# — separate codebases, coverage varies |
 | Packages to install | **1** (`ccxt`) | **one per product line** — 27 published `binance-sdk-*` Python packages |
 | Binance products in one client | spot, margin, USD-M futures, COIN-M futures, options, portfolio margin | separate client class + package per product |
 | Unified market data + trading API | yes — same method names across every exchange | no — Binance's own request/response shapes |
@@ -180,7 +180,7 @@ for exchange_id in ['binance', 'bybit', 'okx', 'coinbase', 'kraken']:
     print(exchange_id, exchange.fetch_ticker('BTC/USDT')['last'])
 ```
 
-### Seven languages, one API
+### Eight languages, one API
 
 CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, so the method names, arguments and return structures are identical in every one of them. A strategy prototyped in a Python notebook ports to a Go or C# execution service without redesigning the data model.
 
@@ -225,7 +225,7 @@ ticker, err := exchange.FetchTicker("BTC/USDT")
 
 <!-- tabs:end -->
 
-Binance publishes connectors in several languages too, but they are separate codebases with separate coverage, separate idioms and separate release schedules — not one API expressed seven ways.
+Binance publishes connectors in several languages too, but they are separate codebases with separate coverage, separate idioms and separate release schedules — not one API expressed eight ways.
 
 ### WebSockets that look like REST
 

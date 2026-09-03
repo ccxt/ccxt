@@ -2,7 +2,7 @@
 <!-- description: CCXT and Cryptofeed both normalise crypto market data across exchanges. They differ on trading, licence, language coverage and storage backends — here is which one fits which job. -->
 <!-- weight: 20 -->
 <!-- group: Multi-exchange libraries and frameworks -->
-<!-- summary: Both normalise market data across venues. Cryptofeed is an AGPL Python feed handler with storage backends; CCXT is an MIT trading API in seven languages. -->
+<!-- summary: Both normalise market data across venues. Cryptofeed is an AGPL Python feed handler with storage backends; CCXT is an MIT trading API in eight languages. -->
 
 # CCXT vs Cryptofeed
 
@@ -11,7 +11,7 @@
 ## TL;DR
 
 - **Cryptofeed** is a Python **market-data feed handler**: subscribe to channels across venues and pipe normalised messages into Redis, Kafka, Postgres, InfluxDB or QuestDB. It is very good at that specific shape of work.
-- **CCXT** is a **unified trading API**: market data *and* order entry, account management, funding, positions and transfers, across 104 venues, in seven languages, under MIT.
+- **CCXT** is a **unified trading API**: market data *and* order entry, account management, funding, positions and transfers, across 104 venues, in eight languages, under MIT.
 - **If you need to place orders, CCXT is the one that does it.** If you need a tick recorder that writes to a time-series database out of the box, Cryptofeed gets you there with less code.
 - **Licensing is the decision-maker for many teams**: Cryptofeed is AGPL-3.0, CCXT is MIT.
 
@@ -21,7 +21,7 @@
 | --- | --- | --- |
 | Primary purpose | unified trading + market data API | market-data feed handler |
 | Exchanges | 104 REST, 76 with WebSocket | roughly two dozen venues |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java | Python only (3.12+) |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust | Python only (3.12+) |
 | Place / cancel / edit orders | yes — unified across every venue | not a unified, supported capability |
 | Balances, positions, funding, transfers, deposits | yes | no |
 | Historical REST queries (OHLCV, trades, orders) | yes, unified | limited |
@@ -110,7 +110,7 @@ CCXT is **MIT** — use it, modify it, ship it closed-source, no reciprocity.
 
 104 exchanges versus roughly two dozen, and CCXT's WebSocket support spans 76 of them. For long-tail venues, regional exchanges, perpetuals-first DEXes and prediction markets, CCXT is frequently the only maintained normalised implementation.
 
-### Seven languages
+### Eight languages
 
 Cryptofeed is Python-only. CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java with identical method names and return structures. Research in Python, execute in Go or C#, without a second data model.
 

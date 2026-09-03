@@ -22,7 +22,7 @@ Bybit's V5 API is one of the tidier exchange APIs: a single `category` parameter
 | | **CCXT** | **Bybit's own + community connectors** |
 | --- | --- | --- |
 | Exchanges covered | 104 (Bybit is one of them) | Bybit only |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | Python, Go, Java, .NET, JS, PHP, Ruby, Rust — separate codebases, very uneven traction |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | Python, Go, Java, .NET, JS, PHP, Ruby, Rust — separate codebases, very uneven traction |
 | Packages to install | **1** (`ccxt`) | one per language, plus a separate `bybit_p2p` package for P2P |
 | Bybit products in one client | spot, linear, inverse, options | yes — V5's `category` parameter does this too |
 | Unified market data + trading API | yes — same method names on every exchange | no — Bybit's own request/response shapes |
@@ -38,7 +38,7 @@ Bybit's V5 API is one of the tidier exchange APIs: a single `category` parameter
 
 <sub>Figures verified September 2026 against CCXT v{{CCXT_VERSION}}, the `bybit-exchange` GitHub organisation's repository listing, the pybit and `bybit-api` repositories and package pages, and install counts from npm and PyPI.</sub>
 
-### One connector per language is not one API in seven languages
+### One connector per language is not one API in eight languages
 
 Bybit's V5 documentation names official SDKs for Python, Go, Java and .NET, and points at a community Node SDK. The organisation also publishes JavaScript, PHP, Ruby and Rust connectors. They are separate codebases with separate idioms, and their adoption is wildly uneven — read on the day this page was written, `pybit` had 671 stars, `bybit.go.api` 85, `bybit-java-api` 41, `bybit.net.api` 27, `bybit-rust-api` 3, and `bybit.js.api`, `bybit.php.api` and `bybit.ruby.api` had none.
 

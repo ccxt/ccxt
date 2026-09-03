@@ -21,7 +21,7 @@ Coinbase publishes more first-party SDKs for INTX than for any of its other trad
 | | **CCXT** | **Coinbase's own INTX SDKs** |
 | --- | --- | --- |
 | Exchanges covered | 104 (Coinbase International is one of them) | Coinbase INTX only |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | Python, Go, Java, TypeScript, .NET — five separate codebases |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | Python, Go, Java, TypeScript, .NET — five separate codebases |
 | Packages to install | **1** (`ccxt`) | one per language, plus one per other Coinbase product you touch |
 | Positioning | production library | "a sample library that demonstrates the usage of the API … only available for demonstration purposes" |
 | Unified market data + trading API | yes — 47 capabilities on `coinbaseinternational` | no — INTX's own shapes |
@@ -203,7 +203,7 @@ CCXT maps INTX's error bodies onto a [typed exception tree](/docs/manual#error-h
 
 `load_markets()` reads INTX's instrument metadata — `base_increment`, `quote_increment`, `min_notional_value`, `position_limit_qty` and the initial-margin factor — and exposes it through `amount_to_precision`, `price_to_precision` and `cost_to_precision`, backed by the `Precise` string-arithmetic class, so quantities never drift through float rounding into a rejected order.
 
-### Seven languages, one API
+### Eight languages, one API
 
 Coinbase's five INTX SDKs are five separate codebases with five release cadences, and none of them is PHP. CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, with identical method names and return structures — `exchange.fetch_ticker('BTC/USDC:USDC')` in Python is `exchange.FetchTicker("BTC/USDC:USDC")` in C# and `exchange.FetchTicker("BTC/USDC:USDC")` in Go, against the same data model.
 

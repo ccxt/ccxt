@@ -13,7 +13,7 @@ The question that decides between them is not which normalises Polymarket better
 ## TL;DR
 
 - **Pick PMXT** if prediction markets are the whole job and you want the widest venue list — its compliance matrix names 15 venues against CCXT's 7 — plus a hosted catalog that searches and matches the same question across venues.
-- **Pick CCXT** if you want a library with nothing between you and the venue: 7 prediction venues *and* 104 spot/derivatives exchanges behind one interface, in 7 languages, with keys that never leave your process.
+- **Pick CCXT** if you want a library with nothing between you and the venue: 7 prediction venues *and* 104 spot/derivatives exchanges behind one interface, in 8 languages, with keys that never leave your process.
 - **The overlap is smaller than the tagline suggests.** PMXT's default mode is a metered hosted API with a free tier and paid plans; CCXT has no service, no API key of its own and no meter. PMXT can also be self-hosted, which narrows the gap considerably.
 
 ## At a glance
@@ -22,7 +22,7 @@ The question that decides between them is not which normalises Polymarket better
 | --- | --- | --- |
 | Prediction venues | 7 — Polymarket, Kalshi, Limitless, Myriad, Opinion, plus Binance and Hyperliquid prediction products | 15 listed in `core/COMPLIANCE.md` |
 | Crypto spot / derivatives exchanges | 104, same unified API | none |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java | TypeScript (`pmxtjs`), Python (`pmxt`) |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust | TypeScript (`pmxtjs`), Python (`pmxt`) |
 | Default network path | your process → the venue | your process → PMXT's hosted API → the venue |
 | Self-hosted option | it is the only mode | yes — `pmxt-core`, no API key, requests go direct to venues |
 | Service API key required | no | yes for hosted mode (`pmxt_api_key`); no for self-hosted |
@@ -143,7 +143,7 @@ On CCXT the private key stays in the process. `ccxt.prediction.polymarket` takes
 
 PMXT's self-hosted mode is described the same way — venue-native credentials, used locally. Its hosted trading path is described differently, as "end-to-end hosted trading with PreFundedEscrow custody". Whether pre-funded escrow is acceptable is a risk decision, not an engineering one, and it is worth making deliberately rather than by accepting the default constructor.
 
-### Seven languages
+### Eight languages
 
 CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, with the same method names and return structures in each. The prediction classes come along: `ccxt.prediction.polymarket()` in Python, `new ccxt.prediction.polymarket()` in C#, `ccxtprediction.NewPolymarket()` in Go. PMXT publishes TypeScript and Python clients.
 

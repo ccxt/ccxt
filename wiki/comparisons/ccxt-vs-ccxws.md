@@ -25,7 +25,7 @@ The repository was archived by its owner on 9 September 2023 and is read-only. S
 | Most recent commit | continuous | 8 October 2021 |
 | Scope | REST + WebSocket, public and private, market data and trading | public realtime streams only |
 | Exchanges | 104 with REST, **76 with WebSocket** | 35 clients listed in the README table |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java | TypeScript / JavaScript |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust | TypeScript / JavaScript |
 | Packages to install | 1 (`ccxt`) | 1 (`ccxws`), usually alongside `ccxt` for markets |
 | Programming model | `await exchange.watch_trades(symbol)` | `client.on('trade', handler)` + `client.subscribeTrades(market)` |
 | Order books | merged, maintained, checksum-verified where the venue publishes one | `l2snapshot` / `l2update` events; prototype book helpers in `src/orderbooks` |
@@ -136,7 +136,7 @@ In CCXT, `watch_order_book` returns the same [structure](/docs/manual#order-book
 
 With CCXT plus ccxws you had two normalisation layers that were *similar* by design but not identical, and the seams — a `Trade` class on one side, a trade dictionary on the other — were yours to reconcile.
 
-### Seven languages
+### Eight languages
 
 ccxws is a TypeScript/JavaScript library, which was the right call for the Node.js pipelines it was built for. CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, with the same method names and return structures in each. A stream consumer prototyped in Python moves to a Go or C# service without a second data model.
 

@@ -28,7 +28,7 @@ They look adjacent because both normalise market data across venues. They are no
 | Balances, positions, funding, transfers, deposits | yes | no |
 | Real-time streaming | yes — `watch*` methods | yes — connects directly to exchanges' public WebSocket APIs |
 | Programming model | `await` a method, get a value back | async iterables — `for await (const message of messages)` |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java | Node.js (`tardis-dev`, ESM-only, Node 24.19+); a Python client (`tardis-dev`, 3.10+) covers exchange-native replay and CSV downloads only |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust | Node.js (`tardis-dev`, ESM-only, Node 24.19+); a Python client (`tardis-dev`, 3.10+) covers exchange-native replay and CSV downloads only |
 | Bulk datasets | none | prebuilt daily-updated CSV files per venue, symbol and day |
 | Raw endpoint access | yes — every venue endpoint as an implicit method | exchange-native replay and streaming preserve the venue's own payloads |
 | Data source | the exchanges' own public APIs, called from your process | tardis.dev's archive, plus direct exchange WebSockets for live |
@@ -158,7 +158,7 @@ Note also that `ftx` and `ftx-us` are still in Tardis's list. For an archive tha
 
 CCXT is **MIT**. tardis-node is **MPL-2.0** — a file-level copyleft: you can link it into proprietary software freely, but modifications to Mozilla-licensed files themselves must be published. That is a far lighter obligation than AGPL, and for most users of a client library it never comes up. The subscription terms for the data are a separate question from the licence on the code.
 
-### Seven languages, one API
+### Eight languages, one API
 
 CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java with identical method names and return structures. Tardis's normalized replay and real-time streaming live in the Node.js client; the Python client's own README states it covers historical replay in exchange-native format and CSV downloads, and directs you to the Node.js client or Tardis Machine for normalized replay and streaming. If your research stack is Python and you want normalized Tardis data, [tardis-machine](https://github.com/tardis-dev/tardis-machine) — a locally runnable HTTP/WebSocket server — is the documented route.
 

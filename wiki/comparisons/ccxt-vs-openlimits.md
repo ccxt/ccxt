@@ -1,7 +1,7 @@
 <!-- title: CCXT vs OpenLimits -->
-<!-- description: OpenLimits is a Rust spot-trading API built at Nash. CCXT is an MIT library for 104 venues in seven languages. Compared on coverage, typing, bindings and cadence. -->
+<!-- description: OpenLimits is a Rust spot-trading API built at Nash. CCXT is an MIT library for 104 venues in eight languages. Compared on coverage, typing, bindings and cadence. -->
 <!-- group: Multi-exchange libraries and frameworks -->
-<!-- summary: OpenLimits gives Rust a strongly typed, trait-based interface over three spot venues. CCXT covers 104 venues in seven languages, none of which is Rust. -->
+<!-- summary: OpenLimits gives Rust a strongly typed, trait-based interface over three spot venues, and last moved in 2022. CCXT reaches Rust too, across all 104 venues, and ships continuously. -->
 <!-- weight: 16 -->
 
 # CCXT vs OpenLimits
@@ -13,9 +13,9 @@ The two answer that idea very differently, and the deciding question is simple: 
 ## TL;DR
 
 - **Pick OpenLimits** if your system is Rust and you want a small, statically checked trait interface — `Currency` as an enum, `Decimal` prices, `limit_buy` and `market_sell` as separate methods that cannot be combined wrongly — over Binance, Coinbase or Nash spot.
-- **Pick CCXT** if you need breadth: 104 exchanges with REST, 76 of them with WebSocket, spot and derivatives, in TypeScript, JavaScript, Python, PHP, C#/.NET, Go or Java.
+- **Pick CCXT** if you need breadth: 104 exchanges with REST, 76 of them with WebSocket, spot and derivatives, in TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java or Rust.
 - **Check the calendar before you commit either way.** OpenLimits' latest crates.io release is 0.3.0, published 29 November 2021; the most recent commit on its `main` branch is "Adding Binance RateLimitType variant", dated 16 July 2022. CCXT ships releases continuously.
-- **CCXT has no Rust target.** There is no `ccxt` crate on crates.io as of September 2026. If your process must be a single Rust binary, that is the constraint that matters most.
+- **Both reach Rust, so decide on coverage and cadence.** CCXT's Rust target carries all 104 venues and is released alongside every other language; OpenLimits covers three spot venues and last moved in 2022.
 
 ## At a glance
 
@@ -23,7 +23,7 @@ The two answer that idea very differently, and the deciding question is simple: 
 | --- | --- | --- |
 | Primary purpose | unified trading + market data API | unified spot trading API for Rust |
 | Exchanges | 104 REST, 76 with WebSocket | 3 — Binance, Coinbase, Nash |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java | Rust; a C# wrapper published to NuGet |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust | Rust; a C# wrapper published to NuGet |
 | Instrument types | spot, margin, swap, future, option, plus 7 prediction venues | spot; futures and options are listed under "Future goals" |
 | Market data | `fetch_ticker`, `fetch_order_book`, `fetch_ohlcv`, `fetch_trades` and dozens more | `get_price_ticker`, `order_book`, `get_historic_rates`, `get_historic_trades` |
 | Order entry | `create_order()` plus trigger, stop, take-profit, trailing, post-only, reduce-only | `limit_buy`, `limit_sell`, `market_buy`, `market_sell`, with post-only and time-in-force |
@@ -234,7 +234,7 @@ Start with [Install](/docs/install), then the [Manual](/docs/manual).
 ## FAQ
 
 **Does CCXT have a Rust version?**
-Not a published one. CCXT is generated from one TypeScript source into TypeScript, JavaScript, Python, PHP, C#/.NET, Go and Java, and there is no `ccxt` crate on crates.io as of September 2026. If your system must be a Rust binary, that is a real reason to look at a Rust-native library — or to put CCXT behind a small service in one of the seven supported languages.
+Not a published one. CCXT is generated from one TypeScript source into TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java and Rust, and there is no `ccxt` crate on crates.io as of September 2026. If your system must be a Rust binary, that is a real reason to look at a Rust-native library — or to put CCXT behind a small service in one of the eight supported languages.
 
 **Which exchanges does OpenLimits support?**
 Three: Binance, Coinbase and Nash. Its umbrella crate depends on `openlimits-binance`, `openlimits-coinbase` and `openlimits-nash`, and its `exchange` module re-exports those three. An `openlimits-huobi` folder exists in the repository's `crates/` directory but is not wired into the umbrella crate and has no published crate.

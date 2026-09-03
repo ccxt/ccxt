@@ -15,7 +15,7 @@ The question that decides between them: **is KuCoin the only venue you will ever
 ## TL;DR
 
 - **Pick the KuCoin Universal SDK** if KuCoin is your only venue, you work in Python, Go or Node, and you want request builders whose fields map one-for-one onto KuCoin's API reference.
-- **Pick CCXT** if you want one dependency and one mental model across KuCoin spot, margin and futures — and across Binance, Bybit, OKX and 100 more the day you add a second venue — in any of seven languages.
+- **Pick CCXT** if you want one dependency and one mental model across KuCoin spot, margin and futures — and across Binance, Bybit, OKX and 100 more the day you add a second venue — in any of eight languages.
 - **The churn is the argument.** KuCoin's SDK layout has changed twice; CCXT absorbed those API changes as version bumps, not as rewrites in your code.
 
 ## At a glance
@@ -23,7 +23,7 @@ The question that decides between them: **is KuCoin the only venue you will ever
 | | **CCXT** | **KuCoin Universal SDK** |
 | --- | --- | --- |
 | Exchanges covered | 104 (KuCoin is one of them) | KuCoin only |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | Python, Go, Node.js; PHP `0.1.3-alpha`, Java `0.1.1-alpha` |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | Python, Go, Node.js; PHP `0.1.3-alpha`, Java `0.1.1-alpha` |
 | Packages to install | 1 (`ccxt`) | 1 (`kucoin-universal-sdk`), replacing the archived per-product SDKs |
 | Spot + margin + futures in one client | yes — one `ccxt.kucoin` instance loads all of them | one SDK, but separate spot / futures / broker services and symbol formats |
 | Unified market data + trading API | yes — 112 unified capabilities, 55 `fetch*` methods | no — KuCoin's own request builders and response models |
@@ -174,7 +174,7 @@ exchange.create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 10000)       # perpetu
 
 CCXT also ships `kucoinfutures` as a separate exchange id — the same implementation restricted to contract markets, with `defaultType` set to `swap` — for people who want a futures-only client.
 
-### Seven languages, one API
+### Eight languages, one API
 
 CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, with identical method names and return structures.
 

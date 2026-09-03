@@ -23,7 +23,7 @@ So the comparison here is not CCXT against a vendor SDK. It is **CCXT against th
 | | **CCXT** | **Raw BYDFi REST API** |
 | --- | --- | --- |
 | Exchanges covered | 104 (BYDFi is one of them) | BYDFi only |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | whatever you write it in |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | whatever you write it in |
 | Official client library | n/a | **none published** — no package on npm or PyPI, no client code on GitHub |
 | Products covered | perpetual futures (linear swaps) | perpetual futures |
 | Unified market data + trading API | yes — 60 capabilities on `bydfi` | no — raw JSON payloads |
@@ -191,7 +191,7 @@ amount = exchange.amount_to_precision('BTC/USDT:USDT', 0.0012345678)
 
 On a leveraged venue this is not cosmetic: a rejected order because a quantity drifted in the last decimal place is a position you did not open or did not close.
 
-### Seven languages, one API
+### Eight languages, one API
 
 CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, with identical method names and return structures. Since BYDFi publishes nothing first-party, every language starts from zero without it.
 
@@ -275,7 +275,7 @@ Start with [Install](/docs/install), then the [Manual](/docs/manual), then the [
 ## FAQ
 
 **Is there an official BYDFi SDK?**
-None was published as of September 2026. There is no `bydfi` package on npm or PyPI, and BYDFi's only GitHub repository, `bydfi-official/api-docs`, contains documentation rather than client code. CCXT is the maintained option in seven languages.
+None was published as of September 2026. There is no `bydfi` package on npm or PyPI, and BYDFi's only GitHub repository, `bydfi-official/api-docs`, contains documentation rather than client code. CCXT is the maintained option in eight languages.
 
 **Does CCXT support BYDFi WebSockets?**
 Yes. `bydfi` has 10 `watch*` methods, including `watch_order_book`, `watch_ohlcv`, `watch_orders`, `watch_positions` and `watch_balance`, plus the `*ForSymbols` multi-symbol variants. Use `ccxt.pro.bydfi`.

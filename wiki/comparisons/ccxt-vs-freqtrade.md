@@ -26,7 +26,7 @@ If you are comparing these two, the first thing to know is that they are not com
 | Spot venues named in the README | n/a — all 104 are supported the same way | Binance, BingX, Bitget, Bybit EU, Bybit, Gate EU, Gate, HTX, Hyperliquid, Kraken, MyOKX, OKX |
 | Futures venues named in the README | n/a | Binance, Bitget, Bybit, Gate, Hyperliquid, Kraken, OKX |
 | Community-tested venues | n/a | Bitvavo, KuCoin |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java | Python 3.11+ |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust | Python 3.11+ |
 | Streaming | `watch*` on 76 exchanges — books, trades, tickers, OHLCV, orders, positions | through `ccxt.pro`, currently limited to OHLCV streams, with REST fallback |
 | Strategy engine | none — you write the loop | `populate_indicators` / `populate_entry_trend` / `populate_exit_trend` on pandas dataframes |
 | Backtesting | none | yes, plus `hyperopt` and FreqAI adaptive modelling |

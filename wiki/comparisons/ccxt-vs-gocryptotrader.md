@@ -13,7 +13,7 @@ The framework part — the `exchanges` package, with a unified Go interface over
 ## TL;DR
 
 - **Pick GoCryptoTrader** if you want the whole apparatus — config, engine, gRPC/JSON-RPC server, CLI, Postgres or SQLite storage, backtester — and its 23 supported venues are the ones you trade. Its README states plainly that "this bot is under development and is not ready for production".
-- **Pick CCXT** if you want a library: 104 venues, 76 with WebSocket, one import, no config file, no engine, and the same API available in seven languages.
+- **Pick CCXT** if you want a library: 104 venues, 76 with WebSocket, one import, no config file, no engine, and the same API available in eight languages.
 - **They are not mutually exclusive.** GoCryptoTrader's exchange wrappers are importable Go packages, and so is CCXT's Go build — nothing stops a Go service from using CCXT for venues GoCryptoTrader does not cover.
 
 ## At a glance
@@ -24,7 +24,7 @@ The framework part — the `exchanges` package, with a unified Go interface over
 | Exchanges | 104 with REST, 76 of them with WebSocket | 23 rows in the README's support table; 20 marked "Yes" for WebSocket |
 | Stated coverage goal | every venue with a maintained implementation | "the top 30 exchanges sorted by average liquidity as ranked by CoinMarketCap" |
 | FIX support | no | the support table's FIX column is "No" or "NA" for every listed exchange |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java | Go (`go.mod` declares `go 1.26`) |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust | Go (`go.mod` declares `go 1.26`) |
 | Setup before the first call | construct the exchange | `SetDefaults()`, then `Setup()` with a validated `*config.Exchange` |
 | Streaming model | `WatchOrderBook` returns the same struct as `FetchOrderBook` | parsed messages are pushed onto `Websocket.DataHandler`, one stream of mixed types |
 | Raw endpoint access | implicit methods for every endpoint — 808 for binance, 446 for okx | the exchange package's own exported request methods |
@@ -170,9 +170,9 @@ The practical consequence: the exchange wrappers *are* importable on their own �
 
 Streaming: 20 of GoCryptoTrader's 23 listed exchanges are marked "Yes" for WebSocket. CCXT's `watch*` methods cover 76.
 
-### Seven languages, one API
+### Eight languages, one API
 
-GoCryptoTrader is Go. CCXT is generated from one TypeScript source into TypeScript, JavaScript, Python, PHP, C#/.NET, Go and Java, with the same method names and return structures in each. If your research runs in a Python notebook and your execution service is in Go, that is one integration rather than two.
+GoCryptoTrader is Go. CCXT is generated from one TypeScript source into TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java and Rust, with the same method names and return structures in each. If your research runs in a Python notebook and your execution service is in Go, that is one integration rather than two.
 
 <!-- tabs:start -->
 
@@ -227,7 +227,7 @@ Both projects hand-write per-exchange code; the difference is how many times.
 
 GoCryptoTrader's `docs/ADD_NEW_EXCHANGE.md` is 1,117 lines. The path starts with the templating tool (`go run exchange_template.go -name Binance -ws -rest`), then adds a struct to `config_example.json` and `testdata/configtest.json`, registers the venue in `exchanges/support.go`, adds it to the root README template, writes the requester and public/authenticated functions, fills in the wrapper functions, and wires up the WebSocket connection, subscription generation and message handling.
 
-CCXT's per-exchange work happens once, in one TypeScript file, and is transpiled into all seven languages by the build. A venue added this week is available in Python, Go, C#, PHP, Java and JavaScript in the same release.
+CCXT's per-exchange work happens once, in one TypeScript file, and is transpiled into all eight languages by the build. A venue added this week is available in Python, Go, C#, PHP, Java and JavaScript in the same release.
 
 ### Versioning and distribution
 

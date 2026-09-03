@@ -1,7 +1,7 @@
 <!-- title: CCXT vs the Hyperliquid API and the official Hyperliquid SDK -->
 <!-- description: CCXT and hyperliquid-python-sdk compared on EIP-712 signing, language coverage, streaming, rate limits and portability, with the same tasks written both ways. -->
 <!-- group: Exchange APIs and official SDKs -->
-<!-- summary: Hyperliquid's whole API is two POST endpoints plus an EIP-712 signature. The official SDK covers it in Python and Rust; CCXT does the same signing in seven languages, behind the API it uses for 103 other venues. -->
+<!-- summary: Hyperliquid's whole API is two POST endpoints plus an EIP-712 signature. The official SDK covers it in Python and Rust; CCXT does the same signing in eight languages, behind the API it uses for 103 other venues. -->
 <!-- weight: 100 -->
 
 # CCXT vs the Hyperliquid API and the official Hyperliquid SDK
@@ -14,8 +14,8 @@ The question that decides it: **is Hyperliquid the only venue you will trade, in
 
 ## TL;DR
 
-- **Pick the official SDK** if Hyperliquid is your only venue, you work in Python or Rust, and you want the request payloads to match Hyperliquid's action reference literally — `order`, `modify`, `twapOrder`, `approveAgent` and the rest.
-- **Pick CCXT** if you want `create_order` to mean the same thing on Hyperliquid, Binance, Bybit and OKX, in any of seven languages, with the EIP-712 signing, nonce handling and order-book maintenance already written.
+- **Pick the official SDK** if Hyperliquid is your only venue and you want the request payloads to match Hyperliquid's action reference literally — `order`, `modify`, `twapOrder`, `approveAgent` and the rest.
+- **Pick CCXT** if you want `create_order` to mean the same thing on Hyperliquid, Binance, Bybit and OKX, in any of eight languages, with the EIP-712 signing, nonce handling and order-book maintenance already written.
 - **Signing is not the thing you give up.** CCXT takes `walletAddress` and `privateKey` as first-class credentials and packs, hashes and signs each action itself — no `eth_account`, no separate signer, and the same code path in Python, Go, C#, PHP, Java, JS and TypeScript.
 
 ## At a glance
@@ -23,7 +23,7 @@ The question that decides it: **is Hyperliquid the only venue you will trade, in
 | | **CCXT** | **Official Hyperliquid SDK** |
 | --- | --- | --- |
 | Venues covered | 104 (Hyperliquid is one of them) | Hyperliquid only |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | Python and Rust, separate codebases |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | Python and Rust, separate codebases |
 | Packages to install | 1 (`ccxt`) | `hyperliquid-python-sdk` plus `eth-account` for signing |
 | Unified market data + trading API | yes — 73 unified capabilities, 28 `fetch*` methods | no — Hyperliquid's own action and response shapes |
 | On-chain signing | done for you from `walletAddress` + `privateKey` | you construct a `LocalAccount` and pass it in |
@@ -172,7 +172,7 @@ for exchange_id, symbol in venues.items():
 
 Basis trades, cross-venue hedges and DEX-versus-CEX arbitrage stop being two integrations with a translation layer between them.
 
-### Seven languages, one API
+### Eight languages, one API
 
 CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, with identical method names and return structures.
 
@@ -206,7 +206,7 @@ ticker, err := exchange.FetchTicker("BTC/USDC:USDC")
 
 <!-- tabs:end -->
 
-The official SDKs cover Python and Rust. If your execution service is Go, C# or Java, CCXT is the shorter path.
+The official SDKs cover Python and Rust; CCXT covers both of those and Go, C#, PHP, Java, JavaScript and TypeScript from one source.
 
 ### Rate limits you do not have to model
 
@@ -248,13 +248,13 @@ That is the honest version of this section: on Hyperliquid nearly all the value 
 
 Real advantages, not padding:
 
-- **There is an official Rust SDK.** CCXT ships seven languages and Rust is not one of them. If your execution path is Rust, [`hyperliquid-rust-sdk`](https://github.com/hyperliquid-dex/hyperliquid-rust-sdk) is the maintained option and CCXT is not in the running.
+- **A Rust SDK written as Rust.** [`hyperliquid-rust-sdk`](https://github.com/hyperliquid-dex/hyperliquid-rust-sdk) is first-party and idiomatic to the language. CCXT reaches Rust too, but through a crate generated from the same TypeScript source as its other targets, so it reads like CCXT rather than like Rust.
 - **One-to-one with Hyperliquid's action reference.** Hyperliquid documents `order`, `modify`, `batchModify`, `scheduleCancel`, `twapOrder`, `approveAgent`, `approveBuilderFee`, `tokenDelegate`, `reserveRequestWeight` and more. The SDK's methods track that list literally, so debugging against the docs is one hop instead of two.
 - **New actions land there first.** When Hyperliquid ships a new action type, the venue's own SDK is where it appears first; a *unified* CCXT wrapper for it may follow later.
 - **Signer flexibility.** The SDK's examples read an encrypted keystore file with a password prompt and support multi-sig authorised-user wallets, because signing is delegated to `eth_account`. CCXT takes a raw `privateKey` in the constructor.
 - **Smaller dependency for a single-venue Python bot.** If Hyperliquid is all you will ever touch and you are in Python, the SDK is a smaller install than all of CCXT.
 
-If you are writing a Hyperliquid-only bot in Python or Rust and you want your code to read like the Hyperliquid docs, the official SDK is the better fit.
+If you are writing a Hyperliquid-only bot and you want your code to read like the Hyperliquid docs, the official SDK is the better fit.
 
 ## If you want CCXT but only this one venue
 
@@ -289,7 +289,7 @@ Start with [Install](/docs/install), then the [Manual](/docs/manual), then the [
 ## FAQ
 
 **Does CCXT sign Hyperliquid orders itself, or do I need eth_account?**
-CCXT signs them itself. You pass `walletAddress` and `privateKey` to the constructor and the library msgpack-encodes the action, keccak-hashes it with the nonce, builds the EIP-712 typed-data struct and produces the secp256k1 signature. There is no `eth_account` dependency, and the same path exists in all seven CCXT languages.
+CCXT signs them itself. You pass `walletAddress` and `privateKey` to the constructor and the library msgpack-encodes the action, keccak-hashes it with the nonce, builds the EIP-712 typed-data struct and produces the secp256k1 signature. There is no `eth_account` dependency, and the same path exists in all eight CCXT languages.
 
 **Can I use a Hyperliquid API wallet (agent wallet) with CCXT?**
 Yes. Pass the API wallet's private key as `privateKey` and your main account's address as `walletAddress` — the same split the official SDK expresses as `LocalAccount` plus `account_address`. For vaults and subaccounts, pass `vaultAddress` in `params`.

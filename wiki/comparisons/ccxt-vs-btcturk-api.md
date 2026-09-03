@@ -23,7 +23,7 @@ So the real comparison is not CCXT against a vendor SDK. It is **CCXT against th
 | | **CCXT** | **Raw BTCTurk REST API** |
 | --- | --- | --- |
 | Exchanges covered | 104 (BTCTurk is one of them) | BTCTurk only |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | whatever you write it in |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | whatever you write it in |
 | Packages to install | **1** (`ccxt`) | an HTTP client plus your own wrapper |
 | First-party client library | n/a | C# (2021, 2017) and Objective-C (2015) only |
 | Unified market data + trading API | yes — 14 capabilities on `btcturk` | no — raw JSON payloads |
@@ -134,7 +134,7 @@ amount = exchange.amount_to_precision('BTC/TRY', 0.0012345678)
 price = exchange.price_to_precision('BTC/TRY', 3123456.789)
 ```
 
-### Seven languages, one API
+### Eight languages, one API
 
 CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, with identical method names and structures. BTCTurk's only first-party clients are C# and Objective-C, so in every other language you are starting from zero.
 

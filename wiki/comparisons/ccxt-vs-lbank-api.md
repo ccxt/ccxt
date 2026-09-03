@@ -23,7 +23,7 @@ The question that decides between them: **do you want a signed HTTP transport, o
 | | **CCXT** | **Official LBank connectors** |
 | --- | --- | --- |
 | Exchanges covered | 104 (LBank is one of them) | LBank only |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | Python, Java, Go, Node.js — four separate repositories |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | Python, Java, Go, Node.js — four separate repositories |
 | Programming model | unified methods returning parsed structures | `http_request("get", "v2/currencyPairs.do")` returning raw JSON |
 | Unified capabilities | 39, of which 26 are `fetch*` | n/a |
 | Symbols | `'BTC/USDT'` spot, `'BTC/USDT:USDT'` contract | `btc_usdt` |
@@ -154,7 +154,7 @@ The connector's `http_request("get", "v2/currencyPairs.do")` model means the end
 
 CCXT's `lbank` loads both LBank's spot pairs and its perpetual contracts (from LBank's separate contract host) into one market map — `'BTC/USDT'` and `'BTC/USDT:USDT'`. Order entry is spot; contract markets give you `fetch_ticker`, `fetch_ohlcv`, `fetch_order_book` and `fetch_funding_rates` under the same method names you use everywhere else. The official connectors' documented examples cover the spot `.do` endpoints only.
 
-### Seven languages, one API
+### Eight languages, one API
 
 LBank publishes four connectors, and they are four separate codebases with visibly different levels of adoption — 15, 3, 1 and 1 GitHub stars respectively. CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java with identical method names and return structures:
 

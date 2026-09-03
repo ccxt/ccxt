@@ -21,7 +21,7 @@ So this is not a comparison of two SDKs. It is a comparison between [CCXT](/docs
 | | **CCXT** | **Raw Tokocrypto API** |
 | --- | --- | --- |
 | Exchanges covered | 104 (Tokocrypto is one of them) | Tokocrypto only |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | whatever you write it in |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | whatever you write it in |
 | Official client library | — | none published; the docs name CCXT as the authorized SDK provider |
 | Install | `pip install ccxt` / `npm i ccxt` | your own HTTP client |
 | Products covered | spot and margin | spot and margin |
@@ -154,7 +154,7 @@ CCXT maps Tokocrypto's numeric codes onto a [typed exception tree](/docs/manual#
 
 Tokocrypto market ids are underscore-delimited (`BTC_USDT`), and market data via the Binance path uses the concatenated form (`BTCUSDT`). CCXT normalises both to `'BTC/USDT'` and does the translation at the boundary, so a symbol that works in your Tokocrypto code works unchanged in your Binance or Bybit code.
 
-### Seven languages, one API
+### Eight languages, one API
 
 CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, with identical method names and return structures. A strategy prototyped in a Python notebook ports to a Go or C# execution service without redesigning the data model.
 

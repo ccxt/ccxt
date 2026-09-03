@@ -1,7 +1,7 @@
 <!-- title: CCXT vs the XT.com API and pyxt -->
 <!-- description: CCXT compared with XT.com's own connectors on signing schemes, the four API hosts, order-book streaming, language coverage and unified structures. -->
 <!-- group: Exchange APIs and official SDKs -->
-<!-- summary: XT.com splits spot, USDT-M, COIN-M and user endpoints across four hosts with two different signing schemes, and ships one Python connector plus per-language demo repos. CCXT covers all of it from one client in seven languages. -->
+<!-- summary: XT.com splits spot, USDT-M, COIN-M and user endpoints across four hosts with two different signing schemes, and ships one Python connector plus per-language demo repos. CCXT covers all of it from one client in eight languages. -->
 <!-- weight: 100 -->
 
 # CCXT vs the XT.com API and pyxt
@@ -21,7 +21,7 @@ The question that decides between them: **do you want a thin wrapper that mirror
 | | **CCXT** | **XT's own connectors** |
 | --- | --- | --- |
 | Exchanges covered | 104 (XT is one of them) | XT only |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | Python (`pyxt`), JavaScript (`xt-open-api`), Java (`xt4-java-demo`); demo repos in Go and C# |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | Python (`pyxt`), JavaScript (`xt-open-api`), Java (`xt4-java-demo`); demo repos in Go and C# |
 | Packages to install | 1 (`ccxt`) | 1 per language, plus clone-and-run demo repos for Go, C# and Node.js |
 | XT products in one client | spot, margin, USDT-M futures, COIN-M futures | separate client class per product (`pyxt.spot`, `pyxt.perp`) |
 | Unified market data + trading API | yes — 68 unified capabilities, 33 `fetch*` methods | no — XT's own request/response shapes |

@@ -1,7 +1,7 @@
 <!-- title: CCXT vs the raw BIT.TEAM API -->
 <!-- description: BIT.TEAM publishes no SDK — its GitHub organisation is empty and its own docs name CCXT as the integration path. Raw HTTP vs 20 unified methods. -->
 <!-- group: Exchange APIs and official SDKs -->
-<!-- summary: BIT.TEAM has no client library in any language, and several of its REST endpoints are literally named /trade/api/ccxt/. CCXT is the integration path the venue points at, in seven languages. -->
+<!-- summary: BIT.TEAM has no client library in any language, and several of its REST endpoints are literally named /trade/api/ccxt/. CCXT is the integration path the venue points at, in eight languages. -->
 <!-- weight: 100 -->
 
 # CCXT vs the raw BIT.TEAM API
@@ -13,7 +13,7 @@ That is the whole comparison in one sentence. BIT.TEAM's GitHub organisation, [b
 ## TL;DR
 
 - **Write it yourself** if you need one or two endpoints, in one language, and would rather not take a dependency.
-- **Pick CCXT** for anything larger: 20 unified capabilities, 16 of them `fetch*`, plus all 25 BIT.TEAM endpoints as implicit methods, from TypeScript, JavaScript, Python, PHP, C#/.NET, Go and Java.
+- **Pick CCXT** for anything larger: 20 unified capabilities, 16 of them `fetch*`, plus all 25 BIT.TEAM endpoints as implicit methods, from TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java and Rust.
 - **There is no WebSocket option on either side of this page.** CCXT implements zero `watch*` methods for BIT.TEAM. If you need live data you are polling, whichever route you take.
 
 ## At a glance
@@ -21,7 +21,7 @@ That is the whole comparison in one sentence. BIT.TEAM's GitHub organisation, [b
 | | **CCXT** | **Raw BIT.TEAM API** |
 | --- | --- | --- |
 | Exchanges covered | 104 (BIT.TEAM is one of them) | BIT.TEAM only |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | whatever you write |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | whatever you write |
 | Official vendor SDK | not applicable | none published; the GitHub organisation has no public repositories |
 | Unified market data + trading API | yes — same method names across every exchange | no — BIT.TEAM's own payloads |
 | BIT.TEAM capabilities implemented | 20 unified methods, 16 of them `fetch*` | you implement what you need |
@@ -112,7 +112,7 @@ for exchange_id in ['bitteam', 'binance', 'kraken', 'okx']:
     print(exchange_id, exchange.fetch_ticker('BTC/USDT')['last'])
 ```
 
-### Seven languages, one API
+### Eight languages, one API
 
 CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, with identical method names and return structures. A BIT.TEAM integration prototyped in Python moves to a Go or C# service without a second parsing layer.
 

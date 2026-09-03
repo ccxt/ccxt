@@ -15,7 +15,7 @@ The question that decides between them: **do you need LATOKEN's STOMP WebSocket 
 ## TL;DR
 
 - **Pick LATOKEN's own client** if you need live streaming — LATOKEN's WebSocket API is STOMP-based, its Python client wraps it, and **CCXT does not implement WebSocket support for `latoken`**.
-- **Pick CCXT** if you want REST market data and trading as unified methods with real symbols instead of UUID pairs, in seven languages, alongside every other venue in one codebase.
+- **Pick CCXT** if you want REST market data and trading as unified methods with real symbols instead of UUID pairs, in eight languages, alongside every other venue in one codebase.
 - **Nothing is hidden either way.** All 52 LATOKEN endpoints are callable in CCXT as [implicit methods](/docs/exchanges/latoken/implicit-api), signed and rate-limited.
 
 ## At a glance
@@ -23,7 +23,7 @@ The question that decides between them: **do you need LATOKEN's STOMP WebSocket 
 | | **CCXT** | **LATOKEN official clients** |
 | --- | --- | --- |
 | Exchanges covered | 104 (LATOKEN is one of them) | LATOKEN only |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | Python, C#/.NET, Java — three separate repositories |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | Python, C#/.NET, Java — three separate repositories |
 | Symbols | `'BTC/USDT'` | a pair of currency UUIDs, `baseCurrency` / `quoteCurrency` |
 | Unified capabilities | 22, of which 15 are `fetch*` | n/a — LATOKEN's own shapes |
 | WebSockets | **no** — `latoken` has no `watch*` methods in CCXT | yes — STOMP, with asyncio multi-stream subscribe |
@@ -104,7 +104,7 @@ CCXT signs the request the way LATOKEN requires — HMAC-SHA512 over the HTTP me
 
 `load_markets()` is the whole feature. CCXT fetches LATOKEN's currencies and pairs, resolves each pair's `baseCurrency` and `quoteCurrency` UUIDs to their tags, and builds a market map keyed by `'BTC/USDT'`. Every method after that takes a symbol, and `market['id']` still holds the LATOKEN identifier for when you need it.
 
-### Seven languages, one API
+### Eight languages, one API
 
 LATOKEN publishes Python, .NET and Java clients as three separate repositories with three separate cadences — most recently updated in July 2024, March 2024 and February 2022. CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java with identical method names and return structures:
 

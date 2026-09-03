@@ -1,12 +1,12 @@
 <!-- title: CCXT vs the Coincheck API and the coincheckjp libraries -->
-<!-- description: Coincheck publishes client libraries in seven languages, most years old. Compare them with CCXT on upkeep, market coverage, streaming and rate limits. -->
+<!-- description: Coincheck publishes client libraries in eight languages, most years old. Compare them with CCXT on upkeep, market coverage, streaming and rate limits. -->
 <!-- group: Exchange APIs and official SDKs -->
-<!-- summary: Coincheck's official libraries cover seven languages but only the Ruby one has been touched recently. CCXT is maintained across seven languages and adds streaming — while covering fewer Coincheck markets than the venue lists. -->
+<!-- summary: Coincheck's official libraries cover eight languages but only the Ruby one has been touched recently. CCXT is maintained across eight languages and adds streaming — while covering fewer Coincheck markets than the venue lists. -->
 <!-- weight: 100 -->
 
 # CCXT vs the Coincheck API and the coincheckjp libraries
 
-[Coincheck](https://coincheck.com) is a Japanese JPY-denominated exchange with a REST API and a WebSocket feed, documented at [coincheck.com/documents/exchange/api](https://coincheck.com/documents/exchange/api). It publishes official client libraries under the [`coincheckjp`](https://github.com/coincheckjp) GitHub organisation in seven languages.
+[Coincheck](https://coincheck.com) is a Japanese JPY-denominated exchange with a REST API and a WebSocket feed, documented at [coincheck.com/documents/exchange/api](https://coincheck.com/documents/exchange/api). It publishes official client libraries under the [`coincheckjp`](https://github.com/coincheckjp) GitHub organisation in eight languages.
 
 [CCXT](/docs/manual) covers the same API as the exchange id `coincheck`, with 16 unified capabilities, 2 `watch*` streaming methods and all 32 endpoints. The two are close enough in scope that the honest deciding question is about upkeep: **which of these has been touched this year, in your language?**
 
@@ -21,7 +21,7 @@
 | | **CCXT** | **`coincheckjp` libraries** |
 | --- | --- | --- |
 | Exchanges covered | 104 (Coincheck is one of them) | Coincheck only |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | Ruby, Node, Go, PHP, Python, Java, C# — seven separate repositories |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | Ruby, Node, Go, PHP, Python, Java, C# — seven separate repositories |
 | Most recent update per language | one library, released continuously | Ruby July 2026; Node December 2023; Go November 2023; PHP June 2020; Python May 2019; Java August 2017; C# March 2017 |
 | Unified market data + trading API | yes — 16 capabilities on `coincheck` | no — Coincheck's own payloads |
 | Unified markets exposed | 5 (`BTC/JPY`, `ETC/JPY`, `FCT/JPY`, `MONA/JPY`, `ETC/BTC`) | whatever the API accepts |
@@ -155,7 +155,7 @@ Coincheck also documents **private** WebSocket channels for order events and exe
 
 ### Seven maintained languages, one API
 
-This is the crux. Coincheck's libraries are seven independent repositories written at different times; CCXT is one library transpiled from a single TypeScript source into seven languages, with identical method names and structures and a continuous release cadence.
+This is the crux. Coincheck's libraries are seven independent repositories written at different times; CCXT is one library transpiled from a single TypeScript source into eight languages, with identical method names and structures and a continuous release cadence.
 
 <!-- tabs:start -->
 
@@ -278,7 +278,7 @@ Five, as unified markets: `BTC/JPY`, `ETC/JPY`, `FCT/JPY`, `MONA/JPY` and `ETC/B
 CCXT raises `BadSymbol` for other symbols on that method, because Coincheck's ticker endpoint is oriented around its main pair. `fetch_order_book`, `fetch_trades` and the order methods are not restricted that way.
 
 **Is the official Coincheck Python library maintained?**
-`coincheckjp/coincheck-python` was last pushed in May 2019. The most recently maintained official Coincheck library is the Ruby one, `ruby_coincheck_client`, updated in July 2026. CCXT ships releases continuously across seven languages.
+`coincheckjp/coincheck-python` was last pushed in May 2019. The most recently maintained official Coincheck library is the Ruby one, `ruby_coincheck_client`, updated in July 2026. CCXT ships releases continuously across eight languages.
 
 **Does CCXT support Coincheck WebSockets?**
 Partially. `coincheck` has 2 `watch*` methods — `watch_order_book` and `watch_trades` — covering Coincheck's public channels. The documented private order-event and execution-event channels are not implemented, so poll those over REST.

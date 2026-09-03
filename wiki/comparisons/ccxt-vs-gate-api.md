@@ -1,7 +1,7 @@
 <!-- title: CCXT vs the Gate API and gateapi-python -->
 <!-- description: CCXT compared with Gate's OpenAPI-generated SDKs on package count, REST versus WebSocket split, language coverage, rate limits and unified structures. -->
 <!-- group: Exchange APIs and official SDKs -->
-<!-- summary: Gate's official clients are generated from its OpenAPI spec, so coverage is exhaustive but machine-shaped, and WebSockets live in a second package. CCXT is a curated unified API in seven languages with REST and streaming in one install. -->
+<!-- summary: Gate's official clients are generated from its OpenAPI spec, so coverage is exhaustive but machine-shaped, and WebSockets live in a second package. CCXT is a curated unified API in eight languages with REST and streaming in one install. -->
 <!-- weight: 100 -->
 
 # CCXT vs the Gate API and gateapi-python
@@ -23,7 +23,7 @@ The choice comes down to one question: **do you want a client shaped like Gate's
 | | **CCXT** | **Official Gate SDKs** |
 | --- | --- | --- |
 | Exchanges covered | 104 (Gate is one of them) | Gate only |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | Python, Node/TypeScript, Go, Java, PHP, C# — separate generated codebases |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | Python, Node/TypeScript, Go, Java, PHP, C# — separate generated codebases |
 | Packages to install | **1** (`ccxt`) — REST and WebSocket | **2** in Python: `gate-api` for REST, `gate-ws` for streaming |
 | Gate products in one client | spot, margin, perpetual futures, delivery futures, options | one generated API class per product line (`SpotApi`, `FuturesApi`, `OptionsApi`, `UnifiedApi`, `AccountApi`, …) |
 | Unified market data + trading API | yes — 115 unified capabilities, 51 `fetch*` methods | no — Gate's generated request and response models |
@@ -180,7 +180,7 @@ exchange.create_order('BTC/USD:BTC', 'limit', 'buy', 1, 60000)           # inver
 
 With the official SDK each of those is a different generated API class with its own models and its own settle-currency plumbing.
 
-### Seven languages, one API
+### Eight languages, one API
 
 CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, with identical method names and return structures.
 
@@ -204,7 +204,7 @@ ticker = exchange.fetch_ticker('BTC/USDT')
 
 <!-- tabs:end -->
 
-Gate also publishes clients in six languages, but they are six generated codebases with six idioms — not one API expressed seven ways. A strategy prototyped in Python ports to Go or C# without redesigning the data model.
+Gate also publishes clients in six languages, but they are six generated codebases with six idioms — not one API expressed eight ways. A strategy prototyped in Python ports to Go or C# without redesigning the data model.
 
 ### Rate limits you do not have to model
 

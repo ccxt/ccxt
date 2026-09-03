@@ -1,7 +1,7 @@
 <!-- title: CCXT vs Blankly -->
 <!-- description: Blankly is a Python strategy framework with backtesting and paper trading; CCXT is a connectivity library. Compared on venues, asset classes and licence. -->
 <!-- group: Multi-exchange libraries and frameworks -->
-<!-- summary: Blankly gives you a backtester, paper trading and stocks and forex alongside crypto; CCXT gives you 104 crypto venues in seven languages and no strategy layer at all. They solve different halves of the problem. -->
+<!-- summary: Blankly gives you a backtester, paper trading and stocks and forex alongside crypto; CCXT gives you 104 crypto venues in eight languages and no strategy layer at all. They solve different halves of the problem. -->
 <!-- weight: 44 -->
 
 # CCXT vs Blankly
@@ -13,7 +13,7 @@ They overlap on one layer — placing an order on more than one venue through on
 ## TL;DR
 
 - **Pick Blankly** if you want a backtest engine, paper trading, a scheduling loop and stocks or forex alongside crypto, all in Python, and its venue list covers what you trade.
-- **Pick CCXT** if you need exchange coverage — 104 venues, 76 of them with WebSocket — in any of seven languages, and you already have (or intend to write) your own strategy layer.
+- **Pick CCXT** if you need exchange coverage — 104 venues, 76 of them with WebSocket — in any of eight languages, and you already have (or intend to write) your own strategy layer.
 - **CCXT does not backtest and does not paper trade.** That is not an omission a future release fixes; it is outside what the library is. If backtesting is the reason you are reading this, that is the finding.
 
 ## At a glance
@@ -24,7 +24,7 @@ They overlap on one layer — placing an order on more than one venue through on
 | Crypto exchanges | 104 REST, 76 with WebSocket | Coinbase Pro, Binance, Binance Futures, KuCoin, OKX, FTX, FTX Futures, Kraken (in development) |
 | Non-crypto venues | none | Alpaca (US equities), OANDA (forex) |
 | Prediction markets | 7 venues in `ccxt.prediction` | none |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java | Python (README lists 3.7–3.10 as tested) |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust | Python (README lists 3.7–3.10 as tested) |
 | Backtesting | **no** | **yes** — event-driven, with custom event streams |
 | Paper trading | no — exchange sandboxes via `setSandboxMode(true)` | yes — `PaperTrade` wrapper on any exchange |
 | Strategy runtime | no — you write the loop | yes — `Strategy` + `add_price_event`, scheduling and warm-up handled |
@@ -147,7 +147,7 @@ Blankly passes venue-shaped symbols through — `'BTC-USD'` on Coinbase Pro, `'A
 
 The same applies below the symbol: CCXT returns a fixed [order](/docs/manual#order-structure), [ticker](/docs/manual#ticker-structure) and [order book](/docs/manual#order-book-structure) structure with the same keys, types and units on every exchange, and does its precision and rounding in string arithmetic so a float never eats a satoshi.
 
-### Seven languages, one API
+### Eight languages, one API
 
 Blankly is Python. CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java with identical method names and return structures, so research in Python and execution in Go share a data model rather than a translation layer.
 

@@ -13,7 +13,7 @@ That would make the two incomparable, except for one thing: unlike most Python t
 ## TL;DR
 
 - **Pick Hummingbot** if you want a market maker running today rather than a codebase to write — with paper trading, a backtesting dashboard, an executor library and an encrypted keystore — and your venues are on its connector list. It also reaches on-chain AMM DEXes, which CCXT does not.
-- **Pick CCXT** if you are building your own system and want venue access as a library: 104 exchanges, 76 of them streaming, in TypeScript, JavaScript, Python, PHP, C#/.NET, Go or Java, with every raw endpoint still reachable.
+- **Pick CCXT** if you are building your own system and want venue access as a library: 104 exchanges, 76 of them streaming, in TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java or Rust, with every raw endpoint still reachable.
 - **They are not really rivals.** Hummingbot competes with the strategy engine you would otherwise write. CCXT competes with the connector layer underneath it. Plenty of teams run a Hummingbot instance for market making and CCXT for everything else.
 
 ## At a glance
@@ -25,7 +25,7 @@ That would make the two incomparable, except for one thing: unlike most Python t
 | Centralised venues | 104 REST, 76 with WebSocket | 24 CLOB CEX rows in the README connector tables |
 | On-chain venues | none | 8 CLOB DEX and 12 AMM DEX rows; AMM access runs through the separate Gateway service |
 | Prediction markets | 7 venues in `ccxt.prediction` | not listed |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java | Python, with Cython extensions |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust | Python, with Cython extensions |
 | Install | `pip install ccxt` / `npm i ccxt` | Anaconda/Miniconda + `make install` from source, or Docker Compose |
 | Strategy engine | none — you write the loop | scripts, V2 controllers, executors, legacy V1 strategies |
 | Backtesting | none | yes, on controller pages in the Hummingbot Dashboard |

@@ -1,7 +1,7 @@
 <!-- title: CCXT vs the Foxbit API and the official Foxbit SDK -->
 <!-- description: CCXT and Foxbit's official REST v3 SDK compared on language coverage, unified structures, signing, rate limits, precision and error handling. -->
 <!-- group: Exchange APIs and official SDKs -->
-<!-- summary: Foxbit's official SDK is a JavaScript and TypeScript REST client. CCXT covers the same REST v3 surface in seven languages with 37 unified capabilities — neither ships WebSocket support beyond Foxbit's own JS sample. -->
+<!-- summary: Foxbit's official SDK is a JavaScript and TypeScript REST client. CCXT covers the same REST v3 surface in eight languages with 37 unified capabilities — neither ships WebSocket support beyond Foxbit's own JS sample. -->
 <!-- weight: 100 -->
 
 # CCXT vs the Foxbit API and the official Foxbit SDK
@@ -15,7 +15,7 @@ The question that decides it: **are you writing JavaScript, and is Foxbit your o
 ## TL;DR
 
 - **Pick the official SDK** if you are in JavaScript or TypeScript, Foxbit is your only venue, and you want typed models that match Foxbit's own API surface one-for-one.
-- **Pick CCXT** if you want unified symbols and structures, seven languages, a built-in rate limiter and typed errors — the same code shape you already use for Binance or Kraken.
+- **Pick CCXT** if you want unified symbols and structures, eight languages, a built-in rate limiter and typed errors — the same code shape you already use for Binance or Kraken.
 - **Neither side streams.** CCXT implements **no `watch*` methods for Foxbit**, and the official SDK is REST-only — its name says so. Foxbit's WebSocket v2 has one sample, in JavaScript, in the samples repository. If you need live streams from Foxbit, that is a hand-written integration either way.
 
 ## At a glance
@@ -23,7 +23,7 @@ The question that decides it: **are you writing JavaScript, and is Foxbit your o
 | | **CCXT** | **@foxbit-group/rest-api** |
 | --- | --- | --- |
 | Venues covered | 104 (Foxbit is one of them) | Foxbit only |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | JavaScript and TypeScript |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | JavaScript and TypeScript |
 | Packages to install | 1 (`ccxt`) | 1 (`@foxbit-group/rest-api`) |
 | Unified market data + trading API | yes — 37 unified capabilities, 24 `fetch*` methods | no — Foxbit's own request and response models |
 | Instrument addressing | unified symbols: `'BTC/BRL'`, `'BTC/USDT'` | market symbols: `btcbrl` |
@@ -128,7 +128,7 @@ CCXT builds that string and those headers internally, including the awkward part
 
 ## Where the differences actually bite
 
-### Seven languages, not two
+### Eight languages, not two
 
 This is the biggest practical difference. Foxbit's samples repository has raw REST v3 examples in twelve languages, but the **official SDK is JavaScript and TypeScript only**. If your service is Python, Go, C#, PHP or Java, the SDK is not available to you and the samples are starting points you finish yourself.
 
@@ -213,7 +213,7 @@ Browse them on the [Foxbit implicit API page](/docs/exchanges/foxbit/implicit-ap
 Real advantages, not padding:
 
 - **Typed models that match Foxbit's API exactly.** Full TypeScript typing, built-in parameter validation and automatic error handling, against Foxbit's own request and response shapes. When you are reading Foxbit's reference while debugging, that is one hop instead of two.
-- **Twelve languages of raw samples.** The `foxbit-api-samples` repository has REST v3 examples in JavaScript, TypeScript, Go, Python, Ruby, PHP, C#, Java, C++, Dart, Kotlin and Swift. Dart, Kotlin, Swift, Ruby and C++ are outside CCXT's seven languages entirely — if you are writing a Flutter or iOS app, that is where you start.
+- **Twelve languages of raw samples.** The `foxbit-api-samples` repository has REST v3 examples in JavaScript, TypeScript, Go, Python, Ruby, PHP, C#, Java, C++, Dart, Kotlin and Swift. Dart, Kotlin, Swift, Ruby and C++ are outside CCXT's eight languages entirely — if you are writing a Flutter or iOS app, that is where you start.
 - **The WebSocket v2 sample.** Foxbit's samples repository has a JavaScript WebSocket example. CCXT has no streaming support for Foxbit at all, so live data means the raw socket regardless.
 - **New endpoints on day one.** Whatever Foxbit ships appears in their own SDK and samples first; a *unified* CCXT method may follow later, though the implicit API closes most of that gap immediately.
 - **A much smaller install.** For a Foxbit-only Node service, `@foxbit-group/rest-api` is a fraction of the size of all of CCXT.

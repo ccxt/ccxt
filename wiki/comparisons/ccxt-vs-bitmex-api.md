@@ -21,7 +21,7 @@ The question that decides between them: **do you want BitMEX's payloads, or stru
 | | **CCXT** | **Official BitMEX connectors** |
 | --- | --- | --- |
 | Exchanges covered | 104 (BitMEX is one of them) | BitMEX only |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | hand-vetted: C#, Node, Python, VBA, mIRC; auto-generated from Swagger: ~15 more |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | hand-vetted: C#, Node, Python, VBA, mIRC; auto-generated from Swagger: ~15 more |
 | How the client is produced | hand-written and tested per exchange | generated from the Swagger 2.0 spec (`swagger.json`, 120 operations) |
 | Unified market data + trading API | yes — same names on every exchange | no — BitMEX's own operation names |
 | Instrument model | spot / swap / future resolved into unified symbols | one `/instrument` namespace, 98 fields, disambiguated by a `typ` code |

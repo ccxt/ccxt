@@ -1,7 +1,7 @@
 <!-- title: CCXT vs the Independent Reserve API -->
 <!-- description: Independent Reserve publishes an official .NET client only. CCXT compared with it and the raw REST API on languages, signing, rate limits and streaming. -->
 <!-- group: Exchange APIs and official SDKs -->
-<!-- summary: Independent Reserve's only official client library is for .NET. CCXT covers the same API in seven languages, handles its unusual comma-joined HMAC signing, and adds order-book and trade streaming. -->
+<!-- summary: Independent Reserve's only official client library is for .NET. CCXT covers the same API in eight languages, handles its unusual comma-joined HMAC signing, and adds order-book and trade streaming. -->
 <!-- weight: 100 -->
 
 # CCXT vs the Independent Reserve API
@@ -23,7 +23,7 @@ So the question is: **do you write C#, or do you write something else?**
 | | **CCXT** | **Independent Reserve's own clients** |
 | --- | --- | --- |
 | Exchanges covered | 104 (Independent Reserve is one of them) | Independent Reserve only |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | **C#/.NET only** (plus an Objective-C iOS sample client) |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | **C#/.NET only** (plus an Objective-C iOS sample client) |
 | Packages to install | 1 (`ccxt`) | 1 (`IndependentReserve.Client` on NuGet) |
 | Unified market data + trading API | yes — 18 unified capabilities, 11 `fetch*` methods | no — Independent Reserve's own request and response shapes |
 | WebSockets | yes — `watchOrderBook` and `watchTrades` | not in the .NET client; the WebSocket repository is documentation plus JavaScript samples |
@@ -127,7 +127,7 @@ That comment is the whole point. Independent Reserve signs a **comma-joined stri
 
 ## Where the differences actually bite
 
-### Seven languages, one API
+### Eight languages, one API
 
 This is the decisive difference. The only official client is for .NET. If you write Python, TypeScript, PHP, Go, Java or JavaScript, your maintained options are CCXT or your own wrapper — the community libraries on Independent Reserve's API page are third-party-authored, with no vendor commitment behind them.
 

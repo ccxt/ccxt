@@ -26,7 +26,7 @@ Jesse does not depend on CCXT. It ships its own venue drivers. So the comparison
 | Optimisation, Monte Carlo, ML | none | Optuna + Ray optimisation, Monte Carlo, rule significance testing, scikit-learn pipeline |
 | Indicators | none | 300+, with native Rust implementations |
 | Strategy model | none — you write the loop | `Strategy` subclass with `should_long`, `go_long`, `self.buy`, `self.take_profit`, `self.stop_loss` |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java | Python (docs state `>= 3.10 and <= 3.13`) |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust | Python (docs state `>= 3.10 and <= 3.13`) |
 | Infrastructure required | none — `pip install ccxt` | PostgreSQL >= 10, Redis >= 5, a Jesse project directory; dashboard served on port 9000 |
 | Raw endpoint access | yes — every venue endpoint as an implicit method (808 for Binance) | not exposed; the driver surface is what you get |
 | Live trading component | in the same MIT package | separate `jesse_live` plugin installed via `jesse install-live`, requiring a `LICENSE_API_TOKEN` from a jesse.trade account |
@@ -134,7 +134,7 @@ CCXT is `pip install ccxt` and a Python file. Jesse's getting-started documentat
 
 If you want a research environment, that infrastructure is buying you something. If you want to add exchange connectivity to an existing service, it is a lot to adopt.
 
-### Seven languages versus one
+### Eight languages versus one
 
 CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, with identical method names and return structures. Jesse is Python, and its strategy model, indicators, optimiser and dashboard are all Python. If your execution service is Go or C#, CCXT can be in it and Jesse cannot.
 

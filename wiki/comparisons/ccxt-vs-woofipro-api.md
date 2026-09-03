@@ -1,7 +1,7 @@
 <!-- title: CCXT vs the WOOFi Pro API and the Orderly Network connectors -->
 <!-- description: CCXT compared with Orderly Network's official Python and JS connectors for WOOFi Pro on ed25519 signing, streaming, language coverage and unified structures. -->
 <!-- group: Exchange APIs and official SDKs -->
-<!-- summary: WOOFi Pro is a broker on Orderly Network, so its API is the Orderly EVM API. Orderly's own connectors are Python and a React-oriented JS monorepo; CCXT does the same ed25519 signing in seven languages, and WOOFi's docs point at it. -->
+<!-- summary: WOOFi Pro is a broker on Orderly Network, so its API is the Orderly EVM API. Orderly's own connectors are Python and a React-oriented JS monorepo; CCXT does the same ed25519 signing in eight languages, and WOOFi's docs point at it. -->
 <!-- weight: 100 -->
 
 # CCXT vs the WOOFi Pro API and the Orderly Network connectors
@@ -13,7 +13,7 @@ Both speak the same endpoints and the same ed25519 signing scheme. The question 
 ## TL;DR
 
 - **Pick Orderly's own connectors** if you are building on Orderly itself rather than on one broker: registering accounts and Orderly keys from an EVM wallet, wiring a React trading UI, or calling broker-level endpoints one-for-one with the Orderly docs.
-- **Pick CCXT** if WOOFi Pro is one venue in a system: you get 61 unified capabilities and 10 `watch*` streaming methods behind the same API that already covers 104 exchanges, in seven languages.
+- **Pick CCXT** if WOOFi Pro is one venue in a system: you get 61 unified capabilities and 10 `watch*` streaming methods behind the same API that already covers 104 exchanges, in eight languages.
 - **You are not choosing between them blind.** WOOFi Pro's own API-trading guide recommends CCXT and links to the [`woofipro` page](/docs/exchanges/woofipro), and CCXT still exposes all 118 raw Orderly endpoints as [implicit methods](/docs/exchanges/woofipro/implicit-api).
 
 ## At a glance
@@ -21,7 +21,7 @@ Both speak the same endpoints and the same ed25519 signing scheme. The question 
 | | **CCXT** | **Orderly connectors** |
 | --- | --- | --- |
 | Exchanges covered | 104 (WOOFi Pro is one of them) | Orderly Network only |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | Python (`orderly-evm-connector`); TypeScript/React (`@orderly.network/*`) |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | Python (`orderly-evm-connector`); TypeScript/React (`@orderly.network/*`) |
 | Packages to install | 1 (`ccxt`) | 1 for Python; a set of `@orderly.network/*` packages for JS |
 | Unified market data + trading API | yes — 61 unified capabilities | no — Orderly's own request/response shapes |
 | WebSockets | yes — 10 `watch*` methods | yes — `WebsocketPublicAPIClient` / `WebsocketPrivateAPIClient` |
@@ -193,7 +193,7 @@ for exchange_id in ['woofipro', 'hyperliquid', 'bybit', 'okx']:
 ```
 
 WOOFi Pro's sibling venue, the centralised WOO X, is also in CCXT as `woo` — see [CCXT vs the WOO X API](/docs/comparisons/ccxt-vs-woo-api). WOOFi's own documentation notes the two APIs are similar; in CCXT they are two ids behind one set of method names.
-### Seven languages, one API
+### Eight languages, one API
 
 The Python connector is Python. The JS SDK is TypeScript and React. CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java with identical method names and return structures.
 

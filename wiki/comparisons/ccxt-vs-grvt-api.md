@@ -1,7 +1,7 @@
 <!-- title: CCXT vs the GRVT API -->
 <!-- description: CCXT and GRVT's official Python SDK compared — language coverage, WebSockets, order signing, testnet and portability on a self-custodial perpetuals venue. -->
 <!-- group: Exchange APIs and official SDKs -->
-<!-- summary: GRVT's own SDK is Python-only and ships CCXT-shaped classes on purpose. CCXT gives you that same API in seven languages, with all 50 raw GRVT endpoints still reachable. -->
+<!-- summary: GRVT's own SDK is Python-only and ships CCXT-shaped classes on purpose. CCXT gives you that same API in eight languages, with all 50 raw GRVT endpoints still reachable. -->
 <!-- weight: 100 -->
 
 # CCXT vs the GRVT API
@@ -21,7 +21,7 @@ There is an unusually direct way to frame the choice here, because **GRVT's own 
 | | **CCXT** | **grvt-pysdk** |
 | --- | --- | --- |
 | Exchanges covered | 104 (GRVT is one of them) | GRVT only |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | Python only (3.10-3.12) |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | Python only (3.10-3.12) |
 | Packages to install | 1 (`ccxt`) | 1 (`grvt-pysdk`) |
 | Unified market data + trading API | yes — 39 unified capabilities, 19 `fetch*` methods | CCXT-shaped classes plus raw wrappers |
 | Markets | GRVT perpetuals, flagged as a DEX in CCXT | GRVT perpetuals |
@@ -104,7 +104,7 @@ Both sides sign the order with your key — GRVT settles on-chain, so an order i
 
 ## Where the differences actually bite
 
-### Seven languages, one API
+### Eight languages, one API
 
 This is the decisive difference. `grvt-pysdk` is Python-only; there is no vendor SDK for TypeScript, Go, C#, PHP or Java. CCXT is written once in TypeScript and transpiled to all of them, with identical method names, arguments and return structures.
 

@@ -15,7 +15,7 @@ So the comparison here is not CCXT against a vendor SDK. It is **CCXT against th
 ## TL;DR
 
 - **Write it yourself** if you need Paymium's real-time socket.io feed, or its merchant payment endpoints — CCXT has **zero** `watch*` methods for `paymium`, so live streaming is not available through it.
-- **Pick CCXT** if you want REST: 12 unified capabilities, all 24 endpoints as implicit methods, the nonce/HMAC signing done for you, typed errors and a rate limiter, in seven languages.
+- **Pick CCXT** if you want REST: 12 unified capabilities, all 24 endpoints as implicit methods, the nonce/HMAC signing done for you, typed errors and a rate limiter, in eight languages.
 - **Paymium's own docs point at CCXT.** For REST, this is one of the rare venues where the exchange itself treats CCXT as the reference client.
 
 ## At a glance
@@ -24,7 +24,7 @@ So the comparison here is not CCXT against a vendor SDK. It is **CCXT against th
 | --- | --- | --- |
 | Exchanges covered | 104 (Paymium is one of them) | Paymium only |
 | Official client library | n/a | **none** in Python, JS, PHP, Go, C# or Java; a Ruby gem exists |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | whatever you write |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | whatever you write |
 | Unified market data + trading API | yes — same method names across every exchange | no — Paymium's own request/response shapes |
 | Unified capabilities implemented | 12 for `paymium`, of which 6 are `fetch*` | n/a |
 | Markets | one: `'BTC/EUR'` | `/data/eur/...` |
@@ -131,7 +131,7 @@ CCXT's [typed exception tree](/docs/manual#error-handling) has 41 classes descen
 
 Be precise about the limit, though: Paymium's own error bodies are not finely mapped. CCXT raises a generic `ExchangeError` carrying the response when Paymium returns an `errors` field, so `except ccxt.InsufficientFunds` will not fire on this venue the way it does on Binance or Kraken. That is a real gap and worth knowing before you write handlers around it.
 
-### Seven languages, one API
+### Eight languages, one API
 
 CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, with identical method names and return structures. Paymium's docs mention Python, JavaScript and PHP because those are the CCXT languages they know about; C#, Go and Java come with the same package.
 
@@ -199,7 +199,7 @@ An honest list, and the first item is decisive for some readers:
 - **The merchant API as a first-class thing.** Paymium's API includes merchant payment creation and retrieval, price alerts, email transfers and payment requests. CCXT reaches those through the implicit API, which works, but a purpose-built client can model them properly with typed request objects.
 - **OAuth2.** Paymium supports an OAuth2 authorization-code flow alongside API keys. CCXT authenticates with the key/nonce/signature triple only. If you are building something a user authorises rather than something running on your own key, you need your own client.
 - **A far smaller dependency.** Paymium is one market and a handful of endpoints. Fifty lines of `requests` is a smaller install and a smaller attack surface than a library covering 104 exchanges.
-- **Any language you like.** CCXT ships seven; the Ruby gem `paymium_api` shows a single-venue client is a tractable project in whatever language you are already writing.
+- **Any language you like.** CCXT ships eight; the Ruby gem `paymium_api` shows a single-venue client is a tractable project in whatever language you are already writing.
 
 If you need the live feed, OAuth2, or the merchant endpoints modelled properly, writing your own client is the right answer.
 

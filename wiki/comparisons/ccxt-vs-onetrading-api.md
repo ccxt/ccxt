@@ -15,7 +15,7 @@ So the comparison is not CCXT against a vendor SDK. It is **CCXT against the cod
 ## TL;DR
 
 - **Write it yourself** if you need One Trading's futures API — positions, funding rates, portfolio summary — because CCXT's `onetrading` class is spot-only and those endpoints are not in its definition, so they are not reachable as implicit methods either.
-- **Pick CCXT** if you are trading One Trading spot: 30 unified capabilities, seven `watch*` streaming methods, a rate limiter, typed errors, and the same code in TypeScript, JavaScript, Python, PHP, C#/.NET, Go or Java.
+- **Pick CCXT** if you are trading One Trading spot: 30 unified capabilities, seven `watch*` streaming methods, a rate limiter, typed errors, and the same code in TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java or Rust.
 - **Authentication is the easy part on this venue.** One Trading uses a bearer API key — no secret, no HMAC, no nonce — so the value CCXT adds here is normalisation, streaming and portability rather than signing.
 
 ## At a glance
@@ -24,7 +24,7 @@ So the comparison is not CCXT against a vendor SDK. It is **CCXT against the cod
 | --- | --- | --- |
 | Exchanges covered | 104 (One Trading is one of them) | One Trading only |
 | Official client library | n/a | **none currently published** |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | whatever you write |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | whatever you write |
 | Unified market data + trading API | yes — same method names across every exchange | no — One Trading's own request/response shapes |
 | Unified capabilities implemented | 30 for `onetrading`, of which 14 are `fetch*` | n/a |
 | Symbols | `'BTC/USDT'` | `instrument_code`, e.g. `BTC_USDT` |
@@ -178,7 +178,7 @@ amount = exchange.amount_to_precision('BTC/USDT', 0.0012345678)
 price = exchange.price_to_precision('BTC/USDT', 61234.56789)
 ```
 
-### Seven languages, one API
+### Eight languages, one API
 
 CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, with identical method names and return structures in every one. On the raw path, each language is a fresh implementation.
 
@@ -245,7 +245,7 @@ An honest list, and the first item is decisive for some readers:
 - **WebSocket order entry.** One Trading's stream documentation includes trading channels: create order, cancel order, cancel all, move order, plus order-booked, order-rejected, order-closed and trade-executed events. CCXT uses the socket for market data and private state, but does not expose `createOrderWs` / `cancelOrderWs` for this venue. Latency-sensitive order entry over the socket means your own client.
 - **Field names match the docs exactly.** `instrument_code`, `time_in_force`, `GOOD_TILL_CANCELLED` — reading docs.onetrading.com while debugging your own client is a direct correspondence. CCXT's unified names are a deliberate abstraction.
 - **A far smaller dependency.** Bearer-token auth with no signing means a useful One Trading client is genuinely small. If you need four endpoints, that is less code and less surface than a library covering 104 exchanges.
-- **Any language you like.** CCXT ships seven. There is nothing about this API that makes a Rust or Elixir client hard.
+- **Any language you like.** CCXT ships eight. There is nothing about this API that makes an Elixir or Swift client hard.
 
 If you trade One Trading futures, or you want order entry over the socket, writing your own client is the right answer today.
 

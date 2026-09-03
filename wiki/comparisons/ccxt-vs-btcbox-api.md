@@ -1,5 +1,5 @@
 <!-- title: CCXT vs the raw BtcBox API -->
-<!-- description: BtcBox publishes an 11-endpoint REST API, a sample script and no SDK. Hand-rolling its MD5-keyed HMAC signing, compared with CCXT in seven languages. -->
+<!-- description: BtcBox publishes an 11-endpoint REST API, a sample script and no SDK. Hand-rolling its MD5-keyed HMAC signing, compared with CCXT in eight languages. -->
 <!-- group: Exchange APIs and official SDKs -->
 <!-- summary: BtcBox has no client library — the only first-party code is a four-commit demo script. Its API is small enough that the real question is whether you want portability, not whether you can write it. -->
 <!-- weight: 100 -->
@@ -15,7 +15,7 @@ An eleven-endpoint API is genuinely small enough to write yourself, so this page
 ## TL;DR
 
 - **Write it yourself** if BtcBox is your only venue and you need two or three endpoints. Eleven routes and one `coin` parameter is not a large surface.
-- **Pick CCXT** if BtcBox is one venue among several, or if you want the JPY pairs behind the same interface as everything else: 12 unified capabilities, 9 of them `fetch*`, all 11 endpoints as implicit methods, in TypeScript, JavaScript, Python, PHP, C#/.NET, Go and Java.
+- **Pick CCXT** if BtcBox is one venue among several, or if you want the JPY pairs behind the same interface as everything else: 12 unified capabilities, 9 of them `fetch*`, all 11 endpoints as implicit methods, in TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java and Rust.
 - **Neither side streams.** BtcBox publishes no WebSocket API, and CCXT implements no `watch*` methods for it. Live data means polling either way.
 
 ## At a glance
@@ -23,7 +23,7 @@ An eleven-endpoint API is genuinely small enough to write yourself, so this page
 | | **CCXT** | **Raw BtcBox API** |
 | --- | --- | --- |
 | Exchanges covered | 104 (BtcBox is one of them) | BtcBox only |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | whatever you write |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | whatever you write |
 | Official vendor SDK | not applicable | none — only a four-commit demo script |
 | Unified market data + trading API | yes — same method names across every exchange | no — BtcBox's own payloads |
 | BtcBox capabilities implemented | 12 unified methods, 9 of them `fetch*` | you implement what you need |
@@ -124,7 +124,7 @@ for exchange_id in ['btcbox', 'bitflyer', 'kraken', 'binance']:
     print(exchange_id, exchange.fetch_ticker('BTC/JPY')['last'])
 ```
 
-### Seven languages, one API
+### Eight languages, one API
 
 CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, with identical method names and return structures — so the MD5-keyed signing is implemented once for you, not once per language in your codebase:
 

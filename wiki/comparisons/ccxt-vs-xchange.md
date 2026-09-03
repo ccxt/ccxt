@@ -8,7 +8,7 @@
 
 [XChange](https://github.com/knowm/XChange) is the closest thing CCXT has to a direct peer. Its own description is "a Java library providing a simple and consistent API for interacting with 60+ Bitcoin and other cryptocurrency exchanges, providing a consistent interface for trading and accessing market data" — the same sentence would describe [CCXT](/docs/manual). Both are MIT-licensed, both normalise market data and order entry across venues, both keep a per-exchange escape hatch.
 
-The differences are structural: XChange is Java only and ships one Maven artifact per exchange; CCXT is one package generated into seven languages from a single source. The question that decides between them is whether your whole system lives on the JVM.
+The differences are structural: XChange is Java only and ships one Maven artifact per exchange; CCXT is one package generated into eight languages from a single source. The question that decides between them is whether your whole system lives on the JVM.
 
 ## TL;DR
 
@@ -23,7 +23,7 @@ The differences are structural: XChange is Java only and ships one Maven artifac
 | Primary purpose | unified trading + market data API | unified trading + market data API |
 | Exchanges | 104 with REST, 76 of them with WebSocket | "60+" per the project's description; the root `pom.xml` lists 99 Maven modules |
 | Streaming coverage | `watch*` on 76 exchanges, same package | 28 `xchange-stream-*` exchange modules, covering 26 venues (kraken and gemini each have a v1 and a v2 module) |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java | Java (the build sets `version.java` to 17) |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust | Java (the build sets `version.java` to 17) |
 | Packages to install | **1** (`ccxt`) | `xchange-core`, plus `xchange-XYZ` per exchange, plus `xchange-stream-XYZ` per exchange for streaming |
 | Streaming programming model | `await` a `watch*` method, get a value | RxJava 3 — `Observable<OrderBook>`, `Observable<Trade>` from a `StreamingExchange` |
 | Order entry over WebSocket | yes — `createOrderWs` is implemented on 14 exchanges | yes, `StreamingTradeService.placeLimitOrder` returning `Single<Integer>` |
@@ -158,7 +158,7 @@ for exchange_id in ['binance', 'bybit', 'okx', 'coinbase', 'kraken']:
 
 The same loop in Java uses `Exchange.dynamicallyCreateInstance(exchangeId, config)`.
 
-### Seven languages, one API
+### Eight languages, one API
 
 This is the difference that shows up when the team grows. CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, with the same method names, arguments and return structures in every one. A strategy explored in a Python notebook moves to a Go or C# execution service without a second data model.
 
@@ -222,13 +222,13 @@ CCXT generates every endpoint of every exchange as a callable [implicit method](
 
 ### Release channel
 
-XChange publishes to Maven Central. The newest `xchange-core` there is 5.2.5, published 19 May 2026, while the README's dependency snippet names 6.0.0 and `develop` carries `6.0.0-SNAPSHOT` — the README also points readers at snapshot jars "for the latest bugfixes and features". CCXT publishes releases continuously to npm, PyPI, NuGet, Packagist, Go modules and Maven Central from the same source tree, so all seven languages move together.
+XChange publishes to Maven Central. The newest `xchange-core` there is 5.2.5, published 19 May 2026, while the README's dependency snippet names 6.0.0 and `develop` carries `6.0.0-SNAPSHOT` — the README also points readers at snapshot jars "for the latest bugfixes and features". CCXT publishes releases continuously to npm, PyPI, NuGet, Packagist, Go modules and Maven Central from the same source tree, so all eight languages move together.
 
 ## What XChange does better
 
 Real advantages, and they matter if you are on the JVM:
 
-- **It is Java all the way down.** No transpiler between the source you read and the class you run. Stack traces point at Java written by a human, `BigDecimal` is used natively for money, and the DTOs are ordinary POJOs you can subclass, serialise and mock with the usual JVM tooling. CCXT's Java is generated from TypeScript, which is what makes seven languages possible but does mean the idioms are chosen for portability.
+- **It is Java all the way down.** No transpiler between the source you read and the class you run. Stack traces point at Java written by a human, `BigDecimal` is used natively for money, and the DTOs are ordinary POJOs you can subclass, serialise and mock with the usual JVM tooling. CCXT's Java is generated from TypeScript, which is what makes eight languages possible but does mean the idioms are chosen for portability.
 - **Reactive streaming that composes.** `StreamingMarketDataService` hands you RxJava 3 `Observable`s — `getOrderBook`, `getTrades`, `getTicker`, `getFundingRate`, `getOrderBookUpdates`, `getCandleStick` — and `StreamingTradeService` adds `getOrderChanges`, `getUserTrades` and `getPositionChanges`. In a stack already built on RxJava or Reactor, that plugs straight in with operators, schedulers and backpressure. CCXT's `watch*` methods are deliberately await-shaped instead.
 - **Per-exchange typed raw DTOs.** When you drop out of the unified API, XChange's raw services still give you compile-time types for that venue's payload (`BitstampOrder` and friends). CCXT's implicit methods return the decoded response without a per-endpoint type.
 - **A smaller dependency if you only need one venue.** `xchange-core` plus one exchange module is a narrower artifact than a library that carries 104 exchanges. On a constrained deployment that is a genuine consideration.

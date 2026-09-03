@@ -1,7 +1,7 @@
 <!-- title: CCXT vs the Hibachi API -->
 <!-- description: CCXT and Hibachi's official Python SDK compared — language coverage, order signing, streaming support, precision and portability on a perpetuals venue. -->
 <!-- group: Exchange APIs and official SDKs -->
-<!-- summary: Hibachi's own SDK is Python 3.13+ only but does include WebSockets, which CCXT's Hibachi integration does not yet. CCXT covers the REST API in seven languages with 33 unified capabilities. -->
+<!-- summary: Hibachi's own SDK is Python 3.13+ only but does include WebSockets, which CCXT's Hibachi integration does not yet. CCXT covers the REST API in eight languages with 33 unified capabilities. -->
 <!-- weight: 100 -->
 
 # CCXT vs the Hibachi API
@@ -21,7 +21,7 @@ Hibachi publishes an official Python SDK, `hibachi-xyz`, and CCXT implements the
 | | **CCXT** | **hibachi-xyz (official Python SDK)** |
 | --- | --- | --- |
 | Exchanges covered | 104 (Hibachi is one of them) | Hibachi only |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | Python only, and the published package requires Python 3.13 or later |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | Python only, and the published package requires Python 3.13 or later |
 | Packages to install | 1 (`ccxt`) | 1 (`hibachi-xyz`) |
 | Markets | Hibachi perpetuals | Hibachi perpetuals |
 | Unified market data + trading API | yes — 33 unified capabilities, 24 `fetch*` methods | no — Hibachi's own request and response shapes |
@@ -111,7 +111,7 @@ Both sides need the same three credentials — an API key, a numeric account id 
 
 ## Where the differences actually bite
 
-### Seven languages, one API
+### Eight languages, one API
 
 This is the main reason to choose CCXT here. `hibachi-xyz` is Python-only, and the published package declares Python 3.13 or later — so even a Python 3.11 service cannot install it. CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java with identical method names and return structures.
 

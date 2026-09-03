@@ -21,7 +21,7 @@ That last detail sets up the comparison. ZebPay's reference clients are checked 
 | | **CCXT** | **ZebPay reference clients** |
 | --- | --- | --- |
 | Exchanges covered | 104 (ZebPay is one of them) | ZebPay only |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | Node.js and Python |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | Node.js and Python |
 | How you install it | `pip install ccxt` / `npm install ccxt` | clone the repo, `pip install -r requirements.txt` |
 | Published package | yes, on npm and PyPI | not published to npm or PyPI |
 | Products in one client | spot and futures | separate clients; the futures client is the documented one |
@@ -174,7 +174,7 @@ history = exchange.private_swap_get_v1_trade_history()
 
 Signing, timestamping, rate-limit accounting and error mapping still apply. Browse them on the [zebpay implicit API page](/docs/exchanges/zebpay/implicit-api).
 
-### Seven languages, one API
+### Eight languages, one API
 
 The reference clients are Node.js and Python. CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java with identical method names and return structures.
 

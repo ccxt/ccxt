@@ -1,7 +1,7 @@
 <!-- title: CCXT vs the Bitso API -->
 <!-- description: Bitso's only maintained connector is a Java REST wrapper. Compare it with CCXT on languages, coverage, signing, rate limits, sandbox and raw endpoint access. -->
 <!-- group: Exchange APIs and official SDKs -->
-<!-- summary: Bitso maintains one official SDK — a Java wrapper for REST v3, last released in July 2024. CCXT reaches the same 40 endpoints from seven languages, though neither side streams Bitso's WebSocket. -->
+<!-- summary: Bitso maintains one official SDK — a Java wrapper for REST v3, last released in July 2024. CCXT reaches the same 40 endpoints from eight languages, though neither side streams Bitso's WebSocket. -->
 <!-- weight: 100 -->
 
 # CCXT vs the Bitso API
@@ -13,7 +13,7 @@ So the choice is narrower than it looks. If you write Java, you can use Bitso's 
 ## TL;DR
 
 - **Pick bitso-java** if you are on the JVM, Bitso is your only venue, and you want types Bitso themselves defined (`BitsoTicker`, `BitsoOrder`, `BigDecimal` amounts) that track their docs one-for-one.
-- **Pick CCXT** if you are not on the JVM, or if Bitso is one of several venues. CCXT implements 24 unified capabilities for Bitso and exposes all 40 of its REST endpoints as implicit methods, from TypeScript, JavaScript, Python, PHP, C#/.NET, Go and Java.
+- **Pick CCXT** if you are not on the JVM, or if Bitso is one of several venues. CCXT implements 24 unified capabilities for Bitso and exposes all 40 of its REST endpoints as implicit methods, from TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java and Rust.
 - **Neither one streams Bitso.** Bitso publishes a WebSocket API with `trades`, `diff-orders` and `orders` channels; CCXT implements no `watch*` methods for Bitso, and the official Java wrapper's README documents REST only. If you need a live Bitso book, you are writing that socket client yourself either way.
 
 ## At a glance
@@ -21,7 +21,7 @@ So the choice is narrower than it looks. If you write Java, you can use Bitso's 
 | | **CCXT** | **bitso-java (official)** |
 | --- | --- | --- |
 | Exchanges covered | 104 (Bitso is one of them) | Bitso only |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | Java |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | Java |
 | Unified market data + trading API | yes — same method names across every exchange | no — Bitso's own request/response shapes |
 | Bitso capabilities implemented | 24 unified methods, 18 of them `fetch*` | full REST v3 surface |
 | Raw endpoint access | yes — 40 Bitso endpoints as implicit methods | yes, it is the whole product |
@@ -93,7 +93,7 @@ Note the symbol. Bitso books are `btc_mxn`; CCXT normalises that to `'BTC/MXN'` 
 
 ## Where the differences actually bite
 
-### Six of seven languages have no official option
+### Six of eight languages have no official option
 
 There is no first-party Bitso client for Python, JavaScript, Go, PHP or C#. The community filled part of the gap — [mariorz/python-bitso](https://github.com/mariorz/python-bitso) is MIT-licensed and does cover the WebSocket channels — but it is one person's project, not a vendor commitment. CCXT gives you the same Bitso implementation in all seven of its targets, written once in TypeScript and transpiled:
 

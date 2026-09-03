@@ -13,7 +13,7 @@ The question that decides between them is narrower here than usual, because both
 ## TL;DR
 
 - **Pick the official Bitbns SDKs** if Bitbns is your only venue and you want live order book and ticker streams — `bitbnspy` has Socket.IO-based feeds and CCXT's `bitbns` has no WebSocket support at all.
-- **Pick CCXT** if you want unified symbols, one error hierarchy and the same 17 capabilities expressed the way every other exchange expresses them, in seven languages.
+- **Pick CCXT** if you want unified symbols, one error hierarchy and the same 17 capabilities expressed the way every other exchange expresses them, in eight languages.
 - **Nothing is hidden.** All 36 Bitbns endpoints CCXT models are callable as [implicit methods](/docs/exchanges/bitbns/implicit-api), signed and rate-limited.
 
 ## At a glance
@@ -21,7 +21,7 @@ The question that decides between them is narrower here than usual, because both
 | | **CCXT** | **Official Bitbns SDKs** |
 | --- | --- | --- |
 | Exchanges covered | 104 (Bitbns is one of them) | Bitbns only |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | Python (`bitbnspy`), Node.js (`bitbns`) |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | Python (`bitbnspy`), Node.js (`bitbns`) |
 | Packages to install | 1 (`ccxt`) | one per language |
 | Unified market data + trading API | yes — same names on every exchange | no — Bitbns's own method and payload shapes |
 | Unified capabilities | 17 | n/a — endpoint wrappers |
@@ -107,7 +107,7 @@ This is the Bitbns-specific trap. Several operations use **different endpoint na
 
 ### Signing
 
-Private Bitbns requests carry three headers: `X-BITBNS-APIKEY`, `X-BITBNS-PAYLOAD` — a base64 encoding of the JSON body including a timestamp — and `X-BITBNS-SIGNATURE`, an **HMAC-SHA512** over that base64 string. You sign the encoded bytes, so key ordering inside the JSON matters. CCXT implements it once, in the base class, for all seven languages.
+Private Bitbns requests carry three headers: `X-BITBNS-APIKEY`, `X-BITBNS-PAYLOAD` — a base64 encoding of the JSON body including a timestamp — and `X-BITBNS-SIGNATURE`, an **HMAC-SHA512** over that base64 string. You sign the encoded bytes, so key ordering inside the JSON matters. CCXT implements it once, in the base class, for all eight languages.
 
 ### Rate limits you do not have to model
 
@@ -117,7 +117,7 @@ CCXT ships a token-bucket throttler that is **on by default** (`enableRateLimit 
 
 Bitbns answers with a `status` field and an `error` string rather than HTTP status codes alone. CCXT translates those onto a [typed exception tree](/docs/manual#error-handling) — `InsufficientFunds`, `InvalidOrder`, `OrderNotFound`, `AuthenticationError`, `RateLimitExceeded`, `NetworkError` and 35 more, all under `BaseError` — so `except ccxt.InsufficientFunds` is the same line of code here and on the next exchange.
 
-### Seven languages, one API
+### Eight languages, one API
 
 <!-- tabs:start -->
 
@@ -146,7 +146,7 @@ $ticker = $exchange->fetch_ticker('BTC/INR');
 
 <!-- tabs:end -->
 
-Bitbns publishes Python and Node clients. CCXT gives you the same API in seven languages from one source of truth, so a Python research script and a Go execution service share a data model.
+Bitbns publishes Python and Node clients. CCXT gives you the same API in eight languages from one source of truth, so a Python research script and a Go execution service share a data model.
 
 ### Nothing is hidden — the implicit API
 

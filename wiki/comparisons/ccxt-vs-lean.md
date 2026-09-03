@@ -26,7 +26,7 @@
 | Non-crypto brokerages | none | Interactive Brokers, TradeStation, Charles Schwab, Tastytrade, Alpaca, Tradier, Webull, Public, Bloomberg EMSX, SSC Eze, Trading Technologies, Samco, Zerodha |
 | Backtesting engine | none | yes — the core of the product |
 | Strategy framework | none | alpha, portfolio construction, risk and execution models; `lean optimize`; `lean research` notebooks |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java | C# and Python; local build needs the .NET 10 SDK |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust | C# and Python; local build needs the .NET 10 SDK |
 | Historical data | fetched live from the exchange, free | local data directory populated from the QuantConnect Dataset Market (per-file pricing in QuantConnect Credits), a brokerage, a third-party provider, or your own converted files |
 | Raw endpoint access | yes — every venue endpoint as an implicit method (808 for Binance) | brokerage plugin surface; beyond it means writing C# |
 | Install | `pip install ccxt` (or npm, NuGet, Go, Maven) | `pip install lean` for the CLI, which runs Lean in Docker; or clone and `dotnet build` |
@@ -150,7 +150,7 @@ What sits around it is a commercial platform. The recommended data source is the
 
 None of that makes Lean less open source. It does mean the practical cost of running it is not the licence, and it is worth pricing before you commit. CCXT has no account, no credits, no tiers and no data marketplace — it reads from the exchange you are already connected to.
 
-### Seven languages versus C# and Python
+### Eight languages versus C# and Python
 
 CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, with the same method names and return structures in every one. Lean is a C# engine with Python algorithm support through `AlgorithmImports`; a local build needs the .NET 10 SDK, which is why the CLI ships Docker images instead.
 

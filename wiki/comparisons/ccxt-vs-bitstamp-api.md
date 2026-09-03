@@ -1,7 +1,7 @@
 <!-- title: CCXT vs the raw Bitstamp API -->
 <!-- description: Bitstamp publishes no official client library. Compare hand-rolling its signed v2 REST and WebSocket API against CCXT on signing, rate limits and errors. -->
 <!-- group: Exchange APIs and official SDKs -->
-<!-- summary: Bitstamp ships documentation, not an SDK — the most-used Python client is a community project whose last commit was in 2022. CCXT covers 263 Bitstamp endpoints plus three WebSocket streams in seven languages. -->
+<!-- summary: Bitstamp ships documentation, not an SDK — the most-used Python client is a community project whose last commit was in 2022. CCXT covers 263 Bitstamp endpoints plus three WebSocket streams in eight languages. -->
 <!-- weight: 100 -->
 
 # CCXT vs the raw Bitstamp API
@@ -13,7 +13,7 @@ So this is not CCXT versus a vendor SDK. It is **CCXT versus code you write your
 ## TL;DR
 
 - **Write it yourself** if you need one or two Bitstamp endpoints, are comfortable with the `X-Auth-Signature` scheme, and would rather not add a dependency for a handful of HTTP calls.
-- **Pick CCXT** if you need more than that: 34 unified capabilities, all 263 Bitstamp endpoints as implicit methods, a rate limiter that is on by default, and a maintained order-book stream — in TypeScript, JavaScript, Python, PHP, C#/.NET, Go and Java.
+- **Pick CCXT** if you need more than that: 34 unified capabilities, all 263 Bitstamp endpoints as implicit methods, a rate limiter that is on by default, and a maintained order-book stream — in TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java and Rust.
 - **The community client is not a third option for most people.** It is MIT and works, but it has not had a commit since 2022 and has no WebSocket support.
 
 ## At a glance
@@ -21,7 +21,7 @@ So this is not CCXT versus a vendor SDK. It is **CCXT versus code you write your
 | | **CCXT** | **Raw Bitstamp API / community client** |
 | --- | --- | --- |
 | Exchanges covered | 104 (Bitstamp is one of them) | Bitstamp only |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | whatever you write; community wrapper is Python |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | whatever you write; community wrapper is Python |
 | Official vendor SDK | not applicable | none published |
 | Unified market data + trading API | yes — same method names across every exchange | no — Bitstamp's own payloads |
 | Bitstamp capabilities implemented | 34 unified methods, 21 of them `fetch*` | you implement what you need |
@@ -186,7 +186,7 @@ amount = exchange.amount_to_precision('BTC/USD', 0.0012345678)
 price = exchange.price_to_precision('BTC/USD', 61234.56789)
 ```
 
-### Seven languages, one API
+### Eight languages, one API
 
 CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, with identical method names and return structures. A Bitstamp integration prototyped in a Python notebook ports to a Go or C# execution service without redesigning the data model — and without writing that signing string a second time in a second language.
 

@@ -1,7 +1,7 @@
 <!-- title: CCXT vs the Nado API and the official Nado SDKs -->
 <!-- description: Nado's own SDKs work in product ids, X18 prices and EIP-712 payloads. CCXT wraps the same venue in unified symbols, 63 capabilities and 24 streaming methods. -->
 <!-- group: Exchange APIs and official SDKs -->
-<!-- summary: Nado's own SDKs expose the protocol as it really is — product ids, X18 fixed-point, EIP-712 payloads. CCXT hides all of that behind 63 unified capabilities and 24 streaming methods, in seven languages. -->
+<!-- summary: Nado's own SDKs expose the protocol as it really is — product ids, X18 fixed-point, EIP-712 payloads. CCXT hides all of that behind 63 unified capabilities and 24 streaming methods, in eight languages. -->
 <!-- weight: 100 -->
 
 # CCXT vs the Nado API and the official Nado SDKs
@@ -21,7 +21,7 @@ So this is not a case of a venue with no client library. The question is narrowe
 | | **CCXT** | **Official Nado SDKs** |
 | --- | --- | --- |
 | Exchanges covered | 104 (Nado is one of them) | Nado only |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | TypeScript, Python, Rust |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | TypeScript, Python, Rust |
 | Packages to install | 1 (`ccxt`) | `@nadohq/client` + `viem` + `bignumber.js`, or `nado-protocol`, or `nado-sdk` |
 | Unified market data + trading API | yes — same method names across every exchange | no — Nado's own protocol types |
 | Nado capabilities implemented | 63 unified methods, 25 of them `fetch*` | full protocol surface, including NLP and linked signers |
@@ -242,7 +242,7 @@ An honest list, because these are real:
 - **They cover protocol surface CCXT does not unify.** NLP mint and burn, `getMaxOrderSize`, `getMaxWithdrawable`, health groups, isolated positions, insurance, referrals and on-chain deposits are first-class methods in `@nadohq/client`. CCXT models the exchange-shaped subset — markets, orders, positions, balances, funding — because that is what has to look the same on 104 venues.
 - **Linked signers and 1-Click Trading.** The SDKs expose `linkSigner` and `engine.setLinkedSigner()` for delegated signing. That is a Nado-specific account model with no unified CCXT equivalent.
 - **They talk to the contracts, not just the API.** `@nadohq/client` composes a `viem` public and wallet client, so deposits, withdrawals and token allowances are in the same object as the trading calls. CCXT is an exchange-API library; on-chain calls are out of scope.
-- **A Rust SDK.** `nado-sdk` on crates.io is an option CCXT has no answer to, and for a latency-sensitive market maker it is likely the right one.
+- **A Rust SDK written as Rust.** `nado-sdk` is on crates.io under MIT OR Apache-2.0, with an API shaped by the language. CCXT's Rust crate is generated from its TypeScript source, so for a latency-sensitive market maker who wants idiomatic Rust, `nado-sdk` is the closer fit.
 - **They are the reference for new protocol features.** A new Nado product type appears in the first-party SDKs before it is modelled as a unified CCXT method.
 
 If Nado is the venue you are building *on* rather than one of several you connect *to*, the official SDKs will fit better.

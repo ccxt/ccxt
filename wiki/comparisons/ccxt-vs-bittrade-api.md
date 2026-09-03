@@ -15,7 +15,7 @@ So the question is not which SDK to use. It is **whether you write the signing, 
 ## TL;DR
 
 - **Write it yourself** if you need a couple of public endpoints and nothing else — the market data routes are unauthenticated and plain JSON.
-- **Pick CCXT** as soon as you need private endpoints or streaming: 31 unified capabilities, 110 BitTrade endpoints as implicit methods, and four `watch*` methods, from TypeScript, JavaScript, Python, PHP, C#/.NET, Go and Java.
+- **Pick CCXT** as soon as you need private endpoints or streaming: 31 unified capabilities, 110 BitTrade endpoints as implicit methods, and four `watch*` methods, from TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java and Rust.
 - **BitTrade's WebSocket feed is GZIP-compressed and requires a bidirectional heartbeat.** That is two more things to get right in a hand-rolled client, and two things CCXT does not make you think about.
 
 ## At a glance
@@ -23,7 +23,7 @@ So the question is not which SDK to use. It is **whether you write the signing, 
 | | **CCXT** | **Raw BitTrade API** |
 | --- | --- | --- |
 | Exchanges covered | 104 (BitTrade is one of them) | BitTrade only |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | whatever you write |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | whatever you write |
 | Official vendor SDK | not applicable | none — the only public repository is documentation |
 | Unified market data + trading API | yes — same method names across every exchange | no — BitTrade's own payloads |
 | BitTrade capabilities implemented | 31 unified methods, 19 of them `fetch*` | you implement what you need |
@@ -182,7 +182,7 @@ amount = exchange.amount_to_precision('BTC/JPY', 0.0012345678)
 price = exchange.price_to_precision('BTC/JPY', 9123456.789)
 ```
 
-### Seven languages, one API
+### Eight languages, one API
 
 CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, with identical method names and return structures — so the v2 signing scheme is implemented once for you rather than once per language in your codebase.
 

@@ -23,7 +23,7 @@ So the real comparison here is not CCXT against a vendor SDK. It is **CCXT again
 | | **CCXT** | **Raw BigONE REST API** |
 | --- | --- | --- |
 | Exchanges covered | 104 (BigONE is one of them) | BigONE only |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | whatever you write it in |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | whatever you write it in |
 | Packages to install | **1** (`ccxt`) | an HTTP client, a JWT library, and your own wrapper |
 | First-party client library | n/a | **none** — OpenAPI specifications only |
 | Unified market data + trading API | yes — 29 capabilities on `bigone` | no — raw JSON payloads |
@@ -145,7 +145,7 @@ amount = exchange.amount_to_precision('BTC/USDT', 0.0012345678)
 price = exchange.price_to_precision('BTC/USDT', 61234.56789)
 ```
 
-### Seven languages, one API
+### Eight languages, one API
 
 There is no BigONE client in any language, so every language is a from-scratch integration. CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, with identical method names and structures:
 

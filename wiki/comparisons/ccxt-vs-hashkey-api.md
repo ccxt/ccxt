@@ -21,7 +21,7 @@ So the comparison is not CCXT against a vendor SDK. It is **CCXT against the int
 | | **CCXT** | **The raw HashKey Global API** |
 | --- | --- | --- |
 | Exchanges covered | 104 (HashKey is one of them) | HashKey Global only |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | any language with an HTTP client, all of it your code |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | any language with an HTTP client, all of it your code |
 | Official client library | n/a | **none** — the documentation shows `curl` and `openssl` signing examples |
 | Products in one client | spot and perpetual futures, one `ccxt.hashkey` instance | parallel `spot/*` and `futures/*` endpoint families |
 | Unified market data + trading API | yes — 59 unified capabilities, 31 `fetch*` methods | no — HashKey's own request and response shapes |
@@ -128,7 +128,7 @@ HashKey mirrors its shapes across `api/v1/spot/*` and `api/v1/futures/*`: separa
 
 CCXT's `ccxt.hashkey` covers both with 59 unified capabilities and 31 `fetch*` methods. The unified symbol picks the family: `'BTC/USDT'` routes to spot, `'BTC/USDT:USDT'` to the perpetual, and `set_leverage`, `fetch_positions` and `set_margin_mode` are unified methods rather than futures-specific paths you look up.
 
-### Seven languages, one API
+### Eight languages, one API
 
 CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, with identical method names, arguments and return structures. A raw integration is written once per language, by you.
 

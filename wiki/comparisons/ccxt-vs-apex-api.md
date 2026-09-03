@@ -1,7 +1,7 @@
 <!-- title: CCXT vs the ApeX Omni API and apexpro-openapi -->
 <!-- description: CCXT compared with ApeX's official Python connector on zk order signing, language coverage, streaming, testnet and unified structures for the Omni perpetuals DEX. -->
 <!-- group: Exchange APIs and official SDKs -->
-<!-- summary: ApeX's official connector is Python-only and handles account onboarding and zk key derivation. CCXT signs Omni orders with the same zk keys in seven languages, behind the API it uses for 103 other venues. -->
+<!-- summary: ApeX's official connector is Python-only and handles account onboarding and zk key derivation. CCXT signs Omni orders with the same zk keys in eight languages, behind the API it uses for 103 other venues. -->
 <!-- weight: 100 -->
 
 # CCXT vs the ApeX Omni API and apexpro-openapi
@@ -21,7 +21,7 @@ Both libraries produce the same signature. The question that decides between the
 | | **CCXT** | **apexpro-openapi** |
 | --- | --- | --- |
 | Venues covered | 104 (ApeX is one of them) | ApeX only |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | Python 3.9–3.12 |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | Python 3.9–3.12 |
 | Packages to install | **1** (`ccxt`) | 1 (`apexomni`) |
 | Unified market data + trading API | yes — 43 capabilities on `apex` | no — ApeX's own `*_v3` method and field names |
 | zk order signing | yes, built in — supply `options['seeds']` | yes, built in |
@@ -161,7 +161,7 @@ CCXT also maintains the book rather than handing you deltas — snapshot alignme
 
 ## Where the differences actually bite
 
-### Seven languages, one API
+### Eight languages, one API
 
 apexpro-openapi is Python only, versions 3.9 to 3.12. If your execution service is Go, C# or Java, ApeX is a from-scratch integration including the zk signature. CCXT is written once in TypeScript and transpiled, with identical method names and return structures:
 
@@ -288,7 +288,7 @@ Start with [Install](/docs/install), then the [Manual](/docs/manual), then the [
 ## FAQ
 
 **Does CCXT handle ApeX's zk order signature?**
-Yes. Set `options['seeds']` to the Omni seeds from ApeX's key-management page alongside your `apiKey`, `secret` and `password`, and CCXT builds and signs the zk payload for orders, transfers and withdrawals itself — in all seven languages, not just Python.
+Yes. Set `options['seeds']` to the Omni seeds from ApeX's key-management page alongside your `apiKey`, `secret` and `password`, and CCXT builds and signs the zk payload for orders, transfers and withdrawals itself — in all eight languages, not just Python.
 
 **Can CCXT register a new ApeX Omni account?**
 No. Onboarding — deriving zk keys from an Ethereum private key, `register_user_v3` and `change_pub_key_v3` — is only in ApeX's own Python connector. Create the account and the API key there or in the ApeX UI, then use CCXT for trading.

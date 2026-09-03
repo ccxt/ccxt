@@ -13,7 +13,7 @@ So the two overlap in exactly one layer — the venue adapter — and the questi
 ## TL;DR
 
 - **Pick NautilusTrader** if you want the engine: nanosecond-resolution event-driven backtests, an order and position model with OCO/OUO/OTO contingencies and post-only, reduce-only and iceberg execution instructions, and the same strategy code running against a simulated venue and a live one. That is a large, well-specified system that CCXT does not attempt.
-- **Pick CCXT** if the venue you need is not one of the 18 NautilusTrader lists, or you want the same API in seven languages, or LGPL-3.0 is not a licence your legal team will sign off on.
+- **Pick CCXT** if the venue you need is not one of the 18 NautilusTrader lists, or you want the same API in eight languages, or LGPL-3.0 is not a licence your legal team will sign off on.
 - **They are not really substitutes.** CCXT is a component; NautilusTrader is an architecture. A common arrangement is NautilusTrader running strategies on the venues it adapts, and CCXT handling everything else — data collection, account and funding operations, and the long tail of exchanges.
 
 ## At a glance
@@ -26,7 +26,7 @@ So the two overlap in exactly one layer — the venue adapter — and the questi
 | Non-crypto venues | none | Betfair (sports betting), Interactive Brokers (multi-venue brokerage) |
 | Backtesting engine | none — you bring your own | yes — multi-venue, multi-instrument, nanosecond resolution |
 | Order/position model | unified order and position structures per call | full OMS with contingency orders (OCO, OUO, OTO), emulated orders, position tracking |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java | Rust core, Python control plane via PyO3; systems can also be written entirely in Rust |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust | Rust core, Python control plane via PyO3; systems can also be written entirely in Rust |
 | Python versions | 3.10–3.14 (PyPI classifiers) | 3.12–3.14 |
 | Raw endpoint access | yes — every endpoint as an implicit method (808 for Binance) | adapter surface; anything beyond it means editing or writing an adapter |
 | Adapter stability grades | not applicable — one interface for all venues | `planned`, `building`, `beta`, `stable`; all 18 currently marked `stable` |
@@ -163,7 +163,7 @@ CCXT is **MIT**.
 
 These are different obligations, not better and worse ones. LGPL-3.0 permits linking from proprietary code but attaches conditions — around modification, relinking and conveying the library — that MIT does not. Which matters to you depends on how you ship. It is a legal review, not an engineering preference, and it is worth doing before you build on either.
 
-### Seven languages versus a Rust core with a Python control plane
+### Eight languages versus a Rust core with a Python control plane
 
 CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java with the same method names and return structures in each. A Go execution service and a Python research notebook see the same `fetch_ohlcv` and the same OHLCV shape.
 
