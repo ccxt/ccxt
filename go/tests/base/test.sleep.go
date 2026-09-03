@@ -32,9 +32,10 @@ func testSleepBody(ch chan any) any {
 	// The ceiling is deliberately far looser than the floor. sleep () promises
 	// a MINIMUM delay in every language, never a maximum: the OS is free to
 	// reschedule late, so a busy machine or a parallel CI runner overshoots by
-	// tens of ms with nothing wrong. Keep a ceiling only to catch a sleep that
-	// is genuinely broken — a seconds/milliseconds mix-up, or one that never
-	// returns.
+	// tens of ms with nothing wrong. The old symmetric +20ms left ~18ms of
+	// headroom on a 102ms measured sleep and failed whenever the box was under
+	// load. Keep a ceiling only to catch a sleep that is genuinely broken — a
+	// seconds/milliseconds mix-up, or one that never returns.
 	var maxOvershoot any = 2000
 	var maxElapsed any = ccxt.Add(sleepAmount, maxOvershoot)
 	var elapsedBiggerThanSleep bool = ccxt.IsGreaterThanOrEqual(elapsed, minElapsed)
