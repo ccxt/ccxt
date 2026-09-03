@@ -38,7 +38,7 @@ CCXT is MIT. Some alternatives are AGPL, which for commercial and SaaS work is a
 
 ## Every comparison
 
-Two kinds of page. **Multi-exchange libraries** are the tools people genuinely weigh CCXT against when choosing an architecture. **Exchange APIs and official SDKs** is one page per venue, comparing CCXT with whatever that exchange actually publishes. **Regional entities and product lines** covers the eleven classes that inherit a parent exchange's implementation.
+Two kinds of page. **Multi-exchange libraries** are the tools people genuinely weigh CCXT against when choosing an architecture. **Exchange APIs and official SDKs** is one page per venue, comparing CCXT with whatever that exchange actually publishes. **Regional entities and product lines** covers the ten classes that inherit a parent exchange's implementation.
 
 <!-- comparisons:list -->
 
