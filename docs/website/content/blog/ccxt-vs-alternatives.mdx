@@ -1,0 +1,178 @@
+---
+title: "CCXT vs everything else: we compared it with every exchange SDK we could find"
+description: One page per alternative — CCXT against cryptofeed, and against the official SDK of all 104 exchanges it supports. Including the venues that turn out to have no SDK at all.
+author: CCXT Team
+date: 2026-09-03T10:00:00Z
+tags: [comparisons, ecosystem]
+---
+
+Every crypto integration starts with the same decision: call the exchange API directly, use
+its official SDK, reach for a specialist library — or build on CCXT. It is a fair question, and
+answering it honestly takes more than a feature table.
+
+So we wrote one comparison per alternative. **There is now a page for every single exchange
+CCXT supports**, plus the multi-exchange libraries people weigh CCXT against.
+
+Each page puts the same task side by side in both libraries, tables the concrete differences,
+and carries a section on **what the alternative does better**. That section is not decoration.
+A comparison with no concessions is an advertisement, and readers can tell.
+
+## What surprised us while writing them
+
+**A lot of exchanges have no SDK at all.** Not an old one — none. Bitstamp publishes no client
+library. `bitteamgroup` has zero public repositories. BitTrade ships documentation and nothing
+else. For roughly a quarter of the venues, the honest comparison is not CCXT against a rival
+library, it is CCXT against writing signing, pagination, rate limiting and reconnect logic
+yourself. Those pages say so.
+
+**Several exchanges point at CCXT themselves.** Tokocrypto names CCXT as its authorised SDK
+provider. bit.team's docs list CCXT as the integration path. Paymium's API documentation uses
+CCXT in its own examples. That is worth more than anything we could claim on our own behalf.
+
+**Official SDKs go stale quietly.** Blockchain.com’s official client was archived in January
+2026 and covers REST only. Four of Coinbase’s five Prime SDKs are archived. KuCoin’s older
+per-language SDKs are archived in favour of a universal one. Bitvavo’s Python and Node
+clients are current while its Java, Go and PHP wrappers are not. None of this is a knock on
+those teams — maintaining a client library per language is genuinely hard, which is rather the
+point of a single transpiled codebase.
+
+**And sometimes the vendor SDK is simply better at something.** Bybit’s community TypeScript
+SDK is excellent. Cryptofeed ships storage backends CCXT deliberately does not have. Hyperliquid’s
+own SDK exposes vault and RFQ features we do not model. Those pages say that too.
+
+## Multi-exchange libraries
+
+The tools people genuinely weigh CCXT against when choosing an architecture rather than a venue.
+
+- [CCXT vs Cryptofeed](/docs/comparisons/ccxt-vs-cryptofeed) — Both normalise market data across venues. Cryptofeed is an AGPL Python feed handler with storage backends; CCXT is an MIT trading API in seven languages.
+
+## Exchange APIs and official SDKs
+
+One page per venue, comparing CCXT with whatever that exchange actually publishes — 91 of them.
+
+- [CCXT vs the Binance API and official Binance SDKs](/docs/comparisons/ccxt-vs-binance-api)
+- [CCXT vs the Bybit API and pybit](/docs/comparisons/ccxt-vs-bybit-api)
+- [CCXT vs the Coinbase APIs and coinbase-advanced-py](/docs/comparisons/ccxt-vs-coinbase-api)
+- [CCXT vs the Coinbase Exchange API](/docs/comparisons/ccxt-vs-coinbaseexchange-api)
+- [CCXT vs the Coinbase International Exchange API](/docs/comparisons/ccxt-vs-coinbaseinternational-api)
+- [CCXT vs the OKX API and python-okx](/docs/comparisons/ccxt-vs-okx-api)
+- [CCXT vs the Kraken Spot and Futures APIs](/docs/comparisons/ccxt-vs-kraken-api)
+- [CCXT vs the HTX API](/docs/comparisons/ccxt-vs-htx-api)
+- [CCXT vs the Alpaca API and alpaca-py](/docs/comparisons/ccxt-vs-alpaca-api)
+- [CCXT vs the ApeX Omni API and apexpro-openapi](/docs/comparisons/ccxt-vs-apex-api)
+- [CCXT vs the Aster API and aster-connector-python](/docs/comparisons/ccxt-vs-aster-api)
+- [CCXT vs the Backpack Exchange API and its SDKs](/docs/comparisons/ccxt-vs-backpack-api)
+- [CCXT vs the BingX API](/docs/comparisons/ccxt-vs-bingx-api)
+- [CCXT vs the bitbank API and python_bitbankcc](/docs/comparisons/ccxt-vs-bitbank-api)
+- [CCXT vs the Bitbns API and official Bitbns SDKs](/docs/comparisons/ccxt-vs-bitbns-api)
+- [CCXT vs the Bitfinex API and official Bitfinex SDKs](/docs/comparisons/ccxt-vs-bitfinex-api)
+- [CCXT vs the bitFlyer API](/docs/comparisons/ccxt-vs-bitflyer-api)
+- [CCXT vs the Bitget API and the official Bitget SDK](/docs/comparisons/ccxt-vs-bitget-api)
+- [CCXT vs the Bithumb API](/docs/comparisons/ccxt-vs-bithumb-api)
+- [CCXT vs the BitMEX API and official BitMEX connectors](/docs/comparisons/ccxt-vs-bitmex-api)
+- [CCXT vs the BitoPro API and official BitoPro SDKs](/docs/comparisons/ccxt-vs-bitopro-api)
+- [CCXT vs the Bitrue API](/docs/comparisons/ccxt-vs-bitrue-api)
+- [CCXT vs the Bitso API](/docs/comparisons/ccxt-vs-bitso-api)
+- [CCXT vs the Blockchain.com Exchange API](/docs/comparisons/ccxt-vs-blockchaincom-api)
+- [CCXT vs the BloFin API and official SDK](/docs/comparisons/ccxt-vs-blofin-api)
+- [CCXT vs the BTC Markets API](/docs/comparisons/ccxt-vs-btcmarkets-api)
+- [CCXT vs the Bullish API](/docs/comparisons/ccxt-vs-bullish-api)
+- [CCXT vs the CEX.IO API and cexio-spot-trading](/docs/comparisons/ccxt-vs-cex-api)
+- [CCXT vs the Coincheck API and the coincheckjp libraries](/docs/comparisons/ccxt-vs-coincheck-api)
+- [CCXT vs the CoinEx API](/docs/comparisons/ccxt-vs-coinex-api)
+- [CCXT vs the Coinmate API](/docs/comparisons/ccxt-vs-coinmate-api)
+- [CCXT vs the Coinone API](/docs/comparisons/ccxt-vs-coinone-api)
+- [CCXT vs the Coins.ph API and its official connectors](/docs/comparisons/ccxt-vs-coinsph-api)
+- [CCXT vs the CoinSpot API](/docs/comparisons/ccxt-vs-coinspot-api)
+- [CCXT vs the Crypto.com Exchange API](/docs/comparisons/ccxt-vs-cryptocom-api)
+- [CCXT vs the Cryptomus API](/docs/comparisons/ccxt-vs-cryptomus-api)
+- [CCXT vs the DeepCoin API](/docs/comparisons/ccxt-vs-deepcoin-api)
+- [CCXT vs the Delta Exchange API and delta-rest-client](/docs/comparisons/ccxt-vs-delta-api)
+- [CCXT vs the Derive API and the official Derive SDKs](/docs/comparisons/ccxt-vs-derive-api)
+- [CCXT vs the dYdX v4 clients](/docs/comparisons/ccxt-vs-dydx-api)
+- [CCXT vs the Extended (x10) Python SDK](/docs/comparisons/ccxt-vs-extended-api)
+- [CCXT vs the Foxbit API and the official Foxbit SDK](/docs/comparisons/ccxt-vs-foxbit-api)
+- [CCXT vs the Gate API and gateapi-python](/docs/comparisons/ccxt-vs-gate-api)
+- [CCXT vs the Gemini API](/docs/comparisons/ccxt-vs-gemini-api)
+- [CCXT vs the GRVT API](/docs/comparisons/ccxt-vs-grvt-api)
+- [CCXT vs the Hibachi API](/docs/comparisons/ccxt-vs-hibachi-api)
+- [CCXT vs the HitBTC API](/docs/comparisons/ccxt-vs-hitbtc-api)
+- [CCXT vs the HollaEx API](/docs/comparisons/ccxt-vs-hollaex-api)
+- [CCXT vs the Hyperliquid API and the official Hyperliquid SDK](/docs/comparisons/ccxt-vs-hyperliquid-api)
+- [CCXT vs the Independent Reserve API](/docs/comparisons/ccxt-vs-independentreserve-api)
+- [CCXT vs the Kraken Futures API](/docs/comparisons/ccxt-vs-krakenfutures-api)
+- [CCXT vs the KuCoin API and the KuCoin Universal SDK](/docs/comparisons/ccxt-vs-kucoin-api)
+- [CCXT vs the LATOKEN API](/docs/comparisons/ccxt-vs-latoken-api)
+- [CCXT vs the LBank API and official LBank connectors](/docs/comparisons/ccxt-vs-lbank-api)
+- [CCXT vs the Lighter API and official Lighter SDK](/docs/comparisons/ccxt-vs-lighter-api)
+- [CCXT vs the Luno API and official Luno SDKs](/docs/comparisons/ccxt-vs-luno-api)
+- [CCXT vs the MEXC API and official MEXC SDK](/docs/comparisons/ccxt-vs-mexc-api)
+- [CCXT vs the Mode Trade API](/docs/comparisons/ccxt-vs-modetrade-api)
+- [CCXT vs the Mudrex API and the official Mudrex Python SDK](/docs/comparisons/ccxt-vs-mudrex-api)
+- [CCXT vs the official Bitvavo SDKs](/docs/comparisons/ccxt-vs-bitvavo-api)
+- [CCXT vs the P2B API and the official PHP client](/docs/comparisons/ccxt-vs-p2b-api)
+- [CCXT vs the Pacifica API and the Pacifica Python examples](/docs/comparisons/ccxt-vs-pacifica-api)
+- [CCXT vs the Paradex API and the official Paradex SDKs](/docs/comparisons/ccxt-vs-paradex-api)
+- [CCXT vs the Phemex API and Phemex sample clients](/docs/comparisons/ccxt-vs-phemex-api)
+- [CCXT vs the Poloniex API and official Poloniex SDKs](/docs/comparisons/ccxt-vs-poloniex-api)
+- [CCXT vs the raw BigONE API](/docs/comparisons/ccxt-vs-bigone-api)
+- [CCXT vs the raw BIT.TEAM API](/docs/comparisons/ccxt-vs-bitteam-api)
+- [CCXT vs the raw Bit2C API](/docs/comparisons/ccxt-vs-bit2c-api)
+- [CCXT vs the raw Bitstamp API](/docs/comparisons/ccxt-vs-bitstamp-api)
+- [CCXT vs the raw BitTrade API](/docs/comparisons/ccxt-vs-bittrade-api)
+- [CCXT vs the raw BtcBox API](/docs/comparisons/ccxt-vs-btcbox-api)
+- [CCXT vs the raw BTCTurk API](/docs/comparisons/ccxt-vs-btcturk-api)
+- [CCXT vs the raw BYDFi API](/docs/comparisons/ccxt-vs-bydfi-api)
+- [CCXT vs the raw Deribit API](/docs/comparisons/ccxt-vs-deribit-api)
+- [CCXT vs the raw DigiFinex REST API](/docs/comparisons/ccxt-vs-digifinex-api)
+- [CCXT vs the raw HashKey Global REST API](/docs/comparisons/ccxt-vs-hashkey-api)
+- [CCXT vs the raw INDODAX REST API](/docs/comparisons/ccxt-vs-indodax-api)
+- [CCXT vs the raw Mercado Bitcoin API](/docs/comparisons/ccxt-vs-mercado-api)
+- [CCXT vs the raw NDAX API](/docs/comparisons/ccxt-vs-ndax-api)
+- [CCXT vs the raw One Trading API](/docs/comparisons/ccxt-vs-onetrading-api)
+- [CCXT vs the raw Paymium API](/docs/comparisons/ccxt-vs-paymium-api)
+- [CCXT vs the raw Toobit API](/docs/comparisons/ccxt-vs-toobit-api)
+- [CCXT vs the raw WEEX API](/docs/comparisons/ccxt-vs-weex-api)
+- [CCXT vs the raw WOO X API](/docs/comparisons/ccxt-vs-woo-api)
+- [CCXT vs the raw Zaif REST API](/docs/comparisons/ccxt-vs-zaif-api)
+- [CCXT vs the Tokocrypto API](/docs/comparisons/ccxt-vs-tokocrypto-api)
+- [CCXT vs the Upbit API and official Upbit SDKs](/docs/comparisons/ccxt-vs-upbit-api)
+- [CCXT vs the WhiteBIT API and official WhiteBIT SDKs](/docs/comparisons/ccxt-vs-whitebit-api)
+- [CCXT vs the WOOFi Pro API and the Orderly Network connectors](/docs/comparisons/ccxt-vs-woofipro-api)
+- [CCXT vs the XT.com API and pyxt](/docs/comparisons/ccxt-vs-xt-api)
+- [CCXT vs the ZebPay API and its reference clients](/docs/comparisons/ccxt-vs-zebpay-api)
+
+## Regional entities and product lines
+
+CCXT ships these as their own classes because they are separate hosts, separate accounts or
+separate product lines — they inherit a parent exchange’s implementation, and these pages
+cover only what differs.
+
+- [CCXT vs the Bequant API](/docs/comparisons/ccxt-vs-bequant-api)
+- [CCXT vs the Binance COIN-M Futures API](/docs/comparisons/ccxt-vs-binancecoinm-api)
+- [CCXT vs the Binance USDⓈ-M Futures API](/docs/comparisons/ccxt-vs-binanceusdm-api)
+- [CCXT vs the Binance.US API](/docs/comparisons/ccxt-vs-binanceus-api)
+- [CCXT vs the Bybit EU API](/docs/comparisons/ccxt-vs-bybiteu-api)
+- [CCXT vs the FMFW.io API](/docs/comparisons/ccxt-vs-fmfwio-api)
+- [CCXT vs the Gate EU API](/docs/comparisons/ccxt-vs-gateeu-api)
+- [CCXT vs the KuCoin Futures API](/docs/comparisons/ccxt-vs-kucoinfutures-api)
+- [CCXT vs the MyOKX (EEA) API](/docs/comparisons/ccxt-vs-myokx-api)
+- [CCXT vs the OKX US API](/docs/comparisons/ccxt-vs-okxus-api)
+
+## How the numbers were checked
+
+Every CCXT-side figure on these pages — capability counts, endpoint counts, rate limits — is
+read out of the source tree by a script rather than typed from memory, and each page states the
+library version it was measured against. Competitor figures were read from each project’s own
+repository on the day the page was written.
+
+That mattered more than expected. `htx` looks like it has a testnet until you notice its test
+URLs are commented out, so `setSandboxMode(true)` raises `NotSupported` for it. Ten exchanges
+inherit their capabilities from a parent class, so reading their file alone reports a fraction of
+what they actually support — `binanceus` comes out as 1 capability instead of 103 that way.
+
+If you spot something wrong or out of date, please tell us — alternatives improve, and we would
+rather be corrected than wrong. [Open an issue](https://github.com/ccxt/ccxt/issues) or say so on
+[Discord](https://discord.gg/dhzSKYU).
+
+[Browse all comparisons](/docs/comparisons)
