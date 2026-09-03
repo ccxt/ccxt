@@ -727,18 +727,10 @@ class BaseExchange(object):
     @staticmethod
     def safe_float(container, key, default_value=None):
         if container is not None:
-            if isinstance(container, dict):
-                value = container.get(key)
-            else:
-                try:
-                    value = container[key]
-                except (KeyError, IndexError, TypeError):
-                    value = None
-            if value is not None:
-                try:
-                    return float(value)
-                except (TypeError, ValueError, OverflowError):
-                    pass
+            try:
+                return float(container[key])
+            except (KeyError, IndexError, TypeError, ValueError, OverflowError):
+                pass
         return default_value
 
     @staticmethod
@@ -820,30 +812,14 @@ class BaseExchange(object):
     @staticmethod
     def safe_float_2(container, key1, key2, default_value=None):
         if container is not None:
-            if isinstance(container, dict):
-                value = container.get(key1)
-            else:
-                try:
-                    value = container[key1]
-                except (KeyError, IndexError, TypeError):
-                    value = None
-            if value is not None:
-                try:
-                    return float(value)
-                except (TypeError, ValueError, OverflowError):
-                    pass
-            if isinstance(container, dict):
-                value = container.get(key2)
-            else:
-                try:
-                    value = container[key2]
-                except (KeyError, IndexError, TypeError):
-                    value = None
-            if value is not None:
-                try:
-                    return float(value)
-                except (TypeError, ValueError, OverflowError):
-                    pass
+            try:
+                return float(container[key1])
+            except (KeyError, IndexError, TypeError, ValueError, OverflowError):
+                pass
+            try:
+                return float(container[key2])
+            except (KeyError, IndexError, TypeError, ValueError, OverflowError):
+                pass
         return default_value
 
     @staticmethod
@@ -966,7 +942,7 @@ class BaseExchange(object):
         if value is not None:
             try:
                 return float(value)
-            except (ValueError, TypeError, OverflowError):
+            except (KeyError, IndexError, TypeError, ValueError, OverflowError):
                 pass
         return default_value
 
