@@ -153,7 +153,7 @@ CCXT deliberately stops at the exchange boundary. There is no scheduler, no stra
 
 ## What Hummingbot does better
 
-- **On-chain AMM and DEX trading.** Through [Gateway](https://github.com/hummingbot/gateway), a separate TypeScript service, Hummingbot trades router, AMM and concentrated-liquidity pools across Ethereum, Arbitrum, Avalanche, Base, BSC, Celo, Optimism, Polygon and Solana. Uniswap, Curve, Balancer, PancakeSwap, Raydium, Orca, Meteora and Jupiter are all connector rows. CCXT has no equivalent and no plans to grow one — it speaks exchange APIs, not chains.
+- **On-chain AMM and DEX trading.** Through [Gateway](https://github.com/hummingbot/gateway), a separate TypeScript service, Hummingbot trades router, AMM and concentrated-liquidity pools across Ethereum, Arbitrum, Avalanche, Base, BSC, Celo, Optimism, Polygon and Solana. Uniswap, Curve, Balancer, PancakeSwap, Raydium, Orca, Meteora and Jupiter are all connector rows. CCXT has no equivalent — it speaks exchange APIs, not chains.
 - **A real market-making strategy library.** Pure Market Making, Avellaneda Market Making and Cross-Exchange Market Making ship as strategies, and the V2 executors cover position, DCA, grid, arbitrage, XEMM, TWAP and liquidity-provision patterns as reusable building blocks. That is years of accumulated execution logic you would otherwise write yourself.
 - **Backtesting and a dashboard.** Controller configs can be backtested from the Hummingbot Dashboard over historical data with net PnL, max drawdown, Sharpe ratio, profit factor and per-closure-type breakdowns. CCXT has no backtester.
 - **Paper trading with no keys.** `binance_paper_trade` simulates against live market data, so a strategy can be exercised end to end before any credential exists. CCXT can only offer whatever testnet the venue itself runs.
@@ -170,13 +170,13 @@ Migration only makes sense at the **connector layer** — replacing Hummingbot's
 | Naming a market | `BTC-USDT`, plus a connector id per product (`binance`, `binance_perpetual`) | `'BTC/USDT'` and `'BTC/USDT:USDT'` on one `ccxt.binance()` |
 | Connecting | `hbot connect binance` into the encrypted keystore | `ccxt.binance({'apiKey': '...', 'secret': '...'})` |
 | Reference price | `get_price_by_type(pair, PriceType.MidPrice)` | `fetch_ticker(symbol)` or `fetch_order_book(symbol)` |
-| Order book | connector order-book tracker | `fetch_order_book()` / `watch_order_book()` |
-| Candles | candles feed | `fetch_ohlcv()` / `watch_ohlcv()` |
+| Order book | `connector.get_order_book(trading_pair)` | `fetch_order_book()` / `watch_order_book()` |
+| Candles | the candles feed in `hummingbot/data_feed/candles_feed` | `fetch_ohlcv()` / `watch_ohlcv()` |
 | New order | `OrderCandidate` then `self.buy()` / `self.sell()` | `create_order(symbol, type, side, amount, price)` |
 | Cancel order | `self.cancel(connector, pair, client_order_id)` | `cancel_order(id, symbol)` |
 | Open orders | `self.get_active_orders(connector_name=...)` | `fetch_open_orders(symbol)` |
 | Fills | `did_fill_order(OrderFilledEvent)` callback | `fetch_my_trades()` / `watch_my_trades()` |
-| Balance | connector budget checker | `fetch_balance()` |
+| Balance | `connector.get_balance(currency)`, plus the budget checker | `fetch_balance()` |
 | Paper trading | `binance_paper_trade` connector | `exchange.set_sandbox_mode(True)` where the venue has a testnet |
 | Anything not listed | connector method, if implemented | the same endpoint as an implicit method |
 

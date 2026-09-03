@@ -6,7 +6,7 @@
 
 # CCXT vs Freqtrade
 
-If you are comparing these two, the first thing to know is that they are not competitors: **Freqtrade uses CCXT for every exchange call it makes.** Its own documentation opens the exchange chapter with "Freqtrade is based on [CCXT library](https://github.com/ccxt/ccxt) that supports over 100 cryptocurrency exchange markets and trading APIs", and `ccxt>=4.5.76` is the first entry in its `pyproject.toml` dependency list.
+If you are comparing these two, the first thing to know is that they are not competitors: **Freqtrade uses CCXT for every exchange call it makes.** Its exchange-configuration documentation states that "Freqtrade is based on [CCXT library](https://github.com/ccxt/ccxt) that supports over 100 cryptocurrency exchange markets and trading APIs", and `ccxt>=4.5.76` is the first entry in its `pyproject.toml` dependency list.
 
 [Freqtrade](https://github.com/freqtrade/freqtrade) is "a free and open source crypto trading bot written in Python … designed to support all major exchanges and be controlled via Telegram or webUI", with backtesting, plotting, money management and machine-learning strategy optimisation. [CCXT](/docs/manual) is the exchange layer underneath. So the real question is not which to pick. It is **which layer your problem lives at**.
 
@@ -141,7 +141,7 @@ CCXT's 104 is a coverage number. Freqtrade's is a support commitment. Both are h
 
 The strategy interface is a pandas dataframe of OHLCV rows per pair, and everything else is arranged around that: pairlist handlers, the candle cache, backtesting, hyperopt. It fits trend and mean-reversion strategies extremely well.
 
-It fits some things badly by construction. Order-book-driven execution, cross-venue arbitrage, funding-rate carry, options, quoting both sides of a spread, or anything that reacts within a candle rather than at its close — those want the exchange layer directly. CCXT's unified API also covers ground the strategy interface never surfaces: `fetch_funding_rate_history`, `fetch_open_interest`, `fetch_positions`, `fetch_leverage_tiers`, `fetch_liquidations`, transfers and deposit addresses, plus 7 prediction-market venues in `ccxt.prediction`.
+It fits some things badly by construction. Order-book-driven execution, options, quoting both sides of a spread, or anything that has to react within a candle rather than at its close — those want the exchange layer directly. A bot is also configured with a single `exchange` block, so cross-venue work means running more than one of it. And CCXT's unified API covers ground the strategy interface does not surface at all: `fetch_liquidations`, transfers between account types, deposit addresses, and 7 prediction-market venues in `ccxt.prediction`.
 
 ### One language versus seven
 
@@ -157,8 +157,8 @@ Freqtrade is **GPL-3.0**; CCXT is **MIT**. Running Freqtrade for yourself raises
 - **Hyperparameter optimisation.** `hyperopt`, `hyperopt-list` and `hyperopt-show` search strategy parameters against real exchange data, with pluggable loss functions. Writing that yourself is a project.
 - **FreqAI.** An adaptive machine-learning layer that retrains models on a rolling window as the market moves, wired into the same strategy interface.
 - **Operating a live bot.** Telegram control (`/status`, `/profit`, `/balance`, `/forceexit`, `/performance`), the FreqUI web interface, a REST API, SQLite persistence of every trade, and dry-run mode that runs the full loop without touching money. All of that is the unglamorous 80% of running a bot, and it is done.
-- **Exchange quirks already absorbed.** Its 26 exchange classes encode stop-order parameter names, candle limits, time-in-force sets, order-book depth ranges and pagination behaviour per venue — knowledge you would otherwise rediscover.
-- **A per-strategy safety net.** Stoploss handling, ROI tables, protections, position adjustment and pairlist filtering are all built in and tested.
+- **Exchange quirks already absorbed.** Its 26 exchange classes encode stop-order parameter names, candle limits, time-in-force sets and order-book depth ranges per venue — knowledge you would otherwise rediscover the hard way.
+- **The parts of a bot nobody enjoys writing.** Stoploss handling — including exchange-side stoploss on venues whose quirk table declares `stoploss_on_exchange` — `minimum_roi` exits, and dynamic whitelisting and blacklisting of pairs are all built in and tested.
 
 If your problem is "I have a candle-based idea and I want it backtested, tuned and running by the weekend", Freqtrade is unambiguously the better choice, and reaching for CCXT directly would mean rebuilding most of the above.
 
@@ -189,7 +189,7 @@ Inside a strategy, several data-provider methods return CCXT structures unchange
 | --- | --- |
 | A venue Freqtrade has not tested | `ccxt.<id>()` directly — 104 to choose from |
 | Live order books, trades or order updates | `watch_order_book`, `watch_trades`, `watch_orders` on `ccxt.pro.<id>` |
-| Funding rates, open interest, leverage tiers, liquidations | `fetch_funding_rate_history`, `fetch_open_interest`, `fetch_leverage_tiers`, `fetch_liquidations` |
+| Liquidations, transfers between accounts, deposit addresses | `fetch_liquidations`, `transfer`, `fetch_deposit_address` |
 | Prediction markets | `ccxt.prediction.polymarket()`, `ccxt.prediction.kalshi()` |
 | A venue-specific endpoint with no unified method | the [implicit API](/docs/exchanges/binance/implicit-api) |
 | The exchange layer in Go, C#, TypeScript, PHP or Java | the same CCXT API in that language |
@@ -205,7 +205,7 @@ Yes. `ccxt>=4.5.76` is the first dependency in its `pyproject.toml`, and `freqtr
 It can attempt to. `freqtrade list-exchanges` walks CCXT's full exchange list and reports which venues expose the capabilities Freqtrade requires. The README's spot list ends with "potentially many others" pointing at the CCXT repository, with the caveat "We cannot guarantee they will work". Untested is not the same as unsupported — but it does mean you are the one testing it.
 
 **Do I still need CCXT if I use Freqtrade?**
-You already have it — it is installed as a dependency. You would import it directly when you need something outside Freqtrade's candle-shaped world: a live order-book stream, funding-rate history, an untested venue, a prediction market, or an exchange-specific endpoint.
+You already have it — it is installed as a dependency. You would import it directly when you need something outside Freqtrade's candle-shaped world: a live order-book stream, a second venue in the same process, an untested exchange, a prediction market, or an exchange-specific endpoint.
 
 **Is Freqtrade's WebSocket support the same as CCXT Pro?**
 It is CCXT Pro underneath, but only part of it. Freqtrade's configuration docs say WebSocket usage "is limited to ohlcv data streams" and falls back to REST if the socket fails; it can be disabled with `exchange.enable_ws`. CCXT Pro itself exposes `watch_order_book`, `watch_trades`, `watch_ticker`, `watch_orders`, `watch_my_trades`, `watch_positions` and `watch_balance` across 76 exchanges.
