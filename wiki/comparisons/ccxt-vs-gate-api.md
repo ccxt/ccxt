@@ -26,7 +26,7 @@ The choice comes down to one question: **do you want a client shaped like Gate's
 | Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | Python, Node/TypeScript, Go, Java, PHP, C# — separate generated codebases |
 | Packages to install | **1** (`ccxt`) — REST and WebSocket | **2** in Python: `gate-api` for REST, `gate-ws` for streaming |
 | Gate products in one client | spot, margin, perpetual futures, delivery futures, options | one generated API class per product line (`SpotApi`, `FuturesApi`, `OptionsApi`, `UnifiedApi`, `AccountApi`, …) |
-| Unified market data + trading API | yes — 112 unified capabilities, 49 `fetch*` methods | no — Gate's generated request and response models |
+| Unified market data + trading API | yes — 115 unified capabilities, 51 `fetch*` methods | no — Gate's generated request and response models |
 | WebSockets | yes — 16 `watch*`/`unWatch*` methods, same shapes as `fetch*` | yes, in `gate-ws`: `Connection` plus per-channel classes and callbacks |
 | Raw endpoint access | yes — 339 Gate endpoints as implicit methods | yes, it is the whole product |
 | Built-in rate limiter | yes, per-endpoint weights, on by default (`rateLimit` 50 ms) | manual |
@@ -234,7 +234,7 @@ One flag swaps every REST and WebSocket URL, instead of threading a different `h
 
 ### Nothing is hidden — the implicit API
 
-Alongside the 112 unified capabilities CCXT implements for Gate, **all 339 endpoints in Gate's API are generated as callable implicit methods**:
+Alongside the 115 unified capabilities CCXT implements for Gate, **all 339 endpoints in Gate's API are generated as callable implicit methods**:
 
 ```python
 response = exchange.private_spot_get_accounts()

@@ -1,7 +1,7 @@
 <!-- title: CCXT vs the raw INDODAX REST API -->
 <!-- description: INDODAX publishes API documentation but no client library. Hand-rolling its signing, nonces, rate limits and ticker keys compared with CCXT's indodax class. -->
 <!-- group: Exchange APIs and official SDKs -->
-<!-- summary: INDODAX ships documentation, not an SDK — the only repository on its GitHub organisation is the API docs. CCXT's indodax class gives you 16 unified capabilities and 22 signed endpoints, but no WebSocket support. -->
+<!-- summary: INDODAX ships documentation, not an SDK — the only repository on its GitHub organisation is the API docs. CCXT's indodax class gives you 19 unified capabilities and 22 signed endpoints, but no WebSocket support. -->
 <!-- weight: 100 -->
 
 # CCXT vs the raw INDODAX REST API
@@ -13,7 +13,7 @@ So the real comparison is not CCXT against an SDK. It is **CCXT against the clie
 ## TL;DR
 
 - **Write it yourself** if you call two or three INDODAX endpoints, never intend to add another venue, and would rather own a hundred lines than take a dependency.
-- **Use CCXT** if you want the signing, nonces, pacing, precision and error mapping already done — 16 unified capabilities and all 22 endpoints, with the same method names you use on every other exchange.
+- **Use CCXT** if you want the signing, nonces, pacing, precision and error mapping already done — 19 unified capabilities and all 22 endpoints, with the same method names you use on every other exchange.
 - **CCXT has no WebSocket support for INDODAX.** The venue publishes market-data and private stream documentation; `indodax` has zero `watch*` methods in CCXT. If you need live streams, that part is yours to build.
 
 ## At a glance
@@ -23,7 +23,7 @@ So the real comparison is not CCXT against an SDK. It is **CCXT against the clie
 | Official client library | — | none published; documentation repository only |
 | Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | any, you write the client |
 | Symbols | `'BTC/IDR'` | `btc_idr` for public, `BTCIDR` in some payloads |
-| Unified capabilities | 16, of which 12 are `fetch*` | n/a |
+| Unified capabilities | 19, of which 15 are `fetch*` | n/a |
 | Signing | built in | HMAC-SHA512 over the urlencoded body, `Key` + `Sign` headers, `nonce` or `timestamp` + `recvWindow` |
 | WebSockets | **no** — `indodax` has no `watch*` methods in CCXT | documented by INDODAX; you write the client |
 | Raw endpoint access | yes — 22 endpoints as implicit methods | it is the whole product |
@@ -168,7 +168,7 @@ $ticker = $exchange->fetch_ticker('BTC/IDR');
 
 ### Nothing is hidden — the implicit API
 
-Alongside the 16 unified capabilities, **all 22 INDODAX endpoints are generated as implicit methods**, with signing and rate-limit accounting applied. If INDODAX ships something CCXT has not unified yet, you can still call it:
+Alongside the 19 unified capabilities, **all 22 INDODAX endpoints are generated as implicit methods**, with signing and rate-limit accounting applied. If INDODAX ships something CCXT has not unified yet, you can still call it:
 
 ```python
 response = exchange.private_post_get_info()

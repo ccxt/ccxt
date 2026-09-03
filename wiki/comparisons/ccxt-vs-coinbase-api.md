@@ -197,7 +197,7 @@ price = exchange.price_to_precision('BTC/USDC', 61234.56789)
 
 ### Nothing is hidden — the implicit API
 
-Alongside the **65 unified capabilities** CCXT implements for `coinbase` (42 for `coinbaseexchange`, 48 for `coinbaseinternational`), every endpoint is generated as a callable implicit method, with signing, rate limiting and error mapping applied:
+Alongside the **69 unified capabilities** CCXT implements for `coinbase` (42 for `coinbaseexchange`, 48 for `coinbaseinternational`), every endpoint is generated as a callable implicit method, with signing, rate limiting and error mapping applied:
 
 ```python
 # any raw Advanced Trade endpoint, camelCased from its path

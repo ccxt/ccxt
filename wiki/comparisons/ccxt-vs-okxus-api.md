@@ -1,7 +1,7 @@
 <!-- title: CCXT vs the OKX US API -->
 <!-- description: OKX US is a regional entity of OKX. What CCXT's `okxus` class covers, how it differs from `okx`, and where the full comparison lives. -->
 <!-- group: Regional entities and product lines -->
-<!-- summary: A regional entity of OKX, shipped as its own CCXT class. Inherits 120 unified capabilities and 433 raw endpoints from `okx`. -->
+<!-- summary: A regional entity of OKX, shipped as its own CCXT class. Inherits 122 unified capabilities and 446 raw endpoints from `okx`. -->
 <!-- weight: 400 -->
 
 # CCXT vs the OKX US API
@@ -20,10 +20,10 @@ Separate host, separate accounts and a narrower product set than the global venu
 
 | | `okxus` |
 | --- | --- |
-| Unified capabilities | 120 (inherited from `okx` plus its own overrides) |
-| `fetch*` methods | 63 |
+| Unified capabilities | 122 (inherited from `okx` plus its own overrides) |
+| `fetch*` methods | 64 |
 | WebSocket `watch*` methods | 19 |
-| Raw endpoints as implicit methods | 433 |
+| Raw endpoints as implicit methods | 446 |
 | Testnet via `setSandboxMode` | yes |
 | Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java |
 | Licence | MIT |
@@ -84,10 +84,10 @@ Use `okxus` when you hold an account with OKX US specifically. Use [`okx`](/docs
 No. It is a separate legal entity with separate accounts; you need keys issued by OKX US.
 
 **Does `okxus` support the full unified API?**
-It inherits 120 unified capabilities from `okx`. Where the venue does not offer a feature, the corresponding `has` flag is turned off, and the method raises `NotSupported` rather than failing quietly. Check `exchange.has` at runtime.
+It inherits 122 unified capabilities from `okx`. Where the venue does not offer a feature, the corresponding `has` flag is turned off, and the method raises `NotSupported` rather than failing quietly. Check `exchange.has` at runtime.
 
 **Can I reach OKX US-specific endpoints?**
-Yes — all 433 endpoints in this class's `api` block are generated as implicit methods, with signing, rate limiting and error mapping applied. The mechanism is documented on the [`okx` implicit API page](/docs/exchanges/okx/implicit-api); this venue's own endpoint list differs slightly from the parent's.
+Yes — all 446 endpoints in this class's `api` block are generated as implicit methods, with signing, rate limiting and error mapping applied. The mechanism is documented on the [`okx` implicit API page](/docs/exchanges/okx/implicit-api); this venue's own endpoint list differs slightly from the parent's.
 
 **Is CCXT free?**
 Yes. MIT-licensed, including the WebSocket support.

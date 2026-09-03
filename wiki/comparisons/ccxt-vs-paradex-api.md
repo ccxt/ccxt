@@ -31,7 +31,7 @@ Paradex publishes two official SDKs: [`tradeparadex/paradex-py`](https://github.
 | Auth | L1 key derives the Starknet account; JWT cached and refreshed automatically | same, plus an L2-only `ParadexSubkey` path |
 | L2-only (subkey) credentials | no — CCXT needs `walletAddress` + L1 `privateKey` | yes — `ParadexSubkey(l2_private_key, l2_address)` |
 | WebSockets | yes — 7 `watch*` methods | yes — async and threaded clients, plus an SBE market-data example |
-| Raw endpoint access | yes — 109 endpoints as implicit methods | whatever the SDK wraps |
+| Raw endpoint access | yes — 111 endpoints as implicit methods | whatever the SDK wraps |
 | Built-in rate limiter | yes, per-endpoint weights, on by default (`rateLimit` 50 ms) | not a documented feature |
 | Unified error types | yes — 41 typed exceptions in one hierarchy | HTTP status plus Paradex error payloads |
 | Testnet | `set_sandbox_mode(True)` swaps REST and WS URLs | `Environment.TESTNET` / `PROD` / `NIGHTLY` |
@@ -244,7 +244,7 @@ exchange.set_sandbox_mode(True)   # swaps in Paradex's testnet REST and WS URLs
 
 ### Nothing is hidden — the implicit API
 
-Alongside the 50 unified capabilities, **all 109 endpoints in the API definition are generated as callable implicit methods**, with authentication, rate-limit accounting and error mapping applied:
+Alongside the 50 unified capabilities, **all 111 endpoints in the API definition are generated as callable implicit methods**, with authentication, rate-limit accounting and error mapping applied:
 
 ```python
 # any raw Paradex endpoint, camelCased from its path

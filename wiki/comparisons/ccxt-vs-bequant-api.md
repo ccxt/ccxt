@@ -1,7 +1,7 @@
 <!-- title: CCXT vs the Bequant API -->
 <!-- description: Bequant is a white-label venue of HitBTC. What CCXT's `bequant` class covers, how it differs from `hitbtc`, and where the full comparison lives. -->
 <!-- group: Regional entities and product lines -->
-<!-- summary: A white-label venue of HitBTC, shipped as its own CCXT class. Inherits 64 unified capabilities and 111 raw endpoints from `hitbtc`. -->
+<!-- summary: A white-label venue of HitBTC, shipped as its own CCXT class. Inherits 65 unified capabilities and 111 raw endpoints from `hitbtc`. -->
 <!-- weight: 400 -->
 
 # CCXT vs the Bequant API
@@ -20,7 +20,7 @@ A distinct venue with its own accounts and listings, but the request/response fo
 
 | | `bequant` |
 | --- | --- |
-| Unified capabilities | 64 (inherited from `hitbtc` plus its own overrides) |
+| Unified capabilities | 65 (inherited from `hitbtc` plus its own overrides) |
 | `fetch*` methods | 35 |
 | WebSocket `watch*` methods | 8 |
 | Raw endpoints as implicit methods | 111 |
@@ -84,7 +84,7 @@ Use `bequant` when you hold an account with Bequant specifically. Use [`hitbtc`]
 No. It is a separate legal entity with separate accounts; you need keys issued by Bequant.
 
 **Does `bequant` support the full unified API?**
-It inherits 64 unified capabilities from `hitbtc`. Where the venue does not offer a feature, the corresponding `has` flag is turned off, and the method raises `NotSupported` rather than failing quietly. Check `exchange.has` at runtime.
+It inherits 65 unified capabilities from `hitbtc`. Where the venue does not offer a feature, the corresponding `has` flag is turned off, and the method raises `NotSupported` rather than failing quietly. Check `exchange.has` at runtime.
 
 **Can I reach Bequant-specific endpoints?**
 Yes — all 111 endpoints in this class's `api` block are generated as implicit methods, with signing, rate limiting and error mapping applied. The mechanism is documented on the [`hitbtc` implicit API page](/docs/exchanges/hitbtc/implicit-api); this venue's own endpoint list differs slightly from the parent's.

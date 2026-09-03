@@ -1,7 +1,7 @@
 <!-- title: CCXT vs the Binance USDⓈ-M Futures API -->
 <!-- description: Binance USDⓈ-M Futures is a product line of Binance. What CCXT's `binanceusdm` class covers, how it differs from `binance`, and where the full comparison lives. -->
 <!-- group: Regional entities and product lines -->
-<!-- summary: A product line of Binance, shipped as its own CCXT class. Inherits 152 unified capabilities and 792 raw endpoints from `binance`. -->
+<!-- summary: A product line of Binance, shipped as its own CCXT class. Inherits 153 unified capabilities and 808 raw endpoints from `binance`. -->
 <!-- weight: 400 -->
 
 # CCXT vs the Binance USDⓈ-M Futures API
@@ -20,10 +20,10 @@ Same exchange and same credentials as `binance`, different product line and diff
 
 | | `binanceusdm` |
 | --- | --- |
-| Unified capabilities | 152 (inherited from `binance` plus its own overrides) |
+| Unified capabilities | 153 (inherited from `binance` plus its own overrides) |
 | `fetch*` methods | 79 |
-| WebSocket `watch*` methods | 30 |
-| Raw endpoints as implicit methods | 792 |
+| WebSocket `watch*` methods | 31 |
+| Raw endpoints as implicit methods | 808 |
 | Testnet via `setSandboxMode` | no |
 | Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java |
 | Licence | MIT |
@@ -84,10 +84,10 @@ Use `binanceusdm` when you hold an account with Binance USDⓈ-M Futures specifi
 Yes — it is the same account and the same credentials, just a different product host.
 
 **Does `binanceusdm` support the full unified API?**
-It inherits 152 unified capabilities from `binance`. Where the venue does not offer a feature, the corresponding `has` flag is turned off, and the method raises `NotSupported` rather than failing quietly. Check `exchange.has` at runtime.
+It inherits 153 unified capabilities from `binance`. Where the venue does not offer a feature, the corresponding `has` flag is turned off, and the method raises `NotSupported` rather than failing quietly. Check `exchange.has` at runtime.
 
 **Can I reach Binance USDⓈ-M Futures-specific endpoints?**
-Yes — all 792 endpoints in this class's `api` block are generated as implicit methods, with signing, rate limiting and error mapping applied. The mechanism is documented on the [`binance` implicit API page](/docs/exchanges/binance/implicit-api); this venue's own endpoint list differs slightly from the parent's.
+Yes — all 808 endpoints in this class's `api` block are generated as implicit methods, with signing, rate limiting and error mapping applied. The mechanism is documented on the [`binance` implicit API page](/docs/exchanges/binance/implicit-api); this venue's own endpoint list differs slightly from the parent's.
 
 **Is CCXT free?**
 Yes. MIT-licensed, including the WebSocket support.

@@ -1,7 +1,7 @@
 <!-- title: CCXT vs the raw HashKey Global REST API -->
 <!-- description: HashKey Global publishes API documentation but no client SDK. What CCXT adds over raw HTTP — signing, rate limits, listen-key refresh, order books and precision. -->
 <!-- group: Exchange APIs and official SDKs -->
-<!-- summary: HashKey Global ships documentation, not an SDK, so the comparison is CCXT against raw HTTP. HashKey is a certified CCXT exchange with 57 unified capabilities, 7 streaming methods and a working sandbox. -->
+<!-- summary: HashKey Global ships documentation, not an SDK, so the comparison is CCXT against raw HTTP. HashKey is a certified CCXT exchange with 59 unified capabilities, 7 streaming methods and a working sandbox. -->
 <!-- weight: 100 -->
 
 # CCXT vs the raw HashKey Global REST API
@@ -24,7 +24,7 @@ So the comparison is not CCXT against a vendor SDK. It is **CCXT against the int
 | Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | any language with an HTTP client, all of it your code |
 | Official client library | n/a | **none** — the documentation shows `curl` and `openssl` signing examples |
 | Products in one client | spot and perpetual futures, one `ccxt.hashkey` instance | parallel `spot/*` and `futures/*` endpoint families |
-| Unified market data + trading API | yes — 57 unified capabilities, 30 `fetch*` methods | no — HashKey's own request and response shapes |
+| Unified market data + trading API | yes — 59 unified capabilities, 31 `fetch*` methods | no — HashKey's own request and response shapes |
 | WebSockets | yes — 7 `watch*` methods, same structures as `fetch*` | raw socket, plus a listen-key you create and refresh yourself |
 | Raw endpoint access | yes — 67 endpoints as implicit methods | yes, it is all you have |
 | Built-in rate limiter | yes, per-endpoint weights, on by default (`rateLimit` 100 ms) | your code |
@@ -126,7 +126,7 @@ HashKey signs the concatenation of the query string and the request body with HM
 
 HashKey mirrors its shapes across `api/v1/spot/*` and `api/v1/futures/*`: separate order, open-orders, cancel, batch, trade-history and balance endpoints for each, plus futures-only endpoints for leverage, margin type, position margin and risk limits. Written by hand that is two parsers.
 
-CCXT's `ccxt.hashkey` covers both with 57 unified capabilities and 30 `fetch*` methods. The unified symbol picks the family: `'BTC/USDT'` routes to spot, `'BTC/USDT:USDT'` to the perpetual, and `set_leverage`, `fetch_positions` and `set_margin_mode` are unified methods rather than futures-specific paths you look up.
+CCXT's `ccxt.hashkey` covers both with 59 unified capabilities and 31 `fetch*` methods. The unified symbol picks the family: `'BTC/USDT'` routes to spot, `'BTC/USDT:USDT'` to the perpetual, and `set_leverage`, `fetch_positions` and `set_margin_mode` are unified methods rather than futures-specific paths you look up.
 
 ### Seven languages, one API
 
@@ -222,7 +222,7 @@ One flag swaps the REST and WebSocket hosts to HashKey's SIM environment. HashKe
 
 ### Nothing is hidden — the implicit API
 
-Alongside the 57 unified capabilities, all 67 endpoints in CCXT's HashKey `api` block are generated as callable implicit methods, camelCased from their paths:
+Alongside the 59 unified capabilities, all 67 endpoints in CCXT's HashKey `api` block are generated as callable implicit methods, camelCased from their paths:
 
 ```python
 positions = exchange.private_get_api_v1_futures_positions()

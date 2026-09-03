@@ -1,7 +1,7 @@
 <!-- title: CCXT vs the Mode Trade API -->
 <!-- description: Mode Trade publishes no client library of its own — it runs on Orderly Network's EVM orderbook. Compare CCXT with Orderly's connectors on coverage and streaming. -->
 <!-- group: Exchange APIs and official SDKs -->
-<!-- summary: Mode Trade ships no SDK. Its API is Orderly Network's EVM orderbook, for which Orderly publishes a Python connector and TypeScript SDKs. CCXT covers the same host with 54 unified capabilities and 10 watch* methods in seven languages. -->
+<!-- summary: Mode Trade ships no SDK. Its API is Orderly Network's EVM orderbook, for which Orderly publishes a Python connector and TypeScript SDKs. CCXT covers the same host with 56 unified capabilities and 10 watch* methods in seven languages. -->
 <!-- weight: 100 -->
 
 # CCXT vs the Mode Trade API
@@ -13,7 +13,7 @@ So the realistic alternative to [CCXT](/docs/manual) is not a Mode SDK. It is Or
 ## TL;DR
 
 - **Pick Orderly's connector** if you are building against the Orderly stack itself, in Python or TypeScript, and want method and field names that match Orderly's reference one-for-one.
-- **Pick CCXT** if you want Mode Trade as one venue among many: 54 unified capabilities, 10 `watch*` streaming methods, and the same code in TypeScript, JavaScript, Python, PHP, C#/.NET, Go or Java.
+- **Pick CCXT** if you want Mode Trade as one venue among many: 56 unified capabilities, 10 `watch*` streaming methods, and the same code in TypeScript, JavaScript, Python, PHP, C#/.NET, Go or Java.
 - **Both sign the same way.** Orderly authenticates with an ed25519 key pair (`orderly-key`, `orderly-secret`, `orderly-account-id`), and CCXT implements that signing internally — the choice is about API shape and portability, not cryptography.
 
 ## At a glance
@@ -24,7 +24,7 @@ So the realistic alternative to [CCXT](/docs/manual) is not a Mode SDK. It is Or
 | Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | Python (`orderly-evm-connector`), TypeScript (`js-sdk`, `orderly-sdk-js`) |
 | Packages to install | **1** (`ccxt`) | `pip install orderly-evm-connector`, or an npm package per JS SDK |
 | Unified market data + trading API | yes — same method names across every exchange | no — Orderly's own request/response shapes |
-| Unified capabilities implemented | 54 for `modetrade`, of which 27 are `fetch*` | n/a |
+| Unified capabilities implemented | 56 for `modetrade`, of which 27 are `fetch*` | n/a |
 | Symbols | `'BTC/USDC:USDC'` | `PERP_BTC_USDC` |
 | WebSockets | yes — 10 `watch*` methods | yes — public and private stream clients |
 | Raw endpoint access | yes — 115 endpoints as implicit methods | whatever the connector wraps |
@@ -227,7 +227,7 @@ price = exchange.price_to_precision('BTC/USDC:USDC', 61234.56789)
 
 ### Nothing is hidden — the implicit API
 
-Alongside the 54 unified capabilities, **all 115 endpoints in the API definition are generated as callable implicit methods**, with signing, rate-limit accounting and error mapping applied:
+Alongside the 56 unified capabilities, **all 115 endpoints in the API definition are generated as callable implicit methods**, with signing, rate-limit accounting and error mapping applied:
 
 ```python
 # any raw endpoint, camelCased from its path

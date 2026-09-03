@@ -261,7 +261,7 @@ No. `create_order` on `zaif` accepts `'limit'` only and raises otherwise, becaus
 Not through unified methods. The leverage endpoints are reachable as implicit methods (`tlapi_post_active_positions`, `tlapi_post_create_position` and the rest), with signing and rate limiting applied, but the request and response shapes are Zaif's own.
 
 **Is CCXT free?**
-Yes. MIT-licensed, including the WebSocket support for the 78 exchanges that have it.
+Yes. MIT-licensed, including the WebSocket support for the 76 exchanges that have it.
 
 ## Next steps
 

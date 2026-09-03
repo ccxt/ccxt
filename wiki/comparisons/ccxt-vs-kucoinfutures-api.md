@@ -1,7 +1,7 @@
 <!-- title: CCXT vs the KuCoin Futures API -->
 <!-- description: KuCoin Futures is a product line of KuCoin. What CCXT's `kucoinfutures` class covers, how it differs from `kucoin`, and where the full comparison lives. -->
 <!-- group: Regional entities and product lines -->
-<!-- summary: A product line of KuCoin, shipped as its own CCXT class. Inherits 110 unified capabilities and 351 raw endpoints from `kucoin`. -->
+<!-- summary: A product line of KuCoin, shipped as its own CCXT class. Inherits 111 unified capabilities and 351 raw endpoints from `kucoin`. -->
 <!-- weight: 400 -->
 
 # CCXT vs the KuCoin Futures API
@@ -20,8 +20,8 @@ Same account as KuCoin spot, but a genuinely different API — different host, d
 
 | | `kucoinfutures` |
 | --- | --- |
-| Unified capabilities | 110 (inherited from `kucoin` plus its own overrides) |
-| `fetch*` methods | 55 |
+| Unified capabilities | 111 (inherited from `kucoin` plus its own overrides) |
+| `fetch*` methods | 56 |
 | WebSocket `watch*` methods | 22 |
 | Raw endpoints as implicit methods | 351 |
 | Testnet via `setSandboxMode` | no |
@@ -84,7 +84,7 @@ Use `kucoinfutures` when you hold an account with KuCoin Futures specifically. U
 Yes — it is the same account and the same credentials, just a different product host.
 
 **Does `kucoinfutures` support the full unified API?**
-It inherits 110 unified capabilities from `kucoin`. Where the venue does not offer a feature, the corresponding `has` flag is turned off, and the method raises `NotSupported` rather than failing quietly. Check `exchange.has` at runtime.
+It inherits 111 unified capabilities from `kucoin`. Where the venue does not offer a feature, the corresponding `has` flag is turned off, and the method raises `NotSupported` rather than failing quietly. Check `exchange.has` at runtime.
 
 **Can I reach KuCoin Futures-specific endpoints?**
 Yes — all 351 endpoints in this class's `api` block are generated as implicit methods, with signing, rate limiting and error mapping applied. The mechanism is documented on the [`kucoin` implicit API page](/docs/exchanges/kucoin/implicit-api); this venue's own endpoint list differs slightly from the parent's.

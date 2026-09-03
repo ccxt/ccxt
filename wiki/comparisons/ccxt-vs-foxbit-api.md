@@ -1,7 +1,7 @@
 <!-- title: CCXT vs the Foxbit API and the official Foxbit SDK -->
 <!-- description: CCXT and Foxbit's official REST v3 SDK compared on language coverage, unified structures, signing, rate limits, precision and error handling. -->
 <!-- group: Exchange APIs and official SDKs -->
-<!-- summary: Foxbit's official SDK is a JavaScript and TypeScript REST client. CCXT covers the same REST v3 surface in seven languages with 33 unified capabilities — neither ships WebSocket support beyond Foxbit's own JS sample. -->
+<!-- summary: Foxbit's official SDK is a JavaScript and TypeScript REST client. CCXT covers the same REST v3 surface in seven languages with 37 unified capabilities — neither ships WebSocket support beyond Foxbit's own JS sample. -->
 <!-- weight: 100 -->
 
 # CCXT vs the Foxbit API and the official Foxbit SDK
@@ -25,7 +25,7 @@ The question that decides it: **are you writing JavaScript, and is Foxbit your o
 | Venues covered | 104 (Foxbit is one of them) | Foxbit only |
 | Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | JavaScript and TypeScript |
 | Packages to install | 1 (`ccxt`) | 1 (`@foxbit-group/rest-api`) |
-| Unified market data + trading API | yes — 33 unified capabilities, 21 `fetch*` methods | no — Foxbit's own request and response models |
+| Unified market data + trading API | yes — 37 unified capabilities, 24 `fetch*` methods | no — Foxbit's own request and response models |
 | Instrument addressing | unified symbols: `'BTC/BRL'`, `'BTC/USDT'` | market symbols: `btcbrl` |
 | Products | spot | spot |
 | WebSockets | **no** — 0 `watch*` methods for this venue | no — REST v3 only; a WebSocket v2 sample exists in JavaScript in the samples repository |
@@ -196,7 +196,7 @@ CCXT maps Foxbit's error responses onto its [typed exception tree](/docs/manual#
 
 ### Account plumbing is unified too
 
-Beyond trading, the venue's unified capabilities include `fetchBalance`, `fetchLedger`, `fetchMyTrades`, `fetchOrders`, `fetchOpenOrders`, `fetchClosedOrders`, `fetchCanceledOrders`, `fetchDepositAddress`, `fetchDeposits`, `fetchWithdrawals`, `fetchTransactions`, `fetchTradingFees` and `fetchCurrencies` — 33 unified capabilities in total, 21 of them `fetch*` methods.
+Beyond trading, the venue's unified capabilities include `fetchBalance`, `fetchLedger`, `fetchMyTrades`, `fetchOrders`, `fetchOpenOrders`, `fetchClosedOrders`, `fetchCanceledOrders`, `fetchDepositAddress`, `fetchDeposits`, `fetchWithdrawals`, `fetchTransactions`, `fetchTradingFees` and `fetchCurrencies` — 37 unified capabilities in total, 24 of them `fetch*` methods.
 
 ### Nothing is hidden — the implicit API
 

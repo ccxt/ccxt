@@ -1,7 +1,7 @@
 <!-- title: CCXT vs the BingX API -->
 <!-- description: BingX publishes API documentation but no official client library. CCXT compared with the raw API and community SDKs on signing, streaming and demo trading. -->
 <!-- group: Exchange APIs and official SDKs -->
-<!-- summary: BingX's GitHub organisation publishes documentation repositories, not an SDK. CCXT is a certified BingX integration with 81 unified capabilities, 12 streaming methods and all 187 raw endpoints across eleven API sections. -->
+<!-- summary: BingX's GitHub organisation publishes documentation repositories, not an SDK. CCXT is a certified BingX integration with 84 unified capabilities, 12 streaming methods and all 188 raw endpoints across eleven API sections. -->
 <!-- weight: 100 -->
 
 # CCXT vs the BingX API
@@ -13,8 +13,8 @@ What exists instead is a set of community SDKs of varying scope, and [CCXT](/doc
 ## TL;DR
 
 - **Write it yourself, or use a community SDK,** if BingX is your only venue, you are in Python or PHP, and you want method names that track BingX's own reference — including surfaces like TWAP and copy trading that CCXT exposes only as raw endpoints.
-- **Pick CCXT** if you want spot, USDT-M perpetuals and BingX's other product lines behind one client with 81 unified capabilities, 12 streaming methods, demo trading behind one flag, and the same method names on 103 other venues.
-- **Nothing is walled off.** All 187 BingX endpoints across eleven API sections are generated as implicit methods, signed and rate-limited.
+- **Pick CCXT** if you want spot, USDT-M perpetuals and BingX's other product lines behind one client with 84 unified capabilities, 12 streaming methods, demo trading behind one flag, and the same method names on 103 other venues.
+- **Nothing is walled off.** All 188 BingX endpoints across eleven API sections are generated as implicit methods, signed and rate-limited.
 
 ## At a glance
 
@@ -25,9 +25,9 @@ What exists instead is a set of community SDKs of varying scope, and [CCXT](/doc
 | Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | whichever community client exists, or whatever you write |
 | Packages to install | **1** (`ccxt`) | one per language, from a different author each time |
 | Product lines in one client | spot, USDT-M perpetuals, sub-accounts, wallet, copy trading — eleven API sections behind one object | you route each section yourself |
-| Unified market data + trading API | yes — 81 capabilities on `bingx` | no — BingX's own payload shapes |
+| Unified market data + trading API | yes — 84 capabilities on `bingx` | no — BingX's own payload shapes |
 | WebSockets | yes — 12 `watch*` / `unWatch*` methods | varies by SDK |
-| Raw endpoint access | yes — 187 endpoints as implicit methods | yes, it is all you have |
+| Raw endpoint access | yes — 188 endpoints as implicit methods | yes, it is all you have |
 | Built-in rate limiter | yes, on by default (`rateLimit` 100 ms) | your code |
 | Unified error types | yes — 41 typed exceptions in one hierarchy | HTTP status plus BingX error codes |
 | Demo trading | `exchange.set_sandbox_mode(True)` swaps every host to `open-api-vst.bingx.com` | swap the base URL yourself |
@@ -164,7 +164,7 @@ A forgotten refresh is a stream that goes quiet without raising anything — the
 
 BingX's API is not one surface. CCXT models `spot`, `swap`, `contract`, `fund`, `wallets`, `user`, `subAccount`, `account`, `copyTrading`, `cswap` and a general `api` section as separate routes inside a single exchange object, each with its own path prefix and, in some cases, its own content-type and signing encoding. From your side it is one instance and one set of method names.
 
-That is also where the **187 implicit methods** live:
+That is also where the **188 implicit methods** live:
 
 ```python
 # any raw BingX endpoint, camelCased from its path
@@ -227,7 +227,7 @@ If you want a single-venue package rather than all of CCXT, the CCXT project als
 
 ### Derivatives features as unified methods
 
-BingX's perpetuals machinery is unified rather than raw: `fetch_positions`, `fetch_positions_history`, `fetch_position_mode`, `set_position_mode`, `set_leverage`, `set_margin_mode`, `set_margin`, `add_margin`, `reduce_margin`, `fetch_market_leverage_tiers`, `fetch_funding_rate`, `fetch_funding_rate_history`, `fetch_funding_history`, `fetch_open_interest`, `fetch_my_liquidations`, `close_position` and `close_all_positions`. Order entry covers trailing amount and percent orders, trigger, stop-loss, take-profit, reduce-only, batch `create_orders`, `edit_order` and `cancel_all_orders_after` — 81 capabilities in total.
+BingX's perpetuals machinery is unified rather than raw: `fetch_positions`, `fetch_positions_history`, `fetch_position_mode`, `set_position_mode`, `set_leverage`, `set_margin_mode`, `set_margin`, `add_margin`, `reduce_margin`, `fetch_market_leverage_tiers`, `fetch_funding_rate`, `fetch_funding_rate_history`, `fetch_funding_history`, `fetch_open_interest`, `fetch_my_liquidations`, `close_position` and `close_all_positions`. Order entry covers trailing amount and percent orders, trigger, stop-loss, take-profit, reduce-only, batch `create_orders`, `edit_order` and `cancel_all_orders_after` — 84 capabilities in total.
 
 ### Rate limits you do not have to model
 
@@ -290,7 +290,7 @@ Start with [Install](/docs/install), then the [Manual](/docs/manual), then the [
 No. The BingX-API GitHub organisation publishes API documentation repositories, a proof-of-reserves tool and an AI coding-assistant skill library — not a client library. Every BingX SDK you will find is community-built. CCXT is third-party too, but it is a certified BingX integration maintained across 104 venues in seven languages.
 
 **Does CCXT support BingX perpetual futures?**
-Yes. `bingx` declares both spot and swap, with positions, leverage, margin mode, funding rates, leverage tiers, liquidations and trailing/trigger order types as unified methods — 81 capabilities in total.
+Yes. `bingx` declares both spot and swap, with positions, leverage, margin mode, funding rates, leverage tiers, liquidations and trailing/trigger order types as unified methods — 84 capabilities in total.
 
 **Does CCXT support BingX WebSockets?**
 Yes. `ccxt.pro.bingx` implements 12 streaming methods — `watchTrades`, `watchOrderBook`, `watchOHLCV`, `watchTicker`, `watchOrders`, `watchMyTrades`, `watchBalance` and `watchPositions`, plus `unWatchOHLCV`, `unWatchOrderBook`, `unWatchTicker` and `unWatchTrades` — including the listen-key refresh that keeps the private stream alive.
@@ -299,7 +299,7 @@ Yes. `ccxt.pro.bingx` implements 12 streaming methods — `watchTrades`, `watchO
 Yes. `exchange.set_sandbox_mode(True)` swaps every REST and WebSocket host to BingX's VST environment at `open-api-vst.bingx.com`. Use demo keys; no other code changes.
 
 **Can I still call BingX-specific endpoints?**
-Yes — all 187 of them, across eleven API sections, as [implicit methods](/docs/exchanges/bingx/implicit-api), with signing, rate limiting and error mapping applied.
+Yes — all 188 of them, across eleven API sections, as [implicit methods](/docs/exchanges/bingx/implicit-api), with signing, rate limiting and error mapping applied.
 
 **Is CCXT free?**
 Yes. MIT-licensed, including the WebSocket support.

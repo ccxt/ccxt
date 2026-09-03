@@ -24,7 +24,7 @@ That shapes the comparison. The question is not only "CCXT or the vendor library
 | Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | Node.js only |
 | Other official clients | n/a | the Python library repository, `hollaex-py-lib-old`, was archived by its owner in September 2025 |
 | Packages to install | 1 (`ccxt`) | 1 (`hollaex-node-lib`) |
-| Unified market data + trading API | yes — 39 unified capabilities, 20 `fetch*` methods | no — HollaEx's own request and response shapes |
+| Unified market data + trading API | yes — 40 unified capabilities, 21 `fetch*` methods | no — HollaEx's own request and response shapes |
 | WebSockets | yes — 4 `watch*` methods, same structures as `fetch*` | yes — `connect()` / `subscribe()` with auto-reconnect |
 | Raw endpoint access | yes — 29 endpoints as implicit methods | yes, it is the whole product |
 | Built-in rate limiter | yes, on by default (`rateLimit` 250 ms, i.e. 4 req/s) | your code |
@@ -211,7 +211,7 @@ One flag swaps both the REST host and the WebSocket host (`wss://api.sandbox.hol
 
 ### Nothing is hidden — the implicit API
 
-Alongside the 39 unified capabilities, all 29 endpoints in CCXT's HollaEx `api` block are generated as callable implicit methods, camelCased from their paths:
+Alongside the 40 unified capabilities, all 29 endpoints in CCXT's HollaEx `api` block are generated as callable implicit methods, camelCased from their paths:
 
 ```python
 health = exchange.public_get_health()
@@ -262,7 +262,7 @@ Not a maintained one. HollaEx's Python library repository, `hollaex-py-lib-old`,
 Yes. Kit exchanges share the same `/v2` API surface and signing scheme, so construct `ccxt.hollaex` with a `urls` override pointing `api.rest` (and `api.ws` on `ccxt.pro.hollaex`) at that exchange's hosts. Then call `load_markets()` — each operator lists their own assets.
 
 **Does CCXT support HollaEx futures or margin?**
-No, and neither does the venue through this API. HollaEx is spot-only in CCXT (`has.swap` and `has.future` are `false`), with 39 unified capabilities across market data, trading, balances, deposits and withdrawals.
+No, and neither does the venue through this API. HollaEx is spot-only in CCXT (`has.swap` and `has.future` are `false`), with 40 unified capabilities across market data, trading, balances, deposits and withdrawals.
 
 **How do I use the HollaEx sandbox with CCXT?**
 Call `exchange.set_sandbox_mode(True)`, which swaps the REST host to `api.sandbox.hollaex.com` and the WebSocket host to `wss://api.sandbox.hollaex.com/stream`.

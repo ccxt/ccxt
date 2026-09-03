@@ -15,8 +15,8 @@ So the honest comparison here is not CCXT against a vendor SDK. It is **CCXT aga
 ## TL;DR
 
 - **Write it yourself** if you need one or two NDAX endpoints, in a language CCXT does not cover, and you are comfortable owning the auth handshake and the OMS-id plumbing forever.
-- **Pick CCXT** if you want NDAX with 34 unified capabilities, four `watch*` streaming methods, a rate limiter, typed errors and testnet support — in TypeScript, JavaScript, Python, PHP, C#/.NET, Go or Java.
-- **Choosing CCXT does not hide the raw API.** All 93 NDAX endpoints are generated as [implicit methods](/docs/exchanges/ndax/implicit-api), signed and rate-limited, so anything the unified API does not model is still one call away.
+- **Pick CCXT** if you want NDAX with 36 unified capabilities, four `watch*` streaming methods, a rate limiter, typed errors and testnet support — in TypeScript, JavaScript, Python, PHP, C#/.NET, Go or Java.
+- **Choosing CCXT does not hide the raw API.** All 104 NDAX endpoints are generated as [implicit methods](/docs/exchanges/ndax/implicit-api), signed and rate-limited, so anything the unified API does not model is still one call away.
 
 ## At a glance
 
@@ -26,13 +26,13 @@ So the honest comparison here is not CCXT against a vendor SDK. It is **CCXT aga
 | Official client library | n/a | **none published** |
 | Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | whatever you write; one unaffiliated .NET library exists |
 | Unified market data + trading API | yes — same method names across every exchange | no — AlphaPoint request/response shapes |
-| Unified capabilities implemented | 34 for `ndax`, of which 17 are `fetch*` | n/a |
+| Unified capabilities implemented | 36 for `ndax`, of which 19 are `fetch*` | n/a |
 | Symbols | `'BTC/CAD'`, `'BTC/USDT'` | numeric `InstrumentId`, plus `OMSId` |
 | Authentication | handled — nonce + HMAC-SHA256, or session token after `sign_in()` | `Nonce` + `UserId` + `APIKey` + `Signature` headers, or Basic auth then a session token |
 | Two-factor sign-in | `sign_in()` handles the `Pending2FaToken` exchange and TOTP | your code |
 | OMS / account ids | injected automatically (`options['omsId']`, `fetch_accounts()`) | passed by hand on nearly every call |
 | WebSockets | yes — `watchOrderBook`, `watchTrades`, `watchTicker`, `watchOHLCV` | yes, and it is the primary interface — you frame the messages |
-| Raw endpoint access | yes — 93 endpoints as implicit methods | it is all raw |
+| Raw endpoint access | yes — 104 endpoints as implicit methods | it is all raw |
 | Built-in rate limiter | yes, on by default (`rateLimit` 1000 ms) | your code |
 | Unified error types | yes — 41 typed exceptions in one hierarchy | HTTP status plus AlphaPoint error payloads |
 | Testnet / staging | `set_sandbox_mode(True)` swaps in the staging host | swap the base URL yourself |
@@ -253,7 +253,7 @@ exchange.set_sandbox_mode(True)   # swaps in the staging REST and WebSocket URLs
 
 ### Nothing is hidden — the implicit API
 
-Alongside the 34 unified capabilities, **all 93 NDAX endpoints are generated as callable implicit methods**, with signing, rate-limit accounting and error mapping applied:
+Alongside the 36 unified capabilities, **all 104 NDAX endpoints are generated as callable implicit methods**, with signing, rate-limit accounting and error mapping applied:
 
 ```python
 # any raw NDAX endpoint, camelCased from its path

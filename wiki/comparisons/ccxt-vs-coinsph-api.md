@@ -206,7 +206,7 @@ If you are building a Philippine payments or P2P product on Coins.ph rather than
 ## FAQ
 
 **Does CCXT support Coins.ph over WebSocket?**
-No. CCXT implements zero `watch*` methods for `coinsph`, so there is no CCXT WebSocket support for this venue — use `fetch*` methods and poll, or use Coins.ph's own connector for streams. CCXT does have WebSocket support for 78 of the 104 exchanges it covers; Coins.ph is not one of them today.
+No. CCXT implements zero `watch*` methods for `coinsph`, so there is no CCXT WebSocket support for this venue — use `fetch*` methods and poll, or use Coins.ph's own connector for streams. CCXT does have WebSocket support for 76 of the 104 exchanges it covers; Coins.ph is not one of them today.
 
 **Does Coins.ph have an official Python SDK on PyPI?**
 There is an official Python connector at [coins-docs/coins-connector-python](https://github.com/coins-docs/coins-connector-python), MIT-licensed, but it is not published to PyPI — the documented install path is cloning the repository and installing its requirements. The JavaScript connector is on npm as `coins-js-api`.

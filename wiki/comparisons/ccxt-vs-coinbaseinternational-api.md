@@ -1,12 +1,12 @@
 <!-- title: CCXT vs the Coinbase International Exchange API -->
 <!-- description: Coinbase INTX has five sample SDKs with almost no users and no WebSocket support. Compare CCXT on languages, streaming, portfolios, perpetuals, sandbox and errors. -->
 <!-- group: Exchange APIs and official SDKs -->
-<!-- summary: Coinbase International's five first-party SDKs are all labelled samples, are REST-only, and see 13 PyPI and 15 npm installs a month between them. CCXT covers the same API with 48 unified capabilities and 7 streaming methods. -->
+<!-- summary: Coinbase International's five first-party SDKs are all labelled samples, are REST-only, and see 13 PyPI and 15 npm installs a month between them. CCXT covers the same API with 47 unified capabilities and 7 streaming methods. -->
 <!-- weight: 36 -->
 
 # CCXT vs the Coinbase International Exchange API
 
-Coinbase International Exchange (INTX) is Coinbase's non-US perpetual-futures and spot venue. It is a separate product from Advanced Trade and from Coinbase Exchange — its own base URL, its own portfolio model, its own SDKs. [CCXT vs the Coinbase APIs](/docs/comparisons/ccxt-vs-coinbase-api) covers that fragmentation across the estate; **this page is about INTX specifically**, where `ccxt.coinbaseinternational` implements 48 unified capabilities, 7 `watch*` streaming methods and all 35 endpoints.
+Coinbase International Exchange (INTX) is Coinbase's non-US perpetual-futures and spot venue. It is a separate product from Advanced Trade and from Coinbase Exchange — its own base URL, its own portfolio model, its own SDKs. [CCXT vs the Coinbase APIs](/docs/comparisons/ccxt-vs-coinbase-api) covers that fragmentation across the estate; **this page is about INTX specifically**, where `ccxt.coinbaseinternational` implements 47 unified capabilities, 7 `watch*` streaming methods and all 35 endpoints.
 
 Coinbase publishes more first-party SDKs for INTX than for any of its other trading products — five, in Python, Go, Java, TypeScript and .NET. Every one of them describes itself as a sample, none of them documents WebSocket support, and between them they see fewer than thirty package installs a month. **So the question is not which library has better coverage. It is whether "sample SDK, REST only, in one language" is what your service needs.**
 
@@ -24,7 +24,7 @@ Coinbase publishes more first-party SDKs for INTX than for any of its other trad
 | Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | Python, Go, Java, TypeScript, .NET — five separate codebases |
 | Packages to install | **1** (`ccxt`) | one per language, plus one per other Coinbase product you touch |
 | Positioning | production library | "a sample library that demonstrates the usage of the API … only available for demonstration purposes" |
-| Unified market data + trading API | yes — 48 capabilities on `coinbaseinternational` | no — INTX's own shapes |
+| Unified market data + trading API | yes — 47 capabilities on `coinbaseinternational` | no — INTX's own shapes |
 | Products | spot **and** perpetual futures from one client | spot and perpetuals, per SDK |
 | WebSockets | yes — **7** `watch*` methods | **not documented in the SDK READMEs** |
 | Portfolio scoping | resolved and cached; `params['portfolio']` to override | you pass a portfolio id on every call |
@@ -209,7 +209,7 @@ Coinbase's five INTX SDKs are five separate codebases with five release cadences
 
 ### Nothing is hidden — the implicit API
 
-Alongside the 48 unified capabilities, **all 35 INTX endpoints are generated as callable implicit methods**, with signing, portfolio scoping, rate limiting and error mapping applied:
+Alongside the 47 unified capabilities, **all 35 INTX endpoints are generated as callable implicit methods**, with signing, portfolio scoping, rate limiting and error mapping applied:
 
 ```python
 # any raw INTX endpoint, camelCased from its path

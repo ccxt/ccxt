@@ -26,7 +26,7 @@ The question that decides between them: **is KuCoin the only venue you will ever
 | Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | Python, Go, Node.js; PHP `0.1.3-alpha`, Java `0.1.1-alpha` |
 | Packages to install | 1 (`ccxt`) | 1 (`kucoin-universal-sdk`), replacing the archived per-product SDKs |
 | Spot + margin + futures in one client | yes — one `ccxt.kucoin` instance loads all of them | one SDK, but separate spot / futures / broker services and symbol formats |
-| Unified market data + trading API | yes — 111 unified capabilities, 54 `fetch*` methods | no — KuCoin's own request builders and response models |
+| Unified market data + trading API | yes — 112 unified capabilities, 55 `fetch*` methods | no — KuCoin's own request builders and response models |
 | WebSockets | yes — 22 `watch*`/`unWatch*` methods, same shapes as `fetch*` | yes — per-service public/private WS with callbacks and auto-reconnect |
 | Raw endpoint access | yes — 351 KuCoin endpoints as implicit methods | yes, it is the whole product |
 | Built-in rate limiter | yes, per-endpoint weights, on by default (`rateLimit` 7.5 ms) | manual |
@@ -230,7 +230,7 @@ Worth saying plainly: CCXT ships no testnet URLs for KuCoin, so `set_sandbox_mod
 
 ### Nothing is hidden — the implicit API
 
-The usual objection to a unified library is that it must be a lowest common denominator. It is not. Alongside the 111 unified capabilities CCXT implements for KuCoin, **all 351 endpoints in KuCoin's API are generated as callable implicit methods** — including the broker endpoints:
+The usual objection to a unified library is that it must be a lowest common denominator. It is not. Alongside the 112 unified capabilities CCXT implements for KuCoin, **all 351 endpoints in KuCoin's API are generated as callable implicit methods** — including the broker endpoints:
 
 ```python
 response = exchange.broker_get_broker_nd_info(params)

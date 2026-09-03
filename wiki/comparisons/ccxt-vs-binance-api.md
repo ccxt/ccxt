@@ -2,7 +2,7 @@
 <!-- description: A practical comparison of CCXT and Binance's own connectors — package count, language coverage, WebSockets, rate limits, precision and portability — with the same tasks written both ways. -->
 <!-- weight: 10 -->
 <!-- group: Exchange APIs and official SDKs -->
-<!-- summary: Binance ships 27 separate SDK packages. CCXT covers spot, margin, futures, options and portfolio margin from one client — and still exposes all 792 raw endpoints. -->
+<!-- summary: Binance ships 27 separate SDK packages. CCXT covers spot, margin, futures, options and portfolio margin from one client — and still exposes all 808 raw endpoints. -->
 
 # CCXT vs the Binance API and official Binance SDKs
 
@@ -26,7 +26,7 @@ Both work. They optimise for different things, and the right answer depends on o
 | Binance products in one client | spot, margin, USD-M futures, COIN-M futures, options, portfolio margin | separate client class + package per product |
 | Unified market data + trading API | yes — same method names across every exchange | no — Binance's own request/response shapes |
 | WebSockets | yes, `watch*` methods with the same shape as `fetch*` | yes, per-product stream clients |
-| Raw endpoint access | yes — 792 Binance endpoints as implicit methods | yes, it is the whole product |
+| Raw endpoint access | yes — 808 Binance endpoints as implicit methods | yes, it is the whole product |
 | Built-in rate limiter | yes, per-endpoint weights, on by default | partial / manual |
 | Unified error types | yes — 41 typed exceptions in one hierarchy | HTTP + Binance error codes |
 | Testnet / sandbox | `exchange.setSandboxMode(true)` | separate base-URL constants |
@@ -229,7 +229,7 @@ Binance publishes connectors in several languages too, but they are separate cod
 
 ### WebSockets that look like REST
 
-CCXT Pro (bundled in the same `ccxt` package, no separate purchase) gives Binance 30 streaming methods — `watchOrderBook`, `watchTrades`, `watchOHLCV`, `watchTicker`, `watchTickers`, `watchBidsAsks`, `watchMarkPrices`, `watchBalance`, `watchOrders`, `watchPositions`, `watchMyTrades`, `watchLiquidations` and their `unWatch*` counterparts — plus `createOrderWs`, `editOrderWs`, `cancelOrderWs` and `cancelAllOrdersWs` for order entry over the socket.
+CCXT Pro (bundled in the same `ccxt` package, no separate purchase) gives Binance 31 streaming methods — `watchOrderBook`, `watchTrades`, `watchOHLCV`, `watchTicker`, `watchTickers`, `watchBidsAsks`, `watchMarkPrices`, `watchBalance`, `watchOrders`, `watchPositions`, `watchMyTrades`, `watchLiquidations` and their `unWatch*` counterparts — plus `createOrderWs`, `editOrderWs`, `cancelOrderWs` and `cancelAllOrdersWs` for order entry over the socket.
 
 `watchOrderBook` returns the same structure as `fetchOrderBook`. `watchOrders` returns the same structure as `fetchOrders`. Swapping a polling loop for a stream is a one-word change, and the code downstream is untouched.
 
@@ -265,7 +265,7 @@ One flag swaps every REST and WebSocket URL. No constant swapping, no forked con
 
 ### Nothing is hidden — the implicit API
 
-The most common objection to a unified library is that it must be a lowest common denominator. It is not. Alongside the 154 unified capabilities CCXT implements for Binance, **all 792 endpoints in Binance's API are generated as callable implicit methods**:
+The most common objection to a unified library is that it must be a lowest common denominator. It is not. Alongside the 155 unified capabilities CCXT implements for Binance, **all 808 endpoints in Binance's API are generated as callable implicit methods**:
 
 ```python
 # any raw Binance endpoint, camelCased from its path
@@ -322,7 +322,7 @@ Yes — spot, margin (cross and isolated), USD-M futures, COIN-M futures, option
 No. CCXT Pro is included in the `ccxt` package. Use `ccxt.pro.binance` (or `ccxt.binance` in the WS-capable languages) and call `watch*` methods.
 
 **Can I still call Binance-specific endpoints?**
-Yes — all 792 of them, as [implicit methods](/docs/exchanges/binance/implicit-api), with signing and rate limiting applied.
+Yes — all 808 of them, as [implicit methods](/docs/exchanges/binance/implicit-api), with signing and rate limiting applied.
 
 **Is CCXT free?**
 Yes. MIT-licensed, including the WebSocket support.

@@ -27,7 +27,7 @@ So the deciding question is not really "SDK or library". It is: **which generati
 | Install | `pip install ccxt` (and the equivalent in six other languages) | from the repository — its `setup.py` name is not published on PyPI |
 | Authentication | V3 EIP-712 typed-data signing from a wallet `privateKey` | HMAC signature with `X-MBX-APIKEY` — the V1 scheme |
 | Products in one client | spot and perpetuals | its README documents one base URL, `https://fapi.asterdex.com` |
-| Unified market data + trading API | yes — 68 capabilities on `aster` | no — Aster's own parameter and field names |
+| Unified market data + trading API | yes — 71 capabilities on `aster` | no — Aster's own parameter and field names |
 | WebSockets | yes — 26 `watch*` / `unWatch*` methods | yes, a `websocket` module |
 | Raw endpoint access | yes — 165 Aster endpoints as implicit methods | yes, it is the whole product |
 | Built-in rate limiter | yes, on by default (`rateLimit` 333 ms) | `show_limit_usage` reports headers; pacing is your code |
@@ -206,7 +206,7 @@ ticker, err := exchange.FetchTicker("BTC/USDT:USDT")
 
 ### Derivatives features as unified methods
 
-Aster's `has` block in CCXT covers the perpetuals machinery as first-class unified methods: `fetch_funding_rate`, `fetch_funding_rates`, `fetch_funding_intervals`, `fetch_funding_rate_history`, `fetch_positions`, `fetch_positions_risk`, `fetch_position_mode`, `set_leverage`, `set_margin_mode`, `set_position_mode`, `add_margin`, `reduce_margin`, `fetch_margin_adjustment_history`, `fetch_leverages` and `fetch_ledger` — 68 capabilities in total. The same names work on Bybit, OKX and Hyperliquid, so a perp strategy is not rewritten per venue.
+Aster's `has` block in CCXT covers the perpetuals machinery as first-class unified methods: `fetch_funding_rate`, `fetch_funding_rates`, `fetch_funding_intervals`, `fetch_funding_rate_history`, `fetch_positions`, `fetch_positions_risk`, `fetch_position_mode`, `set_leverage`, `set_margin_mode`, `set_position_mode`, `add_margin`, `reduce_margin`, `fetch_margin_adjustment_history`, `fetch_leverages` and `fetch_ledger` — 71 capabilities in total. The same names work on Bybit, OKX and Hyperliquid, so a perp strategy is not rewritten per venue.
 
 ### Precision, rounding and string math
 

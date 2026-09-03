@@ -1,7 +1,7 @@
 <!-- title: CCXT vs the Alpaca API and alpaca-py -->
 <!-- description: CCXT compared with Alpaca's official SDKs for crypto: asset-class scope, language coverage, streaming, paper trading, request models and unified structures. -->
 <!-- group: Exchange APIs and official SDKs -->
-<!-- summary: Alpaca-py is a broker SDK in which crypto is one asset class beside stocks and options, and it speaks to Alpaca only. CCXT covers Alpaca's 37 crypto capabilities with the same method names it uses for 103 other venues. -->
+<!-- summary: Alpaca-py is a broker SDK in which crypto is one asset class beside stocks and options, and it speaks to Alpaca only. CCXT covers Alpaca's 38 crypto capabilities with the same method names it uses for 103 other venues. -->
 <!-- weight: 100 -->
 
 # CCXT vs the Alpaca API and alpaca-py
@@ -24,7 +24,7 @@ If you trade only crypto, and only at Alpaca, those SDKs are a reasonable defaul
 | Asset classes | crypto (spot, margin, swaps, futures, options on other venues) | stocks, options and crypto |
 | Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | Python, .NET/C#, Node, Go, Java — separate codebases |
 | Packages to install | **1** (`ccxt`) | one per language (`alpaca-py` for Python) |
-| Unified market data + trading API | yes — 37 capabilities on `alpaca` | no — Alpaca's own request models and payloads |
+| Unified market data + trading API | yes — 38 capabilities on `alpaca` | no — Alpaca's own request models and payloads |
 | Programming model | call a method, get a value | build a request object, pass it to a client method |
 | Clients per job | one `ccxt.alpaca` instance | `TradingClient`, `CryptoHistoricalDataClient`, `CryptoDataStream`, `TradingStream`, `BrokerClient` |
 | WebSockets | yes — 6 `watch*` methods | yes — `CryptoDataStream`, `TradingStream`, and SSE endpoints |
@@ -229,7 +229,7 @@ price = exchange.price_to_precision('BTC/USD', 61234.56789)
 
 ### Nothing is hidden — the implicit API
 
-Alongside the 37 unified capabilities CCXT implements for Alpaca, **all 70 endpoints in Alpaca's API are generated as callable implicit methods**, with signing, rate limiting and error mapping applied:
+Alongside the 38 unified capabilities CCXT implements for Alpaca, **all 70 endpoints in Alpaca's API are generated as callable implicit methods**, with signing, rate limiting and error mapping applied:
 
 ```python
 # any raw Alpaca endpoint, camelCased from its path
@@ -274,7 +274,7 @@ Start with [Install](/docs/install), then the [Manual](/docs/manual), then the [
 ## FAQ
 
 **Can CCXT trade stocks or options on Alpaca?**
-No. CCXT is a cryptocurrency trading library, and its `alpaca` class covers Alpaca's crypto markets only — 37 unified capabilities, spot. For equities and options, use Alpaca's own SDKs. The two coexist happily in one project.
+No. CCXT is a cryptocurrency trading library, and its `alpaca` class covers Alpaca's crypto markets only — 38 unified capabilities, spot. For equities and options, use Alpaca's own SDKs. The two coexist happily in one project.
 
 **Does CCXT support Alpaca WebSockets?**
 Yes. `ccxt.pro.alpaca` implements six streaming methods — `watchTicker`, `watchOHLCV`, `watchOrderBook`, `watchTrades`, `watchOrders` and `watchMyTrades` — against Alpaca's crypto data stream and trading stream. `watch_order_book` returns the same structure as `fetch_order_book`.

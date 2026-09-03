@@ -1,7 +1,7 @@
 <!-- title: CCXT vs the BloFin API and official SDK -->
 <!-- description: BloFin's official SDK is Python-only and installs from source. Compared with CCXT on languages, streaming, demo trading, rate limits and raw endpoints. -->
 <!-- group: Exchange APIs and official SDKs -->
-<!-- summary: BloFin's official Python SDK installs from source and was last updated in January 2025. CCXT covers the same venue with 53 unified capabilities, 13 streaming methods and 79 raw endpoints in seven languages. -->
+<!-- summary: BloFin's official Python SDK installs from source and was last updated in January 2025. CCXT covers the same venue with 54 unified capabilities, 13 streaming methods and 79 raw endpoints in seven languages. -->
 <!-- weight: 100 -->
 
 # CCXT vs the BloFin API and official SDK
@@ -15,7 +15,7 @@ So the deciding question is: **is Python the only language you need, and is copy
 ## TL;DR
 
 - **Pick blofin-sdk-python** if you are on Python and you need BloFin's copy-trading or affiliate APIs as typed methods, and you do not mind vendoring the repository.
-- **Pick CCXT** for anything else: 53 unified capabilities, 25 of them `fetch*`, 13 `watch*` streaming methods and all 79 BloFin endpoints — copy trading and affiliate routes included — as implicit methods, in TypeScript, JavaScript, Python, PHP, C#/.NET, Go and Java.
+- **Pick CCXT** for anything else: 54 unified capabilities, 26 of them `fetch*`, 13 `watch*` streaming methods and all 79 BloFin endpoints — copy trading and affiliate routes included — as implicit methods, in TypeScript, JavaScript, Python, PHP, C#/.NET, Go and Java.
 - **Demo trading works in both.** BloFin's SDK gives you a `DemoClient`; CCXT gives you `set_sandbox_mode(True)`, which swaps the REST and both WebSocket URLs in one call.
 
 ## At a glance
@@ -26,7 +26,7 @@ So the deciding question is: **is Python the only language you need, and is copy
 | Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | Python |
 | Install | `pip install ccxt` and equivalents | `pip install -e .` from a clone |
 | Unified market data + trading API | yes — same method names across every exchange | no — BloFin's own request/response shapes |
-| BloFin capabilities implemented | 53 unified methods, 25 of them `fetch*` | REST plus WebSocket across trading, market, copytrading, affiliate |
+| BloFin capabilities implemented | 54 unified methods, 26 of them `fetch*` | REST plus WebSocket across trading, market, copytrading, affiliate |
 | Raw endpoint access | yes — 79 BloFin endpoints as implicit methods | yes, it is the whole product |
 | WebSockets | yes — 13 `watch*` methods, same shapes as `fetch*` | yes — public, private and copytrading clients |
 | Copy trading | via implicit methods (`copytrading/*` routes) | first-class `CopyTradingAPI` |
@@ -211,7 +211,7 @@ BloFin is a perpetuals venue, and CCXT models the parts that matter as unified m
 
 ### Nothing is hidden — the implicit API
 
-Alongside the 53 unified capabilities, **all 79 BloFin endpoints are generated as callable implicit methods**, with the five-header signing, rate limiting and error mapping applied — and that includes the copy-trading and affiliate routes the official SDK wraps:
+Alongside the 54 unified capabilities, **all 79 BloFin endpoints are generated as callable implicit methods**, with the five-header signing, rate limiting and error mapping applied — and that includes the copy-trading and affiliate routes the official SDK wraps:
 
 ```python
 # GET /api/v1/copytrading/account/balance

@@ -241,7 +241,7 @@ It sends `X-PCK` (your API key), `X-Stamp` (a millisecond nonce) and `X-Signatur
 No sandbox environment is published, so `set_sandbox_mode(True)` has nothing to point at for `btcturk`. Test against CCXT's offline static fixtures and small live orders.
 
 **Is CCXT free?**
-Yes. MIT-licensed, including the WebSocket support for the 78 exchanges that have it.
+Yes. MIT-licensed, including the WebSocket support for the 76 exchanges that have it.
 
 ## Next steps
 

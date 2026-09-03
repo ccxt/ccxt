@@ -1,7 +1,7 @@
 <!-- title: CCXT vs the Crypto.com Exchange API -->
 <!-- description: Crypto.com Exchange ships a Rust CLI, not a client library. CCXT versus the raw v1 REST and WebSocket API on signing, rate limits, streaming and sandbox. -->
 <!-- group: Exchange APIs and official SDKs -->
-<!-- summary: Crypto.com publishes documentation and a Rust CLI but no official client library, so integrations are hand-rolled against the v1 API. CCXT covers 59 unified capabilities, 12 streaming methods, order entry over WebSocket and all 129 raw endpoints. -->
+<!-- summary: Crypto.com publishes documentation and a Rust CLI but no official client library, so integrations are hand-rolled against the v1 API. CCXT covers 58 unified capabilities, 12 streaming methods, order entry over WebSocket and all 129 raw endpoints. -->
 <!-- weight: 100 -->
 
 # CCXT vs the Crypto.com Exchange API
@@ -26,7 +26,7 @@ So the real comparison is **CCXT against your own client**, and the question is 
 | Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | any; docs give reference samples in JavaScript, Python, C#, Java |
 | Official client library | `ccxt` — installable from every major package registry | none; `cdcx-cli` is a Rust CLI/MCP server/TUI, not a library |
 | Products in one client | spot, margin, swap, future, option | one API, but you model each product yourself |
-| Unified market data + trading API | yes — 59 unified capabilities, 26 `fetch*` methods | Crypto.com's own request/response shapes |
+| Unified market data + trading API | yes — 58 unified capabilities, 26 `fetch*` methods | Crypto.com's own request/response shapes |
 | WebSockets | yes — 12 `watch*` methods plus `unWatch*`, and order entry over the socket | yes — `wss://stream.crypto.com/exchange/v1/user` and `/market`, raw |
 | Raw endpoint access | yes — 129 endpoints as implicit methods | it is the whole product |
 | Built-in rate limiter | yes, per-endpoint weights, on by default (`rateLimit` 10ms) | you model 15 req/100ms on order entry, 1 req/s on history, and more |
@@ -234,7 +234,7 @@ CCXT loads Crypto.com's market metadata and gives you `amount_to_precision`, `pr
 
 ### Nothing is hidden — the implicit API
 
-Alongside the 59 unified capabilities, **all 129 endpoints in CCXT's Crypto.com API block are generated as callable implicit methods**, with the full signature scheme, nonce handling, throttling and error mapping applied:
+Alongside the 58 unified capabilities, **all 129 endpoints in CCXT's Crypto.com API block are generated as callable implicit methods**, with the full signature scheme, nonce handling, throttling and error mapping applied:
 
 ```python
 response = exchange.v1PublicGetPublicGetTickers({'instrument_name': 'BTC_USDT'})
@@ -274,7 +274,7 @@ If Crypto.com is your only venue, or you want a terminal dashboard and an MCP en
 No. The `crypto-com/crypto-exchange` repository was archived in 2021 and now only links to the documentation, and the API reference lists no client library — it gives reference code samples in JavaScript, Python, C# and Java. Crypto.com's own current tool is `cdcx-cli`, a Rust CLI, MCP server and TUI. For a Python, PHP, Go, C# or Java *library*, CCXT is the maintained option, alongside the community `cryptocom-exchange` package.
 
 **Does CCXT support Crypto.com derivatives?**
-Yes. Spot, margin, perpetual swaps, futures and options are served by one `ccxt.cryptocom` instance, across 59 unified capabilities including positions, funding rates, settlement history and `closePosition`.
+Yes. Spot, margin, perpetual swaps, futures and options are served by one `ccxt.cryptocom` instance, across 58 unified capabilities including positions, funding rates, settlement history and `closePosition`.
 
 **Can I use the Crypto.com sandbox through CCXT?**
 Yes. `exchange.set_sandbox_mode(True)` swaps in the UAT hosts — `uat-api.3ona.co` for REST and `uat-stream.3ona.co` for the market and user WebSocket endpoints — with no other change to your code.

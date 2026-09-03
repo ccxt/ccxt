@@ -232,7 +232,7 @@ If you need bitFlyer streaming, or you only need a couple of endpoints, going di
 Its Lightning API documentation does not list one. Several third-party wrappers exist on GitHub in various languages, but they are community projects rather than exchange-published clients — which is why this page compares CCXT with the raw API instead.
 
 **Does CCXT support bitFlyer WebSockets?**
-No. CCXT's `bitflyer` class is REST-only and has no `watch*` methods. CCXT Pro covers 78 of the 104 supported exchanges; bitFlyer is not currently one of them. bitFlyer's own Realtime API supports Socket.IO 2.0 and JSON-RPC 2.0 over WebSocket if you need streaming.
+No. CCXT's `bitflyer` class is REST-only and has no `watch*` methods. CCXT Pro covers 76 of the 104 supported exchanges; bitFlyer is not currently one of them. bitFlyer's own Realtime API supports Socket.IO 2.0 and JSON-RPC 2.0 over WebSocket if you need streaming.
 
 **How does CCXT name bitFlyer's FX and futures products?**
 `FX_BTC_JPY` becomes the unified swap symbol `'BTC/JPY:JPY'`, and an expiring contract such as `BTCJPY11MAR2022` becomes `'BTC/JPY:JPY-220311'`. CCXT parses the expiry from the product code — and from the `_MAT1WK`-style alias when one is present — so you do not track it by hand.

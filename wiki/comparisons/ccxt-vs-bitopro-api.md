@@ -1,7 +1,7 @@
 <!-- title: CCXT vs the BitoPro API and official BitoPro SDKs -->
 <!-- description: BitoPro publishes official wrappers in six languages. Compared with CCXT on coverage, the base64 payload signature, rate limits and WebSockets. -->
 <!-- group: Exchange APIs and official SDKs -->
-<!-- summary: BitoPro's official wrappers mirror its v3 REST API one call at a time, with per-language repositories that move at different speeds. CCXT wraps the same 26 endpoints behind 31 unified capabilities that also work on 103 other venues. -->
+<!-- summary: BitoPro's official wrappers mirror its v3 REST API one call at a time, with per-language repositories that move at different speeds. CCXT wraps the same 26 endpoints behind 32 unified capabilities that also work on 103 other venues. -->
 <!-- weight: 100 -->
 
 # CCXT vs the BitoPro API and official BitoPro SDKs
@@ -13,7 +13,7 @@ The question that decides between them: **is BitoPro the only venue your code wi
 ## TL;DR
 
 - **Pick a BitoPro wrapper** if BitoPro is your only venue and you want a client whose methods map one-to-one onto BitoPro's v3 reference — `get_tickers`, `create_an_order`, `btc_twd`.
-- **Pick CCXT** if you want the same 31 capabilities expressed the way every other exchange expresses them, in seven languages, so adding a second venue is a string change rather than a second integration.
+- **Pick CCXT** if you want the same 32 capabilities expressed the way every other exchange expresses them, in seven languages, so adding a second venue is a string change rather than a second integration.
 - **Nothing is hidden.** All 26 BitoPro endpoints CCXT models are callable as [implicit methods](/docs/exchanges/bitopro/implicit-api), signed and rate-limited.
 
 ## At a glance
@@ -24,7 +24,7 @@ The question that decides between them: **is BitoPro the only venue your code wi
 | Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | Node.js, Python, Go, C#, Ruby, Java — separate repositories, updated at different times |
 | Packages to install | 1 (`ccxt`) | one per language |
 | Unified market data + trading API | yes — same names on every exchange | no — BitoPro's own v3 shapes |
-| Unified capabilities | 31 | n/a — endpoint wrappers |
+| Unified capabilities | 32 | n/a — endpoint wrappers |
 | WebSockets | yes — 5 `watch*` methods | yes, in some of the wrappers |
 | Raw endpoint access | yes — 26 endpoints as implicit methods | yes, it is the whole product |
 | Built-in rate limiter | yes, per-endpoint weights, on by default (`rateLimit` 100 ms) | not a documented feature |
@@ -140,7 +140,7 @@ BitoPro signs private requests with three headers: `X-BITOPRO-APIKEY`, `X-BITOPR
 
 ### One API for the parts that are not market data
 
-Among the 31 unified capabilities CCXT implements for BitoPro: `fetch_currencies`, `fetch_trading_fees`, `fetch_deposit_withdraw_fees`, `fetch_deposits`, `fetch_withdrawals`, `fetch_withdrawal`, `fetch_my_trades`, `fetch_closed_orders`, `cancel_orders`, `cancel_all_orders`, `create_stop_order` and `create_trigger_order`. These are the calls that differ most between exchanges, and they are exactly the ones you do not want to rewrite when you add a second venue.
+Among the 32 unified capabilities CCXT implements for BitoPro: `fetch_currencies`, `fetch_trading_fees`, `fetch_deposit_withdraw_fees`, `fetch_deposits`, `fetch_withdrawals`, `fetch_withdrawal`, `fetch_my_trades`, `fetch_closed_orders`, `cancel_orders`, `cancel_all_orders`, `create_stop_order` and `create_trigger_order`. These are the calls that differ most between exchanges, and they are exactly the ones you do not want to rewrite when you add a second venue.
 
 ### Rate limits you do not have to model
 

@@ -241,7 +241,7 @@ No. BTC Markets publishes no sandbox environment, so `set_sandbox_mode(True)` ha
 Yes — all 35 of them, as [implicit methods](/docs/exchanges/btcmarkets/implicit-api), with HMAC-SHA512 signing, the `BM-AUTH-*` headers, rate limiting and error mapping applied automatically.
 
 **Is CCXT free?**
-Yes. MIT-licensed, including the WebSocket support for the 78 exchanges that have it.
+Yes. MIT-licensed, including the WebSocket support for the 76 exchanges that have it.
 
 ## Next steps
 

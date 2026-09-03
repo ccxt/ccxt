@@ -23,7 +23,7 @@ Both libraries produce the same signature. The question that decides between the
 | Venues covered | 104 (ApeX is one of them) | ApeX only |
 | Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | Python 3.9–3.12 |
 | Packages to install | **1** (`ccxt`) | 1 (`apexomni`) |
-| Unified market data + trading API | yes — 42 capabilities on `apex` | no — ApeX's own `*_v3` method and field names |
+| Unified market data + trading API | yes — 43 capabilities on `apex` | no — ApeX's own `*_v3` method and field names |
 | zk order signing | yes, built in — supply `options['seeds']` | yes, built in |
 | Account onboarding | no — bring existing credentials | yes — `derive_zk_key`, `register_user_v3`, `change_pub_key_v3` |
 | WebSockets | yes — 10 `watch*` methods | yes — `WebSocket` with per-channel callbacks |
@@ -237,7 +237,7 @@ One flag swaps every REST and WebSocket URL, rather than importing a different e
 
 ### Nothing is hidden — the implicit API
 
-ApeX's API surface is compact. Alongside the 42 unified capabilities, **all 27 endpoints are generated as callable implicit methods** with signing, rate limiting and error mapping applied:
+ApeX's API surface is compact. Alongside the 43 unified capabilities, **all 27 endpoints are generated as callable implicit methods** with signing, rate limiting and error mapping applied:
 
 ```python
 # any raw ApeX endpoint, camelCased from its path

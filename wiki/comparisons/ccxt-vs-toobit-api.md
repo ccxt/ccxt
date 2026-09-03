@@ -1,7 +1,7 @@
 <!-- title: CCXT vs the raw Toobit API -->
 <!-- description: Toobit publishes signing examples, not an SDK. CCXT compared on signing, weight-based rate limits, spot and swap coverage and streaming. -->
 <!-- group: Exchange APIs and official SDKs -->
-<!-- summary: Toobit ships code examples, not a maintained SDK. CCXT gives it 44 unified capabilities, 11 watch* streaming methods and all 59 raw endpoints behind one client. -->
+<!-- summary: Toobit ships code examples, not a maintained SDK. CCXT gives it 49 unified capabilities, 11 watch* streaming methods and all 87 raw endpoints behind one client. -->
 <!-- weight: 100 -->
 
 # CCXT vs the raw Toobit API
@@ -14,7 +14,7 @@ So the comparison is between [CCXT](/docs/manual) and your own HTTP and WebSocke
 
 - **Go direct** if you call two or three endpoints, want request fields named exactly as the docs name them, or are on .NET and would rather use a Toobit-shaped typed wrapper.
 - **Pick CCXT** if you want spot and perpetual swap from one client, signing and weight accounting handled, 11 streaming methods that return the same structures as the REST calls, and 41 typed errors instead of numeric codes.
-- **CCXT is not a subset.** All 59 Toobit endpoints are generated as [implicit methods](/docs/exchanges/toobit/implicit-api), signed and throttled like the unified ones.
+- **CCXT is not a subset.** All 87 Toobit endpoints are generated as [implicit methods](/docs/exchanges/toobit/implicit-api), signed and throttled like the unified ones.
 
 ## At a glance
 
@@ -27,7 +27,7 @@ So the comparison is between [CCXT](/docs/manual) and your own HTTP and WebSocke
 | Products in one client | spot and perpetual swap | one code path per product family |
 | Unified market data + trading API | yes — same method names on every exchange | no — Toobit's own request and response shapes |
 | WebSockets | yes — 11 `watch*` methods, including `watchOrderBookForSymbols` and `watchTradesForSymbols` | your own socket client |
-| Raw endpoint access | yes — 59 Toobit endpoints as implicit methods | yes, it is the whole product |
+| Raw endpoint access | yes — 87 Toobit endpoints as implicit methods | yes, it is the whole product |
 | Built-in rate limiter | yes, per-endpoint weights, on by default (`rateLimit` 20 ms) | your code, against `REQUEST_WEIGHT` and `ORDERS` budgets |
 | Unified error types | yes — 41 typed exceptions in one hierarchy | HTTP 429 plus numeric codes such as `-1003`, `-1015` |
 | Testnet / sandbox | no — Toobit has no sandbox wired up in CCXT | no |
@@ -36,7 +36,7 @@ So the comparison is between [CCXT](/docs/manual) and your own HTTP and WebSocke
 
 <sub>Figures verified September 2026 against CCXT v{{CCXT_VERSION}} and the published Toobit API documentation.</sub>
 
-CCXT implements **44 unified capabilities** for Toobit, **23** of them `fetch*` methods.
+CCXT implements **49 unified capabilities** for Toobit, **27** of them `fetch*` methods.
 
 ## The same job, written both ways
 
@@ -188,7 +188,7 @@ CCXT maps Toobit's numeric codes onto a [typed exception tree](/docs/manual#erro
 
 ### Nothing is hidden — the implicit API
 
-Alongside the 44 unified capabilities, **all 59 Toobit endpoints are generated as callable implicit methods**, with signing, rate-limit accounting and error mapping applied. Browse them on the [Toobit implicit API page](/docs/exchanges/toobit/implicit-api).
+Alongside the 49 unified capabilities, **all 87 Toobit endpoints are generated as callable implicit methods**, with signing, rate-limit accounting and error mapping applied. Browse them on the [Toobit implicit API page](/docs/exchanges/toobit/implicit-api).
 
 ## What going direct does better
 
@@ -245,6 +245,6 @@ Yes. MIT-licensed, including the WebSocket support.
 - [Install CCXT](/docs/install) in your language
 - [Manual](/docs/manual) — the unified API, structures and conventions
 - [toobit unified API reference](/docs/exchanges/toobit)
-- [toobit implicit API](/docs/exchanges/toobit/implicit-api) — all 59 raw endpoints
+- [toobit implicit API](/docs/exchanges/toobit/implicit-api) — all 87 raw endpoints
 - [CCXT Pro manual](/docs/pro-manual) — WebSocket methods
 - [More comparisons](/docs/comparisons)

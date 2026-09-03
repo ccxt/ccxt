@@ -1,7 +1,7 @@
 <!-- title: CCXT vs the Gate EU API -->
 <!-- description: Gate EU is a regional entity of Gate. What CCXT's `gateeu` class covers, how it differs from `gate`, and where the full comparison lives. -->
 <!-- group: Regional entities and product lines -->
-<!-- summary: A regional entity of Gate, shipped as its own CCXT class. Inherits 110 unified capabilities and 339 raw endpoints from `gate`. -->
+<!-- summary: A regional entity of Gate, shipped as its own CCXT class. Inherits 113 unified capabilities and 339 raw endpoints from `gate`. -->
 <!-- weight: 400 -->
 
 # CCXT vs the Gate EU API
@@ -20,8 +20,8 @@ Separate host and separate accounts from the global venue, with a narrower liste
 
 | | `gateeu` |
 | --- | --- |
-| Unified capabilities | 110 (inherited from `gate` plus its own overrides) |
-| `fetch*` methods | 49 |
+| Unified capabilities | 113 (inherited from `gate` plus its own overrides) |
+| `fetch*` methods | 51 |
 | WebSocket `watch*` methods | 16 |
 | Raw endpoints as implicit methods | 339 |
 | Testnet via `setSandboxMode` | no |
@@ -84,7 +84,7 @@ Use `gateeu` when you hold an account with Gate EU specifically. Use [`gate`](/d
 No. It is a separate legal entity with separate accounts; you need keys issued by Gate EU.
 
 **Does `gateeu` support the full unified API?**
-It inherits 110 unified capabilities from `gate`. Where the venue does not offer a feature, the corresponding `has` flag is turned off, and the method raises `NotSupported` rather than failing quietly. Check `exchange.has` at runtime.
+It inherits 113 unified capabilities from `gate`. Where the venue does not offer a feature, the corresponding `has` flag is turned off, and the method raises `NotSupported` rather than failing quietly. Check `exchange.has` at runtime.
 
 **Can I reach Gate EU-specific endpoints?**
 Yes — all 339 endpoints in this class's `api` block are generated as implicit methods, with signing, rate limiting and error mapping applied. The mechanism is documented on the [`gate` implicit API page](/docs/exchanges/gate/implicit-api); this venue's own endpoint list differs slightly from the parent's.

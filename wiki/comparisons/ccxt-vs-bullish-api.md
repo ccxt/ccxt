@@ -1,12 +1,12 @@
 <!-- title: CCXT vs the Bullish API -->
 <!-- description: Bullish ships example scripts and signers rather than a packaged SDK. Compare CCXT and the raw Bullish API on auth, session tokens, streaming and sandbox. -->
 <!-- group: Exchange APIs and official SDKs -->
-<!-- summary: Bullish's own Python client is archived and what remains is a folder of example scripts, so most integrations hand-roll the login-token flow. CCXT implements it — 49 unified capabilities, 7 streaming methods, and the simnext sandbox behind one flag. -->
+<!-- summary: Bullish's own Python client is archived and what remains is a folder of example scripts, so most integrations hand-roll the login-token flow. CCXT implements it — 51 unified capabilities, 7 streaming methods, and the simnext sandbox behind one flag. -->
 <!-- weight: 100 -->
 
 # CCXT vs the Bullish API
 
-[Bullish](https://bullish.com/) is a regulated spot and perpetual-futures exchange with a REST, WebSocket and FIX API documented at [docs.exchange.bullish.com](https://docs.exchange.bullish.com/). [CCXT](/docs/manual) supports it as the exchange id `bullish`, with 49 unified capabilities, 7 `watch*` streaming methods and all 58 endpoints callable directly.
+[Bullish](https://bullish.com/) is a regulated spot and perpetual-futures exchange with a REST, WebSocket and FIX API documented at [docs.exchange.bullish.com](https://docs.exchange.bullish.com/). [CCXT](/docs/manual) supports it as the exchange id `bullish`, with 51 unified capabilities, 7 `watch*` streaming methods and all 58 endpoints callable directly.
 
 The thing that decides between them is not coverage. It is the **session model**: Bullish's private API does not take an API key on each request. You log in, receive a JWT, carry it as a bearer token, and re-log in before it expires — and every private call needs a `tradingAccountId` as well. Someone has to implement that. The question is whether it is you.
 
@@ -23,7 +23,7 @@ The thing that decides between them is not coverage. It is the **session model**
 | Exchanges covered | 104 (Bullish is one of them) | Bullish only |
 | Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | Python and Java examples; a TypeScript signer |
 | Packaged client library | **1** (`ccxt`), on npm and PyPI | none — `python-bullish-client` is archived, nothing published to PyPI |
-| Unified market data + trading API | yes — 49 capabilities on `bullish` | no — raw payloads from the examples |
+| Unified market data + trading API | yes — 51 capabilities on `bullish` | no — raw payloads from the examples |
 | Session/login handling | automatic — HMAC login, JWT cached and refreshed | `generate_jwt_hmac.py` / `generate_jwt_ecdsa.py`, then your own refresh logic |
 | Trading account id | resolved and cached for you | you supply it on every private call |
 | WebSockets | yes — 7 `watch*` methods | `multi_orderbook_web_socket.py` example |
@@ -126,7 +126,7 @@ orders = exchange.fetch_open_orders('BTC/USDC', params={'tradingAccountId': '111
 
 ### Stream an order book
 
-Bullish is one of the 78 CCXT exchanges with WebSocket support. `bullish` has **7** `watch*` methods: `watchOrderBook`, `watchTicker`, `watchTrades`, `watchOrders`, `watchMyTrades`, `watchBalance` and `watchPositions`.
+Bullish is one of the 76 CCXT exchanges with WebSocket support. `bullish` has **7** `watch*` methods: `watchOrderBook`, `watchTicker`, `watchTrades`, `watchOrders`, `watchMyTrades`, `watchBalance` and `watchPositions`.
 
 <!-- tabs:start -->
 
@@ -207,7 +207,7 @@ CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#
 
 ### Nothing is hidden — the implicit API
 
-Alongside the 49 unified capabilities, **all 58 Bullish endpoints are generated as callable implicit methods**, with login, signing, rate limiting and error mapping applied:
+Alongside the 51 unified capabilities, **all 58 Bullish endpoints are generated as callable implicit methods**, with login, signing, rate limiting and error mapping applied:
 
 ```python
 # any raw Bullish endpoint, camelCased from its path

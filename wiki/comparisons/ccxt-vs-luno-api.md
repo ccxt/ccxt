@@ -1,7 +1,7 @@
 <!-- title: CCXT vs the Luno API and official Luno SDKs -->
 <!-- description: Luno publishes Python, Go and PHP SDKs. They are compared with CCXT's luno class on symbols, language coverage, streaming, rate limits and error handling. -->
 <!-- group: Exchange APIs and official SDKs -->
-<!-- summary: Luno's own SDKs cover Python, Go and PHP with one method per endpoint. CCXT gives Luno 24 unified capabilities in seven languages — but only two watch* methods, against Go's fuller streaming client. -->
+<!-- summary: Luno's own SDKs cover Python, Go and PHP with one method per endpoint. CCXT gives Luno 25 unified capabilities in seven languages — but only two watch* methods, against Go's fuller streaming client. -->
 <!-- weight: 100 -->
 
 # CCXT vs the Luno API and official Luno SDKs
@@ -25,9 +25,9 @@ The question that decides between them: **is Luno the only venue you will ever t
 | Exchanges covered | 104 (Luno is one of them) | Luno only |
 | Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | Python, Go, PHP (the Java SDK repository is archived) |
 | Symbols | `'BTC/ZAR'`, `'ETH/ZAR'` | `XBTZAR`, `ETHZAR` |
-| Unified capabilities | 24, of which 17 are `fetch*` | one method per endpoint |
+| Unified capabilities | 25, of which 18 are `fetch*` | one method per endpoint |
 | WebSockets | 2 methods — `watch_order_book`, `watch_trades` | `luno-go/streaming` maintains a book and auto-reconnects; `luno-python` has a stream client; `luno-php` — not published as a streaming client |
-| Raw endpoint access | yes — 34 endpoints as implicit methods | yes, it is the whole product |
+| Raw endpoint access | yes — 40 endpoints as implicit methods | yes, it is the whole product |
 | Built-in rate limiter | yes, on by default (`rateLimit` 200 ms) | your code |
 | Unified error types | yes — 41 typed exceptions in one hierarchy | Luno error codes |
 | Testnet / sandbox | no — Luno has no sandbox in CCXT | no |
@@ -183,7 +183,7 @@ With per-venue SDKs, that reconciliation layer is code you write and maintain.
 
 ### Ledgers, accounts and fees are unified too
 
-Luno models balances as named accounts with a transaction ledger. CCXT exposes that through `fetch_accounts`, `fetch_ledger` and `fetch_balance` — the same three method names it uses on any exchange with the same shape — along with `fetch_trading_fee`, `fetch_deposit_address` and `create_deposit_address`. Twenty-four unified capabilities in total, 17 of them `fetch*`.
+Luno models balances as named accounts with a transaction ledger. CCXT exposes that through `fetch_accounts`, `fetch_ledger` and `fetch_balance` — the same three method names it uses on any exchange with the same shape — along with `fetch_trading_fee`, `fetch_deposit_address` and `create_deposit_address`. Twenty-four unified capabilities in total, 18 of them `fetch*`.
 
 ### Rate limits, precision and errors
 
@@ -191,7 +191,7 @@ CCXT's throttler is on by default with `rateLimit` at 200 ms for Luno. `amount_t
 
 ### Nothing is hidden — the implicit API
 
-Alongside the unified methods, **all 34 Luno endpoints are generated as implicit methods**, with signing and rate-limit accounting applied. Browse them on the [luno implicit API page](/docs/exchanges/luno/implicit-api).
+Alongside the unified methods, **all 40 Luno endpoints are generated as implicit methods**, with signing and rate-limit accounting applied. Browse them on the [luno implicit API page](/docs/exchanges/luno/implicit-api).
 
 ## What Luno's official SDKs do better
 

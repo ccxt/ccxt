@@ -13,7 +13,7 @@ That last detail sets up the comparison. ZebPay's reference clients are checked 
 ## TL;DR
 
 - **Pick ZebPay's reference clients** if you want a small, dependency-light file you can read end to end and edit in place, you are on futures only, or you want to authenticate with a JWT instead of an API key and secret.
-- **Pick CCXT** if you want spot and futures behind one client, INR and USDT markets under unified symbols, `pip install ccxt` instead of `git clone`, and 25 unified capabilities that look the same on your next exchange.
+- **Pick CCXT** if you want spot and futures behind one client, INR and USDT markets under unified symbols, `pip install ccxt` instead of `git clone`, and 28 unified capabilities that look the same on your next exchange.
 - **ZebPay reached the same conclusion for futures.** Their reference repository includes a CCXT-based Node client alongside the raw HTTP one; the integration landed upstream as the `zebpay` exchange id, covering spot and futures together.
 
 ## At a glance
@@ -25,7 +25,7 @@ That last detail sets up the comparison. ZebPay's reference clients are checked 
 | How you install it | `pip install ccxt` / `npm install ccxt` | clone the repo, `pip install -r requirements.txt` |
 | Published package | yes, on npm and PyPI | not published to npm or PyPI |
 | Products in one client | spot and futures | separate clients; the futures client is the documented one |
-| Unified market data + trading API | yes — 25 unified capabilities, 16 `fetch*` methods | no — ZebPay's own request/response envelopes |
+| Unified market data + trading API | yes — 28 unified capabilities, 19 `fetch*` methods | no — ZebPay's own request/response envelopes |
 | WebSockets | **no** — ZebPay has no `watch*` methods in CCXT | none documented in the futures reference |
 | Raw endpoint access | yes — 42 ZebPay endpoints as implicit methods | yes, it is the whole product |
 | Authentication | API key + secret (HMAC-SHA256) | API key + secret, **or** a JWT bearer token |
@@ -255,7 +255,7 @@ Not directly. CCXT's `zebpay` requires `apiKey` and `secret` and signs requests 
 Yes — all 42 of them, as [implicit methods](/docs/exchanges/zebpay/implicit-api), with signing, timestamping and rate limiting applied.
 
 **Is CCXT free?**
-Yes. MIT-licensed, including the WebSocket support for the 78 exchanges that have it.
+Yes. MIT-licensed, including the WebSocket support for the 76 exchanges that have it.
 
 ## Next steps
 

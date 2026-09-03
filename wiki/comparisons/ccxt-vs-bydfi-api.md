@@ -1,7 +1,7 @@
 <!-- title: CCXT vs the raw BYDFi API -->
 <!-- description: BYDFi publishes documentation but no client library in any language. Compare CCXT and hand-written HTTP on signing, derivatives, streaming and errors. -->
 <!-- group: Exchange APIs and official SDKs -->
-<!-- summary: BYDFi ships no SDK — there is no bydfi package on npm or PyPI, and its only GitHub repository is documentation. CCXT implements 59 unified capabilities and 10 streaming methods against its perpetual-futures API. -->
+<!-- summary: BYDFi ships no SDK — there is no bydfi package on npm or PyPI, and its only GitHub repository is documentation. CCXT implements 60 unified capabilities and 10 streaming methods against its perpetual-futures API. -->
 <!-- weight: 100 -->
 
 # CCXT vs the raw BYDFi API
@@ -15,7 +15,7 @@ So the comparison here is not CCXT against a vendor SDK. It is **CCXT against th
 ## TL;DR
 
 - **Write it yourself** if you need three endpoints, you are in a language CCXT does not target, or you want the signing visible in your own repository.
-- **Pick CCXT** if you want signing, streaming, leverage and margin-mode handling, position bookkeeping, precision and typed errors already implemented against the live venue — 59 unified capabilities, 10 `watch*` methods and all 45 endpoints.
+- **Pick CCXT** if you want signing, streaming, leverage and margin-mode handling, position bookkeeping, precision and typed errors already implemented against the live venue — 60 unified capabilities, 10 `watch*` methods and all 45 endpoints.
 - **The derivatives surface is what you would spend the time on.** Leverage, margin mode, hedge-vs-one-way position mode, reduce-only and trailing orders, sub-wallets and position history are all things CCXT already models with the same names it uses on Bybit, OKX and Binance futures.
 
 ## At a glance
@@ -26,7 +26,7 @@ So the comparison here is not CCXT against a vendor SDK. It is **CCXT against th
 | Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | whatever you write it in |
 | Official client library | n/a | **none published** — no package on npm or PyPI, no client code on GitHub |
 | Products covered | perpetual futures (linear swaps) | perpetual futures |
-| Unified market data + trading API | yes — 59 capabilities on `bydfi` | no — raw JSON payloads |
+| Unified market data + trading API | yes — 60 capabilities on `bydfi` | no — raw JSON payloads |
 | WebSockets | yes — 10 `watch*` methods | you implement the socket client |
 | Raw endpoint access | yes — 45 BYDFi endpoints as implicit methods | yes, it is all you have |
 | Built-in rate limiter | yes, on by default (`rateLimit` 50 ms) | your code |
@@ -114,7 +114,7 @@ The signed payload differs by HTTP method — `apiKey + timestamp + urlencoded_q
 
 ### Stream an order book
 
-BYDFi is one of the 78 CCXT exchanges with WebSocket support. `bydfi` has **10** `watch*` methods: `watchOrderBook`, `watchOrderBookForSymbols`, `watchTicker`, `watchTickers`, `watchOHLCV`, `watchOHLCVForSymbols`, `watchOrders`, `watchOrdersForSymbols`, `watchPositions` and `watchBalance`.
+BYDFi is one of the 76 CCXT exchanges with WebSocket support. `bydfi` has **10** `watch*` methods: `watchOrderBook`, `watchOrderBookForSymbols`, `watchTicker`, `watchTickers`, `watchOHLCV`, `watchOHLCVForSymbols`, `watchOrders`, `watchOrdersForSymbols`, `watchPositions` and `watchBalance`.
 
 <!-- tabs:start -->
 
@@ -223,7 +223,7 @@ ticker, err := exchange.FetchTicker("BTC/USDT:USDT")
 
 ### Nothing is hidden — the implicit API
 
-Alongside the 59 unified capabilities, **all 45 BYDFi endpoints are generated as callable implicit methods**, with signing, rate limiting and error mapping applied — including the affiliate and agent endpoints that have no unified equivalent:
+Alongside the 60 unified capabilities, **all 45 BYDFi endpoints are generated as callable implicit methods**, with signing, rate limiting and error mapping applied — including the affiliate and agent endpoints that have no unified equivalent:
 
 ```python
 # any raw BYDFi endpoint, camelCased from its path

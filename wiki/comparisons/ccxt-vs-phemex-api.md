@@ -37,7 +37,7 @@ So the real choice is not between two SDKs. It is between [CCXT](/docs/manual) a
 
 <sub>Figures verified September 2026 against CCXT v{{CCXT_VERSION}}, the `phemex/*` GitHub repositories and the published Phemex API reference.</sub>
 
-CCXT implements **54 unified capabilities** for Phemex, **27** of them `fetch*` methods.
+CCXT implements **55 unified capabilities** for Phemex, **28** of them `fetch*` methods.
 
 ## The same job, written both ways
 
@@ -183,7 +183,7 @@ One flag swaps every REST and WebSocket URL.
 
 ### Nothing is hidden — the implicit API
 
-Alongside the 54 unified capabilities, **all 115 endpoints in Phemex's API are generated as callable implicit methods**, with signing, expiry handling, rate-limit accounting and error mapping applied. Browse them on the [Phemex implicit API page](/docs/exchanges/phemex/implicit-api).
+Alongside the 55 unified capabilities, **all 115 endpoints in Phemex's API are generated as callable implicit methods**, with signing, expiry handling, rate-limit accounting and error mapping applied. Browse them on the [Phemex implicit API page](/docs/exchanges/phemex/implicit-api).
 
 ## What going direct does better
 

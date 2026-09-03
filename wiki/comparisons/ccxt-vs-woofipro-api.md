@@ -13,8 +13,8 @@ Both speak the same endpoints and the same ed25519 signing scheme. The question 
 ## TL;DR
 
 - **Pick Orderly's own connectors** if you are building on Orderly itself rather than on one broker: registering accounts and Orderly keys from an EVM wallet, wiring a React trading UI, or calling broker-level endpoints one-for-one with the Orderly docs.
-- **Pick CCXT** if WOOFi Pro is one venue in a system: you get 50 unified capabilities and 10 `watch*` streaming methods behind the same API that already covers 104 exchanges, in seven languages.
-- **You are not choosing between them blind.** WOOFi Pro's own API-trading guide recommends CCXT and links to the [`woofipro` page](/docs/exchanges/woofipro), and CCXT still exposes all 115 raw Orderly endpoints as [implicit methods](/docs/exchanges/woofipro/implicit-api).
+- **Pick CCXT** if WOOFi Pro is one venue in a system: you get 61 unified capabilities and 10 `watch*` streaming methods behind the same API that already covers 104 exchanges, in seven languages.
+- **You are not choosing between them blind.** WOOFi Pro's own API-trading guide recommends CCXT and links to the [`woofipro` page](/docs/exchanges/woofipro), and CCXT still exposes all 118 raw Orderly endpoints as [implicit methods](/docs/exchanges/woofipro/implicit-api).
 
 ## At a glance
 
@@ -23,9 +23,9 @@ Both speak the same endpoints and the same ed25519 signing scheme. The question 
 | Exchanges covered | 104 (WOOFi Pro is one of them) | Orderly Network only |
 | Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | Python (`orderly-evm-connector`); TypeScript/React (`@orderly.network/*`) |
 | Packages to install | 1 (`ccxt`) | 1 for Python; a set of `@orderly.network/*` packages for JS |
-| Unified market data + trading API | yes — 50 unified capabilities | no — Orderly's own request/response shapes |
+| Unified market data + trading API | yes — 61 unified capabilities | no — Orderly's own request/response shapes |
 | WebSockets | yes — 10 `watch*` methods | yes — `WebsocketPublicAPIClient` / `WebsocketPrivateAPIClient` |
-| Raw endpoint access | yes — 115 endpoints as implicit methods | yes, it is the whole product |
+| Raw endpoint access | yes — 118 endpoints as implicit methods | yes, it is the whole product |
 | Built-in rate limiter | yes, per-endpoint weights, on by default (`rateLimit` 100 ms) | not a documented feature of the connector |
 | Unified error types | yes — 41 typed exceptions in one hierarchy | HTTP status plus Orderly error codes |
 | Testnet / sandbox | `exchange.set_sandbox_mode(True)` | `orderly_testnet=True` constructor flag |
@@ -228,7 +228,7 @@ One flag swaps every REST and WebSocket URL together. `woofipro` is one of the C
 
 ### Nothing is hidden — the implicit API
 
-All 115 endpoints in the Orderly EVM API are generated as callable methods, so nothing the connectors can reach is out of bounds:
+All 118 endpoints in the Orderly EVM API are generated as callable methods, so nothing the connectors can reach is out of bounds:
 
 ```python
 # broker, campaign, referral, points, vault and delegate-signer endpoints, camelCased from their paths
@@ -272,7 +272,7 @@ Start with [Install](/docs/install), then the [Manual](/docs/manual), then the [
 ## FAQ
 
 **Does CCXT support WOOFi Pro?**
-Yes, as the exchange id `woofipro`. It is one of CCXT's certified exchanges, with 50 unified capabilities, 27 `fetch*` methods, 10 `watch*` streaming methods and all 115 raw Orderly endpoints exposed as implicit methods. WOOFi Pro's own API-trading guide recommends CCXT and links to the CCXT `woofipro` page.
+Yes, as the exchange id `woofipro`. It is one of CCXT's certified exchanges, with 61 unified capabilities, 33 `fetch*` methods, 10 `watch*` streaming methods and all 118 raw Orderly endpoints exposed as implicit methods. WOOFi Pro's own API-trading guide recommends CCXT and links to the CCXT `woofipro` page.
 
 **What credentials does CCXT need for WOOFi Pro?**
 Three: `apiKey` (your Orderly key), `secret` (your Orderly secret) and `accountId` (your Orderly account id), all created from the WOOFi Pro portfolio API-key screen. A wallet `privateKey` is optional and only used for withdrawals, which Orderly requires to be signed as EIP-712 typed data.

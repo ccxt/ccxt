@@ -1,7 +1,7 @@
 <!-- title: CCXT vs the raw WEEX API -->
 <!-- description: WEEX publishes no client library. CCXT compared on passphrase signing, weight-based rate limits, dual WebSocket hosts and typed errors. -->
 <!-- group: Exchange APIs and official SDKs -->
-<!-- summary: WEEX ships documentation but no SDK. CCXT gives it 83 unified capabilities — its widest coverage of any venue in this group — 25 streaming methods and all 76 raw endpoints. -->
+<!-- summary: WEEX ships documentation but no SDK. CCXT gives it 92 unified capabilities — its widest coverage of any venue in this group — 25 streaming methods and all 80 raw endpoints. -->
 <!-- weight: 100 -->
 
 # CCXT vs the raw WEEX API
@@ -14,7 +14,7 @@ So the comparison is between [CCXT](/docs/manual) and the client you write yours
 
 - **Go direct** if you call a handful of public endpoints, want field names identical to the docs, or need one of the endpoint families the unified API does not model — broker, partner or copy-trading.
 - **Pick CCXT** if you want spot and futures from one client, four-header passphrase signing built for you, weight accounting on by default, and streaming methods that return the same structures as the REST calls.
-- **CCXT is not a subset.** All 76 WEEX endpoints are generated as [implicit methods](/docs/exchanges/weex/implicit-api), signed and throttled like the unified ones.
+- **CCXT is not a subset.** All 80 WEEX endpoints are generated as [implicit methods](/docs/exchanges/weex/implicit-api), signed and throttled like the unified ones.
 
 ## At a glance
 
@@ -27,24 +27,22 @@ So the comparison is between [CCXT](/docs/manual) and the client you write yours
 | Products in one client | spot and perpetual swap | separate endpoint trees and separate WebSocket hosts |
 | Unified market data + trading API | yes — same method names on every exchange | no — WEEX's own request and response shapes |
 | WebSockets | yes — 25 `watch*` / `unWatch*` methods implemented | two socket hosts, subscription and merge logic yours |
-| Raw endpoint access | yes — 76 WEEX endpoints as implicit methods | yes, it is the whole product |
+| Raw endpoint access | yes — 80 WEEX endpoints as implicit methods | yes, it is the whole product |
 | Built-in rate limiter | yes, per-endpoint weights, on by default (`rateLimit` 20 ms) | your code, against `X-USED-WEIGHT-*` headers |
 | Unified error types | yes — 41 typed exceptions in one hierarchy | HTTP 429 plus WEEX error codes |
-| Testnet / sandbox | no — WEEX declares `'sandbox': false` and has no `urls.test` | no |
+| Testnet / sandbox | yes — `set_sandbox_mode(True)` switches the private contract endpoints to WEEX demo trading | no |
 | Licence | MIT | — |
 | Support | Discord, Telegram, GitHub issues — usually same-day | exchange support channels |
 
 <sub>Figures verified September 2026 against CCXT v{{CCXT_VERSION}}, `ts/src/pro/weex.ts` in the CCXT source tree, and WEEX's published spot API documentation.</sub>
 
-CCXT implements **83 unified capabilities** for WEEX, **37** of them `fetch*` methods — the widest coverage of any venue on this page.
+CCXT implements **92 unified capabilities** for WEEX, **40** of them `fetch*` methods — the widest coverage of any venue on this page.
 
-## A note on the streaming count
+## What streaming covers
 
-`ts/src/pro/weex.ts` implements 25 streaming methods, but four of them — `watchOrderBook`, `watchOrderBookForSymbols`, `unWatchOrderBook` and `unWatchOrderBookForSymbols` — are currently declared `false` in the class's `has` block, so `exchange.has['watchOrderBook']` reports `False` and capability-gated tests skip them. The implementations are there: `watchOrderBookForSymbols` subscribes to WEEX's depth channel (`<marketId>@depth200`, with a `depth` option of `'200'` or `'15'`), merges the book, and `watchOrderBook` delegates to it for a single symbol.
+`ts/src/pro/weex.ts` implements 25 streaming methods and flags all 25 in the class's `has` block, so `exchange.has['watchOrderBook']` and the rest report `True` and capability-gated tooling picks them up. They are `watchTicker`, `watchTickers`, `watchTrades`, `watchTradesForSymbols`, `watchOHLCV`, `watchOHLCVForSymbols`, `watchOrderBook`, `watchOrderBookForSymbols`, `watchBidsAsks`, `watchOrders`, `watchMyTrades`, `watchPositions`, `watchBalance` and their twelve `unWatch*` counterparts.
 
-Treat the count as: **21 flagged streaming capabilities, 25 implemented methods**, with order-book streaming present but not yet advertised through `has`. If you rely on the `has` flags to gate behaviour, check them rather than assuming.
-
-The 21 flagged methods are `watchTicker`, `watchTickers`, `watchTrades`, `watchTradesForSymbols`, `watchOHLCV`, `watchOHLCVForSymbols`, `watchBidsAsks`, `watchOrders`, `watchMyTrades`, `watchPositions`, `watchBalance` and their ten `unWatch*` counterparts.
+Order-book streaming subscribes to WEEX's depth channel (`<marketId>@depth200`, with a `depth` option of `'200'` or `'15'`) and merges the book for you; `watchOrderBook` delegates to `watchOrderBookForSymbols` for a single symbol.
 
 ## The same job, written both ways
 
@@ -208,16 +206,16 @@ CCXT maps WEEX's error codes onto a [typed exception tree](/docs/manual#error-ha
 
 ### Nothing is hidden — the implicit API
 
-Alongside the 83 unified capabilities, **all 76 WEEX endpoints are generated as callable implicit methods**, with signing, rate-limit accounting and error mapping applied. Browse them on the [WEEX implicit API page](/docs/exchanges/weex/implicit-api).
+Alongside the 92 unified capabilities, **all 80 WEEX endpoints are generated as callable implicit methods**, with signing, rate-limit accounting and error mapping applied. Browse them on the [WEEX implicit API page](/docs/exchanges/weex/implicit-api).
 
 ## What going direct does better
 
 An honest list:
 
 - **Field names match the docs exactly.** When you are reading `weex.com/api-doc` while debugging, a raw payload lines up with the reference one field at a time. CCXT's unified names are a deliberate abstraction and one hop away from it.
-- **Endpoint families the unified API does not model.** WEEX's documentation has broker, partner and copy-trading sections. CCXT covers 76 endpoints as implicit methods, but anything outside that set — and anything published after the last release — you call yourself.
+- **Endpoint families the unified API does not model.** WEEX's documentation has broker, partner and copy-trading sections. CCXT covers 80 endpoints as implicit methods, but anything outside that set — and anything published after the last release — you call yourself.
 - **Weight headers are visible.** `X-USED-WEIGHT-*` and `X-REMAINING-WEIGHT-*` tell you exactly how much budget is left. CCXT's throttler is predictive: it paces from a per-endpoint cost table rather than from the response headers, which is more portable but less exact than reading the counter the exchange actually keeps.
-- **Order-book streaming is a first-class subscription.** CCXT implements it but does not yet flag it in `has`, so tooling that gates on capability flags will skip it. Subscribing to `<marketId>@depth200` directly sidesteps that question entirely.
+- **Both socket hosts, on your terms.** WEEX splits spot and contract streams across two hosts with separate `/public` and `/private` paths. CCXT picks the host from the market and hides the split; going direct, you decide how many connections to open and how to shard symbols across them.
 - **A smaller dependency.** Three endpoints and thirty lines of signing code is less than all of CCXT.
 
 If WEEX is your only venue and you mostly read public data, going direct is perfectly reasonable.
@@ -250,13 +248,13 @@ No. WEEX publishes API documentation but no client library, and its documentatio
 Four headers: `ACCESS-KEY`, `ACCESS-SIGN`, `ACCESS-PASSPHRASE` and `ACCESS-TIMESTAMP`. The signature is a Base64-encoded HMAC-SHA256 over `timestamp + METHOD + requestPath + "?" + queryString + body`, and the timestamp is rejected if it drifts more than 30 seconds from server time. In CCXT the passphrase is the `password` constructor field.
 
 **Does CCXT support WEEX order-book streaming?**
-The implementation is in `ts/src/pro/weex.ts` — `watchOrderBook` and `watchOrderBookForSymbols` subscribe to WEEX's depth channel and merge the book — but the class currently declares `'watchOrderBook': false` in its `has` block, so the capability flag reports `False` and capability-gated tests skip it. Call it if you need it, but do not gate on `exchange.has['watchOrderBook']` expecting `True`.
+Yes. `watchOrderBook` and `watchOrderBookForSymbols` subscribe to WEEX's depth channel and maintain the merged book, with `unWatch*` counterparts for tearing the subscription down. Both are flagged in `has`, so `exchange.has['watchOrderBook']` reports `True`.
 
 **Does CCXT cover WEEX futures as well as spot?**
 Yes. One `ccxt.weex` instance covers both, and CCXT selects the right REST and WebSocket host from the market. Use `'BTC/USDT'` for spot and `'BTC/USDT:USDT'` for the linear perpetual.
 
 **Does CCXT support a WEEX sandbox?**
-No. The `weex` class declares `'sandbox': false` and defines no `urls.test`, so `set_sandbox_mode(True)` will not work for it.
+Yes. WEEX runs demo trading on its live hosts rather than a separate testnet domain, and `set_sandbox_mode(True)` swaps the private contract endpoints to their simulated variants for you. Nothing else in your code changes.
 
 **Is CCXT free?**
 Yes. MIT-licensed, including the WebSocket support.
@@ -266,6 +264,6 @@ Yes. MIT-licensed, including the WebSocket support.
 - [Install CCXT](/docs/install) in your language
 - [Manual](/docs/manual) — the unified API, structures and conventions
 - [weex unified API reference](/docs/exchanges/weex)
-- [weex implicit API](/docs/exchanges/weex/implicit-api) — all 76 raw endpoints
+- [weex implicit API](/docs/exchanges/weex/implicit-api) — all 80 raw endpoints
 - [CCXT Pro manual](/docs/pro-manual) — WebSocket methods
 - [More comparisons](/docs/comparisons)

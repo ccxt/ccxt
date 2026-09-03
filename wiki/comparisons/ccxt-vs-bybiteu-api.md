@@ -1,7 +1,7 @@
 <!-- title: CCXT vs the Bybit EU API -->
 <!-- description: Bybit EU is a regional entity of Bybit. What CCXT's `bybiteu` class covers, how it differs from `bybit`, and where the full comparison lives. -->
 <!-- group: Regional entities and product lines -->
-<!-- summary: A regional entity of Bybit, shipped as its own CCXT class. Inherits 121 unified capabilities and 403 raw endpoints from `bybit`. -->
+<!-- summary: A regional entity of Bybit, shipped as its own CCXT class. Inherits 123 unified capabilities and 404 raw endpoints from `bybit`. -->
 <!-- weight: 400 -->
 
 # CCXT vs the Bybit EU API
@@ -20,10 +20,10 @@ Separate registration and separate API host from bybit.com. Product coverage is 
 
 | | `bybiteu` |
 | --- | --- |
-| Unified capabilities | 121 (inherited from `bybit` plus its own overrides) |
-| `fetch*` methods | 59 |
+| Unified capabilities | 123 (inherited from `bybit` plus its own overrides) |
+| `fetch*` methods | 61 |
 | WebSocket `watch*` methods | 25 |
-| Raw endpoints as implicit methods | 403 |
+| Raw endpoints as implicit methods | 404 |
 | Testnet via `setSandboxMode` | yes |
 | Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java |
 | Licence | MIT |
@@ -84,10 +84,10 @@ Use `bybiteu` when you hold an account with Bybit EU specifically. Use [`bybit`]
 No. It is a separate legal entity with separate accounts; you need keys issued by Bybit EU.
 
 **Does `bybiteu` support the full unified API?**
-It inherits 121 unified capabilities from `bybit`. Where the venue does not offer a feature, the corresponding `has` flag is turned off, and the method raises `NotSupported` rather than failing quietly. Check `exchange.has` at runtime.
+It inherits 123 unified capabilities from `bybit`. Where the venue does not offer a feature, the corresponding `has` flag is turned off, and the method raises `NotSupported` rather than failing quietly. Check `exchange.has` at runtime.
 
 **Can I reach Bybit EU-specific endpoints?**
-Yes — all 403 endpoints in this class's `api` block are generated as implicit methods, with signing, rate limiting and error mapping applied. The mechanism is documented on the [`bybit` implicit API page](/docs/exchanges/bybit/implicit-api); this venue's own endpoint list differs slightly from the parent's.
+Yes — all 404 endpoints in this class's `api` block are generated as implicit methods, with signing, rate limiting and error mapping applied. The mechanism is documented on the [`bybit` implicit API page](/docs/exchanges/bybit/implicit-api); this venue's own endpoint list differs slightly from the parent's.
 
 **Is CCXT free?**
 Yes. MIT-licensed, including the WebSocket support.

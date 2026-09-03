@@ -1,7 +1,7 @@
 <!-- title: CCXT vs the raw One Trading API -->
 <!-- description: One Trading (formerly Bitpanda Pro) publishes no maintained SDK. Compare hand-rolling its bearer-token REST and WebSocket API against CCXT's onetrading class. -->
 <!-- group: Exchange APIs and official SDKs -->
-<!-- summary: The Bitpanda Pro SDK is gone and One Trading publishes no replacement. CCXT's onetrading class covers the spot API with 29 unified capabilities and seven watch* methods — but not One Trading's newer futures endpoints. -->
+<!-- summary: The Bitpanda Pro SDK is gone and One Trading publishes no replacement. CCXT's onetrading class covers the spot API with 30 unified capabilities and seven watch* methods — but not One Trading's newer futures endpoints. -->
 <!-- weight: 100 -->
 
 # CCXT vs the raw One Trading API
@@ -15,7 +15,7 @@ So the comparison is not CCXT against a vendor SDK. It is **CCXT against the cod
 ## TL;DR
 
 - **Write it yourself** if you need One Trading's futures API — positions, funding rates, portfolio summary — because CCXT's `onetrading` class is spot-only and those endpoints are not in its definition, so they are not reachable as implicit methods either.
-- **Pick CCXT** if you are trading One Trading spot: 29 unified capabilities, seven `watch*` streaming methods, a rate limiter, typed errors, and the same code in TypeScript, JavaScript, Python, PHP, C#/.NET, Go or Java.
+- **Pick CCXT** if you are trading One Trading spot: 30 unified capabilities, seven `watch*` streaming methods, a rate limiter, typed errors, and the same code in TypeScript, JavaScript, Python, PHP, C#/.NET, Go or Java.
 - **Authentication is the easy part on this venue.** One Trading uses a bearer API key — no secret, no HMAC, no nonce — so the value CCXT adds here is normalisation, streaming and portability rather than signing.
 
 ## At a glance
@@ -26,12 +26,12 @@ So the comparison is not CCXT against a vendor SDK. It is **CCXT against the cod
 | Official client library | n/a | **none currently published** |
 | Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | whatever you write |
 | Unified market data + trading API | yes — same method names across every exchange | no — One Trading's own request/response shapes |
-| Unified capabilities implemented | 29 for `onetrading`, of which 14 are `fetch*` | n/a |
+| Unified capabilities implemented | 30 for `onetrading`, of which 14 are `fetch*` | n/a |
 | Symbols | `'BTC/USDT'` | `instrument_code`, e.g. `BTC_USDT` |
 | Products covered | **spot only** | spot **and futures** (positions, funding rates, portfolio summary) |
 | Authentication | `Authorization: Bearer <apiKey>` — handled | `Authorization: Bearer <token>`, key needs the `TRADE` scope |
 | WebSockets | yes — seven `watch*` methods, public and private | yes, and it also carries order entry, which CCXT does not expose |
-| Raw endpoint access | yes — 19 endpoints as implicit methods | it is all raw |
+| Raw endpoint access | yes — 20 endpoints as implicit methods | it is all raw |
 | Built-in rate limiter | yes, on by default (`rateLimit` 300 ms) | your code |
 | Unified error types | yes — 41 typed exceptions in one hierarchy | HTTP status plus One Trading error payloads |
 | Testnet / sandbox | none — One Trading publishes no sandbox | none |
@@ -218,14 +218,14 @@ ticker, err := exchange.FetchTicker("BTC/USDT")
 
 ### Nothing is hidden — but the definition is spot-shaped
 
-Alongside the 29 unified capabilities, **all 19 endpoints in CCXT's One Trading definition are generated as callable implicit methods**, with authentication, rate-limit accounting and error mapping applied:
+Alongside the 30 unified capabilities, **all 20 endpoints in CCXT's One Trading definition are generated as callable implicit methods**, with authentication, rate-limit accounting and error mapping applied:
 
 ```python
 # any endpoint in the definition, camelCased from its path
 response = exchange.private_get_account_fees()
 ```
 
-Those 19 are the spot market-data and trading endpoints. One Trading's documentation also publishes futures endpoints — funding payments, futures positions, funding-rate settings, current funding rate, funding-rate history and a futures portfolio summary — and those are **not** in CCXT's definition, so they are not available as implicit methods either. If your integration needs them, you call them with an ordinary HTTP client alongside CCXT, or you write the whole client. Browse what is covered on the [onetrading implicit API page](/docs/exchanges/onetrading/implicit-api).
+Those 20 are the spot market-data and trading endpoints. One Trading's documentation also publishes futures endpoints — funding payments, futures positions, funding-rate settings, current funding rate, funding-rate history and a futures portfolio summary — and those are **not** in CCXT's definition, so they are not available as implicit methods either. If your integration needs them, you call them with an ordinary HTTP client alongside CCXT, or you write the whole client. Browse what is covered on the [onetrading implicit API page](/docs/exchanges/onetrading/implicit-api).
 
 ### Portability
 
@@ -281,7 +281,7 @@ Start with [Install](/docs/install), then the [Manual](/docs/manual), then the [
 Not one that currently resolves. The Bitpanda Pro Python SDK repository returns 404 and the `bitpanda-pro-sdk` package is not on PyPI. One Trading's own documentation index lists no client library in any language, so CCXT is the maintained normalised implementation for this venue.
 
 **Does CCXT support One Trading futures?**
-No. CCXT's `onetrading` class declares `spot: true` and `swap: false`, and its 19-endpoint definition contains only the spot market-data and trading endpoints. One Trading's futures endpoints are documented on their side but are not reachable through CCXT, including via the implicit API.
+No. CCXT's `onetrading` class declares `spot: true` and `swap: false`, and its 20-endpoint definition contains only the spot market-data and trading endpoints. One Trading's futures endpoints are documented on their side but are not reachable through CCXT, including via the implicit API.
 
 **Does CCXT support One Trading WebSockets?**
 Yes — seven methods: `watchOrderBook`, `watchTicker`, `watchTickers`, `watchOHLCV`, `watchBalance`, `watchOrders` and `watchMyTrades`. Order entry over the socket, which One Trading's docs also describe, is not exposed by CCXT for this venue.

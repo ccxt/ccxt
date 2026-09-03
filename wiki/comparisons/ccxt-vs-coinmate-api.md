@@ -1,7 +1,7 @@
 <!-- title: CCXT vs the Coinmate API -->
 <!-- description: Coinmate publishes copy-paste API clients rather than installable packages. Compared with CCXT on signing, coverage, dependencies and portability. -->
 <!-- group: Exchange APIs and official SDKs -->
-<!-- summary: Coinmate's official clients are example code you vendor into your project, not published packages. CCXT ships Coinmate as an installable dependency with 17 unified capabilities and all 61 raw endpoints. -->
+<!-- summary: Coinmate's official clients are example code you vendor into your project, not published packages. CCXT ships Coinmate as an installable dependency with 18 unified capabilities and all 64 raw endpoints. -->
 <!-- weight: 100 -->
 
 # CCXT vs the Coinmate API
@@ -16,7 +16,7 @@ So the deciding question is: **do you want a vendored client you maintain, or a 
 
 - **Use Coinmate's official clients** if you want code written against Coinmate's own field names by Coinmate, you are happy vendoring a few files, and Coinmate is the only venue you will ever call.
 - **Pick CCXT** if you want `pip install ccxt` (or npm, Composer, NuGet, Go modules, Maven), a unified API that already runs against 103 other venues, and someone else tracking API changes.
-- **Neither choice hides the API.** CCXT generates all 61 Coinmate endpoints as [implicit methods](/docs/exchanges/coinmate/implicit-api), so the unified layer is never a ceiling.
+- **Neither choice hides the API.** CCXT generates all 64 Coinmate endpoints as [implicit methods](/docs/exchanges/coinmate/implicit-api), so the unified layer is never a ceiling.
 
 ## At a glance
 
@@ -25,8 +25,8 @@ So the deciding question is: **do you want a vendored client you maintain, or a 
 | Exchanges covered | 104 (Coinmate is one of them) | Coinmate only |
 | Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | Java 21, TypeScript 5.x, Python 3.11+, PHP 8.2+ — four separate codebases |
 | Distribution | published packages (`ccxt` on npm, PyPI, Packagist, NuGet, Maven, Go modules) | copy the source into your project; not published to any package registry |
-| Unified market data + trading API | yes — 17 unified capabilities, 12 `fetch*` methods | no — Coinmate's own request/response shapes |
-| Endpoint coverage | 61 endpoints as implicit methods | "55+ endpoints" per the repository README |
+| Unified market data + trading API | yes — 18 unified capabilities, 13 `fetch*` methods | no — Coinmate's own request/response shapes |
+| Endpoint coverage | 64 endpoints as implicit methods | "55+ endpoints" per the repository README |
 | WebSockets | none for Coinmate — poll the `fetch*` methods | none documented |
 | Built-in rate limiter | yes, on by default (`rateLimit` 600ms) | not described in the repository |
 | Unified error types | yes — 41 typed exceptions in one hierarchy | per-client error handling |
@@ -160,7 +160,7 @@ price = exchange.price_to_precision('BTC/EUR', 55123.456789)
 
 ### Nothing is hidden — the implicit API
 
-Alongside the 17 unified capabilities, **all 61 endpoints in CCXT's Coinmate API block are generated as callable implicit methods**, with signing and rate limiting applied:
+Alongside the 18 unified capabilities, **all 64 endpoints in CCXT's Coinmate API block are generated as callable implicit methods**, with signing and rate limiting applied:
 
 ```python
 response = exchange.publicGetTickerAll()
@@ -173,7 +173,7 @@ Browse them on the [Coinmate implicit API page](/docs/exchanges/coinmate/implici
 Real advantages, and they matter for some projects:
 
 - **Written by the venue, against the venue's own field names.** When you are reading Coinmate's API reference, the official client's method and field names line up with it directly. CCXT's unified names are a deliberate abstraction, which is one extra hop when debugging against the vendor docs.
-- **They cover endpoints CCXT does not model as unified methods.** The repository claims 55+ endpoints implemented; CCXT's unified layer implements 17 capabilities and, notably, has no `fetchOHLCV` for Coinmate — candles are only reachable through the implicit API, if at all. If you need a Coinmate-specific endpoint with typed models around it, the official client has already shaped it.
+- **They cover endpoints CCXT does not model as unified methods.** The repository claims 55+ endpoints implemented; CCXT's unified layer implements 18 capabilities and, notably, has no `fetchOHLCV` for Coinmate — candles are only reachable through the implicit API, if at all. If you need a Coinmate-specific endpoint with typed models around it, the official client has already shaped it.
 - **Typed request/response models per language.** Java 21 and TypeScript 5.x models built for Coinmate's payloads are more literal about that payload than CCXT's typed *unified* structures, which are optimised for portability instead.
 - **No dependency at all.** Vendored code means your build has nothing extra to resolve, audit or pin. For a small internal tool touching one venue, that is a genuine simplification.
 
@@ -211,7 +211,7 @@ Yes. They are ordinary unified symbols — `'BTC/CZK'`, `'BTC/EUR'` — with pre
 Because Coinmate's private API signs with `clientId`, `publicKey` and `privateKey`. CCXT maps them to `uid`, `apiKey` and `secret` and declares all three in `requiredCredentials`, so a missing one raises immediately instead of failing at the exchange.
 
 **Can I still call Coinmate-specific endpoints through CCXT?**
-Yes — all 61 endpoints in the class's API block are generated as [implicit methods](/docs/exchanges/coinmate/implicit-api), with signing, throttling and error mapping applied.
+Yes — all 64 endpoints in the class's API block are generated as [implicit methods](/docs/exchanges/coinmate/implicit-api), with signing, throttling and error mapping applied.
 
 **Is CCXT free?**
 Yes. MIT-licensed.

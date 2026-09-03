@@ -36,7 +36,7 @@ So this is not a comparison of two SDKs. It is a comparison between [CCXT](/docs
 
 <sub>Figures verified September 2026 against CCXT v{{CCXT_VERSION}} and the published Tokocrypto API documentation.</sub>
 
-CCXT implements **23 unified capabilities** for Tokocrypto, **14** of them `fetch*` methods. That is a smaller surface than CCXT's larger integrations, and honest about it: this is a spot-and-margin REST integration, not a full derivatives stack.
+CCXT implements **25 unified capabilities** for Tokocrypto, **16** of them `fetch*` methods. That is a smaller surface than CCXT's larger integrations, and honest about it: this is a spot-and-margin REST integration, not a full derivatives stack.
 
 ## Where market data actually comes from
 
@@ -160,7 +160,7 @@ CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#
 
 ### Nothing is hidden — the implicit API
 
-Alongside the 23 unified capabilities, **all 33 endpoints in the exchange definition are generated as callable implicit methods**, split across the `public`, `private` and `binance` sections, with signing, rate-limit accounting and error mapping applied. Browse them on the [Tokocrypto implicit API page](/docs/exchanges/tokocrypto/implicit-api).
+Alongside the 25 unified capabilities, **all 33 endpoints in the exchange definition are generated as callable implicit methods**, split across the `public`, `private` and `binance` sections, with signing, rate-limit accounting and error mapping applied. Browse them on the [Tokocrypto implicit API page](/docs/exchanges/tokocrypto/implicit-api).
 
 ## What going direct does better
 

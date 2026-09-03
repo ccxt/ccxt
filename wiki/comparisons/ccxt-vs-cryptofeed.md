@@ -20,7 +20,7 @@
 | | **CCXT** | **Cryptofeed** |
 | --- | --- | --- |
 | Primary purpose | unified trading + market data API | market-data feed handler |
-| Exchanges | 104 REST, 78 with WebSocket | roughly two dozen venues |
+| Exchanges | 104 REST, 76 with WebSocket | roughly two dozen venues |
 | Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java | Python only (3.12+) |
 | Place / cancel / edit orders | yes — unified across every venue | not a unified, supported capability |
 | Balances, positions, funding, transfers, deposits | yes | no |
@@ -108,7 +108,7 @@ CCXT is **MIT** — use it, modify it, ship it closed-source, no reciprocity.
 
 ### Coverage
 
-104 exchanges versus roughly two dozen, and CCXT's WebSocket support spans 78 of them. For long-tail venues, regional exchanges, perpetuals-first DEXes and prediction markets, CCXT is frequently the only maintained normalised implementation.
+104 exchanges versus roughly two dozen, and CCXT's WebSocket support spans 76 of them. For long-tail venues, regional exchanges, perpetuals-first DEXes and prediction markets, CCXT is frequently the only maintained normalised implementation.
 
 ### Seven languages
 
@@ -154,7 +154,7 @@ For normal strategy and dashboard workloads, both are comfortably fast enough an
 No. CCXT Pro is bundled in the `ccxt` package under MIT. Use `ccxt.pro.<exchange>` and the `watch*` methods.
 
 **Which has more exchanges?**
-CCXT — 104 with REST, 78 of them with WebSocket, versus roughly two dozen in Cryptofeed.
+CCXT — 104 with REST, 76 of them with WebSocket, versus roughly two dozen in Cryptofeed.
 
 **Can I use Cryptofeed in a closed-source commercial product?**
 That is an AGPL-3.0 question for your lawyers, and the network clause is the part to read carefully. CCXT's MIT licence does not raise the question at all.

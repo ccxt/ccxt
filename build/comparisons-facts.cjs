@@ -68,7 +68,9 @@ function firstNumber (file, key) {
     }
     try {
         const v = Function ('"use strict"; return (' + expr + ')') ();
-        return (typeof v === 'number' && isFinite (v)) ? Math.round (v * 100) / 100 : undefined;
+        // Three decimals, not two: exchanges write rateLimits like 3.333 and 33.334, and
+        // rounding those to 3.33 / 33.33 would make the figure less accurate than the source.
+        return (typeof v === 'number' && isFinite (v)) ? Math.round (v * 1000) / 1000 : undefined;
     } catch (e) {
         return undefined;
     }

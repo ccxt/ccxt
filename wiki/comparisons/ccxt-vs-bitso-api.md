@@ -1,7 +1,7 @@
 <!-- title: CCXT vs the Bitso API -->
 <!-- description: Bitso's only maintained connector is a Java REST wrapper. Compare it with CCXT on languages, coverage, signing, rate limits, sandbox and raw endpoint access. -->
 <!-- group: Exchange APIs and official SDKs -->
-<!-- summary: Bitso maintains one official SDK — a Java wrapper for REST v3, last released in July 2024. CCXT reaches the same 39 endpoints from seven languages, though neither side streams Bitso's WebSocket. -->
+<!-- summary: Bitso maintains one official SDK — a Java wrapper for REST v3, last released in July 2024. CCXT reaches the same 40 endpoints from seven languages, though neither side streams Bitso's WebSocket. -->
 <!-- weight: 100 -->
 
 # CCXT vs the Bitso API
@@ -13,7 +13,7 @@ So the choice is narrower than it looks. If you write Java, you can use Bitso's 
 ## TL;DR
 
 - **Pick bitso-java** if you are on the JVM, Bitso is your only venue, and you want types Bitso themselves defined (`BitsoTicker`, `BitsoOrder`, `BigDecimal` amounts) that track their docs one-for-one.
-- **Pick CCXT** if you are not on the JVM, or if Bitso is one of several venues. CCXT implements 23 unified capabilities for Bitso and exposes all 39 of its REST endpoints as implicit methods, from TypeScript, JavaScript, Python, PHP, C#/.NET, Go and Java.
+- **Pick CCXT** if you are not on the JVM, or if Bitso is one of several venues. CCXT implements 24 unified capabilities for Bitso and exposes all 40 of its REST endpoints as implicit methods, from TypeScript, JavaScript, Python, PHP, C#/.NET, Go and Java.
 - **Neither one streams Bitso.** Bitso publishes a WebSocket API with `trades`, `diff-orders` and `orders` channels; CCXT implements no `watch*` methods for Bitso, and the official Java wrapper's README documents REST only. If you need a live Bitso book, you are writing that socket client yourself either way.
 
 ## At a glance
@@ -23,8 +23,8 @@ So the choice is narrower than it looks. If you write Java, you can use Bitso's 
 | Exchanges covered | 104 (Bitso is one of them) | Bitso only |
 | Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | Java |
 | Unified market data + trading API | yes — same method names across every exchange | no — Bitso's own request/response shapes |
-| Bitso capabilities implemented | 23 unified methods, 17 of them `fetch*` | full REST v3 surface |
-| Raw endpoint access | yes — 39 Bitso endpoints as implicit methods | yes, it is the whole product |
+| Bitso capabilities implemented | 24 unified methods, 18 of them `fetch*` | full REST v3 surface |
+| Raw endpoint access | yes — 40 Bitso endpoints as implicit methods | yes, it is the whole product |
 | WebSockets | no `watch*` methods for Bitso | not documented in the README |
 | Built-in rate limiter | yes, on by default (`rateLimit` 2000 ms) | not documented |
 | Unified error types | yes — 41 typed exceptions in one hierarchy | Bitso error codes |
@@ -161,7 +161,7 @@ CCXT maps Bitso's error codes onto a [typed exception tree](/docs/manual#error-h
 
 ### Nothing is hidden — the implicit API
 
-The 23 unified methods are not a ceiling. Every endpoint in Bitso's API is generated as a callable implicit method, with signing, nonce handling, rate limiting and error mapping applied:
+The 24 unified methods are not a ceiling. Every endpoint in Bitso's API is generated as a callable implicit method, with signing, nonce handling, rate limiting and error mapping applied:
 
 ```python
 # GET /v3/account_status
@@ -215,7 +215,7 @@ No. CCXT implements zero `watch*` methods for Bitso, so streaming is not availab
 CCXT wires `setSandboxMode(true)` to Bitso's staging host, and Bitso separately documents a sandbox server funded with Bitcoin and Ethereum testnet coins. Verify which environment your API keys were issued for before you rely on it.
 
 **Can I still call Bitso-specific endpoints through CCXT?**
-Yes — all 39 of them, as [implicit methods](/docs/exchanges/bitso/implicit-api), with the `Authorization: Bitso` header, nonce and rate limiting applied.
+Yes — all 40 of them, as [implicit methods](/docs/exchanges/bitso/implicit-api), with the `Authorization: Bitso` header, nonce and rate limiting applied.
 
 **Is CCXT free?**
 Yes. MIT-licensed, including the WebSocket support for the exchanges that have it.

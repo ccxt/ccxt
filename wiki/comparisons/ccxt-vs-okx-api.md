@@ -1,7 +1,7 @@
 <!-- title: CCXT vs the OKX API and python-okx -->
 <!-- description: How CCXT compares with python-okx on OKX v5 coverage, demo trading, WebSockets, rate limits, regional hosts and raw endpoint access, with tasks written both ways. -->
 <!-- group: Exchange APIs and official SDKs -->
-<!-- summary: python-okx splits OKX's v5 API into fifteen domain modules you import separately. CCXT gives you one client for spot, margin, futures, swaps and options, with demo trading behind one flag and all 433 raw endpoints still reachable. -->
+<!-- summary: python-okx splits OKX's v5 API into fifteen domain modules you import separately. CCXT gives you one client for spot, margin, futures, swaps and options, with demo trading behind one flag and all 446 raw endpoints still reachable. -->
 <!-- weight: 40 -->
 
 # CCXT vs the OKX API and python-okx
@@ -15,7 +15,7 @@ OKX's v5 API is a single, well-documented REST and WebSocket surface covering sp
 - **Pick `python-okx`** if OKX is your only venue, you are in Python, and you want `instId`, `tdMode` and `ordType` to read exactly as they do in OKX's reference.
 - **Pick CCXT** if you want one dependency across OKX spot, margin, futures, swaps and options — and across the next venue you add, in whichever of seven languages your service is written in.
 - **Demo trading works either way.** OKX's demo environment is a header (`x-simulated-trading: 1`); CCXT sets it for you via `set_sandbox_mode(True)`.
-- **Choosing CCXT does not hide anything.** All 433 raw OKX endpoints are callable as [implicit methods](/docs/exchanges/okx/implicit-api).
+- **Choosing CCXT does not hide anything.** All 446 raw OKX endpoints are callable as [implicit methods](/docs/exchanges/okx/implicit-api).
 
 ## At a glance
 
@@ -27,8 +27,8 @@ OKX's v5 API is a single, well-documented REST and WebSocket surface covering sp
 | Client objects | one — `ccxt.okx()` | one per domain — `Account`, `Trade`, `MarketData`, `PublicData`, `Funding`, `Grid`, `CopyTrading`, `SubAccount`, `BlockTrading`, `Convert`, `SpreadTrading`, `TradingData`, `Status`, `DualInvest`, `FDBroker` |
 | Unified market data + trading API | yes — same method names across every exchange | no — OKX's own request/response shapes |
 | WebSockets | yes — 19 `watch*` / `unWatch*` methods, plus `createOrderWs`, `editOrderWs`, `cancelOrderWs`, `cancelOrdersWs`, `cancelAllOrdersWs` | yes — `WsPublicAsync` / `WsPrivateAsync` with raw channel subscribe |
-| Raw endpoint access | yes — 433 OKX endpoints as implicit methods | yes, it is the whole product |
-| Built-in rate limiter | yes, per-endpoint weights, on by default (`rateLimit` 100 ms) | not a documented feature |
+| Raw endpoint access | yes — 446 OKX endpoints as implicit methods | yes, it is the whole product |
+| Built-in rate limiter | yes, per-endpoint weights, on by default (`rateLimit` 110 ms) | not a documented feature |
 | Unified error types | yes — 41 typed exceptions in one hierarchy | HTTP status + OKX `code`/`sCode` |
 | Demo trading | `exchange.set_sandbox_mode(True)` | `flag="1"` on each client you construct |
 | Regional hosts | `okx`, `myokx` (EEA), `okxus` (US) as separate ids | one client, base URL is yours to manage |
@@ -157,7 +157,7 @@ OKX publishes a checksum with its book updates precisely because local books dri
 
 `python-okx` mirrors OKX's documentation structure: `okx/Account.py`, `Trade.py`, `MarketData.py`, `PublicData.py`, `Funding.py`, `Grid.py`, `CopyTrading.py`, `SubAccount.py`, `BlockTrading.py`, `Convert.py`, `SpreadTrading.py`, `TradingData.py`, `Status.py`, `DualInvest.py`, `FDBroker.py`, plus a `websocket` subpackage. A strategy that reads a book, places an order and sweeps a funding balance imports and constructs three API objects, each with its own credentials and `flag`.
 
-CCXT gives you one `ccxt.okx()` instance for all of it, with **123 unified capabilities** and **63 `fetch*` methods** hanging off it.
+CCXT gives you one `ccxt.okx()` instance for all of it, with **125 unified capabilities** and **64 `fetch*` methods** hanging off it.
 
 ### Portability is the whole point
 
@@ -230,7 +230,7 @@ CCXT Pro is bundled in the same `ccxt` package — no separate purchase — and 
 
 ### Rate limits you do not have to model
 
-OKX meters per endpoint, with different budgets for public and private routes and some per-instrument sublimits. CCXT encodes those weights in the exchange definition and ships a token-bucket throttler that is **on by default** (`rateLimit` 100 ms for OKX). You call methods in a loop; the library paces them. With a raw wrapper, pacing and backing off on OKX's `50011` rate-limit code is application code you write and maintain.
+OKX meters per endpoint, with different budgets for public and private routes and some per-instrument sublimits. CCXT encodes those weights in the exchange definition and ships a token-bucket throttler that is **on by default** (`rateLimit` 110 ms for OKX). You call methods in a loop; the library paces them. With a raw wrapper, pacing and backing off on OKX's `50011` rate-limit code is application code you write and maintain.
 
 ### One error hierarchy
 
@@ -242,7 +242,7 @@ OKX rejects orders that violate lot size, tick size or minimum size, and contrac
 
 ### Nothing is hidden — the implicit API
 
-Alongside the 123 unified capabilities, **all 433 endpoints in OKX's API are generated as callable implicit methods**, with signing, rate-limit accounting and error mapping still applied:
+Alongside the 125 unified capabilities, **all 446 endpoints in OKX's API are generated as callable implicit methods**, with signing, rate-limit accounting and error mapping still applied:
 
 ```python
 # any raw OKX endpoint, camelCased from its path
@@ -299,7 +299,7 @@ Yes — spot, margin, dated futures, perpetual swaps and options from one `ccxt.
 No. CCXT Pro is included in the `ccxt` package. Use `ccxt.pro.okx` and call `watch*` methods — 19 of them for OKX, plus five `*Ws` methods for order entry over the socket.
 
 **Can I still call OKX-specific endpoints?**
-Yes — all 433 of them, as [implicit methods](/docs/exchanges/okx/implicit-api), with signing and rate limiting applied.
+Yes — all 446 of them, as [implicit methods](/docs/exchanges/okx/implicit-api), with signing and rate limiting applied.
 
 **Is CCXT free?**
 Yes. MIT-licensed, including the WebSocket support.

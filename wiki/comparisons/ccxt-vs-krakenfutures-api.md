@@ -1,7 +1,7 @@
 <!-- title: CCXT vs the Kraken Futures API -->
 <!-- description: Kraken Futures is a separate API from Kraken spot, with its own signing and symbols. CCXT's krakenfutures class compared with Kraken's own example clients. -->
 <!-- group: Exchange APIs and official SDKs -->
-<!-- summary: Kraken spot and Kraken Futures are two different APIs, and CCXT ships them as two exchange ids. Kraken's own futures clients are example scripts, last updated between 2019 and 2023; CCXT gives krakenfutures 50 unified capabilities and 12 watch* methods. -->
+<!-- summary: Kraken spot and Kraken Futures are two different APIs, and CCXT ships them as two exchange ids. Kraken's own futures clients are example scripts, last updated between 2019 and 2023; CCXT gives krakenfutures 53 unified capabilities and 12 watch* methods. -->
 <!-- weight: 100 -->
 
 # CCXT vs the Kraken Futures API
@@ -15,7 +15,7 @@ Kraken publishes no maintained client library for the derivatives API. The alter
 ## TL;DR
 
 - **Pick the raw API or a Crypto Facilities example client** if you want a thin, literal implementation of the endpoints you use and you are comfortable owning the signing, pacing and reconnect code.
-- **Pick CCXT** if you want the derivatives API as unified methods — 50 capabilities including positions, leverage, funding rates and leverage tiers — plus 12 `watch*` streams and a one-flag switch to Kraken's demo environment.
+- **Pick CCXT** if you want the derivatives API as unified methods — 53 capabilities including positions, leverage, funding rates and leverage tiers — plus 12 `watch*` streams and a one-flag switch to Kraken's demo environment.
 - **Using CCXT for futures does not force a choice on spot.** `ccxt.kraken` and `ccxt.krakenfutures` are separate instances with the same method names, so one codebase covers both.
 
 ## At a glance
@@ -25,7 +25,7 @@ Kraken publishes no maintained client library for the derivatives API. The alter
 | Exchanges covered | 104 (Kraken Futures is one of them) | Kraken Futures only |
 | Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | any, you write the client |
 | Official client libraries | — | Crypto Facilities "Example Client" repos: Python, Node.js, Java, C#, Kotlin, Visual Basic (REST v3); Python, C#, Rust (WebSocket v1) |
-| Unified capabilities | 50, of which 19 are `fetch*` | n/a |
+| Unified capabilities | 53, of which 21 are `fetch*` | n/a |
 | Symbols | `'BTC/USD:USD'` | `PF_XBTUSD`, `PI_XBTUSD` |
 | WebSockets | yes — 12 `watch*` methods | yes, you implement the client |
 | Raw endpoint access | yes — 39 endpoints as implicit methods | it is the whole product |
@@ -151,7 +151,7 @@ print(spot.fetch_ticker('BTC/USD')['last'])
 print(futures.fetch_ticker('BTC/USD:USD')['last'])
 ```
 
-The derivatives-only concepts are unified too, not bolted on: `fetch_positions`, `fetch_funding_rates`, `fetch_funding_rate_history`, `set_leverage`, `fetch_leverages`, `fetch_leverage_tiers` and `transfer` are all part of the 50 capabilities, and they carry the same names on Bybit, OKX and BitMEX.
+The derivatives-only concepts are unified too, not bolted on: `fetch_positions`, `fetch_funding_rates`, `fetch_funding_rate_history`, `set_leverage`, `fetch_leverages`, `fetch_leverage_tiers` and `transfer` are all part of the 53 capabilities, and they carry the same names on Bybit, OKX and BitMEX.
 
 ### Demo environment without a second code path
 
@@ -180,7 +180,7 @@ CCXT maps Kraken Futures' error strings onto a [typed exception tree](/docs/manu
 
 ### Nothing is hidden — the implicit API
 
-Alongside the 50 unified capabilities, **all 39 Kraken Futures endpoints are generated as implicit methods**, with signing and rate-limit accounting applied. Browse them on the [krakenfutures implicit API page](/docs/exchanges/krakenfutures/implicit-api).
+Alongside the 53 unified capabilities, **all 39 Kraken Futures endpoints are generated as implicit methods**, with signing and rate-limit accounting applied. Browse them on the [krakenfutures implicit API page](/docs/exchanges/krakenfutures/implicit-api).
 
 ## What going direct does better
 
@@ -227,7 +227,7 @@ Kraken publishes example clients under the [CryptoFacilities](https://github.com
 Yes. Kraken runs a demo environment at `demo-futures.kraken.com` with its own sign-up and API keys, and Kraken states its REST and WebSocket code is identical to production apart from the host. In CCXT, `exchange.set_sandbox_mode(True)` switches every URL for you.
 
 **Does CCXT support Kraken Futures positions and funding rates?**
-Yes — `fetch_positions`, `fetch_funding_rates`, `fetch_funding_rate_history`, `set_leverage`, `fetch_leverages` and `fetch_leverage_tiers` are among the 50 unified capabilities, plus `watch_positions` over the socket.
+Yes — `fetch_positions`, `fetch_funding_rates`, `fetch_funding_rate_history`, `set_leverage`, `fetch_leverages` and `fetch_leverage_tiers` are among the 53 unified capabilities, plus `watch_positions` over the socket.
 
 **Do I need CCXT Pro separately for WebSockets?**
 No. CCXT Pro is included in the `ccxt` package. Use `ccxt.pro.krakenfutures` and call `watch*` methods.

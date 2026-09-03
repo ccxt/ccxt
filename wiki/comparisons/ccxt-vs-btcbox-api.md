@@ -15,7 +15,7 @@ An eleven-endpoint API is genuinely small enough to write yourself, so this page
 ## TL;DR
 
 - **Write it yourself** if BtcBox is your only venue and you need two or three endpoints. Eleven routes and one `coin` parameter is not a large surface.
-- **Pick CCXT** if BtcBox is one venue among several, or if you want the JPY pairs behind the same interface as everything else: 11 unified capabilities, 8 of them `fetch*`, all 11 endpoints as implicit methods, in TypeScript, JavaScript, Python, PHP, C#/.NET, Go and Java.
+- **Pick CCXT** if BtcBox is one venue among several, or if you want the JPY pairs behind the same interface as everything else: 12 unified capabilities, 9 of them `fetch*`, all 11 endpoints as implicit methods, in TypeScript, JavaScript, Python, PHP, C#/.NET, Go and Java.
 - **Neither side streams.** BtcBox publishes no WebSocket API, and CCXT implements no `watch*` methods for it. Live data means polling either way.
 
 ## At a glance
@@ -26,7 +26,7 @@ An eleven-endpoint API is genuinely small enough to write yourself, so this page
 | Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | whatever you write |
 | Official vendor SDK | not applicable | none — only a four-commit demo script |
 | Unified market data + trading API | yes — same method names across every exchange | no — BtcBox's own payloads |
-| BtcBox capabilities implemented | 11 unified methods, 8 of them `fetch*` | you implement what you need |
+| BtcBox capabilities implemented | 12 unified methods, 9 of them `fetch*` | you implement what you need |
 | Raw endpoint access | yes — 11 BtcBox endpoints as implicit methods | yes, it is all you have |
 | WebSockets | no `watch*` methods for BtcBox | BtcBox publishes no WebSocket API |
 | Built-in rate limiter | yes, on by default (`rateLimit` 1000 ms) | your code |
@@ -181,7 +181,7 @@ BtcBox publishes limits per endpoint — `trade_add` allows two calls per second
 
 ### Nothing is hidden — the implicit API
 
-The 11 unified methods are not a ceiling. Every BtcBox endpoint is generated as a callable implicit method, with signing, nonce handling and rate limiting applied:
+The 12 unified methods are not a ceiling. Every BtcBox endpoint is generated as a callable implicit method, with signing, nonce handling and rate limiting applied:
 
 ```python
 # POST /api/v1/wallet

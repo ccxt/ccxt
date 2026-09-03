@@ -1,7 +1,7 @@
 <!-- title: CCXT vs the HTX API -->
 <!-- description: CCXT's HTX (Huobi) integration compared with the official HuobiRDCenter SDKs — product-line split, language coverage, WebSockets and rate limits. -->
 <!-- group: Exchange APIs and official SDKs -->
-<!-- summary: HTX ships separate spot and contract SDKs in five languages, installed by copying source. CCXT covers spot, margin, futures and swaps from one certified client and still exposes all 465 raw endpoints. -->
+<!-- summary: HTX ships separate spot and contract SDKs in five languages, installed by copying source. CCXT covers spot, margin, futures and swaps from one certified client and still exposes all 460 raw endpoints. -->
 <!-- weight: 60 -->
 
 # CCXT vs the HTX API
@@ -14,7 +14,7 @@ Both work. The question that decides between them is the same one HTX's own repo
 
 - **Pick the official HTX SDKs** if you trade a single product line, work in one of the five languages they cover, and want request and response models that mirror HTX's API reference literally.
 - **Pick CCXT** if you want spot, margin, futures and swaps in one client, in any of seven languages, with the rate limiter, precision handling, order-book maintenance and error taxonomy already written.
-- **Choosing CCXT does not hide HTX's API.** All 465 HTX endpoints in CCXT's `api` block are generated as [implicit methods](/docs/exchanges/htx/implicit-api), signed and rate-limited like any unified call.
+- **Choosing CCXT does not hide HTX's API.** All 460 HTX endpoints in CCXT's `api` block are generated as [implicit methods](/docs/exchanges/htx/implicit-api), signed and rate-limited like any unified call.
 
 ## At a glance
 
@@ -25,9 +25,9 @@ Both work. The question that decides between them is the same one HTX's own repo
 | Packages to install | **1** (`ccxt`) | **one repository per language, per product line** — spot and contract SDKs are separate projects |
 | HTX products in one client | spot, margin, coin-margined futures, coin-margined swaps, USDT-margined swaps | spot SDK covers spot; a separate contract SDK covers swap, futures and options |
 | Install method | package manager (`pip`, `npm`, `composer`, NuGet, `go get`, Maven) | clone the repo and use the source; the spot Python SDK's README says "download and open the source code directly in your python project" |
-| Unified market data + trading API | yes — 86 unified capabilities, 47 `fetch*` methods | no — HTX's own request and response shapes |
+| Unified market data + trading API | yes — 87 unified capabilities, 48 `fetch*` methods | no — HTX's own request and response shapes |
 | WebSockets | yes — 11 `watch*` / `unWatch*` methods, same structures as `fetch*` | yes, in the spot SDKs and contract SDKs |
-| Raw endpoint access | yes — 465 HTX endpoints as implicit methods | yes, it is the whole product |
+| Raw endpoint access | yes — 460 HTX endpoints as implicit methods | yes, it is the whole product |
 | Built-in rate limiter | yes, on by default (`rateLimit` 100 ms) | your code |
 | Unified error types | yes — 41 typed exceptions in one hierarchy | HTX `err-code` strings |
 | Testnet / sandbox | **no** — HTX's test URLs are not wired up, `set_sandbox_mode(True)` raises `NotSupported` | not offered by the SDKs either |
@@ -211,7 +211,7 @@ CCXT's HTX definition has no active test URLs, so `exchange.set_sandbox_mode(Tru
 
 ### Nothing is hidden — the implicit API
 
-Alongside the 86 unified capabilities, all 465 endpoints in CCXT's HTX `api` block are generated as callable implicit methods, camelCased from their paths:
+Alongside the 87 unified capabilities, all 460 endpoints in CCXT's HTX `api` block are generated as callable implicit methods, camelCased from their paths:
 
 ```python
 sub_users = exchange.v2_private_get_sub_user_user_list()
@@ -268,7 +268,7 @@ All of them from one client: spot, cross and isolated margin, coin-margined futu
 No. CCXT's HTX definition has no active test URLs, so `set_sandbox_mode(True)` raises `NotSupported`. Validate against a small live account instead.
 
 **Can I still call HTX-specific endpoints through CCXT?**
-Yes — all 465 endpoints in CCXT's HTX definition are generated as [implicit methods](/docs/exchanges/htx/implicit-api), with signing, rate limiting and error mapping applied.
+Yes — all 460 endpoints in CCXT's HTX definition are generated as [implicit methods](/docs/exchanges/htx/implicit-api), with signing, rate limiting and error mapping applied.
 
 **Is the `huobi` package on PyPI the official SDK?**
 No. It is a third-party project by an independent author. The official Python SDKs are the HuobiRDCenter repositories, distributed as source rather than as a PyPI package.

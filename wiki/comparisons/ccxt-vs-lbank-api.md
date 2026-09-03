@@ -1,7 +1,7 @@
 <!-- title: CCXT vs the LBank API and official LBank connectors -->
 <!-- description: LBank's official connectors are thin endpoint passthroughs, compared with CCXT's lbank class on signing, unified structures, WebSockets and rate limits. -->
 <!-- group: Exchange APIs and official SDKs -->
-<!-- summary: LBank's connectors pass raw endpoint paths through and leave parsing to you. CCXT's lbank class gives 35 unified capabilities, 6 watch* streams, and picks between LBank's HMAC and RSA signing automatically. -->
+<!-- summary: LBank's connectors pass raw endpoint paths through and leave parsing to you. CCXT's lbank class gives 39 unified capabilities, 6 watch* streams, and picks between LBank's HMAC and RSA signing automatically. -->
 <!-- weight: 100 -->
 
 # CCXT vs the LBank API and official LBank connectors
@@ -15,7 +15,7 @@ The question that decides between them: **do you want a signed HTTP transport, o
 ## TL;DR
 
 - **Pick the official connector** if you want the smallest possible layer over LBank's own endpoint list, and you are happy to write the parsing, the pacing and the reconnect logic yourself.
-- **Pick CCXT** if you want unified tickers, order books, orders and balances — 35 capabilities including 22 `fetch*` methods — plus six `watch*` streams, all named the same way as on every other exchange you touch.
+- **Pick CCXT** if you want unified tickers, order books, orders and balances — 39 capabilities including 26 `fetch*` methods — plus six `watch*` streams, all named the same way as on every other exchange you touch.
 - **Nothing is lost by choosing CCXT.** All 58 LBank endpoints are also callable directly as [implicit methods](/docs/exchanges/lbank/implicit-api), signed and rate-limited.
 
 ## At a glance
@@ -25,7 +25,7 @@ The question that decides between them: **do you want a signed HTTP transport, o
 | Exchanges covered | 104 (LBank is one of them) | LBank only |
 | Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | Python, Java, Go, Node.js — four separate repositories |
 | Programming model | unified methods returning parsed structures | `http_request("get", "v2/currencyPairs.do")` returning raw JSON |
-| Unified capabilities | 35, of which 22 are `fetch*` | n/a |
+| Unified capabilities | 39, of which 26 are `fetch*` | n/a |
 | Symbols | `'BTC/USDT'` spot, `'BTC/USDT:USDT'` contract | `btc_usdt` |
 | WebSockets | yes — 6 `watch*` methods | a raw WebSocket client with an `on_message` callback |
 | Raw endpoint access | yes — 58 endpoints as implicit methods | yes, it is the whole product |

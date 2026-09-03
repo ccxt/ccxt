@@ -1,7 +1,7 @@
 <!-- title: CCXT vs the Lighter API and official Lighter SDK -->
 <!-- description: Lighter is a zk-rollup perp DEX where every order is a signed transaction. CCXT's lighter class compared with the official Python and Go SDKs on signing and coverage. -->
 <!-- group: Exchange APIs and official SDKs -->
-<!-- summary: Lighter orders are signed zk transactions, so both CCXT and the official SDK call the same native signer binary. CCXT adds 53 unified capabilities, 18 watch* methods and seven languages on top of it. -->
+<!-- summary: Lighter orders are signed zk transactions, so both CCXT and the official SDK call the same native signer binary. CCXT adds 56 unified capabilities, 18 watch* methods and seven languages on top of it. -->
 <!-- weight: 100 -->
 
 # CCXT vs the Lighter API and official Lighter SDK
@@ -15,7 +15,7 @@ Because both sides call the same signer, the question is narrower than usual: **
 ## TL;DR
 
 - **Pick the official SDK** if Lighter is your only venue and you want zero setup around the signer — `lighter-python` ships the native binaries and picks the right one for your platform automatically.
-- **Pick CCXT** if Lighter is one venue among several, or if you are in a language Lighter does not publish an SDK for — CCXT gives it 53 unified capabilities and 18 `watch*`/`unWatch*` streaming methods, in seven languages.
+- **Pick CCXT** if Lighter is one venue among several, or if you are in a language Lighter does not publish an SDK for — CCXT gives it 56 unified capabilities and 18 `watch*`/`unWatch*` streaming methods, in seven languages.
 - **The signer is the same code either way.** CCXT loads the officially distributed signer binary (or a WASM build of it), so the trade-off is about API shape and portability, not about cryptography.
 
 ## At a glance
@@ -25,7 +25,7 @@ Because both sides call the same signer, the question is narrower than usual: **
 | Exchanges covered | 104 (Lighter is one of them) | Lighter only |
 | Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | Python and Go |
 | Signer setup | point `options['libraryPath']` at the official binary; nothing needed in Go | automatic — the Python SDK selects the right native binary for your platform |
-| Unified capabilities | 53, of which 19 are `fetch*` | n/a — Lighter's own shapes |
+| Unified capabilities | 56, of which 19 are `fetch*` | n/a — Lighter's own shapes |
 | Symbols | `'ETH/USDC:USDC'` | market index / order-book id |
 | WebSockets | yes — 18 `watch*` / `unWatch*` methods | yes, in `lighter-python`; not in `lighter-go` |
 | Raw endpoint access | yes — 46 endpoints as implicit methods | yes, it is the whole product |
@@ -208,7 +208,7 @@ Note the split: `lighter-python` has both HTTP and WebSocket support, while `lig
 
 ### Perp-specific concepts are unified, not bolted on
 
-`fetch_positions`, `fetch_funding_rates`, `set_leverage`, `set_margin_mode`, `add_margin`, `reduce_margin`, `transfer` and `cancel_all_orders_after` are all part of the 53 capabilities — and they carry the same names on Hyperliquid, Bybit and OKX. A strategy written against CCXT's perp surface moves between DEX and CEX without a rewrite.
+`fetch_positions`, `fetch_funding_rates`, `set_leverage`, `set_margin_mode`, `add_margin`, `reduce_margin`, `transfer` and `cancel_all_orders_after` are all part of the 56 capabilities — and they carry the same names on Hyperliquid, Bybit and OKX. A strategy written against CCXT's perp surface moves between DEX and CEX without a rewrite.
 
 ### Testnet without a second code path
 

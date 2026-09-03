@@ -1,12 +1,12 @@
 <!-- title: CCXT vs the CEX.IO API and cexio-spot-trading -->
 <!-- description: CEX.IO's official client is Node.js only and passes calls through by name. Compare it with CCXT on languages, unified structures, streaming, rate limits and errors. -->
 <!-- group: Exchange APIs and official SDKs -->
-<!-- summary: CEX.IO's official client is a Node.js RPC passthrough — you still name endpoints and parse raw payloads. CCXT gives the same Spot Trading API 42 unified capabilities and 8 streaming methods, in seven languages. -->
+<!-- summary: CEX.IO's official client is a Node.js RPC passthrough — you still name endpoints and parse raw payloads. CCXT gives the same Spot Trading API 43 unified capabilities and 8 streaming methods, in seven languages. -->
 <!-- weight: 100 -->
 
 # CCXT vs the CEX.IO API and cexio-spot-trading
 
-[CEX.IO](https://cex.io) publishes an official client for its Spot Trading API: [`@cex-io/cexio-spot-trading`](https://github.com/cex-io-exchange/cexio-spot-trading), a Node.js library covering both REST and WebSocket. [CCXT](/docs/manual) covers the same API as the exchange id `cex`, with 42 unified capabilities, 8 `watch*` streaming methods and all 28 endpoints.
+[CEX.IO](https://cex.io) publishes an official client for its Spot Trading API: [`@cex-io/cexio-spot-trading`](https://github.com/cex-io-exchange/cexio-spot-trading), a Node.js library covering both REST and WebSocket. [CCXT](/docs/manual) covers the same API as the exchange id `cex`, with 43 unified capabilities, 8 `watch*` streaming methods and all 28 endpoints.
 
 They are aimed at different things, and the difference is visible in one line of code. The official client is a **passthrough**: `callPublic('get_ticker')` sends whatever you name and hands back whatever comes out. CCXT is a **translation layer**: `fetch_ticker('BTC/USDT')` returns the same structure it returns on every other exchange. The question is whether you want CEX.IO's payloads or a portable data model.
 
@@ -23,7 +23,7 @@ They are aimed at different things, and the difference is visible in one line of
 | Exchanges covered | 104 (CEX.IO is one of them) | CEX.IO Spot Trading only |
 | Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | **Node.js only** |
 | Packages to install | **1** (`ccxt`) | one per CEX.IO product line |
-| Unified market data + trading API | yes — 42 capabilities on `cex` | no — you name endpoints, you parse payloads |
+| Unified market data + trading API | yes — 43 capabilities on `cex` | no — you name endpoints, you parse payloads |
 | Programming model | `fetch_ticker('BTC/USDT')` | `callPublic('get_ticker')` / `callPrivate('do_my_new_order', {...})` |
 | WebSockets | yes — 8 `watch*` methods | yes — `WebsocketClient`, connects and authenticates for you |
 | Raw endpoint access | yes — 28 CEX.IO endpoints as implicit methods | yes, it is the whole design |
@@ -108,7 +108,7 @@ Both sign the request for you — CEX.IO's scheme is HMAC-SHA256 over `action + 
 
 ### Stream an order book
 
-CEX.IO is one of the 78 CCXT exchanges with WebSocket support. `cex` has **8** `watch*` methods: `watchOrderBook`, `watchTicker`, `watchTickers`, `watchTrades`, `watchOHLCV`, `watchOrders`, `watchMyTrades` and `watchBalance`.
+CEX.IO is one of the 76 CCXT exchanges with WebSocket support. `cex` has **8** `watch*` methods: `watchOrderBook`, `watchTicker`, `watchTickers`, `watchTrades`, `watchOHLCV`, `watchOrders`, `watchMyTrades` and `watchBalance`.
 
 <!-- tabs:start -->
 
@@ -204,7 +204,7 @@ price = exchange.price_to_precision('BTC/USDT', 91234.56789)
 
 ### Nothing is hidden — the implicit API
 
-The passthrough model's real advantage is that nothing is off-limits. CCXT keeps that: alongside the 42 unified capabilities, **all 28 CEX.IO endpoints are generated as callable implicit methods**, with signing, rate-limit accounting and error mapping applied:
+The passthrough model's real advantage is that nothing is off-limits. CCXT keeps that: alongside the 43 unified capabilities, **all 28 CEX.IO endpoints are generated as callable implicit methods**, with signing, rate-limit accounting and error mapping applied:
 
 ```python
 # any raw CEX.IO endpoint, camelCased from its name

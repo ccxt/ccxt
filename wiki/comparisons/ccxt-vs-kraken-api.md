@@ -187,7 +187,7 @@ for exchange_id in ['kraken', 'krakenfutures']:
     print(exchange_id, exchange.fetch_order_book(symbol)['bids'][0])
 ```
 
-`load_markets`, `fetch_ticker`, `fetch_order_book`, `fetch_ohlcv`, `fetch_trades`, `create_order`, `cancel_order`, `fetch_open_orders`, `fetch_my_trades`, `fetch_balance` — all present on both, with the same signatures and the same [return structures](/docs/manual#ticker-structure). `krakenfutures` adds the derivatives-only ones: `fetch_positions`, `set_leverage`, `fetch_funding_rates`, `fetch_leverage_tiers`. CCXT implements **58 unified capabilities on `kraken`** and **50 on `krakenfutures`**.
+`load_markets`, `fetch_ticker`, `fetch_order_book`, `fetch_ohlcv`, `fetch_trades`, `create_order`, `cancel_order`, `fetch_open_orders`, `fetch_my_trades`, `fetch_balance` — all present on both, with the same signatures and the same [return structures](/docs/manual#ticker-structure). `krakenfutures` adds the derivatives-only ones: `fetch_positions`, `set_leverage`, `fetch_funding_rates`, `fetch_leverage_tiers`. CCXT implements **59 unified capabilities on `kraken`** and **50 on `krakenfutures`**.
 
 ### No official SDK means you are hand-rolling either way
 

@@ -1,7 +1,7 @@
 <!-- title: CCXT vs the Bybit API and pybit -->
 <!-- description: How CCXT compares with pybit and Bybit's other connectors on language coverage, WebSockets, rate limits, demo trading and raw endpoint access. -->
 <!-- group: Exchange APIs and official SDKs -->
-<!-- summary: Bybit publishes official connectors in eight languages, but their traction varies from 671 stars to zero. CCXT covers spot, linear, inverse and options from one client and still exposes all 403 raw V5 endpoints. -->
+<!-- summary: Bybit publishes official connectors in eight languages, but their traction varies from 671 stars to zero. CCXT covers spot, linear, inverse and options from one client and still exposes all 404 raw V5 endpoints. -->
 <!-- weight: 20 -->
 
 # CCXT vs the Bybit API and pybit
@@ -15,7 +15,7 @@ Bybit's V5 API is one of the tidier exchange APIs: a single `category` parameter
 - **Pick an official Bybit connector** if Bybit is your only venue and you want `category`/`orderType`/`qty` to read exactly as they do in Bybit's own reference.
 - **Pick CCXT** if you want one dependency and one mental model across Bybit spot, USDT/USDC perpetuals, inverse contracts and options — and across the next exchange you add.
 - **The community Node SDK is genuinely strong.** If you are in TypeScript and Bybit-only, [`bybit-api`](https://github.com/tiagosiebler/bybit-api) is a serious option and this page says so below.
-- **Choosing CCXT does not hide anything.** All 403 raw Bybit endpoints are callable as [implicit methods](/docs/exchanges/bybit/implicit-api).
+- **Choosing CCXT does not hide anything.** All 404 raw Bybit endpoints are callable as [implicit methods](/docs/exchanges/bybit/implicit-api).
 
 ## At a glance
 
@@ -27,7 +27,7 @@ Bybit's V5 API is one of the tidier exchange APIs: a single `category` parameter
 | Bybit products in one client | spot, linear, inverse, options | yes — V5's `category` parameter does this too |
 | Unified market data + trading API | yes — same method names on every exchange | no — Bybit's own request/response shapes |
 | WebSockets | yes — 25 `watch*` / `unWatch*` methods, plus `createOrderWs`, `editOrderWs`, `cancelOrderWs` | yes, per-connector stream clients |
-| Raw endpoint access | yes — 403 Bybit endpoints as implicit methods | yes, it is the whole product |
+| Raw endpoint access | yes — 404 Bybit endpoints as implicit methods | yes, it is the whole product |
 | Built-in rate limiter | yes, per-endpoint weights, on by default (`rateLimit` 20 ms) | not documented in pybit's README |
 | Unified error types | yes — 41 typed exceptions in one hierarchy | HTTP status + Bybit `retCode` |
 | Testnet | `exchange.set_sandbox_mode(True)` | `HTTP(testnet=True)` |
@@ -203,7 +203,7 @@ price = exchange.price_to_precision('BTC/USDT:USDT', 61234.56789)
 
 ### Nothing is hidden — the implicit API
 
-The usual objection to a unified library is that it must be a lowest common denominator. It is not. Alongside the **124 unified capabilities** CCXT implements for Bybit, **all 403 endpoints in Bybit's API are generated as callable implicit methods**, with signing, rate-limit accounting and error mapping still applied:
+The usual objection to a unified library is that it must be a lowest common denominator. It is not. Alongside the **126 unified capabilities** CCXT implements for Bybit, **all 404 endpoints in Bybit's API are generated as callable implicit methods**, with signing, rate-limit accounting and error mapping still applied:
 
 ```python
 # any raw Bybit endpoint, camelCased from its path
@@ -262,7 +262,7 @@ Yes, with `exchange.enable_demo_trading(True)`, which swaps every REST and WebSo
 No. CCXT Pro is included in the `ccxt` package. Use `ccxt.pro.bybit` and call `watch*` methods — 25 of them for Bybit, plus `createOrderWs`, `editOrderWs` and `cancelOrderWs` for order entry over the socket.
 
 **Can I still call Bybit-specific endpoints?**
-Yes — all 403 of them, as [implicit methods](/docs/exchanges/bybit/implicit-api), with signing and rate limiting applied.
+Yes — all 404 of them, as [implicit methods](/docs/exchanges/bybit/implicit-api), with signing and rate limiting applied.
 
 **Is CCXT free?**
 Yes. MIT-licensed, including the WebSocket support.

@@ -25,10 +25,10 @@ So the honest comparison is not CCXT against a vendor SDK. It is **CCXT against 
 | Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | any language with an HTTP client, all of it your code |
 | Official client library | n/a | **none** — `hitbtc-com/hitbtc-api` is a documentation repository (LGPL-3.0) |
 | HitBTC products in one client | spot, margin, futures — one `ccxt.hitbtc` instance | three parallel endpoint families (`spot/*`, `margin/*`, `futures/*`) |
-| Unified market data + trading API | yes — 66 unified capabilities, 35 `fetch*` methods | no — HitBTC's own request and response shapes |
+| Unified market data + trading API | yes — 67 unified capabilities, 35 `fetch*` methods | no — HitBTC's own request and response shapes |
 | WebSockets | yes — 8 `watch*` methods, same structures as `fetch*` | raw socket, subscribe/notification protocol, your reconnect logic |
 | Raw endpoint access | yes — 111 endpoints as implicit methods | yes, it is all you have |
-| Built-in rate limiter | yes, per-endpoint weights, on by default (`rateLimit` 3.33 ms) | your code |
+| Built-in rate limiter | yes, per-endpoint weights, on by default (`rateLimit` 3.333 ms) | your code |
 | Unified error types | yes — 41 typed exceptions in one hierarchy | HTTP status plus HitBTC error codes |
 | Testnet / sandbox | `exchange.set_sandbox_mode(True)` | a different base URL you swap yourself |
 | Popularity | 43.8k GitHub stars · 4.8M PyPI + 494k npm installs/month | the documentation repository shows 321 GitHub stars |
@@ -115,7 +115,7 @@ Note the endpoint path. Placing the same order on margin is `POST /margin/order`
 
 HitBTC's v3 API mirrors the same shapes across `spot/*`, `margin/*` and `futures/*`: separate `balance`, `order`, `history/order`, `history/trade`, `fee` and `account` endpoints for each. That is a clean API design, and it also means a hand-rolled integration writes the same parser three times.
 
-CCXT's `ccxt.hitbtc` covers all three with 66 unified capabilities and 35 `fetch*` methods. `fetch_balance()`, `fetch_open_orders()` and `create_order()` route to the right family based on the market type of the symbol you pass.
+CCXT's `ccxt.hitbtc` covers all three with 67 unified capabilities and 35 `fetch*` methods. `fetch_balance()`, `fetch_open_orders()` and `create_order()` route to the right family based on the market type of the symbol you pass.
 
 ### One implementation, three venues
 
@@ -191,7 +191,7 @@ One flag swaps the REST and WebSocket hosts to HitBTC's demo environment. No con
 
 ### Nothing is hidden — the implicit API
 
-Alongside the 66 unified capabilities, all 111 endpoints in CCXT's HitBTC `api` block are generated as callable implicit methods, camelCased from their paths:
+Alongside the 67 unified capabilities, all 111 endpoints in CCXT's HitBTC `api` block are generated as callable implicit methods, camelCased from their paths:
 
 ```python
 converted = exchange.public_get_public_converted_candles()
@@ -239,7 +239,7 @@ If HitBTC is your only venue and your integration is small and static, the raw A
 No client library, as of this writing. HitBTC's GitHub repository `hitbtc-com/hitbtc-api` is a documentation repository — its README introduces API v3 and links to the reference. The Python, Node, C# and Java wrappers you will find in search results are community projects, not HitBTC-maintained. CCXT is the maintained multi-language option.
 
 **Does CCXT support HitBTC futures and margin, or only spot?**
-All three. `ccxt.hitbtc` covers spot, isolated and cross margin, and futures from one instance, with 66 unified capabilities. Select with the unified symbol and `options.defaultType`.
+All three. `ccxt.hitbtc` covers spot, isolated and cross margin, and futures from one instance, with 67 unified capabilities. Select with the unified symbol and `options.defaultType`.
 
 **Are Bequant and FMFW.io the same exchange as HitBTC?**
 No — they are separate venues with their own accounts, listings and credentials, but they run on the HitBTC engine, so their APIs are HitBTC-shaped. CCXT implements `bequant` and `fmfwio` as classes extending `hitbtc`, which means one parser is maintained for three venues. Your HitBTC API keys do not work on the other two.

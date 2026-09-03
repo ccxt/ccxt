@@ -1,5 +1,5 @@
 <!-- title: CCXT vs the MEXC API and official MEXC SDK -->
-<!-- description: MEXC's official SDK covers spot only. CCXT covers spot, margin and futures in one client, decodes the protobuf WebSocket feed and exposes 234 raw endpoints. -->
+<!-- description: MEXC's official SDK covers spot only. CCXT covers spot, margin and futures in one client, decodes the protobuf WebSocket feed and exposes 238 raw endpoints. -->
 <!-- group: Exchange APIs and official SDKs -->
 <!-- summary: MEXC's official SDK is spot-only, has no WebSocket client, and is distributed by git clone. CCXT covers spot, margin and swap in one class, with 16 watch* methods that decode MEXC's protobuf streams. -->
 <!-- weight: 100 -->
@@ -14,7 +14,7 @@ The question that decides between them: **do you need anything beyond spot REST?
 
 - **Pick the official MEXC SDK** if you only ever call spot REST endpoints, you want method names that match MEXC's docs literally, and a `git clone` install is acceptable in your build.
 - **Pick CCXT** if you need MEXC's swap markets, margin, or its WebSocket streams — the official SDK covers none of those, and MEXC's spot streams are Protocol Buffers, not JSON.
-- **CCXT is not a lowest common denominator here.** All 234 MEXC endpoints are generated as [implicit methods](/docs/exchanges/mexc/implicit-api), signed and rate-limited like everything else.
+- **CCXT is not a lowest common denominator here.** All 238 MEXC endpoints are generated as [implicit methods](/docs/exchanges/mexc/implicit-api), signed and rate-limited like everything else.
 
 ## At a glance
 
@@ -26,7 +26,7 @@ The question that decides between them: **do you need anything beyond spot REST?
 | MEXC products covered | spot, margin, swap | spot |
 | Unified market data + trading API | yes — same method names on every exchange | no — MEXC's own request/response shapes |
 | WebSockets | yes — 16 `watch*` / `unWatch*` methods, protobuf decoded for you | not in the SDK |
-| Raw endpoint access | yes — 234 MEXC endpoints as implicit methods | spot endpoints only |
+| Raw endpoint access | yes — 238 MEXC endpoints as implicit methods | spot endpoints only |
 | Built-in rate limiter | yes, per-endpoint weights, on by default (`rateLimit` 50 ms) | no |
 | Unified error types | yes — 41 typed exceptions in one hierarchy | HTTP status + MEXC error codes |
 | Testnet / sandbox | no — MEXC has no sandbox in CCXT | no |
@@ -36,7 +36,7 @@ The question that decides between them: **do you need anything beyond spot REST?
 
 <sub>Figures verified September 2026 against CCXT v{{CCXT_VERSION}}, the `mexcdevelop/mexc-api-sdk` repository and MEXC's published spot v3 and contract v1 API documentation.</sub>
 
-CCXT implements **80 unified capabilities** for MEXC — 40 of them `fetch*` methods — and marks it a **certified** exchange, meaning it is covered by the static request/response regression fixtures that run in CI.
+CCXT implements **83 unified capabilities** for MEXC — 40 of them `fetch*` methods — and marks it a **certified** exchange, meaning it is covered by the static request/response regression fixtures that run in CI.
 
 ## The same job, written both ways
 
@@ -197,7 +197,7 @@ CCXT maps MEXC's numeric codes onto a [typed exception tree](/docs/manual#error-
 
 ### Nothing is hidden — the implicit API
 
-Alongside the 80 unified capabilities, **all 234 MEXC endpoints are callable as implicit methods**, with signing, timestamping and rate-limit accounting applied:
+Alongside the 83 unified capabilities, **all 238 MEXC endpoints are callable as implicit methods**, with signing, timestamping and rate-limit accounting applied:
 
 ```python
 response = exchange.spot_private_get_capital_config_getall()
@@ -253,7 +253,7 @@ CCXT does not define sandbox URLs for MEXC, so `setSandboxMode(True)` will not s
 No. CCXT Pro is bundled in the `ccxt` package under MIT. Use `ccxt.pro.mexc` and call `watch*` methods.
 
 **Can I still call MEXC-specific endpoints through CCXT?**
-Yes — all 234 of them, as [implicit methods](/docs/exchanges/mexc/implicit-api), with signing and rate limiting applied.
+Yes — all 238 of them, as [implicit methods](/docs/exchanges/mexc/implicit-api), with signing and rate limiting applied.
 
 ## Next steps
 

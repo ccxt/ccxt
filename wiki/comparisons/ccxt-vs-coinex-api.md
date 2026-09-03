@@ -1,7 +1,7 @@
 <!-- title: CCXT vs the CoinEx API -->
 <!-- description: CoinEx ships sample code, not an installable SDK. CCXT versus the raw v2 REST and WebSocket API on signing, rate limits, streaming and portability. -->
 <!-- group: Exchange APIs and official SDKs -->
-<!-- summary: CoinEx publishes example scripts in five languages but no installable client library, so the real comparison is CCXT against the raw v2 API. CCXT covers 71 unified capabilities, 10 streaming methods and all 251 raw endpoints. -->
+<!-- summary: CoinEx publishes example scripts in five languages but no installable client library, so the real comparison is CCXT against the raw v2 API. CCXT covers 72 unified capabilities, 10 streaming methods and all 251 raw endpoints. -->
 <!-- weight: 100 -->
 
 # CCXT vs the CoinEx API
@@ -23,7 +23,7 @@ So the choice here is not "CCXT or the vendor SDK". It is **CCXT or your own HTT
 | Exchanges covered | 104 (CoinEx is one of them) | CoinEx only |
 | Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | any; sample code in C#, Go, Node.js, Python, Rust |
 | Installable client library | yes — `ccxt` | none published; `coinex_api_demo` is copy-paste sample code |
-| Unified market data + trading API | yes — 71 unified capabilities, 34 `fetch*` methods | CoinEx's own request/response shapes |
+| Unified market data + trading API | yes — 72 unified capabilities, 35 `fetch*` methods | CoinEx's own request/response shapes |
 | WebSockets | yes — 10 `watch*` methods, gzip frames decoded for you | yes — `wss://socket.coinex.com/v2/spot` and `/v2/futures`, raw |
 | Raw endpoint access | yes — 251 endpoints as implicit methods | it is the whole product |
 | Built-in rate limiter | yes, per-endpoint weights, on by default (`rateLimit` 2.5ms) | you model 400 req/s per IP plus per-account limits |
@@ -201,7 +201,7 @@ for exchange_id in ['coinex', 'binance', 'okx', 'bybit', 'kucoin']:
 
 ### Nothing is hidden — the implicit API
 
-Alongside the 71 unified capabilities CCXT implements for CoinEx, **all 251 endpoints in its API block are generated as callable implicit methods**, with signing, rate-limit accounting and error mapping applied:
+Alongside the 72 unified capabilities CCXT implements for CoinEx, **all 251 endpoints in its API block are generated as callable implicit methods**, with signing, rate-limit accounting and error mapping applied:
 
 ```python
 response = exchange.v2PublicGetSpotTicker({'market': 'BTCUSDT'})
@@ -243,7 +243,7 @@ If CoinEx is your only venue, you need a couple of endpoints, and you would rath
 Not an installable one. CoinEx publishes [`coinex_api_demo`](https://github.com/coinexcom/coinex_api_demo), a repository of sample scripts in C#, Go, Node.js, Python and Rust, and points developers at [docs.coinex.com](https://docs.coinex.com/api/v2/). If you want a maintained client library for CoinEx, CCXT is the practical option.
 
 **Does CCXT support CoinEx futures and margin?**
-Yes. Spot, margin and futures are all served by one `ccxt.coinex` instance, selected with `options.defaultType` and unified params. CCXT implements 71 unified capabilities for CoinEx, including positions, leverage, funding rates, leverage tiers and margin adjustment history.
+Yes. Spot, margin and futures are all served by one `ccxt.coinex` instance, selected with `options.defaultType` and unified params. CCXT implements 72 unified capabilities for CoinEx, including positions, leverage, funding rates, leverage tiers and margin adjustment history.
 
 **Does CCXT stream CoinEx over WebSocket?**
 Yes — 10 `watch*` methods: `watchOrderBook`, `watchOrderBookForSymbols`, `watchTicker`, `watchTickers`, `watchBidsAsks`, `watchTrades`, `watchTradesForSymbols`, `watchOrders`, `watchMyTrades` and `watchBalance`. CCXT decompresses the gzip-framed messages and maintains the merged order book for you.

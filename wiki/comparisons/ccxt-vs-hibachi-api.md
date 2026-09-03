@@ -1,7 +1,7 @@
 <!-- title: CCXT vs the Hibachi API -->
 <!-- description: CCXT and Hibachi's official Python SDK compared — language coverage, order signing, streaming support, precision and portability on a perpetuals venue. -->
 <!-- group: Exchange APIs and official SDKs -->
-<!-- summary: Hibachi's own SDK is Python 3.13+ only but does include WebSockets, which CCXT's Hibachi integration does not yet. CCXT covers the REST API in seven languages with 32 unified capabilities. -->
+<!-- summary: Hibachi's own SDK is Python 3.13+ only but does include WebSockets, which CCXT's Hibachi integration does not yet. CCXT covers the REST API in seven languages with 33 unified capabilities. -->
 <!-- weight: 100 -->
 
 # CCXT vs the Hibachi API
@@ -24,7 +24,7 @@ Hibachi publishes an official Python SDK, `hibachi-xyz`, and CCXT implements the
 | Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | Python only, and the published package requires Python 3.13 or later |
 | Packages to install | 1 (`ccxt`) | 1 (`hibachi-xyz`) |
 | Markets | Hibachi perpetuals | Hibachi perpetuals |
-| Unified market data + trading API | yes — 32 unified capabilities, 23 `fetch*` methods | no — Hibachi's own request and response shapes |
+| Unified market data + trading API | yes — 33 unified capabilities, 24 `fetch*` methods | no — Hibachi's own request and response shapes |
 | WebSockets | **no** — CCXT has no `watch*` methods for Hibachi; use `fetch*` and poll | **yes** — market, trade and account WebSocket APIs |
 | Raw endpoint access | yes — 28 endpoints as implicit methods | yes, it is the whole product |
 | Order signing | handled — API key, account id and private key, ECDSA over the order payload | handled |
@@ -182,7 +182,7 @@ CCXT's Hibachi definition has no test URLs, so `exchange.set_sandbox_mode(True)`
 
 ### Nothing is hidden — the implicit API
 
-Alongside the 32 unified capabilities, all 28 endpoints in CCXT's Hibachi `api` block are generated as callable implicit methods, camelCased from their paths:
+Alongside the 33 unified capabilities, all 28 endpoints in CCXT's Hibachi `api` block are generated as callable implicit methods, camelCased from their paths:
 
 ```python
 funding = exchange.public_get_market_data_funding_rates()
@@ -231,7 +231,7 @@ If Hibachi is your only venue, you are on Python 3.13 or later, and you need str
 ## FAQ
 
 **Does CCXT support Hibachi WebSockets?**
-No. Hibachi has no `watch*` methods in CCXT, so streaming is not available through `ccxt.pro.hibachi`. Use the `fetch*` methods and poll, or use Hibachi's own Python SDK, which does expose market, trade and account WebSocket APIs. CCXT supports WebSockets on 78 of its 104 exchanges; Hibachi is not one of them today.
+No. Hibachi has no `watch*` methods in CCXT, so streaming is not available through `ccxt.pro.hibachi`. Use the `fetch*` methods and poll, or use Hibachi's own Python SDK, which does expose market, trade and account WebSocket APIs. CCXT supports WebSockets on 76 of its 104 exchanges; Hibachi is not one of them today.
 
 **What credentials does CCXT need for Hibachi?**
 Three: `apiKey`, `accountId` and `privateKey`. Hibachi orders are signed, so the private key is required for any trading call. CCXT performs the signing internally.
@@ -240,7 +240,7 @@ Three: `apiKey`, `accountId` and `privateKey`. Hibachi orders are signed, so the
 No. CCXT's Hibachi definition has no test URLs, so `set_sandbox_mode(True)` raises `NotSupported`.
 
 **Does CCXT support Hibachi spot markets?**
-Hibachi is a perpetuals venue — `has.spot` is `false` and `has.swap` is `true`. All 32 unified capabilities apply to perpetual contracts.
+Hibachi is a perpetuals venue — `has.spot` is `false` and `has.swap` is `true`. All 33 unified capabilities apply to perpetual contracts.
 
 **Can I still call Hibachi-specific endpoints through CCXT?**
 Yes — all 28 endpoints in CCXT's Hibachi definition are generated as [implicit methods](/docs/exchanges/hibachi/implicit-api), with signing, rate limiting and error mapping applied.

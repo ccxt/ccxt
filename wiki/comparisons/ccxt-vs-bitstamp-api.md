@@ -13,7 +13,7 @@ So this is not CCXT versus a vendor SDK. It is **CCXT versus code you write your
 ## TL;DR
 
 - **Write it yourself** if you need one or two Bitstamp endpoints, are comfortable with the `X-Auth-Signature` scheme, and would rather not add a dependency for a handful of HTTP calls.
-- **Pick CCXT** if you need more than that: 31 unified capabilities, all 263 Bitstamp endpoints as implicit methods, a rate limiter that is on by default, and a maintained order-book stream — in TypeScript, JavaScript, Python, PHP, C#/.NET, Go and Java.
+- **Pick CCXT** if you need more than that: 34 unified capabilities, all 263 Bitstamp endpoints as implicit methods, a rate limiter that is on by default, and a maintained order-book stream — in TypeScript, JavaScript, Python, PHP, C#/.NET, Go and Java.
 - **The community client is not a third option for most people.** It is MIT and works, but it has not had a commit since 2022 and has no WebSocket support.
 
 ## At a glance
@@ -24,7 +24,7 @@ So this is not CCXT versus a vendor SDK. It is **CCXT versus code you write your
 | Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | whatever you write; community wrapper is Python |
 | Official vendor SDK | not applicable | none published |
 | Unified market data + trading API | yes — same method names across every exchange | no — Bitstamp's own payloads |
-| Bitstamp capabilities implemented | 31 unified methods, 19 of them `fetch*` | you implement what you need |
+| Bitstamp capabilities implemented | 34 unified methods, 21 of them `fetch*` | you implement what you need |
 | Raw endpoint access | yes — 263 Bitstamp endpoints as implicit methods | yes, it is all you have |
 | WebSockets | yes — `watchOrderBook`, `watchTrades`, `watchOrders` | raw `wss://ws.bitstamp.net`; the community Python client has none |
 | Built-in rate limiter | yes, on by default (`rateLimit` 75 ms) | your code |
@@ -192,7 +192,7 @@ CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#
 
 ### Nothing is hidden — the implicit API
 
-Alongside the 31 unified capabilities, **all 263 endpoints of Bitstamp's API are generated as callable implicit methods**, with signing, nonce handling, rate limiting and error mapping applied:
+Alongside the 34 unified capabilities, **all 263 endpoints of Bitstamp's API are generated as callable implicit methods**, with signing, nonce handling, rate limiting and error mapping applied:
 
 ```python
 # POST /api/v2/fees/trading/
@@ -240,7 +240,7 @@ If Bitstamp is your only venue and your integration is small and read-only, hand
 No. Bitstamp publishes API documentation with signing examples in Python, Java and C++, but no client library, and its GitHub organisation has no public repositories. The libraries you find are community projects.
 
 **What is the best Python library for the Bitstamp API?**
-The two realistic options are CCXT and the community `BitstampClient` package ([kmadac/bitstamp-python-client](https://github.com/kmadac/bitstamp-python-client), MIT, 142 stars, about 1.6k PyPI installs a month). The community client has not had a commit since October 2022 and does not support WebSockets; CCXT covers 31 unified methods, 263 raw endpoints and three streaming methods, and is maintained continuously.
+The two realistic options are CCXT and the community `BitstampClient` package ([kmadac/bitstamp-python-client](https://github.com/kmadac/bitstamp-python-client), MIT, 142 stars, about 1.6k PyPI installs a month). The community client has not had a commit since October 2022 and does not support WebSockets; CCXT covers 34 unified methods, 263 raw endpoints and three streaming methods, and is maintained continuously.
 
 **Does CCXT support Bitstamp WebSockets?**
 Yes — `watch_order_book`, `watch_trades` and `watch_orders`, in the same `ccxt` package via `ccxt.pro.bitstamp`. `watch_order_book` returns the same structure as `fetch_order_book`, fully merged, with reconnect and re-seed handled.

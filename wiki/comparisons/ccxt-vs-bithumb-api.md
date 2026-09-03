@@ -1,7 +1,7 @@
 <!-- title: CCXT vs the Bithumb API -->
 <!-- description: Bithumb ships no client library — its own setup guide says to install PyJWT and requests. CCXT compared with raw HTTP on signing, errors and streaming. -->
 <!-- group: Exchange APIs and official SDKs -->
-<!-- summary: Bithumb's developer docs are Korean-language and ship no SDK: the official onboarding path is "install a JWT library and build the request". CCXT gives you 22 unified capabilities, 28 endpoints and 6 WebSocket methods instead. -->
+<!-- summary: Bithumb's developer docs are Korean-language and ship no SDK: the official onboarding path is "install a JWT library and build the request". CCXT gives you 37 unified capabilities, 67 endpoints and 6 WebSocket methods instead. -->
 <!-- weight: 100 -->
 
 # CCXT vs the Bithumb API
@@ -14,7 +14,7 @@ So the comparison here is not CCXT against a vendor SDK. It is CCXT against the 
 
 - **Write it yourself** if you need one or two endpoints, want zero dependencies, and are comfortable reading Korean-language reference docs.
 - **Pick CCXT** if you want unified symbols, signing, per-request pacing, typed errors and WebSocket streaming that already work, in seven languages, with the same method names you will use on the next exchange.
-- **CCXT does not hide the venue.** All 28 Bithumb endpoints it models are callable as [implicit methods](/docs/exchanges/bithumb/implicit-api), signed and rate-limited.
+- **CCXT does not hide the venue.** All 67 Bithumb endpoints it models are callable as [implicit methods](/docs/exchanges/bithumb/implicit-api), signed and rate-limited.
 
 ## At a glance
 
@@ -24,13 +24,13 @@ So the comparison here is not CCXT against a vendor SDK. It is CCXT against the 
 | Official client library | n/a | none — the docs point you at generic JWT and HTTP libraries |
 | Documentation language | English | Korean |
 | Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | whatever you write |
-| Unified market data + trading API | yes — 22 capabilities, same names on every exchange | raw JSON |
+| Unified market data + trading API | yes — 37 capabilities, same names on every exchange | raw JSON |
 | Symbols | `'BTC/KRW'` | `BTC_KRW`, `KRW-BTC` depending on the API generation |
 | Request signing | built in | your code — JWT (HS256) with a UUID nonce and a SHA-512 query hash |
 | Error handling | 41 typed exceptions in one hierarchy | HTTP 200 with a numeric `status` string and a Korean message |
 | WebSockets | yes — 6 `watch*` methods | yes, public and private channels |
-| Raw endpoint access | yes — 28 endpoints as implicit methods | yes, by definition |
-| Built-in rate limiter | yes, on by default (`rateLimit` 500 ms) | your code |
+| Raw endpoint access | yes — 67 endpoints as implicit methods | yes, by definition |
+| Built-in rate limiter | yes, on by default (`rateLimit` 8.334 ms) | your code |
 | Testnet / sandbox | not available for `bithumb` | not offered |
 | Popularity | 43.8k GitHub stars · 4.8M PyPI + 494k npm installs/month | n/a |
 | Licence | MIT | n/a |
@@ -169,7 +169,7 @@ Bithumb's private streams — order and asset events — authenticate with the s
 
 Bithumb meters **by IP and by API category**, not per endpoint, so calls in the same category share a budget. Its documentation sets public categories — candles, order book, ticker, trades and everything else — at 150 requests per second each, private categories at 140 per second each, and bulk order creation and cancellation at 20 per second. Mapping your call sites onto those categories is real work.
 
-CCXT ships a token-bucket throttler that is **on by default** (`enableRateLimit = true`, `rateLimit = 500` ms for Bithumb) and maps rate-limit responses onto `RateLimitExceeded`, so a naive loop does not walk into a ban.
+CCXT ships a token-bucket throttler that is **on by default** (`enableRateLimit = true`, `rateLimit = 8.334` ms for Bithumb) and maps rate-limit responses onto `RateLimitExceeded`, so a naive loop does not walk into a ban.
 
 ### Errors that arrive as HTTP 200
 
@@ -222,7 +222,7 @@ Bithumb's setup guide shows the JWT construction separately for Node, Python and
 info = exchange.public_get_network_info()
 ```
 
-All 28 endpoints CCXT models are reachable this way, with signing, rate-limit accounting and error mapping applied. Browse them on the [bithumb implicit API page](/docs/exchanges/bithumb/implicit-api).
+All 67 endpoints CCXT models are reachable this way, with signing, rate-limit accounting and error mapping applied. Browse them on the [bithumb implicit API page](/docs/exchanges/bithumb/implicit-api).
 
 ## What going direct does better
 
@@ -270,7 +270,7 @@ It reads the `status` field rather than the HTTP status code and raises a typed 
 No. CCXT's `bithumb` class does not declare sandbox URLs, so test with the smallest permitted order size on a low-balance key instead.
 
 **Can I still call Bithumb-specific endpoints from CCXT?**
-Yes — all 28 endpoints CCXT models are available as [implicit methods](/docs/exchanges/bithumb/implicit-api), with signing and rate limiting applied.
+Yes — all 67 endpoints CCXT models are available as [implicit methods](/docs/exchanges/bithumb/implicit-api), with signing and rate limiting applied.
 
 **Is CCXT free?**
 Yes. MIT-licensed, including the WebSocket support.

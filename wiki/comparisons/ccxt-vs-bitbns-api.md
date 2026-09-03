@@ -192,7 +192,7 @@ If Bitbns is your only venue and you need live streams, use the official SDK —
 ## FAQ
 
 **Does CCXT support Bitbns WebSockets?**
-No. CCXT's `bitbns` class implements REST only — there are no `watch*` methods for this venue. CCXT Pro covers 78 of the 104 supported exchanges; Bitbns is not one of them. For live streams from Bitbns today, use the official `bitbnspy` socket helpers.
+No. CCXT's `bitbns` class implements REST only — there are no `watch*` methods for this venue. CCXT Pro covers 76 of the 104 supported exchanges; Bitbns is not one of them. For live streams from Bitbns today, use the official `bitbnspy` socket helpers.
 
 **How do Bitbns INR and USDT markets work in CCXT?**
 Both are ordinary unified symbols — `'BTC/INR'` and `'BTC/USDT'`. CCXT reads the quote currency from the market and routes to the correct endpoint, which differs between INR and USDT pairs on several operations. You never write that branch yourself.

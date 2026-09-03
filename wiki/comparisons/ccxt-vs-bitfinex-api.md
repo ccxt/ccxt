@@ -148,7 +148,7 @@ This is the single biggest day-to-day difference on Bitfinex specifically. Every
 
 ### Spot, margin and derivatives in one client
 
-CCXT's `bitfinex` class declares `spot`, `margin` and `swap` support and 57 unified capabilities, including `fetchPositions`, `fetchFundingRates`, `fetchFundingRateHistory`, `fetchOpenInterest`, `fetchLiquidations`, `setMargin` and `createTrailingAmountOrder`. Derivative ids like `tBTCF0:USTF0` become the unified symbol `'BTC/USDT:USDT'`, so the same `create_order` call works on spot and on the perpetual.
+CCXT's `bitfinex` class declares `spot`, `margin` and `swap` support and 61 unified capabilities, including `fetchPositions`, `fetchFundingRates`, `fetchFundingRateHistory`, `fetchOpenInterest`, `fetchLiquidations`, `setMargin` and `createTrailingAmountOrder`. Derivative ids like `tBTCF0:USTF0` become the unified symbol `'BTC/USDT:USDT'`, so the same `create_order` call works on spot and on the perpetual.
 
 ### Rate limits you do not have to model
 
@@ -195,7 +195,7 @@ CCXT maps Bitfinex's error payloads onto a [typed exception tree](/docs/manual#e
 
 ### Nothing is hidden — the implicit API
 
-Alongside the 57 unified capabilities, all 136 Bitfinex endpoints CCXT models are callable directly:
+Alongside the 61 unified capabilities, all 136 Bitfinex endpoints CCXT models are callable directly:
 
 ```python
 # any raw Bitfinex endpoint, camelCased from its path
@@ -235,7 +235,7 @@ If Bitfinex is your only venue and you want your code to read like the Bitfinex 
 ## FAQ
 
 **Does CCXT support Bitfinex derivatives and margin?**
-Yes. The `bitfinex` class declares spot, margin and swap support, with `fetch_positions`, `fetch_funding_rates`, `fetch_funding_rate_history`, `fetch_open_interest`, `fetch_liquidations` and `set_margin` among its 57 unified capabilities. Perpetuals use unified symbols like `'BTC/USDT:USDT'`.
+Yes. The `bitfinex` class declares spot, margin and swap support, with `fetch_positions`, `fetch_funding_rates`, `fetch_funding_rate_history`, `fetch_open_interest`, `fetch_liquidations` and `set_margin` among its 61 unified capabilities. Perpetuals use unified symbols like `'BTC/USDT:USDT'`.
 
 **How do I deal with Bitfinex's array responses in CCXT?**
 You do not — that is the point. CCXT parses the positional arrays into named unified structures before you see them. If you want the raw array anyway, every parsed structure keeps it under the `info` key.

@@ -1,7 +1,7 @@
 <!-- title: CCXT vs the bitbank API and python_bitbankcc -->
 <!-- description: CCXT compared with bitbank's official Python, Node, Java and Ruby clients on signing, language coverage, streaming and unified structures for JPY spot. -->
 <!-- group: Exchange APIs and official SDKs -->
-<!-- summary: bitbank maintains its own clients in four languages, documented in Japanese and installed from Git. CCXT covers 14 unified capabilities and all 28 endpoints in seven languages — but implements no WebSocket support for this venue. -->
+<!-- summary: bitbank maintains its own clients in four languages, documented in Japanese and installed from Git. CCXT covers 15 unified capabilities and all 28 endpoints in seven languages — but implements no WebSocket support for this venue. -->
 <!-- weight: 100 -->
 
 # CCXT vs the bitbank API and python_bitbankcc
@@ -25,7 +25,7 @@ That is a real vendor SDK situation, not an absence. The question that decides b
 | Packages to install | **1** (`ccxt`) | one per language |
 | Install route | `pip install ccxt`, `npm install ccxt`, and so on | `node-bitbankcc` is on npm; `python_bitbankcc`'s README recommends `pip install git+https://github.com/bitbankinc/python-bitbankcc@<commit_hash>` |
 | Documentation language | English | Japanese (with English code samples) |
-| Unified market data + trading API | yes — 14 capabilities on `bitbank` | no — bitbank's own payload shapes |
+| Unified market data + trading API | yes — 15 capabilities on `bitbank` | no — bitbank's own payload shapes |
 | WebSockets / streams | **no** — 0 `watch*` methods for `bitbank` | bitbank documents `public-stream` and `private-stream`; `node-bitbankcc`'s README covers REST |
 | Raw endpoint access | yes — 28 endpoints as implicit methods | yes, it is the whole product |
 | Auth modes | `ACCESS-NONCE` | `ACCESS-NONCE` **and** `ACCESS-TIME-WINDOW` |
@@ -236,7 +236,7 @@ Start with [Install](/docs/install), then the [Manual](/docs/manual), then the [
 ## FAQ
 
 **Does CCXT support bitbank WebSockets?**
-No. `bitbank` has zero `watch*` methods, so there is no `ccxt.pro.bitbank`. REST is fully covered — 14 unified capabilities and all 28 endpoints — but bitbank's documented public and private streams are not implemented. If streaming is a requirement, use bitbank's own stream documentation or one of its clients.
+No. `bitbank` has zero `watch*` methods, so there is no `ccxt.pro.bitbank`. REST is fully covered — 15 unified capabilities and all 28 endpoints — but bitbank's documented public and private streams are not implemented. If streaming is a requirement, use bitbank's own stream documentation or one of its clients.
 
 **Is there an official bitbank SDK?**
 Yes, four of them — Python, Node/TypeScript, Ruby and Java, all under the `bitbankinc` GitHub organisation and all maintained. Note that `python_bitbankcc` is not distributed on PyPI: its README recommends installing from GitHub pinned to a commit hash. `node-bitbankcc` is on npm.
@@ -251,7 +251,7 @@ Not as unified methods. `bitbank` declares spot only. The `user/margin/positions
 No sandbox environment is published, so `set_sandbox_mode(True)` has nothing to point at for `bitbank`. Test against CCXT's offline static fixtures and small live orders.
 
 **Is CCXT free?**
-Yes. MIT-licensed, including the WebSocket support for the 78 exchanges that have it.
+Yes. MIT-licensed, including the WebSocket support for the 76 exchanges that have it.
 
 ## Next steps
 

@@ -24,7 +24,7 @@ The deciding question is narrower than usual here, because **Gemini's official S
 | Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | TypeScript SDK and Go SDK; other languages get raw-HTTP samples |
 | Packages to install | 1 (`ccxt`) | `@gemini-markets/sdk` (npm) or the Go module |
 | Gemini products in one client | spot and perpetuals, one `ccxt.gemini` instance | REST reference covers spot, derivatives, margin, staking, clearing and prediction markets |
-| Unified market data + trading API | yes — 31 unified capabilities, 15 `fetch*` methods | no — Gemini's own request and response shapes |
+| Unified market data + trading API | yes — 32 unified capabilities, 16 `fetch*` methods | no — Gemini's own request and response shapes |
 | WebSockets | yes — 7 `watch*` methods, same structures as `fetch*` | yes, in the TypeScript and Go SDKs |
 | Raw endpoint access | yes — 82 endpoints as implicit methods | yes, it is the whole product |
 | Built-in rate limiter | yes, on by default (`rateLimit` 100 ms) | your code |
@@ -203,7 +203,7 @@ One flag swaps the REST and WebSocket hosts. Note that the Gemini sandbox does n
 
 ### Nothing is hidden — the implicit API
 
-Alongside the 31 unified capabilities, all 82 endpoints in CCXT's Gemini `api` block are generated as callable implicit methods, camelCased from their paths:
+Alongside the 32 unified capabilities, all 82 endpoints in CCXT's Gemini `api` block are generated as callable implicit methods, camelCased from their paths:
 
 ```python
 rates = exchange.public_get_v1_staking_rates()

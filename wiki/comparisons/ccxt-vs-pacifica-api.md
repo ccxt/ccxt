@@ -1,7 +1,7 @@
 <!-- title: CCXT vs the Pacifica API and the Pacifica Python examples -->
 <!-- description: Pacifica signs every write with a Solana Ed25519 key over sorted JSON. Compare its Python examples repo with CCXT on signing, coverage, streaming and rate limits. -->
 <!-- group: Exchange APIs and official SDKs -->
-<!-- summary: Pacifica's "Python SDK" is an examples repository, not an installable package. CCXT implements the same Ed25519 sorted-JSON signing as a library, with 60 unified capabilities, 13 watch*/unWatch* methods and credit-aware rate limiting. -->
+<!-- summary: Pacifica's "Python SDK" is an examples repository, not an installable package. CCXT implements the same Ed25519 sorted-JSON signing as a library, with 59 unified capabilities, 13 watch*/unWatch* methods and credit-aware rate limiting. -->
 <!-- weight: 100 -->
 
 # CCXT vs the Pacifica API and the Pacifica Python examples
@@ -15,7 +15,7 @@ The client library Pacifica's own [API documentation](https://docs.pacifica.fi/a
 ## TL;DR
 
 - **Use Pacifica's examples** if you are learning the signing scheme, want a one-file-per-endpoint reference alongside the docs, or need something CCXT does not do — hardware-wallet signing in particular.
-- **Pick CCXT** if you want an installable dependency: 60 unified capabilities, 13 `watch*` / `unWatch*` streaming methods, credit-aware rate limiting and testnet support, in seven languages.
+- **Pick CCXT** if you want an installable dependency: 59 unified capabilities, 13 `watch*` / `unWatch*` streaming methods, credit-aware rate limiting and testnet support, in seven languages.
 - **The cryptography is identical.** CCXT's `sortJsonKeys` / `prepareMessage` / `signMessage` produce the same bytes as the examples' `sort_json_keys` / `prepare_message` / `sign_message`, including agent-wallet support. The choice is about packaging and coverage, not signing.
 
 ## At a glance
@@ -26,13 +26,13 @@ The client library Pacifica's own [API documentation](https://docs.pacifica.fi/a
 | Distribution | `pip install ccxt`, `npm install ccxt`, … | clone the repository; no PyPI package, no releases |
 | Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | Python only |
 | Unified market data + trading API | yes — same method names across every exchange | no — one script per endpoint |
-| Unified capabilities implemented | 60 for `pacifica`, of which 25 are `fetch*` | n/a |
+| Unified capabilities implemented | 59 for `pacifica`, of which 24 are `fetch*` | n/a |
 | Symbols | `'BTC/USDC:USDC'` | `"BTC"` |
 | Credentials | `privateKey` (base58 Solana key); agent wallets via `options['agentAddress']` | `PRIVATE_KEY` edited into each script |
 | Hardware wallet signing | no | yes — `sign_with_hardware_wallet()` shells out to `solana sign-offchain-message` |
 | WebSockets | yes — 7 `watch*` plus 6 `unWatch*` methods | yes — raw `websockets` connections, one script per subscription |
-| Raw endpoint access | yes — 39 endpoints as implicit methods | it is all raw |
-| Built-in rate limiter | yes, on by default (`rateLimit` 50 ms) with Pacifica's fractional credit costs modelled | none |
+| Raw endpoint access | yes — 67 endpoints as implicit methods | it is all raw |
+| Built-in rate limiter | yes, on by default (`rateLimit` 600 ms) with Pacifica's fractional credit costs modelled | none |
 | Unified error types | yes — 41 typed exceptions in one hierarchy | raw `requests` responses; you check `status_code` |
 | Testnet | `set_sandbox_mode(True)` swaps in `test-api.pacifica.fi` and `test-ws.pacifica.fi` | change the constant |
 | Popularity | 43.8k GitHub stars · 4.8M PyPI + 494k npm installs/month (one package, every venue) | 18 GitHub stars, 23 forks, 40 commits |
@@ -190,7 +190,7 @@ CCXT implements 7 streaming methods for `pacifica` — `watchOrderBook`, `watchT
 
 Pacifica does not meter requests; it meters **credits**. Its documentation gives an unidentified IP 125 credits per 60 seconds and a valid API config key 300, rising with fee tier to 40,000 at VIP3. Standard requests cost 1 credit, **order cancellations cost 0.5**, and heavy GETs cost 1–3 or 3–12 depending on whether you are identified. When the bucket empties you get HTTP 429.
 
-CCXT encodes that. `rateLimit` is 50 ms, the throttler is on by default, and the per-endpoint cost function models the fractional cancel cost and the identified-versus-anonymous heavy-GET difference, so a cancel-heavy strategy is not paced as though every call cost the same.
+CCXT encodes that. `rateLimit` is 600 ms, the throttler is on by default, and the per-endpoint cost function models the fractional cancel cost and the identified-versus-anonymous heavy-GET difference, so a cancel-heavy strategy is not paced as though every call cost the same.
 
 WebSocket limits are documented too — a maximum of 300 concurrent connections per IP and 20 subscriptions per channel per connection. CCXT pools one client per URL and multiplexes subscriptions over it, so a strategy watching thirty symbols does not open thirty sockets.
 
@@ -209,7 +209,7 @@ price = exchange.price_to_precision('BTC/USDC:USDC', 61234.56789)
 
 ### Coverage beyond order entry
 
-The unified surface for `pacifica` is 60 capabilities, including `fetchPositions`, `fetchLeverage` / `setLeverage`, `fetchMarginMode` / `setMarginMode`, `fetchFundingRates` and `fetchFundingRateHistory`, `fetchOpenInterest` / `fetchOpenInterests`, `fetchLedger`, `fetchTradingFee`, `createOrders`, `editOrder`, `cancelOrders` and `createOrderWithTakeProfitAndStopLoss` — each returning a unified structure. Reproducing that from the examples means one signing block per operation.
+The unified surface for `pacifica` is 59 capabilities, including `fetchPositions`, `fetchLeverage` / `setLeverage`, `fetchMarginMode` / `setMarginMode`, `fetchFundingRates` and `fetchFundingRateHistory`, `fetchOpenInterest` / `fetchOpenInterests`, `fetchLedger`, `fetchTradingFee`, `createOrders`, `editOrder`, `cancelOrders` and `createOrderWithTakeProfitAndStopLoss` — each returning a unified structure. Reproducing that from the examples means one signing block per operation.
 
 ### Seven languages, one API
 
@@ -251,7 +251,7 @@ exchange.set_sandbox_mode(True)   # test-api.pacifica.fi and test-ws.pacifica.fi
 
 ### Nothing is hidden — the implicit API
 
-Alongside the 60 unified capabilities, **all 39 endpoints in the API definition are generated as callable implicit methods**, with signing, rate-limit accounting and error mapping applied. Browse them on the [pacifica implicit API page](/docs/exchanges/pacifica/implicit-api).
+Alongside the 59 unified capabilities, **all 67 endpoints in the API definition are generated as callable implicit methods**, with signing, rate-limit accounting and error mapping applied. Browse them on the [pacifica implicit API page](/docs/exchanges/pacifica/implicit-api).
 
 ## What Pacifica's examples repository does better
 

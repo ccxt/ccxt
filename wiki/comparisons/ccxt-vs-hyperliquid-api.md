@@ -25,9 +25,9 @@ The question that decides it: **is Hyperliquid the only venue you will trade, in
 | Venues covered | 104 (Hyperliquid is one of them) | Hyperliquid only |
 | Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | Python and Rust, separate codebases |
 | Packages to install | 1 (`ccxt`) | `hyperliquid-python-sdk` plus `eth-account` for signing |
-| Unified market data + trading API | yes — 71 unified capabilities, 27 `fetch*` methods | no — Hyperliquid's own action and response shapes |
+| Unified market data + trading API | yes — 73 unified capabilities, 28 `fetch*` methods | no — Hyperliquid's own action and response shapes |
 | On-chain signing | done for you from `walletAddress` + `privateKey` | you construct a `LocalAccount` and pass it in |
-| WebSockets | yes — 17 `watch*`/`unWatch*` methods, same shapes as `fetch*` | yes — `info.subscribe(subscription, callback)` |
+| WebSockets | yes — 18 `watch*`/`unWatch*` methods, same shapes as `fetch*` | yes — `info.subscribe(subscription, callback)` |
 | Raw endpoint access | yes — both endpoints (`POST /info`, `POST /exchange`) callable directly | yes, it is the whole product |
 | Built-in rate limiter | yes, per-request weights, on by default (`rateLimit` 50 ms) | manual |
 | Unified error types | yes — 41 typed exceptions in one hierarchy | Python exceptions plus Hyperliquid's error strings |

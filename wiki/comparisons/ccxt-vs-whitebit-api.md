@@ -1,7 +1,7 @@
 <!-- title: CCXT vs the WhiteBIT API and official WhiteBIT SDKs -->
 <!-- description: WhiteBIT publishes SDKs in five languages. CCXT compared on coverage, nonce handling, collateral trading, streaming and portability. -->
 <!-- group: Exchange APIs and official SDKs -->
-<!-- summary: WhiteBIT has one of the broadest official SDK families of any mid-size venue — Python, Go, PHP, TypeScript and Rust. CCXT trades that literalness for 66 unified capabilities across 104 exchanges. -->
+<!-- summary: WhiteBIT has one of the broadest official SDK families of any mid-size venue — Python, Go, PHP, TypeScript and Rust. CCXT trades that literalness for 67 unified capabilities across 104 exchanges. -->
 <!-- weight: 100 -->
 
 # CCXT vs the WhiteBIT API and official WhiteBIT SDKs
@@ -37,7 +37,7 @@ The question that decides between them: **is WhiteBIT the only venue you will ev
 
 <sub>Figures verified September 2026 against CCXT v{{CCXT_VERSION}}, the `whitebit-exchange` GitHub repositories, PyPI download counts and WhiteBIT's published API documentation.</sub>
 
-CCXT implements **66 unified capabilities** for WhiteBIT, **38** of them `fetch*` methods — one of the higher `fetch*` counts in the library.
+CCXT implements **67 unified capabilities** for WhiteBIT, **38** of them `fetch*` methods — one of the higher `fetch*` counts in the library.
 
 ## The same job, written both ways
 
@@ -230,7 +230,7 @@ WhiteBIT's SDKs cover Python, Go, PHP, TypeScript and Rust, but as separate code
 
 ### Nothing is hidden — the implicit API
 
-Alongside the 66 unified capabilities, **all 111 WhiteBIT endpoints are generated as callable implicit methods**, with nonce handling, signing, rate-limit accounting and error mapping applied. Browse them on the [WhiteBIT implicit API page](/docs/exchanges/whitebit/implicit-api).
+Alongside the 67 unified capabilities, **all 111 WhiteBIT endpoints are generated as callable implicit methods**, with nonce handling, signing, rate-limit accounting and error mapping applied. Browse them on the [WhiteBIT implicit API page](/docs/exchanges/whitebit/implicit-api).
 
 ## What the official WhiteBIT SDKs do better
 

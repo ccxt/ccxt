@@ -14,7 +14,7 @@ The question that decides between them: **do you want a thin wrapper that mirror
 
 - **Pick XT's own connectors** if XT is your only venue and you want method names that map one-for-one onto `doc.xt.com`, or if you are working from XT's per-language demo repositories as a signing reference.
 - **Pick CCXT** if you would rather not model four base hosts, two signing schemes, per-product symbol formats and a listen-key lifecycle yourself — and if a second exchange is anywhere in your plans.
-- **Choosing CCXT does not hide anything.** All 153 XT endpoints are generated as [implicit methods](/docs/exchanges/xt/implicit-api), signed and rate-limited like the unified ones.
+- **Choosing CCXT does not hide anything.** All 174 XT endpoints are generated as [implicit methods](/docs/exchanges/xt/implicit-api), signed and rate-limited like the unified ones.
 
 ## At a glance
 
@@ -24,9 +24,9 @@ The question that decides between them: **do you want a thin wrapper that mirror
 | Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | Python (`pyxt`), JavaScript (`xt-open-api`), Java (`xt4-java-demo`); demo repos in Go and C# |
 | Packages to install | 1 (`ccxt`) | 1 per language, plus clone-and-run demo repos for Go, C# and Node.js |
 | XT products in one client | spot, margin, USDT-M futures, COIN-M futures | separate client class per product (`pyxt.spot`, `pyxt.perp`) |
-| Unified market data + trading API | yes — 61 unified capabilities, 29 `fetch*` methods | no — XT's own request/response shapes |
-| WebSockets | yes — 14 `watch*` / `unWatch*` methods | yes — `SpotWebsocketStreamClient` and futures equivalents |
-| Raw endpoint access | yes — 153 XT endpoints as implicit methods | yes, it is the whole product |
+| Unified market data + trading API | yes — 68 unified capabilities, 33 `fetch*` methods | no — XT's own request/response shapes |
+| WebSockets | yes — 16 `watch*` / `unWatch*` methods | yes — `SpotWebsocketStreamClient` and futures equivalents |
+| Raw endpoint access | yes — 174 XT endpoints as implicit methods | yes, it is the whole product |
 | Built-in rate limiter | yes, per-endpoint weights, on by default (`rateLimit` 100 ms) | not a documented feature |
 | Unified error types | yes — 41 typed exceptions in one hierarchy | HTTP status plus XT `rc`/`mc` codes |
 | Testnet / sandbox | not available for XT — `set_sandbox_mode(True)` raises `NotSupported` | none published |
@@ -190,7 +190,7 @@ CCXT reports `sandbox: false` for XT — `set_sandbox_mode(True)` raises `NotSup
 
 ### Nothing is hidden — the implicit API
 
-Alongside the 61 unified capabilities, all 153 XT endpoints are generated as callable methods:
+Alongside the 68 unified capabilities, all 174 XT endpoints are generated as callable methods:
 
 ```python
 # any raw XT endpoint, camelCased from its path and API group
@@ -242,10 +242,10 @@ Yes — spot, margin, USDT-M futures and COIN-M futures from one `ccxt.xt` insta
 No. CCXT reports no sandbox for XT and `set_sandbox_mode(True)` raises `NotSupported`. Use CCXT's offline static request and response tests, and a small live account, instead.
 
 **Can I still call XT-specific endpoints from CCXT?**
-Yes — all 153 of them, as [implicit methods](/docs/exchanges/xt/implicit-api), with signing, rate limiting and error mapping applied.
+Yes — all 174 of them, as [implicit methods](/docs/exchanges/xt/implicit-api), with signing, rate limiting and error mapping applied.
 
 **Do I need CCXT Pro separately for WebSockets?**
-No. CCXT Pro is included in the `ccxt` package. Use `ccxt.pro.xt` and call `watch*` methods — 14 of them, including `unWatch*` variants that unsubscribe cleanly.
+No. CCXT Pro is included in the `ccxt` package. Use `ccxt.pro.xt` and call `watch*` methods — 16 of them, including `unWatch*` variants that unsubscribe cleanly.
 
 **Is CCXT free?**
 Yes. MIT-licensed, including the WebSocket support.

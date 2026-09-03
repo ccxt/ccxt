@@ -117,7 +117,7 @@ Both sign with Coincheck's scheme — `ACCESS-KEY`, `ACCESS-NONCE` and an `ACCES
 
 ### Stream an order book
 
-Coincheck is one of the 78 CCXT exchanges with WebSocket support, though a narrow one: `coincheck` has **2** `watch*` methods, `watchOrderBook` and `watchTrades`, mapping to Coincheck's two public channels.
+Coincheck is one of the 76 CCXT exchanges with WebSocket support, though a narrow one: `coincheck` has **2** `watch*` methods, `watchOrderBook` and `watchTrades`, mapping to Coincheck's two public channels.
 
 <!-- tabs:start -->
 

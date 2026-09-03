@@ -1,7 +1,7 @@
 <!-- title: CCXT vs the official Bitvavo SDKs -->
 <!-- description: Bitvavo maintains Python and Node SDKs and has archived its Java, Go and PHP ones. Compared with CCXT on languages, streaming model and rate limits. -->
 <!-- group: Exchange APIs and official SDKs -->
-<!-- summary: Bitvavo's Python and Node SDKs are maintained; its Java, Go and PHP wrappers are archived. CCXT covers Bitvavo in all seven of its languages with 65 unified capabilities and 8 streaming methods. -->
+<!-- summary: Bitvavo's Python and Node SDKs are maintained; its Java, Go and PHP wrappers are archived. CCXT covers Bitvavo in all seven of its languages with 74 unified capabilities and 17 streaming methods. -->
 <!-- weight: 100 -->
 
 # CCXT vs the official Bitvavo SDKs
@@ -13,7 +13,7 @@ That shapes the decision. If you write Python or JavaScript, you have a real ven
 ## TL;DR
 
 - **Pick the official SDK** if you are on Python or Node, Bitvavo is your only venue, and you want a client whose method names are Bitvavo's own — `ticker24h`, `placeOrder`, `getRemainingLimit` — mapping one-for-one onto their docs.
-- **Pick CCXT** if you are on any other language, or if Bitvavo is one of several venues: 65 unified capabilities, 33 of them `fetch*`, 8 `watch*` streaming methods and all 41 Bitvavo endpoints as implicit methods, in seven languages.
+- **Pick CCXT** if you are on any other language, or if Bitvavo is one of several venues: 74 unified capabilities, 33 of them `fetch*`, 17 `watch*` streaming methods and all 41 Bitvavo endpoints as implicit methods, in seven languages.
 - **The archived wrappers are the argument.** Bitvavo's Java, Go and PHP clients are read-only repositories now; the same Bitvavo integration in those languages ships in CCXT and is maintained alongside 103 other venues.
 
 ## At a glance
@@ -24,9 +24,9 @@ That shapes the decision. If you write Python or JavaScript, you have a real ven
 | Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | Python and Node maintained; Java, Go and PHP wrappers archived |
 | Packages to install | 1 (`ccxt`) | 1 per language (`python-bitvavo-api`, `bitvavo` on npm) |
 | Unified market data + trading API | yes — same method names across every exchange | no — Bitvavo's own request/response shapes |
-| Bitvavo capabilities implemented | 65 unified methods, 33 of them `fetch*` | full Bitvavo API surface |
+| Bitvavo capabilities implemented | 74 unified methods, 33 of them `fetch*` | full Bitvavo API surface |
 | Raw endpoint access | yes — 41 Bitvavo endpoints as implicit methods | yes, it is the whole product |
-| WebSockets | yes — 8 `watch*` methods, same shapes as `fetch*` | yes — callback-based socket client |
+| WebSockets | yes — 17 `watch*` methods, same shapes as `fetch*` | yes — callback-based socket client |
 | Programming model | `await` a method, get a value back | callbacks registered on a socket object |
 | Built-in rate limiter | yes, on by default (`rateLimit` 60 ms ≈ 1000 weight/min) | `getRemainingLimit()` — you decide when to stop |
 | Unified error types | yes — 41 typed exceptions in one hierarchy | Bitvavo error codes |
@@ -211,7 +211,7 @@ price = exchange.price_to_precision('BTC/EUR', 61234.56789)
 
 ### Nothing is hidden — the implicit API
 
-Alongside the 65 unified capabilities, **all 41 Bitvavo endpoints are generated as callable implicit methods**, with signing, rate limiting and error mapping applied:
+Alongside the 74 unified capabilities, **all 41 Bitvavo endpoints are generated as callable implicit methods**, with signing, rate limiting and error mapping applied:
 
 ```python
 # GET /v2/account/fees
@@ -264,7 +264,7 @@ Yes — [python-bitvavo-api](https://github.com/bitvavo/python-bitvavo-api), ISC
 Not a maintained one. `java-bitvavo-api` and `go-bitvavo-api` are archived, `php-bitvavo-api` is archived and marked deprecated, and there is no C#/.NET wrapper. CCXT supports Bitvavo in all of those languages with the same unified API it uses everywhere else.
 
 **Do I need CCXT Pro separately for Bitvavo WebSockets?**
-No. CCXT Pro is included in the `ccxt` package. Use `ccxt.pro.bitvavo` and the 8 `watch*` methods — `watch_ticker`, `watch_tickers`, `watch_bids_asks`, `watch_trades`, `watch_ohlcv`, `watch_order_book`, `watch_orders` and `watch_my_trades`.
+No. CCXT Pro is included in the `ccxt` package. Use `ccxt.pro.bitvavo` and the 17 `watch*` methods — `watch_ticker`, `watch_tickers`, `watch_bids_asks`, `watch_trades`, `watch_ohlcv`, `watch_order_book`, `watch_orders` and `watch_my_trades`.
 
 **How does CCXT handle Bitvavo's weight-based rate limit?**
 It paces requests with a token-bucket throttler that is on by default, with `rateLimit` set to 60 ms — 1000 requests per minute, matching Bitvavo's documented budget. You can still read and adjust `exchange.rateLimit`, or turn the throttler off with `enableRateLimit = False` if you are metering yourself.

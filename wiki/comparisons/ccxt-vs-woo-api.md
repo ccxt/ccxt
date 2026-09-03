@@ -1,7 +1,7 @@
 <!-- title: CCXT vs the raw WOO X API -->
 <!-- description: WOO X publishes no SDK and signs v1 and v3 endpoints differently. CCXT compared on signing, rate limits, WebSocket budgets and errors. -->
 <!-- group: Exchange APIs and official SDKs -->
-<!-- summary: WOO X ships documentation and signing examples but no client library. CCXT is a certified integration for it — 77 unified capabilities, 16 watch* methods and all 134 raw endpoints. -->
+<!-- summary: WOO X ships documentation and signing examples but no client library. CCXT is a certified integration for it — 79 unified capabilities, 16 watch* methods and all 133 raw endpoints. -->
 <!-- weight: 100 -->
 
 # CCXT vs the raw WOO X API
@@ -12,7 +12,7 @@ So this is a comparison between [CCXT](/docs/manual) and the client you write yo
 
 ## TL;DR
 
-- **Go direct** if you call a handful of endpoints, want field names identical to the docs, or need something outside the 134 endpoints CCXT models.
+- **Go direct** if you call a handful of endpoints, want field names identical to the docs, or need something outside the 133 endpoints CCXT models.
 - **Pick CCXT** if you want both of WOO X's signing schemes handled, spot, margin and perpetuals in one client, 16 streaming methods, staging endpoints behind one flag, and typed errors instead of numeric codes.
 - **WOO X is a certified CCXT exchange**, meaning it is covered by the static request and response regression fixtures that run in CI on every change.
 
@@ -28,7 +28,7 @@ So this is a comparison between [CCXT](/docs/manual) and the client you write yo
 | Signing | v1 and v3 schemes, both handled | two schemes you implement and keep straight |
 | Unified market data + trading API | yes — same method names on every exchange | no — WOO X's own request and response shapes |
 | WebSockets | yes — 16 `watch*` / `unWatch*` methods, including `watchFundingRate` and `watchPositions` | your own socket client, inside an 80-connection / 50-topic budget |
-| Raw endpoint access | yes — 134 WOO X endpoints as implicit methods | yes, it is the whole product |
+| Raw endpoint access | yes — 133 WOO X endpoints as implicit methods | yes, it is the whole product |
 | Built-in rate limiter | yes, per-endpoint weights, on by default (`rateLimit` 100 ms) | your code, against 10 requests per second |
 | Unified error types | yes — 41 typed exceptions in one hierarchy | HTTP 429 plus WOO X error codes |
 | Testnet / staging | `exchange.set_sandbox_mode(True)` swaps in `api.staging.woox.io` | change base URLs yourself |
@@ -38,7 +38,7 @@ So this is a comparison between [CCXT](/docs/manual) and the client you write yo
 
 <sub>Figures verified September 2026 against CCXT v{{CCXT_VERSION}} and WOO X's published API documentation at docs.woox.io.</sub>
 
-CCXT implements **77 unified capabilities** for WOO X, **37** of them `fetch*` methods, and marks it a **certified** exchange — it is covered by the static request and response regression fixtures that run in CI, so a change that would alter a WOO X request shape fails the build rather than reaching you.
+CCXT implements **79 unified capabilities** for WOO X, **37** of them `fetch*` methods, and marks it a **certified** exchange — it is covered by the static request and response regression fixtures that run in CI, so a change that would alter a WOO X request shape fails the build rather than reaching you.
 
 ## The same job, written both ways
 
@@ -209,7 +209,7 @@ One flag swaps every REST and WebSocket URL, including the public host. No const
 
 ### Nothing is hidden — the implicit API
 
-Alongside the 77 unified capabilities, **all 134 WOO X endpoints are generated as callable implicit methods**, with version-appropriate signing, rate-limit accounting and error mapping applied. Browse them on the [WOO X implicit API page](/docs/exchanges/woo/implicit-api).
+Alongside the 79 unified capabilities, **all 133 WOO X endpoints are generated as callable implicit methods**, with version-appropriate signing, rate-limit accounting and error mapping applied. Browse them on the [WOO X implicit API page](/docs/exchanges/woo/implicit-api).
 
 ## What going direct does better
 
@@ -218,7 +218,7 @@ An honest list:
 - **Field names match the docs exactly.** When you are reading `docs.woox.io` while debugging, a payload whose keys are `order_price`, `order_quantity` and `client_order_id` lines up with the reference one field at a time. CCXT's unified names are a deliberate abstraction and one hop away from it.
 - **The docs ship working signing examples.** WOO X's authentication page has runnable Python for both signing schemes. If you only need two endpoints, copying that is faster than learning a library.
 - **`api-recvwindow` and other per-request controls.** WOO X exposes an optional `api-recvwindow` header for VIP accounts, and various endpoint-specific parameters. CCXT passes unrecognised `params` straight through, but a hand-rolled client makes those controls immediately visible rather than something you look up.
-- **Endpoints outside the 134 CCXT models.** Anything WOO X adds is callable over HTTP the moment it ships. CCXT's implicit API picks it up on the next release; a *unified* wrapper may lag longer.
+- **Endpoints outside the 133 CCXT models.** Anything WOO X adds is callable over HTTP the moment it ships. CCXT's implicit API picks it up on the next release; a *unified* wrapper may lag longer.
 - **A smaller dependency.** Three endpoints and thirty lines of signing code is less than all of CCXT.
 
 If WOO X is your only venue and you only touch v1 public endpoints, going direct is perfectly reasonable.
@@ -271,6 +271,6 @@ Yes. MIT-licensed, including the WebSocket support.
 - [Install CCXT](/docs/install) in your language
 - [Manual](/docs/manual) — the unified API, structures and conventions
 - [woo unified API reference](/docs/exchanges/woo)
-- [woo implicit API](/docs/exchanges/woo/implicit-api) — all 134 raw endpoints
+- [woo implicit API](/docs/exchanges/woo/implicit-api) — all 133 raw endpoints
 - [CCXT Pro manual](/docs/pro-manual) — WebSocket methods
 - [More comparisons](/docs/comparisons)

@@ -261,7 +261,7 @@ Yes. `bigone` declares both `spot` and `swap`, and CCXT models BigONE's v3 spot 
 No sandbox environment is published, so `set_sandbox_mode(True)` has nothing to point at for `bigone`. Test against CCXT's offline static fixtures and small live orders.
 
 **Is CCXT free?**
-Yes. MIT-licensed, including the WebSocket support for the 78 exchanges that have it.
+Yes. MIT-licensed, including the WebSocket support for the 76 exchanges that have it.
 
 ## Next steps
 

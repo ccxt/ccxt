@@ -1,7 +1,7 @@
 <!-- title: CCXT vs the Derive API and the official Derive SDKs -->
 <!-- description: CCXT and derive-py compared on on-chain action signing, session keys, language coverage, streaming, RFQs and vaults, with the same tasks written both ways. -->
 <!-- group: Exchange APIs and official SDKs -->
-<!-- summary: Derive ships maintained Python, TypeScript and Rust clients generated from its own specs. CCXT does the same on-chain action signing in seven languages, with 29 unified capabilities and 113 raw endpoints — but not RFQs or vaults. -->
+<!-- summary: Derive ships maintained Python, TypeScript and Rust clients generated from its own specs. CCXT does the same on-chain action signing in seven languages, with 32 unified capabilities and 113 raw endpoints — but not RFQs or vaults. -->
 <!-- weight: 100 -->
 
 # CCXT vs the Derive API and the official Derive SDKs
@@ -25,7 +25,7 @@ The question that decides it: **do you need Derive's whole product surface — R
 | Venues covered | 104 (Derive is one of them) | Derive only |
 | Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | Python, TypeScript, Rust — separate codebases |
 | Packages to install | 1 (`ccxt`) | 1 per language |
-| Unified market data + trading API | yes — 29 unified capabilities, 19 `fetch*` methods | no — Derive's own RPC method names and payloads |
+| Unified market data + trading API | yes — 32 unified capabilities, 19 `fetch*` methods | no — Derive's own RPC method names and payloads |
 | Instrument addressing | unified symbols: `'BTC/USD:USDC'`, `'LBTC/USDC'`, `'BTC/USDC:USDC-261030-180000-C'` | `instrument_name`: `ETH-PERP`, `BTC-20261030-180000-C` |
 | On-chain action signing | done for you from `walletAddress` + `privateKey` | done for you, from a session key |
 | Session-key management | not modelled | yes — register, scope, edit, retire |
