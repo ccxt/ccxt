@@ -394,6 +394,98 @@ function parseExchangeMarkets (raw: string): ExchangeRow[] {
 }
 
 // ---------------------------------------------------------------------------
+// Comparison pages (wiki/comparisons/*.md) — hand-written "CCXT vs <X>" pages.
+//
+// Their metadata rides in HTML comments rather than YAML frontmatter, so the very
+// same file also renders on the Docsify site (which has no frontmatter plugin).
+// Files whose name starts with `_` are authoring notes (_template.md) and are
+// never published. See wiki/comparisons/_template.md for the contract.
+// ---------------------------------------------------------------------------
+interface Comparison {
+    slug: string;
+    title: string;
+    description: string;
+    group: string;
+    summary: string;
+    weight: number;
+    body: string;
+}
+
+function metaComment(md: string, name: string): string {
+    const m = md.match(new RegExp('<!--\\s*' + name + ':\\s*([\\s\\S]*?)-->'));
+    return m ? m[1].trim() : '';
+}
+
+// Drop the metadata comments and the leading H1 — Fumadocs renders the title from
+// frontmatter, so keeping the H1 would print it twice.
+function comparisonBody(md: string): string {
+    return md
+        .replace(/<!--\s*(?:title|description|group|summary|weight):[\s\S]*?-->\n?/g, '')
+        .replace(/^\s*#\s+.*\n/, '')
+        .trimStart();
+}
+
+function readComparisons(): Comparison[] {
+    const dir = path.join(WIKI, 'comparisons');
+    if (!fs.existsSync(dir)) return [];
+    const out: Comparison[] = [];
+    for (const file of fs.readdirSync(dir).sort()) {
+        if (!file.endsWith('.md') || file.startsWith('_')) continue;
+        const md = readWiki(path.join('comparisons', file));
+        const slug = (file === 'README.md') ? 'index' : file.replace(/\.md$/, '');
+        const h1 = md.match(/^#\s+(.*)$/m);
+        const title = metaComment(md, 'title') || (h1 ? stripInline(h1[1]) : titleCase(slug));
+        const weight = Number(metaComment(md, 'weight'));
+        out.push({
+            slug,
+            title,
+            'description': metaComment(md, 'description') || firstParagraph(md),
+            'group': metaComment(md, 'group'),
+            'summary': metaComment(md, 'summary'),
+            'weight': Number.isFinite(weight) ? weight : 100,
+            'body': comparisonBody(md),
+        });
+    }
+    return out.sort((a, b) => (a.weight - b.weight) || a.title.localeCompare(b.title));
+}
+
+// The hub page keeps a `<!-- comparisons:list -->` marker where the index of every
+// published comparison goes. Generating it means the hub can never link to a page
+// that does not exist, and adding a page needs no edit here.
+// Hub section order. Peer libraries read first — someone weighing CCXT against
+// cryptofeed or XChange is asking a different question from someone who has already
+// picked their venue — then the per-exchange pages, then the derived entities.
+// A group not listed here sorts after these, in first-seen order.
+const GROUP_ORDER = [
+    'Multi-exchange libraries and frameworks',
+    'Exchange APIs and official SDKs',
+    'Regional entities and product lines',
+];
+
+function comparisonsIndex(pages: Comparison[]): string {
+    const groups: string[] = [];
+    const byGroup = new Map<string, Comparison[]> ();
+    for (const p of pages) {
+        if (p.slug === 'index') continue;
+        const g = p.group || 'Comparisons';
+        if (!byGroup.has(g)) { byGroup.set(g, []); groups.push(g); }
+        byGroup.get(g)!.push(p);
+    }
+    if (!groups.length) return '_No comparisons published yet._';
+    groups.sort((a, b) => {
+        const ia = GROUP_ORDER.indexOf(a);
+        const ib = GROUP_ORDER.indexOf(b);
+        return (ia < 0 ? GROUP_ORDER.length : ia) - (ib < 0 ? GROUP_ORDER.length : ib);
+    });
+    return groups.map((g) => {
+        const items = byGroup.get(g)!
+            .map((p) => `- [${p.title}](/docs/comparisons/${p.slug})` + (p.summary ? ` — ${p.summary}` : ''))
+            .join('\n');
+        return `### ${g}\n\n${items}`;
+    }).join('\n\n');
+}
+
+// ---------------------------------------------------------------------------
 // Filesystem helpers
 // ---------------------------------------------------------------------------
 function rmrf (dir: string) { fs.rmSync(dir, { recursive: true, force: true }); }
@@ -653,7 +745,35 @@ function main () {
     write(path.join(OUT, 'examples', 'meta.json'),
         JSON.stringify({ title: 'Examples', icon: 'Code', description: 'Examples, guides & showcases', root: true, pages: examplePages }, null, 2));
 
-    // 4) top-level (Guides) nav meta.json. exchanges/examples are their own root tabs.
+    const ccxtVersion = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8')).version;
+
+    // 4) comparisons — "CCXT vs <X>" pages (wiki/comparisons/*.md). Hand-written,
+    // metadata in HTML comments (see readComparisons). The hub page's index of the
+    // set is generated, so it always matches what actually got emitted.
+    const comparisons = readComparisons();
+    if (comparisons.length) {
+        const index = comparisonsIndex(comparisons);
+        for (const c of comparisons) {
+            // {{CCXT_VERSION}} is substituted at build time so the version a page's
+            // figures were measured against can never drift from the shipped library.
+            const body = transform(c.body)
+                .replace('<!-- comparisons:list -->', index)
+                .replaceAll('{{CCXT_VERSION}}', ccxtVersion);
+            write(path.join(OUT, 'comparisons', `${c.slug}.md`), frontmatter(c.title, c.description) + body);
+            count++;
+        }
+        // root:true -> its own sidebar tab, like exchanges/ and examples/
+        write(path.join(OUT, 'comparisons', 'meta.json'), JSON.stringify({
+            'title': 'Comparisons',
+            'icon': 'Scale',
+            'description': 'CCXT vs the alternatives',
+            'root': true,
+            'pages': [ 'index', ...comparisons.filter((c) => c.slug !== 'index').map((c) => c.slug) ],
+        }, null, 2));
+        console.log(`  ⚖️  comparisons: ${comparisons.length} pages`);
+    }
+
+    // 5) top-level (Guides) nav meta.json. exchanges/examples are their own root tabs.
     const topPages = [
         'index', 'install', 'manual', '[Prediction Markets](/docs/prediction)', 'pro-manual', 'pro', 'cli', 'mcp', 'examples-overview',
         'faq', 'requirements', 'contributing',
@@ -665,11 +785,10 @@ function main () {
 
     // expose the CCXT version (from the root package.json) to the app, so the homepage
     // Java/gradle install line shows the current version instead of a hardcoded one.
-    const ccxtVersion = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8')).version;
     fs.writeFileSync(path.join(ROOT, 'docs', 'website', 'src', 'lib', 'ccxt-version.json'),
         JSON.stringify({ version: ccxtVersion }, null, 2) + '\n');
 
-    // 5) translated guides: drop the committed per-locale markdown in as
+    // 6) translated guides: drop the committed per-locale markdown in as
     // content/docs/<name>.<locale>.md so Fumadocs i18n serves it (others fall back to
     // English). Copied verbatim, except the exchanges table — that's re-injected from the
     // current English build (see EXCHANGE_TABLE_RE) so it never goes stale per locale.

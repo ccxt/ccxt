@@ -7011,6 +7011,8 @@ class bitget extends Exchange {
             if ($type === 'spot') {
                 if ($marginMode !== null) {
                     $productType = 'MARGIN';
+                } else {
+                    $productType = 'SPOT';
                 }
             }
             $request['category'] = $productType;

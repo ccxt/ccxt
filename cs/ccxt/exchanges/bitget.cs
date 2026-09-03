@@ -8733,6 +8733,9 @@ public partial class bitget : Exchange
                 if (isTrue(!isEqual(marginMode, null)))
                 {
                     productType = "MARGIN";
+                } else
+                {
+                    productType = "SPOT";
                 }
             }
             ((IDictionary<string,object>)request)["category"] = productType;

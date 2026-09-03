@@ -6998,6 +6998,9 @@ class bitget extends bitget$1["default"] {
                 if (marginMode !== undefined) {
                     productType = 'MARGIN';
                 }
+                else {
+                    productType = 'SPOT';
+                }
             }
             request['category'] = productType;
             if (trigger === true) {
