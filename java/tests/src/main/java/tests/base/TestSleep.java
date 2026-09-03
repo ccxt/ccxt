@@ -24,7 +24,14 @@ public class TestSleep extends BaseTest
             Object elapsed = Helpers.subtract(end, start);
             // Allow a small margin of error due to execution time
             Object marginOfError = 20;
-            Object maxElapsed = Helpers.add(sleepAmount, marginOfError);
+            // Ceiling deliberately far looser than the floor: sleep () promises a
+            // MINIMUM delay, never a maximum, so a loaded machine or a parallel CI
+            // runner overshoots by tens of ms with nothing wrong. Kept only to catch
+            // a sleep that is genuinely broken. Mirrors ts/src/test/base/test.sleep.ts
+            // (this file is hand-maintained — it carries a Java-only VIRTUAL_EXECUTOR
+            // argument the transpiler does not emit, so it is not auto-generated).
+            Object maxOvershoot = 2000;
+            Object maxElapsed = Helpers.add(sleepAmount, maxOvershoot);
             Object elapsedBiggerThanSleep = Helpers.isGreaterThanOrEqual(elapsed, sleepAmount);
             Object elapsedLessThanMax = Helpers.isLessThanOrEqual(elapsed, maxElapsed);
             Assert(elapsedBiggerThanSleep, Helpers.add(Helpers.add(Helpers.add(Helpers.add("Elapsed time ", String.valueOf(elapsed)), "ms is less than sleep amount "), String.valueOf(sleepAmount)), "ms"));
