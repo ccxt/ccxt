@@ -3940,7 +3940,7 @@ class bingx extends bingx$1["default"] {
                 }
             }
             else {
-                feeCurrencyCode = market['quote'];
+                feeCurrencyCode = (market['inverse'] === true) ? market['settle'] : market['quote'];
             }
         }
         let stopLoss = this.safeValue(order, 'stopLoss');
@@ -4481,6 +4481,7 @@ class bingx extends bingx$1["default"] {
      * @param {number} timeout time in milliseconds, 0 represents cancel the timer
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.type] spot or swap market
+     * @param {string} [params.subType] 'linear' or 'inverse' (default is 'linear'), 'inverse' is not supported
      * @returns {object} the api result
      */
     async cancelAllOrdersAfter(timeout, params = {}) {
@@ -4495,6 +4496,11 @@ class bingx extends bingx$1["default"] {
         let response;
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams('cancelAllOrdersAfter', undefined, params);
+        let subType = undefined;
+        [subType, params] = this.handleSubTypeAndParams('cancelAllOrdersAfter', undefined, params);
+        if ((type === 'swap') && (subType === 'inverse')) {
+            throw new errors.NotSupported(this.id + ' cancelAllOrdersAfter() is not supported for inverse swap markets');
+        }
         if (type === 'spot') {
             response = await this.spotV1PrivatePostTradeCancelAllAfter(this.extend(request, params));
         }
@@ -6295,7 +6301,7 @@ class bingx extends bingx$1["default"] {
      * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Query%20force%20orders
      * @param {string} [symbol] unified CCXT market symbol
      * @param {int} [since] the earliest time in ms to fetch liquidations for
-     * @param {int} [limit] the maximum number of liquidation structures to retrieve
+     * @param {int} [limit] the maximum number of liquidation structures to retrieve (max 100)
      * @param {object} [params] exchange specific parameters for the bingx api endpoint
      * @param {int} [params.until] timestamp in ms of the latest liquidation
      * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
@@ -6317,7 +6323,7 @@ class bingx extends bingx$1["default"] {
             request['startTime'] = since;
         }
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = Math.min(limit, 100); // api maximum 100
         }
         let subType = undefined;
         [subType, params] = this.handleSubTypeAndParams('fetchMyLiquidations', market, params);

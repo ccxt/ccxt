@@ -797,6 +797,7 @@ dead man's switch, cancel all orders after the given timeout
 | timeout | <code>number</code> | Yes | time in milliseconds, 0 represents cancel the timer |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.type | <code>string</code> | No | spot or swap market |
+| params.subType | <code>string</code> | No | 'linear' or 'inverse' (default is 'linear'), 'inverse' is not supported |
 
 
 ```javascript
@@ -1323,7 +1324,7 @@ retrieves the users liquidated positions
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | No | unified CCXT market symbol |
 | since | <code>int</code> | No | the earliest time in ms to fetch liquidations for |
-| limit | <code>int</code> | No | the maximum number of liquidation structures to retrieve |
+| limit | <code>int</code> | No | the maximum number of liquidation structures to retrieve (max 100) |
 | params | <code>object</code> | No | exchange specific parameters for the bingx api endpoint |
 | params.until | <code>int</code> | No | timestamp in ms of the latest liquidation |
 

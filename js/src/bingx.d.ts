@@ -400,6 +400,7 @@ export default class bingx extends Exchange {
      * @param {number} timeout time in milliseconds, 0 represents cancel the timer
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.type] spot or swap market
+     * @param {string} [params.subType] 'linear' or 'inverse' (default is 'linear'), 'inverse' is not supported
      * @returns {object} the api result
      */
     cancelAllOrdersAfter(timeout: Int, params?: {}): Promise<Dict>;
@@ -684,7 +685,7 @@ export default class bingx extends Exchange {
      * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Query%20force%20orders
      * @param {string} [symbol] unified CCXT market symbol
      * @param {int} [since] the earliest time in ms to fetch liquidations for
-     * @param {int} [limit] the maximum number of liquidation structures to retrieve
+     * @param {int} [limit] the maximum number of liquidation structures to retrieve (max 100)
      * @param {object} [params] exchange specific parameters for the bingx api endpoint
      * @param {int} [params.until] timestamp in ms of the latest liquidation
      * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}

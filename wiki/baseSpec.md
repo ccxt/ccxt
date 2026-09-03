@@ -228,6 +228,7 @@ dead man's switch, cancel all orders after the given timeout
 | timeout | <code>number</code> | Yes | time in milliseconds, 0 represents cancel the timer |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.type | <code>string</code> | No | spot or swap market |
+| params.subType | <code>string</code> | No | 'linear' or 'inverse' (default is 'linear'), 'inverse' is not supported |
 
 ##### Supported exchanges
 * [bingx](/exchanges/bingx.md#cancelallordersafter)
