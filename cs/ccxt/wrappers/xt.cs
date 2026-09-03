@@ -6,9 +6,5 @@ namespace ccxt;
 
 public partial class xt
 {
-    public async Task<List<Dictionary<string, object>>> FetchSwapAndFutureMarkets(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchSwapAndFutureMarkets(parameters);
-        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
-    }
+
 }

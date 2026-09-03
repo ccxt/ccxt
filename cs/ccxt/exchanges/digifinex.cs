@@ -755,7 +755,7 @@ public partial class digifinex : Exchange
         {
             return await this.FetchMarketsV2(parameters);
         }
-        return ccxt.BaseExchange.ToMarketInterfaceList(await this.fetchMarketsV1(parameters));
+        return await this.FetchMarketsV1(parameters);
     }
 
     public async virtual Task<List<ccxt.MarketInterface>> FetchMarketsV2(object parameters = null)
@@ -927,7 +927,7 @@ public partial class digifinex : Exchange
         return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
 
-    public async virtual Task<object> fetchMarketsV1(object parameters = null)
+    public async virtual Task<List<ccxt.MarketInterface>> FetchMarketsV1(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicSpotGetMarkets(parameters);
@@ -1010,7 +1010,7 @@ public partial class digifinex : Exchange
                 { "info", market },
             });
         }
-        return result;
+        return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
 
     public override object parseBalance(object response)

@@ -672,15 +672,15 @@ public partial class gemini : Exchange
         if (isTrue(isEqual(method, "fetch_markets_from_web")))
         {
             object promises = new List<object>() {};
-            ((IList<object>)promises).Add(this.fetchMarketsFromWeb(parameters)); // get usd markets
-            ((IList<object>)promises).Add(this.fetchUSDTMarkets(parameters)); // get usdt markets
+            ((IList<object>)promises).Add(this.FetchMarketsFromWeb(parameters)); // get usd markets
+            ((IList<object>)promises).Add(this.FetchUSDTMarkets(parameters)); // get usdt markets
             object promisesResult = await promiseAll(promises);
             return ccxt.BaseExchange.ToMarketInterfaceList(this.arrayConcat(getValue(promisesResult, 0), getValue(promisesResult, 1)));
         }
-        return ccxt.BaseExchange.ToMarketInterfaceList(await this.fetchMarketsFromAPI(parameters));
+        return await this.FetchMarketsFromAPI(parameters);
     }
 
-    public async virtual Task<object> fetchMarketsFromWeb(object parameters = null)
+    public async virtual Task<List<ccxt.MarketInterface>> FetchMarketsFromWeb(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object data = await this.fetchWebEndpoint("fetchMarkets", "webGetRestApi", false, "<h1 id=\"symbols-and-minimums\">Symbols and minimums</h1>");
@@ -781,7 +781,7 @@ public partial class gemini : Exchange
                 { "info", row },
             });
         }
-        return result;
+        return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
 
     public virtual object parseMarketActive(object status)
@@ -800,14 +800,14 @@ public partial class gemini : Exchange
         return this.safeBool(statuses, status, true);
     }
 
-    public async virtual Task<object> fetchUSDTMarkets(object parameters = null)
+    public async virtual Task<List<ccxt.MarketInterface>> FetchUSDTMarkets(object parameters = null)
     {
         // these markets can't be scrapped and fetchMarketsFrom api does an extra call
         // to load market ids which we don't need here
         parameters ??= new Dictionary<string, object>();
         if (isTrue(inOp(this.urls, "test")))
         {
-            return new List<object>() {};  // sandbox does not have usdt markets
+            return ccxt.BaseExchange.ToMarketInterfaceList(new List<object>() {});  // sandbox does not have usdt markets
         }
         object fetchUsdtMarkets = this.safeValue(this.options, "fetchUsdtMarkets", new List<object>() {});
         object result = new List<object>() {};
@@ -821,10 +821,10 @@ public partial class gemini : Exchange
             object rawResponse = await this.publicGetV1SymbolsDetailsSymbol(this.extend(request, parameters));
             ((IList<object>)result).Add(this.parseMarket(rawResponse));
         }
-        return result;
+        return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
 
-    public async virtual Task<object> fetchMarketsFromAPI(object parameters = null)
+    public async virtual Task<List<ccxt.MarketInterface>> FetchMarketsFromAPI(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object marketIdsRaw = await this.publicGetV1Symbols(parameters);
@@ -894,7 +894,7 @@ public partial class gemini : Exchange
                 }
             }
         }
-        return result;
+        return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
 
     public override object parseMarket(object response)

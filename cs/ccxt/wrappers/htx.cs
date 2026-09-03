@@ -7,41 +7,6 @@ namespace ccxt;
 public partial class htx
 {
     /// <summary>
-    /// retrieves data on all markets of a certain type and/or subtype
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://huobiapi.github.io/docs/spot/v1/en/#get-all-supported-trading-symbol-v1-deprecated"/>  <br/>
-    /// See <see href="https://huobiapi.github.io/docs/dm/v1/en/#get-contract-info"/>  <br/>
-    /// See <see href="https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-swap-info"/>  <br/>
-    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-swap-info"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>type</term>
-    /// <description>
-    /// string : 'spot', 'swap' or 'future'
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>subType</term>
-    /// <description>
-    /// string : 'linear' or 'inverse'
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object[]</term> an array of objects representing market data.</returns>
-    public async Task<List<Dictionary<string, object>>> FetchMarketsByTypeAndSubType(string type, string subType, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchMarketsByTypeAndSubType(type, subType, parameters);
-        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
-    }
-    /// <summary>
     /// helper function to build request
     /// </summary>
     /// <remarks>

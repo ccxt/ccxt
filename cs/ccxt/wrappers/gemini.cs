@@ -25,19 +25,4 @@ public partial class gemini
         var res = await this.fetchCurrenciesFromWeb(parameters);
         return new Currencies(res);
     }
-    public async Task<List<Dictionary<string, object>>> FetchMarketsFromWeb(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchMarketsFromWeb(parameters);
-        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
-    }
-    public async Task<List<Dictionary<string, object>>> FetchUSDTMarkets(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchUSDTMarkets(parameters);
-        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
-    }
-    public async Task<List<Dictionary<string, object>>> FetchMarketsFromAPI(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchMarketsFromAPI(parameters);
-        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
-    }
 }

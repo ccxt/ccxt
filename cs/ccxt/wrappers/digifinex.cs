@@ -6,11 +6,6 @@ namespace ccxt;
 
 public partial class digifinex
 {
-    public async Task<List<Dictionary<string, object>>> FetchMarketsV1(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchMarketsV1(parameters);
-        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
-    }
     /// <summary>
     /// helper function to build request
     /// </summary>

@@ -2391,14 +2391,14 @@ public partial class htx : Exchange
             {
                 if (isTrue(isEqual(key, "spot")))
                 {
-                    ((IList<object>)promises).Add(this.fetchMarketsByTypeAndSubType("spot", null, parameters));
+                    ((IList<object>)promises).Add(this.FetchMarketsByTypeAndSubType("spot", null, parameters));
                 } else if (isTrue(isEqual(key, "linear")))
                 {
-                    ((IList<object>)promises).Add(this.fetchMarketsByTypeAndSubType(null, "linear", parameters));
+                    ((IList<object>)promises).Add(this.FetchMarketsByTypeAndSubType(null, "linear", parameters));
                 } else if (isTrue(isEqual(key, "inverse")))
                 {
-                    ((IList<object>)promises).Add(this.fetchMarketsByTypeAndSubType("swap", "inverse", parameters));
-                    ((IList<object>)promises).Add(this.fetchMarketsByTypeAndSubType("future", "inverse", parameters));
+                    ((IList<object>)promises).Add(this.FetchMarketsByTypeAndSubType("swap", "inverse", parameters));
+                    ((IList<object>)promises).Add(this.FetchMarketsByTypeAndSubType("future", "inverse", parameters));
                 }
             }
         }
@@ -2424,7 +2424,7 @@ public partial class htx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public async virtual Task<object> fetchMarketsByTypeAndSubType(object type, object subType, object parameters = null)
+    public async virtual Task<List<ccxt.MarketInterface>> FetchMarketsByTypeAndSubType(object type, object subType, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         bool isSpot = (isEqual(type, "spot"));
@@ -2753,7 +2753,7 @@ public partial class htx : Exchange
                 { "info", market },
             });
         }
-        return result;
+        return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
 
     public virtual object tryGetSymbolFromFutureMarkets(object symbolOrMarketId)

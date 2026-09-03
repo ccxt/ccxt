@@ -1333,7 +1333,7 @@ public partial class xt : Exchange
         {
             await this.loadTimeDifference();
         }
-        object promisesUnresolved = new List<object> {this.FetchSpotMarkets(parameters), this.fetchSwapAndFutureMarkets(parameters)};
+        object promisesUnresolved = new List<object> {this.FetchSpotMarkets(parameters), this.FetchSwapAndFutureMarkets(parameters)};
         object promises = await promiseAll(promisesUnresolved);
         object spotMarkets = getValue(promises, 0);
         object swapAndFutureMarkets = getValue(promises, 1);
@@ -1401,7 +1401,7 @@ public partial class xt : Exchange
         return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(symbols));
     }
 
-    public async virtual Task<object> fetchSwapAndFutureMarkets(object parameters = null)
+    public async virtual Task<List<ccxt.MarketInterface>> FetchSwapAndFutureMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object markets = await promiseAll(new List<object> {this.publicLinearGetFutureMarketV1PublicSymbolList(parameters), this.publicInverseGetFutureMarketV1PublicSymbolList(parameters)});
@@ -1468,7 +1468,7 @@ public partial class xt : Exchange
         //     }
         //
         object swapAndFutureMarkets = this.arrayConcat(this.safeList(getValue(markets, 0), "result", new List<object>() {}), this.safeList(getValue(markets, 1), "result", new List<object>() {}));
-        return this.parseMarkets(swapAndFutureMarkets);
+        return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(swapAndFutureMarkets));
     }
 
     public override object parseMarkets(object markets)
