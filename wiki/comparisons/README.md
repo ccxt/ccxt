@@ -1,12 +1,12 @@
 <!-- title: CCXT vs the alternatives: every crypto library and exchange SDK, compared -->
-<!-- description: One honest comparison per alternative — CCXT against cryptofeed and other multi-exchange libraries, and against the official SDK of every one of the 104 exchanges it supports. -->
+<!-- description: One honest comparison per alternative — CCXT against sixteen multi-exchange libraries, bots and engines, and against the official SDK of every one of the 104 exchanges it supports. -->
 <!-- weight: 0 -->
 
 # CCXT vs the alternatives
 
 Every crypto integration starts with the same decision: call the exchange's API directly, use its official SDK, reach for a specialist library — or build on [CCXT](/docs/manual), which speaks all of them behind one API.
 
-This is the index of that comparison, done one alternative at a time. **There is a page for every single exchange CCXT supports**, plus pages for the multi-exchange libraries people weigh CCXT against.
+This is the index of that comparison, done one alternative at a time. **There is a page for every single exchange CCXT supports**, plus sixteen for the multi-exchange libraries, trading bots, engines and data services people weigh CCXT against.
 
 They are written to be useful rather than promotional. Each one puts the same task side by side in both libraries, tables the concrete differences, and carries a section on **what the alternative does better**. Where a venue has no maintained SDK at all — which turned out to be true for a surprising number — the page says so and compares against the raw REST API instead of inventing a rival to knock down.
 
@@ -38,7 +38,7 @@ CCXT is MIT. Some alternatives are AGPL, which for commercial and SaaS work is a
 
 ## Every comparison
 
-Two kinds of page. **Multi-exchange libraries** are the tools people genuinely weigh CCXT against when choosing an architecture. **Exchange APIs and official SDKs** is one page per venue, comparing CCXT with whatever that exchange actually publishes. **Regional entities and product lines** covers the ten classes that inherit a parent exchange's implementation.
+Three kinds of page. **Multi-exchange libraries and frameworks** are the tools people genuinely weigh CCXT against when choosing an architecture rather than a venue — libraries that do the same job in another language, bots and engines that ship their own venue adapters, and data services that solve a neighbouring problem. **Exchange APIs and official SDKs** is one page per venue, comparing CCXT with whatever that exchange actually publishes. **Regional entities and product lines** covers the ten classes that inherit a parent exchange’s implementation.
 
 <!-- comparisons:list -->
 
