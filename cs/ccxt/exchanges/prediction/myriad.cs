@@ -420,7 +420,7 @@ public partial class myriad : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
      */
-    public async override Task<object> fetchEvent(string id, object parameters = null)
+    public async override Task<ccxt.PredictionEvent> FetchEvent(string id, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isLessThan(getIndexOf(id, ":"), 0)))
@@ -428,13 +428,13 @@ public partial class myriad : PredictionExchange
             object rawQuestion = ccxt.BaseExchange.FromDict(await this.FetchRawQuestionById(id, parameters));
             object orderBookEvent = this.parseEvent(rawQuestion);
             this.indexEventOutcomes(orderBookEvent);
-            return orderBookEvent;
+            return ccxt.BaseExchange.ToPredictionEvent(orderBookEvent);
         }
         object response = ccxt.BaseExchange.FromDict(await this.FetchRawMarketById(id, parameters));
         object market = this.parseMyriadMarket(response);
         object eventVar = this.parseMarketToEvent(response, market);
         this.indexEventOutcomes(eventVar);
-        return eventVar;
+        return ccxt.BaseExchange.ToPredictionEvent(eventVar);
     }
 
     /**
@@ -3377,7 +3377,7 @@ public partial class myriad : PredictionExchange
      * @param {string} [params.state] 'open', 'closed' or 'resolved', defaults to 'open'
      * @returns {object[]} an array of event structures
      */
-    public async override Task<object> fetchEvents(object parameters = null)
+    public async override Task<List<ccxt.PredictionEvent>> FetchEvents(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object allowUnscopedFetchEvents = this.safeBool(this.options, "allowUnscopedFetchEvents", false);
@@ -3504,7 +3504,7 @@ public partial class myriad : PredictionExchange
         // tags were already applied server-side (mapped to keyword searches); strip them before
         // the client-side pass — raw markets don't carry a matching event-level tags field
         object postParams = this.omit(parameters, new List<object>() {"tags"});
-        return this.applyEventFetchParams(result, postParams, queries);
+        return ccxt.BaseExchange.ToPredictionEventList(this.applyEventFetchParams(result, postParams, queries));
     }
 
     /**

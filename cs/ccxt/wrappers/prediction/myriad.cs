@@ -65,26 +65,6 @@ public partial class myriad
         return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
     }
     /// <summary>
-    /// fetches a single prediction-market event by its market id, or orderbook slug
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.myriad.markets/builders/myriad-api-reference"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure).</returns>
-    public async Task<PredictionEvent> FetchEvent(string id, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchEvent(id, parameters);
-        return new PredictionEvent(res);
-    }
-    /// <summary>
     /// fetches raw myriad question objects matching the given search terms via the questions keyword filter
     /// </summary>
     /// <remarks>
@@ -153,49 +133,5 @@ public partial class myriad
     {
         var res = await this.cancelAllOrders(outcome, parameters);
         return ((Dictionary<string, object>)res);
-    }
-    /// <summary>
-    /// fetches prediction-market events matching the given scope (query/queries/tags/eventId) and caches their markets and outcomes on the instance
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.myriad.markets/builders/myriad-api-reference"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra exchange-specific parameters
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.query</term>
-    /// <description>
-    /// string : a single search term; an eventId does a direct lookup and tags map to server-side keyword searches
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.eventId</term>
-    /// <description>
-    /// string : direct lookup by unified event id (composite networkId:marketId) like '56:170145' or questions path like '793bfc47-ddcd-47d2-aad5-52c7002fc823'
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.limit</term>
-    /// <description>
-    /// int : maximum number of markets per query, defaults to 50
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.state</term>
-    /// <description>
-    /// string : 'open', 'closed' or 'resolved', defaults to 'open'
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object[]</term> an array of event structures.</returns>
-    public async Task<List<PredictionEvent>> FetchEvents(Dictionary<string, object> parameters)
-    {
-        var res = await this.fetchEvents(parameters);
-        return ((IList<object>)res).Select(item => new PredictionEvent(item)).ToList<PredictionEvent>();
     }
 }

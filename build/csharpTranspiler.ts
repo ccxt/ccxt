@@ -260,9 +260,6 @@ const TYPED_CORES: Record<string, string> = {
     'fetchDerivativesMarketLeverageTiers': 'List<LeverageTier>',
     'fetchDerivativesOpenInterestHistory': 'List<OpenInterest>',
     'fetchExtendedAccount': 'Dictionary<string, object>',
-    // 'fetchEvent' is deliberately absent: PredictionEvent.markets is List<PredictionMarket>,
-    // which carries none of the unified market-interface keys (base/quote/spot/swap/precision
-    // /limits/...) the fixtures store on each nested market. See fetchEvents below.
     'fetchFinancialBalance': 'Balances',
     'fetchFreeBalance': 'Balance',
     'fetchFundingHistory': 'List<FundingHistory>',
@@ -561,9 +558,12 @@ const PREDICTION_TYPED_CORES: Record<string, string> = {
     'fetchAccounts': 'List<Account>',
     'fetchCanceledOrders': 'List<PredictionOrder>',
     'fetchClosedOrders': 'List<PredictionOrder>',
-    // 'fetchEvents' is deliberately absent for the same reason as 'fetchEvent': the nested
-    // PredictionMarket has no unified market-interface fields, so a typed core rewrites
-    // every nested market into a much narrower key set than the fixture stores.
+    // fetchEvent/fetchEvents/fetchEventsByQuery: the nested PredictionMarket carries the
+    // unified market-interface keys (base/quote/precision/limits/...) in its `extra` bag,
+    // which FromPredictionMarket writes back, so the round trip is lossless.
+    'fetchEvent': 'PredictionEvent',
+    'fetchEvents': 'List<PredictionEvent>',
+    'fetchEventsByQuery': 'List<Dictionary<string, object>>',
     // the fetchMarkets family is deliberately absent so it falls through to TYPED_CORES
     // 'List<MarketInterface>': FetchMarkets is declared on BaseExchange and C# overrides are
     // invariant, so the prediction tier cannot diverge (CS0508).

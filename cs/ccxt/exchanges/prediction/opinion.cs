@@ -412,7 +412,7 @@ public partial class opinion : PredictionExchange
      * @param {int} [params.limit] max number of events to fetch (paginated server-side; defaults to options.maxFetchEventsResults, 100)
      * @returns {object[]} an array of event structures
      */
-    public async override Task<object> fetchEvents(object parameters = null)
+    public async override Task<List<ccxt.PredictionEvent>> FetchEvents(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.requireEventQuery(parameters);
@@ -438,7 +438,7 @@ public partial class opinion : PredictionExchange
             object singleData = this.safeDict(singleResult, "data", new Dictionary<string, object>() {});
             object single = this.parseEvent(singleData);
             this.indexEventOutcomes(single);
-            return this.applyEventFetchParams(new List<object>() {single}, parameters, queries);
+            return ccxt.BaseExchange.ToPredictionEventList(this.applyEventFetchParams(new List<object>() {single}, parameters, queries));
         }
         object rest = this.omit(parameters, new List<object>() {"query", "queries", "tags", "status", "sort", "searchIn", "limit"});
         object pageLimit = this.safeInteger(this.options, "defaultFetchEventsLimit", 20);
@@ -508,7 +508,7 @@ public partial class opinion : PredictionExchange
             }
         }
         this.populateOutcomes();
-        return this.applyEventFetchParams(parsedEvents, parameters, queries);
+        return ccxt.BaseExchange.ToPredictionEventList(this.applyEventFetchParams(parsedEvents, parameters, queries));
     }
 
     /**
@@ -520,7 +520,7 @@ public partial class opinion : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
      */
-    public async override Task<object> fetchEvent(string id, object parameters = null)
+    public async override Task<ccxt.PredictionEvent> FetchEvent(string id, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         bool isSlug = (isGreaterThanOrEqual(getIndexOf(id, "-"), 0));
@@ -540,7 +540,7 @@ public partial class opinion : PredictionExchange
         object data = this.safeDict(result, "data", new Dictionary<string, object>() {});
         object eventVar = this.parseEvent(data);
         this.indexEventOutcomes(eventVar);
-        return eventVar;
+        return ccxt.BaseExchange.ToPredictionEvent(eventVar);
     }
 
     /**

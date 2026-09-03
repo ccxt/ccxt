@@ -6,29 +6,5 @@ namespace ccxt.prediction;
 public class  Hyperliquid: hyperliquid { public Hyperliquid(object args = null) : base(args) { } }
 public partial class hyperliquid
 {
-    /// <summary>
-    /// Groups outcome markets by their underlying (e.g. BTC_ABOVE_78213) into event structures. Each event contains both the YES and NO markets.
-    /// </summary>
-    /// <remarks>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.query</term>
-    /// <description>
-    /// string : a single query string to filter by (matches description/outcome)
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>PredictionEvent[]</term> array of event structures.</returns>
-    public async Task<List<PredictionEvent>> FetchEvents(Dictionary<string, object> parameters)
-    {
-        var res = await this.fetchEvents(parameters);
-        return ((IList<object>)res).Select(item => new PredictionEvent(item)).ToList<PredictionEvent>();
-    }
+
 }

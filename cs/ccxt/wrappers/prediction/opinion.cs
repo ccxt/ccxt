@@ -6,56 +6,5 @@ namespace ccxt.prediction;
 public class  Opinion: opinion { public Opinion(object args = null) : base(args) { } }
 public partial class opinion
 {
-    /// <summary>
-    /// fetches Opinion's categorical markets - scope required via query/queries/tags/eventId/slug/labelId
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.opinion.trade/developer-guide/opinion-open-api/market"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.labelId</term>
-    /// <description>
-    /// int : filter by opinion category label id
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.limit</term>
-    /// <description>
-    /// int : max number of events to fetch (paginated server-side; defaults to options.maxFetchEventsResults, 100)
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object[]</term> an array of event structures.</returns>
-    public async Task<List<PredictionEvent>> FetchEvents(Dictionary<string, object> parameters)
-    {
-        var res = await this.fetchEvents(parameters);
-        return ((IList<object>)res).Select(item => new PredictionEvent(item)).ToList<PredictionEvent>();
-    }
-    /// <summary>
-    /// fetches a single prediction-market event by its market id, or slug
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.opinion.trade/developer-guide/opinion-open-api/market"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure).</returns>
-    public async Task<PredictionEvent> FetchEvent(string id, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchEvent(id, parameters);
-        return new PredictionEvent(res);
-    }
+
 }

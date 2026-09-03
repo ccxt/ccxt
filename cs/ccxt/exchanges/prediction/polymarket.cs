@@ -2973,7 +2973,7 @@ public partial class polymarket : PredictionExchange
      * @param {int} [params.maxSearchPages] max search pages to fetch when no limit is given (default 5), bounding a broad query
      * @returns {object[]} an array of event structures
      */
-    public async override Task<object> fetchEvents(object parameters = null)
+    public async override Task<List<ccxt.PredictionEvent>> FetchEvents(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.requireEventQuery(parameters);
@@ -3074,7 +3074,7 @@ public partial class polymarket : PredictionExchange
             ((IDictionary<string,object>)effectiveParams)["status"] = this.safeString(parameters, "status", "active");
             ((IDictionary<string,object>)effectiveParams)["searchIn"] = this.safeString(parameters, "searchIn", "title");
         }
-        return this.applyEventFetchParams(result, effectiveParams, queries);
+        return ccxt.BaseExchange.ToPredictionEventList(this.applyEventFetchParams(result, effectiveParams, queries));
     }
 
     /**
@@ -3087,7 +3087,7 @@ public partial class polymarket : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
      */
-    public async override Task<object> fetchEvent(string id, object parameters = null)
+    public async override Task<ccxt.PredictionEvent> FetchEvent(string id, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object response = null;
@@ -3109,7 +3109,7 @@ public partial class polymarket : PredictionExchange
         }
         object eventVar = this.parseEvent(eventForParsing);
         this.indexEventOutcomes(eventVar);
-        return eventVar;
+        return ccxt.BaseExchange.ToPredictionEvent(eventVar);
     }
 
     public virtual object parseEvent(object rawEvent)

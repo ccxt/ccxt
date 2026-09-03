@@ -33,81 +33,6 @@ public partial class kalshi
         return ((IList<object>)res).Select(item => new PredictionOrder(item)).ToList<PredictionOrder>();
     }
     /// <summary>
-    /// fetches kalshi events scoped by a search query, tag, category or series ticker — always live from the API, never from the local cache (it POPULATES the cache for later event()/outcome lookups). the scope decides the endpoint: a free-text `query` hits kalshi's ranked search endpoint and the top `limit` matches are fetched canonically; `tags`/`category` resolve to series via the /series listing then fetch their events; `series_ticker` is used verbatim. `limit` bounds how many events are actually fetched (broad scopes stop early), and any other param is forwarded straight to the /events endpoint.
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.kalshi.com/api-reference/events/get-events"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint (unrecognised keys are forwarded to GET /events)
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.query</term>
-    /// <description>
-    /// string : free-text search resolved server-side via kalshi's series search endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.series_ticker</term>
-    /// <description>
-    /// string : one or more comma-separated kalshi series tickers (e.g. 'KXBTC') — used verbatim, no search
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.category</term>
-    /// <description>
-    /// string : a kalshi series category (e.g. 'Crypto') — resolved to series via the /series listing
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.status</term>
-    /// <description>
-    /// string : 'active' | 'inactive' | 'closed', defaults to options.defaultEventStatus
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.limit</term>
-    /// <description>
-    /// int : max number of events to return
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object[]</term> an array of event structures.</returns>
-    public async Task<List<PredictionEvent>> FetchEvents(Dictionary<string, object> parameters)
-    {
-        var res = await this.fetchEvents(parameters);
-        return ((IList<object>)res).Select(item => new PredictionEvent(item)).ToList<PredictionEvent>();
-    }
-    /// <summary>
-    /// resolves free-text queries to ranked event tickers via kalshi's search endpoint, then fetches the top `limit` events canonically (with nested markets)
-    /// </summary>
-    /// <remarks>
-    /// <list type="table">
-    /// <item>
-    /// <term>limit</term>
-    /// <description>
-    /// int : max number of events to fetch
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>rest</term>
-    /// <description>
-    /// object : extra params forwarded verbatim to the events endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object[]</term> raw kalshi event objects with nested markets.</returns>
-    public async Task<List<Dictionary<string, object>>> FetchEventsByQuery(List<string> queries, Int64 limit, Dictionary<string, object> rest = null)
-    {
-        var res = await this.fetchEventsByQuery(queries, limit, rest);
-        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
-    }
-    /// <summary>
     /// fetches the canonical events (with nested markets) of the given kalshi series, cursor-paginated per series and stopping once `limit` events are gathered
     /// </summary>
     /// <remarks>
@@ -131,25 +56,5 @@ public partial class kalshi
     {
         var res = await this.fetchSeriesEvents(seriesTickers, status, limit, rest);
         return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
-    }
-    /// <summary>
-    /// fetches a single prediction-market event by its event ticker
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://trading-api.readme.io/reference/getevent"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure).</returns>
-    public async Task<PredictionEvent> FetchEvent(string id, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchEvent(id, parameters);
-        return new PredictionEvent(res);
     }
 }

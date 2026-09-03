@@ -370,13 +370,13 @@ public partial class PredictionExchange : BaseExchange
         return result;
     }
 
-    public async virtual Task<object> fetchEvents(object parameters = null)
+    public async virtual Task<List<ccxt.PredictionEvent>> FetchEvents(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchEvents() is not supported yet")) ;
     }
 
-    public async virtual Task<object> fetchEvent(string id, object parameters = null)
+    public async virtual Task<ccxt.PredictionEvent> FetchEvent(string id, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchEvent() is not supported yet")) ;
@@ -452,7 +452,7 @@ public partial class PredictionExchange : BaseExchange
         {
             return this.events;
         }
-        object events = await this.fetchEvents(parameters);
+        object events = ccxt.BaseExchange.FromPredictionEventList(await this.FetchEvents(parameters));
         return this.setEvents(events);
     }
 
@@ -1018,10 +1018,7 @@ public partial class PredictionExchange : BaseExchange
             object searchLimit = this.safeInteger(this.options, "fetchOutcomeSearchLimit", 10);
             try
             {
-                await this.fetchEvents(new Dictionary<string, object>() {
-                    { "query", searchQuery },
-                    { "limit", searchLimit },
-                });
+                ccxt.BaseExchange.FromPredictionEventList(await this.FetchEvents(new Dictionary<string, object>() { { "query", searchQuery }, { "limit", searchLimit }, }));
             } catch(Exception e)
             {
                 // a query with zero matches surfaces as BadSymbol on some venues — treat it as a
@@ -2116,16 +2113,6 @@ public partial class PredictionExchange : BaseExchange
 
 public partial class PredictionExchange
 {
-    public async Task<List<PredictionEvent>> FetchEvents(Dictionary<string, object> parameters)
-    {
-        var res = await this.fetchEvents(parameters);
-        return ((IList<object>)res).Select(item => new PredictionEvent(item)).ToList<PredictionEvent>();
-    }
-    public async Task<PredictionEvent> FetchEvent(string id, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchEvent(id, parameters);
-        return new PredictionEvent(res);
-    }
     public Dictionary<string, Market> SetMarkets(object markets, object currencies = null)
     {
         var res = this.setMarkets(markets, currencies);

@@ -187,7 +187,7 @@ public partial class binance : PredictionExchange
         if (isTrue(isGreaterThan(queriesLength, 0)))
         {
             object eventParams = this.omit(parameters, new List<object>() {"limit"});
-            object events = await this.fetchEvents(eventParams);
+            object events = ccxt.BaseExchange.FromPredictionEventList(await this.FetchEvents(eventParams));
             int eventsLength = getArrayLength(events);
             object queryMarkets = new List<object>() {};
             for (object ei = 0; isLessThan(ei, eventsLength); postFixIncrement(ref ei))
@@ -390,7 +390,7 @@ public partial class binance : PredictionExchange
      * @param {string} [params.orderBy] order events by server side ('ASC' | 'DESC'), works when no queries and eveitId provided
      * @returns {object[]} a list of [prediction event structures](https://docs.ccxt.com/#/?id=prediction-event-structure)
      */
-    public async override Task<object> fetchEvents(object parameters = null)
+    public async override Task<List<ccxt.PredictionEvent>> FetchEvents(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object allowUnscopedFetchEvents = this.safeBool(this.options, "allowUnscopedFetchEvents", false);
@@ -430,7 +430,7 @@ public partial class binance : PredictionExchange
         object rawTopics = new List<object>() {};
         if (isTrue(isGreaterThan(allQueriesLength, 0)))
         {
-            rawTopics = await this.fetchEventsByQuery(allQueries,ccxt.BaseExchange.ToInt64ArgRequired(fetchCap), rest);
+            rawTopics = ccxt.BaseExchange.FromDictList(await this.FetchEventsByQuery(allQueries,ccxt.BaseExchange.ToInt64ArgRequired(fetchCap), rest));
         } else if (isTrue(!isEqual(eventId, null)))
         {
             object detail = ccxt.BaseExchange.FromDict(await this.FetchRawTopicDetail(eventId, rest));
@@ -493,7 +493,7 @@ public partial class binance : PredictionExchange
         // binance topics lack, and the query filter would drop semantic-search matches whose
         // title uses different words than the query
         object postParams = this.omit(parameters, new List<object>() {"tags", "l1Category", "l2Category"});
-        return this.applyEventFetchParams(result, postParams, new List<object>() {});
+        return ccxt.BaseExchange.ToPredictionEventList(this.applyEventFetchParams(result, postParams, new List<object>() {}));
     }
 
     /**
@@ -507,7 +507,7 @@ public partial class binance : PredictionExchange
      * @param {object} [rest] extra params forwarded verbatim to the search endpoint
      * @returns {object[]} raw market topic objects with usable nested markets
      */
-    public async virtual Task<object> fetchEventsByQuery(object queries, Int64 limit, object rest = null)
+    public async virtual Task<List<Dictionary<string, object>>> FetchEventsByQuery(object queries, Int64 limit, object rest = null)
     {
         object limitVar = limit;
         rest ??= new Dictionary<string, object>();
@@ -562,7 +562,7 @@ public partial class binance : PredictionExchange
         {
             capped = this.arraySlice(collected, 0, limitVar);
         }
-        return await this.completeRawTopics(capped);
+        return ccxt.BaseExchange.ToDictList(await this.completeRawTopics(capped));
     }
 
     /**
@@ -574,13 +574,11 @@ public partial class binance : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
      */
-    public async override Task<object> fetchEvent(string id, object parameters = null)
+    public async override Task<ccxt.PredictionEvent> FetchEvent(string id, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object events = await this.fetchEvents(this.extend(new Dictionary<string, object>() {
-            { "eventId", id },
-        }, parameters));
-        return this.safeDict(events, 0);
+        object events = ccxt.BaseExchange.FromPredictionEventList(await this.FetchEvents(this.extend(new Dictionary<string, object>() { { "eventId", id }, }, parameters)));
+        return ccxt.BaseExchange.ToPredictionEvent(this.safeDict(events, 0));
     }
 
     /**

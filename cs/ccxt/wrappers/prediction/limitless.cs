@@ -7,26 +7,6 @@ public class  Limitless: limitless { public Limitless(object args = null) : base
 public partial class limitless
 {
     /// <summary>
-    /// fetches a single prediction-market event by its market slug or address
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.limitless.exchange/api-reference/markets/get-market"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure).</returns>
-    public async Task<PredictionEvent> FetchEvent(string id, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchEvent(id, parameters);
-        return new PredictionEvent(res);
-    }
-    /// <summary>
     /// cancels all open orders for one market slug
     /// </summary>
     /// <remarks>
@@ -57,44 +37,6 @@ public partial class limitless
     {
         var res = await this.cancelAllOrders(outcome, parameters);
         return ((IList<object>)res).Select(item => new PredictionOrder(item)).ToList<PredictionOrder>();
-    }
-    /// <summary>
-    /// fetches prediction-market events matching the given scope (query/queries/tags/eventId/slug — required) and caches their markets and outcomes on the instance
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.limitless.exchange/api-reference/markets/search"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra exchange-specific parameters
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.query</term>
-    /// <description>
-    /// string : a single search term; an eventId/slug does a direct lookup and tags resolve to limitless categories, paging only those categories' listings
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.eventId</term>
-    /// <description>
-    /// string : direct lookup by market address or slug
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.limit</term>
-    /// <description>
-    /// int : maximum number of markets per query, defaults to 50
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object[]</term> an array of event structures.</returns>
-    public async Task<List<PredictionEvent>> FetchEvents(Dictionary<string, object> parameters)
-    {
-        var res = await this.fetchEvents(parameters);
-        return ((IList<object>)res).Select(item => new PredictionEvent(item)).ToList<PredictionEvent>();
     }
     /// <summary>
     /// pages the active-markets listing (or a single category's listing), bounded by limit (or options.fetchMarketsLimit)

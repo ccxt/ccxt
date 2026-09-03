@@ -4710,6 +4710,13 @@ public partial class BaseExchange
         {
             result["info"] = typed.info;
         }
+        if (typed.extra != null)
+        {
+            foreach (var pair in typed.extra)
+            {
+                result[pair.Key] = pair.Value;
+            }
+        }
         return result;
     }
 
@@ -4898,6 +4905,13 @@ public partial class BaseExchange
         if (typed.info != null)
         {
             result["info"] = typed.info;
+        }
+        if (typed.extra != null)
+        {
+            foreach (var pair in typed.extra)
+            {
+                result[pair.Key] = pair.Value;
+            }
         }
         return result;
     }
@@ -5241,6 +5255,13 @@ public partial class BaseExchange
         if (typed.info != null)
         {
             result["info"] = typed.info;
+        }
+        if (typed.extra != null)
+        {
+            foreach (var pair in typed.extra)
+            {
+                result[pair.Key] = pair.Value;
+            }
         }
         return result;
     }
