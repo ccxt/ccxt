@@ -1856,6 +1856,19 @@
                 "input": [
                     "BTC/USDT:USDT"
                 ]
+            },
+            {
+                "description": "funding rate history with since, capped limit, and until",
+                "method": "fetchFundingRateHistory",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/quote/fundingRate?endTime=1721961000000&limit=1000&startTime=1721356200000&symbol=BTC-USDT&timestamp=1709992987329",
+                "input": [
+                    "BTC/USDT:USDT",
+                    1721356200000,
+                    1500,
+                    {
+                        "until": 1721961000000
+                    }
+                ]
             }
         ],
         "fetchFundingRate": [
