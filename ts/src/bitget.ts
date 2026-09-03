@@ -1937,7 +1937,7 @@ export default class bitget extends Exchange {
             // use the api to determine if the account is uta or not
             let accountIsUTa = false;
             try {
-                await this.privateUtaGetV3AccountSettings (params);
+                await this.privateUtaGetV3AccountSettings ();
                 accountIsUTa = true;
             } catch (e) {
                 accountIsUTa = false;
