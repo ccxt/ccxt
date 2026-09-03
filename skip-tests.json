@@ -1973,7 +1973,7 @@
                 "checkActiveSymbols": "bare fetchTickers() covers only a fraction of active markets, measured 2026-09-03: 468/4564 (swap default) and 1388/4564 (spot default); recheck 2026-12-01"
             },
             "watchOrderBook": {
-                "nonce": "root cause: handleOrderBookMessage (pro/okx.ts) falls through after client.reject on InvalidNonce instead of returning; live-verified 3/3 clean runs on 2026-09-03 so the failure is rare/timing-dependent, keep skipped until the reject-flow fix (planned separately) lands; recheck 2026-12-01"
+                "nonce": "root cause: handleOrderBookMessage (pro/okx.ts:~1436) is missing a return after client.reject on InvalidNonce, so it falls through and both callers then client.resolve the same rejected messageHash; live-verified 3/3 clean runs on 2026-09-03 so the failure is rare/timing-dependent, keep skipped until the missing-return fix (planned separately) lands; recheck 2026-12-01"
             }
         }
     },
