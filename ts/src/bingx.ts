@@ -3926,7 +3926,7 @@ export default class bingx extends Exchange {
                     feeCurrencyCode = market['quote'];
                 }
             } else {
-                feeCurrencyCode = market['quote'];
+                feeCurrencyCode = (market['inverse'] === true) ? market['settle'] : market['quote'];
             }
         }
         let stopLoss = this.safeValue (order, 'stopLoss');
