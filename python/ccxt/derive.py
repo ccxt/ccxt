@@ -1209,6 +1209,7 @@ class derive(Exchange, ImplicitAPI):
         postOnly = self.safe_bool(params, 'postOnly')
         orderType = type.lower()
         orderSide = side.lower()
+        orderSideIsBuy = (orderSide == 'buy')  # extracted to a named local: the Rust transpiler can't lower a bare `==` bool inside a list literal(ethAbiEncode args)
         nonce = self.milliseconds()
         # Order signature expiry must be between 2592000 and 7776000 sec from now
         signatureExpiry = self.safe_integer(params, 'signature_expiry_sec', self.seconds() + 7776000)
@@ -1231,7 +1232,7 @@ class derive(Exchange, ImplicitAPI):
             self.convert_to_big_int((self.parse_units((self.amount_to_precision(symbol, amountString))))),
             self.convert_to_big_int((self.parse_units(maxFeeString))),
             subaccountId,
-            orderSide == 'buy',
+            orderSideIsBuy,
         ]), 'keccak', 'binary')
         deriveWalletAddress = None
         deriveWalletAddress, params = self.handle_derive_wallet_address('createOrder', params)
@@ -1390,6 +1391,7 @@ class derive(Exchange, ImplicitAPI):
         postOnly = self.safe_bool(params, 'postOnly')
         orderType = type.lower()
         orderSide = side.lower()
+        orderSideIsBuy = (orderSide == 'buy')  # extracted to a named local: the Rust transpiler can't lower a bare `==` bool inside a list literal(ethAbiEncode args)
         nonce = self.milliseconds()
         signatureExpiry = self.safe_number(params, 'signature_expiry_sec', self.seconds() + 7776000)
         # TODO: subaccount id / trade module address
@@ -1408,7 +1410,7 @@ class derive(Exchange, ImplicitAPI):
             self.convert_to_big_int((self.parse_units((self.amount_to_precision(symbol, amountString))))),
             self.convert_to_big_int((self.parse_units(maxFeeString))),
             subaccountId,
-            orderSide == 'buy',
+            orderSideIsBuy,
         ]), 'keccak', 'binary')
         deriveWalletAddress = None
         deriveWalletAddress, params = self.handle_derive_wallet_address('editOrder', params)

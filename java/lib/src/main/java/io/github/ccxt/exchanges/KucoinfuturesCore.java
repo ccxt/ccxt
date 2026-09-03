@@ -66,7 +66,8 @@ public class KucoinfuturesCore extends KucoinfuturesApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "method", "futuresPublicGetAllTickers" );
             }};
-            return (this.fetchTickers(symbols, this.extend(request, parameters))).join();
+            Object extendedRequest = this.extend(request, parameters);
+            return (this.fetchTickers(symbols, extendedRequest)).join();
         });
 
     }

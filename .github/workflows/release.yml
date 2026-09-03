@@ -216,6 +216,54 @@ jobs:
           ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.ORG_GRADLE_PROJECT_mavenCentralUsername }}
           ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.ORG_GRADLE_PROJECT_mavenCentralPassword }}
         run: npm run publishJava
+      - name: Install Rust toolchain
+        run: |
+          if ! command -v cargo >/dev/null 2>&1 && [ ! -x "$HOME/.cargo/bin/cargo" ]; then
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable --profile minimal
+          fi
+          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+      - name: Generate Rust sources
+        run: npm run transpileRust
+      - name: Publish Rust crates
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        run: |
+          set -e
+          # `--allow-dirty` is required, not a shortcut: the transpiled Rust
+          # output is generated at build time and deliberately not committed,
+          # and cargo lists package files from git. Without it the crates would
+          # publish missing every exchange.
+          #
+          # ccxt-base first — the other three depend on it, and crates.io will
+          # reject them until its version is live in the index. `cargo publish`
+          # waits for the index by default; the retry loop covers the window
+          # where propagation is slower than that wait.
+          #
+          # NPM_VERSION comes from `npm version` and is prefixed with a "v"
+          # (v4.5.x); crates.io versions are bare, so strip it before matching
+          # against `cargo search` output.
+          CRATE_VERSION="${NPM_VERSION#v}"
+          publish () {
+            local crate="$1"
+            for attempt in 1 2 3 4 5; do
+              if cargo publish -p "$crate" --allow-dirty --manifest-path rust/Cargo.toml; then
+                echo "published $crate"
+                return 0
+              fi
+              if cargo search "$crate" | grep -q "^$crate = \"${CRATE_VERSION}\""; then
+                echo "$crate ${CRATE_VERSION} already on crates.io, continuing"
+                return 0
+              fi
+              echo "publish $crate failed (attempt $attempt), retrying in 30s…"
+              sleep 30
+            done
+            echo "could not publish $crate"
+            return 1
+          }
+          publish ccxt-base
+          publish ccxt
+          publish ccxt-pro
+          publish ccxt-prediction
       - name: Publish Go node_modules
         env:
           VERSION: ${{ env.NPM_VERSION }}

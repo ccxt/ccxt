@@ -4350,10 +4350,10 @@ func (this *OkxCore) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 	var triggerPrice any = this.SafeValueN(params, []any{"triggerPrice", "stopPrice", "triggerPx"})
 	var timeInForce any = this.SafeString(params, "timeInForce", "GTC")
 	// const takeProfitPrice = this.safeValue2 (params, 'takeProfitPrice', 'tpTriggerPx');
-	var tpOrdPx any = this.SafeValue(params, "tpOrdPx", price)
+	var tpOrdPx any = this.SafeNumber(params, "tpOrdPx", price)
 	var tpTriggerPxType any = this.SafeString(params, "tpTriggerPxType", "last")
 	// const stopLossPrice = this.safeValue2 (params, 'stopLossPrice', 'slTriggerPx');
-	var slOrdPx any = this.SafeValue(params, "slOrdPx", price)
+	var slOrdPx any = this.SafeNumber(params, "slOrdPx", price)
 	var slTriggerPxType any = this.SafeString(params, "slTriggerPxType", "last")
 	var clientOrderId any = this.SafeString2(params, "clOrdId", "clientOrderId")
 	var stopLoss any = this.SafeValue(params, "stopLoss")
@@ -4365,7 +4365,7 @@ func (this *OkxCore) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 	var trailingPrice any = this.SafeString2(params, "trailingPrice", "callbackSpread")
 	var isTrailingPriceOrder any = !IsEqual(trailingPrice, nil)
 	var trigger bool = IsTrue((!IsEqual(triggerPrice, nil))) || IsTrue((IsEqual(typeVar, "trigger")))
-	var isReduceOnly bool = IsTrue((IsEqual(this.SafeValue(params, "reduceOnly", false), true))) || IsTrue((!IsEqual(closeFraction, nil)))
+	var isReduceOnly bool = IsTrue((IsEqual(this.SafeBool(params, "reduceOnly", false), true))) || IsTrue((!IsEqual(closeFraction, nil)))
 	var defaultMarginMode any = this.SafeString2(this.Options, "defaultMarginMode", "marginMode", "cross")
 	var marginMode any = this.SafeString2(params, "marginMode", "tdMode") // cross or isolated, tdMode not omitted so as to be extended into the request
 	var margin any = false
@@ -4806,11 +4806,11 @@ func (this *OkxCore) EditOrderRequest(id any, symbol any, typeVar any, side any,
 			AddElementToObject(request, "ordId", id)
 		}
 	}
-	var stopLossTriggerPrice any = this.SafeValue2(params, "stopLossPrice", "newSlTriggerPx")
-	var stopLossPrice any = this.SafeValue(params, "newSlOrdPx")
+	var stopLossTriggerPrice any = this.SafeNumber2(params, "stopLossPrice", "newSlTriggerPx")
+	var stopLossPrice any = this.SafeNumber(params, "newSlOrdPx")
 	var stopLossTriggerPriceType any = this.SafeString(params, "newSlTriggerPxType", "last")
-	var takeProfitTriggerPrice any = this.SafeValue2(params, "takeProfitPrice", "newTpTriggerPx")
-	var takeProfitPrice any = this.SafeValue(params, "newTpOrdPx")
+	var takeProfitTriggerPrice any = this.SafeNumber2(params, "takeProfitPrice", "newTpTriggerPx")
+	var takeProfitPrice any = this.SafeNumber(params, "newTpOrdPx")
 	var takeProfitTriggerPriceType any = this.SafeString(params, "newTpTriggerPxType", "last")
 	var stopLoss any = this.SafeValue(params, "stopLoss")
 	var takeProfit any = this.SafeValue(params, "takeProfit")
@@ -4848,16 +4848,16 @@ func (this *OkxCore) EditOrderRequest(id any, symbol any, typeVar any, side any,
 			AddElementToObject(request, "newTpTriggerPxType", takeProfitTriggerPriceType)
 		}
 		if IsTrue(hasStopLoss) {
-			stopLossTriggerPrice = this.SafeValue(stopLoss, "triggerPrice")
-			stopLossPrice = this.SafeValue(stopLoss, "price")
+			stopLossTriggerPrice = this.SafeNumber(stopLoss, "triggerPrice")
+			stopLossPrice = this.SafeNumber(stopLoss, "price")
 			var stopLossType any = this.SafeString(stopLoss, "type")
 			AddElementToObject(request, "newSlTriggerPx", this.PriceToPrecision(symbol, stopLossTriggerPrice))
 			AddElementToObject(request, "newSlOrdPx", Ternary(IsTrue((IsEqual(stopLossType, "market"))), "-1", this.PriceToPrecision(symbol, stopLossPrice)))
 			AddElementToObject(request, "newSlTriggerPxType", stopLossTriggerPriceType)
 		}
 		if IsTrue(hasTakeProfit) {
-			takeProfitTriggerPrice = this.SafeValue(takeProfit, "triggerPrice")
-			takeProfitPrice = this.SafeValue(takeProfit, "price")
+			takeProfitTriggerPrice = this.SafeNumber(takeProfit, "triggerPrice")
+			takeProfitPrice = this.SafeNumber(takeProfit, "price")
 			var takeProfitType any = this.SafeString(takeProfit, "type")
 			AddElementToObject(request, "newTpOrdKind", Ternary(IsTrue((IsEqual(takeProfitType, "limit"))), takeProfitType, "condition"))
 			AddElementToObject(request, "newTpTriggerPx", this.PriceToPrecision(symbol, takeProfitTriggerPrice))
@@ -5027,7 +5027,7 @@ func (this *OkxCore) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 	response := (<-this.PrivatePostTradeCancelOrder(this.Extend(request, query)))
 	PanicOnError(response)
 	// {"code":"0","data":[{"clOrdId":"","ordId":"317251910906576896","sCode":"0","sMsg":""}],"msg":""}
-	var data any = this.SafeValue(response, "data", []any{})
+	var data any = this.SafeList(response, "data", []any{})
 	var order any = this.SafeDict(data, 0)
 
 	ch <- this.ParseOrder(order, market)
@@ -5084,7 +5084,7 @@ func (this *OkxCore) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any)
 	}
 	var market any = this.Market(symbol)
 	var request any = []any{}
-	var options any = this.SafeValue(this.Options, "cancelOrders", map[string]any{})
+	var options any = this.SafeDict(this.Options, "cancelOrders", map[string]any{})
 	var defaultMethod any = this.SafeString(options, "method", "privatePostTradeCancelBatchOrders")
 	var method any = this.SafeString(params, "method", defaultMethod)
 	var clientOrderIds any = this.ParseIds(this.SafeValue2(params, "clOrdId", "clientOrderId"))
@@ -5667,7 +5667,7 @@ func (this *OkxCore) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 		"instId": GetValue(market, "id"),
 	}
 	var clientOrderId any = this.SafeString2(params, "clOrdId", "clientOrderId")
-	var options any = this.SafeValue(this.Options, "fetchOrder", map[string]any{})
+	var options any = this.SafeDict(this.Options, "fetchOrder", map[string]any{})
 	var defaultMethod any = this.SafeString(options, "method", "privateGetTradeOrder")
 	var method any = this.SafeString(params, "method", defaultMethod)
 	var trigger any = this.SafeValue2(params, "stop", "trigger")
@@ -5793,7 +5793,7 @@ func (this *OkxCore) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 	//         ]
 	//     }
 	//
-	var data any = this.SafeValue(response, "data", []any{})
+	var data any = this.SafeList(response, "data", []any{})
 	var order any = this.SafeDict(data, 0)
 
 	ch <- this.ParseOrder(order, market)
@@ -5859,8 +5859,8 @@ func (this *OkxCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	if IsTrue(!IsEqual(limit, nil)) {
 		AddElementToObject(request, "limit", mathMin(limit, maxLimit)) // default 100, max 100
 	}
-	var options any = this.SafeValue(this.Options, "fetchOpenOrders", map[string]any{})
-	var algoOrderTypes any = this.SafeValue(this.Options, "algoOrderTypes", map[string]any{})
+	var options any = this.SafeDict(this.Options, "fetchOpenOrders", map[string]any{})
+	var algoOrderTypes any = this.SafeDict(this.Options, "algoOrderTypes", map[string]any{})
 	var defaultMethod any = this.SafeString(options, "method", "privateGetTradeOrdersPending")
 	var method any = this.SafeString(params, "method", defaultMethod)
 	var ordType any = this.SafeString(params, "ordType")
@@ -6041,8 +6041,8 @@ func (this *OkxCore) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) a
 		AddElementToObject(request, "limit", limit) // default 100, max 100
 	}
 	AddElementToObject(request, "state", "canceled")
-	var options any = this.SafeValue(this.Options, "fetchCanceledOrders", map[string]any{})
-	var algoOrderTypes any = this.SafeValue(this.Options, "algoOrderTypes", map[string]any{})
+	var options any = this.SafeDict(this.Options, "fetchCanceledOrders", map[string]any{})
+	var algoOrderTypes any = this.SafeDict(this.Options, "algoOrderTypes", map[string]any{})
 	var defaultMethod any = this.SafeString(options, "method", "privateGetTradeOrdersHistory")
 	var method any = this.SafeString(params, "method", defaultMethod)
 	var ordType any = this.SafeString(params, "ordType")
@@ -6808,16 +6808,16 @@ func (this *OkxCore) ParseDepositAddress(depositAddress any, optionalArgs ...any
 	var address any = this.SafeString(depositAddress, "addr")
 	var tag any = this.SafeStringN(depositAddress, []any{"tag", "pmtId", "memo"})
 	if IsTrue(IsEqual(tag, nil)) {
-		var addrEx any = this.SafeValue(depositAddress, "addrEx", map[string]any{})
+		var addrEx any = this.SafeDict(depositAddress, "addrEx", map[string]any{})
 		tag = this.SafeString(addrEx, "comment")
 	}
 	var currencyId any = this.SafeString(depositAddress, "ccy")
 	currency = this.SafeCurrency(currencyId, currency)
 	var code any = GetValue(currency, "code")
 	var chain any = this.SafeString(depositAddress, "chain")
-	var networks any = this.SafeValue(currency, "networks", map[string]any{})
+	var networks any = this.SafeDict(currency, "networks", map[string]any{})
 	var networksById map[string]any = this.IndexBy(networks, "id")
-	var networkData any = Ternary(IsTrue((IsEqual(chain, nil))), nil, this.SafeValue(networksById, chain))
+	var networkData any = Ternary(IsTrue((IsEqual(chain, nil))), nil, this.SafeDict(networksById, chain))
 	// inconsistent naming responses from exchange
 	// with respect to network naming provided in currency info vs address chain-names and ids
 	//
@@ -6860,7 +6860,7 @@ func (this *OkxCore) ParseDepositAddress(depositAddress any, optionalArgs ...any
 	//     },
 	//
 	if IsTrue(IsEqual(chain, "USDT-Polygon")) {
-		networkData = this.SafeValue2(networksById, "USDT-Polygon-Bridge", "USDT-Polygon")
+		networkData = this.SafeDict2(networksById, "USDT-Polygon-Bridge", "USDT-Polygon")
 	}
 	var network any = this.SafeString(networkData, "network")
 	var networkCode any = this.NetworkIdToCode(network, code)
@@ -7223,7 +7223,7 @@ func (this *OkxCore) fetchDepositBody(ch chan any, id any, optionalArgs ...any) 
 
 	response := (<-this.PrivateGetAssetDepositHistory(this.Extend(request, params)))
 	PanicOnError(response)
-	var data any = this.SafeValue(response, "data")
+	var data any = this.SafeList(response, "data")
 	var deposit any = this.SafeDict(data, 0, map[string]any{})
 
 	ch <- this.ParseTransaction(deposit, currency)
@@ -10286,7 +10286,7 @@ func (this *OkxCore) ParseDepositWithdrawFees(response any, optionalArgs ...any)
 		var currencyId any = this.SafeString(feeInfo, "ccy")
 		var code any = this.SafeCurrencyCode(currencyId)
 		if IsTrue(IsTrue((!IsEqual(code, nil))) && IsTrue((IsTrue((IsEqual(codes, nil))) || IsTrue((this.InArray(code, codes)))))) {
-			var depositWithdrawFee any = this.SafeValue(depositWithdrawFees, code)
+			var depositWithdrawFee any = this.SafeDict(depositWithdrawFees, code)
 			if IsTrue(IsEqual(depositWithdrawFee, nil)) {
 				AddElementToObject(depositWithdrawFees, code, this.DepositWithdrawFee(map[string]any{}))
 			}
@@ -10298,7 +10298,7 @@ func (this *OkxCore) ParseDepositWithdrawFees(response any, optionalArgs ...any)
 				continue
 			}
 			var chainSplit []string = Split(chain, "-")
-			var networkId any = this.SafeValue(chainSplit, 1)
+			var networkId any = this.SafeString(chainSplit, 1)
 			var withdrawFee any = this.SafeNumber(feeInfo, "fee")
 			var withdrawResult map[string]any = map[string]any{
 				"fee":        withdrawFee,

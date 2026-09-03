@@ -50,7 +50,8 @@ class kucoinfutures(kucoin, ImplicitAPI):
         request = {
             'method': 'futuresPublicGetAllTickers',
         }
-        return self.fetch_tickers(symbols, self.extend(request, params))
+        extendedRequest = self.extend(request, params)
+        return self.fetch_tickers(symbols, extendedRequest)
 
     def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """

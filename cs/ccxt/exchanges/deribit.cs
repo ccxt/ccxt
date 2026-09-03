@@ -3733,7 +3733,10 @@ public partial class deribit : Exchange
         if (isTrue(paginate))
         {
             // fix for: https://github.com/ccxt/ccxt/issues/25040
-            return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, sinceVar, limit, eachItemDuration, this.extend(parameters, new Dictionary<string, object>() {                 { "isDeribitPaginationCall", true },             }), maxEntriesPerRequest));
+            Dictionary<string, object> paginationParams = this.extend(parameters, new Dictionary<string, object>() {
+                { "isDeribitPaginationCall", true },
+            });
+            return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, sinceVar, limit, eachItemDuration, paginationParams, maxEntriesPerRequest));
         }
         object duration = multiply(this.parseTimeframe(eachItemDuration), 1000);
         object time = this.milliseconds();

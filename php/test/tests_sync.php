@@ -1333,6 +1333,15 @@ class testMainClass {
         //  -----------------------------------------------------------------------------
         //  --- Init of static tests functions------------------------------------------
         //  -----------------------------------------------------------------------------
+        // Fast path: the error message is only consumed when the assertion
+        // fails, but `jsonStringify` of the (possibly large) computed and
+        // stored outputs happens here on EVERY leaf/branch comparison.
+        // That is cheap in JS but O(tree²) in the Rust port (each level
+        // re-serialises its whole subtree) — it made `--responseTests`
+        // take minutes. Bail out before stringifying when the check holds.
+        if ($cond) {
+            return;
+        }
         $calculated_string = json_stringify($calculated_output);
         $stored_string = json_stringify($stored_output);
         $error_message = $message;
@@ -1558,7 +1567,14 @@ class testMainClass {
                 }
                 $stored_value = $stored_output[$key];
                 $new_value = $new_output[$key];
-                $this->assert_new_and_stored_output($exchange, $skip_keys, $new_value, $stored_value, $strict_type_check, $key);
+                // Recurse into the *inner* (non-try/catch) variant: the
+                // wrapper's try/catch is only for top-level failure
+                // reporting, and in the Rust port it transpiles to a
+                // `catch_unwind` per node — setting that up at every one
+                // of a result's thousands of nodes made `--responseTests`
+                // take minutes. A failure still unwinds to the single
+                // top-level wrapper.
+                $this->assert_new_and_stored_output_inner($exchange, $skip_keys, $new_value, $stored_value, $strict_type_check, $key);
             }
         } elseif (($stored_output !== null) && ($new_output !== null) && gettype($stored_output) === 'array' && array_is_list($stored_output) && (gettype($new_output) === 'array' && array_is_list($new_output))) {
             $stored_array_length = count($stored_output);
@@ -1567,7 +1583,7 @@ class testMainClass {
             for ($i = 0; $i < count($stored_output); $i++) {
                 $stored_item = $stored_output[$i];
                 $new_item = $new_output[$i];
-                $this->assert_new_and_stored_output($exchange, $skip_keys, $new_item, $stored_item, $strict_type_check);
+                $this->assert_new_and_stored_output_inner($exchange, $skip_keys, $new_item, $stored_item, $strict_type_check);
             }
         } else {
             // built-in types like strings, numbers, booleans
@@ -2164,6 +2180,10 @@ class testMainClass {
                 if (($is_disabled_go === true) && ($this->lang === 'GO')) {
                     continue;
                 }
+                $is_disabled_rust = $exchange->safe_bool($result, 'disabledRS', false);
+                if ($is_disabled_rust && ($this->lang === 'RUST')) {
+                    continue;
+                }
                 $is_disabled_java = $exchange->safe_bool($result, 'disabledJava', false);
                 if (($is_disabled_java === true) && ($this->lang === 'java')) {
                     continue;
@@ -2234,6 +2254,10 @@ class testMainClass {
                 if (($is_disabled_go === true) && ($this->lang === 'GO')) {
                     continue;
                 }
+                $is_disabled_rust = $exchange->safe_bool($result, 'disabledRS', false);
+                if ($is_disabled_rust && ($this->lang === 'RUST')) {
+                    continue;
+                }
                 $is_disabled_java = $exchange->safe_bool($result, 'disabledJava', false);
                 if (($is_disabled_java === true) && ($this->lang === 'java')) {
                     continue;
@@ -2294,6 +2318,11 @@ class testMainClass {
         $is_disabled_go = $exchange->safe_bool($exchange_data, 'disabledGO', false);
         if (($is_disabled_go === true) && ($this->lang === 'GO')) {
             dump('[TEST_WARNING] Exchange ' . $exchange_name . ' is disabled in go');
+            return true;
+        }
+        $is_disabled_rust = $exchange->safe_bool($exchange_data, 'disabledRS', false);
+        if ($is_disabled_rust && ($this->lang === 'RUST')) {
+            dump('[TEST_WARNING] Exchange ' . $exchange_name . ' is disabled in rust');
             return true;
         }
         $is_disabled_java = $exchange->safe_bool($exchange_data, 'disabledJava', false);

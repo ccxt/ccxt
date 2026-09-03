@@ -9011,6 +9011,9 @@ final Object finalMinNotional = minNotional;
                     if (Helpers.isTrue(!Helpers.isEqual(marginMode, null)))
                     {
                         productType = "MARGIN";
+                    } else
+                    {
+                        productType = "SPOT";
                     }
                 }
                 Helpers.addElementToObject(request, "category", productType);

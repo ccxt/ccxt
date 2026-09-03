@@ -1580,6 +1580,16 @@ public partial class testMainClass
         //  -----------------------------------------------------------------------------
         //  --- Init of static tests functions------------------------------------------
         //  -----------------------------------------------------------------------------
+        // Fast path: the error message is only consumed when the assertion
+        // fails, but `jsonStringify` of the (possibly large) computed and
+        // stored outputs happens here on EVERY leaf/branch comparison.
+        // That is cheap in JS but O(tree²) in the Rust port (each level
+        // re-serialises its whole subtree) — it made `--responseTests`
+        // take minutes. Bail out before stringifying when the check holds.
+        if (isTrue(cond))
+        {
+            return;
+        }
         object calculatedString = jsonStringify(calculatedOutput);
         object storedString = jsonStringify(storedOutput);
         object errorMessage = message;
@@ -1852,7 +1862,14 @@ public partial class testMainClass
                 }
                 object storedValue = getValue(storedOutput, key);
                 object newValue = getValue(newOutput, key);
-                this.assertNewAndStoredOutput(exchange, skipKeys, newValue, storedValue, strictTypeCheck, key);
+                // Recurse into the *inner* (non-try/catch) variant: the
+                // wrapper's try/catch is only for top-level failure
+                // reporting, and in the Rust port it transpiles to a
+                // `catch_unwind` per node — setting that up at every one
+                // of a result's thousands of nodes made `--responseTests`
+                // take minutes. A failure still unwinds to the single
+                // top-level wrapper.
+                this.assertNewAndStoredOutputInner(exchange, skipKeys, newValue, storedValue, strictTypeCheck, key);
             }
         } else if (isTrue(isTrue(isTrue(isTrue((!isEqual(storedOutput, null))) && isTrue((!isEqual(newOutput, null)))) && isTrue(((storedOutput is IList<object>) || (storedOutput.GetType().IsGenericType && storedOutput.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))) && isTrue((((newOutput is IList<object>) || (newOutput.GetType().IsGenericType && newOutput.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))))
         {
@@ -1863,7 +1880,7 @@ public partial class testMainClass
             {
                 object storedItem = getValue(storedOutput, i);
                 object newItem = getValue(newOutput, i);
-                this.assertNewAndStoredOutput(exchange, skipKeys, newItem, storedItem, strictTypeCheck);
+                this.assertNewAndStoredOutputInner(exchange, skipKeys, newItem, storedItem, strictTypeCheck);
             }
         } else
         {
@@ -2592,6 +2609,11 @@ public partial class testMainClass
                 {
                     continue;
                 }
+                object isDisabledRust = exchange.safeBool(result, "disabledRS", false);
+                if (isTrue(isTrue(isDisabledRust) && isTrue((isEqual(this.lang, "RUST")))))
+                {
+                    continue;
+                }
                 object isDisabledJava = exchange.safeBool(result, "disabledJava", false);
                 if (isTrue(isTrue((isEqual(isDisabledJava, true))) && isTrue((isEqual(this.lang, "java")))))
                 {
@@ -2680,6 +2702,11 @@ public partial class testMainClass
                 {
                     continue;
                 }
+                object isDisabledRust = exchange.safeBool(result, "disabledRS", false);
+                if (isTrue(isTrue(isDisabledRust) && isTrue((isEqual(this.lang, "RUST")))))
+                {
+                    continue;
+                }
                 object isDisabledJava = exchange.safeBool(result, "disabledJava", false);
                 if (isTrue(isTrue((isEqual(isDisabledJava, true))) && isTrue((isEqual(this.lang, "java")))))
                 {
@@ -2751,6 +2778,12 @@ public partial class testMainClass
         if (isTrue(isTrue((isEqual(isDisabledGO, true))) && isTrue((isEqual(this.lang, "GO")))))
         {
             dump(add(add("[TEST_WARNING] Exchange ", exchangeName), " is disabled in go"));
+            return true;
+        }
+        object isDisabledRust = exchange.safeBool(exchangeData, "disabledRS", false);
+        if (isTrue(isTrue(isDisabledRust) && isTrue((isEqual(this.lang, "RUST")))))
+        {
+            dump(add(add("[TEST_WARNING] Exchange ", exchangeName), " is disabled in rust"));
             return true;
         }
         object isDisabledJava = exchange.safeBool(exchangeData, "disabledJava", false);
