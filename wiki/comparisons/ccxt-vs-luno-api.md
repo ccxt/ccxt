@@ -138,7 +138,7 @@ Both maintain a live book from Luno's Streaming API, and both require credential
 
 ### Eight languages, one API
 
-Luno publishes Python, Go and PHP; the Java SDK repository is archived. CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java with identical method names and return structures:
+Luno publishes Python, Go and PHP; the Java SDK repository is archived. CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go, Java and Rust with identical method names and return structures:
 
 <!-- tabs:start -->
 

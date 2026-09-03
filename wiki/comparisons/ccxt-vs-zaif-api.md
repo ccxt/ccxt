@@ -184,7 +184,7 @@ Signing, nonce generation, rate-limit accounting and error mapping all still app
 
 ### Eight languages, one API
 
-CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, with identical method names and return structures. A hand-rolled Zaif client is a hand-rolled Zaif client in each language you need it in — and the HMAC-SHA512-over-urlencoded-body detail has to be re-derived every time.
+CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go, Java and Rust, with identical method names and return structures. A hand-rolled Zaif client is a hand-rolled Zaif client in each language you need it in — and the HMAC-SHA512-over-urlencoded-body detail has to be re-derived every time.
 
 <!-- tabs:start -->
 

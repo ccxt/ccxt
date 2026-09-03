@@ -171,7 +171,7 @@ for exchange_id in ['okx', 'binance', 'bybit', 'kraken', 'coinbase']:
 
 ### Eight languages, one API
 
-CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, with identical method names, arguments and return structures in all seven. `python-okx` is Python-only; the well-maintained community Node SDK [`okx-api`](https://github.com/tiagosiebler/okx-api) covers TypeScript, and beyond that you are writing your own.
+CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go, Java and Rust, with identical method names, arguments and return structures in all eight. `python-okx` is Python-only; the well-maintained community Node SDK [`okx-api`](https://github.com/tiagosiebler/okx-api) covers TypeScript, and beyond that you are writing your own.
 
 <!-- tabs:start -->
 

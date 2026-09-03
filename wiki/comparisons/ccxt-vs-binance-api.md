@@ -182,7 +182,7 @@ for exchange_id in ['binance', 'bybit', 'okx', 'coinbase', 'kraken']:
 
 ### Eight languages, one API
 
-CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, so the method names, arguments and return structures are identical in every one of them. A strategy prototyped in a Python notebook ports to a Go or C# execution service without redesigning the data model.
+CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go, Java and Rust, so the method names, arguments and return structures are identical in every one of them. A strategy prototyped in a Python notebook ports to a Go or C# execution service without redesigning the data model.
 
 <!-- tabs:start -->
 

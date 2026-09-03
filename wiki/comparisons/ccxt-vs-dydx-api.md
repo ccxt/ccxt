@@ -204,7 +204,7 @@ dYdX v4 is served from three places: the indexer (reads), the node RPC (broadcas
 
 ### Eight languages, one API
 
-CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, with identical method names, arguments and return structures — the transaction signing included.
+CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go, Java and Rust, with identical method names, arguments and return structures — the transaction signing included.
 
 <!-- tabs:start -->
 

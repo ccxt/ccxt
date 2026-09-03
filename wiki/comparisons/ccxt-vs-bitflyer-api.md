@@ -182,7 +182,7 @@ ticker, err := exchange.FetchTicker("BTC/JPY")
 
 <!-- tabs:end -->
 
-A hand-rolled bitFlyer client is written once per language. CCXT is written once and transpiled to seven, so the signing code and the alias parsing are the same code everywhere.
+A hand-rolled bitFlyer client is written once per language. CCXT is written once and transpiled to eight, so the signing code and the alias parsing are the same code everywhere.
 
 ### Nothing is hidden — the implicit API
 

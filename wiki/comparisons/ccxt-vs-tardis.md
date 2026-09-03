@@ -160,7 +160,7 @@ CCXT is **MIT**. tardis-node is **MPL-2.0** — a file-level copyleft: you can l
 
 ### Eight languages, one API
 
-CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java with identical method names and return structures. Tardis's normalized replay and real-time streaming live in the Node.js client; the Python client's own README states it covers historical replay in exchange-native format and CSV downloads, and directs you to the Node.js client or Tardis Machine for normalized replay and streaming. If your research stack is Python and you want normalized Tardis data, [tardis-machine](https://github.com/tardis-dev/tardis-machine) — a locally runnable HTTP/WebSocket server — is the documented route.
+CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go, Java and Rust with identical method names and return structures. Tardis's normalized replay and real-time streaming live in the Node.js client; the Python client's own README states it covers historical replay in exchange-native format and CSV downloads, and directs you to the Node.js client or Tardis Machine for normalized replay and streaming. If your research stack is Python and you want normalized Tardis data, [tardis-machine](https://github.com/tardis-dev/tardis-machine) — a locally runnable HTTP/WebSocket server — is the documented route.
 
 ## What Tardis.dev does better
 

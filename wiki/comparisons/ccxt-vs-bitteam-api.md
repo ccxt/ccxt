@@ -114,7 +114,7 @@ for exchange_id in ['bitteam', 'binance', 'kraken', 'okx']:
 
 ### Eight languages, one API
 
-CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, with identical method names and return structures. A BIT.TEAM integration prototyped in Python moves to a Go or C# service without a second parsing layer.
+CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go, Java and Rust, with identical method names and return structures. A BIT.TEAM integration prototyped in Python moves to a Go or C# service without a second parsing layer.
 
 <!-- tabs:start -->
 

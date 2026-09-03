@@ -42,7 +42,7 @@ Bybit's V5 API is one of the tidier exchange APIs: a single `category` parameter
 
 Bybit's V5 documentation names official SDKs for Python, Go, Java and .NET, and points at a community Node SDK. The organisation also publishes JavaScript, PHP, Ruby and Rust connectors. They are separate codebases with separate idioms, and their adoption is wildly uneven — read on the day this page was written, `pybit` had 671 stars, `bybit.go.api` 85, `bybit-java-api` 41, `bybit.net.api` 27, `bybit-rust-api` 3, and `bybit.js.api`, `bybit.php.api` and `bybit.ruby.api` had none.
 
-CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java. The method names, arguments and return structures are identical in all seven, so a Python research notebook and a Go execution service share a data model rather than agreeing to disagree about one.
+CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go, Java and Rust. The method names, arguments and return structures are identical in all eight, so a Python research notebook and a Go execution service share a data model rather than agreeing to disagree about one.
 
 ## The same job, written both ways
 

@@ -138,7 +138,7 @@ With CCXT plus ccxws you had two normalisation layers that were *similar* by des
 
 ### Eight languages
 
-ccxws is a TypeScript/JavaScript library, which was the right call for the Node.js pipelines it was built for. CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, with the same method names and return structures in each. A stream consumer prototyped in Python moves to a Go or C# service without a second data model.
+ccxws is a TypeScript/JavaScript library, which was the right call for the Node.js pipelines it was built for. CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go, Java and Rust, with the same method names and return structures in each. A stream consumer prototyped in Python moves to a Go or C# service without a second data model.
 
 ## What ccxws does better
 

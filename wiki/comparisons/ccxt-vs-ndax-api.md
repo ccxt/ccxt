@@ -213,7 +213,7 @@ price = exchange.price_to_precision('BTC/CAD', 81234.56789)
 
 ### Eight languages, one API
 
-CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, with identical method names and return structures in every one. On the raw path, each language is a fresh implementation of the same handshake.
+CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go, Java and Rust, with identical method names and return structures in every one. On the raw path, each language is a fresh implementation of the same handshake.
 
 <!-- tabs:start -->
 

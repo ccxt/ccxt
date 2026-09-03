@@ -160,7 +160,7 @@ The same loop in Java uses `Exchange.dynamicallyCreateInstance(exchangeId, confi
 
 ### Eight languages, one API
 
-This is the difference that shows up when the team grows. CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, with the same method names, arguments and return structures in every one. A strategy explored in a Python notebook moves to a Go or C# execution service without a second data model.
+This is the difference that shows up when the team grows. CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go, Java and Rust, with the same method names, arguments and return structures in every one. A strategy explored in a Python notebook moves to a Go or C# execution service without a second data model.
 
 <!-- tabs:start -->
 

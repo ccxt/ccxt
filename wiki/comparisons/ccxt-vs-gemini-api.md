@@ -118,7 +118,7 @@ Both are readable. The difference is what the return value is: CCXT's is an [ord
 
 ### Eight languages, one API
 
-CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, with identical method names, arguments and return structures in all of them. Gemini publishes an SDK in two of those seven. For Python, PHP, C#, Java or plain JavaScript, the practical choice for Gemini is CCXT or your own HTTP wrapper.
+CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go, Java and Rust, with identical method names, arguments and return structures in all of them. Gemini publishes an SDK in two of those seven. For Python, PHP, C#, Java or plain JavaScript, the practical choice for Gemini is CCXT or your own HTTP wrapper.
 
 <!-- tabs:start -->
 

@@ -201,7 +201,7 @@ Kraken's documentation shows cURL and community libraries rather than a first-pa
 
 ### Eight languages, one API
 
-`krakenex` and `python-kraken-sdk` are Python-only. CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, with identical method names and return structures in all seven:
+`krakenex` and `python-kraken-sdk` are Python-only. CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go, Java and Rust, with identical method names and return structures in all eight:
 
 <!-- tabs:start -->
 

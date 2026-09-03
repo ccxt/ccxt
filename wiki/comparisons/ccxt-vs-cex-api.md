@@ -147,7 +147,7 @@ CEX.IO's client does handle connecting and authenticating the socket, which is g
 
 `cexio-spot-trading` is Node.js. If your service is in Python, Go, C# or PHP, there is no official CEX.IO client for it, and you are writing the signing and the payload mapping yourself.
 
-CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, with identical method names and return structures:
+CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go, Java and Rust, with identical method names and return structures:
 
 <!-- tabs:start -->
 

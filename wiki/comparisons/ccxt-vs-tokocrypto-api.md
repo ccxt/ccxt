@@ -156,7 +156,7 @@ Tokocrypto market ids are underscore-delimited (`BTC_USDT`), and market data via
 
 ### Eight languages, one API
 
-CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, with identical method names and return structures. A strategy prototyped in a Python notebook ports to a Go or C# execution service without redesigning the data model.
+CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go, Java and Rust, with identical method names and return structures. A strategy prototyped in a Python notebook ports to a Go or C# execution service without redesigning the data model.
 
 ### Nothing is hidden — the implicit API
 

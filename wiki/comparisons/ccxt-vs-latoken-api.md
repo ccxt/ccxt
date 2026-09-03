@@ -106,7 +106,7 @@ CCXT signs the request the way LATOKEN requires — HMAC-SHA512 over the HTTP me
 
 ### Eight languages, one API
 
-LATOKEN publishes Python, .NET and Java clients as three separate repositories with three separate cadences — most recently updated in July 2024, March 2024 and February 2022. CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java with identical method names and return structures:
+LATOKEN publishes Python, .NET and Java clients as three separate repositories with three separate cadences — most recently updated in July 2024, March 2024 and February 2022. CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go, Java and Rust with identical method names and return structures:
 
 <!-- tabs:start -->
 

@@ -172,7 +172,7 @@ CCXT implements 10 streaming methods for `modetrade`: `watchOrderBook`, `watchTr
 
 ### Eight languages, one API
 
-CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, with identical method names and return structures in every one. Orderly publishes Python and TypeScript; if your execution service is in Go, C# or Java, CCXT is the option that exists.
+CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go, Java and Rust, with identical method names and return structures in every one. Orderly publishes Python and TypeScript; if your execution service is in Go, C# or Java, CCXT is the option that exists.
 
 <!-- tabs:start -->
 

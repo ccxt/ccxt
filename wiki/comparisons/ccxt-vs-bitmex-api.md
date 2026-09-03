@@ -185,7 +185,7 @@ Real advantages, not throat-clearing:
 - **Total coverage, automatically.** The generated clients come from `swagger.json`, which currently describes 120 operations across 29 tags. Anything BitMEX adds to the spec appears in a regenerated client without anyone writing a parser. CCXT's unified layer models what it has modelled.
 - **Names that match the reference exactly.** `Order_new`, `Quote_get`, `Instrument_getActive`, `OrderBook_getL2` — you can read BitMEX's API Explorer and type the call. No mapping step.
 - **A Delta Server you can run instead of writing client code.** `official-ws/delta-server` is a local webserver that maintains BitMEX state from the WebSocket feed and serves it over HTTP, which is a genuinely different and sometimes better architecture than embedding a streaming client in your process.
-- **Language reach beyond CCXT's seven.** The auto-generated directory covers Ruby, Scala, Swift, Objective-C, Clojure, C++ and others. If your service is written in one of those, a generated BitMEX client exists and a CCXT binding does not.
+- **Language reach beyond CCXT's eight.** The auto-generated directory covers Ruby, Scala, Swift, Objective-C, Clojure, C++ and others. If your service is written in one of those, a generated BitMEX client exists and a CCXT binding does not.
 
 If BitMEX is your only venue and you value one-to-one fidelity with its Swagger spec — or you want the Delta Server architecture — the official connectors are the better fit.
 

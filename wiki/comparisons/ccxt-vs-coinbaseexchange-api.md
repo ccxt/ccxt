@@ -151,7 +151,7 @@ That right-hand column is not a straw man. Coinbase's own WebSocket documentatio
 
 ### Eight languages, one API
 
-Coinbase publishes Exchange REST clients in two languages. CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, with identical method names and return structures:
+Coinbase publishes Exchange REST clients in two languages. CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go, Java and Rust, with identical method names and return structures:
 
 <!-- tabs:start -->
 

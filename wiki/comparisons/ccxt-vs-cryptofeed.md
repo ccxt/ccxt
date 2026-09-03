@@ -112,7 +112,7 @@ CCXT is **MIT** — use it, modify it, ship it closed-source, no reciprocity.
 
 ### Eight languages
 
-Cryptofeed is Python-only. CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java with identical method names and return structures. Research in Python, execute in Go or C#, without a second data model.
+Cryptofeed is Python-only. CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go, Java and Rust with identical method names and return structures. Research in Python, execute in Go or C#, without a second data model.
 
 ### REST and WebSocket in one API
 

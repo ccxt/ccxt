@@ -1,7 +1,7 @@
 <!-- title: CCXT vs the official Bitvavo SDKs -->
 <!-- description: Bitvavo maintains Python and Node SDKs and has archived its Java, Go and PHP ones. Compared with CCXT on languages, streaming model and rate limits. -->
 <!-- group: Exchange APIs and official SDKs -->
-<!-- summary: Bitvavo's Python and Node SDKs are maintained; its Java, Go and PHP wrappers are archived. CCXT covers Bitvavo in all seven of its languages with 74 unified capabilities and 17 streaming methods. -->
+<!-- summary: Bitvavo's Python and Node SDKs are maintained; its Java, Go and PHP wrappers are archived. CCXT covers Bitvavo in all eight of its languages with 74 unified capabilities and 17 streaming methods. -->
 <!-- weight: 100 -->
 
 # CCXT vs the official Bitvavo SDKs
@@ -143,7 +143,7 @@ Both give you a maintained local book — Bitvavo's SDKs do handle the snapshot-
 
 ### Four of eight languages have no maintained first-party client
 
-Bitvavo's Java, Go and PHP wrappers are archived on GitHub — read-only, no further commits — and there has never been a C#/.NET one. CCXT covers Bitvavo in all seven of its targets from a single TypeScript source, so a Bitvavo integration is available and maintained in the language your execution service is actually written in:
+Bitvavo's Java, Go and PHP wrappers are archived on GitHub — read-only, no further commits — and there has never been a C#/.NET one. CCXT covers Bitvavo in all eight of its targets from a single TypeScript source, so a Bitvavo integration is available and maintained in the language your execution service is actually written in:
 
 <!-- tabs:start -->
 

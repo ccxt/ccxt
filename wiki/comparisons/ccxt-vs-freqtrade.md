@@ -143,9 +143,9 @@ The strategy interface is a pandas dataframe of OHLCV rows per pair, and everyth
 
 It fits some things badly by construction. Order-book-driven execution, options, quoting both sides of a spread, or anything that has to react within a candle rather than at its close — those want the exchange layer directly. A bot is also configured with a single `exchange` block, so cross-venue work means running more than one of it. And CCXT's unified API covers ground the strategy interface does not surface at all: `fetch_liquidations`, transfers between account types, deposit addresses, and 7 prediction-market venues in `ccxt.prediction`.
 
-### One language versus seven
+### One language versus eight
 
-Freqtrade is Python 3.11+. CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java with identical method names and return structures. If the trading service is in Go and the research is in Python, the exchange layer is the same library in both.
+Freqtrade is Python 3.11+. CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go, Java and Rust with identical method names and return structures. If the trading service is in Go and the research is in Python, the exchange layer is the same library in both.
 
 ### Licence
 

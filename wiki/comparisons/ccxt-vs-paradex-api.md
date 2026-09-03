@@ -206,7 +206,7 @@ The SDK's own examples use `Decimal` for exactly this reason; CCXT makes it the 
 
 ### Eight languages, one API
 
-CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, with identical method names and return structures — including the Starknet signing, which lives in the base class. Paradex publishes Python and JavaScript; if your execution service is in Go, C# or Java, CCXT is the option that exists.
+CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go, Java and Rust, with identical method names and return structures — including the Starknet signing, which lives in the base class. Paradex publishes Python and JavaScript; if your execution service is in Go, C# or Java, CCXT is the option that exists.
 
 <!-- tabs:start -->
 

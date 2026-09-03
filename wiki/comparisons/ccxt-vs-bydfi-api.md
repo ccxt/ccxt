@@ -193,7 +193,7 @@ On a leveraged venue this is not cosmetic: a rejected order because a quantity d
 
 ### Eight languages, one API
 
-CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, with identical method names and return structures. Since BYDFi publishes nothing first-party, every language starts from zero without it.
+CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go, Java and Rust, with identical method names and return structures. Since BYDFi publishes nothing first-party, every language starts from zero without it.
 
 <!-- tabs:start -->
 

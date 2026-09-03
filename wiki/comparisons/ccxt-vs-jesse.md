@@ -136,7 +136,7 @@ If you want a research environment, that infrastructure is buying you something.
 
 ### Eight languages versus one
 
-CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, with identical method names and return structures. Jesse is Python, and its strategy model, indicators, optimiser and dashboard are all Python. If your execution service is Go or C#, CCXT can be in it and Jesse cannot.
+CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go, Java and Rust, with identical method names and return structures. Jesse is Python, and its strategy model, indicators, optimiser and dashboard are all Python. If your execution service is Go or C#, CCXT can be in it and Jesse cannot.
 
 ### Everything that is not a candle strategy
 

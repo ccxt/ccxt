@@ -203,7 +203,7 @@ price = exchange.price_to_precision('BTC/USDC', 91234.56789)
 
 ### Eight languages, one API
 
-CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, with identical method names and return structures. Bullish's examples are Python and Java; its maintained signer is TypeScript. In Go, PHP or C# there is nothing first-party to start from.
+CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go, Java and Rust, with identical method names and return structures. Bullish's examples are Python and Java; its maintained signer is TypeScript. In Go, PHP or C# there is nothing first-party to start from.
 
 ### Nothing is hidden — the implicit API
 

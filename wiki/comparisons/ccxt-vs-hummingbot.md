@@ -137,11 +137,11 @@ For centralised exchanges, CCXT covers 104 with REST and 76 with WebSocket; the 
 
 If your venue list is centralised and long-tailed, CCXT reaches more of it. If it includes Uniswap, Raydium, Meteora, Orca or Curve, CCXT does not reach it at any price.
 
-### One language versus seven
+### One language versus eight
 
 Hummingbot is Python with Cython extensions, installed from source through conda or run in Docker. That is a reasonable footprint for a dedicated trading host and a heavy one for a library dependency.
 
-CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java with identical method names and return structures, and installs with a single `pip install ccxt` or `npm i ccxt`. Research in Python and execute in Go or C# without a second data model.
+CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go, Java and Rust with identical method names and return structures, and installs with a single `pip install ccxt` or `npm i ccxt`. Research in Python and execute in Go or C# without a second data model.
 
 ### Nothing is hidden — the implicit API
 

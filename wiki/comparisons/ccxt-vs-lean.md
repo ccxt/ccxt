@@ -152,7 +152,7 @@ None of that makes Lean less open source. It does mean the practical cost of run
 
 ### Eight languages versus C# and Python
 
-CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, with the same method names and return structures in every one. Lean is a C# engine with Python algorithm support through `AlgorithmImports`; a local build needs the .NET 10 SDK, which is why the CLI ships Docker images instead.
+CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go, Java and Rust, with the same method names and return structures in every one. Lean is a C# engine with Python algorithm support through `AlgorithmImports`; a local build needs the .NET 10 SDK, which is why the CLI ships Docker images instead.
 
 If your stack is .NET or Python, Lean fits. If parts of it are Go, PHP or Java, CCXT is the layer that can live in all of them.
 

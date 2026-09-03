@@ -137,7 +137,7 @@ INDODAX signals failure as `{"success": 0, "error": "..."}` with an HTTP 200. A 
 
 ### Eight languages, one API
 
-CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, with identical method names and return structures. INDODAX's documentation ships a PHP signing example; every other language is yours to write and re-write.
+CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go, Java and Rust, with identical method names and return structures. INDODAX's documentation ships a PHP signing example; every other language is yours to write and re-write.
 
 <!-- tabs:start -->
 

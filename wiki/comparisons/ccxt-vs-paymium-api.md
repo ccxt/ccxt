@@ -133,7 +133,7 @@ Be precise about the limit, though: Paymium's own error bodies are not finely ma
 
 ### Eight languages, one API
 
-CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, with identical method names and return structures. Paymium's docs mention Python, JavaScript and PHP because those are the CCXT languages they know about; C#, Go and Java come with the same package.
+CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go, Java and Rust, with identical method names and return structures. Paymium's docs mention Python, JavaScript and PHP because those are the CCXT languages they know about; C#, Go and Java come with the same package.
 
 <!-- tabs:start -->
 

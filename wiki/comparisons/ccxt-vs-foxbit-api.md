@@ -132,7 +132,7 @@ CCXT builds that string and those headers internally, including the awkward part
 
 This is the biggest practical difference. Foxbit's samples repository has raw REST v3 examples in twelve languages, but the **official SDK is JavaScript and TypeScript only**. If your service is Python, Go, C#, PHP or Java, the SDK is not available to you and the samples are starting points you finish yourself.
 
-CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, with identical method names and return structures.
+CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go, Java and Rust, with identical method names and return structures.
 
 <!-- tabs:start -->
 

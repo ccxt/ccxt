@@ -130,7 +130,7 @@ BRL prices run to hundreds of thousands and quantities to eight decimals. CCXT a
 
 ### Eight languages, one API
 
-CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, with identical method names and return structures. Mercado Bitcoin's documentation offers code samples; each language you support is a client you write and maintain yourself.
+CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go, Java and Rust, with identical method names and return structures. Mercado Bitcoin's documentation offers code samples; each language you support is a client you write and maintain yourself.
 
 <!-- tabs:start -->
 

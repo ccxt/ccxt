@@ -149,7 +149,7 @@ The same applies below the symbol: CCXT returns a fixed [order](/docs/manual#ord
 
 ### Eight languages, one API
 
-Blankly is Python. CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java with identical method names and return structures, so research in Python and execution in Go share a data model rather than a translation layer.
+Blankly is Python. CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go, Java and Rust with identical method names and return structures, so research in Python and execution in Go share a data model rather than a translation layer.
 
 ### The licence
 

@@ -95,7 +95,7 @@ Note the symbol. Bitso books are `btc_mxn`; CCXT normalises that to `'BTC/MXN'` 
 
 ### Six of eight languages have no official option
 
-There is no first-party Bitso client for Python, JavaScript, Go, PHP or C#. The community filled part of the gap — [mariorz/python-bitso](https://github.com/mariorz/python-bitso) is MIT-licensed and does cover the WebSocket channels — but it is one person's project, not a vendor commitment. CCXT gives you the same Bitso implementation in all seven of its targets, written once in TypeScript and transpiled:
+There is no first-party Bitso client for Python, JavaScript, Go, PHP or C#. The community filled part of the gap — [mariorz/python-bitso](https://github.com/mariorz/python-bitso) is MIT-licensed and does cover the WebSocket channels — but it is one person's project, not a vendor commitment. CCXT gives you the same Bitso implementation in all eight of its targets, written once in TypeScript and transpiled:
 
 <!-- tabs:start -->
 

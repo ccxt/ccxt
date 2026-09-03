@@ -188,7 +188,7 @@ price = exchange.price_to_precision('BTC/USD', 61234.56789)
 
 ### Eight languages, one API
 
-CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, with identical method names and return structures. A Bitstamp integration prototyped in a Python notebook ports to a Go or C# execution service without redesigning the data model — and without writing that signing string a second time in a second language.
+CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go, Java and Rust, with identical method names and return structures. A Bitstamp integration prototyped in a Python notebook ports to a Go or C# execution service without redesigning the data model — and without writing that signing string a second time in a second language.
 
 ### Nothing is hidden — the implicit API
 

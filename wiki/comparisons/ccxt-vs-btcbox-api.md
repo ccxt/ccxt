@@ -126,7 +126,7 @@ for exchange_id in ['btcbox', 'bitflyer', 'kraken', 'binance']:
 
 ### Eight languages, one API
 
-CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, with identical method names and return structures — so the MD5-keyed signing is implemented once for you, not once per language in your codebase:
+CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go, Java and Rust, with identical method names and return structures — so the MD5-keyed signing is implemented once for you, not once per language in your codebase:
 
 <!-- tabs:start -->
 

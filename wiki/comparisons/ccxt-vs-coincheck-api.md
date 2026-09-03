@@ -153,7 +153,7 @@ Coincheck also documents **private** WebSocket channels for order events and exe
 
 ## Where the differences actually bite
 
-### Seven maintained languages, one API
+### Eight maintained languages, one API
 
 This is the crux. Coincheck's libraries are seven independent repositories written at different times; CCXT is one library transpiled from a single TypeScript source into eight languages, with identical method names and structures and a continuous release cadence.
 

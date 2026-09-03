@@ -130,7 +130,7 @@ CCXT's `ccxt.hashkey` covers both with 59 unified capabilities and 31 `fetch*` m
 
 ### Eight languages, one API
 
-CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, with identical method names, arguments and return structures. A raw integration is written once per language, by you.
+CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go, Java and Rust, with identical method names, arguments and return structures. A raw integration is written once per language, by you.
 
 <!-- tabs:start -->
 

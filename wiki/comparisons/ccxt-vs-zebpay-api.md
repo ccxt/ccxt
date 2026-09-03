@@ -176,7 +176,7 @@ Signing, timestamping, rate-limit accounting and error mapping still apply. Brow
 
 ### Eight languages, one API
 
-The reference clients are Node.js and Python. CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java with identical method names and return structures.
+The reference clients are Node.js and Python. CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go, Java and Rust with identical method names and return structures.
 
 <!-- tabs:start -->
 

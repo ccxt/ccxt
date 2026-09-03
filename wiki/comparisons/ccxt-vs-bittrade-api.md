@@ -184,7 +184,7 @@ price = exchange.price_to_precision('BTC/JPY', 9123456.789)
 
 ### Eight languages, one API
 
-CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, with identical method names and return structures — so the v2 signing scheme is implemented once for you rather than once per language in your codebase.
+CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go, Java and Rust, with identical method names and return structures — so the v2 signing scheme is implemented once for you rather than once per language in your codebase.
 
 <!-- tabs:start -->
 

@@ -178,7 +178,7 @@ exchange.create_order('BTC/USD:BTC', 'limit', 'buy', 1, 60000)         # coin-M 
 
 ### Eight languages, one API
 
-CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, so method names, arguments and return structures are identical in all of them.
+CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go, Java and Rust, so method names, arguments and return structures are identical in all of them.
 
 <!-- tabs:start -->
 

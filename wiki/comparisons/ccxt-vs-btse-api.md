@@ -124,7 +124,7 @@ This is the one axis where the vendor SDK is straightforwardly ahead, and it is 
 
 The official SDK is Python. BTSE also publishes [btsecom/api-sample](https://github.com/btsecom/api-sample), which carries example connectors in Python, Node.js and C# plus a Postman collection — but those are samples, not a library you take a dependency on.
 
-CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, with identical method names and return structures in all of them.
+CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go, Java and Rust, with identical method names and return structures in all of them.
 
 <!-- tabs:start -->
 

@@ -138,9 +138,9 @@ CCXT covers 104 exchanges with REST and 76 with WebSocket, and the `watch*` meth
 
 Beyond order flow, CCXT's unified API covers `fetch_funding_rate_history`, `fetch_open_interest`, `fetch_leverage_tiers`, `fetch_liquidations`, transfers, deposit addresses, and 7 prediction-market venues in `ccxt.prediction` — of which OctoBot ships a tentacle for one, Polymarket.
 
-### One language versus seven
+### One language versus eight
 
-OctoBot is Python. CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java with identical method names and return structures. If the execution service is in Go and the research is in Python, the exchange layer is the same library in both.
+OctoBot is Python. CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go, Java and Rust with identical method names and return structures. If the execution service is in Go and the research is in Python, the exchange layer is the same library in both.
 
 ### Licence
 

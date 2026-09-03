@@ -213,7 +213,7 @@ The unified surface for `pacifica` is 59 capabilities, including `fetchPositions
 
 ### Eight languages, one API
 
-CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, with identical method names and return structures — including the Ed25519 signing, which is base-class code rather than something you re-derive per language.
+CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go, Java and Rust, with identical method names and return structures — including the Ed25519 signing, which is base-class code rather than something you re-derive per language.
 
 <!-- tabs:start -->
 

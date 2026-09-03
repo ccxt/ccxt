@@ -181,7 +181,7 @@ It also unifies positions, leverage, margin mode, funding rates, transfers and d
 
 The README lists "Thin layer wrappers for Java, C#, Python and Node.js" among the project goals. What shipped is the C# one: the repository's `bindings/` directory contains a `csharp` folder (FFI types such as `ExchangeClient.cs`, `LimitOrderRequest.cs`, `Orderbook.cs`) and a file named `REMOVE_ME`, and NuGet carries a package `Openlimits` described as "This is the offical openlimits c# wrapper", latest version 0.1.15, published 18 December 2020, 10.5k downloads all-time. There is no `openlimits` package on npm or PyPI. In the root `Cargo.toml`, the `bindings` feature and its `ligen` build dependencies are commented out.
 
-CCXT takes the opposite approach: one TypeScript source of truth, transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, so the method names, arguments and return structures are the same in all seven. A change lands in every language in the same release — `fetchTicker` in TypeScript, `fetch_ticker` in Python, `FetchTicker` in C# and Go, returning the same structure.
+CCXT takes the opposite approach: one TypeScript source of truth, transpiled to JavaScript, Python, PHP, C#/.NET, Go, Java and Rust, so the method names, arguments and return structures are the same in all eight. A change lands in every language in the same release — `fetchTicker` in TypeScript, `fetch_ticker` in Python, `FetchTicker` in C# and Go, returning the same structure.
 
 ### Release cadence
 
@@ -199,7 +199,7 @@ OpenLimits leans on Rust's type system for the second half of that problem — p
 
 Real advantages, and the reason the project is worth reading even now:
 
-- **It is Rust.** No garbage collector, no interpreter, one static binary, and the borrow checker between you and a class of concurrency bug. CCXT publishes seven language targets and none of them is Rust — there is no `ccxt` crate on crates.io as of September 2026. For a single-binary Rust execution service this is decisive, and no amount of venue coverage substitutes for it.
+- **It is Rust.** No garbage collector, no interpreter, one static binary, and the borrow checker between you and a class of concurrency bug. CCXT reaches Rust through a crate generated from its TypeScript source, so it reads like CCXT rather than like Rust; OpenLimits was designed as Rust from the start. For a single-binary Rust execution service this is decisive, and no amount of venue coverage substitutes for it.
 - **Illegal states are harder to build.** `limit_buy` / `limit_sell` / `market_buy` / `market_sell` take different request structs, so a market order carrying a price does not compile. `Currency` is an enum. `MarketPair` is a two-field tuple struct, not a delimited string. Prices are `Decimal`. CCXT catches the same mistakes, but at runtime, on the venue's rejection.
 - **The trait design is clean and extensible.** `Exchange: ExchangeInfoRetrieval + ExchangeAccount + ExchangeMarketData` means you can write `fn strategy(exchange: &impl Exchange)` and have the compiler prove the venue supports what you call. CCXT's equivalent is the `has` capability map, checked at runtime. OpenLimits' own test suite is built exactly this way — one generic template run against each venue.
 - **Environment is a constructor parameter, not a mode.** `BinanceParameters::sandbox()` and `Environment::Sandbox` make testnet a value you pass in rather than a flag you flip on a live object.

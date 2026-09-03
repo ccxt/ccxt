@@ -147,7 +147,7 @@ price = exchange.price_to_precision('BTC/USDT', 61234.56789)
 
 ### Eight languages, one API
 
-There is no BigONE client in any language, so every language is a from-scratch integration. CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, with identical method names and structures:
+There is no BigONE client in any language, so every language is a from-scratch integration. CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go, Java and Rust, with identical method names and structures:
 
 <!-- tabs:start -->
 

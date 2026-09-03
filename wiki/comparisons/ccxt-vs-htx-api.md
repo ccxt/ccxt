@@ -120,7 +120,7 @@ CCXT ships all of it as one `ccxt.htx` instance. `options.defaultType` selects `
 
 ### Eight languages, one API
 
-CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, so method names, arguments and return structures are identical everywhere. HTX's SDKs are five separate codebases with separate idioms and separate release schedules — and no PHP or JavaScript SDK at all.
+CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go, Java and Rust, so method names, arguments and return structures are identical everywhere. HTX's SDKs are five separate codebases with separate idioms and separate release schedules — and no PHP or JavaScript SDK at all.
 
 <!-- tabs:start -->
 

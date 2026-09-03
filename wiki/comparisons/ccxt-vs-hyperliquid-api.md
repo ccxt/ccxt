@@ -174,7 +174,7 @@ Basis trades, cross-venue hedges and DEX-versus-CEX arbitrage stop being two int
 
 ### Eight languages, one API
 
-CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, with identical method names and return structures.
+CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go, Java and Rust, with identical method names and return structures.
 
 <!-- tabs:start -->
 

@@ -145,7 +145,7 @@ PMXT's self-hosted mode is described the same way — venue-native credentials, 
 
 ### Eight languages
 
-CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, with the same method names and return structures in each. The prediction classes come along: `ccxt.prediction.polymarket()` in Python, `new ccxt.prediction.polymarket()` in C#, `ccxtprediction.NewPolymarket()` in Go. PMXT publishes TypeScript and Python clients.
+CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go, Java and Rust, with the same method names and return structures in each. The prediction classes come along: `ccxt.prediction.polymarket()` in Python, `new ccxt.prediction.polymarket()` in C#, `ccxtprediction.NewPolymarket()` in Go. PMXT publishes TypeScript and Python clients.
 
 ### Nothing is hidden
 

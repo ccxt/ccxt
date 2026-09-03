@@ -219,7 +219,7 @@ One flag, both transports. No constant swapping and no forked configuration.
 
 ### Eight languages, one API
 
-CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, with identical method names and return structures. A hand-written Deribit client is written once per language, by you.
+CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go, Java and Rust, with identical method names and return structures. A hand-written Deribit client is written once per language, by you.
 
 <!-- tabs:start -->
 

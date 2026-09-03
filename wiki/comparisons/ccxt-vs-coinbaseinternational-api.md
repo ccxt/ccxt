@@ -205,7 +205,7 @@ CCXT maps INTX's error bodies onto a [typed exception tree](/docs/manual#error-h
 
 ### Eight languages, one API
 
-Coinbase's five INTX SDKs are five separate codebases with five release cadences, and none of them is PHP. CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, with identical method names and return structures — `exchange.fetch_ticker('BTC/USDC:USDC')` in Python is `exchange.FetchTicker("BTC/USDC:USDC")` in C# and `exchange.FetchTicker("BTC/USDC:USDC")` in Go, against the same data model.
+Coinbase's five INTX SDKs are five separate codebases with five release cadences, and none of them is PHP. CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go, Java and Rust, with identical method names and return structures — `exchange.fetch_ticker('BTC/USDC:USDC')` in Python is `exchange.FetchTicker("BTC/USDC:USDC")` in C# and `exchange.FetchTicker("BTC/USDC:USDC")` in Go, against the same data model.
 
 ### Nothing is hidden — the implicit API
 

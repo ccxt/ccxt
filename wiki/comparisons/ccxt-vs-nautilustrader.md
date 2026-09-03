@@ -165,7 +165,7 @@ These are different obligations, not better and worse ones. LGPL-3.0 permits lin
 
 ### Eight languages versus a Rust core with a Python control plane
 
-CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java with the same method names and return structures in each. A Go execution service and a Python research notebook see the same `fetch_ohlcv` and the same OHLCV shape.
+CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go, Java and Rust with the same method names and return structures in each. A Go execution service and a Python research notebook see the same `fetch_ohlcv` and the same OHLCV shape.
 
 NautilusTrader is Rust and Python: Python bindings via PyO3 for the v2 runtime, with the option of writing systems entirely in Rust. Its supported Python range is 3.12–3.14 on Linux (x86_64 and ARM64), macOS (ARM64) and Windows (x86_64). If your stack is Rust or Python, that is a strength. If part of it is C# or PHP, it is a wall.
 

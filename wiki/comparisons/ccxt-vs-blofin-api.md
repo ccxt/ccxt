@@ -146,9 +146,9 @@ CCXT returns a live, merged order book as a value you `await`; the SDK gives you
 
 ## Where the differences actually bite
 
-### One language versus seven
+### One language versus eight
 
-BloFin's SDK is Python-only. CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java with identical method names and return structures, so research in a Python notebook ports to a Go or C# execution service without a second data model:
+BloFin's SDK is Python-only. CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go, Java and Rust with identical method names and return structures, so research in a Python notebook ports to a Go or C# execution service without a second data model:
 
 <!-- tabs:start -->
 

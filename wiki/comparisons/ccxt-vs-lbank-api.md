@@ -156,7 +156,7 @@ CCXT's `lbank` loads both LBank's spot pairs and its perpetual contracts (from L
 
 ### Eight languages, one API
 
-LBank publishes four connectors, and they are four separate codebases with visibly different levels of adoption — 15, 3, 1 and 1 GitHub stars respectively. CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java with identical method names and return structures:
+LBank publishes four connectors, and they are four separate codebases with visibly different levels of adoption — 15, 3, 1 and 1 GitHub stars respectively. CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go, Java and Rust with identical method names and return structures:
 
 <!-- tabs:start -->
 

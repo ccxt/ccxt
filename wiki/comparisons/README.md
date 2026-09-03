@@ -26,7 +26,7 @@ CCXT is MIT. Some alternatives are AGPL, which for commercial and SaaS work is a
 | | |
 | --- | --- |
 | **104 exchanges** | one API across spot, margin, swaps, futures, options and prediction markets |
-| **7 languages** | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java and Rust — identical method names and return structures |
+| **8 languages** | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java and Rust — identical method names and return structures |
 | **REST + WebSocket** | `fetch*` and `watch*` return the same structures; 76 exchanges stream |
 | **Trading, not just data** | orders, trigger/stop/trailing types, positions, leverage, margin mode, transfers, funding |
 | **Built-in rate limiting** | per-endpoint request weights, token bucket on by default |
