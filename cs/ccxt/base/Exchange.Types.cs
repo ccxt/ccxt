@@ -2107,6 +2107,14 @@ public struct Currency
     public CurrencyLimits? limits;
     public Dictionary<string, Network>? networks;
 
+
+    // venue-only source keys with no struct field; kept so the struct round-trips losslessly
+    public Dictionary<string, object>? extra;
+
+    private static readonly HashSet<string> CurrencyKeys = new HashSet<string> {
+        "info", "id", "code", "precision", "name", "fee", "active", "deposit", "withdraw", "numericId", "type", "margin", "limits", "networks",
+    };
+
     public Currency(object currency)
     {
 
@@ -2134,6 +2142,7 @@ public struct Currency
             }
         }
 
+        extra = Helper.GetExtra(currency, CurrencyKeys);
     }
 }
 

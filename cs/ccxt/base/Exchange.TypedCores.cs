@@ -2059,6 +2059,13 @@ public partial class BaseExchange
             }
             result["networks"] = networksTarget;
         }
+        if (typed.extra != null)
+        {
+            foreach (var pair in typed.extra)
+            {
+                result[pair.Key] = pair.Value;
+            }
+        }
         return result;
     }
 
