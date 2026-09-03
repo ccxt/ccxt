@@ -7,64 +7,6 @@ public class  Polymarket: polymarket { public Polymarket(object args = null) : b
 public partial class polymarket
 {
     /// <summary>
-    /// fetches raw gamma event objects matching the given search terms, paginating through all result pages
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.polymarket.com/api-reference/search/search-markets-events-and-profiles"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra exchange-specific parameters
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.limit</term>
-    /// <description>
-    /// int : page size per search query, defaults to 50
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object[]</term> an array of raw gamma event objects.</returns>
-    public async Task<List<Dictionary<string, object>>> FetchRawEventsBySearch(List<string> queries, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchRawEventsBySearch(queries, parameters);
-        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
-    }
-    /// <summary>
-    /// fetches raw gamma event objects from the events listing endpoint, paginating in parallel
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.polymarket.com/api-reference/events/list-events"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra exchange-specific parameters
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.status</term>
-    /// <description>
-    /// string : 'active', 'closed' or 'all', defaults to options.defaultEventStatus
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.limit</term>
-    /// <description>
-    /// int : max number of events to fetch (default options.fetchMarketsLimit); the listing is ordered by 24h volume so the most active markets come first
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object[]</term> an array of raw gamma event objects.</returns>
-    public async Task<List<Dictionary<string, object>>> FetchRawEventsList(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchRawEventsList(parameters);
-        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
-    }
-    /// <summary>
     /// cancels all open orders on the CLOB, optionally scoped to one outcome token
     /// </summary>
     /// <remarks>

@@ -282,10 +282,10 @@ public partial class myriad : PredictionExchange
         object rawMarkets = new List<object>() {};
         if (isTrue(isGreaterThan(queriesLength, 0)))
         {
-            rawMarkets = await this.fetchRawMarketsBySearch(queries, rest);
+            rawMarkets = ccxt.BaseExchange.FromDictList(await this.FetchRawMarketsBySearch(queries, rest));
         } else
         {
-            rawMarkets = await this.fetchRawMarketsList(rest);
+            rawMarkets = ccxt.BaseExchange.FromDictList(await this.FetchRawMarketsList(rest));
         }
         object flatMarkets = new List<object>() {};
         object eventsDict = new Dictionary<string, object>() {};
@@ -317,7 +317,7 @@ public partial class myriad : PredictionExchange
      * @param {string} [params.state] 'open', 'closed' or 'resolved', defaults to options.defaultMarketStatus
      * @returns {object[]} an array of raw myriad market objects
      */
-    public async virtual Task<object> fetchRawMarketsBySearch(object queries, object parameters = null)
+    public async virtual Task<List<Dictionary<string, object>>> FetchRawMarketsBySearch(object queries, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object limit = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "defaultFetchEventsLimit", 50));
@@ -349,7 +349,7 @@ public partial class myriad : PredictionExchange
                 }
             }
         }
-        return rawMarkets;
+        return ccxt.BaseExchange.ToDictList(rawMarkets);
     }
 
     /**
@@ -362,7 +362,7 @@ public partial class myriad : PredictionExchange
      * @param {string} [params.state] 'open', 'closed' or 'resolved', defaults to options.defaultMarketStatus
      * @returns {object[]} an array of raw myriad market objects
      */
-    public async virtual Task<object> fetchRawMarketsList(object parameters = null)
+    public async virtual Task<List<Dictionary<string, object>>> FetchRawMarketsList(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object limit = this.safeInteger(this.options, "defaultFetchMarketsLimit", 50);
@@ -408,7 +408,7 @@ public partial class myriad : PredictionExchange
                 break;
             }
         }
-        return allRawMarkets;
+        return ccxt.BaseExchange.ToDictList(allRawMarkets);
     }
 
     /**
@@ -523,7 +523,7 @@ public partial class myriad : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of raw myriad question objects
      */
-    public async virtual Task<object> fetchRawQuestionsBySearch(object queries, object parameters = null)
+    public async virtual Task<List<Dictionary<string, object>>> FetchRawQuestionsBySearch(object queries, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object limit = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "defaultFetchEventsLimit", 50));
@@ -551,7 +551,7 @@ public partial class myriad : PredictionExchange
                 }
             }
         }
-        return rawQuestions;
+        return ccxt.BaseExchange.ToDictList(rawQuestions);
     }
 
     /**
@@ -563,7 +563,7 @@ public partial class myriad : PredictionExchange
      * @param {string} [params.state] optional question state filter when supported by the backend
      * @returns {object[]} an array of raw myriad question objects
      */
-    public async virtual Task<object> fetchRawQuestionsList(object parameters = null)
+    public async virtual Task<List<Dictionary<string, object>>> FetchRawQuestionsList(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object limit = this.safeInteger(this.options, "defaultFetchEventsLimit", 50);
@@ -617,7 +617,7 @@ public partial class myriad : PredictionExchange
                 break;
             }
         }
-        return allRawQuestions;
+        return ccxt.BaseExchange.ToDictList(allRawQuestions);
     }
 
     /**
@@ -3401,7 +3401,7 @@ public partial class myriad : PredictionExchange
         if (isTrue(isGreaterThan(queriesLength, 0)))
         {
             // some markets are only discoverable through the questions search endpoint
-            object responses = await promiseAll(new List<object> {this.fetchRawMarketsBySearch(queries, rest), this.fetchRawQuestionsBySearch(queries, rest)});
+            object responses = await promiseAll(new List<object> {this.FetchRawMarketsBySearch(queries, rest), this.FetchRawQuestionsBySearch(queries, rest)});
             rawMarkets = this.safeList(responses, 0, new List<object>() {});
             rawQuestions = this.safeList(responses, 1, new List<object>() {});
         } else if (isTrue(!isEqual(eventId, null)))
@@ -3422,7 +3422,7 @@ public partial class myriad : PredictionExchange
             if (isTrue(isEqual(requestedTagsLength, 0)))
             {
                 // unscoped mode: fetch bounded open lists from both sources and merge
-                object listResponses = await promiseAll(new List<object> {this.fetchRawMarketsList(rest), this.fetchRawQuestionsList(rest)});
+                object listResponses = await promiseAll(new List<object> {this.FetchRawMarketsList(rest), this.FetchRawQuestionsList(rest)});
                 rawMarkets = this.safeList(listResponses, 0, new List<object>() {});
                 rawQuestions = this.safeList(listResponses, 1, new List<object>() {});
             } else
@@ -3436,7 +3436,7 @@ public partial class myriad : PredictionExchange
                 }
                 // run both searches in parallel; some events are only discoverable from questions,
                 // while market search is still the primary source for market-level data
-                object responses = await promiseAll(new List<object> {this.fetchRawMarketsBySearch(tagQueries, rest), this.fetchRawQuestionsBySearch(tagQueries, rest)});
+                object responses = await promiseAll(new List<object> {this.FetchRawMarketsBySearch(tagQueries, rest), this.FetchRawQuestionsBySearch(tagQueries, rest)});
                 rawMarkets = this.safeList(responses, 0, new List<object>() {});
                 rawQuestions = this.safeList(responses, 1, new List<object>() {});
             }

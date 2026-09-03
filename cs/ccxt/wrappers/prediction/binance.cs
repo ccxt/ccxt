@@ -6,24 +6,5 @@ namespace ccxt.prediction;
 public class  Binance: binance { public Binance(object args = null) : base(args) { } }
 public partial class binance
 {
-    /// <summary>
-    /// pages the market/list endpoint and returns up to `maxTopics` raw market topics
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://developers.binance.com/en/docs/catalog/web3-wallet-prediction-trading/api/rest-api/market-data#list-prediction-markets"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>rest</term>
-    /// <description>
-    /// object : extra params forwarded verbatim to the listing endpoint (l1Category, l2Category, sortBy, orderBy)
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object[]</term> raw market topic objects.</returns>
-    public async Task<List<Dictionary<string, object>>> FetchRawTopics(Int64 maxTopics, Dictionary<string, object> rest = null)
-    {
-        var res = await this.fetchRawTopics(maxTopics, rest);
-        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
-    }
+
 }

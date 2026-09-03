@@ -586,10 +586,10 @@ public partial class polymarket : PredictionExchange
         object rawEvents = new List<object>() {};
         if (isTrue(isGreaterThan(queriesLength, 0)))
         {
-            rawEvents = await this.fetchRawEventsBySearch(queries, rest);
+            rawEvents = ccxt.BaseExchange.FromDictList(await this.FetchRawEventsBySearch(queries, rest));
         } else
         {
-            rawEvents = await this.fetchRawEventsList(rest);
+            rawEvents = ccxt.BaseExchange.FromDictList(await this.FetchRawEventsList(rest));
         }
         object flatMarkets = new List<object>() {};
         object eventsDict = new Dictionary<string, object>() {};
@@ -624,7 +624,7 @@ public partial class polymarket : PredictionExchange
      * @param {int} [params.limit] page size per search query, defaults to 50
      * @returns {object[]} an array of raw gamma event objects
      */
-    public async virtual Task<object> fetchRawEventsBySearch(object queries, object parameters = null)
+    public async virtual Task<List<Dictionary<string, object>>> FetchRawEventsBySearch(object queries, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object resultLimit = this.safeInteger(parameters, "limit");
@@ -735,7 +735,7 @@ public partial class polymarket : PredictionExchange
                 }
             }
         }
-        return rawEvents;
+        return ccxt.BaseExchange.ToDictList(rawEvents);
     }
 
     /**
@@ -788,7 +788,7 @@ public partial class polymarket : PredictionExchange
      * @param {int} [params.limit] max number of events to fetch (default options.fetchMarketsLimit); the listing is ordered by 24h volume so the most active markets come first
      * @returns {object[]} an array of raw gamma event objects
      */
-    public async virtual Task<object> fetchRawEventsList(object parameters = null)
+    public async virtual Task<List<Dictionary<string, object>>> FetchRawEventsList(object parameters = null)
     {
         // gamma hard-caps each response at 100 events regardless of the requested limit, so the
         // page size must be that cap or pagination never advances (the > check below stays false)
@@ -829,7 +829,7 @@ public partial class polymarket : PredictionExchange
             {
                 Dictionary<string, object> singleTagParams = this.extend(new Dictionary<string, object>() {}, parameters);
                 ((IDictionary<string,object>)singleTagParams)["tags"] = new List<object>() {getValue(requestedTags, ti)};
-                object tagEvents = await this.fetchRawEventsList(singleTagParams);
+                object tagEvents = ccxt.BaseExchange.FromDictList(await this.FetchRawEventsList(singleTagParams));
                 for (object ei = 0; isLessThan(ei, getArrayLength(tagEvents)); postFixIncrement(ref ei))
                 {
                     object rawEvent = getValue(tagEvents, ei);
@@ -841,7 +841,7 @@ public partial class polymarket : PredictionExchange
                     }
                 }
             }
-            return unioned;
+            return ccxt.BaseExchange.ToDictList(unioned);
         }
         if (isTrue(isGreaterThan(requestedTagsLength, 0)))
         {
@@ -903,9 +903,9 @@ public partial class polymarket : PredictionExchange
         int allRawEventsLength = getArrayLength(allRawEvents);
         if (isTrue(isGreaterThan(allRawEventsLength, limit)))
         {
-            return this.arraySlice(allRawEvents, 0, limit);
+            return ccxt.BaseExchange.ToDictList(this.arraySlice(allRawEvents, 0, limit));
         }
-        return allRawEvents;
+        return ccxt.BaseExchange.ToDictList(allRawEvents);
     }
 
     public virtual object parseEventToMarkets(object eventVar)
@@ -3003,10 +3003,10 @@ public partial class polymarket : PredictionExchange
             rawEvents = ((bool) isTrue((responseIsArray))) ? response : new List<object>() {};
         } else if (isTrue(isGreaterThan(queriesLength, 0)))
         {
-            rawEvents = await this.fetchRawEventsBySearch(queries, rest);
+            rawEvents = ccxt.BaseExchange.FromDictList(await this.FetchRawEventsBySearch(queries, rest));
         } else
         {
-            rawEvents = await this.fetchRawEventsList(rest);
+            rawEvents = ccxt.BaseExchange.FromDictList(await this.FetchRawEventsList(rest));
         }
         // Parse and merge into class-level caches
         if (isTrue(isEqual(this.events, null)))

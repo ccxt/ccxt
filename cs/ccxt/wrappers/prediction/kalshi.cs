@@ -32,29 +32,4 @@ public partial class kalshi
         var res = await this.cancelAllOrders(outcome, parameters);
         return ((IList<object>)res).Select(item => new PredictionOrder(item)).ToList<PredictionOrder>();
     }
-    /// <summary>
-    /// fetches the canonical events (with nested markets) of the given kalshi series, cursor-paginated per series and stopping once `limit` events are gathered
-    /// </summary>
-    /// <remarks>
-    /// <list type="table">
-    /// <item>
-    /// <term>limit</term>
-    /// <description>
-    /// int : stop fetching once this many events are gathered
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>rest</term>
-    /// <description>
-    /// object : extra params forwarded verbatim to the events endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object[]</term> raw kalshi event objects with nested markets.</returns>
-    public async Task<List<Dictionary<string, object>>> FetchSeriesEvents(List<string> seriesTickers, string status, Int64 limit, Dictionary<string, object> rest = null)
-    {
-        var res = await this.fetchSeriesEvents(seriesTickers, status, limit, rest);
-        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
-    }
 }

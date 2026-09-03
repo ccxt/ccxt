@@ -3341,7 +3341,7 @@ public partial class limitless : PredictionExchange
             // tags scope: resolve the tags to limitless categories and page only those
             // categories' listings server-side — never the whole active listing
             object requestedTags = this.safeList(parameters, "tags", new List<object>() {});
-            object listRaw = await this.fetchRawMarketsByTags(requestedTags, parameters);
+            object listRaw = ccxt.BaseExchange.FromDictList(await this.FetchRawMarketsByTags(requestedTags, parameters));
             int listRawLength = getArrayLength(listRaw);
             for (object i = 0; isLessThan(i, listRawLength); postFixIncrement(ref i))
             {
@@ -3427,7 +3427,7 @@ public partial class limitless : PredictionExchange
      * @param {string} [categoryId] a limitless category id — pages only that category's listing
      * @returns {object[]} raw limitless market objects
      */
-    public async virtual Task<object> fetchRawActiveMarkets(object parameters = null, object categoryId = null)
+    public async virtual Task<List<Dictionary<string, object>>> FetchRawActiveMarkets(object parameters = null, object categoryId = null)
     {
         parameters ??= new Dictionary<string, object>();
         object maxMarkets = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "fetchMarketsLimit", 1000));
@@ -3471,7 +3471,7 @@ public partial class limitless : PredictionExchange
                 break;
             }
         }
-        return allRaw;
+        return ccxt.BaseExchange.ToDictList(allRaw);
     }
 
     /**
@@ -3484,7 +3484,7 @@ public partial class limitless : PredictionExchange
      * @param {int} [params.limit] max number of raw markets to collect per category
      * @returns {object[]} raw limitless market objects, deduped by slug
      */
-    public async virtual Task<object> fetchRawMarketsByTags(object tags, object parameters = null)
+    public async virtual Task<List<Dictionary<string, object>>> FetchRawMarketsByTags(object tags, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object categoriesResponse = await this.limitlessPublicGetCategories();
@@ -3532,7 +3532,7 @@ public partial class limitless : PredictionExchange
         object allRaw = new List<object>() {};
         for (object ci = 0; isLessThan(ci, categoryIdsLength); postFixIncrement(ref ci))
         {
-            object categoryMarkets = await this.fetchRawActiveMarkets(parameters, getValue(categoryIds, ci));
+            object categoryMarkets = ccxt.BaseExchange.FromDictList(await this.FetchRawActiveMarkets(parameters, getValue(categoryIds, ci)));
             int categoryMarketsLength = getArrayLength(categoryMarkets);
             for (object mi = 0; isLessThan(mi, categoryMarketsLength); postFixIncrement(ref mi))
             {
@@ -3545,7 +3545,7 @@ public partial class limitless : PredictionExchange
                 }
             }
         }
-        return allRaw;
+        return ccxt.BaseExchange.ToDictList(allRaw);
     }
 
     /**

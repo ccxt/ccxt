@@ -564,6 +564,18 @@ const PREDICTION_TYPED_CORES: Record<string, string> = {
     'fetchEvent': 'PredictionEvent',
     'fetchEvents': 'List<PredictionEvent>',
     'fetchEventsByQuery': 'List<Dictionary<string, object>>',
+    // venue-internal raw-page helpers: each returns one locally-built list of API rows and
+    // every consumer reads it through getArrayLength/getValue/safeList/promiseAll
+    'fetchRawActiveMarkets': 'List<Dictionary<string, object>>',
+    'fetchRawEventsBySearch': 'List<Dictionary<string, object>>',
+    'fetchRawEventsList': 'List<Dictionary<string, object>>',
+    'fetchRawMarketsBySearch': 'List<Dictionary<string, object>>',
+    'fetchRawMarketsByTags': 'List<Dictionary<string, object>>',
+    'fetchRawMarketsList': 'List<Dictionary<string, object>>',
+    'fetchRawQuestionsBySearch': 'List<Dictionary<string, object>>',
+    'fetchRawQuestionsList': 'List<Dictionary<string, object>>',
+    'fetchRawTopics': 'List<Dictionary<string, object>>',
+    'fetchSeriesEvents': 'List<Dictionary<string, object>>',
     // the fetchMarkets family is deliberately absent so it falls through to TYPED_CORES
     // 'List<MarketInterface>': FetchMarkets is declared on BaseExchange and C# overrides are
     // invariant, so the prediction tier cannot diverge (CS0508).

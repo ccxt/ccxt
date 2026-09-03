@@ -203,7 +203,7 @@ public partial class binance : PredictionExchange
         }
         object maxMarkets = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "maxFetchMarketsLimit", 200));
         object rest = this.omit(parameters, new List<object>() {"query", "queries", "limit"});
-        object rawTopics = await this.fetchRawTopics(maxMarkets, rest);
+        object rawTopics = ccxt.BaseExchange.FromDictList(await this.FetchRawTopics(maxMarkets, rest));
         object parsedEvents = new List<object>() {};
         object flatMarkets = new List<object>() {};
         int rawTopicsLength = getArrayLength(rawTopics);
@@ -232,7 +232,7 @@ public partial class binance : PredictionExchange
      * @param {object} [rest] extra params forwarded verbatim to the listing endpoint (l1Category, l2Category, sortBy, orderBy)
      * @returns {object[]} raw market topic objects
      */
-    public async virtual Task<object> fetchRawTopics(object maxTopics, object rest = null)
+    public async virtual Task<List<Dictionary<string, object>>> FetchRawTopics(object maxTopics, object rest = null)
     {
         rest ??= new Dictionary<string, object>();
         if (isTrue(isEqual(maxTopics, null)))
@@ -309,7 +309,7 @@ public partial class binance : PredictionExchange
             }
             offset = this.sum(offset, pageTopicsLength);
         }
-        return collected;
+        return ccxt.BaseExchange.ToDictList(collected);
     }
 
     /**
@@ -466,7 +466,7 @@ public partial class binance : PredictionExchange
                     parameters = this.omit(parameters, new List<object>() {"sort", "sortBy"});
                 }
             }
-            object listed = await this.fetchRawTopics(fetchCap, this.extend(listingRequest, rest));
+            object listed = ccxt.BaseExchange.FromDictList(await this.FetchRawTopics(fetchCap, this.extend(listingRequest, rest)));
             rawTopics = await this.completeRawTopics(listed);
         }
         int rawTopicsLength = getArrayLength(rawTopics);

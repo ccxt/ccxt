@@ -855,7 +855,23 @@ public partial class BaseExchange
             return byteArray[firstInt..secondInt2];
         }
 
-        var parsedArray = ((IList<object>)array);
+        // a typed core hands back List<Dictionary<string, object>> / List<string> / List<T>;
+        // List<T> is invariant so none of those IS an IList<object> - re-box through the
+        // non-generic IList instead of throwing InvalidCastException
+        IList<object> parsedArray;
+        if (array is IList<object> objectList)
+        {
+            parsedArray = objectList;
+        }
+        else
+        {
+            var boxed = new List<object>();
+            foreach (var item in (System.Collections.IList)array)
+            {
+                boxed.Add(item);
+            }
+            parsedArray = boxed;
+        }
         var isArrayCache = array is ccxt.pro.ArrayCache;
         // var typedArray = (array is ArrayCache) ? (ArrayCache)array : (IList<object>array);
         if (second == null)
