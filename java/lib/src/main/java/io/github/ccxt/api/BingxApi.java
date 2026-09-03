@@ -1681,6 +1681,17 @@ public class BingxApi extends Exchange
     }
 
     /**
+     * Calls the accountV1PrivateGetAccountApiRestrictions endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  accountV1PrivateGetAccountApiRestrictions (Object... optionalArgs)
+    {
+        return this.callAsync ("accountV1PrivateGetAccountApiRestrictions", optionalArgs);
+    }
+
+    /**
      * Calls the accountV1PrivateGetAllAccountBalance endpoint.
      *
      * @param optionalArgs the request parameters

@@ -239,7 +239,7 @@
                         "address": "TFcWfiw5p5DDZ6vi6Bktf7yK1asRYLpN33",
                         "addressTo": "TFcWfiw5p5DDZ6vi6Bktf7yK1asRYLpN33",
                         "amount": 28.5,
-                        "type": "withdraw",
+                        "type": "withdrawal",
                         "currency": "USDT",
                         "status": "ok",
                         "updated": 1787918826202,

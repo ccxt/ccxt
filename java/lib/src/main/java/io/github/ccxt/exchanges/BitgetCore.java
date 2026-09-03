@@ -4715,7 +4715,7 @@ final Object finalMinNotional = minNotional;
             put( "address", BitgetCore.this.safeString(transaction, "toAddress") );
             put( "addressTo", BitgetCore.this.safeString(transaction, "toAddress") );
             put( "amount", BitgetCore.this.parseNumber(finalAmountString) );
-            put( "type", BitgetCore.this.safeString(transaction, "type") );
+            put( "type", BitgetCore.this.parseTransactionType(BitgetCore.this.safeString(transaction, "type")) );
             put( "currency", code );
             put( "status", BitgetCore.this.parseTransactionStatus(status) );
             put( "updated", BitgetCore.this.safeInteger2(transaction, "uTime", "updatedTime") );
@@ -4726,6 +4726,15 @@ final Object finalMinNotional = minNotional;
             put( "internal", null );
             put( "fee", finalFee );
         }};
+    }
+
+    public Object parseTransactionType(Object type)
+    {
+        // the wire says withdraw, and a unified transaction says withdrawal
+        Object types = new java.util.HashMap<String, Object>() {{
+            put( "withdraw", "withdrawal" );
+        }};
+        return this.safeString(types, ((String)type), type);
     }
 
     public Object parseTransactionStatus(Object status)

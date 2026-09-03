@@ -3272,7 +3272,7 @@ class bitget extends Exchange {
             'address' => $this->safe_string($transaction, 'toAddress'),
             'addressTo' => $this->safe_string($transaction, 'toAddress'),
             'amount' => $this->parse_number($amountString),
-            'type' => $this->safe_string($transaction, 'type'),
+            'type' => $this->parse_transaction_type($this->safe_string($transaction, 'type')),
             'currency' => $code,
             'status' => $this->parse_transaction_status($status),
             'updated' => $this->safe_integer_2($transaction, 'uTime', 'updatedTime'),
@@ -3283,6 +3283,14 @@ class bitget extends Exchange {
             'internal' => null,
             'fee' => $fee,
         );
+    }
+
+    public function parse_transaction_type(?string $type) {
+        // the wire says withdraw, and a unified transaction says withdrawal
+        $types = array(
+            'withdraw' => 'withdrawal',
+        );
+        return $this->safe_string($types, $type, $type);
     }
 
     public function parse_transaction_status(?string $status) {

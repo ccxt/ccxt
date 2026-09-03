@@ -2142,6 +2142,7 @@ public partial class coinbaseinternational : Exchange
     public virtual object parseOrderStatus(object status)
     {
         object statuses = new Dictionary<string, object>() {
+            { "WORKING", "open" },
             { "NEW", "open" },
             { "PARTIAL_FILLED", "open" },
             { "FILLED", "closed" },

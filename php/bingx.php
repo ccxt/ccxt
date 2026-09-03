@@ -443,6 +443,7 @@ class bingx extends Exchange {
                                 'uid' => array( 'cost' => 1 ),
                                 'apiKey/query' => array( 'cost' => 2 ),
                                 'account/apiPermissions' => array( 'cost' => 5 ),
+                                'account/apiRestrictions' => array( 'cost' => 5 ),
                                 'allAccountBalance' => array( 'cost' => 2 ),
                             ),
                             'post' => array(
@@ -729,6 +730,9 @@ class bingx extends Exchange {
                 'defaultForInverse' => array(
                     'extends' => 'defaultForLinear',
                     'createOrders' => null,
+                    'fetchOHLCV' => array(
+                        'limit' => 1000,
+                    ),
                     'fetchMyTrades' => array(
                         'limit' => 1000,
                         'daysBack' => null,
@@ -1060,6 +1064,8 @@ class bingx extends Exchange {
             $isActive = true; // $swap active
         } elseif (($this->safe_bool($market, 'apiStateSell') === true) && ($this->safe_bool($market, 'apiStateBuy') === true) && ($this->safe_string($market, 'status') === '1')) {
             $isActive = true; // $spot active
+        } elseif ($checkIsInverse && ($this->safe_string($market, 'status') === '1')) {
+            $isActive = true; // inverse $swap active
         }
         $isInverse = ($spot) ? null : $checkIsInverse;
         $isLinear = ($spot) ? null : $checkIsLinear;
@@ -1162,7 +1168,7 @@ class bingx extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
          * @param {string} $timeframe the length of time each candle represents
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [$limit] the maximum amount of candles to fetch
+         * @param {int} [$limit] the maximum amount of candles to fetch (max 1000 for inverse swaps, 1440 otherwise)
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
@@ -1171,26 +1177,31 @@ class bingx extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
+        $market = $this->market($symbol);
+        $maxLimit = ($market['inverse'] === true) ? 1000 : 1440;
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate', false);
         if ($paginate) {
-            return $this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, 1440);
+            return $this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, $maxLimit);
         }
-        $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
         );
         $request['interval'] = $this->safe_string($this->timeframes, $timeframe, $timeframe);
+        $requestLimit = ($limit === null) ? 500 : min($limit, $maxLimit);
         if ($since !== null) {
             $request['startTime'] = max($since - 1, 0);
         }
         if ($limit !== null) {
-            $request['limit'] = $limit;
+            $request['limit'] = $requestLimit;
         }
         $until = $this->safe_integer_2($params, 'until', 'endTime');
         if ($until !== null) {
             $params = $this->omit($params, array( 'until' ));
             $request['endTime'] = $until;
+        } elseif (($market['inverse'] === true) && ($since !== null)) {
+            $duration = $this->parse_timeframe($timeframe) * 1000;
+            $request['endTime'] = $this->sum($since, $duration * $requestLimit);
         }
         if ($market['spot'] === true) {
             // bingx spot klines are anchored to UTC+8 by default, unlike the swap klines and other exchanges
@@ -5200,17 +5211,23 @@ class bingx extends Exchange {
             'amount' => $this->currency_to_precision($code, $amount),
         );
         $response = $this->apiAssetV1PrivatePostTransfer($this->extend($request, $params));
+        $data = $this->safe_dict($response, 'data', array());
+        $timestamp = $this->safe_integer($response, 'timestamp');
         //
         //     {
-        //         "tranId" => 1933130865269936128,
-        //         "transferId" => "1051450703949464903736"
+        //         "code" => "0",
+        //         "timestamp" => "1752202170686",
+        //         "data" => {
+        //             "tranId" => "1943502883135819776",
+        //             "transferId" => "1051461075875997081703"
+        //         }
         //     }
         //
         return array(
             'info' => $response,
-            'id' => $this->safe_string($response, 'transferId'),
-            'timestamp' => null,
-            'datetime' => null,
+            'id' => $this->safe_string_2($data, 'transferId', 'tranId'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
             'currency' => $code,
             'amount' => $amount,
             'fromAccount' => $fromAccount,
@@ -7016,7 +7033,8 @@ class bingx extends Exchange {
             $version = $section[2];
             $access = $section[3];
         }
-        if ($path !== 'account/apiPermissions') {
+        $flatAccountPaths = array( 'account/apiPermissions', 'account/apiRestrictions' );
+        if (!$this->in_array($path, $flatAccountPaths)) {
             if ($type === 'spot' && $version === 'v3') {
                 $url .= '/api';
             } else {

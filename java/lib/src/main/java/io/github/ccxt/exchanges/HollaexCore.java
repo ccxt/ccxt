@@ -1884,7 +1884,7 @@ public class HollaexCore extends HollaexApi
             //
             Object wallet = this.safeValue(response, "wallet", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object addresses = ((Helpers.isTrue((Helpers.isEqual(network, null))))) ? wallet : this.filterBy(wallet, "network", network);
-            return this.parseDepositAddresses(addresses, codes);
+            return this.parseDepositAddresses(addresses, codes, false);
         });
 
     }

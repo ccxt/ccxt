@@ -2534,7 +2534,7 @@ public partial class upbit : Exchange
         //         }
         //     ]
         //
-        return ccxt.BaseExchange.ToDepositAddressList(this.parseDepositAddresses(response, codes));
+        return ccxt.BaseExchange.ToDepositAddressList(this.parseDepositAddresses(response, codes, false));
     }
 
     public override object parseDepositAddress(object depositAddress, object currency = null)

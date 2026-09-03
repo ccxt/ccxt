@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official bingx API documentation:** [bingx-api.github.io](https://bingx-api.github.io/docs/)
 
-> 187 implicit endpoints across 12 access groups.
+> 188 implicit endpoints across 12 access groups.
 
 ## fund
 
@@ -263,6 +263,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `accountV1PrivateGetUid` | GET | `uid` | 1 |
 | `accountV1PrivateGetApiKeyQuery` | GET | `apiKey/query` | 2 |
 | `accountV1PrivateGetAccountApiPermissions` | GET | `account/apiPermissions` | 5 |
+| `accountV1PrivateGetAccountApiRestrictions` | GET | `account/apiRestrictions` | 5 |
 | `accountV1PrivateGetAllAccountBalance` | GET | `allAccountBalance` | 2 |
 | `accountV1PrivatePostInnerTransferAuthorizeSubAccount` | POST | `innerTransfer/authorizeSubAccount` | 1 |
 | `accountTransferV1PrivateGetSubAccountAssetTransferHistory` | GET | `subAccount/asset/transferHistory` | 1 |

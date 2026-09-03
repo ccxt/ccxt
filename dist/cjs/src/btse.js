@@ -1525,7 +1525,10 @@ class btse extends btse$1["default"] {
         const nextFundingTimestamp = this.safeIntegerOmitZero(contract, 'nextFundingTime');
         const fundingIntervalMinutes = this.safeInteger(contract, 'fundingIntervalMinutes');
         let interval = undefined;
-        if (fundingIntervalMinutes !== undefined) {
+        // a wire value of zero minutes reaches this, and zero hours is not an
+        // interval: a caller annualising a rate divides by it. anything under an
+        // hour rounds to the same string, and the vocabulary has no minutes
+        if ((fundingIntervalMinutes !== undefined) && (fundingIntervalMinutes >= 60)) {
             const hours = this.parseToInt(fundingIntervalMinutes / 60);
             interval = hours.toString() + 'h';
         }

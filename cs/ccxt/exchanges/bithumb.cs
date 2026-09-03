@@ -11,7 +11,7 @@ public partial class bithumb : Exchange
             { "id", "bithumb" },
             { "name", "Bithumb" },
             { "countries", new List<object>() {"KR"} },
-            { "rateLimit", 500 },
+            { "rateLimit", 8.334 },
             { "pro", true },
             { "has", new Dictionary<string, object>() {
                 { "CORS", true },
@@ -25,13 +25,18 @@ public partial class bithumb : Exchange
                 { "borrowIsolatedMargin", false },
                 { "borrowMargin", false },
                 { "cancelOrder", true },
+                { "cancelOrders", true },
                 { "closeAllPositions", false },
                 { "closePosition", false },
+                { "createDepositAddress", true },
+                { "createMarketBuyOrderWithCost", true },
                 { "createMarketOrder", true },
                 { "createOrder", true },
+                { "createOrders", true },
                 { "createOrderWithTakeProfitAndStopLoss", false },
                 { "createOrderWithTakeProfitAndStopLossWs", false },
                 { "createReduceOnlyOrder", false },
+                { "createTwapOrder", true },
                 { "fetchBalance", true },
                 { "fetchBorrowInterest", false },
                 { "fetchBorrowRate", false },
@@ -39,9 +44,15 @@ public partial class bithumb : Exchange
                 { "fetchBorrowRateHistory", false },
                 { "fetchBorrowRates", false },
                 { "fetchBorrowRatesPerSymbol", false },
+                { "fetchCanceledOrders", true },
+                { "fetchClosedOrders", true },
                 { "fetchCrossBorrowRate", false },
                 { "fetchCrossBorrowRates", false },
                 { "fetchCurrencies", false },
+                { "fetchDeposit", true },
+                { "fetchDepositAddress", true },
+                { "fetchDepositAddresses", true },
+                { "fetchDeposits", true },
                 { "fetchFundingHistory", false },
                 { "fetchFundingInterval", false },
                 { "fetchFundingIntervals", false },
@@ -77,6 +88,7 @@ public partial class bithumb : Exchange
                 { "fetchOptionChain", false },
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
+                { "fetchOrders", true },
                 { "fetchPosition", false },
                 { "fetchPositionHistory", false },
                 { "fetchPositionMode", false },
@@ -92,6 +104,9 @@ public partial class bithumb : Exchange
                 { "fetchTransfer", false },
                 { "fetchTransfers", false },
                 { "fetchVolatilityHistory", false },
+                { "fetchWithdrawal", true },
+                { "fetchWithdrawals", true },
+                { "fetchWithdrawalWhitelist", true },
                 { "reduceMargin", false },
                 { "repayCrossMargin", false },
                 { "repayIsolatedMargin", false },
@@ -106,7 +121,7 @@ public partial class bithumb : Exchange
             { "urls", new Dictionary<string, object>() {
                 { "logo", "https://github.com/user-attachments/assets/c9e0eefb-4777-46b9-8f09-9d7f7c4af82d" },
                 { "api", new Dictionary<string, object>() {
-                    { "public", "https://api.{hostname}/public" },
+                    { "public", "https://api.{hostname}" },
                     { "private", "https://api.{hostname}" },
                 } },
                 { "www", "https://www.bithumb.com" },
@@ -116,48 +131,134 @@ public partial class bithumb : Exchange
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "ticker/ALL_{quoteId}", new Dictionary<string, object>() {
+                        { "public/ticker/ALL_{quoteId}", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
-                        { "ticker/{baseId}_{quoteId}", new Dictionary<string, object>() {
+                        { "public/ticker/{baseId}_{quoteId}", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
-                        { "orderbook/ALL_{quoteId}", new Dictionary<string, object>() {
+                        { "public/orderbook/ALL_{quoteId}", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
-                        { "orderbook/{baseId}_{quoteId}", new Dictionary<string, object>() {
+                        { "public/orderbook/{baseId}_{quoteId}", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
-                        { "transaction_history/{baseId}_{quoteId}", new Dictionary<string, object>() {
+                        { "public/transaction_history/{baseId}_{quoteId}", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
-                        { "network-info", new Dictionary<string, object>() {
+                        { "public/network-info", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
-                        { "assetsstatus/multichain/ALL", new Dictionary<string, object>() {
+                        { "public/assetsstatus/multichain/ALL", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
-                        { "assetsstatus/multichain/{currency}", new Dictionary<string, object>() {
+                        { "public/assetsstatus/multichain/{currency}", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
-                        { "withdraw/minimum/ALL", new Dictionary<string, object>() {
+                        { "public/withdraw/minimum/ALL", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
-                        { "withdraw/minimum/{currency}", new Dictionary<string, object>() {
+                        { "public/withdraw/minimum/{currency}", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
-                        { "assetsstatus/ALL", new Dictionary<string, object>() {
+                        { "public/assetsstatus/ALL", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
-                        { "assetsstatus/{baseId}", new Dictionary<string, object>() {
+                        { "public/assetsstatus/{baseId}", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
-                        { "candlestick/{baseId}_{quoteId}/{interval}", new Dictionary<string, object>() {
+                        { "public/candlestick/{baseId}_{quoteId}/{interval}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/market/all", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/candles/minutes/{unit}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/candles/days", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/candles/weeks", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/candles/months", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/trades/ticks", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/ticker", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/orderbook", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/market/virtual_asset_warning", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/notices", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v2/fee/inout/{currency}", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
+                    { "get", new Dictionary<string, object>() {
+                        { "v1/accounts", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/orders/chance", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/twap", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/withdraws", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/withdraws/krw", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/withdraw", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/withdraws/chance", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/withdraws/coin_addresses", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/deposits", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/deposits/krw", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/deposit", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/deposits/coin_addresses", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/deposits/coin_address", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/status/wallet", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/api_keys", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
                     { "post", new Dictionary<string, object>() {
                         { "info/account", new Dictionary<string, object>() {
                             { "cost", 1 },
@@ -181,10 +282,10 @@ public partial class bithumb : Exchange
                             { "cost", 1 },
                         } },
                         { "trade/place", new Dictionary<string, object>() {
-                            { "cost", 1 },
+                            { "cost", 5 },
                         } },
                         { "trade/cancel", new Dictionary<string, object>() {
-                            { "cost", 1 },
+                            { "cost", 5 },
                         } },
                         { "trade/btc_withdrawal", new Dictionary<string, object>() {
                             { "cost", 1 },
@@ -202,6 +303,41 @@ public partial class bithumb : Exchange
                             { "cost", 1 },
                         } },
                         { "trade/stop_limit", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v2/orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v2/orders/batch", new Dictionary<string, object>() {
+                            { "cost", 6 },
+                        } },
+                        { "v2/orders/cancel", new Dictionary<string, object>() {
+                            { "cost", 6 },
+                        } },
+                        { "v1/twap", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/withdraws/coin", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/withdraws/krw", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/deposits/generate_coin_address", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/deposits/krw", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
+                    { "delete", new Dictionary<string, object>() {
+                        { "v2/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/twap", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/withdraws/coin", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                     } },
@@ -226,9 +362,34 @@ public partial class bithumb : Exchange
                         { "takeProfitPrice", false },
                         { "attachedStopLossTakeProfit", null },
                         { "timeInForce", new Dictionary<string, object>() {
-                            { "IOC", false },
-                            { "FOK", false },
-                            { "PO", false },
+                            { "GTC", true },
+                            { "IOC", true },
+                            { "FOK", true },
+                            { "PO", true },
+                            { "GTD", false },
+                        } },
+                        { "hedged", false },
+                        { "trailing", false },
+                        { "leverage", false },
+                        { "marketBuyRequiresPrice", true },
+                        { "marketBuyByCost", true },
+                        { "selfTradePrevention", false },
+                        { "iceberg", false },
+                    } },
+                    { "createOrders", new Dictionary<string, object>() {
+                        { "max", 20 },
+                        { "marginMode", false },
+                        { "triggerPrice", false },
+                        { "triggerPriceType", null },
+                        { "triggerDirection", false },
+                        { "stopLossPrice", false },
+                        { "takeProfitPrice", false },
+                        { "attachedStopLossTakeProfit", null },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "GTC", true },
+                            { "IOC", true },
+                            { "FOK", true },
+                            { "PO", true },
                             { "GTD", false },
                         } },
                         { "hedged", false },
@@ -239,25 +400,48 @@ public partial class bithumb : Exchange
                         { "selfTradePrevention", false },
                         { "iceberg", false },
                     } },
-                    { "createOrders", null },
                     { "fetchMyTrades", null },
                     { "fetchOrder", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "trigger", false },
                         { "trailing", false },
-                        { "symbolRequired", true },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOpenOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
-                        { "limit", 1000 },
+                        { "limit", 100 },
                         { "trigger", false },
                         { "trailing", false },
-                        { "symbolRequired", true },
+                        { "symbolRequired", false },
                     } },
-                    { "fetchOrders", null },
-                    { "fetchClosedOrders", null },
+                    { "fetchOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "daysBack", 0 },
+                        { "untilDays", 0 },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchCanceledOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "daysBack", 0 },
+                        { "daysBackCanceled", 0 },
+                        { "untilDays", 0 },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
                     { "fetchOHLCV", new Dictionary<string, object>() {
-                        { "limit", 1000 },
+                        { "limit", 200 },
                     } },
                 } },
                 { "swap", new Dictionary<string, object>() {
@@ -270,6 +454,7 @@ public partial class bithumb : Exchange
                 } },
             } },
             { "exceptions", new Dictionary<string, object>() {
+                { "400", typeof(BadRequest) },
                 { "Bad Request(SSL)", typeof(BadRequest) },
                 { "Bad Request(Bad Method)", typeof(BadRequest) },
                 { "Bad Request.(Auth Data)", typeof(AuthenticationError) },
@@ -283,33 +468,36 @@ public partial class bithumb : Exchange
                 { "5600", typeof(ExchangeError) },
                 { "Unknown Error", typeof(ExchangeError) },
                 { "After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions", typeof(ExchangeError) },
+                { "Missing request parameter error. Check the required parameters!", typeof(BadRequest) },
             } },
             { "timeframes", new Dictionary<string, object>() {
-                { "1m", "1m" },
-                { "3m", "3m" },
-                { "5m", "5m" },
-                { "10m", "10m" },
-                { "30m", "30m" },
-                { "1h", "1h" },
-                { "6h", "6h" },
-                { "12h", "12h" },
-                { "1d", "24h" },
+                { "1m", 1 },
+                { "3m", 3 },
+                { "5m", 5 },
+                { "10m", 10 },
+                { "15m", 15 },
+                { "30m", 30 },
+                { "1h", 60 },
+                { "4h", 240 },
             } },
             { "options", new Dictionary<string, object>() {
+                { "generation", 2 },
+                { "fetchTickersGeneration2MaxMarketIdsPerRequest", 300 },
+                { "createMarketBuyOrderRequiresPrice", true },
                 { "quoteCurrencies", new Dictionary<string, object>() {
-                    { "BTC", new Dictionary<string, object>() {
-                        { "limits", new Dictionary<string, object>() {
-                            { "cost", new Dictionary<string, object>() {
-                                { "min", 0.0002 },
-                                { "max", 100 },
-                            } },
-                        } },
-                    } },
                     { "KRW", new Dictionary<string, object>() {
                         { "limits", new Dictionary<string, object>() {
                             { "cost", new Dictionary<string, object>() {
                                 { "min", 500 },
                                 { "max", 5000000000 },
+                            } },
+                        } },
+                    } },
+                    { "BTC", new Dictionary<string, object>() {
+                        { "limits", new Dictionary<string, object>() {
+                            { "cost", new Dictionary<string, object>() {
+                                { "min", 0.0002 },
+                                { "max", 100 },
                             } },
                         } },
                     } },
@@ -337,62 +525,79 @@ public partial class bithumb : Exchange
         return this.decimalToPrecision(amount, TRUNCATE, getValue(getValue(market, "precision"), "amount"), DECIMAL_PLACES);
     }
 
+    public virtual object getGen2MarketId(object market)
+    {
+        object marketId = this.safeString(market, "id");
+        if (isTrue(isTrue((!isEqual(marketId, null))) && isTrue((isGreaterThanOrEqual(getIndexOf(marketId, "-"), 0)))))
+        {
+            return marketId;
+        }
+        object quoteId = this.safeString2(market, "quoteId", "quote");
+        object baseId = this.safeString2(market, "baseId", "base");
+        return add(add(quoteId, "-"), baseId);
+    }
+
     /**
      * @method
      * @name bithumb#fetchMarkets
      * @description retrieves data on all markets for bithumb
      * @see https://apidocs.bithumb.com/v1.2.0/reference/%ED%98%84%EC%9E%AC%EA%B0%80-%EC%A0%95%EB%B3%B4-%EC%A1%B0%ED%9A%8C-all
+     * @see https://apidocs.bithumb.com/reference/%EA%B1%B0%EB%9E%98-%EB%8C%80%EC%83%81-%EB%AA%A9%EB%A1%9D-%EC%A1%B0%ED%9A%8C
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @returns {object[]} an array of objects representing market data
      */
     public async override Task<object> fetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object result = new List<object>() {};
-        object quoteCurrencies = this.safeDict(this.options, "quoteCurrencies", new Dictionary<string, object>() {});
-        List<object> quotes = new List<object>(((IDictionary<string,object>)quoteCurrencies).Keys);
-        object promises = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(quotes)); postFixIncrement(ref i))
+        object request = new Dictionary<string, object>() {};
+        object generation = null;
+        var generationparametersVariable = this.handleOptionAndParams(parameters, "fetchMarkets", "generation", 2);
+        generation = ((IList<object>)generationparametersVariable)[0];
+        parameters = ((IList<object>)generationparametersVariable)[1];
+        if (isTrue(isEqual(generation, 2)))
         {
-            object request = new Dictionary<string, object>() {
-                { "quoteId", getValue(quotes, i) },
-            };
-            ((IList<object>)promises).Add(this.publicGetTickerALLQuoteId(this.extend(request, parameters)));
-        }
-        object results = await promiseAll(promises);
-        for (object i = 0; isLessThan(i, getArrayLength(quotes)); postFixIncrement(ref i))
-        {
-            object quote = getValue(quotes, i);
-            object quoteId = quote;
-            object response = getValue(results, i);
-            object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-            object extension = this.safeDict(quoteCurrencies, quote, new Dictionary<string, object>() {});
-            List<object> currencyIds = new List<object>(((IDictionary<string,object>)data).Keys);
-            for (object j = 0; isLessThan(j, getArrayLength(currencyIds)); postFixIncrement(ref j))
+            ((IDictionary<string,object>)request)["isDetails"] = true;
+            object response = await this.publicGetV1MarketAll(this.extend(request, parameters));
+            //
+            //     [
+            //         {
+            //             "market": "KRW-BTC",
+            //             "korean_name": "비트코인",
+            //             "english_name": "Bitcoin",
+            //             "market_warning": "NONE"
+            //         },
+            //     ]
+            //
+            for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
             {
-                object currencyId = getValue(currencyIds, j);
-                if (isTrue(isEqual(currencyId, "date")))
+                object entry = getValue(response, i);
+                object marketId = this.safeString(entry, "market");
+                object baseId = null;
+                object quoteId = null;
+                object bs = null;
+                object quote = null;
+                if (isTrue(!isEqual(marketId, null)))
+                {
+                    List<object> parts = ((string)marketId).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
+                    // to match gen 1, the quoteId is the first currency derived from the market id
+                    baseId = getValue(parts, 1);
+                    quoteId = getValue(parts, 0);
+                    bs = this.safeCurrencyCode(baseId);
+                    quote = this.safeCurrencyCode(quoteId);
+                }
+                if (isTrue(isTrue((isEqual(bs, null))) || isTrue((isEqual(quote, null)))))
                 {
                     continue;
                 }
-                object market = getValue(data, currencyId);
-                object bs = this.safeCurrencyCode(currencyId);
-                bool active = true;
-                if (isTrue(((market is IList<object>) || (market.GetType().IsGenericType && market.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
-                {
-                    int numElements = getArrayLength(market);
-                    if (isTrue(isEqual(numElements, 0)))
-                    {
-                        active = false;
-                    }
-                }
-                Dictionary<string, object> entry = this.deepExtend(new Dictionary<string, object>() {
-                    { "id", currencyId },
+                ((IList<object>)result).Add(new Dictionary<string, object>() {
+                    { "id", marketId },
                     { "symbol", add(add(bs, "/"), quote) },
                     { "base", bs },
                     { "quote", quote },
                     { "settle", null },
-                    { "baseId", currencyId },
+                    { "baseId", baseId },
                     { "quoteId", quoteId },
                     { "settleId", null },
                     { "type", "spot" },
@@ -401,13 +606,13 @@ public partial class bithumb : Exchange
                     { "swap", false },
                     { "future", false },
                     { "option", false },
-                    { "active", active },
+                    { "active", true },
                     { "contract", false },
                     { "linear", null },
                     { "inverse", null },
                     { "contractSize", null },
                     { "expiry", null },
-                    { "expiryDateTime", null },
+                    { "expiryDatetime", null },
                     { "strike", null },
                     { "optionType", null },
                     { "precision", new Dictionary<string, object>() {
@@ -427,12 +632,100 @@ public partial class bithumb : Exchange
                             { "min", null },
                             { "max", null },
                         } },
-                        { "cost", new Dictionary<string, object>() {} },
+                        { "cost", new Dictionary<string, object>() {
+                            { "min", null },
+                            { "max", null },
+                        } },
                     } },
                     { "created", null },
-                    { "info", market },
-                }, extension);
-                ((IList<object>)result).Add(entry);
+                    { "info", entry },
+                });
+            }
+        } else
+        {
+            object quoteCurrencies = this.safeDict(this.options, "quoteCurrencies", new Dictionary<string, object>() {});
+            List<object> quotes = new List<object>(((IDictionary<string,object>)quoteCurrencies).Keys);
+            object promises = new List<object>() {};
+            for (object i = 0; isLessThan(i, getArrayLength(quotes)); postFixIncrement(ref i))
+            {
+                ((IDictionary<string,object>)request)["quoteId"] = getValue(quotes, i);
+                ((IList<object>)promises).Add(this.publicGetPublicTickerALLQuoteId(this.extend(request, parameters)));
+            }
+            object results = await promiseAll(promises);
+            for (object i = 0; isLessThan(i, getArrayLength(quotes)); postFixIncrement(ref i))
+            {
+                object quote = getValue(quotes, i);
+                object quoteId = quote;
+                object response = getValue(results, i);
+                object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+                object extension = this.safeDict(quoteCurrencies, quote, new Dictionary<string, object>() {});
+                List<object> currencyIds = new List<object>(((IDictionary<string,object>)data).Keys);
+                for (object j = 0; isLessThan(j, getArrayLength(currencyIds)); postFixIncrement(ref j))
+                {
+                    object currencyId = getValue(currencyIds, j);
+                    if (isTrue(isEqual(currencyId, "date")))
+                    {
+                        continue;
+                    }
+                    object market = getValue(data, currencyId);
+                    object bs = this.safeCurrencyCode(currencyId);
+                    bool active = true;
+                    if (isTrue(((market is IList<object>) || (market.GetType().IsGenericType && market.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+                    {
+                        int numElements = getArrayLength(market);
+                        if (isTrue(isEqual(numElements, 0)))
+                        {
+                            active = false;
+                        }
+                    }
+                    Dictionary<string, object> entry = this.deepExtend(new Dictionary<string, object>() {
+                        { "id", currencyId },
+                        { "symbol", add(add(bs, "/"), quote) },
+                        { "base", bs },
+                        { "quote", quote },
+                        { "settle", null },
+                        { "baseId", currencyId },
+                        { "quoteId", quoteId },
+                        { "settleId", null },
+                        { "type", "spot" },
+                        { "spot", true },
+                        { "margin", false },
+                        { "swap", false },
+                        { "future", false },
+                        { "option", false },
+                        { "active", active },
+                        { "contract", false },
+                        { "linear", null },
+                        { "inverse", null },
+                        { "contractSize", null },
+                        { "expiry", null },
+                        { "expiryDatetime", null },
+                        { "strike", null },
+                        { "optionType", null },
+                        { "precision", new Dictionary<string, object>() {
+                            { "amount", parseInt("4") },
+                            { "price", parseInt("4") },
+                        } },
+                        { "limits", new Dictionary<string, object>() {
+                            { "leverage", new Dictionary<string, object>() {
+                                { "min", null },
+                                { "max", null },
+                            } },
+                            { "amount", new Dictionary<string, object>() {
+                                { "min", null },
+                                { "max", null },
+                            } },
+                            { "price", new Dictionary<string, object>() {
+                                { "min", null },
+                                { "max", null },
+                            } },
+                            { "cost", new Dictionary<string, object>() {} },
+                        } },
+                        { "created", null },
+                        { "info", market },
+                    }, extension);
+                    ((IList<object>)result).Add(entry);
+                }
             }
         }
         return result;
@@ -440,21 +733,65 @@ public partial class bithumb : Exchange
 
     public override object parseBalance(object response)
     {
+        //
+        // generation 1
+        //
+        //     {
+        //         "status": "0000",
+        //         "data": {
+        //             "total_krw": "51026.000000",
+        //             "in_use_krw": "0.00000000",
+        //             "available_krw": "51026.00000000",
+        //         }
+        //     }
+        //
+        // generation 2
+        //
+        //     [
+        //         {
+        //             "currency": "KRW",
+        //             "balance": "51026",
+        //             "locked": "0",
+        //             "avg_buy_price": "0",
+        //             "avg_buy_price_modified": false,
+        //             "unit_currency": "KRW"
+        //         },
+        //     ]
+        //
         object result = new Dictionary<string, object>() {
             { "info", response },
         };
         object balances = this.safeDict(response, "data");
-        List<object> codes = new List<object>(((IDictionary<string,object>)this.currencies).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(codes)); postFixIncrement(ref i))
+        if (isTrue(!isEqual(balances, null)))
         {
-            object code = getValue(codes, i);
-            object account = this.account();
-            object currency = this.currency(code);
-            object lowerCurrencyId = this.safeStringLower(currency, "id");
-            ((IDictionary<string,object>)account)["total"] = this.safeString(balances, add("total_", lowerCurrencyId));
-            ((IDictionary<string,object>)account)["used"] = this.safeString(balances, add("in_use_", lowerCurrencyId));
-            ((IDictionary<string,object>)account)["free"] = this.safeString(balances, add("available_", lowerCurrencyId));
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            List<object> codes = new List<object>(((IDictionary<string,object>)this.currencies).Keys);
+            for (object i = 0; isLessThan(i, getArrayLength(codes)); postFixIncrement(ref i))
+            {
+                object code = getValue(codes, i);
+                object account = this.account();
+                object currency = this.currency(code);
+                object lowerCurrencyId = this.safeStringLower(currency, "id");
+                ((IDictionary<string,object>)account)["total"] = this.safeString(balances, add("total_", lowerCurrencyId));
+                ((IDictionary<string,object>)account)["used"] = this.safeString(balances, add("in_use_", lowerCurrencyId));
+                ((IDictionary<string,object>)account)["free"] = this.safeString(balances, add("available_", lowerCurrencyId));
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
+        } else
+        {
+            for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+            {
+                object entry = getValue(response, i);
+                object account = this.account();
+                object currencyId = this.safeString(entry, "currency");
+                object code = this.safeCurrencyCode(currencyId);
+                if (isTrue(isEqual(code, null)))
+                {
+                    continue;
+                }
+                ((IDictionary<string,object>)account)["free"] = this.safeString(entry, "balance");
+                ((IDictionary<string,object>)account)["used"] = this.safeString(entry, "locked");
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -464,7 +801,9 @@ public partial class bithumb : Exchange
      * @name bithumb#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://apidocs.bithumb.com/v1.2.0/reference/%EB%B3%B4%EC%9C%A0%EC%9E%90%EC%82%B0-%EC%A1%B0%ED%9A%8C
+     * @see https://apidocs.bithumb.com/reference/%EC%A0%84%EC%B2%B4-%EC%9E%90%EC%82%B0-%EC%A1%B0%ED%9A%8C
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     public async override Task<object> fetchBalance(object parameters = null)
@@ -474,10 +813,21 @@ public partial class bithumb : Exchange
         {
             await this.loadMarkets();
         }
-        object request = new Dictionary<string, object>() {
-            { "currency", "ALL" },
-        };
-        object response = await this.privatePostInfoBalance(this.extend(request, parameters));
+        object generation = null;
+        var generationparametersVariable = this.handleOptionAndParams(parameters, "fetchBalance", "generation", 2);
+        generation = ((IList<object>)generationparametersVariable)[0];
+        parameters = ((IList<object>)generationparametersVariable)[1];
+        object response = null;
+        if (isTrue(isEqual(generation, 2)))
+        {
+            response = await this.privateGetV1Accounts(parameters);
+        } else
+        {
+            object request = new Dictionary<string, object>() {
+                { "currency", "ALL" },
+            };
+            response = await this.privatePostInfoBalance(this.extend(request, parameters));
+        }
         return this.parseBalance(response);
     }
 
@@ -486,9 +836,11 @@ public partial class bithumb : Exchange
      * @name bithumb#fetchOrderBook
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://apidocs.bithumb.com/v1.2.0/reference/%ED%98%B8%EA%B0%80-%EC%A0%95%EB%B3%B4-%EC%A1%B0%ED%9A%8C
+     * @see https://apidocs.bithumb.com/reference/%ED%98%B8%EA%B0%80-%EC%A1%B0%ED%9A%8C
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
@@ -498,45 +850,97 @@ public partial class bithumb : Exchange
         {
             await this.loadMarkets();
         }
+        object generation = null;
+        var generationparametersVariable = this.handleOptionAndParams(parameters, "fetchOrderBook", "generation", 2);
+        generation = ((IList<object>)generationparametersVariable)[0];
+        parameters = ((IList<object>)generationparametersVariable)[1];
         object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
-            { "baseId", getValue(market, "baseId") },
-            { "quoteId", getValue(market, "quoteId") },
-        };
-        if (isTrue(!isEqual(limit, null)))
+        object request = new Dictionary<string, object>() {};
+        object response = null;
+        object data = null;
+        object timestamp = null;
+        if (isTrue(isEqual(generation, 2)))
         {
-            ((IDictionary<string,object>)request)["count"] = limit; // default 30, max 30
+            ((IDictionary<string,object>)request)["markets"] = this.getGen2MarketId(market);
+            response = await this.publicGetV1Orderbook(this.extend(request, parameters));
+            //
+            //     [
+            //         {
+            //             "market": "BTC-USDC",
+            //             "timestamp": 1782807920105,
+            //             "total_ask_size": 40322.8585,
+            //             "total_bid_size": 174206.4577,
+            //             "orderbook_units": [
+            //                 {
+            //                     "ask_price": 0.00001687,
+            //                     "bid_price": 0.0000168,
+            //                     "ask_size": 155,
+            //                     "bid_size": 41.6666
+            //                 },
+            //             ]
+            //         }
+            //     ]
+            //
+            object result = this.safeDict(response, 0, new Dictionary<string, object>() {});
+            timestamp = this.safeInteger(result, "timestamp");
+            object orderBookUnits = this.safeList(result, "orderbook_units", new List<object>() {});
+            object bids = new List<object>() {};
+            object asks = new List<object>() {};
+            for (object i = 0; isLessThan(i, getArrayLength(orderBookUnits)); postFixIncrement(ref i))
+            {
+                object entry = getValue(orderBookUnits, i);
+                ((IList<object>)bids).Add(new Dictionary<string, object>() {
+                    { "price", this.safeString(entry, "bid_price") },
+                    { "quantity", this.safeString(entry, "bid_size") },
+                });
+                ((IList<object>)asks).Add(new Dictionary<string, object>() {
+                    { "price", this.safeString(entry, "ask_price") },
+                    { "quantity", this.safeString(entry, "ask_size") },
+                });
+            }
+            data = new Dictionary<string, object>() {
+                { "bids", bids },
+                { "asks", asks },
+            };
+        } else
+        {
+            ((IDictionary<string,object>)request)["baseId"] = getValue(market, "baseId");
+            ((IDictionary<string,object>)request)["quoteId"] = getValue(market, "quoteId");
+            if (isTrue(!isEqual(limit, null)))
+            {
+                ((IDictionary<string,object>)request)["count"] = limit; // default 30, max 30
+            }
+            response = await this.publicGetPublicOrderbookBaseIdQuoteId(this.extend(request, parameters));
+            //
+            //     {
+            //         "status":"0000",
+            //         "data":{
+            //             "timestamp":"1587621553942",
+            //             "payment_currency":"KRW",
+            //             "order_currency":"BTC",
+            //             "bids":[
+            //                 {"price":"8652000","quantity":"0.0043"},
+            //                 {"price":"8651000","quantity":"0.0049"},
+            //                 {"price":"8650000","quantity":"8.4791"},
+            //             ],
+            //             "asks":[
+            //                 {"price":"8654000","quantity":"0.119"},
+            //                 {"price":"8655000","quantity":"0.254"},
+            //                 {"price":"8658000","quantity":"0.119"},
+            //             ]
+            //         }
+            //     }
+            //
+            data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+            timestamp = this.safeInteger(data, "timestamp");
         }
-        object response = await this.publicGetOrderbookBaseIdQuoteId(this.extend(request, parameters));
-        //
-        //     {
-        //         "status":"0000",
-        //         "data":{
-        //             "timestamp":"1587621553942",
-        //             "payment_currency":"KRW",
-        //             "order_currency":"BTC",
-        //             "bids":[
-        //                 {"price":"8652000","quantity":"0.0043"},
-        //                 {"price":"8651000","quantity":"0.0049"},
-        //                 {"price":"8650000","quantity":"8.4791"},
-        //             ],
-        //             "asks":[
-        //                 {"price":"8654000","quantity":"0.119"},
-        //                 {"price":"8655000","quantity":"0.254"},
-        //                 {"price":"8658000","quantity":"0.119"},
-        //             ]
-        //         }
-        //     }
-        //
-        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        object timestamp = this.safeInteger(data, "timestamp");
         return this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity");
     }
 
     public override object parseTicker(object ticker, object market = null)
     {
         //
-        // fetchTicker, fetchTickers
+        // generation 1: fetchTicker, fetchTickers
         //
         //     {
         //         "opening_price":"227100",
@@ -553,32 +957,124 @@ public partial class bithumb : Exchange
         //         "date":"1587710327264", // fetchTickers inject this
         //     }
         //
-        object timestamp = this.safeInteger(ticker, "date");
-        object symbol = this.safeSymbol(null, market);
+        // generation 2: fetchTicker, fetchTickers
+        //
+        //     {
+        //         "market": "BTC-USDC",
+        //         "trade_date": "20260701",
+        //         "trade_time": "233533",
+        //         "trade_date_kst": "20260702",
+        //         "trade_time_kst": "083533",
+        //         "trade_timestamp": 1782981333650,
+        //         "opening_price": 0.00001667,
+        //         "high_price": 0.00001667,
+        //         "low_price": 0.00001645,
+        //         "trade_price": 0.00001659,
+        //         "prev_closing_price": 0.00001673,
+        //         "change": "FALL",
+        //         "change_price": 1.4E-7,
+        //         "change_rate": 0.0084,
+        //         "signed_change_price": -1.4E-7,
+        //         "signed_change_rate": -0.0084,
+        //         "trade_volume": 1.43724182,
+        //         "acc_trade_price": 0.77934383561689,
+        //         "acc_trade_price_24h": 1.76373410121466379999997512,
+        //         "acc_trade_volume": 47175.3220805,
+        //         "acc_trade_volume_24h": 104565.90238645676844763,
+        //         "highest_52_week_price": 0.00006592,
+        //         "highest_52_week_date": "2025-11-05",
+        //         "lowest_52_week_price": 0.00000782,
+        //         "lowest_52_week_date": "2026-02-22",
+        //         "timestamp": 1782981333650
+        //     }
+        //
+        // generation 2: watchTicker
+        //
+        //     {
+        //         "type": "ticker",
+        //         "code": "KRW-BTC",
+        //         "opening_price": 94223000,
+        //         "high_price": 95465000,
+        //         "low_price": 93601000,
+        //         "trade_price": 95299000,
+        //         "prev_closing_price": 94201000,
+        //         "change": "RISE",
+        //         "change_price": 1098000,
+        //         "signed_change_price": 1098000,
+        //         "change_rate": 0.01165593,
+        //         "signed_change_rate": 0.01165593,
+        //         "trade_volume": 0.0094,
+        //         "acc_trade_volume": 151.44914647,
+        //         "acc_trade_volume_24h": 310.44065227,
+        //         "acc_trade_price": 14330306973.41015,
+        //         "acc_trade_price_24h": 29226371799.56915,
+        //         "trade_date": "20260710",
+        //         "trade_time": "124548",
+        //         "trade_timestamp": 1783655148303,
+        //         "ask_bid": "BID",
+        //         "acc_ask_volume": 52.30413928,
+        //         "acc_bid_volume": 99.14500719,
+        //         "highest_52_week_price": 179734000,
+        //         "highest_52_week_date": "2025-10-09",
+        //         "lowest_52_week_price": 81110000,
+        //         "lowest_52_week_date": "2026-02-06",
+        //         "market_state": "ACTIVE",
+        //         "is_trading_suspended": false,
+        //         "delisting_date": "",
+        //         "market_warning": "NONE",
+        //         "timestamp": 1783655148485,
+        //         "stream_type": "REALTIME"
+        //     }
+        //
+        object timestamp = this.safeInteger2(ticker, "date", "trade_timestamp");
+        object marketId = this.safeString(ticker, "market");
+        object symbol = this.safeSymbol(marketId, market);
+        object close = this.safeString2(ticker, "closing_price", "trade_price");
+        object change = this.safeString2(ticker, "signed_change_price", "change_price");
+        object percentage = this.safeString2(ticker, "signed_change_rate", "change_rate");
         object open = this.safeString(ticker, "opening_price");
-        object close = this.safeString(ticker, "closing_price");
-        object baseVolume = this.safeString(ticker, "units_traded_24H");
-        object quoteVolume = this.safeString(ticker, "acc_trade_value_24H");
+        object nonZeroOpen = this.omitZero(open);
+        if (isTrue(isTrue(isTrue((!isEqual(marketId, null))) && isTrue((!isEqual(nonZeroOpen, null)))) && isTrue((!isEqual(close, null)))))
+        {
+            object computedChange = Precise.stringSub(close, open);
+            // Some v2 payloads return signed_change_price as 0 while open/last imply a non-zero move.
+            if (isTrue(isTrue(isTrue((!isEqual(change, null))) && isTrue(Precise.stringEq(change, "0"))) && !isTrue(Precise.stringEq(computedChange, "0"))))
+            {
+                change = computedChange;
+                percentage = null;
+            }
+        }
+        object high = this.safeString2(ticker, "max_price", "high_price");
+        object low = this.safeString2(ticker, "min_price", "low_price");
+        // Some generation 2 ticker payloads can contain inconsistent high/low versus last.
+        if (isTrue(isTrue(isTrue((!isEqual(close, null))) && isTrue((!isEqual(high, null)))) && isTrue(Precise.stringGt(close, high))))
+        {
+            high = close;
+        }
+        if (isTrue(isTrue(isTrue((!isEqual(close, null))) && isTrue((!isEqual(low, null)))) && isTrue(Precise.stringLt(close, low))))
+        {
+            low = close;
+        }
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "high", this.safeString(ticker, "max_price") },
-            { "low", this.safeString(ticker, "min_price") },
+            { "high", high },
+            { "low", low },
             { "bid", this.safeString(ticker, "buy_price") },
-            { "bidVolume", null },
+            { "bidVolume", this.safeString(ticker, "acc_bid_volume") },
             { "ask", this.safeString(ticker, "sell_price") },
-            { "askVolume", null },
+            { "askVolume", this.safeString(ticker, "acc_ask_volume") },
             { "vwap", null },
             { "open", open },
             { "close", close },
             { "last", close },
-            { "previousClose", null },
-            { "change", null },
-            { "percentage", null },
+            { "previousClose", this.safeString(ticker, "prev_closing_price") },
+            { "change", change },
+            { "percentage", percentage },
             { "average", null },
-            { "baseVolume", baseVolume },
-            { "quoteVolume", quoteVolume },
+            { "baseVolume", this.safeString2(ticker, "units_traded_24H", "acc_trade_volume_24h") },
+            { "quoteVolume", this.safeString2(ticker, "acc_trade_value_24H", "acc_trade_price_24h") },
             { "info", ticker },
         }, market);
     }
@@ -588,8 +1084,10 @@ public partial class bithumb : Exchange
      * @name bithumb#fetchTickers
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
      * @see https://apidocs.bithumb.com/v1.2.0/reference/%ED%98%84%EC%9E%AC%EA%B0%80-%EC%A0%95%EB%B3%B4-%EC%A1%B0%ED%9A%8C-all
+     * @see https://apidocs.bithumb.com/reference/%ED%98%84%EC%9E%AC%EA%B0%80-%EC%A1%B0%ED%9A%8C
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
@@ -599,56 +1097,196 @@ public partial class bithumb : Exchange
         {
             await this.loadMarkets();
         }
+        object generation = null;
+        var generationparametersVariable = this.handleOptionAndParams(parameters, "fetchTickers", "generation", 2);
+        generation = ((IList<object>)generationparametersVariable)[0];
+        parameters = ((IList<object>)generationparametersVariable)[1];
+        object request = new Dictionary<string, object>() {};
         object result = new Dictionary<string, object>() {};
-        object quoteCurrencies = this.safeDict(this.options, "quoteCurrencies", new Dictionary<string, object>() {});
-        List<object> quotes = new List<object>(((IDictionary<string,object>)quoteCurrencies).Keys);
-        object promises = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(quotes)); postFixIncrement(ref i))
+        if (isTrue(isEqual(generation, 2)))
         {
-            object request = new Dictionary<string, object>() {
-                { "quoteId", getValue(quotes, i) },
-            };
-            ((IList<object>)promises).Add(this.publicGetTickerALLQuoteId(this.extend(request, parameters)));
-        }
-        object responses = await promiseAll(promises);
-        for (object i = 0; isLessThan(i, getArrayLength(quotes)); postFixIncrement(ref i))
-        {
-            object quote = getValue(quotes, i);
-            object response = getValue(responses, i);
-            //
-            //     {
-            //         "status":"0000",
-            //         "data":{
-            //             "BTC":{
-            //                 "opening_price":"9045000",
-            //                 "closing_price":"9132000",
-            //                 "min_price":"8938000",
-            //                 "max_price":"9168000",
-            //                 "units_traded":"4619.79967497",
-            //                 "acc_trade_value":"42021363832.5187",
-            //                 "prev_closing_price":"9041000",
-            //                 "units_traded_24H":"8793.5045804",
-            //                 "acc_trade_value_24H":"78933458515.4962",
-            //                 "fluctate_24H":"530000",
-            //                 "fluctate_rate_24H":"6.16"
-            //             },
-            //             "date":"1587710878669"
-            //         }
-            //     }
-            //
-            object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-            object timestamp = this.safeInteger(data, "date");
-            object tickers = this.omit(data, "date");
-            List<object> currencyIds = new List<object>(((IDictionary<string,object>)tickers).Keys);
-            for (object j = 0; isLessThan(j, getArrayLength(currencyIds)); postFixIncrement(ref j))
+            // Bithumb v2 ticker payloads are inconsistent for all-market calls,
+            // so we aggregate 300 markets per request only when symbols are not provided.
+            object marketIds = new List<object>() {};
+            object symbolsForMarketIds = ((bool) isTrue((isEqual(symbols, null)))) ? this.symbols : symbols;
+            int symbolsForMarketIdsLength = getArrayLength(symbolsForMarketIds);
+            for (object i = 0; isLessThan(i, symbolsForMarketIdsLength); postFixIncrement(ref i))
             {
-                object currencyId = getValue(currencyIds, j);
-                object ticker = getValue(data, currencyId);
-                object bs = this.safeCurrencyCode(currencyId);
-                object symbol = add(add(bs, "/"), quote);
-                object market = this.safeMarket(symbol);
-                ((IDictionary<string,object>)ticker)["date"] = timestamp;
-                ((IDictionary<string,object>)result)[(string)symbol] = this.parseTicker(ticker, market);
+                object market = this.market(getValue(symbolsForMarketIds, i));
+                ((IList<object>)marketIds).Add(this.getGen2MarketId(market));
+            }
+            int marketIdsLength = getArrayLength(marketIds);
+            if (isTrue(isEqual(marketIdsLength, 0)))
+            {
+                return result;
+            }
+            object marketIdsChunks = new List<object>() {};
+            object promises = new List<object>() {};
+            if (isTrue(!isEqual(symbols, null)))
+            {
+                ((IDictionary<string,object>)request)["markets"] = String.Join(",", ((IList<object>)marketIds).ToArray());
+                ((IList<object>)marketIdsChunks).Add(marketIds);
+                ((IList<object>)promises).Add(this.publicGetV1Ticker(this.extend(request, parameters)));
+            } else
+            {
+                object maxMarketIdsPerRequest = this.safeInteger(this.options, "fetchTickersGeneration2MaxMarketIdsPerRequest", 300);
+                if (isTrue(isTrue((isEqual(maxMarketIdsPerRequest, null))) || isTrue((isLessThan(maxMarketIdsPerRequest, 1)))))
+                {
+                    maxMarketIdsPerRequest = 300;
+                }
+                object marketIdsChunk = new List<object>() {};
+                for (object i = 0; isLessThan(i, marketIdsLength); postFixIncrement(ref i))
+                {
+                    ((IList<object>)marketIdsChunk).Add(getValue(marketIds, i));
+                    int marketIdsChunkLength = getArrayLength(marketIdsChunk);
+                    bool isLastMarketId = (isEqual(i, (subtract(marketIdsLength, 1))));
+                    if (isTrue(isTrue((isGreaterThanOrEqual(marketIdsChunkLength, maxMarketIdsPerRequest))) || isTrue(isLastMarketId)))
+                    {
+                        ((IList<object>)marketIdsChunks).Add(marketIdsChunk);
+                        ((IDictionary<string,object>)request)["markets"] = String.Join(",", ((IList<object>)marketIdsChunk).ToArray());
+                        ((IList<object>)promises).Add(this.publicGetV1Ticker(this.extend(request, parameters)));
+                        marketIdsChunk = new List<object>() {};
+                    }
+                }
+            }
+            //
+            //     [
+            //         {
+            //             "market": "BTC-USDC",
+            //             "trade_date": "20260701",
+            //             "trade_time": "233533",
+            //             "trade_date_kst": "20260702",
+            //             "trade_time_kst": "083533",
+            //             "trade_timestamp": 1782981333650,
+            //             "opening_price": 0.00001667,
+            //             "high_price": 0.00001667,
+            //             "low_price": 0.00001645,
+            //             "trade_price": 0.00001659,
+            //             "prev_closing_price": 0.00001673,
+            //             "change": "FALL",
+            //             "change_price": 1.4E-7,
+            //             "change_rate": 0.0084,
+            //             "signed_change_price": -1.4E-7,
+            //             "signed_change_rate": -0.0084,
+            //             "trade_volume": 1.43724182,
+            //             "acc_trade_price": 0.77934383561689,
+            //             "acc_trade_price_24h": 1.76373410121466379999997512,
+            //             "acc_trade_volume": 47175.3220805,
+            //             "acc_trade_volume_24h": 104565.90238645676844763,
+            //             "highest_52_week_price": 0.00006592,
+            //             "highest_52_week_date": "2025-11-05",
+            //             "lowest_52_week_price": 0.00000782,
+            //             "lowest_52_week_date": "2026-02-22",
+            //             "timestamp": 1782981333650
+            //         },
+            //     ]
+            //
+            object responses = await promiseAll(promises);
+            int responsesLength = getArrayLength(responses);
+            for (object i = 0; isLessThan(i, responsesLength); postFixIncrement(ref i))
+            {
+                object response = getValue(responses, i);
+                if (isTrue(isTrue(isTrue(this.isDictionary(response)) && isTrue((inOp(response, "data")))) && isTrue((!isEqual(getValue(response, "data"), null)))))
+                {
+                    response = getValue(response, "data");
+                }
+                object expectedMarketId = null;
+                object marketIdsChunk = this.safeList(marketIdsChunks, i, new List<object>() {});
+                object firstMarketId = this.safeString(marketIdsChunk, 0);
+                if (isTrue(isTrue((!isEqual(firstMarketId, null))) && isTrue((isEqual(this.safeString(marketIdsChunk, 1), null)))))
+                {
+                    expectedMarketId = firstMarketId;
+                }
+                object tickers = new List<object>() {};
+                if (isTrue(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+                {
+                    tickers = response;
+                } else if (isTrue(this.isDictionary(response)))
+                {
+                    if (isTrue(isTrue(isTrue((inOp(response, "market"))) || isTrue((inOp(response, "trade_date")))) || isTrue((inOp(response, "trade_timestamp")))))
+                    {
+                        tickers = new List<object>() {response};
+                    } else
+                    {
+                        List<object> ids = new List<object>(((IDictionary<string,object>)response).Keys);
+                        for (object j = 0; isLessThan(j, getArrayLength(ids)); postFixIncrement(ref j))
+                        {
+                            object id = getValue(ids, j);
+                            object ticker = this.safeDict(response, id);
+                            if (isTrue(!isEqual(ticker, null)))
+                            {
+                                ((IDictionary<string,object>)ticker)["market"] = this.safeString(ticker, "market", id);
+                                ((IList<object>)tickers).Add(ticker);
+                            }
+                        }
+                    }
+                }
+                for (object j = 0; isLessThan(j, getArrayLength(tickers)); postFixIncrement(ref j))
+                {
+                    object entry = getValue(tickers, j);
+                    object marketId = this.safeString(entry, "market", expectedMarketId);
+                    if (isTrue(isEqual(marketId, null)))
+                    {
+                        continue;
+                    }
+                    object market = this.safeMarket(marketId);
+                    object symbol = this.safeSymbol(marketId, market);
+                    if (isTrue(isEqual(symbol, null)))
+                    {
+                        continue;
+                    }
+                    ((IDictionary<string,object>)result)[(string)symbol] = this.parseTicker(entry, market);
+                }
+            }
+        } else
+        {
+            object quoteCurrencies = this.safeDict(this.options, "quoteCurrencies", new Dictionary<string, object>() {});
+            object quotes = new List<object>(((IDictionary<string,object>)quoteCurrencies).Keys);
+            if (isTrue(!isEqual(symbols, null)))
+            {
+                object requiredQuotes = new Dictionary<string, object>() {};
+                for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+                {
+                    object symbol = getValue(symbols, i);
+                    object market = this.market(symbol);
+                    object quoteId = this.safeString(market, "quoteId");
+                    if (isTrue(isTrue((!isEqual(quoteId, null))) && isTrue((inOp(quoteCurrencies, quoteId)))))
+                    {
+                        ((IDictionary<string,object>)requiredQuotes)[(string)quoteId] = true;
+                    }
+                }
+                List<object> requiredQuoteIds = new List<object>(((IDictionary<string,object>)requiredQuotes).Keys);
+                object populatedQuotes = this.safeString(requiredQuoteIds, 0);
+                if (isTrue(!isEqual(populatedQuotes, null)))
+                {
+                    quotes = requiredQuoteIds;
+                }
+            }
+            object promises = new List<object>() {};
+            for (object i = 0; isLessThan(i, getArrayLength(quotes)); postFixIncrement(ref i))
+            {
+                ((IDictionary<string,object>)request)["quoteId"] = getValue(quotes, i);
+                ((IList<object>)promises).Add(this.publicGetPublicTickerALLQuoteId(this.extend(request, parameters)));
+            }
+            object responses = await promiseAll(promises);
+            for (object i = 0; isLessThan(i, getArrayLength(quotes)); postFixIncrement(ref i))
+            {
+                object quote = getValue(quotes, i);
+                object response = getValue(responses, i);
+                object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+                object timestamp = this.safeInteger(data, "date");
+                object tickers = this.omit(data, "date");
+                List<object> currencyIds = new List<object>(((IDictionary<string,object>)tickers).Keys);
+                for (object j = 0; isLessThan(j, getArrayLength(currencyIds)); postFixIncrement(ref j))
+                {
+                    object currencyId = getValue(currencyIds, j);
+                    object ticker = getValue(data, currencyId);
+                    object bs = this.safeCurrencyCode(currencyId);
+                    object symbol = add(add(bs, "/"), quote);
+                    object market = this.safeMarket(symbol);
+                    ((IDictionary<string,object>)ticker)["date"] = timestamp;
+                    ((IDictionary<string,object>)result)[(string)symbol] = this.parseTicker(ticker, market);
+                }
             }
         }
         return this.filterByArrayTickers(result, "symbol", symbols);
@@ -659,8 +1297,10 @@ public partial class bithumb : Exchange
      * @name bithumb#fetchTicker
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @see https://apidocs.bithumb.com/v1.2.0/reference/%ED%98%84%EC%9E%AC%EA%B0%80-%EC%A0%95%EB%B3%B4-%EC%A1%B0%ED%9A%8C
+     * @see https://apidocs.bithumb.com/reference/%ED%98%84%EC%9E%AC%EA%B0%80-%EC%A1%B0%ED%9A%8C
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<ccxt.Ticker> FetchTicker(string symbol, object parameters = null)
@@ -670,37 +1310,84 @@ public partial class bithumb : Exchange
         {
             await this.loadMarkets();
         }
+        object generation = null;
+        var generationparametersVariable = this.handleOptionAndParams(parameters, "fetchTicker", "generation", 2);
+        generation = ((IList<object>)generationparametersVariable)[0];
+        parameters = ((IList<object>)generationparametersVariable)[1];
         object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
-            { "baseId", getValue(market, "baseId") },
-            { "quoteId", getValue(market, "quoteId") },
-        };
-        object response = await this.publicGetTickerBaseIdQuoteId(this.extend(request, parameters));
-        //
-        //     {
-        //         "status":"0000",
-        //         "data":{
-        //             "opening_price":"227100",
-        //             "closing_price":"228400",
-        //             "min_price":"222300",
-        //             "max_price":"230000",
-        //             "units_traded":"82618.56075337",
-        //             "acc_trade_value":"18767376138.6031",
-        //             "prev_closing_price":"227100",
-        //             "units_traded_24H":"151871.13484676",
-        //             "acc_trade_value_24H":"34247610416.8974",
-        //             "fluctate_24H":"8700",
-        //             "fluctate_rate_24H":"3.96",
-        //             "date":"1587710327264"
-        //         }
-        //     }
-        //
-        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object request = new Dictionary<string, object>() {};
+        object response = null;
+        object data = new Dictionary<string, object>() {};
+        if (isTrue(isEqual(generation, 2)))
+        {
+            ((IDictionary<string,object>)request)["markets"] = this.getGen2MarketId(market);
+            response = await this.publicGetV1Ticker(this.extend(request, parameters));
+            //
+            //     [
+            //         {
+            //             "market": "BTC-USDC",
+            //             "trade_date": "20260701",
+            //             "trade_time": "233533",
+            //             "trade_date_kst": "20260702",
+            //             "trade_time_kst": "083533",
+            //             "trade_timestamp": 1782981333650,
+            //             "opening_price": 0.00001667,
+            //             "high_price": 0.00001667,
+            //             "low_price": 0.00001645,
+            //             "trade_price": 0.00001659,
+            //             "prev_closing_price": 0.00001673,
+            //             "change": "FALL",
+            //             "change_price": 1.4E-7,
+            //             "change_rate": 0.0084,
+            //             "signed_change_price": -1.4E-7,
+            //             "signed_change_rate": -0.0084,
+            //             "trade_volume": 1.43724182,
+            //             "acc_trade_price": 0.77934383561689,
+            //             "acc_trade_price_24h": 1.76373410121466379999997512,
+            //             "acc_trade_volume": 47175.3220805,
+            //             "acc_trade_volume_24h": 104565.90238645676844763,
+            //             "highest_52_week_price": 0.00006592,
+            //             "highest_52_week_date": "2025-11-05",
+            //             "lowest_52_week_price": 0.00000782,
+            //             "lowest_52_week_date": "2026-02-22",
+            //             "timestamp": 1782981333650
+            //         },
+            //     ]
+            //
+            data = this.safeDict(response, 0, new Dictionary<string, object>() {});
+        } else
+        {
+            ((IDictionary<string,object>)request)["baseId"] = getValue(market, "baseId");
+            ((IDictionary<string,object>)request)["quoteId"] = getValue(market, "quoteId");
+            response = await this.publicGetPublicTickerBaseIdQuoteId(this.extend(request, parameters));
+            //
+            //     {
+            //         "status":"0000",
+            //         "data":{
+            //             "opening_price":"227100",
+            //             "closing_price":"228400",
+            //             "min_price":"222300",
+            //             "max_price":"230000",
+            //             "units_traded":"82618.56075337",
+            //             "acc_trade_value":"18767376138.6031",
+            //             "prev_closing_price":"227100",
+            //             "units_traded_24H":"151871.13484676",
+            //             "acc_trade_value_24H":"34247610416.8974",
+            //             "fluctate_24H":"8700",
+            //             "fluctate_rate_24H":"3.96",
+            //             "date":"1587710327264"
+            //         }
+            //     }
+            //
+            data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        }
         return ccxt.BaseExchange.ToTicker(this.parseTicker(data, market));
     }
 
     public override object parseOHLCV(object ohlcv, object market = null)
     {
+        //
+        // generation 1
         //
         //     [
         //         1576823400000, // 기준 시간
@@ -711,7 +1398,31 @@ public partial class bithumb : Exchange
         //         "15.41503692" // 거래량
         //     ]
         //
-        return new List<object> {this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 5)};
+        // generation 2
+        //
+        //     {
+        //         "market": "BTC-USDC",
+        //         "candle_date_time_utc": "2026-07-02T08:59:00",
+        //         "candle_date_time_kst": "2026-07-02T17:59:00",
+        //         "opening_price": 0.0000165,
+        //         "high_price": 0.0000165,
+        //         "low_price": 0.0000165,
+        //         "trade_price": 0.0000165,
+        //         "timestamp": 1782982784329,
+        //         "candle_acc_trade_price": 0.001155,
+        //         "candle_acc_trade_volume": 70,
+        //         "unit": 1
+        //     }
+        //
+        object timestamp = null;
+        if (isTrue(((ohlcv is IList<object>) || (ohlcv.GetType().IsGenericType && ohlcv.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        {
+            timestamp = this.safeInteger2(ohlcv, 0, "timestamp");
+        } else
+        {
+            timestamp = this.parse8601(this.safeString2(ohlcv, "candle_date_time_utc", "candle_date_time_kst"));
+        }
+        return new List<object>() {timestamp, this.safeNumber2(ohlcv, 1, "opening_price"), this.safeNumber2(ohlcv, 3, "high_price"), this.safeNumber2(ohlcv, 4, "low_price"), this.safeNumber2(ohlcv, 2, "trade_price"), this.safeNumber2(ohlcv, 5, "candle_acc_trade_volume")};
     }
 
     /**
@@ -719,11 +1430,16 @@ public partial class bithumb : Exchange
      * @name bithumb#fetchOHLCV
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @see https://apidocs.bithumb.com/v1.2.0/reference/candlestick-rest-api
+     * @see https://apidocs.bithumb.com/reference/%EB%B6%84minute-%EC%BA%94%EB%93%A4-%EC%A1%B0%ED%9A%8C
+     * @see https://apidocs.bithumb.com/reference/%EC%9D%BCday-%EC%BA%94%EB%93%A4-%EC%A1%B0%ED%9A%8C
+     * @see https://apidocs.bithumb.com/reference/%EC%A3%BCweek-%EC%BA%94%EB%93%A4-%EC%A1%B0%ED%9A%8C
+     * @see https://apidocs.bithumb.com/reference/%EC%9B%94month-%EC%BA%94%EB%93%A4-%EC%A1%B0%ED%9A%8C
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
@@ -735,44 +1451,109 @@ public partial class bithumb : Exchange
         {
             await this.loadMarkets();
         }
+        object generation = null;
+        var generationparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "generation", 2);
+        generation = ((IList<object>)generationparametersVariable)[0];
+        parameters = ((IList<object>)generationparametersVariable)[1];
         object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
-            { "baseId", getValue(market, "baseId") },
-            { "quoteId", getValue(market, "quoteId") },
-            { "interval", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
-        };
-        object response = await this.publicGetCandlestickBaseIdQuoteIdInterval(this.extend(request, parameters));
-        //
-        //     {
-        //         "status": "0000",
-        //         "data": {
-        //             [
-        //                 1576823400000, // 기준 시간
-        //                 "8284000", // 시가
-        //                 "8286000", // 종가
-        //                 "8289000", // 고가
-        //                 "8276000", // 저가
-        //                 "15.41503692" // 거래량
-        //             ],
-        //             [
-        //                 1576824000000, // 기준 시간
-        //                 "8284000", // 시가
-        //                 "8281000", // 종가
-        //                 "8289000", // 고가
-        //                 "8275000", // 저가
-        //                 "6.19584467" // 거래량
-        //             ],
-        //         }
-        //     }
-        //
-        object data = this.safeList(response, "data", new List<object>() {});
+        object request = new Dictionary<string, object>() {};
+        object response = null;
+        object data = new List<object>() {};
+        if (isTrue(isEqual(generation, 2)))
+        {
+            ((IDictionary<string,object>)request)["market"] = this.getGen2MarketId(market);
+            if (isTrue(!isEqual(limit, null)))
+            {
+                ((IDictionary<string,object>)request)["count"] = limit;
+            }
+            if (isTrue(isEqual(timeframeVar, "1d")))
+            {
+                response = await this.publicGetV1CandlesDays(this.extend(request, parameters));
+            } else if (isTrue(isEqual(timeframeVar, "1w")))
+            {
+                response = await this.publicGetV1CandlesWeeks(this.extend(request, parameters));
+            } else if (isTrue(isEqual(timeframeVar, "1M")))
+            {
+                response = await this.publicGetV1CandlesMonths(this.extend(request, parameters));
+            } else
+            {
+                object timeframeInteger = this.safeInteger(this.timeframes, timeframeVar);
+                if (isTrue(isEqual(timeframeInteger, null)))
+                {
+                    throw new BadRequest ((string)add(add(this.id, " fetchOHLCV() unsupported timeframe "), timeframeVar)) ;
+                }
+                ((IDictionary<string,object>)request)["unit"] = timeframeInteger;
+                response = await this.publicGetV1CandlesMinutesUnit(this.extend(request, parameters));
+            }
+            //
+            //     [
+            //         {
+            //             "market": "BTC-USDC",
+            //             "candle_date_time_utc": "2026-07-02T08:59:00",
+            //             "candle_date_time_kst": "2026-07-02T17:59:00",
+            //             "opening_price": 0.0000165,
+            //             "high_price": 0.0000165,
+            //             "low_price": 0.0000165,
+            //             "trade_price": 0.0000165,
+            //             "timestamp": 1782982784329,
+            //             "candle_acc_trade_price": 0.001155,
+            //             "candle_acc_trade_volume": 70,
+            //             "unit": 1
+            //         },
+            //     ]
+            //
+            data = response;
+        } else
+        {
+            object legacyTimeframes = new Dictionary<string, object>() {
+                { "1m", "1m" },
+                { "3m", "3m" },
+                { "5m", "5m" },
+                { "10m", "10m" },
+                { "30m", "30m" },
+                { "1h", "1h" },
+                { "6h", "6h" },
+                { "12h", "12h" },
+                { "1d", "24h" },
+                { "1w", "1w" },
+                { "1M", "1mm" },
+            };
+            ((IDictionary<string,object>)request)["interval"] = this.safeString(legacyTimeframes, timeframeVar, timeframeVar);
+            ((IDictionary<string,object>)request)["baseId"] = getValue(market, "baseId");
+            ((IDictionary<string,object>)request)["quoteId"] = getValue(market, "quoteId");
+            response = await this.publicGetPublicCandlestickBaseIdQuoteIdInterval(this.extend(request, parameters));
+            //
+            //     {
+            //         "status": "0000",
+            //         "data": {
+            //             [
+            //                 1576823400000, // 기준 시간
+            //                 "8284000", // 시가
+            //                 "8286000", // 종가
+            //                 "8289000", // 고가
+            //                 "8276000", // 저가
+            //                 "15.41503692" // 거래량
+            //             ],
+            //             [
+            //                 1576824000000, // 기준 시간
+            //                 "8284000", // 시가
+            //                 "8281000", // 종가
+            //                 "8289000", // 고가
+            //                 "8275000", // 저가
+            //                 "6.19584467" // 거래량
+            //             ],
+            //         }
+            //     }
+            //
+            data = this.safeList(response, "data", new List<object>() {});
+        }
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(data, market, timeframeVar, since, limit));
     }
 
     public override object parseTrade(object trade, object market = null)
     {
         //
-        // fetchTrades (public)
+        // generation 1: fetchTrades (public)
         //
         //     {
         //         "transaction_date":"2020-04-23 22:21:46",
@@ -782,7 +1563,7 @@ public partial class bithumb : Exchange
         //         "total":"108337"
         //     }
         //
-        // fetchOrder (private)
+        // generation 1: fetchOrder (private)
         //
         //     {
         //         "transaction_date": "1572497603902030",
@@ -793,8 +1574,43 @@ public partial class bithumb : Exchange
         //         "total": "43005"
         //     }
         //
+        // generation 2: fetchTrades
+        //
+        //     {
+        //         "market": "BTC-USDC",
+        //         "trade_date_utc": "2026-07-02",
+        //         "trade_time_utc": "08:41:10",
+        //         "timestamp": "1782981670705",
+        //         "trade_price": "0.00001646",
+        //         "trade_volume": "42.0335581",
+        //         "prev_closing_price": "0.00001673",
+        //         "change_price": "-2.7E-7",
+        //         "ask_bid": "ASK",
+        //         "sequential_id": "17829816707050000"
+        //     }
+        //
+        // generation 2: watchTrades
+        //
+        //     {
+        //         "type": "trade",
+        //         "code": "KRW-BTC",
+        //         "trade_price": 95539000,
+        //         "trade_volume": 0.00022664,
+        //         "ask_bid": "ASK",
+        //         "prev_closing_price": 94201000,
+        //         "change": "RISE",
+        //         "change_price": 1338000,
+        //         "trade_date": "2026-07-10",
+        //         "trade_time": "13:39:41",
+        //         "trade_timestamp": 1783658381138,
+        //         "sequential_id": "862683813820523888",
+        //         "timestamp": 1783658381398,
+        //         "stream_type": "REALTIME"
+        //     }
+        //
         // a workaround for their bug in date format, hours are not 0-padded
-        object timestamp = null;
+        object timestamp = this.safeInteger(trade, "timestamp");
+        bool isGenerationTwo = (!isEqual(timestamp, null));
         object transactionDatetime = this.safeString(trade, "transaction_date");
         if (isTrue(!isEqual(transactionDatetime, null)))
         {
@@ -814,17 +1630,31 @@ public partial class bithumb : Exchange
                 timestamp = this.safeIntegerProduct(trade, "transaction_date", 0.001);
             }
         }
-        if (isTrue(!isEqual(timestamp, null)))
+        if (isTrue(isTrue((!isEqual(timestamp, null))) && isTrue((!isTrue(isGenerationTwo)))))
         {
             timestamp = subtract(timestamp, multiply(9, 3600000)); // they report UTC + 9 hours, server in Korean timezone
         }
         object type = null;
-        object side = this.safeString(trade, "type");
-        side = ((bool) isTrue((isEqual(side, "ask")))) ? "sell" : "buy";
-        object id = this.safeString(trade, "cont_no");
-        market = this.safeMarket(null, market);
-        object priceString = this.safeString(trade, "price");
-        object amountString = this.fixCommaNumber(this.safeString2(trade, "units_traded", "units"));
+        object side = this.safeStringLower2(trade, "ask_bid", "type");
+        if (isTrue(isEqual(side, "bid")))
+        {
+            side = "buy";
+        } else if (isTrue(isEqual(side, "ask")))
+        {
+            side = "sell";
+        } else
+        {
+            side = null;
+        }
+        object id = this.safeString2(trade, "cont_no", "sequential_id");
+        object marketId = this.safeString(trade, "market");
+        market = this.safeMarket(marketId, market);
+        object priceString = this.safeString2(trade, "price", "trade_price");
+        object amountString = this.safeString(trade, "trade_volume");
+        if (isTrue(isEqual(amountString, null)))
+        {
+            amountString = this.fixCommaNumber(this.safeString2(trade, "units_traded", "units"));
+        }
         object costString = this.safeString(trade, "total");
         object fee = null;
         object feeCostString = this.safeString(trade, "fee");
@@ -859,10 +1689,12 @@ public partial class bithumb : Exchange
      * @name bithumb#fetchTrades
      * @description get the list of most recent trades for a particular symbol
      * @see https://apidocs.bithumb.com/v1.2.0/reference/%EC%B5%9C%EA%B7%BC-%EC%B2%B4%EA%B2%B0-%EB%82%B4%EC%97%AD
+     * @see https://apidocs.bithumb.com/reference/%EC%B2%B4%EA%B2%B0-%EB%82%B4%EC%97%AD-%EC%A1%B0%ED%9A%8C
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public async override Task<List<ccxt.Trade>> FetchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
@@ -872,32 +1704,250 @@ public partial class bithumb : Exchange
         {
             await this.loadMarkets();
         }
+        object generation = null;
+        var generationparametersVariable = this.handleOptionAndParams(parameters, "fetchTrades", "generation", 2);
+        generation = ((IList<object>)generationparametersVariable)[0];
+        parameters = ((IList<object>)generationparametersVariable)[1];
         object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
-            { "baseId", getValue(market, "baseId") },
-            { "quoteId", getValue(market, "quoteId") },
-        };
+        object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(limit, null)))
         {
-            ((IDictionary<string,object>)request)["count"] = limit; // default 20, max 100
+            ((IDictionary<string,object>)request)["count"] = limit;
         }
-        object response = await this.publicGetTransactionHistoryBaseIdQuoteId(this.extend(request, parameters));
+        object response = null;
+        object data = new List<object>() {};
+        if (isTrue(isEqual(generation, 2)))
+        {
+            ((IDictionary<string,object>)request)["market"] = this.getGen2MarketId(market);
+            response = await this.publicGetV1TradesTicks(this.extend(request, parameters));
+            //
+            //     [
+            //         {
+            //             "market": "BTC-USDC",
+            //             "trade_date_utc": "2026-07-02",
+            //             "trade_time_utc": "08:41:10",
+            //             "timestamp": "1782981670705",
+            //             "trade_price": "0.00001646",
+            //             "trade_volume": "42.0335581",
+            //             "prev_closing_price": "0.00001673",
+            //             "change_price": "-2.7E-7",
+            //             "ask_bid": "ASK",
+            //             "sequential_id": "17829816707050000"
+            //         }
+            //     ]
+            //
+            data = response;
+        } else
+        {
+            ((IDictionary<string,object>)request)["baseId"] = getValue(market, "baseId");
+            ((IDictionary<string,object>)request)["quoteId"] = getValue(market, "quoteId");
+            response = await this.publicGetPublicTransactionHistoryBaseIdQuoteId(this.extend(request, parameters));
+            //
+            //     {
+            //         "status":"0000",
+            //         "data":[
+            //             {
+            //                 "transaction_date":"2020-04-23 22:21:46",
+            //                 "type":"ask",
+            //                 "units_traded":"0.0125",
+            //                 "price":"8667000",
+            //                 "total":"108337"
+            //             },
+            //         ]
+            //     }
+            //
+            data = this.safeList(response, "data", new List<object>() {});
+        }
+        return ccxt.BaseExchange.ToTradeList(this.parseTrades(data, market, since, limit));
+    }
+
+    /**
+     * @method
+     * @name bithumb#createOrders
+     * @description create a list of trade orders, only available for the generation 2 API
+     * @see https://apidocs.bithumb.com/reference/%EB%8B%A4%EA%B1%B4-%EC%A3%BC%EB%AC%B8-%EC%9A%94%EC%B2%AD
+     * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.timeInForce] supports 'IOC', 'FOK', and 'PO'
+     * @param {bool} [params.postOnly] true or false
+     * @param {string} [params.clientOrderId] the clientOrderId of the order
+     * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public async override Task<List<ccxt.Order>> CreateOrders(object orders, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
+        object generation = null;
+        var generationparametersVariable = this.handleOptionAndParams(parameters, "createOrders", "generation", 2);
+        generation = ((IList<object>)generationparametersVariable)[0];
+        parameters = ((IList<object>)generationparametersVariable)[1];
+        if (isTrue(!isEqual(generation, 2)))
+        {
+            throw new BadRequest ((string)add(this.id, " createOrders is only supported for the generation 2 API")) ;
+        }
+        int ordersCount = getArrayLength(orders);
+        if (isTrue(isEqual(ordersCount, 0)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " createOrders() requires a non-empty orders array")) ;
+        }
+        object ordersRequests = new List<object>() {};
+        object orderSymbols = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+        {
+            object rawOrder = getValue(orders, i);
+            object symbol = this.safeString(rawOrder, "symbol");
+            if (isTrue(isEqual(symbol, null)))
+            {
+                throw new ArgumentsRequired ((string)add(this.id, " createOrders() requires each order to have a symbol")) ;
+            }
+            ((IList<object>)orderSymbols).Add(symbol);
+            object type = this.safeString(rawOrder, "type");
+            if (isTrue(isEqual(type, null)))
+            {
+                throw new ArgumentsRequired ((string)add(this.id, " createOrders() requires each order to have a type")) ;
+            }
+            object side = this.safeString(rawOrder, "side");
+            if (isTrue(isEqual(side, null)))
+            {
+                throw new ArgumentsRequired ((string)add(this.id, " createOrders() requires each order to have a side")) ;
+            }
+            object amount = this.safeValue(rawOrder, "amount");
+            object price = this.safeValue(rawOrder, "price");
+            object orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
+            object orderRequest = this.createOrderRequest(symbol, type, side, amount, price, orderParams);
+            ((IList<object>)ordersRequests).Add(orderRequest);
+        }
+        orderSymbols = this.marketSymbols(orderSymbols, null, false, true, true);
+        object market = this.market(getValue(orderSymbols, 0));
+        object request = new Dictionary<string, object>() {
+            { "batch_orders", ordersRequests },
+        };
+        object response = await this.privatePostV2OrdersBatch(this.extend(request, parameters));
         //
         //     {
-        //         "status":"0000",
-        //         "data":[
+        //         "batch_orders_response": [
         //             {
-        //                 "transaction_date":"2020-04-23 22:21:46",
-        //                 "type":"ask",
-        //                 "units_traded":"0.0125",
-        //                 "price":"8667000",
-        //                 "total":"108337"
+        //                 "order_id": "C0101000003152500274",
+        //                 "market": "KRW-BTC",
+        //                 "side": "bid",
+        //                 "order_type": "limit",
+        //                 "created_at": "2026-07-04T15:49:24+09:00",
+        //                 "stp_type": "cancel_taker"
         //             },
         //         ]
         //     }
         //
-        object data = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(data, market, since, limit));
+        object data = this.safeList(response, "batch_orders_response", new List<object>() {});
+        return ccxt.BaseExchange.ToOrderList(this.parseOrders(data, market));
+    }
+
+    public virtual object createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @ignore
+        * @name bithumb#createOrderRequest
+        * @description helper function to build the request *for generation 2 createOrder and createOrders only*
+        * @param {string} symbol unified symbol of the market to create an order in
+        * @param {string} type 'market' or 'limit'
+        * @param {string} side 'buy' or 'sell'
+        * @param {float} amount how much you want to trade in units of the base currency
+        * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} request to be sent to the exchange
+        */
+        parameters ??= new Dictionary<string, object>();
+        object market = this.market(symbol);
+        object request = new Dictionary<string, object>() {
+            { "market", this.getGen2MarketId(market) },
+        };
+        object sideRequest = null;
+        if (isTrue(isEqual(side, "buy")))
+        {
+            sideRequest = "bid";
+        } else if (isTrue(isEqual(side, "sell")))
+        {
+            sideRequest = "ask";
+        } else
+        {
+            throw new InvalidOrder ((string)add(add(this.id, " createOrder() invalid side "), side)) ;
+        }
+        ((IDictionary<string,object>)request)["side"] = sideRequest;
+        object timeInForce = this.safeString2(parameters, "timeInForce", "time_in_force");
+        if (isTrue(isEqual(timeInForce, null)))
+        {
+            timeInForce = "GTC";
+        } else
+        {
+            parameters = this.omit(parameters, "timeInForce");
+        }
+        object postOnly = false;
+        var postOnlyparametersVariable = this.handlePostOnly(isEqual(type, "market"), false, parameters);
+        postOnly = ((IList<object>)postOnlyparametersVariable)[0];
+        parameters = ((IList<object>)postOnlyparametersVariable)[1];
+        if (isTrue(isTrue(postOnly) || isTrue((isEqual(timeInForce, "PO")))))
+        {
+            ((IDictionary<string,object>)request)["time_in_force"] = "post_only";
+            parameters = this.omit(parameters, "postOnly");
+        } else if (isTrue(isEqual(timeInForce, "FOK")))
+        {
+            ((IDictionary<string,object>)request)["time_in_force"] = "fok";
+        } else if (isTrue(isEqual(timeInForce, "IOC")))
+        {
+            ((IDictionary<string,object>)request)["time_in_force"] = "ioc";
+        }
+        if (isTrue(isEqual(type, "limit")))
+        {
+            ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
+            ((IDictionary<string,object>)request)["volume"] = this.amountToPrecision(symbol, amount);
+            ((IDictionary<string,object>)request)["order_type"] = "limit";
+        } else
+        {
+            object typeRequest = null;
+            if (isTrue(isEqual(side, "buy")))
+            {
+                typeRequest = "price";
+                // for market buy it requires the amount of quote currency to spend
+                object cost = this.safeString(parameters, "cost");
+                parameters = this.omit(parameters, "cost");
+                object createMarketBuyOrderRequiresPrice = true;
+                var createMarketBuyOrderRequiresPriceparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                createMarketBuyOrderRequiresPrice = ((IList<object>)createMarketBuyOrderRequiresPriceparametersVariable)[0];
+                parameters = ((IList<object>)createMarketBuyOrderRequiresPriceparametersVariable)[1];
+                if (isTrue(createMarketBuyOrderRequiresPrice))
+                {
+                    if (isTrue(isTrue((isEqual(price, null))) && isTrue((isEqual(cost, null)))))
+                    {
+                        throw new InvalidOrder ((string)add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
+                    } else
+                    {
+                        object amountString = this.numberToString(amount);
+                        object priceString = this.numberToString(price);
+                        cost = Precise.stringMul(amountString, priceString);
+                    }
+                } else
+                {
+                    cost = ((bool) isTrue((isEqual(cost, null)))) ? this.numberToString(amount) : cost;
+                }
+                ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, cost);
+            } else
+            {
+                ((IDictionary<string,object>)request)["volume"] = this.amountToPrecision(symbol, amount);
+                typeRequest = "market";
+            }
+            ((IDictionary<string,object>)request)["order_type"] = typeRequest;
+        }
+        object clientOrderId = this.safeString2(parameters, "clientOrderId", "client_order_id");
+        if (isTrue(!isEqual(clientOrderId, null)))
+        {
+            ((IDictionary<string,object>)request)["client_order_id"] = clientOrderId;
+            parameters = this.omit(parameters, "clientOrderId");
+        }
+        return this.extend(request, parameters);
     }
 
     /**
@@ -907,12 +1957,19 @@ public partial class bithumb : Exchange
      * @see https://apidocs.bithumb.com/v1.2.0/reference/%EC%A7%80%EC%A0%95%EA%B0%80-%EC%A3%BC%EB%AC%B8%ED%95%98%EA%B8%B0
      * @see https://apidocs.bithumb.com/v1.2.0/reference/%EC%8B%9C%EC%9E%A5%EA%B0%80-%EB%A7%A4%EC%88%98%ED%95%98%EA%B8%B0
      * @see https://apidocs.bithumb.com/v1.2.0/reference/%EC%8B%9C%EC%9E%A5%EA%B0%80-%EB%A7%A4%EB%8F%84%ED%95%98%EA%B8%B0
+     * @see https://apidocs.bithumb.com/reference/%EC%A3%BC%EB%AC%B8-%EC%9A%94%EC%B2%AD
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
      * @param {float} amount how much of currency you want to trade in units of base currency
-     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.timeInForce] supports 'IOC', 'FOK', and 'PO'
+     * @param {bool} [params.postOnly] true or false
+     * @param {string} [params.clientOrderId] the clientOrderId of the order
+     * @param {string} [params.cost] *generation 2 only* optional cost parameter for market buy orders instead of setting the price, must also set createMarketBuyOrderRequiresPrice to false
+     * @param {bool} [params.createMarketBuyOrderRequiresPrice] *generation 2 only* set to false if passing a cost param or using cost in the amount argument, defaults to true
+     * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
@@ -922,31 +1979,138 @@ public partial class bithumb : Exchange
         {
             await this.loadMarkets();
         }
+        object generation = null;
+        var generationparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "generation", 2);
+        generation = ((IList<object>)generationparametersVariable)[0];
+        parameters = ((IList<object>)generationparametersVariable)[1];
+        object request = new Dictionary<string, object>() {};
         object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
-            { "order_currency", getValue(market, "id") },
-            { "payment_currency", getValue(market, "quote") },
-            { "units", amount },
-        };
         object response = null;
-        if (isTrue(isEqual(type, "limit")))
+        if (isTrue(isEqual(generation, 2)))
         {
-            ((IDictionary<string,object>)request)["price"] = price;
-            ((IDictionary<string,object>)request)["type"] = ((bool) isTrue((isEqual(side, "buy")))) ? "bid" : "ask";
-            response = await this.privatePostTradePlace(this.extend(request, parameters));
-        } else if (isTrue(isEqual(side, "buy")))
-        {
-            response = await this.privatePostTradeMarketBuy(this.extend(request, parameters));
+            request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
+            response = await this.privatePostV2Orders(request);
         } else
         {
-            response = await this.privatePostTradeMarketSell(this.extend(request, parameters));
+            ((IDictionary<string,object>)request)["order_currency"] = getValue(market, "base");
+            ((IDictionary<string,object>)request)["payment_currency"] = getValue(market, "quote");
+            ((IDictionary<string,object>)request)["units"] = this.amountToPrecision(symbol, amount);
+            if (isTrue(isEqual(type, "limit")))
+            {
+                ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
+                object typeRequest = null;
+                if (isTrue(isEqual(side, "buy")))
+                {
+                    typeRequest = "bid";
+                } else
+                {
+                    typeRequest = "ask";
+                }
+                ((IDictionary<string,object>)request)["type"] = typeRequest;
+                response = await this.privatePostTradePlace(this.extend(request, parameters));
+            } else if (isTrue(isEqual(side, "buy")))
+            {
+                response = await this.privatePostTradeMarketBuy(this.extend(request, parameters));
+            } else
+            {
+                response = await this.privatePostTradeMarketSell(this.extend(request, parameters));
+            }
         }
         object id = this.safeString(response, "order_id");
         if (isTrue(isEqual(id, null)))
         {
             throw new InvalidOrder ((string)add(this.id, " createOrder() did not return an order id")) ;
         }
-        return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "info", response },             { "symbol", symbol },             { "type", type },             { "side", side },             { "id", id },         }, market));
+        return ccxt.BaseExchange.ToOrder(this.extend(this.parseOrder(response, market), new Dictionary<string, object>() {             { "info", response },             { "symbol", symbol },             { "type", type },             { "side", side },             { "id", id },         }));
+    }
+
+    /**
+     * @method
+     * @name bithumb#createMarketBuyOrderWithCost
+     * @description create a market buy order by providing the symbol and cost
+     * @see https://apidocs.bithumb.com/reference/%EC%A3%BC%EB%AC%B8-%EC%9A%94%EC%B2%AD
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {float} cost how much you want to trade in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public async override Task<ccxt.Order> CreateMarketBuyOrderWithCost(string symbol, double cost, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
+        object generation = null;
+        var generationparametersVariable = this.handleOptionAndParams(parameters, "createMarketBuyOrderWithCost", "generation", 2);
+        generation = ((IList<object>)generationparametersVariable)[0];
+        parameters = ((IList<object>)generationparametersVariable)[1];
+        if (isTrue(!isEqual(generation, 2)))
+        {
+            throw new BadRequest ((string)add(this.id, " createMarketBuyOrderWithCost() is only supported for the generation 2 API")) ;
+        }
+        ((IDictionary<string,object>)parameters)["createMarketBuyOrderRequiresPrice"] = false;
+        return await this.CreateOrder(((string)symbol), "market", "buy",ccxt.BaseExchange.ToDoubleArgRequired(cost),ccxt.BaseExchange.ToDoubleArg(null), parameters);
+    }
+
+    /**
+     * @method
+     * @name bithumb#createTwapOrder
+     * @description create a trade order that is executed as a TWAP order over a specified duration.
+     * @see https://apidocs.bithumb.com/reference/twap-%EC%A3%BC%EB%AC%B8-%EC%9A%94%EC%B2%AD
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency, only required for sale
+     * @param {int} duration the duration of the TWAP order in milliseconds
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} params.frequency required order interval in seconds, 15, 20, 30, 60 or 120
+     * @param {string} [params.price] order price, required for purchase
+     * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public async override Task<ccxt.Order> CreateTwapOrder(string symbol, string side, double amount, object duration, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
+        object generation = null;
+        var generationparametersVariable = this.handleOptionAndParams(parameters, "createTwapOrder", "generation", 2);
+        generation = ((IList<object>)generationparametersVariable)[0];
+        parameters = ((IList<object>)generationparametersVariable)[1];
+        if (isTrue(!isEqual(generation, 2)))
+        {
+            throw new BadRequest ((string)add(this.id, " createTwapOrder() is only supported for the generation 2 API")) ;
+        }
+        object market = this.market(symbol);
+        object durationString = this.numberToString(duration);
+        object durationSeconds = Precise.stringDiv(durationString, "1000");
+        object request = new Dictionary<string, object>() {
+            { "market", this.getGen2MarketId(market) },
+            { "duration", durationSeconds },
+        };
+        if (isTrue(!isEqual(amount, null)))
+        {
+            ((IDictionary<string,object>)request)["volume"] = this.amountToPrecision(symbol, amount); // required for sale
+        }
+        object sideRequest = null;
+        if (isTrue(isEqual(side, "buy")))
+        {
+            sideRequest = "bid";
+        } else
+        {
+            sideRequest = "ask";
+        }
+        ((IDictionary<string,object>)request)["side"] = sideRequest;
+        object response = await this.privatePostV1Twap(this.extend(request, parameters));
+        //
+        //     {
+        //         "algo_order_id": "019f3ed7-4f92-7179-beee-84b4c71e53fa"
+        //     }
+        //
+        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
     }
 
     /**
@@ -954,59 +2118,161 @@ public partial class bithumb : Exchange
      * @name bithumb#fetchOrder
      * @description fetches information on an order made by the user
      * @see https://apidocs.bithumb.com/v1.2.0/reference/%EA%B1%B0%EB%9E%98-%EC%A3%BC%EB%AC%B8%EB%82%B4%EC%97%AD-%EC%83%81%EC%84%B8-%EC%A1%B0%ED%9A%8C
+     * @see https://apidocs.bithumb.com/reference/%EA%B0%9C%EB%B3%84-%EC%A3%BC%EB%AC%B8-%EC%A1%B0%ED%9A%8C
+     * @see https://apidocs.bithumb.com/reference/twap-%EC%A3%BC%EB%AC%B8%EB%82%B4%EC%97%AD-%EC%A1%B0%ED%9A%8C
      * @param {string} id order id
-     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {string} [symbol] unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] the clientOrderId of the order, alternative to using the order id
+     * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
+     * @param {bool} [params.twap] *generation 2 only* if you want to fetch a generation 2 twap order
+     * @param {string} [params.state] *generation 2 only* the order state, either wait, watch, done, or cancel. For twap either progress (default), done, or cancel
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<ccxt.Order> FetchOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(symbol, null)))
-        {
-            throw new ArgumentsRequired ((string)add(this.id, " fetchOrder() requires a symbol argument")) ;
-        }
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        object generation = null;
+        var generationparametersVariable = this.handleOptionAndParams(parameters, "fetchOrder", "generation", 2);
+        generation = ((IList<object>)generationparametersVariable)[0];
+        parameters = ((IList<object>)generationparametersVariable)[1];
+        object market = null;
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            market = this.market(symbol);
+        }
+        object twap = this.safeBool(parameters, "twap", false);
+        parameters = this.omit(parameters, "twap");
+        object request = new Dictionary<string, object>() {};
+        object response = null;
+        object data = null;
+        if (isTrue(isEqual(generation, 2)))
+        {
+            if (isTrue(twap))
+            {
+                if (isTrue(!isEqual(market, null)))
+                {
+                    ((IDictionary<string,object>)request)["market"] = this.getGen2MarketId(market);
+                }
+                ((IDictionary<string,object>)request)["uuids"] = new List<object>() {id};
+                response = await this.privateGetV1Twap(this.extend(request, parameters));
+                //
+                //     {
+                //         "has_next": false,
+                //         "next_key": null,
+                //         "orders": [
+                //             {
+                //                 "uuid": "019f3ed7-4f92-7179-beee-84b4c71e53fa",
+                //                 "side": "bid",
+                //                 "price": "92500000",
+                //                 "state": "progress",
+                //                 "market": "KRW-BTC",
+                //                 "created_at": "2025-12-04T10:00:00+09:00",
+                //                 "volume": "1.0",
+                //                 "total_order_count": 60,
+                //                 "total_trades_count": 10,
+                //                 "progress_count": 25,
+                //                 "total_executed_amount": "2312500000",
+                //                 "total_executed_volume": "0.25",
+                //                 "avg_trade_price": "92500000.000",
+                //                 "wallet_id": "0000000000-00-0000"
+                //             },
+                //         ]
+                //     }
+                //
+                object orders = this.safeList(response, "orders", new List<object>() {});
+                data = this.safeDict(orders, 0, new Dictionary<string, object>() {});
+            } else
+            {
+                object clientOrderId = this.safeString2(parameters, "clientOrderId", "client_order_id");
+                if (isTrue(!isEqual(clientOrderId, null)))
+                {
+                    ((IDictionary<string,object>)request)["client_order_id"] = clientOrderId;
+                    parameters = this.omit(parameters, new List<object>() {"clientOrderId"});
+                } else
+                {
+                    ((IDictionary<string,object>)request)["uuid"] = id;
+                }
+                response = await this.privateGetV1Order(this.extend(request, parameters));
+                //
+                //     {
+                //         "uuid": "C0101000003152406454",
+                //         "side": "bid",
+                //         "ord_type": "limit",
+                //         "price": "9500000",
+                //         "state": "wait",
+                //         "market": "KRW-BTC",
+                //         "created_at": "2026-07-04T15:05:46+09:00",
+                //         "volume": "0.001",
+                //         "remaining_volume": "0.001",
+                //         "reserved_fee": "23.75",
+                //         "remaining_fee": "23.75",
+                //         "paid_fee": "0",
+                //         "locked": "9524.75",
+                //         "executed_volume": "0",
+                //         "executed_funds": "0",
+                //         "trades_count": 0,
+                //         "stp_type": "cancel_taker",
+                //         "trades": []
+                //     }
+                //
+                data = response;
+            }
+        } else
+        {
+            if (isTrue(isEqual(symbol, null)))
+            {
+                throw new ArgumentsRequired ((string)add(this.id, " fetchOrder() requires a symbol argument")) ;
+            }
+            object marketDefined = market;
+            object bs = this.safeString(marketDefined, "base");
+            object quote = this.safeString(marketDefined, "quote");
+            if (isTrue(isTrue((isEqual(bs, null))) || isTrue((isEqual(quote, null)))))
+            {
+                throw new ArgumentsRequired ((string)add(this.id, " fetchOrder() requires a market with defined base and quote")) ;
+            }
+            ((IDictionary<string,object>)request)["order_id"] = id;
+            ((IDictionary<string,object>)request)["order_currency"] = bs;
+            ((IDictionary<string,object>)request)["payment_currency"] = quote;
+            response = await this.privatePostInfoOrderDetail(this.extend(request, parameters));
+            //
+            //     {
+            //         "status": "0000",
+            //         "data": {
+            //             "order_date": "1603161798539254",
+            //             "type": "ask",
+            //             "order_status": "Cancel",
+            //             "order_currency": "BTC",
+            //             "payment_currency": "KRW",
+            //             "watch_price": "0",
+            //             "order_price": "13344000",
+            //             "order_qty": "0.0125",
+            //             "cancel_date": "1603161803809993",
+            //             "cancel_type": "사용자취소",
+            //             "contract": [
+            //                 {
+            //                     "transaction_date": "1603161799976383",
+            //                     "price": "13344000",
+            //                     "units": "0.0015",
+            //                     "fee_currency": "KRW",
+            //                     "fee": "0",
+            //                     "total": "20016"
+            //                 }
+            //             ],
+            //         }
+            //     }
+            //
+            data = this.safeDict(response, "data");
+        }
+        object orderData = new Dictionary<string, object>() {
             { "order_id", id },
-            { "count", 1 },
-            { "order_currency", getValue(market, "base") },
-            { "payment_currency", getValue(market, "quote") },
         };
-        object response = await this.privatePostInfoOrderDetail(this.extend(request, parameters));
-        //
-        //     {
-        //         "status": "0000",
-        //         "data": {
-        //             "order_date": "1603161798539254",
-        //             "type": "ask",
-        //             "order_status": "Cancel",
-        //             "order_currency": "BTC",
-        //             "payment_currency": "KRW",
-        //             "watch_price": "0",
-        //             "order_price": "13344000",
-        //             "order_qty": "0.0125",
-        //             "cancel_date": "1603161803809993",
-        //             "cancel_type": "사용자취소",
-        //             "contract": [
-        //                 {
-        //                     "transaction_date": "1603161799976383",
-        //                     "price": "13344000",
-        //                     "units": "0.0015",
-        //                     "fee_currency": "KRW",
-        //                     "fee": "0",
-        //                     "total": "20016"
-        //                 }
-        //             ],
-        //         }
-        //     }
-        //
-        object data = this.safeDict(response, "data");
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(this.extend(data, new Dictionary<string, object>() {             { "order_id", id },         }), market));
+        Dictionary<string, object> parsedOrder = this.extend(data, orderData);
+        return ccxt.BaseExchange.ToOrder(this.parseOrder(parsedOrder, market));
     }
 
     public virtual object parseOrderStatus(object status)
@@ -1015,6 +2281,11 @@ public partial class bithumb : Exchange
             { "Pending", "open" },
             { "Completed", "closed" },
             { "Cancel", "canceled" },
+            { "wait", "open" },
+            { "watch", "open" },
+            { "done", "closed" },
+            { "cancel", "canceled" },
+            { "progress", "open" },
         };
         return this.safeString(statuses, ((string)status), status);
     }
@@ -1023,7 +2294,7 @@ public partial class bithumb : Exchange
     {
         //
         //
-        // fetchOrder
+        // generation 1: fetchOrder
         //
         //     {
         //         "transaction_date": "1572497603668315",
@@ -1048,31 +2319,144 @@ public partial class bithumb : Exchange
         //         ]
         //     }
         //
-        // fetchOpenOrders
+        // generation 1: fetchOpenOrders
         //
         //     {
         //         "order_currency": "BTC",
         //         "payment_currency": "KRW",
-        //         "order_id": "C0101000007408440032",
-        //         "order_date": "1571728739360570",
+        //         "order_id": "C0101000003152294086",
+        //         "order_date": "1783141846061516",
         //         "type": "bid",
-        //         "units": "5.0",
-        //         "units_remaining": "5.0",
-        //         "price": "501000",
+        //         "watch_price": "0",
+        //         "units": "0.001",
+        //         "units_remaining": "0.001",
+        //         "price": "9500000",
+        //         "stp_type": "cancel_taker"
         //     }
         //
-        object timestamp = this.safeIntegerProduct(order, "order_date", 0.001);
-        object sideProperty = this.safeString2(order, "type", "side");
-        object side = ((bool) isTrue((isEqual(sideProperty, "bid")))) ? "buy" : "sell";
-        object status = this.parseOrderStatus(this.safeString(order, "order_status"));
-        object price = this.safeString2(order, "order_price", "price");
-        string type = "limit";
-        if (isTrue(Precise.stringEquals(price, "0")))
+        // generation 1: cancelOrder
+        //
+        //     {
+        //         "status": "0000"
+        //     }
+        //
+        // generation 2: createOrder, createOrders
+        //
+        //     {
+        //         "order_id": "C0101000003152350309",
+        //         "market": "KRW-BTC",
+        //         "side": "bid",
+        //         "order_type": "limit",
+        //         "created_at": "2026-07-04T14:39:04+09:00",
+        //         "stp_type": "cancel_taker"
+        //     }
+        //
+        // generation 2: fetchOrder, fetchOrders, fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders
+        //
+        //     {
+        //         "uuid": "C0101000003152406454",
+        //         "side": "bid",
+        //         "ord_type": "limit",
+        //         "price": "9500000",
+        //         "state": "wait",
+        //         "market": "KRW-BTC",
+        //         "created_at": "2026-07-04T15:05:46+09:00",
+        //         "volume": "0.001",
+        //         "remaining_volume": "0.001",
+        //         "reserved_fee": "23.75",
+        //         "remaining_fee": "23.75",
+        //         "paid_fee": "0",
+        //         "locked": "9524.75",
+        //         "executed_volume": "0",
+        //         "executed_funds": "0",
+        //         "trades_count": 0,
+        //         "stp_type": "cancel_taker",
+        //         "trades": []
+        //     }
+        //
+        // generation 2: cancelOrder, cancelOrders
+        //
+        //     {
+        //         "order_id": "C0101000003152350309",
+        //         "created_at": "2026-07-04T14:39:04+09:00"
+        //     }
+        //
+        // generation 2: createTwapOrder, twap cancelOrder
+        //
+        //     {
+        //         "algo_order_id": "019f3ed7-4f92-7179-beee-84b4c71e53fa"
+        //     }
+        //
+        // generation 2: twap fetchOrder, fetchOrders, fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders
+        //
+        //     {
+        //         "uuid": "019f3ed7-4f92-7179-beee-84b4c71e53fa",
+        //         "side": "bid",
+        //         "price": "92500000",
+        //         "state": "progress",
+        //         "market": "KRW-BTC",
+        //         "created_at": "2025-12-03T09:00:00+09:00",
+        //         "volume": "1.0",
+        //         "total_order_count": 60,
+        //         "total_trades_count": 10,
+        //         "progress_count": 25,
+        //         "total_executed_amount": "2312500000",
+        //         "total_executed_volume": "0.25",
+        //         "avg_trade_price": "92500000.000",
+        //         "wallet_id": "0000000000-00-0000",
+        //         "canceled_at": "2025-12-03T09:15:00+09:00",
+        //         "cancel_type": "user"
+        //     }
+        //
+        object datetime = this.safeString(order, "created_at");
+        object timestamp = null;
+        if (isTrue(!isEqual(datetime, null)))
         {
-            type = "market";
+            if (isTrue(isGreaterThan(getIndexOf(datetime, "+09:00"), -1)))
+            {
+                string normalized = ((string)datetime).Replace((string)"+09:00", (string)"Z");
+                object normalizedTimestamp = this.parse8601(normalized);
+                if (isTrue(!isEqual(normalizedTimestamp, null)))
+                {
+                    timestamp = subtract(normalizedTimestamp, multiply(9, 3600000));
+                } else
+                {
+                    timestamp = this.parse8601(datetime);
+                }
+            } else
+            {
+                timestamp = this.parse8601(datetime);
+            }
+        } else
+        {
+            timestamp = this.safeIntegerProduct(order, "order_date", 0.001);
+            datetime = this.iso8601(timestamp);
         }
-        object amount = this.fixCommaNumber(this.safeString2(order, "order_qty", "units"));
-        object remaining = this.fixCommaNumber(this.safeString(order, "units_remaining"));
+        object sideProperty = this.safeString2(order, "type", "side");
+        object side = null;
+        if (isTrue(isEqual(sideProperty, "bid")))
+        {
+            side = "buy";
+        } else if (isTrue(isEqual(sideProperty, "ask")))
+        {
+            side = "sell";
+        }
+        object status = this.parseOrderStatus(this.safeString2(order, "order_status", "state"));
+        object price = this.safeString2(order, "order_price", "price");
+        object type = this.safeString2(order, "order_type", "ord_type");
+        object progressCount = this.safeString(order, "progress_count");
+        if (isTrue(isTrue(isTrue((isEqual(type, null))) && isTrue((!isEqual(price, null)))) && isTrue((isEqual(progressCount, null)))))
+        {
+            if (isTrue(Precise.stringEquals(price, "0")))
+            {
+                type = "market";
+            } else
+            {
+                type = "limit";
+            }
+        }
+        object amount = this.fixCommaNumber(this.safeStringN(order, new List<object>() {"order_qty", "units", "volume"}));
+        object remaining = this.fixCommaNumber(this.safeString2(order, "units_remaining", "remaining_volume"));
         if (isTrue(isEqual(remaining, null)))
         {
             if (isTrue(isEqual(status, "closed")))
@@ -1094,32 +2478,55 @@ public partial class bithumb : Exchange
         }
         if (isTrue(isEqual(symbol, null)))
         {
-            market = this.safeMarket(null, market);
+            object marketId = this.safeString(order, "market");
+            market = this.safeMarket(marketId, market);
             symbol = getValue(market, "symbol");
         }
-        object id = this.safeString(order, "order_id");
-        object rawTrades = this.safeList(order, "contract", new List<object>() {});
+        object id = this.safeStringN(order, new List<object>() {"order_id", "uuid", "algo_order_id"});
+        object rawTrades = this.safeList2(order, "contract", "trades", new List<object>() {});
+        object feeCost = this.safeNumber(order, "reserved_fee");
+        object fee = null;
+        if (isTrue(!isEqual(feeCost, null)))
+        {
+            object currency = null;
+            if (isTrue(!isEqual(market, null)))
+            {
+                currency = getValue(market, "quote");
+            }
+            fee = new Dictionary<string, object>() {
+                { "currency", currency },
+                { "cost", feeCost },
+                { "rate", null },
+            };
+        }
+        object postOnly = null;
+        object timeInForce = this.safeStringUpper(order, "time_in_force");
+        if (isTrue(isEqual(timeInForce, "POST_ONLY")))
+        {
+            timeInForce = "PO";
+            postOnly = true;
+        }
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "id", id },
-            { "clientOrderId", null },
+            { "clientOrderId", this.safeString(order, "client_order_id") },
             { "timestamp", timestamp },
-            { "datetime", this.iso8601(timestamp) },
+            { "datetime", datetime },
             { "lastTradeTimestamp", null },
             { "symbol", symbol },
             { "type", type },
-            { "timeInForce", null },
-            { "postOnly", null },
+            { "timeInForce", timeInForce },
+            { "postOnly", postOnly },
             { "side", side },
             { "price", price },
             { "triggerPrice", null },
             { "amount", amount },
             { "cost", null },
-            { "average", null },
+            { "average", this.safeNumber(order, "avg_trade_price") },
             { "filled", null },
             { "remaining", remaining },
             { "status", status },
-            { "fee", null },
+            { "fee", fee },
             { "trades", rawTrades },
         }, market);
     }
@@ -1129,58 +2536,226 @@ public partial class bithumb : Exchange
      * @name bithumb#fetchOpenOrders
      * @description fetch all unfilled currently open orders
      * @see https://apidocs.bithumb.com/v1.2.0/reference/%EA%B1%B0%EB%9E%98-%EC%A3%BC%EB%AC%B8%EB%82%B4%EC%97%AD-%EC%A1%B0%ED%9A%8C
-     * @param {string} symbol unified market symbol
+     * @see https://apidocs.bithumb.com/reference/%EC%A3%BC%EB%AC%B8-%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EC%A1%B0%ED%9A%8C
+     * @see https://apidocs.bithumb.com/reference/twap-%EC%A3%BC%EB%AC%B8%EB%82%B4%EC%97%AD-%EC%A1%B0%ED%9A%8C
+     * @param {string} [symbol] unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of open order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
+     * @param {bool} [params.twap] *generation 2 only* if you want to fetch generation 2 twap orders
+     * @param {string} [params.state] *generation 2 only* the order state, either wait, watch, done, or cancel. For twap either progress (default), done, or cancel
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<List<ccxt.Order>> FetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(symbol, null)))
-        {
-            throw new ArgumentsRequired ((string)add(this.id, " fetchOpenOrders() requires a symbol argument")) ;
-        }
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
-        if (isTrue(isEqual(limitVar, null)))
+        object generation = null;
+        var generationparametersVariable = this.handleOptionAndParams(parameters, "fetchOpenOrders", "generation", 2);
+        generation = ((IList<object>)generationparametersVariable)[0];
+        parameters = ((IList<object>)generationparametersVariable)[1];
+        object request = new Dictionary<string, object>() {};
+        object market = null;
+        object response = null;
+        if (isTrue(isEqual(generation, 2)))
         {
-            limitVar = 100;
-        }
-        object request = new Dictionary<string, object>() {
-            { "count", limitVar },
-            { "order_currency", getValue(market, "base") },
-            { "payment_currency", getValue(market, "quote") },
-        };
-        if (isTrue(!isEqual(since, null)))
+            object twap = this.safeBool(parameters, "twap", false);
+            if (isTrue(twap))
+            {
+                ((IDictionary<string,object>)parameters)["state"] = "progress";
+            } else
+            {
+                ((IDictionary<string,object>)parameters)["state"] = "wait";
+            }
+            object orders = ccxt.BaseExchange.FromOrderList(await this.FetchOrders(((string)symbol),ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limitVar), parameters));
+            return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(orders, since, limitVar));
+        } else
         {
-            ((IDictionary<string,object>)request)["after"] = since;
+            if (isTrue(isEqual(symbol, null)))
+            {
+                throw new ArgumentsRequired ((string)add(this.id, " fetchOpenOrders() requires a symbol argument")) ;
+            }
+            market = this.market(symbol);
+            if (isTrue(!isEqual(since, null)))
+            {
+                ((IDictionary<string,object>)request)["after"] = since;
+            }
+            if (isTrue(isEqual(limitVar, null)))
+            {
+                limitVar = 100;
+            }
+            ((IDictionary<string,object>)request)["count"] = limitVar;
+            ((IDictionary<string,object>)request)["order_currency"] = getValue(market, "base");
+            ((IDictionary<string,object>)request)["payment_currency"] = getValue(market, "quote");
+            response = await this.privatePostInfoOrders(this.extend(request, parameters));
         }
-        object response = await this.privatePostInfoOrders(this.extend(request, parameters));
-        //
-        //     {
-        //         "status": "0000",
-        //         "data": [
-        //             {
-        //                 "order_currency": "BTC",
-        //                 "payment_currency": "KRW",
-        //                 "order_id": "C0101000007408440032",
-        //                 "order_date": "1571728739360570",
-        //                 "type": "bid",
-        //                 "units": "5.0",
-        //                 "units_remaining": "5.0",
-        //                 "price": "501000",
-        //             }
-        //         ]
-        //     }
-        //
         object data = this.safeList(response, "data", new List<object>() {});
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(data, market, since, limitVar));
+    }
+
+    /**
+     * @method
+     * @name bithumb#fetchOrders
+     * @description fetches information on multiple orders made by the user
+     * @see https://apidocs.bithumb.com/reference/%EC%A3%BC%EB%AC%B8-%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EC%A1%B0%ED%9A%8C
+     * @see https://apidocs.bithumb.com/reference/twap-%EC%A3%BC%EB%AC%B8%EB%82%B4%EC%97%AD-%EC%A1%B0%ED%9A%8C
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string[]} [params.clientOrderIds] an array of client order ids
+     * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
+     * @param {bool} [params.twap] *generation 2 only* if you want to fetch generation 2 twap orders
+     * @param {string} [params.state] *generation 2 only* the order state, either wait, watch, done, or cancel. For twap either progress (default), done, or cancel
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public async override Task<List<ccxt.Order>> FetchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
+        object generation = null;
+        var generationparametersVariable = this.handleOptionAndParams(parameters, "fetchOrders", "generation", 2);
+        generation = ((IList<object>)generationparametersVariable)[0];
+        parameters = ((IList<object>)generationparametersVariable)[1];
+        if (isTrue(!isEqual(generation, 2)))
+        {
+            throw new BadRequest ((string)add(this.id, " fetchOrders is only supported for the generation 2 API")) ;
+        }
+        object request = new Dictionary<string, object>() {};
+        object twap = this.safeBool(parameters, "twap", false);
+        parameters = this.omit(parameters, "twap");
+        if (!isTrue(twap))
+        {
+            object clientOrderIds = this.safeList2(parameters, "client_order_ids", "clientOrderIds");
+            if (isTrue(!isEqual(clientOrderIds, null)))
+            {
+                ((IDictionary<string,object>)request)["client_order_ids"] = clientOrderIds;
+                parameters = this.omit(parameters, new List<object>() {"clientOrderIds"});
+            }
+        }
+        object market = null;
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            market = this.market(symbol);
+            ((IDictionary<string,object>)request)["market"] = this.getGen2MarketId(market);
+        }
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["limit"] = limit;
+        }
+        object response = null;
+        object data = null;
+        if (isTrue(twap))
+        {
+            response = await this.privateGetV1Twap(this.extend(request, parameters));
+            //
+            //     {
+            //         "has_next": false,
+            //         "next_key": null,
+            //         "orders": [
+            //             {
+            //                 "uuid": "019f3ed7-4f92-7179-beee-84b4c71e53fa",
+            //                 "side": "bid",
+            //                 "price": "92500000",
+            //                 "state": "progress",
+            //                 "market": "KRW-BTC",
+            //                 "created_at": "2025-12-04T10:00:00+09:00",
+            //                 "volume": "1.0",
+            //                 "total_order_count": 60,
+            //                 "total_trades_count": 10,
+            //                 "progress_count": 25,
+            //                 "total_executed_amount": "2312500000",
+            //                 "total_executed_volume": "0.25",
+            //                 "avg_trade_price": "92500000.000",
+            //                 "wallet_id": "0000000000-00-0000"
+            //             },
+            //         ]
+            //     }
+            //
+            data = this.safeList(response, "orders", new List<object>() {});
+        } else
+        {
+            response = await this.privateGetV1Orders(this.extend(request, parameters));
+            //
+            //     [
+            //         {
+            //             "uuid": "C0101000003152406454",
+            //             "side": "bid",
+            //             "ord_type": "limit",
+            //             "price": "9500000",
+            //             "state": "wait",
+            //             "market": "KRW-BTC",
+            //             "created_at": "2026-07-04T15:05:46+09:00",
+            //             "volume": "0.001",
+            //             "remaining_volume": "0.001",
+            //             "reserved_fee": "23.75",
+            //             "remaining_fee": "23.75",
+            //             "paid_fee": "0",
+            //             "locked": "9524.75",
+            //             "executed_volume": "0",
+            //             "executed_funds": "0",
+            //             "trades_count": 0,
+            //             "stp_type": "cancel_taker"
+            //         }
+            //     ]
+            //
+            data = response;
+        }
+        return ccxt.BaseExchange.ToOrderList(this.parseOrders(data, market, since, limit));
+    }
+
+    /**
+     * @method
+     * @name bithumb#fetchClosedOrders
+     * @description fetches information on multiple closed orders made by the user
+     * @see https://apidocs.bithumb.com/reference/%EC%A3%BC%EB%AC%B8-%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EC%A1%B0%ED%9A%8C
+     * @see https://apidocs.bithumb.com/reference/twap-%EC%A3%BC%EB%AC%B8%EB%82%B4%EC%97%AD-%EC%A1%B0%ED%9A%8C
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string[]} [params.clientOrderIds] an array of client order ids
+     * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
+     * @param {bool} [params.twap] if you want to fetch generation 2 twap orders
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public async override Task<List<ccxt.Order>> FetchClosedOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        ((IDictionary<string,object>)parameters)["state"] = "done";
+        object orders = ccxt.BaseExchange.FromOrderList(await this.FetchOrders(((string)symbol),ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters));
+        return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(orders, since, limit));
+    }
+
+    /**
+     * @method
+     * @name bithumb#fetchCanceledOrders
+     * @description fetches information on multiple canceled orders made by the user
+     * @see https://apidocs.bithumb.com/reference/%EC%A3%BC%EB%AC%B8-%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EC%A1%B0%ED%9A%8C
+     * @see https://apidocs.bithumb.com/reference/twap-%EC%A3%BC%EB%AC%B8%EB%82%B4%EC%97%AD-%EC%A1%B0%ED%9A%8C
+     * @param {string} symbol unified market symbol of the market the orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string[]} [params.clientOrderIds] an array of client order ids
+     * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
+     * @param {bool} [params.twap] if you want to fetch generation 2 twap orders
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public async override Task<List<ccxt.Order>> FetchCanceledOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        ((IDictionary<string,object>)parameters)["state"] = "cancel";
+        object orders = ccxt.BaseExchange.FromOrderList(await this.FetchOrders(((string)symbol),ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters));
+        return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(orders, since, limit));
     }
 
     /**
@@ -1188,40 +2763,152 @@ public partial class bithumb : Exchange
      * @name bithumb#cancelOrder
      * @description cancels an open order
      * @see https://apidocs.bithumb.com/v1.2.0/reference/%EC%A3%BC%EB%AC%B8-%EC%B7%A8%EC%86%8C%ED%95%98%EA%B8%B0
+     * @see https://apidocs.bithumb.com/reference/%EC%A3%BC%EB%AC%B8-%EC%B7%A8%EC%86%8C-%EC%A0%91%EC%88%98
+     * @see https://apidocs.bithumb.com/reference/twap-%EC%A3%BC%EB%AC%B8-%EC%B7%A8%EC%86%8C
      * @param {string} id order id
-     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {string} [symbol] unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] the clientOrderId of the order, alternative to using the order id
+     * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
+     * @param {bool} [params.twap] if you want to cancel a generation 2 twap order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<ccxt.Order> CancelOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(symbol, null)))
+        if (isTrue(isEqual(this.markets, null)))
         {
-            throw new ArgumentsRequired ((string)add(this.id, " cancelOrder() requires a symbol argument")) ;
+            await this.loadMarkets();
         }
-        bool side_in_params = (inOp(parameters, "side"));
-        if (!isTrue(side_in_params))
+        object generation = null;
+        var generationparametersVariable = this.handleOptionAndParams(parameters, "cancelOrder", "generation", 2);
+        generation = ((IList<object>)generationparametersVariable)[0];
+        parameters = ((IList<object>)generationparametersVariable)[1];
+        object market = null;
+        if (isTrue(!isEqual(symbol, null)))
         {
-            throw new ArgumentsRequired ((string)add(this.id, " cancelOrder() requires a `side` parameter (sell or buy)")) ;
+            market = this.market(symbol);
         }
-        object market = this.market(symbol);
-        object side = ((bool) isTrue((isEqual(getValue(parameters, "side"), "buy")))) ? "bid" : "ask";
-        parameters = this.omit(parameters, new List<object>() {"side", "currency"});
-        // https://github.com/ccxt/ccxt/issues/6771
-        object request = new Dictionary<string, object>() {
-            { "order_id", id },
-            { "type", side },
-            { "order_currency", getValue(market, "base") },
-            { "payment_currency", getValue(market, "quote") },
-        };
-        object response = await this.privatePostTradeCancel(this.extend(request, parameters));
+        object request = new Dictionary<string, object>() {};
+        object response = null;
+        object twap = this.safeBool(parameters, "twap", false);
+        parameters = this.omit(parameters, "twap");
+        if (isTrue(twap))
+        {
+            ((IDictionary<string,object>)request)["algo_order_id"] = id;
+        } else
+        {
+            object clientOrderId = this.safeString2(parameters, "clientOrderId", "client_order_id");
+            if (isTrue(isTrue((isEqual(generation, 2))) && isTrue((!isEqual(clientOrderId, null)))))
+            {
+                ((IDictionary<string,object>)request)["client_order_id"] = clientOrderId;
+                parameters = this.omit(parameters, new List<object>() {"clientOrderId"});
+            } else
+            {
+                ((IDictionary<string,object>)request)["order_id"] = id;
+            }
+        }
+        if (isTrue(isEqual(generation, 2)))
+        {
+            if (isTrue(twap))
+            {
+                response = await this.privateDeleteV1Twap(this.extend(request, parameters));
+            } else
+            {
+                response = await this.privateDeleteV2Order(this.extend(request, parameters));
+            }
+        } else
+        {
+            if (isTrue(isEqual(symbol, null)))
+            {
+                throw new ArgumentsRequired ((string)add(this.id, " cancelOrder() requires a symbol argument")) ;
+            }
+            object marketDefined = market;
+            object bs = this.safeString(marketDefined, "base");
+            object quote = this.safeString(marketDefined, "quote");
+            if (isTrue(isTrue((isEqual(bs, null))) || isTrue((isEqual(quote, null)))))
+            {
+                throw new ArgumentsRequired ((string)add(this.id, " cancelOrder() requires a market with defined base and quote")) ;
+            }
+            bool side_in_params = (inOp(parameters, "side"));
+            if (!isTrue(side_in_params))
+            {
+                throw new ArgumentsRequired ((string)add(this.id, " cancelOrder() requires a `side` parameter (sell or buy)")) ;
+            }
+            object side = null;
+            if (isTrue(isEqual(getValue(parameters, "side"), "buy")))
+            {
+                side = "bid";
+            } else
+            {
+                side = "ask";
+            }
+            parameters = this.omit(parameters, "side");
+            // https://github.com/ccxt/ccxt/issues/6771
+            ((IDictionary<string,object>)request)["type"] = side;
+            ((IDictionary<string,object>)request)["order_currency"] = bs;
+            ((IDictionary<string,object>)request)["payment_currency"] = quote;
+            response = await this.privatePostTradeCancel(this.extend(request, parameters));
+        }
+        return ccxt.BaseExchange.ToOrder(this.extend(this.parseOrder(response, market), new Dictionary<string, object>() {             { "id", id },         }));
+    }
+
+    /**
+     * @method
+     * @name bithumb#cancelOrders
+     * @description cancel multiple orders
+     * @see https://apidocs.bithumb.com/reference/%EB%8B%A4%EA%B1%B4-%EC%A3%BC%EB%AC%B8-%EC%B7%A8%EC%86%8C-%EC%A0%91%EC%88%98
+     * @param {string[]} ids order ids
+     * @param {string} [symbol] unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string[]} [params.clientOrderIds] alternative to ids, array of client order ids
+     * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public async override Task<object> cancelOrders(object ids, string symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
+        object generation = null;
+        var generationparametersVariable = this.handleOptionAndParams(parameters, "cancelOrders", "generation", 2);
+        generation = ((IList<object>)generationparametersVariable)[0];
+        parameters = ((IList<object>)generationparametersVariable)[1];
+        if (isTrue(!isEqual(generation, 2)))
+        {
+            throw new BadRequest ((string)add(this.id, " cancelOrders is only supported for the generation 2 API")) ;
+        }
+        object market = null;
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            market = this.market(symbol);
+        }
+        object request = new Dictionary<string, object>() {};
+        object clientOrderIds = this.safeList2(parameters, "client_order_ids", "clientOrderIds");
+        if (isTrue(!isEqual(clientOrderIds, null)))
+        {
+            ((IDictionary<string,object>)request)["client_order_ids"] = clientOrderIds;
+            parameters = this.omit(parameters, new List<object>() {"clientOrderIds"});
+        } else
+        {
+            ((IDictionary<string,object>)request)["order_ids"] = ids;
+        }
+        object response = await this.privatePostV2OrdersCancel(this.extend(request, parameters));
         //
-        //    {
-        //       'status': 'string',
-        //    }
+        //     {
+        //         "success": [
+        //             {
+        //                 "order_id": "C0101000003152500274",
+        //                 "created_at":"2026-07-04T15:49:24+09:00"
+        //             },
+        //         ],
+        //         "fail": []
+        //     }
         //
-        return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "info", response },         }));
+        object data = this.safeList(response, "success", new List<object>() {});
+        return this.parseOrders(data, market);
     }
 
     public async override Task<ccxt.Order> CancelUnifiedOrder(object order, object parameters = null)
@@ -1238,78 +2925,691 @@ public partial class bithumb : Exchange
      * @name bithumb#withdraw
      * @description make a withdrawal
      * @see https://apidocs.bithumb.com/v1.2.0/reference/%EC%BD%94%EC%9D%B8-%EC%B6%9C%EA%B8%88%ED%95%98%EA%B8%B0-%EA%B0%9C%EC%9D%B8
+     * @see https://apidocs.bithumb.com/reference/%EA%B0%80%EC%83%81-%EC%9E%90%EC%82%B0-%EC%B6%9C%EA%B8%88-%EC%9A%94%EC%B2%AD
+     * @see https://apidocs.bithumb.com/reference/%EC%9B%90%ED%99%94-%EC%B6%9C%EA%B8%88-%EC%9A%94%EC%B2%AD
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
+     * @param {string} tag the secondary withdrawal destination address
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
+     * @param {string} [params.network] the blockchain network to withdraw on, for example BTC or DASH
+     * @param {string} [params.destination] secondary address destination for specific currencies, can alternatively use the tag argument
+     * @param {string} [params.exchange_name] withdrawal exchange name
+     * @param {string} [params.receiver_type] either personal or corporation
+     * @param {string} [params.ko_name] *generation 1 only* the receiver name in korean
+     * @param {string} [params.en_name] *generation 1 only* the receiver name in english
+     * @param {string} [params.receiver_ko_name] *generation 2 only* the personal receiver name in korean
+     * @param {string} [params.receiver_en_name] *generation 2 only* the personal receiver name in english
+     * @param {string} [params.receiver_corp_ko_name] *generation 2 only* the corporation receiver name in korean
+     * @param {string} [params.receiver_corp_en_name] *generation 2 only* the corporation receiver name in english
+     * @param {string} [params.two_factor_type] *generation 2 KRW withdraw only* the two factor type, for example kakao
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
     {
         object tagVar = tag;
         parameters ??= new Dictionary<string, object>();
-        var tagparametersVariable = this.handleWithdrawTagAndParams(tagVar, parameters);
-        tagVar = ((IList<object>)tagparametersVariable)[0];
-        parameters = ((IList<object>)tagparametersVariable)[1];
-        this.checkAddress(address);
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
+        object generation = null;
+        var generationparametersVariable = this.handleOptionAndParams(parameters, "withdraw", "generation", 2);
+        generation = ((IList<object>)generationparametersVariable)[0];
+        parameters = ((IList<object>)generationparametersVariable)[1];
+        var tagparametersVariable = this.handleWithdrawTagAndParams(tagVar, parameters);
+        tagVar = ((IList<object>)tagparametersVariable)[0];
+        parameters = ((IList<object>)tagparametersVariable)[1];
+        this.checkAddress(address);
+        object network = this.safeString2(parameters, "network", "net_type");
+        parameters = this.omit(parameters, "network");
         object currency = this.currency(code);
-        object request = new Dictionary<string, object>() {
-            { "units", amount },
-            { "address", address },
-            { "currency", getValue(currency, "id") },
-        };
+        object request = new Dictionary<string, object>() {};
+        object response = null;
+        object destinationRequest = null;
         if (isTrue(isTrue(isTrue(isTrue(isTrue(isEqual(code, "XRP")) || isTrue(isEqual(code, "XMR"))) || isTrue(isEqual(code, "EOS"))) || isTrue(isEqual(code, "STEEM"))) || isTrue(isEqual(code, "TON"))))
         {
-            object destination = this.safeString(parameters, "destination");
+            object destination = this.safeString2(parameters, "destination", "secondary_address");
+            parameters = this.omit(parameters, new List<object>() {"destination", "secondary_address"});
             if (isTrue(isTrue((isEqual(tagVar, null))) && isTrue((isEqual(destination, null)))))
             {
                 throw new ArgumentsRequired ((string)add(add(add(this.id, " "), code), " withdraw() requires a tag argument or an extra destination param")) ;
             } else if (isTrue(!isEqual(tagVar, null)))
             {
-                ((IDictionary<string,object>)request)["destination"] = tagVar;
+                destinationRequest = tagVar;
+            } else
+            {
+                destinationRequest = destination;
             }
         }
-        object response = await this.privatePostTradeBtcWithdrawal(this.extend(request, parameters));
-        //
-        // { "status" : "0000"}
-        //
+        object receiverType = this.safeString2(parameters, "receiver_type", "cust_type_cd");
+        parameters = this.omit(parameters, new List<object>() {"receiver_type", "cust_type_cd"});
+        if (isTrue(isEqual(generation, 2)))
+        {
+            if (isTrue(isEqual(code, "KRW")))
+            {
+                object twoFactorType = this.safeString(parameters, "two_factor_type");
+                if (isTrue(isEqual(twoFactorType, null)))
+                {
+                    throw new ArgumentsRequired ((string)add(add(add(this.id, " "), code), " withdraw() requires a two_factor_type parameter for withdrawing KRW")) ;
+                }
+                object krwRequest = new Dictionary<string, object>() {
+                    { "amount", this.numberToString(amount) },
+                }; // KRW withdraw only accepts amount and two_factor_type parameters
+                response = await this.privatePostV1WithdrawsKrw(this.extend(krwRequest, parameters));
+            } else
+            {
+                if (isTrue(isEqual(network, null)))
+                {
+                    throw new ArgumentsRequired ((string)add(add(add(this.id, " "), code), " withdraw() requires a network parameter")) ;
+                }
+                ((IDictionary<string,object>)request)["address"] = address;
+                ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
+                ((IDictionary<string,object>)request)["net_type"] = network;
+                ((IDictionary<string,object>)request)["amount"] = this.numberToString(amount);
+                if (isTrue(!isEqual(destinationRequest, null)))
+                {
+                    ((IDictionary<string,object>)request)["secondary_address"] = destinationRequest;
+                }
+                if (isTrue(!isEqual(receiverType, null)))
+                {
+                    ((IDictionary<string,object>)request)["receiver_type"] = receiverType;
+                }
+                response = await this.privatePostV1WithdrawsCoin(this.extend(request, parameters));
+            }
+        } else
+        {
+            ((IDictionary<string,object>)request)["address"] = address;
+            ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
+            ((IDictionary<string,object>)request)["units"] = amount;
+            if (isTrue(!isEqual(network, null)))
+            {
+                ((IDictionary<string,object>)request)["net_type"] = network;
+            }
+            if (isTrue(!isEqual(destinationRequest, null)))
+            {
+                ((IDictionary<string,object>)request)["destination"] = destinationRequest;
+            }
+            if (isTrue(!isEqual(receiverType, null)))
+            {
+                if (isTrue(isEqual(receiverType, "corporation")))
+                {
+                    ((IDictionary<string,object>)request)["cust_type_cd"] = "Corporation 02";
+                } else if (isTrue(isEqual(receiverType, "personal")))
+                {
+                    ((IDictionary<string,object>)request)["cust_type_cd"] = "Individual 01";
+                } else
+                {
+                    ((IDictionary<string,object>)request)["cust_type_cd"] = receiverType;
+                }
+            }
+            response = await this.privatePostTradeBtcWithdrawal(this.extend(request, parameters));
+        }
         return ccxt.BaseExchange.ToTransaction(this.parseTransaction(response, currency));
     }
 
     public override object parseTransaction(object transaction, object currency = null)
     {
         //
-        // withdraw
+        // generation 1: withdraw
         //
-        //     { "status" : "0000"}
+        //     {"status": "0000"}
         //
-        currency = this.safeCurrency(null, currency);
+        // generation 2: withdraw, fetchWithdrawal, fetchWithdrawals, fetchDeposit, fetchDeposits
+        //
+        //     {
+        //         "type": "withdraw",
+        //         "uuid": "200377211",
+        //         "currency": "BTC",
+        //         "net_type": "BTC",
+        //         "state": "processing",
+        //         "created_at": "2024-07-14T14:54:24+09:00",
+        //         "done_at": null,
+        //         "amount": "0.00010000",
+        //         "fee": "0",
+        //         "krw_amount": "8400",
+        //         "transaction_type": null,
+        //         "txid": null
+        //     }
+        //
+        object type = this.safeString(transaction, "type");
+        object currencyId = this.safeString(transaction, "currency");
+        currency = this.safeCurrency(currencyId, currency);
+        object datetime = this.safeString(transaction, "created_at");
+        object timestamp = this.parse8601(datetime);
+        if (isTrue(isTrue((!isEqual(datetime, null))) && isTrue((isGreaterThan(getIndexOf(datetime, "+09:00"), -1)))))
+        {
+            string normalized = ((string)datetime).Replace((string)"+09:00", (string)"Z");
+            object normalizedTimestamp = this.parse8601(normalized);
+            if (isTrue(!isEqual(normalizedTimestamp, null)))
+            {
+                timestamp = subtract(normalizedTimestamp, multiply(9, 3600000));
+            }
+        }
         return new Dictionary<string, object>() {
-            { "id", null },
-            { "txid", null },
-            { "timestamp", null },
-            { "datetime", null },
-            { "network", null },
+            { "id", this.safeString(transaction, "uuid") },
+            { "txid", this.safeString(transaction, "txid") },
+            { "timestamp", timestamp },
+            { "datetime", datetime },
+            { "network", this.safeString(transaction, "net_type") },
             { "addressFrom", null },
             { "address", null },
             { "addressTo", null },
-            { "amount", null },
-            { "type", null },
+            { "amount", this.safeNumber(transaction, "amount") },
+            { "type", type },
             { "currency", getValue(currency, "code") },
-            { "status", null },
+            { "status", this.parseTransactionStatusByType(this.safeString(transaction, "state"), type) },
             { "updated", null },
             { "tagFrom", null },
             { "tag", null },
             { "tagTo", null },
             { "comment", null },
             { "internal", null },
-            { "fee", null },
+            { "fee", new Dictionary<string, object>() {
+                { "currency", null },
+                { "cost", this.safeNumber(transaction, "fee") },
+                { "rate", null },
+            } },
             { "info", transaction },
+        };
+    }
+
+    public virtual object parseTransactionStatusByType(object status, object type = null)
+    {
+        if (isTrue(isEqual(type, null)))
+        {
+            return status;
+        }
+        object statusesByType = new Dictionary<string, object>() {
+            { "deposit", new Dictionary<string, object>() {
+                { "DEPOSIT_PROCESSING", "pending" },
+                { "DEPOSIT_ACCEPTED", "ok" },
+                { "DEPOSIT_CANCELLED", "canceled" },
+                { "PROCESSING", "pending" },
+                { "ACCEPTED", "ok" },
+                { "CANCELLED", "canceled" },
+            } },
+            { "withdraw", new Dictionary<string, object>() {
+                { "processing", "pending" },
+                { "done", "ok" },
+                { "cancelled", "canceled" },
+                { "PROCESSING", "pending" },
+                { "DONE", "ok" },
+                { "CANCELLED", "canceled" },
+            } },
+        };
+        object statuses = this.safeDict(statusesByType, ((string)type), new Dictionary<string, object>() {});
+        return this.safeString(statuses, status, status);
+    }
+
+    /**
+     * @method
+     * @name bithumb#fetchWithdrawalWhitelist
+     * @description fetch a list of allowed withdrawal addresses
+     * @see https://apidocs.bithumb.com/reference/%EC%B6%9C%EA%B8%88-%ED%97%88%EC%9A%A9-%EC%A3%BC%EC%86%8C-%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EC%A1%B0%ED%9A%8C
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
+     * @returns {object[]} a list response from the exchange
+     */
+    public async virtual Task<object> fetchWithdrawalWhitelist(object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
+        object generation = null;
+        var generationparametersVariable = this.handleOptionAndParams(parameters, "fetchWithdrawalWhitelist", "generation", 2);
+        generation = ((IList<object>)generationparametersVariable)[0];
+        parameters = ((IList<object>)generationparametersVariable)[1];
+        if (isTrue(!isEqual(generation, 2)))
+        {
+            throw new BadRequest ((string)add(this.id, " fetchWithdrawalWhitelist() is only supported for the generation 2 API")) ;
+        }
+        object response = await this.privateGetV1WithdrawsCoinAddresses(parameters);
+        //
+        //     [
+        //         {
+        //             "currency": "BTC",
+        //             "wallet_state": "working",
+        //             "block_state": "normal",
+        //             "block_height": 852086,
+        //             "block_updated_at": "2024-07-14T13:43:57+09:00",
+        //             "block_elapsed_minutes": 2,
+        //             "net_type": "BTC",
+        //             "network_name": "Bitcoin"
+        //         },
+        //     ]
+        //
+        return response;
+    }
+
+    /**
+     * @method
+     * @name bithumb#fetchWithdrawal
+     * @description fetch data on a currency withdrawal via the withdrawal id
+     * @see https://apidocs.bithumb.com/reference/%EA%B0%9C%EB%B3%84-%EC%B6%9C%EA%B8%88-%EC%A1%B0%ED%9A%8C
+     * @param {string} id withdrawal id
+     * @param {string} [code] the currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.txid] the transaction id for the withdrawal
+     * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    public async virtual Task<ccxt.Transaction> FetchWithdrawal(string id, string code = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
+        object generation = null;
+        var generationparametersVariable = this.handleOptionAndParams(parameters, "fetchWithdrawal", "generation", 2);
+        generation = ((IList<object>)generationparametersVariable)[0];
+        parameters = ((IList<object>)generationparametersVariable)[1];
+        if (isTrue(!isEqual(generation, 2)))
+        {
+            throw new BadRequest ((string)add(this.id, " fetchWithdrawal() is only supported for the generation 2 API")) ;
+        }
+        if (isTrue(isEqual(code, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " fetchWithdrawal() requires a code argument")) ;
+        }
+        object currency = this.currency(code);
+        object request = new Dictionary<string, object>() {
+            { "currency", getValue(currency, "id") },
+        };
+        if (isTrue(!isEqual(id, null)))
+        {
+            ((IDictionary<string,object>)request)["uuid"] = id;
+        }
+        object response = await this.privateGetV1Withdraw(this.extend(request, parameters));
+        //
+        //     {
+        //         "type": "withdraw",
+        //         "uuid": "200377211",
+        //         "currency": "BTC",
+        //         "net_type": "BTC",
+        //         "state": "processing",
+        //         "created_at": "2024-07-14T14:54:24+09:00",
+        //         "done_at": null,
+        //         "amount": "0.00010000",
+        //         "fee": "0",
+        //         "transaction_type": null,
+        //         "txid": null
+        //     }
+        //
+        return ccxt.BaseExchange.ToTransaction(this.parseTransaction(response, currency));
+    }
+
+    /**
+     * @method
+     * @name bithumb#fetchWithdrawals
+     * @description fetch all withdrawals made from an account
+     * @see https://apidocs.bithumb.com/reference/%EC%B6%9C%EA%B8%88-%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EC%A1%B0%ED%9A%8C
+     * @see https://apidocs.bithumb.com/reference/%EC%9B%90%ED%99%94-%EC%B6%9C%EA%B8%88-%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EC%A1%B0%ED%9A%8C
+     * @param {string} [code] unified currency code
+     * @param {int} [since] the earliest time in ms to fetch withdrawals for
+     * @param {int} [limit] the maximum number of withdrawals to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
+     * @param {int} [params.page] the number of pages to return, default is 1
+     * @param {string} [params.state] the withdrawal state, either PROCESSING, DONE or CANCELLED
+     * @param {string} [params.order_by] either asc or desc, desc is the default
+     * @param {string[]} [params.uuids] an array of uuid strings
+     * @param {string[]} [params.txids] an array of txid strings
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    public async override Task<List<ccxt.Transaction>> FetchWithdrawals(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
+        object generation = null;
+        var generationparametersVariable = this.handleOptionAndParams(parameters, "fetchWithdrawals", "generation", 2);
+        generation = ((IList<object>)generationparametersVariable)[0];
+        parameters = ((IList<object>)generationparametersVariable)[1];
+        if (isTrue(!isEqual(generation, 2)))
+        {
+            throw new BadRequest ((string)add(this.id, " fetchWithdrawals() is only supported for the generation 2 API")) ;
+        }
+        object request = new Dictionary<string, object>() {};
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["limit"] = limit;
+        }
+        object response = null;
+        object currency = null;
+        if (isTrue(isEqual(code, "KRW")))
+        {
+            currency = this.currency(code);
+            response = await this.privateGetV1WithdrawsKrw(this.extend(request, parameters));
+        } else
+        {
+            if (isTrue(!isEqual(code, null)))
+            {
+                currency = this.currency(code);
+                ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
+            }
+            response = await this.privateGetV1Withdraws(this.extend(request, parameters));
+        }
+        //
+        //     [
+        //         {
+        //             "type": "withdraw",
+        //             "uuid": "200377211",
+        //             "currency": "BTC",
+        //             "net_type": "BTC",
+        //             "state": "processing",
+        //             "created_at": "2024-07-14T14:54:24+09:00",
+        //             "done_at": null,
+        //             "amount": "0.00010000",
+        //             "fee": "0",
+        //             "transaction_type": null,
+        //             "txid": null
+        //         }
+        //     ]
+        //
+        return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(response, currency, since, limit));
+    }
+
+    /**
+     * @method
+     * @name bithumb#fetchDeposit
+     * @description fetch information on a deposit
+     * @see https://apidocs.bithumb.com/reference/%EA%B0%9C%EB%B3%84-%EC%9E%85%EA%B8%88-%EC%A1%B0%ED%9A%8C
+     * @param {string} id deposit id
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.txid] the transaction id for the deposit
+     * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    public async virtual Task<ccxt.Transaction> FetchDeposit(string id, string code = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
+        object generation = null;
+        var generationparametersVariable = this.handleOptionAndParams(parameters, "fetchDeposit", "generation", 2);
+        generation = ((IList<object>)generationparametersVariable)[0];
+        parameters = ((IList<object>)generationparametersVariable)[1];
+        if (isTrue(!isEqual(generation, 2)))
+        {
+            throw new BadRequest ((string)add(this.id, " fetchDeposit() is only supported for the generation 2 API")) ;
+        }
+        if (isTrue(isEqual(code, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " fetchDeposit() requires a code argument")) ;
+        }
+        object currency = this.currency(code);
+        object request = new Dictionary<string, object>() {
+            { "currency", getValue(currency, "id") },
+        };
+        if (isTrue(!isEqual(id, null)))
+        {
+            ((IDictionary<string,object>)request)["uuid"] = id;
+        }
+        object response = await this.privateGetV1Deposit(this.extend(request, parameters));
+        //
+        //     {
+        //         "type": "deposit",
+        //         "uuid": "200377211",
+        //         "currency": "BTC",
+        //         "net_type": "BTC",
+        //         "state": "DEPOSIT_ACCEPTED",
+        //         "created_at": "2024-07-14T14:54:24+09:00",
+        //         "done_at": null,
+        //         "amount": "0.00010000",
+        //         "fee": "0",
+        //         "transaction_type": null,
+        //         "txid": null
+        //     }
+        //
+        return ccxt.BaseExchange.ToTransaction(this.parseTransaction(response, currency));
+    }
+
+    /**
+     * @method
+     * @name bithumb#fetchDeposits
+     * @description fetch all deposits made to an account
+     * @see https://apidocs.bithumb.com/reference/%EC%9E%85%EA%B8%88-%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EC%A1%B0%ED%9A%8C
+     * @see https://apidocs.bithumb.com/reference/%EC%9B%90%ED%99%94-%EC%9E%85%EA%B8%88-%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EC%A1%B0%ED%9A%8C
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch deposits for
+     * @param {int} [limit] the maximum number of deposits to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
+     * @param {int} [params.page] the number of pages to return, default is 1
+     * @param {string} [params.state] the deposit state, for KRW, PROCESSING, ACCEPTED or CANCELLED, for others, DEPOSIT_PROCESSING, DEPOSIT_ACCEPTED, DEPOSIT_CANCELLED
+     * @param {string} [params.order_by] either asc or desc, desc is the default
+     * @param {string[]} [params.uuids] an array of uuid strings
+     * @param {string[]} [params.txids] an array of txid strings
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    public async override Task<List<ccxt.Transaction>> FetchDeposits(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
+        object generation = null;
+        var generationparametersVariable = this.handleOptionAndParams(parameters, "fetchDeposits", "generation", 2);
+        generation = ((IList<object>)generationparametersVariable)[0];
+        parameters = ((IList<object>)generationparametersVariable)[1];
+        if (isTrue(!isEqual(generation, 2)))
+        {
+            throw new BadRequest ((string)add(this.id, " fetchDeposits() is only supported for the generation 2 API")) ;
+        }
+        object request = new Dictionary<string, object>() {};
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["limit"] = limit;
+        }
+        object response = null;
+        object currency = null;
+        if (isTrue(isEqual(code, "KRW")))
+        {
+            currency = this.currency(code);
+            response = await this.privateGetV1DepositsKrw(this.extend(request, parameters));
+        } else
+        {
+            if (isTrue(!isEqual(code, null)))
+            {
+                currency = this.currency(code);
+                ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
+            }
+            response = await this.privateGetV1Deposits(this.extend(request, parameters));
+        }
+        //
+        //     [
+        //         {
+        //             "type": "deposit",
+        //             "uuid": "200377211",
+        //             "currency": "BTC",
+        //             "net_type": "BTC",
+        //             "state": "DEPOSIT_ACCEPTED",
+        //             "created_at": "2024-07-14T14:54:24+09:00",
+        //             "done_at": null,
+        //             "amount": "0.00010000",
+        //             "fee": "0",
+        //             "transaction_type": null,
+        //             "txid": null
+        //         }
+        //     ]
+        //
+        return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(response, currency, since, limit));
+    }
+
+    /**
+     * @method
+     * @name bithumb#createDepositAddress
+     * @description create a currency deposit address
+     * @see https://apidocs.bithumb.com/reference/%EC%9E%85%EA%B8%88-%EC%A3%BC%EC%86%8C-%EC%83%9D%EC%84%B1-%EC%9A%94%EC%B2%AD
+     * @param {string} code unified currency code of the currency for the deposit address
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
+     * @param {string} [params.network] the blockchain network to create a deposit address on
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+     */
+    public async override Task<ccxt.DepositAddress> CreateDepositAddress(string code, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
+        object generation = null;
+        var generationparametersVariable = this.handleOptionAndParams(parameters, "createDepositAddress", "generation", 2);
+        generation = ((IList<object>)generationparametersVariable)[0];
+        parameters = ((IList<object>)generationparametersVariable)[1];
+        if (isTrue(!isEqual(generation, 2)))
+        {
+            throw new BadRequest ((string)add(this.id, " createDepositAddress() is only supported for the generation 2 API")) ;
+        }
+        object currency = this.currency(code);
+        object request = new Dictionary<string, object>() {
+            { "currency", getValue(currency, "id") },
+        };
+        object network = this.safeString2(parameters, "network", "net_type");
+        parameters = this.omit(parameters, "network");
+        if (isTrue(isEqual(network, null)))
+        {
+            throw new ArgumentsRequired ((string)add(add(add(this.id, " "), code), " createDepositAddress() requires a network parameter")) ;
+        }
+        ((IDictionary<string,object>)request)["net_type"] = network;
+        object response = await this.privatePostV1DepositsGenerateCoinAddress(this.extend(request, parameters));
+        //
+        //     {
+        //         "currency": "BTC",
+        //         "net_type": "BTC",
+        //         "deposit_address": "195Y...rbJ3",
+        //         "secondary_address": null
+        //     }
+        //
+        return ccxt.BaseExchange.ToDepositAddress(this.parseDepositAddress(response, currency));
+    }
+
+    /**
+     * @method
+     * @name bithumb#fetchDepositAddress
+     * @description fetch the deposit address for a currency associated with this account
+     * @see https://apidocs.bithumb.com/reference/%EA%B0%9C%EB%B3%84-%EC%9E%85%EA%B8%88-%EC%A3%BC%EC%86%8C-%EC%A1%B0%ED%9A%8C
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
+     * @param {string} [params.network] network for fetch deposit address
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+     */
+    public async override Task<ccxt.DepositAddress> FetchDepositAddress(string code, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
+        object generation = null;
+        var generationparametersVariable = this.handleOptionAndParams(parameters, "fetchDepositAddress", "generation", 2);
+        generation = ((IList<object>)generationparametersVariable)[0];
+        parameters = ((IList<object>)generationparametersVariable)[1];
+        if (isTrue(!isEqual(generation, 2)))
+        {
+            throw new BadRequest ((string)add(this.id, " fetchDepositAddress() is only supported for the generation 2 API")) ;
+        }
+        object currency = this.currency(code);
+        object request = new Dictionary<string, object>() {
+            { "currency", getValue(currency, "id") },
+        };
+        object network = this.safeString2(parameters, "network", "net_type");
+        parameters = this.omit(parameters, "network");
+        if (isTrue(isEqual(network, null)))
+        {
+            throw new ArgumentsRequired ((string)add(add(add(this.id, " "), code), " fetchDepositAddress() requires a network parameter")) ;
+        }
+        ((IDictionary<string,object>)request)["net_type"] = network;
+        object response = await this.privateGetV1DepositsCoinAddress(this.extend(request, parameters));
+        //
+        //     {
+        //         "currency": "BTC",
+        //         "net_type": "BTC",
+        //         "deposit_address": "195Y...rbJ3",
+        //         "secondary_address": null
+        //     }
+        //
+        return ccxt.BaseExchange.ToDepositAddress(this.parseDepositAddress(response, currency));
+    }
+
+    /**
+     * @method
+     * @name bithumb#fetchDepositAddresses
+     * @description fetch deposit addresses for multiple currencies (when available)
+     * @see https://apidocs.bithumb.com/reference/%EC%A0%84%EC%B2%B4-%EC%9E%85%EA%B8%88-%EC%A3%BC%EC%86%8C-%EC%A1%B0%ED%9A%8C
+     * @param {string[]} [codes] list of unified currency codes, default is undefined (all currencies)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
+     * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by currency code
+     */
+    public async override Task<List<ccxt.DepositAddress>> FetchDepositAddresses(object codes = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
+        object generation = null;
+        var generationparametersVariable = this.handleOptionAndParams(parameters, "fetchDepositAddresses", "generation", 2);
+        generation = ((IList<object>)generationparametersVariable)[0];
+        parameters = ((IList<object>)generationparametersVariable)[1];
+        if (isTrue(!isEqual(generation, 2)))
+        {
+            throw new BadRequest ((string)add(this.id, " fetchDepositAddresses() is only supported for the generation 2 API")) ;
+        }
+        object response = await this.privateGetV1DepositsCoinAddresses(parameters);
+        //
+        //     [
+        //         {
+        //             "currency": "BTC",
+        //             "net_type": "BTC",
+        //             "deposit_address": "195Y...rbJ3",
+        //             "secondary_address": null
+        //         }
+        //     ]
+        //
+        return ccxt.BaseExchange.ToDepositAddressList(this.parseDepositAddresses(response, codes, false, new Dictionary<string, object>() {}));
+    }
+
+    public override object parseDepositAddress(object response, object currency = null)
+    {
+        //
+        // generation 2: createDepositAddress, fetchDepositAddress, fetchDepositAddresses
+        //
+        //     {
+        //         "currency": "BTC",
+        //         "net_type": "BTC",
+        //         "deposit_address": "195Y...rbJ3",
+        //         "secondary_address": null
+        //     }
+        //
+        object currencyId = this.safeString(response, "currency");
+        object code = this.safeCurrencyCode(currencyId, currency);
+        object address = this.safeString(response, "deposit_address");
+        if (isTrue(isEqual(address, null)))
+        {
+            throw new ExchangeError ((string)add(this.id, " parseDepositAddress() could not find deposit_address")) ;
+        }
+        this.checkAddress(address);
+        return new Dictionary<string, object>() {
+            { "info", response },
+            { "currency", code },
+            { "network", this.safeString(response, "net_type") },
+            { "address", address },
+            { "tag", this.safeString(response, "secondary_address") },
         };
     }
 
@@ -1333,6 +3633,46 @@ public partial class bithumb : Exchange
         return this.milliseconds();
     }
 
+    public virtual object urlencodeWithArrayBrackets(object query)
+    {
+        List<object> keys = new List<object>(((IDictionary<string,object>)query).Keys);
+        object result = "";
+        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        {
+            object key = getValue(keys, i);
+            object value = getValue(query, key);
+            if (isTrue(((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+            {
+                object encodedKey = add(this.encodeURIComponent(key), "[]");
+                for (object j = 0; isLessThan(j, getArrayLength(value)); postFixIncrement(ref j))
+                {
+                    object item = getValue(value, j);
+                    object valueString = this.safeString(value, j);
+                    if (isTrue(isEqual(valueString, null)))
+                    {
+                        valueString = this.json(item);
+                    }
+                    if (isTrue(isGreaterThan(((string)result).Length, 0)))
+                    {
+                        result = add(result, "&");
+                    }
+                    result = add(result, add(add(encodedKey, "="), this.encodeURIComponent(valueString)));
+                }
+            } else
+            {
+                if (isTrue(isGreaterThan(((string)result).Length, 0)))
+                {
+                    result = add(result, "&");
+                }
+                object encodedKey = this.encodeURIComponent(key);
+                object valueString = this.safeString(query, key);
+                object encodedValue = this.encodeURIComponent(valueString);
+                result = add(result, add(add(encodedKey, "="), encodedValue));
+            }
+        }
+        return result;
+    }
+
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
@@ -1341,32 +3681,71 @@ public partial class bithumb : Exchange
         object endpoint = add("/", this.implodeParams(path, parameters));
         object url = add(this.implodeHostname(getValue(getValue(this.urls, "api"), api)), endpoint);
         object query = this.omit(parameters, this.extractParams(path));
+        List<object> queryKeys = new List<object>(((IDictionary<string,object>)query).Keys);
+        int queryKeysLength = getArrayLength(queryKeys);
+        bool hasQuery = (isGreaterThan(queryKeysLength, 0));
         if (isTrue(isEqual(api, "public")))
         {
-            if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
+            if (isTrue(hasQuery))
             {
                 url = add(url, add("?", this.urlencode(query)));
             }
         } else
         {
             this.checkRequiredCredentials();
-            body = this.urlencode(this.extend(new Dictionary<string, object>() {
-                { "endpoint", endpoint },
-            }, query));
-            // bithumb verifies signatures with PHP http_build_query conventions, spaces must be '+'
-            List<object> bodyParts = ((string)body).Split(new [] {((string)"%20")}, StringSplitOptions.None).ToList<object>();
-            body = String.Join("+", ((IList<object>)bodyParts).ToArray());
-            string nonce = ((object)this.nonce()).ToString();
-            object auth = add(add(add(add(endpoint, "\\"), body), "\\"), nonce); // eslint-disable-line quotes
-            string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512);
-            object signature64 = this.stringToBase64(signature);
-            headers = new Dictionary<string, object>() {
-                { "Accept", "application/json" },
-                { "Content-Type", "application/x-www-form-urlencoded" },
-                { "Api-Key", this.apiKey },
-                { "Api-Sign", signature64 },
-                { "Api-Nonce", nonce },
-            };
+            bool isVersionedApi = (isTrue(((string)endpoint).StartsWith(((string)"/v1/"))) || isTrue(((string)endpoint).StartsWith(((string)"/v2/"))));
+            if (isTrue(isVersionedApi))
+            {
+                headers = new Dictionary<string, object>() {
+                    { "Accept", "application/json" },
+                };
+                object request = new Dictionary<string, object>() {
+                    { "access_key", this.apiKey },
+                    { "nonce", this.uuid() },
+                    { "timestamp", this.milliseconds() },
+                };
+                object auth = null;
+                if (isTrue(isTrue((!isEqual(method, "GET"))) && isTrue((!isEqual(method, "DELETE")))))
+                {
+                    ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
+                    if (isTrue(hasQuery))
+                    {
+                        body = this.json(query);
+                        auth = this.urlencodeWithArrayBrackets(query);
+                    }
+                } else if (isTrue(hasQuery))
+                {
+                    auth = this.urlencodeWithArrayBrackets(query);
+                    url = add(url, add("?", auth));
+                }
+                if (isTrue(hasQuery))
+                {
+                    object authString = ((bool) isTrue((isEqual(auth, null)))) ? "" : auth;
+                    ((IDictionary<string,object>)request)["query_hash"] = this.hash(this.encode(authString), sha512);
+                    ((IDictionary<string,object>)request)["query_hash_alg"] = "SHA512";
+                }
+                object token = jwt(request, this.encode(this.secret), sha256);
+                ((IDictionary<string,object>)headers)["Authorization"] = add("Bearer ", token);
+            } else
+            {
+                body = this.urlencode(this.extend(new Dictionary<string, object>() {
+                    { "endpoint", endpoint },
+                }, query));
+                // bithumb verifies signatures with PHP http_build_query conventions, spaces must be '+'
+                List<object> bodyParts = ((string)body).Split(new [] {((string)"%20")}, StringSplitOptions.None).ToList<object>();
+                body = String.Join("+", ((IList<object>)bodyParts).ToArray());
+                string nonce = ((object)this.nonce()).ToString();
+                object auth = add(add(add(add(endpoint, "\\"), body), "\\"), nonce); // eslint-disable-line quotes
+                string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512);
+                object signature64 = this.stringToBase64(signature);
+                headers = new Dictionary<string, object>() {
+                    { "Accept", "application/json" },
+                    { "Content-Type", "application/x-www-form-urlencoded" },
+                    { "Api-Key", this.apiKey },
+                    { "Api-Sign", signature64 },
+                    { "Api-Nonce", nonce },
+                };
+            }
         }
         return new Dictionary<string, object>() {
             { "url", url },
@@ -1382,8 +3761,29 @@ public partial class bithumb : Exchange
         {
             return null;  // fallback to default error handler
         }
+        // generation 2:
+        //
+        //     {"error":{"name":400,"message":"Missing request parameter error. Check the required parameters!"}}
+        //
+        object error = this.safeDict(response, "error");
+        if (isTrue(!isEqual(error, null)))
+        {
+            object errorName = this.safeString(error, "name");
+            object message = this.safeString(error, "message");
+            object feedback = add(add(this.id, " "), message);
+            if (isTrue(!isEqual(errorName, null)))
+            {
+                this.throwExactlyMatchedException(this.exceptions, errorName, feedback);
+            }
+            if (isTrue(!isEqual(message, null)))
+            {
+                this.throwExactlyMatchedException(this.exceptions, message, feedback);
+            }
+            throw new ExchangeError ((string)feedback) ;
+        }
         if (isTrue(inOp(response, "status")))
         {
+            // generation 1:
             //
             //     {"status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions"}
             //

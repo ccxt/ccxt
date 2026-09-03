@@ -357,7 +357,7 @@ export default class onetrading extends Exchange {
                         'marginMode': false,
                         'limit': 100,
                         'daysBack': 100000, // todo
-                        'untilDays': 100000, // todo
+                        'untilDays': 30, // days between start-end
                         'symbolRequired': false,
                     },
                     'fetchOrder': {
@@ -369,6 +369,7 @@ export default class onetrading extends Exchange {
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': 100,
+                        'untilDays': 30, // days between start-end
                         'trigger': false,
                         'trailing': false,
                         'symbolRequired': false,
@@ -379,7 +380,7 @@ export default class onetrading extends Exchange {
                         'limit': 100,
                         'daysBack': 100000, // todo
                         'daysBackCanceled': 1 / 12, // todo
-                        'untilDays': 100000, // todo
+                        'untilDays': 30, // days between start-end
                         'trigger': false,
                         'trailing': false,
                         'symbolRequired': false,
@@ -1596,9 +1597,10 @@ export default class onetrading extends Exchange {
      * @description fetch all unfilled currently open orders
      * @see https://docs.onetrading.com/rest/trading/get-orders
      * @param {string} symbol unified market symbol
-     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [since] the earliest time in ms to fetch open orders for, the maximum window between since and until is 30 days
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest entry to fetch
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1607,7 +1609,7 @@ export default class onetrading extends Exchange {
         }
         const request = {
         // 'from': this.iso8601 (since),
-        // 'to': this.iso8601 (this.milliseconds ()), // max range is 100 days
+        // 'to': this.iso8601 (this.milliseconds ()), // max range is 30 days
         // 'instrument_code': market['id'],
         // 'with_cancelled_and_rejected': false, // default is false, orders which have been cancelled by the user before being filled or rejected by the system as invalid, additionally, all inactive filled orders which would return with "with_just_filled_inactive"
         // 'with_just_filled_inactive': false, // orders which have been filled and are no longer open, use of "with_cancelled_and_rejected" extends "with_just_filled_inactive" and in case both are specified the latter is ignored
@@ -1621,11 +1623,12 @@ export default class onetrading extends Exchange {
             request['instrument_code'] = market['id'];
         }
         if (since !== undefined) {
-            const to = this.safeString(params, 'to');
-            if (to === undefined) {
-                throw new ArgumentsRequired(this.id + ' fetchOpenOrders() requires a "to" iso8601 string param with the since argument is specified, max range is 100 days');
-            }
             request['from'] = this.iso8601(since);
+        }
+        const until = this.safeInteger(params, 'until');
+        if (until !== undefined) {
+            params = this.omit(params, 'until');
+            request['to'] = this.iso8601(until);
         }
         if (limit !== undefined) {
             request['max_page_size'] = limit;
@@ -1719,9 +1722,10 @@ export default class onetrading extends Exchange {
      * @description fetches information on multiple closed orders made by the user
      * @see https://docs.onetrading.com/rest/trading/get-orders
      * @param {string} symbol unified market symbol of the market orders were made in
-     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [since] the earliest time in ms to fetch orders for, the maximum window between since and until is 30 days
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest entry to fetch
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1798,9 +1802,10 @@ export default class onetrading extends Exchange {
      * @description fetch all trades made by the user
      * @see https://docs.onetrading.com/rest/trading/get-trades
      * @param {string} symbol unified market symbol
-     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [since] the earliest time in ms to fetch trades for, the maximum window between since and until is 30 days, when until is omitted the exchange defaults to 7 days after since
      * @param {int} [limit] the maximum number of trades structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest entry to fetch
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1809,7 +1814,7 @@ export default class onetrading extends Exchange {
         }
         const request = {
         // 'from': this.iso8601 (since),
-        // 'to': this.iso8601 (this.milliseconds ()), // max range is 100 days
+        // 'to': this.iso8601 (this.milliseconds ()), // max range is 30 days
         // 'instrument_code': market['id'],
         // 'max_page_size': 100,
         // 'cursor': 'string', // pointer specifying the position from which the next pages should be returned
@@ -1820,11 +1825,12 @@ export default class onetrading extends Exchange {
             request['instrument_code'] = market['id'];
         }
         if (since !== undefined) {
-            const to = this.safeString(params, 'to');
-            if (to === undefined) {
-                throw new ArgumentsRequired(this.id + ' fetchMyTrades() requires a "to" iso8601 string param with the since argument is specified, max range is 100 days');
-            }
             request['from'] = this.iso8601(since);
+        }
+        const until = this.safeInteger(params, 'until');
+        if (until !== undefined) {
+            params = this.omit(params, 'until');
+            request['to'] = this.iso8601(until);
         }
         if (limit !== undefined) {
             request['max_page_size'] = limit;

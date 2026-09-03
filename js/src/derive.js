@@ -1224,6 +1224,7 @@ export default class derive extends Exchange {
         const postOnly = this.safeBool(params, 'postOnly');
         const orderType = type.toLowerCase();
         const orderSide = side.toLowerCase();
+        const orderSideIsBuy = (orderSide === 'buy'); // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
         const nonce = this.milliseconds();
         // Order signature expiry must be between 2592000 and 7776000 sec from now
         const signatureExpiry = this.safeInteger(params, 'signature_expiry_sec', this.seconds() + 7776000);
@@ -1247,7 +1248,7 @@ export default class derive extends Exchange {
             this.convertToBigInt(this.parseUnits(this.amountToPrecision(symbol, amountString))),
             this.convertToBigInt(this.parseUnits(maxFeeString)),
             subaccountId,
-            orderSide === 'buy',
+            orderSideIsBuy,
         ]), keccak, 'binary');
         let deriveWalletAddress = undefined;
         [deriveWalletAddress, params] = this.handleDeriveWalletAddress('createOrder', params);
@@ -1417,6 +1418,7 @@ export default class derive extends Exchange {
         const postOnly = this.safeBool(params, 'postOnly');
         const orderType = type.toLowerCase();
         const orderSide = side.toLowerCase();
+        const orderSideIsBuy = (orderSide === 'buy'); // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
         const nonce = this.milliseconds();
         const signatureExpiry = this.safeNumber(params, 'signature_expiry_sec', this.seconds() + 7776000);
         // TODO: subaccount id / trade module address
@@ -1435,7 +1437,7 @@ export default class derive extends Exchange {
             this.convertToBigInt(this.parseUnits(this.amountToPrecision(symbol, amountString))),
             this.convertToBigInt(this.parseUnits(maxFeeString)),
             subaccountId,
-            orderSide === 'buy',
+            orderSideIsBuy,
         ]), keccak, 'binary');
         let deriveWalletAddress = undefined;
         [deriveWalletAddress, params] = this.handleDeriveWalletAddress('editOrder', params);
