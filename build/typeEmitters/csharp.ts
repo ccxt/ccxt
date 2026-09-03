@@ -642,9 +642,18 @@ function renderStruct (ir: TypesIR, spec: StructSpec): string {
         lines.push ('');
         lines.push (INDENT + 'private static readonly HashSet<string> ' + spec.n + 'Keys = new HashSet<string> {');
         const keyTokens: string[] = [];
-        const keyNames = Object.keys (fields);
-        for (let i = 0; i < keyNames.length; i++) {
-            keyTokens.push ('"' + fields[keyNames[i]].key + '"');
+        // only keys a real struct field stores. A TS field in `skip` is carried nowhere,
+        // so it has to fall into the bag rather than be treated as already-covered.
+        const declared = spec.d === undefined ? [] : spec.d;
+        for (let i = 0; i < declared.length; i++) {
+            const token = declared[i];
+            if (token === '' || literal (token) !== undefined) {
+                continue;
+            }
+            const declaredField = fields[token];
+            if (declaredField !== undefined) {
+                keyTokens.push ('"' + declaredField.key + '"');
+            }
         }
         lines.push (INDENT.repeat (2) + keyTokens.join (', ') + ',');
         lines.push (INDENT + '};');

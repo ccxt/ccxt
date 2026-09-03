@@ -37,10 +37,12 @@ function testMergeBalanceAccount() {
     assert(exchange.safeString(result['USDT'], 'used') === undefined);
     const keys = Object.keys(result);
     assert(keys.length === 2);
-    // the merged dict is a regular safeBalance input
+    // the merged dict is a regular safeBalance input. safeBalance parses to a number,
+    // and each port spells that number differently (JS "3", PHP "3.0"), so assert on
+    // the parsed value rather than on its string form
     const balance = exchange.safeBalance(result);
-    assert(balance['BTC']['free'] === 3);
-    assert(exchange.safeNumber(balance['free'], 'USDT') === 5);
-    assert(exchange.safeNumber(balance['debt'], 'BTC') === 0.1);
+    assert(exchange.safeNumber(balance['BTC'], 'free') === exchange.parseNumber('3'));
+    assert(exchange.safeNumber(balance['free'], 'USDT') === exchange.parseNumber('5'));
+    assert(exchange.safeNumber(balance['debt'], 'BTC') === exchange.parseNumber('0.1'));
 }
 export default testMergeBalanceAccount;

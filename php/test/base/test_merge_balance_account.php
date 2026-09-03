@@ -40,9 +40,11 @@ function test_merge_balance_account() {
     assert($exchange->safe_string($result['USDT'], 'used') === null);
     $keys = is_array($result) ? array_keys($result) : array();
     assert(count($keys) === 2);
-    // the merged dict is a regular safeBalance input
+    // the merged dict is a regular safeBalance input. safeBalance parses to a number,
+    // and each port spells that number differently (JS "3", PHP "3.0"), so assert on
+    // the parsed value rather than on its string form
     $balance = $exchange->safe_balance($result);
-    assert($balance['BTC']['free'] === 3);
-    assert($exchange->safe_number($balance['free'], 'USDT') === 5);
-    assert($exchange->safe_number($balance['debt'], 'BTC') === 0.1);
+    assert($exchange->safe_number($balance['BTC'], 'free') === $exchange->parse_number('3'));
+    assert($exchange->safe_number($balance['free'], 'USDT') === $exchange->parse_number('5'));
+    assert($exchange->safe_number($balance['debt'], 'BTC') === $exchange->parse_number('0.1'));
 }

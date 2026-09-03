@@ -2013,7 +2013,7 @@ public struct MarketInterface
     public Dictionary<string, object>? extra;
 
     private static readonly HashSet<string> MarketInterfaceKeys = new HashSet<string> {
-        "id", "numericId", "uppercaseId", "lowercaseId", "symbol", "base", "quote", "baseId", "quoteId", "active", "type", "subType", "spot", "margin", "swap", "future", "option", "index", "stock", "prediction", "contract", "settle", "settleId", "contractSize", "linear", "inverse", "quanto", "expiry", "expiryDatetime", "strike", "optionType", "taker", "maker", "percentage", "tierBased", "feeSide", "precision", "marginModes", "limits", "created", "info", "outcomes",
+        "info", "id", "uppercaseId", "lowercaseId", "symbol", "base", "quote", "baseId", "quoteId", "active", "type", "spot", "margin", "swap", "future", "option", "contract", "settle", "settleId", "contractSize", "linear", "inverse", "quanto", "expiry", "expiryDatetime", "strike", "optionType", "taker", "maker", "limits", "created", "precision", "marginModes", "numericId", "subType", "index", "stock", "prediction", "percentage", "tierBased", "feeSide",
     };
 
     public MarketInterface(object market)
