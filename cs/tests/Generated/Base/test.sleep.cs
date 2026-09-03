@@ -30,8 +30,8 @@ public partial class BaseTest
             // seconds/milliseconds mix-up, or one that never returns.
             object maxOvershoot = 2000;
             object maxElapsed = add(sleepAmount, maxOvershoot);
-            object elapsedBiggerThanSleep = isGreaterThanOrEqual(elapsed, minElapsed);
-            object elapsedLessThanMax = isLessThanOrEqual(elapsed, maxElapsed);
+            bool elapsedBiggerThanSleep = isGreaterThanOrEqual(elapsed, minElapsed);
+            bool elapsedLessThanMax = isLessThanOrEqual(elapsed, maxElapsed);
             Assert(elapsedBiggerThanSleep, add(add(add(add(add(add("Elapsed time ", ((object)elapsed).ToString()), "ms is less than minimum "), ((object)minElapsed).ToString()), "ms (sleep amount "), ((object)sleepAmount).ToString()), "ms)"));
             Assert(elapsedLessThanMax, add(add(add(add("Elapsed time ", ((object)elapsed).ToString()), "ms exceeds sleep amount "), ((object)maxElapsed).ToString()), "ms"));
             return true;
