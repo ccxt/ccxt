@@ -33,7 +33,7 @@ public partial class testMainClass : BaseTest
             object startTime = exchange.milliseconds();
             try
             {
-                response = await exchange.watchOHLCVForSymbols(new List<object>() {new List<object>() {symbol, chosenTimeframeKey}}, since, limit);
+                response = detypeForComparison(await exchange.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbol, chosenTimeframeKey}}, since, limit));
                 if (isTrue(isEqual(response, null)))
                 {
                     throw new Exception ((string)add(exchange.id, " watch returned undefined response")) ;

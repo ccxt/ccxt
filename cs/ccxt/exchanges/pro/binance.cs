@@ -1864,7 +1864,7 @@ public partial class binance : ccxt.binance
             ((IDictionary<string,object>)parameters)["stock"] = true;
         }
         ((IDictionary<string,object>)parameters)["callerMethodName"] = "watchOHLCV";
-        object result = await this.watchOHLCVForSymbols(new List<object>() {new List<object>() {symbolVar, timeframeVar}}, since, limit, parameters);
+        object result = ccxt.BaseExchange.FromOHLCVDict(await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbolVar, timeframeVar}}, since, limit, parameters));
         return ccxt.BaseExchange.ToOHLCVList(getValue(getValue(result, symbolVar), timeframeVar));
     }
 
@@ -1884,7 +1884,7 @@ public partial class binance : ccxt.binance
      * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<object> watchOHLCVForSymbols(object symbolsAndTimeframes, object since = null, object limit = null, object parameters = null)
+    public async override Task<Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>>> WatchOHLCVForSymbols(object symbolsAndTimeframes, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1925,7 +1925,7 @@ public partial class binance : ccxt.binance
                 limit = callDynamically(stockCandles, "getLimit", new object[] {stockSymbol, limit});
             }
             object stockFiltered = this.filterBySinceLimit(stockCandles, since, limit, 0, true);
-            return this.createOHLCVObject(stockSymbol, stockTimeframe, stockFiltered);
+            return ccxt.BaseExchange.ToOHLCVDict(this.createOHLCVObject(stockSymbol, stockTimeframe, stockFiltered));
         }
         object klineType = null;
         var klineTypeparametersVariable = this.handleParamString2(parameters, "channel", "name", "kline");
@@ -1997,7 +1997,7 @@ public partial class binance : ccxt.binance
             limit = callDynamically(candles, "getLimit", new object[] {symbol, limit});
         }
         object filtered = this.filterBySinceLimit(candles, since, limit, 0, true);
-        return this.createOHLCVObject(symbol, timeframe, filtered);
+        return ccxt.BaseExchange.ToOHLCVDict(this.createOHLCVObject(symbol, timeframe, filtered));
     }
 
     /**

@@ -53,6 +53,12 @@ if (platform === 'win32') {
     }
 }
 
+// watchOHLCVForSymbols returns `{ symbol: { timeframe: OHLCV[] } }`. That nested map is not a
+// types.ts struct, so it has no generated To*/From* pair — the hand-written
+// ToOHLCVDict / FromOHLCVDict in Exchange.TranspileHelpers.cs (built on ToOHLCVList /
+// FromOHLCVList) carry it, keyed on this exact type string.
+const OHLCV_DICT_TYPE = 'Dictionary<string, Dictionary<string, List<OHLCV>>>';
+
 // core methods whose `Task<object>` return is rewritten to a typed `Task<T>` / `Task<List<T>>`,
 // moving the `new T(item)` conversion out of the PascalCase wrapper and onto the core return path.
 // only methods whose every intra-core call site is a plain `return await this.X(...);` from a core
@@ -461,6 +467,7 @@ const TYPED_CORES: Record<string, string> = {
     'watchMyTrades': 'List<Trade>',
     'watchMyTradesForSymbols': 'List<Trade>',
     'watchOHLCV': 'List<OHLCV>',
+    'watchOHLCVForSymbols': OHLCV_DICT_TYPE,
     'watchOrders': 'List<Order>',
     'watchOrdersForSymbols': 'List<Order>',
     'watchPosition': 'Position',
@@ -1528,6 +1535,9 @@ class NewTranspiler {
         if (csharpType === 'List<Dictionary<string, object>>') {
             return 'ccxt.BaseExchange.ToDictList';
         }
+        if (csharpType === OHLCV_DICT_TYPE) {
+            return 'ccxt.BaseExchange.ToOHLCVDict';
+        }
         if (csharpType === 'Int64') {
             return 'ccxt.BaseExchange.ToInt64Value';
         }
@@ -1551,6 +1561,9 @@ class NewTranspiler {
         // raw / primitive core types are not ccxt. structs
         if (csharpType === 'Int64' || csharpType === 'string' || csharpType === 'Dictionary<string, object>' || csharpType === 'List<Dictionary<string, object>>') {
             return csharpType;
+        }
+        if (csharpType === OHLCV_DICT_TYPE) {
+            return 'Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>>';
         }
         if (csharpType.startsWith ('List<') && csharpType.endsWith ('>')) {
             return 'List<ccxt.' + csharpType.substring (5, csharpType.length - 1) + '>';
@@ -1600,6 +1613,9 @@ class NewTranspiler {
         }
         if (csharpType === 'List<Dictionary<string, object>>') {
             return 'ccxt.BaseExchange.FromDictList';
+        }
+        if (csharpType === OHLCV_DICT_TYPE) {
+            return 'ccxt.BaseExchange.FromOHLCVDict';
         }
         if (csharpType === 'Int64') {
             return 'ccxt.BaseExchange.FromInt64';

@@ -6,37 +6,5 @@ namespace ccxt.pro;
 public class  Toobit: toobit { public Toobit(object args = null) : base(args) { } }
 public partial class toobit
 {
-    /// <summary>
-    /// watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://api-docs.toobit.com/api/spot-websocket-market-data.html#kline-candlestick-streams"/>  <br/>
-    /// See <see href="https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#kline-candlestick-streams"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>since</term>
-    /// <description>
-    /// int : timestamp in ms of the earliest candle to fetch
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>limit</term>
-    /// <description>
-    /// int : the maximum amount of candles to fetch
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> A list of candles ordered as timestamp, open, high, low, close, volume.</returns>
-    public async Task<Dictionary<string, Dictionary<string, List<OHLCV>>>> WatchOHLCVForSymbols(List<List<string>> symbolsAndTimeframes, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.watchOHLCVForSymbols(symbolsAndTimeframes, since, limit, parameters);
-        return Helper.ConvertToDictionaryOHLCVList(res);
-    }
+
 }

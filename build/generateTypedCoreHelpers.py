@@ -499,6 +499,8 @@ for t in emit_from:
     out.append('                return From%sList(value);' % t)
 out.append('            case List<OHLCV> _:')
 out.append('                return FromOHLCVList(value);')
+out.append('            case Dictionary<string, Dictionary<string, List<OHLCV>>> _:')
+out.append('                return FromOHLCVDict(value);')
 out.append('            default:')
 out.append('                return value;')
 out.append('        }')

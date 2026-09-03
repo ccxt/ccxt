@@ -16,11 +16,6 @@ public partial class BaseExchange
         var res = this.createSafeDictionary(isWs);
         return ((Dictionary<string, object>)res);
     }
-    public async Task<Dictionary<string, Dictionary<string, List<OHLCV>>>> WatchOHLCVForSymbols(List<List<string>> symbolsAndTimeframes, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.watchOHLCVForSymbols(symbolsAndTimeframes, since, limit, parameters);
-        return Helper.ConvertToDictionaryOHLCVList(res);
-    }
     public Dictionary<string, Market> SetMarkets(object markets, object currencies = null)
     {
         var res = this.setMarkets(markets, currencies);

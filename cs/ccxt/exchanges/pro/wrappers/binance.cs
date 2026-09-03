@@ -19,53 +19,6 @@ public partial class binance
         var res = await this.watchStockMarketStream(streams, messageHashes, parameters);
         return ((Dictionary<string, object>)res);
     }
-    /// <summary>
-    /// watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#klines"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Kline-Candlestick-Streams"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Kline-Candlestick-Streams"/>  <br/>
-    /// See <see href="https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/ws-streams/market-streams#kline-stream"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>since</term>
-    /// <description>
-    /// int : timestamp in ms of the earliest candle to fetch
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>limit</term>
-    /// <description>
-    /// int : the maximum amount of candles to fetch
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.stock</term>
-    /// <description>
-    /// boolean : set to true to use stocks market streams
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.timezone</term>
-    /// <description>
-    /// object : if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>int[][]</term> A list of candles ordered as timestamp, open, high, low, close, volume.</returns>
-    public async Task<Dictionary<string, Dictionary<string, List<OHLCV>>>> WatchOHLCVForSymbols(List<List<string>> symbolsAndTimeframes, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.watchOHLCVForSymbols(symbolsAndTimeframes, since, limit, parameters);
-        return Helper.ConvertToDictionaryOHLCVList(res);
-    }
     public async Task<Dictionary<string, object>> WatchMultiTickerHelper(object methodName, string channelName, List<String> symbols = null, Dictionary<string, object> parameters = null, bool isUnsubscribe = false)
     {
         var res = await this.watchMultiTickerHelper(methodName, channelName, symbols, parameters, isUnsubscribe);

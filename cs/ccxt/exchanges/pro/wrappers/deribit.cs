@@ -6,38 +6,6 @@ namespace ccxt.pro;
 public class  Deribit: deribit { public Deribit(object args = null) : base(args) { } }
 public partial class deribit
 {
-    /// <summary>
-    /// watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.deribit.com/#chart-trades-instrument_name-resolution"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>since</term>
-    /// <description>
-    /// int : timestamp in ms of the earliest candle to fetch
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>limit</term>
-    /// <description>
-    /// int : the maximum amount of candles to fetch
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>int[][]</term> A list of candles ordered as timestamp, open, high, low, close, volume.</returns>
-    public async Task<Dictionary<string, Dictionary<string, List<OHLCV>>>> WatchOHLCVForSymbols(List<List<string>> symbolsAndTimeframes, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.watchOHLCVForSymbols(symbolsAndTimeframes, since, limit, parameters);
-        return Helper.ConvertToDictionaryOHLCVList(res);
-    }
     public async Task<Dictionary<string, object>> WatchMultipleWrapper(string channelName, string channelDescriptor, object symbolsArray = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.watchMultipleWrapper(channelName, channelDescriptor, symbolsArray, parameters);

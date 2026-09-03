@@ -1313,4 +1313,53 @@ public partial class BaseExchange
         }
         return result;
     }
+
+    // watchOHLCVForSymbols: `{ symbol: { timeframe: OHLCV[] } }`. Not a types.ts struct, so the
+    // generator has no To*/From* pair for it — these two are the hand-written equivalents,
+    // built on ToOHLCVList / FromOHLCVList (see OHLCV_DICT_TYPE in build/csharpTranspiler.ts)
+    public static Dictionary<string, Dictionary<string, List<OHLCV>>> ToOHLCVDict(object value)
+    {
+        if (value == null)
+        {
+            return null;
+        }
+        if (value is Dictionary<string, Dictionary<string, List<OHLCV>>> already)
+        {
+            return already;
+        }
+        var bySymbol = (IDictionary<string, object>)value;
+        var result = new Dictionary<string, Dictionary<string, List<OHLCV>>>(bySymbol.Count);
+        foreach (var symbolEntry in bySymbol)
+        {
+            var byTimeframe = new Dictionary<string, List<OHLCV>>();
+            if (symbolEntry.Value is IDictionary<string, object> timeframes)
+            {
+                foreach (var timeframeEntry in timeframes)
+                {
+                    byTimeframe[timeframeEntry.Key] = ToOHLCVList(timeframeEntry.Value);
+                }
+            }
+            result[symbolEntry.Key] = byTimeframe;
+        }
+        return result;
+    }
+
+    public static object FromOHLCVDict(object value)
+    {
+        if (!(value is Dictionary<string, Dictionary<string, List<OHLCV>>> typed))
+        {
+            return value;
+        }
+        var result = new Dictionary<string, object>(typed.Count);
+        foreach (var symbolEntry in typed)
+        {
+            var byTimeframe = new Dictionary<string, object>(symbolEntry.Value.Count);
+            foreach (var timeframeEntry in symbolEntry.Value)
+            {
+                byTimeframe[timeframeEntry.Key] = FromOHLCVList(timeframeEntry.Value);
+            }
+            result[symbolEntry.Key] = byTimeframe;
+        }
+        return result;
+    }
 }

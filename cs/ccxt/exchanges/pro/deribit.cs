@@ -905,7 +905,7 @@ public partial class deribit : ccxt.deribit
             await this.loadMarkets();
         }
         symbolVar = this.symbol(symbolVar);
-        object ohlcvs = await this.watchOHLCVForSymbols(new List<object>() {new List<object>() {symbolVar, timeframeVar}}, since, limit, parameters);
+        object ohlcvs = ccxt.BaseExchange.FromOHLCVDict(await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbolVar, timeframeVar}}, since, limit, parameters));
         return ccxt.BaseExchange.ToOHLCVList(getValue(getValue(ohlcvs, symbolVar), timeframeVar));
     }
 
@@ -920,7 +920,7 @@ public partial class deribit : ccxt.deribit
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<object> watchOHLCVForSymbols(object symbolsAndTimeframes, object since = null, object limit = null, object parameters = null)
+    public async override Task<Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>>> WatchOHLCVForSymbols(object symbolsAndTimeframes, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         int symbolsLength = getArrayLength(symbolsAndTimeframes);
@@ -937,7 +937,7 @@ public partial class deribit : ccxt.deribit
             limit = callDynamically(candles, "getLimit", new object[] {symbol, limit});
         }
         object filtered = this.filterBySinceLimit(candles, since, limit, 0, true);
-        return this.createOHLCVObject(symbol, timeframe, filtered);
+        return ccxt.BaseExchange.ToOHLCVDict(this.createOHLCVObject(symbol, timeframe, filtered));
     }
 
     public virtual void handleOHLCV(WebSocketClient client, object message)

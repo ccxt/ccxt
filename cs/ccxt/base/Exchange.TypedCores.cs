@@ -6635,6 +6635,8 @@ public partial class BaseExchange
                 return FromTransferEntryList(value);
             case List<OHLCV> _:
                 return FromOHLCVList(value);
+            case Dictionary<string, Dictionary<string, List<OHLCV>>> _:
+                return FromOHLCVDict(value);
             default:
                 return value;
         }

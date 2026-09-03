@@ -345,7 +345,7 @@ public partial class nado : ccxt.nado
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of {@link https://docs.ccxt.com/#/?id=ohlcv-structure OHLCV} structures indexed by market symbols
      */
-    public async override Task<object> watchOHLCVForSymbols(object symbolsAndTimeframes, object since = null, object limit = null, object parameters = null)
+    public async override Task<Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>>> WatchOHLCVForSymbols(object symbolsAndTimeframes, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         int symbolsLength = getArrayLength(symbolsAndTimeframes);
@@ -378,7 +378,7 @@ public partial class nado : ccxt.nado
             limit = callDynamically(stored, "getLimit", new object[] {resultSymbol, limit});
         }
         object filtered = this.filterBySinceLimit(stored, since, limit, 0, true);
-        return this.createOHLCVObject(resultSymbol, resultTimeframe, filtered);
+        return ccxt.BaseExchange.ToOHLCVDict(this.createOHLCVObject(resultSymbol, resultTimeframe, filtered));
     }
 
     /**

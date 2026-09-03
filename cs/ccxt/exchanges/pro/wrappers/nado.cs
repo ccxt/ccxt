@@ -6,38 +6,6 @@ namespace ccxt.pro;
 public class  Nado: nado { public Nado(object args = null) : base(args) { } }
 public partial class nado
 {
-    /// <summary>
-    /// watches historical candlestick data containing the open, high, low, and close price, and the volume of multiple markets
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.nado.xyz/developer-resources/api/subscriptions/streams"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>since</term>
-    /// <description>
-    /// int : timestamp in ms of the earliest candle to fetch
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>limit</term>
-    /// <description>
-    /// int : the maximum amount of candles to fetch
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> A dictionary of {@link https://docs.ccxt.com/#/?id=ohlcv-structure OHLCV} structures indexed by market symbols.</returns>
-    public async Task<Dictionary<string, Dictionary<string, List<OHLCV>>>> WatchOHLCVForSymbols(List<List<string>> symbolsAndTimeframes, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.watchOHLCVForSymbols(symbolsAndTimeframes, since, limit, parameters);
-        return Helper.ConvertToDictionaryOHLCVList(res);
-    }
     public async Task<Dictionary<string, object>> WatchExecuteRequest(string requestIdString, object request)
     {
         var res = await this.watchExecuteRequest(requestIdString, request);
