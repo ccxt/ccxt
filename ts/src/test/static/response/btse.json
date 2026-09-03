@@ -2554,7 +2554,7 @@
                         "previousFundingRate": null,
                         "previousFundingTimestamp": null,
                         "previousFundingDatetime": null,
-                        "interval": "0h"
+                        "interval": null
                     },
                     "RAVE/USDT:USDT": {
                         "info": {

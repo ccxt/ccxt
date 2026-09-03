@@ -226,6 +226,8 @@ const CSHARP_PATH = './cs/ccxt/api/';
 const PY_PATH = './python/ccxt/abstract/'
 const GO_PATH = './go/v4/'
 const JAVA_PATH = './java/lib/src/main/java/io/github/ccxt/api/'
+const RUST_PATH = './rust/ccxt-base/src/exchanges/'
+const RUST_PREDICTION_PATH = './rust/ccxt-base/src/prediction/'
 const IDEN = '    ';
 
 // -------------------------------------------------------------------------
@@ -487,6 +489,7 @@ let storedPhpMethods: Dict = {};
 let storedPyMethods: Dict = {};
 let storedGoMethods: Dict = {};
 let storedJavaMethods: Dict = {};
+let storedRustMethods: Dict = {};
 // exchange id -> name of the class it derives from ('Exchange' when it derives
 // straight from the base). Used by the Go emitter to skip endpoints the parent
 // core already declares (see createImplicitMethodsGo).
@@ -521,6 +524,7 @@ const langKeys = {
     '--csharp': false,
     '--go': false,
     '--java': false,
+    '--rust': false,
 }
 
 function isHttpMethod(method: string): boolean {
@@ -843,6 +847,47 @@ function createImplicitMethodsJava(){
 
 //-------------------------------------------------------------------------
 
+// Mirror of `build/rustTranspiler.ts::toSnakeCase` so the names we emit
+// match the keys the rust transpiler registers in the implicit-api
+// dispatch table (e.g. `sapiGetCopyTradingFuturesUserStatus` →
+// `sapi_get_copy_trading_futures_user_status`, NOT the dumber
+// `sapi_get_copytrading_futures_userstatus` we'd get from
+// `storedUnderscoreMethods` which lowercases segments without
+// preserving camel boundaries).
+function toRustSnakeCase (s: string): string {
+    return s
+        .replace (/([A-Z]+)([A-Z][a-z])/g, '$1_$2')
+        .replace (/([a-z\d])([A-Z])/g, '$1_$2')
+        .toLowerCase ();
+}
+
+function createImplicitMethodsRust(){
+    const exchanges = Object.keys(storedCamelCaseMethods);
+    for (const index in exchanges) {
+        const exchange = exchanges[index];
+        const camelNames = storedCamelCaseMethods[exchange];
+        const seen = new Set<string>();
+        const methods = camelNames.flatMap((camel: string) => {
+            const snake = toRustSnakeCase(camel);
+            // Two endpoints can collide on snake (e.g. `apiGetX` vs
+            // `apigetX`). Keep the first; downstream calls still resolve
+            // either way via the dispatch table.
+            if (seen.has(snake)) return [];
+            seen.add(snake);
+            return [[
+                `${IDEN}/// Auto-generated wrapper for the \`${camel}\` implicit endpoint.`,
+                `${IDEN}pub async fn ${snake}(&mut self, optional_args: &[Value]) -> Value {`,
+                `${IDEN}${IDEN}self.call_method(Value::Str("${snake}".to_string()), optional_args).await`,
+                `${IDEN}}`,
+                ``,
+            ].join('\n')];
+        });
+        storedRustMethods[exchange] = storedRustMethods[exchange].concat(methods);
+        // Close the `impl <Core>` block opened in createRustHeader.
+        storedRustMethods[exchange].push('}');
+    }
+}
+
 function createImplicitMethodsGo(){
     const exchanges = Object.keys(storedCamelCaseMethods);
     for (const index in exchanges) {
@@ -943,6 +988,12 @@ async function editAPIFilesGo(subdir = ''){
     await Promise.all(files.map((path, idx) => writeFile(path, storedGoMethods[exchanges[idx]].join ('\n'))))
 }
 
+async function editAPIFilesRust(basePath = RUST_PATH){
+    const exchanges = Object.keys(storedCamelCaseMethods);
+    const files = exchanges.map(ex => basePath + ex + '_api.rs');
+    await Promise.all(files.map((path, idx) => writeFile(path, storedRustMethods[exchanges[idx]].join ('\n') + '\n')))
+}
+
 async function editAPIFilesJava(subdir = ''){
     const exchanges = Object.keys(storedCamelCaseMethods);
     // The api/ dir is auto-generated and not committed (see java/.gitignore),
@@ -1025,6 +1076,28 @@ function createGoHeader(exchange: Exchange, parent: string){
 
 // -------------------------------------------------------------------------
 
+function createRustHeader(exchange: Exchange, parent: string){
+    // Two-line preamble + import block. Each Rust api file lives next to
+    // its `<id>.rs` sibling and adds `impl <CapitalizedId>Core` methods.
+    const id = exchange.id;
+    const coreName = capitalize(id) + 'Core';
+    const header = [
+        getPreamble(),
+        '#![allow(non_snake_case, unused, dead_code, clippy::all)]',
+        '',
+        'use crate::Value;',
+        `use super::${id}::${coreName};`,
+        // call_method (the implicit-API dispatcher) is an ExchangeRuntime trait
+        // method now (review #1: static dispatch); bring the trait into scope.
+        'use crate::exchange::ExchangeRuntime;',
+        '',
+        `impl ${coreName} {`,
+    ].join('\n');
+    storedRustMethods[id] = [ header ];
+}
+
+// -------------------------------------------------------------------------
+
 function createJavaHeader(exchange: Exchange, parent: string){
     // When the parent is another exchange, extend its untyped Core class
     // (CompletableFuture<Object> methods) — extending the typed wrapper would
@@ -1058,6 +1131,13 @@ function populateImplicitMethods(exchanges: string[]) {
     for (const index in exchanges) {
         const exchange = exchanges[index];
         const exchangeClass = container[exchange]
+        // Skip ids listed in exchanges.json that the ccxt module no longer
+        // exports (delisted/renamed upstream, e.g. ascendex/coinmetro/oxfun).
+        // Their existing generated api files are left untouched rather than
+        // crashing the whole run on `new undefined()`.
+        if (typeof exchangeClass !== 'function') {
+            continue;
+        }
         const instance = new exchangeClass();
         let api = instance.api
         let describing: any = instance;
@@ -1073,6 +1153,7 @@ function populateImplicitMethods(exchanges: string[]) {
         createPyHeader(instance, parent);
         createGoHeader(instance, parent);
         createJavaHeader(instance, parent);
+        createRustHeader(instance, parent);
 
         storedCamelCaseMethods[exchange] = []
         storedCamelCaseMethods[exchange] = []
@@ -1179,13 +1260,30 @@ async function main() {
 
     await generateImplicitAPIs (allExchanges.ids, shouldGenerateAll);
 
+    const wantRust = shouldGenerateAll || langKeys['--rust'];
+    // Rust `_api.rs` files are emitted per-pass (before the prediction pass
+    // resets storedCamelCaseMethods), so the main exchanges write to
+    // exchanges/ and prediction venues to prediction/.
+    if (wantRust) {
+        createImplicitMethodsRust()
+        await editAPIFilesRust(RUST_PATH)
+    }
+
     // second pass: prediction-market exchanges → abstract/prediction/ subfolders
     const predictionIds = allExchanges.prediction || [];
     if (predictionIds.length) {
         resetStoredMethods ();
         isPrediction = true;
         await generateImplicitAPIs (predictionIds, shouldGenerateAll, 'prediction/');
+        if (wantRust) {
+            createImplicitMethodsRust()
+            await editAPIFilesRust(RUST_PREDICTION_PATH)
+        }
         isPrediction = false;
+    }
+
+    if (wantRust) {
+        log.bright.cyan ('Rust implicit api methods completed!')
     }
 
     // await unlinkFiles (JS_PATH, '.js')

@@ -3101,10 +3101,10 @@ class okx(Exchange, ImplicitAPI):
         triggerPrice = self.safe_value_n(params, ['triggerPrice', 'stopPrice', 'triggerPx'])
         timeInForce = self.safe_string(params, 'timeInForce', 'GTC')
         # takeProfitPrice = self.safe_value_2(params, 'takeProfitPrice', 'tpTriggerPx')
-        tpOrdPx = self.safe_value(params, 'tpOrdPx', price)
+        tpOrdPx = self.safe_number(params, 'tpOrdPx', price)
         tpTriggerPxType = self.safe_string(params, 'tpTriggerPxType', 'last')
         # stopLossPrice = self.safe_value_2(params, 'stopLossPrice', 'slTriggerPx')
-        slOrdPx = self.safe_value(params, 'slOrdPx', price)
+        slOrdPx = self.safe_number(params, 'slOrdPx', price)
         slTriggerPxType = self.safe_string(params, 'slTriggerPxType', 'last')
         clientOrderId = self.safe_string_2(params, 'clOrdId', 'clientOrderId')
         stopLoss = self.safe_value(params, 'stopLoss')
@@ -3116,7 +3116,7 @@ class okx(Exchange, ImplicitAPI):
         trailingPrice = self.safe_string_2(params, 'trailingPrice', 'callbackSpread')
         isTrailingPriceOrder = trailingPrice is not None
         trigger = (triggerPrice is not None) or (type == 'trigger')
-        isReduceOnly = (self.safe_value(params, 'reduceOnly', False) is True) or (closeFraction is not None)
+        isReduceOnly = (self.safe_bool(params, 'reduceOnly', False) is True) or (closeFraction is not None)
         defaultMarginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', 'cross')
         marginMode = self.safe_string_2(params, 'marginMode', 'tdMode')  # cross or isolated, tdMode not omitted so be extended into the request
         margin = False
@@ -3449,11 +3449,11 @@ class okx(Exchange, ImplicitAPI):
                 request['algoId'] = id
             else:
                 request['ordId'] = id
-        stopLossTriggerPrice = self.safe_value_2(params, 'stopLossPrice', 'newSlTriggerPx')
-        stopLossPrice = self.safe_value(params, 'newSlOrdPx')
+        stopLossTriggerPrice = self.safe_number_2(params, 'stopLossPrice', 'newSlTriggerPx')
+        stopLossPrice = self.safe_number(params, 'newSlOrdPx')
         stopLossTriggerPriceType = self.safe_string(params, 'newSlTriggerPxType', 'last')
-        takeProfitTriggerPrice = self.safe_value_2(params, 'takeProfitPrice', 'newTpTriggerPx')
-        takeProfitPrice = self.safe_value(params, 'newTpOrdPx')
+        takeProfitTriggerPrice = self.safe_number_2(params, 'takeProfitPrice', 'newTpTriggerPx')
+        takeProfitPrice = self.safe_number(params, 'newTpOrdPx')
         takeProfitTriggerPriceType = self.safe_string(params, 'newTpTriggerPxType', 'last')
         stopLoss = self.safe_value(params, 'stopLoss')
         takeProfit = self.safe_value(params, 'takeProfit')
@@ -3484,15 +3484,15 @@ class okx(Exchange, ImplicitAPI):
                 request['newTpOrdPx'] = '-1' if (type == 'market') else self.price_to_precision(symbol, takeProfitPrice)
                 request['newTpTriggerPxType'] = takeProfitTriggerPriceType
             if hasStopLoss:
-                stopLossTriggerPrice = self.safe_value(stopLoss, 'triggerPrice')
-                stopLossPrice = self.safe_value(stopLoss, 'price')
+                stopLossTriggerPrice = self.safe_number(stopLoss, 'triggerPrice')
+                stopLossPrice = self.safe_number(stopLoss, 'price')
                 stopLossType = self.safe_string(stopLoss, 'type')
                 request['newSlTriggerPx'] = self.price_to_precision(symbol, stopLossTriggerPrice)
                 request['newSlOrdPx'] = '-1' if (stopLossType == 'market') else self.price_to_precision(symbol, stopLossPrice)
                 request['newSlTriggerPxType'] = stopLossTriggerPriceType
             if hasTakeProfit:
-                takeProfitTriggerPrice = self.safe_value(takeProfit, 'triggerPrice')
-                takeProfitPrice = self.safe_value(takeProfit, 'price')
+                takeProfitTriggerPrice = self.safe_number(takeProfit, 'triggerPrice')
+                takeProfitPrice = self.safe_number(takeProfit, 'price')
                 takeProfitType = self.safe_string(takeProfit, 'type')
                 request['newTpOrdKind'] = takeProfitType if (takeProfitType == 'limit') else 'condition'
                 request['newTpTriggerPx'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
@@ -3610,7 +3610,7 @@ class okx(Exchange, ImplicitAPI):
         query = self.omit(params, ['clOrdId', 'clientOrderId'])
         response = self.privatePostTradeCancelOrder(self.extend(request, query))
         # {"code":"0","data":[{"clOrdId":"","ordId":"317251910906576896","sCode":"0","sMsg":""}],"msg":""}
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         order = self.safe_dict(data, 0)
         return self.parse_order(order, market)
 
@@ -3646,7 +3646,7 @@ class okx(Exchange, ImplicitAPI):
             self.load_markets()
         market = self.market(symbol)
         request = []
-        options = self.safe_value(self.options, 'cancelOrders', {})
+        options = self.safe_dict(self.options, 'cancelOrders', {})
         defaultMethod = self.safe_string(options, 'method', 'privatePostTradeCancelBatchOrders')
         method = self.safe_string(params, 'method', defaultMethod)
         clientOrderIds = self.parse_ids(self.safe_value_2(params, 'clOrdId', 'clientOrderId'))
@@ -4150,7 +4150,7 @@ class okx(Exchange, ImplicitAPI):
             # 'instType':  # spot, swap, futures, margin
         }
         clientOrderId = self.safe_string_2(params, 'clOrdId', 'clientOrderId')
-        options = self.safe_value(self.options, 'fetchOrder', {})
+        options = self.safe_dict(self.options, 'fetchOrder', {})
         defaultMethod = self.safe_string(options, 'method', 'privateGetTradeOrder')
         method = self.safe_string(params, 'method', defaultMethod)
         trigger = self.safe_value_2(params, 'stop', 'trigger')
@@ -4268,7 +4268,7 @@ class okx(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         order = self.safe_dict(data, 0)
         return self.parse_order(order, market)
 
@@ -4313,8 +4313,8 @@ class okx(Exchange, ImplicitAPI):
             request['instId'] = market['id']
         if limit is not None:
             request['limit'] = min(limit, maxLimit)  # default 100, max 100
-        options = self.safe_value(self.options, 'fetchOpenOrders', {})
-        algoOrderTypes = self.safe_value(self.options, 'algoOrderTypes', {})
+        options = self.safe_dict(self.options, 'fetchOpenOrders', {})
+        algoOrderTypes = self.safe_dict(self.options, 'algoOrderTypes', {})
         defaultMethod = self.safe_string(options, 'method', 'privateGetTradeOrdersPending')
         method = self.safe_string(params, 'method', defaultMethod)
         ordType = self.safe_string(params, 'ordType')
@@ -4473,8 +4473,8 @@ class okx(Exchange, ImplicitAPI):
         if limit is not None:
             request['limit'] = limit  # default 100, max 100
         request['state'] = 'canceled'
-        options = self.safe_value(self.options, 'fetchCanceledOrders', {})
-        algoOrderTypes = self.safe_value(self.options, 'algoOrderTypes', {})
+        options = self.safe_dict(self.options, 'fetchCanceledOrders', {})
+        algoOrderTypes = self.safe_dict(self.options, 'algoOrderTypes', {})
         defaultMethod = self.safe_string(options, 'method', 'privateGetTradeOrdersHistory')
         method = self.safe_string(params, 'method', defaultMethod)
         ordType = self.safe_string(params, 'ordType')
@@ -5108,15 +5108,15 @@ class okx(Exchange, ImplicitAPI):
         address = self.safe_string(depositAddress, 'addr')
         tag = self.safe_string_n(depositAddress, ['tag', 'pmtId', 'memo'])
         if tag is None:
-            addrEx = self.safe_value(depositAddress, 'addrEx', {})
+            addrEx = self.safe_dict(depositAddress, 'addrEx', {})
             tag = self.safe_string(addrEx, 'comment')
         currencyId = self.safe_string(depositAddress, 'ccy')
         currency = self.safe_currency(currencyId, currency)
         code = currency['code']
         chain = self.safe_string(depositAddress, 'chain')
-        networks = self.safe_value(currency, 'networks', {})
+        networks = self.safe_dict(currency, 'networks', {})
         networksById = self.index_by(networks, 'id')
-        networkData = None if (chain is None) else self.safe_value(networksById, chain)
+        networkData = None if (chain is None) else self.safe_dict(networksById, chain)
         # inconsistent naming responses from exchange
         # with respect to network naming provided in currency info vs address chain-names and ids
         #
@@ -5159,7 +5159,7 @@ class okx(Exchange, ImplicitAPI):
         #     },
         #
         if chain == 'USDT-Polygon':
-            networkData = self.safe_value_2(networksById, 'USDT-Polygon-Bridge', 'USDT-Polygon')
+            networkData = self.safe_dict_2(networksById, 'USDT-Polygon-Bridge', 'USDT-Polygon')
         network = self.safe_string(networkData, 'network')
         networkCode = self.network_id_to_code(network, code)
         self.check_address(address)
@@ -5406,7 +5406,7 @@ class okx(Exchange, ImplicitAPI):
             currency = self.currency(code)
             request['ccy'] = currency['id']
         response = self.privateGetAssetDepositHistory(self.extend(request, params))
-        data = self.safe_value(response, 'data')
+        data = self.safe_list(response, 'data')
         deposit = self.safe_dict(data, 0, {})
         return self.parse_transaction(deposit, currency)
 
@@ -7799,7 +7799,7 @@ class okx(Exchange, ImplicitAPI):
             currencyId = self.safe_string(feeInfo, 'ccy')
             code = self.safe_currency_code(currencyId)
             if (code is not None) and ((codes is None) or (self.in_array(code, codes))):
-                depositWithdrawFee = self.safe_value(depositWithdrawFees, code)
+                depositWithdrawFee = self.safe_dict(depositWithdrawFees, code)
                 if depositWithdrawFee is None:
                     depositWithdrawFees[code] = self.deposit_withdraw_fee({})
                 if currencyId is not None:
@@ -7808,7 +7808,7 @@ class okx(Exchange, ImplicitAPI):
                 if chain is None:
                     continue
                 chainSplit = chain.split('-')
-                networkId = self.safe_value(chainSplit, 1)
+                networkId = self.safe_string(chainSplit, 1)
                 withdrawFee = self.safe_number(feeInfo, 'fee')
                 withdrawResult = {
                     'fee': withdrawFee,

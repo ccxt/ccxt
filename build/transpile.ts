@@ -1772,9 +1772,6 @@ class Transpiler {
 
         newContents = deleteFunction ('test_tickers_async', newContents)
         newContents = deleteFunction ('test_l2_order_books_async', newContents)
-        if (fs.existsSync (sync)) {
-            fs.truncateSync (sync)
-        }
         fs.writeFileSync (sync, newContents)
     }
 
@@ -1794,9 +1791,6 @@ class Transpiler {
         ]
 
         const newContents = this.regexAll (syncBody, this.getPHPSyncRegexes ().concat (phpTestRegexes));
-        if (fs.existsSync (sync)) {
-            fs.truncateSync (sync)
-        }
         fs.writeFileSync (sync, newContents)
     }
 

@@ -1107,6 +1107,14 @@ class testMainClass:
         #  -----------------------------------------------------------------------------
         #  --- Init of static tests functions------------------------------------------
         #  -----------------------------------------------------------------------------
+        # Fast path: the error message is only consumed when the assertion
+        # fails, but `jsonStringify` of the (possibly large) computed and
+        # stored outputs happens here on EVERY leaf/branch comparison.
+        # That is cheap in JS but O(tree²) in the Rust port (each level
+        # re-serialises its whole subtree) — it made `--responseTests`
+        # take minutes. Bail out before stringifying when the check holds.
+        if cond:
+            return
         calculated_string = json_stringify(calculated_output)
         stored_string = json_stringify(stored_output)
         error_message = message
@@ -1288,7 +1296,14 @@ class testMainClass:
                     self.assert_static_error(False, 'output key missing: ' + key, stored_output, new_output)
                 stored_value = stored_output[key]
                 new_value = new_output[key]
-                self.assert_new_and_stored_output(exchange, skip_keys, new_value, stored_value, strict_type_check, key)
+                # Recurse into the *inner* (non-try/catch) variant: the
+                # wrapper's try/catch is only for top-level failure
+                # reporting, and in the Rust port it transpiles to a
+                # `catch_unwind` per node — setting that up at every one
+                # of a result's thousands of nodes made `--responseTests`
+                # take minutes. A failure still unwinds to the single
+                # top-level wrapper.
+                self.assert_new_and_stored_output_inner(exchange, skip_keys, new_value, stored_value, strict_type_check, key)
         elif (stored_output is not None) and (new_output is not None) and isinstance(stored_output, list) and (isinstance(new_output, list)):
             stored_array_length = len(stored_output)
             new_array_length = len(new_output)
@@ -1296,7 +1311,7 @@ class testMainClass:
             for i in range(0, len(stored_output)):
                 stored_item = stored_output[i]
                 new_item = new_output[i]
-                self.assert_new_and_stored_output(exchange, skip_keys, new_item, stored_item, strict_type_check)
+                self.assert_new_and_stored_output_inner(exchange, skip_keys, new_item, stored_item, strict_type_check)
         else:
             # built-in types like strings, numbers, booleans
             sanitized_new_output = None if (is_null_value(new_output)) else new_output  # we store undefined as nulls in the json file so we need to convert it back
@@ -1798,6 +1813,9 @@ class testMainClass:
                 is_disabled_go = exchange.safe_bool(result, 'disabledGO', False)
                 if (is_disabled_go) and (self.lang == 'GO'):
                     continue
+                is_disabled_rust = exchange.safe_bool(result, 'disabledRS', False)
+                if is_disabled_rust and (self.lang == 'RUST'):
+                    continue
                 is_disabled_java = exchange.safe_bool(result, 'disabledJava', False)
                 if (is_disabled_java) and (self.lang == 'java'):
                     continue
@@ -1854,6 +1872,9 @@ class testMainClass:
                 is_disabled_go = exchange.safe_bool(result, 'disabledGO', False)
                 if (is_disabled_go) and (self.lang == 'GO'):
                     continue
+                is_disabled_rust = exchange.safe_bool(result, 'disabledRS', False)
+                if is_disabled_rust and (self.lang == 'RUST'):
+                    continue
                 is_disabled_java = exchange.safe_bool(result, 'disabledJava', False)
                 if (is_disabled_java) and (self.lang == 'java'):
                     continue
@@ -1902,6 +1923,10 @@ class testMainClass:
         is_disabled_go = exchange.safe_bool(exchange_data, 'disabledGO', False)
         if (is_disabled_go) and (self.lang == 'GO'):
             dump('[TEST_WARNING] Exchange ' + exchange_name + ' is disabled in go')
+            return True
+        is_disabled_rust = exchange.safe_bool(exchange_data, 'disabledRS', False)
+        if is_disabled_rust and (self.lang == 'RUST'):
+            dump('[TEST_WARNING] Exchange ' + exchange_name + ' is disabled in rust')
             return True
         is_disabled_java = exchange.safe_bool(exchange_data, 'disabledJava', False)
         if (is_disabled_java) and (self.lang == 'java'):

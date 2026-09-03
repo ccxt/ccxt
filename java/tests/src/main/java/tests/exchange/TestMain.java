@@ -1675,7 +1675,17 @@ public class TestMain extends BaseTest
         //  -----------------------------------------------------------------------------
         //  --- Init of static tests functions------------------------------------------
         //  -----------------------------------------------------------------------------
+        // Fast path: the error message is only consumed when the Assertion
+        // fails, but `jsonStringify` of the (possibly large) computed and
+        // stored outputs happens here on EVERY leaf/branch comparison.
+        // That is cheap in JS but O(tree²) in the Rust port (each level
+        // re-serialises its whole subtree) — it made `--responseTests`
+        // take minutes. Bail out before stringifying when the check holds.
         Object key = Helpers.getArg(optionalArgs, 0, null);
+        if (Helpers.isTrue(cond))
+        {
+            return;
+        }
         Object calculatedString = jsonStringify(calculatedOutput);
         Object storedString = jsonStringify(storedOutput);
         Object errorMessage = message;
@@ -1950,7 +1960,14 @@ public class TestMain extends BaseTest
                 }
                 Object storedValue = Helpers.GetValue(storedOutput, key);
                 Object newValue = Helpers.GetValue(newOutput, key);
-                this.AssertNewAndStoredOutput(exchange, skipKeys, newValue, storedValue, strictTypeCheck, key);
+                // Recurse into the *inner* (non-try/catch) variant: the
+                // wrapper's try/catch is only for top-level failure
+                // reporting, and in the Rust port it transpiles to a
+                // `catch_unwind` per node — setting that up at every one
+                // of a result's thousands of nodes made `--responseTests`
+                // take minutes. A failure still unwinds to the single
+                // top-level wrapper.
+                this.AssertNewAndStoredOutputInner(exchange, skipKeys, newValue, storedValue, strictTypeCheck, key);
             }
         } else if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(storedOutput, null))) && Helpers.isTrue((!Helpers.isEqual(newOutput, null)))) && Helpers.isTrue(Helpers.isArray(storedOutput))) && Helpers.isTrue((Helpers.isArray(newOutput)))))
         {
@@ -1961,7 +1978,7 @@ public class TestMain extends BaseTest
             {
                 Object storedItem = Helpers.GetValue(storedOutput, i);
                 Object newItem = Helpers.GetValue(newOutput, i);
-                this.AssertNewAndStoredOutput(exchange, skipKeys, newItem, storedItem, strictTypeCheck);
+                this.AssertNewAndStoredOutputInner(exchange, skipKeys, newItem, storedItem, strictTypeCheck);
             }
         } else
         {
@@ -2731,6 +2748,11 @@ public class TestMain extends BaseTest
                     {
                         continue;
                     }
+                    Object isDisabledRust = exchange.safeBool(result, "disabledRS", false);
+                    if (Helpers.isTrue(Helpers.isTrue(isDisabledRust) && Helpers.isTrue((Helpers.isEqual(this.lang, "RUST")))))
+                    {
+                        continue;
+                    }
                     Object isDisabledJava = exchange.safeBool(result, "disabledJava", false);
                     if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(isDisabledJava, true))) && Helpers.isTrue((Helpers.isEqual(this.lang, "java")))))
                     {
@@ -2825,6 +2847,11 @@ public class TestMain extends BaseTest
                     {
                         continue;
                     }
+                    Object isDisabledRust = exchange.safeBool(result, "disabledRS", false);
+                    if (Helpers.isTrue(Helpers.isTrue(isDisabledRust) && Helpers.isTrue((Helpers.isEqual(this.lang, "RUST")))))
+                    {
+                        continue;
+                    }
                     Object isDisabledJava = exchange.safeBool(result, "disabledJava", false);
                     if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(isDisabledJava, true))) && Helpers.isTrue((Helpers.isEqual(this.lang, "java")))))
                     {
@@ -2899,6 +2926,12 @@ public class TestMain extends BaseTest
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(isDisabledGO, true))) && Helpers.isTrue((Helpers.isEqual(this.lang, "GO")))))
         {
             dump(Helpers.add(Helpers.add("[TEST_WARNING] Exchange ", exchangeName), " is disabled in go"));
+            return true;
+        }
+        Object isDisabledRust = exchange.safeBool(exchangeData, "disabledRS", false);
+        if (Helpers.isTrue(Helpers.isTrue(isDisabledRust) && Helpers.isTrue((Helpers.isEqual(this.lang, "RUST")))))
+        {
+            dump(Helpers.add(Helpers.add("[TEST_WARNING] Exchange ", exchangeName), " is disabled in rust"));
             return true;
         }
         Object isDisabledJava = exchange.safeBool(exchangeData, "disabledJava", false);

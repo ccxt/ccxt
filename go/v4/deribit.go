@@ -4120,13 +4120,14 @@ func (this *DeribitCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs .
 	var maxEntriesPerRequest any = 744 // seems exchange returns max 744 items per request
 	var eachItemDuration string = "1h"
 	if IsTrue(paginate) {
-
-		retRes330219 := (<-this.FetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, eachItemDuration, this.Extend(params, map[string]any{
-			"isDeribitPaginationCall": true,
-		}), maxEntriesPerRequest))
-		PanicOnError(retRes330219)
 		// fix for: https://github.com/ccxt/ccxt/issues/25040
-		ch <- retRes330219
+		var paginationParams map[string]any = this.Extend(params, map[string]any{
+			"isDeribitPaginationCall": true,
+		})
+
+		retRes330319 := (<-this.FetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, eachItemDuration, paginationParams, maxEntriesPerRequest))
+		PanicOnError(retRes330319)
+		ch <- retRes330319
 		return nil
 	}
 	var duration any = Multiply(this.ParseTimeframe(eachItemDuration), 1000)
@@ -4259,8 +4260,8 @@ func (this *DeribitCore) fetchLiquidationsBody(ch chan any, symbol any, optional
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes341512 := (<-this.LoadMarkets())
-		PanicOnError(retRes341512)
+		retRes341612 := (<-this.LoadMarkets())
+		PanicOnError(retRes341612)
 	}
 	var paginate any = false
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchLiquidations", "paginate")
@@ -4268,9 +4269,9 @@ func (this *DeribitCore) fetchLiquidationsBody(ch chan any, symbol any, optional
 	params = GetValue(paginateparamsVariable, 1)
 	if IsTrue(paginate) {
 
-		retRes342019 := (<-this.FetchPaginatedCallCursor("fetchLiquidations", symbol, since, limit, params, "continuation", "continuation", nil))
-		PanicOnError(retRes342019)
-		ch <- retRes342019
+		retRes342119 := (<-this.FetchPaginatedCallCursor("fetchLiquidations", symbol, since, limit, params, "continuation", "continuation", nil))
+		PanicOnError(retRes342119)
+		ch <- retRes342119
 		return nil
 	}
 	var market any = this.Market(symbol)
@@ -4369,8 +4370,8 @@ func (this *DeribitCore) fetchMyLiquidationsBody(ch chan any, optionalArgs ...an
 	}
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes349912 := (<-this.LoadMarkets())
-		PanicOnError(retRes349912)
+		retRes350012 := (<-this.LoadMarkets())
+		PanicOnError(retRes350012)
 	}
 	var market any = this.Market(symbol)
 	if IsTrue(IsEqual(GetValue(market, "spot"), true)) {
@@ -4469,8 +4470,8 @@ func (this *DeribitCore) fetchGreeksBody(ch chan any, symbol any, optionalArgs .
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes358312 := (<-this.LoadMarkets())
-		PanicOnError(retRes358312)
+		retRes358412 := (<-this.LoadMarkets())
+		PanicOnError(retRes358412)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -4620,8 +4621,8 @@ func (this *DeribitCore) fetchOptionBody(ch chan any, symbol any, optionalArgs .
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes371812 := (<-this.LoadMarkets())
-		PanicOnError(retRes371812)
+		retRes371912 := (<-this.LoadMarkets())
+		PanicOnError(retRes371912)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -4690,8 +4691,8 @@ func (this *DeribitCore) fetchOptionChainBody(ch chan any, code any, optionalArg
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes377312 := (<-this.LoadMarkets())
-		PanicOnError(retRes377312)
+		retRes377412 := (<-this.LoadMarkets())
+		PanicOnError(retRes377412)
 	}
 	var currency any = this.Currency(code)
 	var request map[string]any = map[string]any{
@@ -4813,8 +4814,8 @@ func (this *DeribitCore) fetchOpenInterestBody(ch chan any, symbol any, optional
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes387812 := (<-this.LoadMarkets())
-		PanicOnError(retRes387812)
+		retRes387912 := (<-this.LoadMarkets())
+		PanicOnError(retRes387912)
 	}
 	var market any = this.Market(symbol)
 	if IsTrue(!IsEqual(GetValue(market, "contract"), true)) {

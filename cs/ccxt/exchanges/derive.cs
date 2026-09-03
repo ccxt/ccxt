@@ -1519,6 +1519,7 @@ public partial class derive : Exchange
         object postOnly = this.safeBool(parameters, "postOnly");
         string orderType = ((string)type).ToLower();
         string orderSide = ((string)((string)side)).ToLower();
+        bool orderSideIsBuy = (isEqual(orderSide, "buy")); // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
         Int64 nonce = this.milliseconds();
         // Order signature expiry must be between 2592000 and 7776000 sec from now
         object signatureExpiry = this.safeInteger(parameters, "signature_expiry_sec", add(this.seconds(), 7776000));
@@ -1536,7 +1537,7 @@ public partial class derive : Exchange
         }
         object maxFeeString = this.numberToString(maxFee);
         object amountString = this.numberToString(amount);
-        object tradeModuleDataHash = this.hash(this.ethAbiEncode(new List<object>() {"address", "uint", "int", "int", "uint", "uint", "bool"}, new List<object>() {getValue(getValue(market, "info"), "base_asset_address"), this.parseToNumeric(getValue(getValue(market, "info"), "base_asset_sub_id")), this.convertToBigInt(((string)this.parseUnits(priceString))), this.convertToBigInt(((string)this.parseUnits(((string)this.amountToPrecision(symbol, amountString))))), this.convertToBigInt(((string)this.parseUnits(maxFeeString))), subaccountId, isEqual(orderSide, "buy")}), keccak, "binary");
+        object tradeModuleDataHash = this.hash(this.ethAbiEncode(new List<object>() {"address", "uint", "int", "int", "uint", "uint", "bool"}, new List<object>() {getValue(getValue(market, "info"), "base_asset_address"), this.parseToNumeric(getValue(getValue(market, "info"), "base_asset_sub_id")), this.convertToBigInt(((string)this.parseUnits(priceString))), this.convertToBigInt(((string)this.parseUnits(((string)this.amountToPrecision(symbol, amountString))))), this.convertToBigInt(((string)this.parseUnits(maxFeeString))), subaccountId, orderSideIsBuy}), keccak, "binary");
         object deriveWalletAddress = null;
         var deriveWalletAddressparametersVariable = this.handleDeriveWalletAddress("createOrder", parameters);
         deriveWalletAddress = ((IList<object>)deriveWalletAddressparametersVariable)[0];
@@ -1711,6 +1712,7 @@ public partial class derive : Exchange
         object postOnly = this.safeBool(parameters, "postOnly");
         string orderType = ((string)type).ToLower();
         string orderSide = ((string)((string)side)).ToLower();
+        bool orderSideIsBuy = (isEqual(orderSide, "buy")); // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
         Int64 nonce = this.milliseconds();
         object signatureExpiry = this.safeNumber(parameters, "signature_expiry_sec", add(this.seconds(), 7776000));
         // TODO: subaccount id / trade module address
@@ -1720,7 +1722,7 @@ public partial class derive : Exchange
         object priceString = ((string)this.numberToString(price));
         object maxFeeString = this.safeString(parameters, "max_fee", "0");
         object amountString = this.numberToString(amount);
-        object tradeModuleDataHash = this.hash(this.ethAbiEncode(new List<object>() {"address", "uint", "int", "int", "uint", "uint", "bool"}, new List<object>() {getValue(getValue(market, "info"), "base_asset_address"), this.parseToNumeric(getValue(getValue(market, "info"), "base_asset_sub_id")), this.convertToBigInt(((string)this.parseUnits(priceString))), this.convertToBigInt(((string)this.parseUnits(((string)this.amountToPrecision(symbol, amountString))))), this.convertToBigInt(((string)this.parseUnits(maxFeeString))), subaccountId, isEqual(orderSide, "buy")}), keccak, "binary");
+        object tradeModuleDataHash = this.hash(this.ethAbiEncode(new List<object>() {"address", "uint", "int", "int", "uint", "uint", "bool"}, new List<object>() {getValue(getValue(market, "info"), "base_asset_address"), this.parseToNumeric(getValue(getValue(market, "info"), "base_asset_sub_id")), this.convertToBigInt(((string)this.parseUnits(priceString))), this.convertToBigInt(((string)this.parseUnits(((string)this.amountToPrecision(symbol, amountString))))), this.convertToBigInt(((string)this.parseUnits(maxFeeString))), subaccountId, orderSideIsBuy}), keccak, "binary");
         object deriveWalletAddress = null;
         var deriveWalletAddressparametersVariable = this.handleDeriveWalletAddress("editOrder", parameters);
         deriveWalletAddress = ((IList<object>)deriveWalletAddressparametersVariable)[0];
