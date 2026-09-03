@@ -261,6 +261,12 @@ public partial class bingx
     /// string : spot or swap market
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.subType</term>
+    /// <description>
+    /// string : 'linear' or 'inverse' (default is 'linear'), 'inverse' is not supported
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> the api result.</returns>
