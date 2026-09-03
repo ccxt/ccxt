@@ -1,20 +1,22 @@
 <!-- title: CCXT vs Barter -->
-<!-- description: Barter is a Rust framework with a trading engine and backtester over a handful of venues. CCXT is an MIT library covering 104 venues in seven languages. -->
+<!-- description: Barter is a Rust framework with a trading engine and backtester over a handful of venues. CCXT is an MIT library covering 104 venues, now including a Rust target. -->
 <!-- group: Multi-exchange libraries and frameworks -->
-<!-- summary: Barter gives Rust an event-driven engine, risk components and a backtester over 8 streaming venues. CCXT gives 104 venues and unified order entry in seven languages, but no engine. -->
+<!-- summary: Barter gives Rust an event-driven engine, risk components and a backtester over 8 streaming venues. CCXT now has a Rust target too, covering 104 venues with unified order entry, but no engine. -->
 <!-- weight: 42 -->
 
 # CCXT vs Barter
 
 [Barter](https://github.com/barter-rs/barter-rs) is an "open-source Rust framework for building event-driven live-trading & backtesting systems". It is not one crate but five — Barter (the engine), Barter-Instrument, Barter-Data, Barter-Execution and Barter-Integration — and only two of them, Barter-Data and Barter-Execution, sit on the same layer as [CCXT](/docs/manual).
 
-That is the first thing to be clear about, because it decides most of the comparison. **Barter gives you a trading system; CCXT gives you the venues.** Barter ships an event loop, pluggable Strategy and RiskManager components, indexed position state, a backtester and performance metrics — and streams from eight venues. CCXT ships no engine, no strategy abstraction and no backtester — and reaches 104 exchanges in seven languages with unified order entry on every one. So: **is the hard part of your system the trading logic, or the connectivity?**
+That is the first thing to be clear about, because it decides most of the comparison. **Barter gives you a trading system; CCXT gives you the venues.** Barter ships an event loop, pluggable Strategy and RiskManager components, indexed position state, a backtester and performance metrics — and streams from eight venues. CCXT ships no engine, no strategy abstraction and no backtester — and reaches 104 exchanges with unified order entry on every one. So: **is the hard part of your system the trading logic, or the connectivity?**
+
+Until recently there was a second question underneath that one — whether you could use CCXT from Rust at all. You can now. CCXT ships a Rust target at the same venue parity as its other languages: the `rust/` cargo workspace holds `ccxt` (typed REST wrappers), `ccxt-pro` (the `watch*` venues) and `ccxt-prediction`, all on a shared `ccxt-base` engine, and the Rust build is compiled, clippy-linted and run against the base, id and static request/response suites in CI on every push. The caveat is distribution rather than coverage: **the crates are not on crates.io yet**, so `cargo add ccxt` does not resolve today and you take them as a git or path dependency.
 
 ## TL;DR
 
 - **Pick Barter** if you are building in Rust and want the framework, not just the pipes: an Engine with `Strategy` and `RiskManager` traits, `TradingSummary` metrics (PnL, Sharpe, Sortino, drawdown), an audit stream for out-of-band monitoring, and a backtester that runs your live code path against mock components.
-- **Pick CCXT** if the connectivity is your bottleneck: 104 exchanges with REST, 76 with WebSocket, unified order entry, balances, positions and funding on all of them, in TypeScript, JavaScript, Python, PHP, C#/.NET, Go or Java.
-- **CCXT has no Rust target.** There is no `ccxt` crate on crates.io as of September 2026. If the requirement is a single Rust binary, Barter is the one that satisfies it, and no amount of venue coverage changes that.
+- **Pick CCXT** if the connectivity is your bottleneck: 104 exchanges with REST, 76 with WebSocket, unified order entry, balances, positions and funding on all of them — in Rust, or in TypeScript, JavaScript, Python, PHP, C#/.NET, Go or Java from the same source.
+- **Both are usable from Rust; only Barter is on crates.io.** CCXT's crates are built and tested in CI but not yet published, so today Barter is a one-line `cargo add` and CCXT is a git dependency. If your build policy requires registry-published dependencies, that decides it for now.
 - **Read Barter's disclaimer before you scope around it.** Its README states that the software is "provided solely for educational and research purposes" and is "not intended, designed, tested, verified or certified for commercial deployment, live trading, or production use of any kind." That is the author's own statement of what the project is for.
 
 ## At a glance
@@ -30,7 +32,9 @@ That is the first thing to be clear about, because it decides most of the compar
 | Order entry | unified `create_order` on every supported venue | `ExecutionClient` trait; the client published in `barter-execution` is `mock` |
 | Stream kinds | order book, trades, tickers, OHLCV, bids/asks, mark prices, liquidations, plus private streams | `PublicTrades`, `OrderBooksL1`, `OrderBooksL2`, `OrderBooksL3`, `Liquidations`, `Candles` as `SubKind` variants |
 | Private / account streams | `watch_orders`, `watch_balance`, `watch_my_trades`, `watch_positions` | `account_stream` on the `ExecutionClient` trait |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java | Rust |
+| Languages | Rust, plus TypeScript, JavaScript, Python, PHP, C#/.NET, Go and Java from one source | Rust |
+| Rust venue coverage | 104 REST exchanges, 76 WebSocket venues, 7 prediction venues | 8 streaming venues |
+| Rust distribution | not on crates.io yet — git or path dependency | `cargo add barter` |
 | Raw endpoint access | yes — every documented endpoint as an implicit method (808 on Binance) | Barter-Integration provides REST/WebSocket building blocks |
 | Latest release | continuous — v{{CCXT_VERSION}} | barter 0.14.0, barter-data 0.13.0, barter-execution 0.9.0 — all 20 August 2026 |
 | Popularity | 43.8k GitHub stars · 4.7M PyPI + 494k npm installs/month | 2.3k GitHub stars · 91.2k crates.io downloads all-time for `barter` (1.9k in the last 90 days) |
@@ -38,7 +42,7 @@ That is the first thing to be clear about, because it decides most of the compar
 | Stated scope | production library | "solely for educational and research purposes" per its README |
 | Support | Discord, Telegram, GitHub issues — usually same-day | Discord, GitHub issues |
 
-<sub>Figures verified September 2026 against CCXT v{{CCXT_VERSION}}, the barter-rs repository README, the barter-data and barter-execution crate READMEs and sources on the `develop` and `main` branches, docs.rs for barter-execution 0.9.0 and barter-instrument 0.3.3, and the crates.io, npm and PyPI registries.</sub>
+<sub>Figures verified September 2026 against CCXT v{{CCXT_VERSION}}, the `rust/` workspace in the CCXT source tree and `.github/workflows/rust.yml`, the barter-rs repository README, the barter-data and barter-execution crate READMEs and sources on the `develop` and `main` branches, docs.rs for barter-execution 0.9.0 and barter-instrument 0.3.3, and the crates.io, npm and PyPI registries. CCXT's crates are absent from crates.io, docs.rs and the sparse registry index as of that date.</sub>
 
 ## The same job, written both ways
 
@@ -222,11 +226,25 @@ Barter's README carries an explicit legal disclaimer. Section 1, headed EDUCATIO
 
 That is a statement of intent by the author, not a bug report, and it is more forthcoming than most projects are. It is also the kind of thing a procurement or legal review will find, so it is better read at the start of an evaluation than at the end. CCXT is MIT-licensed and carries the standard MIT warranty disclaimer with no comparable scope limitation.
 
-### Seven languages, one API
+### One API, and now Rust is one of its targets
 
-CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, with the same method names, arguments and return structures in every one — `fetch_ticker` in Python, `fetchTicker` in TypeScript, `FetchTicker` in Go and C#, all returning the same [ticker structure](/docs/manual#ticker-structure). A strategy researched in a Python notebook moves to a Go or C# execution service without a second data model.
+CCXT is written once in TypeScript and transpiled, with the same method names, arguments and return structures in every target — `fetch_ticker` in Python, `fetchTicker` in TypeScript, `FetchTicker` in Go and C#, all returning the same [ticker structure](/docs/manual#ticker-structure). A strategy researched in a Python notebook moves to a Go or C# execution service without a second data model.
 
-Barter is Rust, single language. That is a deliberate and coherent choice — see below — but it does mean the research and execution halves of a team share one language or build a bridge.
+Rust is now one of those targets. `rust/ccxt` exposes typed wrappers that return native Rust types rather than dynamic values, `rust/ccxt-pro` carries the 76 `watch*` venues and `rust/ccxt-prediction` the prediction markets, all over a shared `ccxt-base` engine, async on Tokio:
+
+```text
+use ccxt::{Binance, Params};
+
+let mut exchange = Binance::new(None);
+exchange.load_markets(false).await;
+
+let ticker = exchange.fetch_ticker("BTC/USDT", Params::none()).await?;
+println!("{} {:?}", ticker.symbol, ticker.last);
+```
+
+The honest caveat is packaging, not coverage: those crates are not published to crates.io as of September 2026, so a Rust project depends on them by git or path rather than `cargo add`. Barter has no such gap — it publishes to the registry on a regular cadence, and for a team whose dependency policy rules out git dependencies that difference outweighs everything above.
+
+Barter is Rust and only Rust. That is a deliberate and coherent choice — see below — but it does mean the research and execution halves of a team share one language or build a bridge.
 
 ### History, rate limits and the REST surface
 
@@ -240,7 +258,7 @@ Real, specific advantages. Several of them are things CCXT deliberately does not
 
 - **It is a trading system, not a client library.** The `Engine` gives you an event loop, pluggable `Strategy` and `RiskManager` components, a centralised state store with O(1) indexed lookups, position and PnL tracking, and `TradingSummary` reports with PnL, Sharpe, Sortino and drawdown. With CCXT all of that is your code. If your team's scarce resource is engineering time rather than venue coverage, that is a large head start.
 - **Backtesting shares the live code path.** Swapping in a mock `MarketStream` and the `MockExecutionClient` lets a backtest run on what its README calls "a near-identical trading system as live-trading", with utilities for running thousands of concurrent backtests. CCXT has no backtester and no simulated venue; you supply both.
-- **Rust, and CCXT does not ship one.** No garbage collector, no interpreter, one static binary, `Decimal` arithmetic, and the borrow checker between you and a class of concurrency bug. There is no `ccxt` crate on crates.io as of September 2026, so for a Rust-only deployment target this is not a preference, it is the requirement.
+- **Rust from the ground up, and on the registry.** Barter is native Rust rather than generated Rust: no garbage collector, no interpreter, one static binary, `Decimal` arithmetic, and the borrow checker between you and a class of concurrency bug. It is also a published crate — `cargo add barter` works today, where CCXT's Rust crates are still unpublished and have to be pulled from git.
 - **Operational control is designed in, not bolted on.** The `AuditStream` and the EngineState replica manager give you an out-of-band channel for monitoring and persistence; `TradingState` can be flipped from an external process; and Engine Commands (`CloseAllPositions`, `OpenOrders`, `CancelOrders`) let a UI or a Telegram bot intervene while the engine keeps consuming market and account data. CCXT is a library — it has no notion of a running system to observe or command.
 - **Compile-time correctness across the whole pipeline.** `barter-instrument` models exchanges, assets and instruments as types, and a Barter-Data subscription checks the venue, instrument kind and subscription kind at compile time. CCXT's equivalent is the runtime `has` capability map: you find out that a venue does not support `watchOHLCV` when you call it.
 - **A clean extension seam.** `MarketStream` and `ExecutionClient` are small, well-shaped traits. Adding a venue means implementing an interface the framework already understands, rather than forking a large library.
@@ -249,7 +267,7 @@ If you are building a Rust trading system and the hard part is the engine, the r
 
 ## Migrating from Barter to CCXT
 
-Only the connectivity half maps. The Engine, `Strategy`, `RiskManager`, backtester and `TradingSummary` have no CCXT equivalent; if you move, you keep writing those yourself or bring another library. And because CCXT publishes no Rust crate, a move means changing language as well.
+Only the connectivity half maps. The Engine, `Strategy`, `RiskManager`, backtester and `TradingSummary` have no CCXT equivalent; if you move, you keep writing those yourself or bring another library. Staying in Rust is now possible — the `ccxt` and `ccxt-pro` crates cover the same 104 REST and 76 WebSocket venues as every other target — but until they reach crates.io, the move also means taking them as a git dependency.
 
 | What you are doing | Barter | CCXT |
 | --- | --- | --- |
@@ -278,7 +296,7 @@ Barter-Data's README table lists 15 exchange/instrument constructors across eigh
 Its `ExecutionClient` trait defines order entry, and `barter-execution` 0.9.0 publishes a `mock` client behind it for paper trading and backtesting; a live venue client is something you implement against that trait. Barter's README also states that the software is "not intended, designed, tested, verified or certified for commercial deployment, live trading, or production use of any kind". CCXT implements unified live order entry on every venue it supports.
 
 **Is CCXT available in Rust?**
-Not as a published crate. CCXT is generated from one TypeScript source into TypeScript, JavaScript, Python, PHP, C#/.NET, Go and Java, and there is no `ccxt` crate on crates.io as of September 2026. If your deployment target is a Rust binary, that is a genuine reason to choose a Rust-native framework, or to put CCXT behind a small service in one of the seven supported languages.
+Yes. Rust is one of the targets generated from CCXT's single TypeScript source, alongside TypeScript, JavaScript, Python, PHP, C#/.NET, Go and Java. The `rust/` workspace holds `ccxt` (typed REST wrappers for all 104 exchanges), `ccxt-pro` (the 76 WebSocket venues) and `ccxt-prediction`, all async on Tokio and all MIT-licensed, and the Rust build is compiled, clippy-linted and run against the base, id and static request/response suites in CI. The one gap is distribution: the crates are not on crates.io as of September 2026, so `cargo add ccxt` does not resolve and you add them as a git or path dependency instead.
 
 **Is CCXT slower than Barter?**
 Barter is native Rust with no garbage collector and data-oriented state, so on raw per-message cost it will win, and for the workloads its design targets that gap is real. For most strategy and dashboard workloads the bottleneck is network round-trip time and your own consumer, not the parsing layer. If you are optimising microseconds you are writing custom code against a colocated endpoint anyway, which is a different comparison from either of these libraries.
@@ -287,7 +305,7 @@ Barter is native Rust with no garbage collector and data-oriented state, so on r
 No. CCXT is connectivity: market data, order entry, accounts and funding across venues, with unified structures. Backtesting, strategy composition, risk management and performance reporting are exactly what Barter provides and CCXT does not.
 
 **Can I use Barter and CCXT together?**
-Not directly in one process, because CCXT does not publish a Rust crate. Some teams run CCXT in Python or Go for research, historical backfill and long-tail venues, and a separate Rust service for the hot path. Bridging Barter's `ExecutionClient` trait to a CCXT-backed service is possible but it is your integration to build and maintain.
+Yes, and now in the same process. Barter's `MarketStream` and `ExecutionClient` are traits, and CCXT's Rust crates give you 104 REST and 76 WebSocket venues to implement them against — Barter's engine, strategy and risk layer on top, CCXT reaching the venues Barter does not integrate. That is your integration to build and maintain, and while CCXT's crates are unpublished it means a git dependency in your `Cargo.toml`. Splitting across processes still works too: CCXT in Python or Go for research, backfill and long-tail venues, Rust on the hot path.
 
 ## Next steps
 
