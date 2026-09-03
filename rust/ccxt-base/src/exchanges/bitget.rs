@@ -10368,6 +10368,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if is_equal(&type_var, &Value::Str("spot".to_string())) {
                 if !is_equal(&marginMode, &Value::Null) {
                     productType = Value::Str("MARGIN".to_string());
+                }  else {
+                    productType = Value::Str("SPOT".to_string());
                 }
             }
             add_element_to_object(&mut request, &Value::Str("category".to_string()), productType.clone());
