@@ -73,19 +73,13 @@ jobs:
       - name: Transpile to Rust (specific)
         if: env.important_modified == 'false'
         run: |
-          read -r -a rest_files <<<"$(echo '${{ env.rest_files }}' | xargs)"
-          read -r -a ws_files <<<"$(echo '${{ env.ws_files }}' | xargs)"
-          if [ "${#rest_files[@]}" -gt 0 ]; then
-            echo "Rest files to process: ${rest_files[*]}"
-            tsx build/rustTranspiler.ts "${rest_files[@]}"
+          read -r -a files <<<"$(printf '%s %s' "${{ env.rest_files }}" "${{ env.ws_files }}" | xargs)"
+          if [ "${#files[@]}" -eq 0 ]; then
+            echo "No files to process; building the reference venue only."
+            tsx build/granular-rust-build.ts binance
           else
-            echo "No rest files to process; skipping."
-          fi
-          if [ "${#ws_files[@]}" -gt 0 ]; then
-            echo "Ws files to process: ${ws_files[*]}"
-            tsx build/rustTranspiler.ts --ws "${ws_files[@]}"
-          else
-            echo "No websocket files to process; skipping."
+            echo "Files to process: ${files[*]}"
+            tsx build/granular-rust-build.ts "${files[@]}"
           fi
       - name: Generate Rust typed wrappers
         run: npm run emitRustTyped
