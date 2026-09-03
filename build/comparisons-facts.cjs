@@ -50,12 +50,28 @@ function hasFlags (file) {
     return flags;
 }
 
+// Some exchanges write the value as an expression rather than a literal — btse uses
+// `'rateLimit': 1000 / 75, // 75 requests per second`. Matching only the leading digits
+// reported 1000 ms instead of 13.3, so read up to the comma and evaluate simple
+// arithmetic. Anything that is not digits and + - * / ( ) is left alone.
 function firstNumber (file, key) {
     if (!fs.existsSync (file)) {
         return undefined;
     }
-    const m = fs.readFileSync (file, 'utf8').match (new RegExp ("'" + key + "':\\s*(-?[\\d.]+)"));
-    return m ? Number (m[1]) : undefined;
+    const m = fs.readFileSync (file, 'utf8').match (new RegExp ("'" + key + "':\\s*([^,\\n]+)"));
+    if (!m) {
+        return undefined;
+    }
+    const expr = m[1].split ('//')[0].trim ();
+    if (!/^[-+*/(). \d]+$/.test (expr)) {
+        return undefined;
+    }
+    try {
+        const v = Function ('"use strict"; return (' + expr + ')') ();
+        return (typeof v === 'number' && isFinite (v)) ? Math.round (v * 100) / 100 : undefined;
+    } catch (e) {
+        return undefined;
+    }
 }
 
 // `setSandboxMode` only works when a `test` key exists inside `urls`. Searching the whole
