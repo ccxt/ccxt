@@ -287,9 +287,9 @@ fetches historical funding rate prices
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the funding rate history for |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the funding rate history for, inverse (Coin-M) markets are not supported |
 | since | <code>int</code> | No | timestamp in ms of the earliest funding rate to fetch |
-| limit | <code>int</code> | No | the maximum amount of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure) to fetch |
+| limit | <code>int</code> | No | the maximum amount of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure) to fetch (max 1000) |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | timestamp in ms of the latest funding rate to fetch |
 | params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
