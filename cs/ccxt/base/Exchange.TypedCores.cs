@@ -3559,6 +3559,13 @@ public partial class BaseExchange
         {
             result["feeSide"] = typed.feeSide;
         }
+        if (typed.extra != null)
+        {
+            foreach (var pair in typed.extra)
+            {
+                result[pair.Key] = pair.Value;
+            }
+        }
         return result;
     }
 

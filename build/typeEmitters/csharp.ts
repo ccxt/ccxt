@@ -110,6 +110,12 @@ export interface StructSpec {
     o?: Record<string, FieldOverride>;
     /** TS fields deliberately not surfaced in C# */
     skip?: string[];
+    /**
+     * capture source keys that map to no struct field into an `extra` bag, so the
+     * struct round-trips venue-only keys (market['baseName'], market['priceScale'], …)
+     * instead of silently dropping them. Reverse helpers write the bag back out.
+     */
+    extra?: boolean;
     w?: WrapperSpec;
 }
 
@@ -629,6 +635,21 @@ function renderStruct (ir: TypesIR, spec: StructSpec): string {
         }
         lines.push (INDENT + 'public ' + field.type + ' ' + field.cs + ';');
     }
+    if (spec.extra === true) {
+        lines.push ('');
+        lines.push (INDENT + '// venue-only source keys with no struct field; kept so the struct round-trips losslessly');
+        lines.push (INDENT + 'public Dictionary<string, object>? extra;');
+        lines.push ('');
+        lines.push (INDENT + 'private static readonly HashSet<string> ' + spec.n + 'Keys = new HashSet<string> {');
+        const keyTokens: string[] = [];
+        const keyNames = Object.keys (fields);
+        for (let i = 0; i < keyNames.length; i++) {
+            keyTokens.push ('"' + fields[keyNames[i]].key + '"');
+        }
+        lines.push (INDENT.repeat (2) + keyTokens.join (', ') + ',');
+        lines.push (INDENT + '};');
+        lines.push ('');
+    }
     lines.push (INDENT + 'public ' + spec.n + '(object ' + spec.p + ')');
     lines.push (INDENT + '{');
     if (spec.b !== undefined) {
@@ -652,6 +673,9 @@ function renderStruct (ir: TypesIR, spec: StructSpec): string {
         }
         const lhs = (field.cs === spec.p || field.cs === spec.b) ? 'this.' + field.cs : field.cs;
         lines.push (INDENT.repeat (2) + lhs + ' = ' + csExprOf (field.idiom, recv, field.key, field.elem) + ';');
+    }
+    if (spec.extra === true) {
+        lines.push (INDENT.repeat (2) + 'extra = Helper.GetExtra(' + recv + ', ' + spec.n + 'Keys);');
     }
     lines.push (INDENT + '}');
     const tail = spec.t === undefined ? [] : spec.t;

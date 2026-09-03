@@ -12,6 +12,28 @@ namespace ccxt;
 
 class Helper
 {
+    // Source keys that map to no struct field (venue-only market keys such as
+    // baseName / priceScale / instIdCode). Kept on the struct so a round-trip
+    // through the typed path does not silently drop them.
+    public static Dictionary<string, object> GetExtra(object data2, HashSet<string> known)
+    {
+        var data = (IDictionary<string, object>)data2;
+        Dictionary<string, object> result = null;
+        foreach (var pair in data)
+        {
+            if (known.Contains(pair.Key) || pair.Key == "info")
+            {
+                continue;
+            }
+            if (result == null)
+            {
+                result = new Dictionary<string, object>();
+            }
+            result[pair.Key] = pair.Value;
+        }
+        return result;
+    }
+
     // safeOrder() / safeTrade() always attach a `fees` list next to the single `fee`.
     // Return null when the key is absent so the field stays null rather than becoming
     // a spurious empty list.
@@ -1986,6 +2008,14 @@ public struct MarketInterface
     public bool? percentage;
     public bool? tierBased;
     public string? feeSide;
+
+    // venue-only source keys with no struct field; kept so the struct round-trips losslessly
+    public Dictionary<string, object>? extra;
+
+    private static readonly HashSet<string> MarketInterfaceKeys = new HashSet<string> {
+        "id", "numericId", "uppercaseId", "lowercaseId", "symbol", "base", "quote", "baseId", "quoteId", "active", "type", "subType", "spot", "margin", "swap", "future", "option", "index", "stock", "prediction", "contract", "settle", "settleId", "contractSize", "linear", "inverse", "quanto", "expiry", "expiryDatetime", "strike", "optionType", "taker", "maker", "percentage", "tierBased", "feeSide", "precision", "marginModes", "limits", "created", "info", "outcomes",
+    };
+
     public MarketInterface(object market)
     {
         info = Helper.GetInfo(market);
@@ -2030,6 +2060,7 @@ public struct MarketInterface
         percentage = Exchange.SafeValue(market, "percentage") != null ? (bool)Exchange.SafeValue(market, "percentage") : null;
         tierBased = Exchange.SafeValue(market, "tierBased") != null ? (bool)Exchange.SafeValue(market, "tierBased") : null;
         feeSide = Exchange.SafeString(market, "feeSide");
+        extra = Helper.GetExtra(market, MarketInterfaceKeys);
     }
 
 }

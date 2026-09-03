@@ -423,6 +423,20 @@ public partial class testMainClass : BaseTest
                 }
                 continue;
             }
+            // `extra` holds source keys with no struct field (venue-only market keys such
+            // as baseName / tradfi / delivery). Production writes them back at top level
+            // in From*, so the projection has to splat them the same way.
+            if (field.Name == "extra")
+            {
+                if (fieldValue is System.Collections.IDictionary extraDict)
+                {
+                    foreach (System.Collections.DictionaryEntry entry in extraDict)
+                    {
+                        result[Convert.ToString(entry.Key)] = detypeForComparison(entry.Value);
+                    }
+                }
+                continue;
+            }
             // `info` is the raw venue payload; the constructors set it to null when the
             // source had no `info` key, and the fixture then has no `info` key either.
             if (field.Name == "info" && fieldValue == null)

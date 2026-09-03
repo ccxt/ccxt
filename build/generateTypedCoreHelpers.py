@@ -62,6 +62,9 @@ ALIAS = re.compile(r'^var \w+ = \(I?Dictionary<string, object>\)\w+;$')
 # safeOrder()/safeTrade() attach a `fees` list next to `fee`; Helper.GetFees returns null
 # when the source has no `fees` key, so it inverts exactly like a struct list.
 FEES = re.compile(ASSIGN + r'Helper\.GetFees\(\w+\);$')
+# `extra = Helper.GetExtra(src, <Struct>Keys);` holds every source key with no struct
+# field, so writing the bag back restores venue-only keys the struct cannot name.
+EXTRA = re.compile(ASSIGN + r'Helper\.GetExtra\(\w+, \w+\);$')
 DECL = re.compile(r'^\s*public (?P<type>[\w\.<>,\? ]+?) (?P<name>@?\w+);\s*$')
 
 structs = {}   # name -> {'fields': [...], 'decls': {name: type}, 'error': str|None}
@@ -211,6 +214,9 @@ def parse_struct(name, body, ctor_param):
         m = INFO.match(line)
         if m:
             fields.append(('info', m.group('f'), 'info', None)); continue
+        m = EXTRA.match(line)
+        if m:
+            fields.append(('extra', m.group('f'), None, None)); continue
         m = FEES.match(line)
         if m:
             fields.append(('structlist', m.group('f'), 'fees', 'Fee')); continue
@@ -440,6 +446,12 @@ for t in emit_from:
                     '    %sTarget[entry.Key] = entry.Value;' % var,
                     '}',
                     'result["%s"] = %sTarget;' % (key, var)]
+        elif kind == 'extra':
+            # written last: restores source keys that map to no struct field
+            body = ['foreach (var pair in %s)' % access,
+                    '{',
+                    '    result[pair.Key] = pair.Value;',
+                    '}']
         else:
             raise Exception('unhandled kind ' + kind)
         if guard:
