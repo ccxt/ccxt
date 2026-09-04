@@ -6,9 +6,5 @@ namespace ccxt;
 
 public partial class bitstamp
 {
-    public async Task<Dictionary<string, object>> FetchMarketsFromCache(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchMarketsFromCache(parameters);
-        return ((Dictionary<string, object>)res);
-    }
+
 }

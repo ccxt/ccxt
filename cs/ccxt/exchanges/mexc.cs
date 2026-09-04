@@ -4165,11 +4165,11 @@ public partial class mexc : Exchange
         return this.safeString(statuses, ((string)orderType), orderType);
     }
 
-    public async virtual Task<object> fetchAccountHelper(object type, object parameters)
+    public async virtual Task<Dictionary<string, object>> FetchAccountHelper(object type, object parameters)
     {
         if (isTrue(isEqual(type, "spot")))
         {
-            return await this.spotPrivateGetAccount(parameters);
+            return ccxt.BaseExchange.ToDict(await this.spotPrivateGetAccount(parameters));
         } else if (isTrue(isEqual(type, "swap")))
         {
             object response = await this.contractPrivateGetAccountAssets(parameters);
@@ -4191,9 +4191,11 @@ public partial class mexc : Exchange
             //         ]
             //     }
             //
-            return this.safeValue(response, "data");
+            // wrap the swap asset list so this helper always returns an account
+            // dict with a `balances` array — fetchAccounts reads response['balances']
+            return ccxt.BaseExchange.ToDict(new Dictionary<string, object>() {                 { "balances", this.safeValue(response, "data", new List<object>() {}) },             });
         }
-        return null;
+        return ccxt.BaseExchange.ToDict(null);
     }
 
     /**
@@ -4216,7 +4218,7 @@ public partial class mexc : Exchange
         {
             await this.loadMarkets();
         }
-        object response = await this.fetchAccountHelper(marketType, query);
+        object response = ccxt.BaseExchange.FromDict(await this.FetchAccountHelper(marketType, query));
         object data = this.safeValue(response, "balances", new List<object>() {});
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))

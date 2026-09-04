@@ -210,6 +210,14 @@ const TYPED_CORES: Record<string, string> = {
     'fetchMarketsByTypeAndSubType': 'List<MarketInterface>',
     'fetchMarketsFromAPI': 'List<MarketInterface>',
     'fetchMarketsFromWeb': 'List<MarketInterface>',
+    // bitstamp: publicGetMarkets returns a list of market dicts (cached). The
+    // previous Dictionary wrapper was a runtime InvalidCastException.
+    'fetchMarketsFromCache': 'List<Dictionary<string, object>>',
+    // kraken: privatePostDepositMethods['result'] is a list of method dicts.
+    'fetchDepositMethods': 'List<Dictionary<string, object>>',
+    // mexc: both spot and (after wrapping the swap asset list) swap return an
+    // account dict with a `balances` array.
+    'fetchAccountHelper': 'Dictionary<string, object>',
     'fetchMarketsV1': 'List<MarketInterface>',
     'fetchMyDustTrades': 'List<Trade>',
     'fetchNetworkDepositAddress': 'Dictionary<string, object>',
@@ -321,6 +329,7 @@ const TYPED_CORES: Record<string, string> = {
     'fetchMySettlementHistory': 'List<Dictionary<string, object>>',
     'fetchOHLCV': 'List<OHLCV>',
     'fetchOHLCVWs': 'List<OHLCV>',
+    'fetchL2OrderBook': 'OrderBook',
     'fetchL3OrderBook': 'OrderBook',
     'fetchNonce': 'Int64',
     'fetchOpenInterest': 'OpenInterest',

@@ -6,9 +6,5 @@ namespace ccxt;
 
 public partial class blockchaincom
 {
-    public async Task<OrderBook> FetchL2OrderBook(string symbol, Int64? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchL2OrderBook(symbol, limit, parameters);
-        return new OrderBook(res);
-    }
+
 }

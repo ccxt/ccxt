@@ -6,24 +6,5 @@ namespace ccxt;
 
 public partial class kraken
 {
-    /// <summary>
-    /// fetch deposit methods for a currency associated with this account
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.kraken.com/api-reference/funding/get-deposit-methods"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> of deposit methods.</returns>
-    public async Task<Dictionary<string, object>> FetchDepositMethods(string code, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchDepositMethods(code, parameters);
-        return ((Dictionary<string, object>)res);
-    }
+
 }

@@ -3652,7 +3652,7 @@ public partial class kraken : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} of deposit methods
      */
-    public async virtual Task<object> fetchDepositMethods(object code, object parameters = null)
+    public async virtual Task<List<Dictionary<string, object>>> FetchDepositMethods(object code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -3687,7 +3687,7 @@ public partial class kraken : Exchange
         //         ]
         //     }
         //
-        return this.safeValue(response, "result");
+        return ccxt.BaseExchange.ToDictList(this.safeValue(response, "result"));
     }
 
     /**
@@ -3723,7 +3723,7 @@ public partial class kraken : Exchange
         // we pass it as is, otherwise we take the 'network' unified param
         if (isTrue(isEqual(depositMethod, null)))
         {
-            object depositMethods = await this.fetchDepositMethods(codeVar);
+            object depositMethods = ccxt.BaseExchange.FromDictList(await this.FetchDepositMethods(codeVar));
             if (isTrue(!isEqual(network, null)))
             {
                 // find best matching deposit method, or fallback to the first one

@@ -11,9 +11,4 @@ public partial class mexc
         var res = this.createSpotOrderRequest(market, type, side, amount, price, marginMode, parameters);
         return ((Dictionary<string, object>)res);
     }
-    public async Task<Dictionary<string, object>> FetchAccountHelper(object type, object parameters)
-    {
-        var res = await this.fetchAccountHelper(type, parameters);
-        return ((Dictionary<string, object>)res);
-    }
 }

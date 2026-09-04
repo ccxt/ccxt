@@ -3806,7 +3806,11 @@ class mexc extends Exchange {
             //         )
             //     }
             //
-            return $this->safe_value($response, 'data');
+            // wrap the swap asset list so this helper always returns an account
+            // dict with a `balances` array — fetchAccounts reads $response['balances']
+            return array(
+                'balances' => $this->safe_value($response, 'data', array()),
+            );
         }
         return null;
     }

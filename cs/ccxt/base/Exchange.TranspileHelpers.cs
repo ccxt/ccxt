@@ -830,6 +830,18 @@ public partial class BaseExchange
             int parsed = Convert.ToInt32(key);
             return ((List<Int64>)value)[parsed];
         }
+        // List<T> is invariant so List<Dictionary<string, object>> is not IList<object>
+        // and not List<dict> (dict = IDictionary). Re-box through the non-generic IList
+        // the same way toArray / arraySlice do, before the reflection last-resort.
+        else if (value is System.Collections.IList genericList && !(value is System.Collections.IDictionary) && !(value is string))
+        {
+            int parsed = Convert.ToInt32(key);
+            if (parsed < 0 || parsed >= genericList.Count)
+            {
+                return null;
+            }
+            return genericList[parsed];
+        }
         // check this last, avoid reflection
         else if (key.GetType() == typeof(string) && (value.GetType()).GetProperty((string)key) != null)
         {

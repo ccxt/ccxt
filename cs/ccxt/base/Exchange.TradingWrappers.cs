@@ -6,9 +6,5 @@ namespace ccxt;
 
 public partial class Exchange
 {
-    public async Task<Dictionary<string, object>> FetchL2OrderBook(string symbol, Int64? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchL2OrderBook(symbol, limit, parameters);
-        return ((Dictionary<string, object>)res);
-    }
+
 }

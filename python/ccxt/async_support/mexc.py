@@ -3646,7 +3646,11 @@ class mexc(Exchange, ImplicitAPI):
             #         ]
             #     }
             #
-            return self.safe_value(response, 'data')
+            # wrap the swap asset list so self helper always returns an account
+            # dict with a `balances` array — fetchAccounts reads response['balances']
+            return {
+                'balances': self.safe_value(response, 'data', []),
+            }
         return None
 
     async def fetch_accounts(self, params={}) -> list[Account]:

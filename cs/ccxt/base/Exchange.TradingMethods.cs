@@ -671,14 +671,11 @@ public partial class Exchange
         }
     }
 
-    public async virtual Task<object> fetchL2OrderBook(object symbol, Int64? limit = null, object parameters = null)
+    public async virtual Task<ccxt.OrderBook> FetchL2OrderBook(object symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object orderbook = ccxt.BaseExchange.FromOrderBook(await this.FetchOrderBook(((string)symbol),ccxt.BaseExchange.ToInt64Arg(limit), parameters));
-        return this.extend(orderbook, new Dictionary<string, object>() {
-            { "asks", this.sortBy(this.aggregate(getValue(orderbook, "asks")), 0) },
-            { "bids", this.sortBy(this.aggregate(getValue(orderbook, "bids")), 0, true) },
-        });
+        return ccxt.BaseExchange.ToOrderBook(this.extend(orderbook, new Dictionary<string, object>() {             { "asks", this.sortBy(this.aggregate(getValue(orderbook, "asks")), 0) },             { "bids", this.sortBy(this.aggregate(getValue(orderbook, "bids")), 0, true) },         }));
     }
 
     public async virtual Task<ccxt.Order> EditLimitBuyOrder(string id, string symbol, object amount, object price = null, object parameters = null)
