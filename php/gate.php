@@ -3364,23 +3364,18 @@ class gate extends Exchange {
         for ($i = 0; $i < count($data); $i++) {
             $entry = $data[$i];
             if ($isolated) {
-                $marketId = $this->safe_string($entry, 'currency_pair');
-                $symbolInner = $this->safe_symbol($marketId, null, '_', 'margin');
                 $base = $this->safe_value($entry, 'base', array());
                 $quote = $this->safe_value($entry, 'quote', array());
                 $baseCode = $this->safe_currency_code($this->safe_string($base, 'currency'));
                 $quoteCode = $this->safe_currency_code($this->safe_string($quote, 'currency'));
-                $subResult = array();
-                $subResult[$baseCode] = $this->parse_balance_helper($base);
-                $subResult[$quoteCode] = $this->parse_balance_helper($quote);
-                $result[$symbolInner] = $this->safe_balance($subResult);
+                $result = $this->merge_balance_account($result, $baseCode, $this->parse_balance_helper($base));
+                $result = $this->merge_balance_account($result, $quoteCode, $this->parse_balance_helper($quote));
             } else {
                 $code = $this->safe_currency_code($this->safe_string($entry, 'currency'));
                 $result[$code] = $this->parse_balance_helper($entry);
             }
         }
-        $returnResult = $isolated ? $result : $this->safe_balance($result);
-        return $returnResult;
+        return $this->safe_balance($result);
     }
 
     public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): array {

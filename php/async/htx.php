@@ -3674,7 +3674,6 @@ class htx extends Exchange {
             if ($isolated) {
                 for ($i = 0; $i < count($data); $i++) {
                     $entry = $data[$i];
-                    $symbol = $this->safe_symbol($this->safe_string($entry, 'symbol'));
                     $balances = $this->safe_value($entry, 'list');
                     $subResult = array();
                     for ($j = 0; $j < count($balances); $j++) {
@@ -3685,8 +3684,13 @@ class htx extends Exchange {
                             $subResult[$code] = $this->parse_margin_balance_helper($balance, $code, $subResult);
                         }
                     }
-                    $result[$symbol] = $this->safe_balance($subResult);
+                    $subCodes = is_array($subResult) ? array_keys($subResult) : array();
+                    for ($j = 0; $j < count($subCodes); $j++) {
+                        $subCode = $subCodes[$j];
+                        $result = $this->merge_balance_account($result, $subCode, $subResult[$subCode]);
+                    }
                 }
+                $result = $this->safe_balance($result);
             } else {
                 $balances = $this->safe_value($data, 'list', array());
                 for ($i = 0; $i < count($balances); $i++) {

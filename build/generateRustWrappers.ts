@@ -95,6 +95,8 @@ const KNOWN_MAP_TYPES = new Map<string, string>([
     ['Leverages', 'Leverage'],
     ['MarginModes', 'MarginMode'],
     ['TradingFees', 'TradingFee'],
+    ['AllGreeks', 'Greeks'],
+    ['DepositAddresses', 'DepositAddress'],
 ]);
 
 // Combined lookup for "is this a name we can produce a decoder for?".

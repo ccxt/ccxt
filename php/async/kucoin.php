@@ -3808,7 +3808,7 @@ class kucoin extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->uta] set to true for the unified trading account ($uta) endpoint, defaults to false
-         * @return {array} an array of ~@link https://docs.ccxt.com/?id=address-structure address structures~
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=address-structure address structures~ indexed by the network
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -8528,20 +8528,16 @@ class kucoin extends Exchange {
             $assets = $this->safe_value($data, 'assets', $data);
             for ($i = 0; $i < count($assets); $i++) {
                 $entry = $assets[$i];
-                $marketId = $this->safe_string($entry, 'symbol');
-                $symbol = $this->safe_symbol($marketId, null, '_');
                 $base = $this->safe_dict($entry, 'baseAsset', array());
                 $quote = $this->safe_dict($entry, 'quoteAsset', array());
                 $baseCode = $this->safe_currency_code($this->safe_string($base, 'currency'));
                 $quoteCode = $this->safe_currency_code($this->safe_string($quote, 'currency'));
-                $subResult = array();
                 if ($baseCode !== null) {
-                    $subResult[$baseCode] = $this->parse_balance_helper($base);
+                    $result = $this->merge_balance_account($result, $baseCode, $this->parse_balance_helper($base));
                 }
                 if ($quoteCode !== null) {
-                    $subResult[$quoteCode] = $this->parse_balance_helper($quote);
+                    $result = $this->merge_balance_account($result, $quoteCode, $this->parse_balance_helper($quote));
                 }
-                $result[$symbol] = $this->safe_balance($subResult);
             }
         } elseif ($cross) {
             $data = $this->safe_dict($response, 'data', array());
@@ -8572,11 +8568,7 @@ class kucoin extends Exchange {
                 }
             }
         }
-        $returnType = $result;
-        if (!$isolated) {
-            $returnType = $this->safe_balance($result);
-        }
-        return $returnType;
+        return $this->safe_balance($result);
     }
 
     public function fetch_contract_balance($params = array()): PromiseInterface {
@@ -8755,19 +8747,15 @@ class kucoin extends Exchange {
         if ($isIsolated) {
             for ($i = 0; $i < count($accounts); $i++) {
                 $entry = $accounts[$i];
-                $marketId = $this->safe_string($entry, 'accountSubtype');
-                $symbol = $this->safe_symbol($marketId, null, '-');
-                $subResult = array();
                 $currencies = $this->safe_list($entry, 'currencies', array());
                 for ($j = 0; $j < count($currencies); $j++) {
                     $currencyEntry = $this->safe_dict($currencies, $j, array());
                     $currencyId = $this->safe_string($currencyEntry, 'currency');
                     $currencyCode = $this->safe_currency_code($currencyId);
                     if ($currencyCode !== null) {
-                        $subResult[$currencyCode] = $this->parse_balance_helper($currencyEntry);
+                        $result = $this->merge_balance_account($result, $currencyCode, $this->parse_balance_helper($currencyEntry));
                     }
                 }
-                $result[$symbol] = $this->safe_balance($subResult);
             }
         } else {
             $firstAccount = $this->safe_dict($accounts, 0, array());
@@ -8781,11 +8769,7 @@ class kucoin extends Exchange {
                 }
             }
         }
-        $returnType = $result;
-        if (!$isIsolated) {
-            $returnType = $this->safe_balance($result);
-        }
-        return $returnType;
+        return $this->safe_balance($result);
     }
 
     public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array()): PromiseInterface {

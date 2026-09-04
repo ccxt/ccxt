@@ -112,7 +112,9 @@ const SCALARS: { [key: string]: string } = {
     'boolean': 'bool',
     'number': 'Num',
     'any': 'Any',
-    'Dict': 'Dict[str, Any]',
+    // types.py never imports typing.Dict; the file spells free-form dicts `dict[str, Any]`
+    // (see `info` above and `options` in ConstructorArgs)
+    'Dict': 'dict[str, Any]',
 };
 
 // `?:` widens a non-nullable Python annotation to its nullable alias.

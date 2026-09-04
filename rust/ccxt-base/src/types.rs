@@ -814,6 +814,8 @@ pub type OpenInterests = HashMap<String, OpenInterest>;
 pub type Leverages     = HashMap<String, Leverage>;
 pub type MarginModes   = HashMap<String, MarginMode>;
 pub type TradingFees   = HashMap<String, TradingFee>;
+pub type AllGreeks     = HashMap<String, Greeks>;
+pub type DepositAddresses = HashMap<String, DepositAddress>;
 
 /// Walk a `Value::Dict` of `<key> → Value` and decode each value with
 /// the supplied `from_value` constructor. Returns an empty map on a

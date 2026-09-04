@@ -198,7 +198,7 @@ func (this *Kucoinfutures) EditOrders(orders []OrderRequest, options ...EditOrde
 func (this *Kucoinfutures) FetchAccounts(params ...any) ([]Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
 }
-func (this *Kucoinfutures) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
+func (this *Kucoinfutures) FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks, error) {
 	return this.exchangeTyped.FetchAllGreeks(options...)
 }
 func (this *Kucoinfutures) FetchBalance(params ...any) (Balances, error) {
@@ -243,7 +243,7 @@ func (this *Kucoinfutures) FetchDepositAddress(code string, options ...FetchDepo
 func (this *Kucoinfutures) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
 	return this.exchangeTyped.FetchDepositAddresses(options...)
 }
-func (this *Kucoinfutures) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
+func (this *Kucoinfutures) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error) {
 	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
 }
 func (this *Kucoinfutures) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {

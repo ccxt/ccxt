@@ -78,6 +78,9 @@ export interface TradingFeeInterface {
     taker: Num;
     percentage: Bool;
     tierBased: Bool;
+    // volume-tier fee schedule where the venue publishes one (cryptomus, onetrading):
+    // { 'maker': [[volume, fee], ...], 'taker': [[volume, fee], ...] }, see wiki/Manual.md "Trading Fees"
+    tiers?: Dict;
 }
 
 export type Fee = FeeInterface | undefined;
@@ -93,6 +96,8 @@ export interface Precision {
     amount: Num
     price: Num
     cost?: Num
+    base?: Num
+    quote?: Num
 }
 
 export interface MarketInterface {
@@ -113,6 +118,7 @@ export interface MarketInterface {
     swap: Bool;
     future: Bool;
     option: Bool;
+    index?: Bool;
     stock?: Bool;
     prediction?: Bool;
     contract: Bool;
@@ -592,6 +598,10 @@ export interface DepositAddress {
     tag?: Str;
 }
 
+/** fetchDepositAddressesByNetwork: address structures indexed by unified network code */
+export interface DepositAddresses extends Dictionary<DepositAddress> {
+}
+
 export interface WithdrawalResponse {
     info: any;
     id: string;
@@ -842,6 +852,10 @@ export interface Greeks {
     lastPrice: Num;
     underlyingPrice: Num;
     info: any;
+}
+
+/** fetchAllGreeks: greeks structures indexed by unified market symbol */
+export interface AllGreeks extends Dictionary<Greeks> {
 }
 
 export interface Conversion {

@@ -1097,7 +1097,7 @@ func (this *Bitmex) EditOrders(orders []OrderRequest, options ...EditOrdersOptio
 func (this *Bitmex) FetchAccounts(params ...any) ([]Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
 }
-func (this *Bitmex) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
+func (this *Bitmex) FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks, error) {
 	return this.exchangeTyped.FetchAllGreeks(options...)
 }
 func (this *Bitmex) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error) {
@@ -1133,7 +1133,7 @@ func (this *Bitmex) FetchCrossBorrowRates(params ...any) (CrossBorrowRates, erro
 func (this *Bitmex) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
 	return this.exchangeTyped.FetchDepositAddresses(options...)
 }
-func (this *Bitmex) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
+func (this *Bitmex) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error) {
 	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
 }
 func (this *Bitmex) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {

@@ -366,7 +366,7 @@ public partial class revolutx : Exchange
      * @param {string} [params.region] the region to filter markets by (e.g. EEA, UK)
      * @returns {object[]} an array of [market structures]{@link https://docs.ccxt.com/?id=market-structure}
      */
-    public async override Task<object> fetchMarkets(object parameters = null)
+    public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object request = new Dictionary<string, object>() {};
@@ -401,7 +401,7 @@ public partial class revolutx : Exchange
             });
             ((IList<object>)result).Add(this.parseMarket(marketData));
         }
-        return result;
+        return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
 
     /**
@@ -564,7 +564,7 @@ public partial class revolutx : Exchange
      * @param {string} [params.region] the region to fetch tickers for (e.g. EEA, UK)
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> FetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -626,9 +626,9 @@ public partial class revolutx : Exchange
                     ((IDictionary<string,object>)filtered)[(string)s] = getValue(result, s);
                 }
             }
-            return filtered;
+            return ccxt.BaseExchange.ToTickers(filtered);
         }
-        return result;
+        return ccxt.BaseExchange.ToTickers(result);
     }
 
     /**
@@ -648,7 +648,7 @@ public partial class revolutx : Exchange
         {
             await this.loadMarkets();
         }
-        object tickers = await this.fetchTickers(new List<object>() {symbol}, parameters);
+        object tickers = ccxt.BaseExchange.FromTickers(await this.FetchTickers(new List<object>() {symbol}, parameters));
         object ticker = this.safeDict(tickers, symbol);
         if (isTrue(isEqual(ticker, null)))
         {
@@ -668,7 +668,7 @@ public partial class revolutx : Exchange
      * @param {string} [params.region] the region to fetch the order book for
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -701,7 +701,7 @@ public partial class revolutx : Exchange
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object metadata = this.safeDict(response, "metadata", new Dictionary<string, object>() {});
         object timestamp = this.safeInteger(metadata, "timestamp");
-        return this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity");
+        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity"));
     }
 
     /**
@@ -903,7 +903,7 @@ public partial class revolutx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public async override Task<object> fetchBalance(object parameters = null)
+    public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -943,7 +943,7 @@ public partial class revolutx : Exchange
             ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "total");
             ((IDictionary<string,object>)result)[(string)code] = account;
         }
-        return this.safeBalance(result);
+        return ccxt.BaseExchange.ToBalances(this.safeBalance(result));
     }
 
     /**

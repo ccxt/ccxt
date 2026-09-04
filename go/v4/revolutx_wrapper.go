@@ -633,7 +633,7 @@ func (this *Revolutx) EditOrders(orders []OrderRequest, options ...EditOrdersOpt
 func (this *Revolutx) FetchAccounts(params ...any) ([]Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
 }
-func (this *Revolutx) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
+func (this *Revolutx) FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks, error) {
 	return this.exchangeTyped.FetchAllGreeks(options...)
 }
 func (this *Revolutx) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error) {
@@ -672,7 +672,7 @@ func (this *Revolutx) FetchDepositAddress(code string, options ...FetchDepositAd
 func (this *Revolutx) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
 	return this.exchangeTyped.FetchDepositAddresses(options...)
 }
-func (this *Revolutx) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
+func (this *Revolutx) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error) {
 	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
 }
 func (this *Revolutx) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {

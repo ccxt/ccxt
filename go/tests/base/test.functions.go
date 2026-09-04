@@ -38,6 +38,7 @@ var FunctionsMap = map[string]any{
 	"isJsonEncodedObject":             TestIsJsonEncodedObject,
 	"json":                            TestJson,
 	"keysort":                         TestKeysort,
+	"mergeBalanceAccount":             TestMergeBalanceAccount,
 	"networkMethods":                  TestNetworkMethods,
 	"numberToBE":                      TestNumberToBE,
 	"numberToString":                  TestNumberToString,

@@ -3863,7 +3863,13 @@ class hyperliquid(Exchange, ImplicitAPI):
                 'signature': transferSig,
             }
             transferResponse = self.privatePostExchange(transferRequest)
-            return transferResponse
+            #
+            # {'response': {'type': 'default'}, 'status': 'ok'}
+            #
+            # the sub-account branches below already hand back the unified structure; the
+            # spot <> swap branch returned the raw acknowledgement, breaking the shape
+            currency = self.safe_currency(code)
+            return self.parse_transfer(transferResponse, currency)
         # transfer between main account and subaccount
         isDeposit = False
         subAccountAddress = None
@@ -3936,11 +3942,11 @@ class hyperliquid(Exchange, ImplicitAPI):
             'id': None,
             'timestamp': None,
             'datetime': None,
-            'currency': None,
+            'currency': self.safe_currency_code(None, currency),
             'amount': None,
             'fromAccount': None,
             'toAccount': None,
-            'status': 'ok',
+            'status': self.safe_string(transfer, 'status', 'ok'),
         }
 
     def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:

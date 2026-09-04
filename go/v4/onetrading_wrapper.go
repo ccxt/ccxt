@@ -623,7 +623,7 @@ func (this *Onetrading) EditOrders(orders []OrderRequest, options ...EditOrdersO
 func (this *Onetrading) FetchAccounts(params ...any) ([]Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
 }
-func (this *Onetrading) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
+func (this *Onetrading) FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks, error) {
 	return this.exchangeTyped.FetchAllGreeks(options...)
 }
 func (this *Onetrading) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error) {
@@ -662,7 +662,7 @@ func (this *Onetrading) FetchDepositAddress(code string, options ...FetchDeposit
 func (this *Onetrading) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
 	return this.exchangeTyped.FetchDepositAddresses(options...)
 }
-func (this *Onetrading) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
+func (this *Onetrading) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error) {
 	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
 }
 func (this *Onetrading) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {

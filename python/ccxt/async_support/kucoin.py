@@ -9,7 +9,7 @@ import asyncio
 import hashlib
 import math
 import json
-from ccxt.base.types import Account, ADL, Balances, BorrowInterest, CrossBorrowRate, Currencies, Currency, CurrencyInterface, DepositAddress, Int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, MarginMode, MarginModification, MarginLoan, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, PositionModeInfo, Status, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, DepositWithdrawFee, DepositWithdrawFees, Transaction, TransferEntry
+from ccxt.base.types import Account, ADL, Balances, BorrowInterest, CrossBorrowRate, Currencies, Currency, CurrencyInterface, DepositAddress, DepositAddresses, Int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, MarginMode, MarginModification, MarginLoan, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, PositionModeInfo, Status, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, DepositWithdrawFee, DepositWithdrawFees, Transaction, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -3589,7 +3589,7 @@ class kucoin(Exchange, ImplicitAPI):
             'tag': self.safe_string(depositAddress, 'memo'),
         }
 
-    async def fetch_deposit_addresses_by_network(self, code: str, params={}) -> list[DepositAddress]:
+    async def fetch_deposit_addresses_by_network(self, code: str, params={}) -> DepositAddresses:
         """
 
         https://www.kucoin.com/docs-new/rest/account-info/deposit/get-deposit-address-v3/en
@@ -3599,7 +3599,7 @@ class kucoin(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.uta]: set to True for the unified trading account(uta) endpoint, defaults to False
-        :returns dict: an array of `address structures <https://docs.ccxt.com/?id=address-structure>`
+        :returns dict: a dictionary of `address structures <https://docs.ccxt.com/?id=address-structure>` indexed by the network
         """
         if self.markets is None:
             await self.load_markets()
@@ -7763,18 +7763,14 @@ class kucoin(Exchange, ImplicitAPI):
             assets = self.safe_value(data, 'assets', data)
             for i in range(0, len(assets)):
                 entry = assets[i]
-                marketId = self.safe_string(entry, 'symbol')
-                symbol = self.safe_symbol(marketId, None, '_')
                 base = self.safe_dict(entry, 'baseAsset', {})
                 quote = self.safe_dict(entry, 'quoteAsset', {})
                 baseCode = self.safe_currency_code(self.safe_string(base, 'currency'))
                 quoteCode = self.safe_currency_code(self.safe_string(quote, 'currency'))
-                subResult = {}
                 if baseCode is not None:
-                    subResult[baseCode] = self.parse_balance_helper(base)
+                    result = self.merge_balance_account(result, baseCode, self.parse_balance_helper(base))
                 if quoteCode is not None:
-                    subResult[quoteCode] = self.parse_balance_helper(quote)
-                result[symbol] = self.safe_balance(subResult)
+                    result = self.merge_balance_account(result, quoteCode, self.parse_balance_helper(quote))
         elif cross:
             data = self.safe_dict(response, 'data', {})
             accounts = self.safe_list(data, 'accounts', [])
@@ -7798,10 +7794,7 @@ class kucoin(Exchange, ImplicitAPI):
                     account['used'] = self.safe_string(balance, 'holds')
                     if codeInner2 is not None:
                         result[codeInner2] = account
-        returnType = result
-        if not isolated:
-            returnType = self.safe_balance(result)
-        return returnType
+        return self.safe_balance(result)
 
     async def fetch_contract_balance(self, params={}) -> Balances:
         """
@@ -7964,17 +7957,13 @@ class kucoin(Exchange, ImplicitAPI):
         if isIsolated:
             for i in range(0, len(accounts)):
                 entry = accounts[i]
-                marketId = self.safe_string(entry, 'accountSubtype')
-                symbol = self.safe_symbol(marketId, None, '-')
-                subResult = {}
                 currencies = self.safe_list(entry, 'currencies', [])
                 for j in range(0, len(currencies)):
                     currencyEntry = self.safe_dict(currencies, j, {})
                     currencyId = self.safe_string(currencyEntry, 'currency')
                     currencyCode = self.safe_currency_code(currencyId)
                     if currencyCode is not None:
-                        subResult[currencyCode] = self.parse_balance_helper(currencyEntry)
-                result[symbol] = self.safe_balance(subResult)
+                        result = self.merge_balance_account(result, currencyCode, self.parse_balance_helper(currencyEntry))
         else:
             firstAccount = self.safe_dict(accounts, 0, {})
             currencies = self.safe_list(firstAccount, 'currencies', [])
@@ -7984,10 +7973,7 @@ class kucoin(Exchange, ImplicitAPI):
                 currencyCode = self.safe_currency_code(currencyId)
                 if currencyCode is not None:
                     result[currencyCode] = self.parse_balance_helper(currencyEntry)
-        returnType = result
-        if not isIsolated:
-            returnType = self.safe_balance(result)
-        return returnType
+        return self.safe_balance(result)
 
     async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """

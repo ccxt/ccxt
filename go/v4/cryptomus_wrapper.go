@@ -411,7 +411,7 @@ func (this *Cryptomus) EditOrders(orders []OrderRequest, options ...EditOrdersOp
 func (this *Cryptomus) FetchAccounts(params ...any) ([]Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
 }
-func (this *Cryptomus) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
+func (this *Cryptomus) FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks, error) {
 	return this.exchangeTyped.FetchAllGreeks(options...)
 }
 func (this *Cryptomus) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error) {
@@ -450,7 +450,7 @@ func (this *Cryptomus) FetchDepositAddress(code string, options ...FetchDepositA
 func (this *Cryptomus) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
 	return this.exchangeTyped.FetchDepositAddresses(options...)
 }
-func (this *Cryptomus) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
+func (this *Cryptomus) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error) {
 	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
 }
 func (this *Cryptomus) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {

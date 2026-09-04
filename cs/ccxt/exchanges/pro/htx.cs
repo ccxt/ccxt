@@ -2295,7 +2295,6 @@ public partial class htx : ccxt.htx
                 messageHash = add(messageHash, add(".", ((string)currencyId).ToLower()));
                 subscription = this.safeValue(((WebSocketClient)client).subscriptions, messageHash);
             }
-            object type = this.safeString(subscription, "type");
             object subType = this.safeString(subscription, "subType");
             if (isTrue(isEqual(topic, "accounts_unify")))
             {
@@ -2329,33 +2328,17 @@ public partial class htx : ccxt.htx
                 object margin = this.safeString(subscription, "margin");
                 if (isTrue(isEqual(margin, "cross")))
                 {
-                    object fieldName = ((bool) isTrue((isEqual(type, "future")))) ? "futures_contract_detail" : "contract_detail";
-                    object balances = this.safeValue(first, fieldName, new List<object>() {});
-                    int balancesLength = getArrayLength(balances);
-                    if (isTrue(isGreaterThan(balancesLength, 0)))
+                    // the cross account is one shared margin balance, keyed by the settle currency
+                    object currencyId = this.safeString2(first, "margin_asset", "margin_account");
+                    object code = this.safeCurrencyCode(currencyId);
+                    if (isTrue(!isEqual(code, null)))
                     {
-                        for (object i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
-                        {
-                            object balance = getValue(balances, i);
-                            object marketId = this.safeString2(balance, "contract_code", "margin_account");
-                            object market = this.safeMarket(marketId);
-                            object currencyId = this.safeString(balance, "margin_asset");
-                            object currency = this.safeCurrency(currencyId);
-                            object code = this.safeString(market, "settle", getValue(currency, "code"));
-                            // the exchange outputs positions for delisted markets
-                            // https://www.huobi.com/support/en-us/detail/74882968522337
-                            // we skip it if the market was delisted
-                            if (isTrue(!isEqual(code, null)))
-                            {
-                                object account = this.account();
-                                ((IDictionary<string,object>)account)["free"] = this.safeString2(balance, "margin_balance", "margin_available");
-                                ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "margin_frozen");
-                                object accountsByCode = new Dictionary<string, object>() {};
-                                ((IDictionary<string,object>)accountsByCode)[(string)code] = account;
-                                object symbol = getValue(market, "symbol");
-                                ((IDictionary<string,object>)this.balance)[(string)symbol] = this.safeBalance(accountsByCode);
-                            }
-                        }
+                        object account = this.account();
+                        ((IDictionary<string,object>)account)["free"] = this.safeString2(first, "withdraw_available", "margin_available");
+                        ((IDictionary<string,object>)account)["used"] = this.safeString(first, "margin_frozen");
+                        ((IDictionary<string,object>)account)["total"] = this.safeString(first, "margin_balance");
+                        ((IDictionary<string,object>)this.balance)[(string)code] = account;
+                        this.balance = this.safeBalance(this.balance);
                     }
                 } else
                 {
