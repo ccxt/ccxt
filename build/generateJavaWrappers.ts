@@ -77,6 +77,11 @@ function tsTypeToJavaType(tsType: string | undefined, isReturn = false): string 
 function tsReturnTypeToJava(methodName: string, tsReturnType: string): { javaType: string, isArray: boolean, elementType: string | null } | null {
     if (methodName === 'fetchTime') return { javaType: 'Long', isArray: false, elementType: null };
     if (methodName.startsWith('watchOrderBook')) return { javaType: 'OrderBook', isArray: false, elementType: null };
+    // Base body is fetchOrderBook + aggregate/extend (blockchaincom: parseOrderBook).
+    // The TS annotation is missing so the parser sees Promise<any>; without this
+    // special-case the typed OrderBook wrapper is never emitted. Java-only — do
+    // not annotate Exchange.ts here (Go IFetchL2OrderBook / C# already diverge).
+    if (methodName === 'fetchL2OrderBook') return { javaType: 'OrderBook', isArray: false, elementType: null };
     if (methodName === 'watchOHLCVForSymbols') return null;
 
     const isPromise = tsReturnType.startsWith('Promise<') && tsReturnType.endsWith('>');
@@ -111,9 +116,14 @@ function tsReturnTypeToJava(methodName: string, tsReturnType: string): { javaTyp
 // repay{Cross,Isolated,}Margin). They are annotated Promise<MarginModification> /
 // Promise<MarginLoan> in Exchange.ts and share setMargin's already-wrapped shape;
 // without these prefixes they were silently left as CompletableFuture<Object> on
-// the Core with no typed overload. The prefixes are deliberately narrow so the
-// sync helpers (addFetchCache, addKeyInArrayItems, reduceFeesByCurrency) stay out.
-const ALLOWED_PREFIXES = ['fetch', 'create', 'edit', 'cancel', 'close', 'setP', 'setM', 'setL', 'transfer', 'withdraw', 'watch', 'unWatch', 'addMargin', 'reduceMargin', 'borrow', 'repay'];
+// the Core with no typed overload. 'loadAccounts' is the same gap: the parser
+// already infers Promise<Account[]> from `this.accounts!: Account[]` / fetchAccounts,
+// but the name missed every prefix so no typed overload was emitted. The prefixes
+// are deliberately narrow so the sync helpers (addFetchCache, addKeyInArrayItems,
+// reduceFeesByCurrency) and other load* internals (loadMarkets, loadTimeDifference,
+// loadOrderBook) stay out. loadAccounts is NOT on ZERO_REQUIRED_TYPED_WHITELIST —
+// REST/WS cores still call `this.loadAccounts()` against the Object... varargs.
+const ALLOWED_PREFIXES = ['fetch', 'create', 'edit', 'cancel', 'close', 'setP', 'setM', 'setL', 'transfer', 'withdraw', 'watch', 'unWatch', 'addMargin', 'reduceMargin', 'borrow', 'repay', 'loadAccounts'];
 const BLACKLIST = new Set([
     'fetch', 'fetchCurrenciesWs', 'fetchMarketsWs', 'setSandBoxMode', 'loadOrderBook',
     'loadMarketsHelper', 'createNetworksByIdObject', 'setMarketsFromExchange',
