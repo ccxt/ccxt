@@ -1,7 +1,7 @@
 <!-- title: CCXT vs the Revolut X API -->
-<!-- description: Revolut X publishes 16 REST endpoints and one TypeScript client. CCXT wraps the same API in 18 unified methods across seven languages. No WebSocket either way. -->
+<!-- description: Revolut X publishes 16 REST endpoints and one TypeScript client. CCXT wraps the same API in 18 unified methods across eight languages. No WebSocket either way. -->
 <!-- group: Exchange APIs and official SDKs -->
-<!-- summary: Revolut X's API is deliberately small — 16 REST endpoints, Ed25519 signing, no streaming. Its official client is TypeScript only; CCXT covers effectively the same surface in seven languages. -->
+<!-- summary: Revolut X's API is deliberately small — 16 REST endpoints, Ed25519 signing, no streaming. Its official client is TypeScript only; CCXT covers effectively the same surface in eight languages. -->
 <!-- weight: 100 -->
 
 # CCXT vs the Revolut X API
@@ -13,7 +13,7 @@ There is no WebSocket API on either side of this page. So the question is not st
 ## TL;DR
 
 - **Pick the official client** if you are on Node.js, trade only Revolut X, and want typed models that mirror Revolut's docs field for field — plus a CLI and an MCP server you get for free.
-- **Pick CCXT** if you are not writing TypeScript, or if Revolut X is one venue among several: 18 unified capabilities, 13 of them `fetch*`, and all 16 endpoints as implicit methods, from TypeScript, JavaScript, Python, PHP, C#/.NET, Go or Java.
+- **Pick CCXT** if you are not writing TypeScript, or if Revolut X is one venue among several: 18 unified capabilities, 13 of them `fetch*`, and all 16 endpoints as implicit methods, from TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java or Rust.
 - **Be honest about the size of this integration.** 18 unified capabilities is the narrowest coverage of any exchange page here — but Revolut X only publishes 16 endpoints in total, so CCXT is covering close to the whole API rather than a slice of it. There are no positions, no leverage, no funding, no deposits and no withdrawals to unify.
 
 ## At a glance
@@ -21,7 +21,7 @@ There is no WebSocket API on either side of this page. So the question is not st
 | | **CCXT** | **`@revolut/revolut-x-api`** |
 | --- | --- | --- |
 | Exchanges covered | 104 (Revolut X is one of them) | Revolut X only |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | TypeScript / Node.js 20+ |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | TypeScript / Node.js 20+ |
 | Distribution | `pip install ccxt`, `npm install ccxt`, NuGet, Go modules, Maven | npm, or a `.tgz` from GitHub releases |
 | Unified market data + trading API | yes — same method names across every exchange | no — Revolut X's own payloads, typed |
 | Revolut X capabilities implemented | 18 unified methods, 13 of them `fetch*` | the full 16-endpoint surface |
@@ -110,7 +110,7 @@ Note the credential shape on the CCXT side: Revolut X uses an API key plus an **
 
 Revolut X's published API is REST. Its own documentation and its own client cover REST endpoints only, and CCXT implements zero `watch*` methods for `revolutx` — there is no `ccxt.pro.revolutx`. Live data means polling `fetch_order_book`, `fetch_ticker` or `fetch_trades` on a timer, whichever route you take. The usual CCXT Pro advantage simply does not apply to this venue.
 
-### Seven languages, one API
+### Eight languages, one API
 
 This is the main practical difference. The official client is TypeScript on Node.js 20+. If your trading code is Python, Go, C# or PHP, your options are a hand-rolled Ed25519 signer or CCXT.
 

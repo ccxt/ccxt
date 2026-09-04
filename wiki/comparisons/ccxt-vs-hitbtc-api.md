@@ -22,7 +22,7 @@ So the honest comparison is not CCXT against a vendor SDK. It is **CCXT against 
 | | **CCXT** | **The raw HitBTC API** |
 | --- | --- | --- |
 | Exchanges covered | 104 (HitBTC is one of them) | HitBTC only |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | any language with an HTTP client, all of it your code |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | any language with an HTTP client, all of it your code |
 | Official client library | n/a | **none** — `hitbtc-com/hitbtc-api` is a documentation repository (LGPL-3.0) |
 | HitBTC products in one client | spot, margin, futures — one `ccxt.hitbtc` instance | three parallel endpoint families (`spot/*`, `margin/*`, `futures/*`) |
 | Unified market data + trading API | yes — 67 unified capabilities, 35 `fetch*` methods | no — HitBTC's own request and response shapes |

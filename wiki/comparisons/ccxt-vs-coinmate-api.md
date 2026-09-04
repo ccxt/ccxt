@@ -23,7 +23,7 @@ So the deciding question is: **do you want a vendored client you maintain, or a 
 | | **CCXT** | **Coinmate's official clients** |
 | --- | --- | --- |
 | Exchanges covered | 104 (Coinmate is one of them) | Coinmate only |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | Java 21, TypeScript 5.x, Python 3.11+, PHP 8.2+ — four separate codebases |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | Java 21, TypeScript 5.x, Python 3.11+, PHP 8.2+ — four separate codebases |
 | Distribution | published packages (`ccxt` on npm, PyPI, Packagist, NuGet, Maven, Go modules) | copy the source into your project; not published to any package registry |
 | Unified market data + trading API | yes — 18 unified capabilities, 13 `fetch*` methods | no — Coinmate's own request/response shapes |
 | Endpoint coverage | 64 endpoints as implicit methods | "55+ endpoints" per the repository README |
@@ -105,7 +105,7 @@ Coinmate needs three credentials rather than the usual two — `clientId`, `publ
 
 This is the practical difference. `pip install ccxt` (or `composer require ccxt/ccxt`, or `go get`) gives you a versioned dependency: when Coinmate changes a field, you bump a version. Vendored example code gives you a fork the moment you paste it — Coinmate's later fixes reach you only if you notice them and re-merge by hand.
 
-Coinmate maintains four separate client implementations, one per language. CCXT is written once in TypeScript and transpiled to seven languages with identical method names and return structures:
+Coinmate maintains four separate client implementations, one per language. CCXT is written once in TypeScript and transpiled to eight languages with identical method names and return structures:
 
 <!-- tabs:start -->
 

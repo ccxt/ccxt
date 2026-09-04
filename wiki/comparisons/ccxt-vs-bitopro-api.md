@@ -13,7 +13,7 @@ The question that decides between them: **is BitoPro the only venue your code wi
 ## TL;DR
 
 - **Pick a BitoPro wrapper** if BitoPro is your only venue and you want a client whose methods map one-to-one onto BitoPro's v3 reference — `get_tickers`, `create_an_order`, `btc_twd`.
-- **Pick CCXT** if you want the same 32 capabilities expressed the way every other exchange expresses them, in seven languages, so adding a second venue is a string change rather than a second integration.
+- **Pick CCXT** if you want the same 32 capabilities expressed the way every other exchange expresses them, in eight languages, so adding a second venue is a string change rather than a second integration.
 - **Nothing is hidden.** All 26 BitoPro endpoints CCXT models are callable as [implicit methods](/docs/exchanges/bitopro/implicit-api), signed and rate-limited.
 
 ## At a glance
@@ -21,7 +21,7 @@ The question that decides between them: **is BitoPro the only venue your code wi
 | | **CCXT** | **Official BitoPro wrappers** |
 | --- | --- | --- |
 | Exchanges covered | 104 (BitoPro is one of them) | BitoPro only |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | Node.js, Python, Go, C#, Ruby, Java — separate repositories, updated at different times |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | Node.js, Python, Go, C#, Ruby, Java — separate repositories, updated at different times |
 | Packages to install | 1 (`ccxt`) | one per language |
 | Unified market data + trading API | yes — same names on every exchange | no — BitoPro's own v3 shapes |
 | Unified capabilities | 32 | n/a — endpoint wrappers |
@@ -136,7 +136,7 @@ The raw snippet is short because BitoPro's public book channel is a plain subscr
 
 ### The signature is a base64 payload, not a query string
 
-BitoPro signs private requests with three headers: `X-BITOPRO-APIKEY`, `X-BITOPRO-PAYLOAD` — a base64 encoding of the JSON body, including a nonce — and `X-BITOPRO-SIGNATURE`, an **HMAC-SHA384** over that base64 string. It is a different shape from the query-string HMAC most venues use, and the ordering of keys inside the JSON matters because you sign the encoded bytes. CCXT implements it once, in one place, for all seven languages.
+BitoPro signs private requests with three headers: `X-BITOPRO-APIKEY`, `X-BITOPRO-PAYLOAD` — a base64 encoding of the JSON body, including a nonce — and `X-BITOPRO-SIGNATURE`, an **HMAC-SHA384** over that base64 string. It is a different shape from the query-string HMAC most venues use, and the ordering of keys inside the JSON matters because you sign the encoded bytes. CCXT implements it once, in one place, for all eight languages.
 
 ### One API for the parts that are not market data
 
@@ -161,7 +161,7 @@ BitoPro's own wrapper passes amounts and prices as strings for the same reason.
 
 CCXT maps BitoPro's error responses onto a [typed exception tree](/docs/manual#error-handling) — `InsufficientFunds`, `InvalidOrder`, `OrderNotFound`, `AuthenticationError`, `RateLimitExceeded`, `NetworkError` and 35 more, all under `BaseError`. `except ccxt.InsufficientFunds` is the same line of code on the next exchange.
 
-### Seven languages, one API
+### Eight languages, one API
 
 <!-- tabs:start -->
 
@@ -190,7 +190,7 @@ ticker, err := exchange.FetchTicker("BTC/TWD")
 
 <!-- tabs:end -->
 
-BitoPro publishes six language wrappers, but they are six codebases: the Python, Go and C# repositories were last touched in June 2026, the Ruby one in July 2022 and the Java one in June 2021. CCXT is one source of truth transpiled to seven languages, so every language gets the same fix in the same release.
+BitoPro publishes six language wrappers, but they are six codebases: the Python, Go and C# repositories were last touched in June 2026, the Ruby one in July 2022 and the Java one in June 2021. CCXT is one source of truth transpiled to eight languages, so every language gets the same fix in the same release.
 
 ### Nothing is hidden — the implicit API
 

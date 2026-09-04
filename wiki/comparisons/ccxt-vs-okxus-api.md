@@ -25,7 +25,7 @@ Separate host, separate accounts and a narrower product set than the global venu
 | WebSocket `watch*` methods | 19 |
 | Raw endpoints as implicit methods | 446 |
 | Testnet via `setSandboxMode` | yes |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust |
 | Licence | MIT |
 
 <sub>Figures verified September 2026 against CCXT v{{CCXT_VERSION}}, read from the source tree with `build/comparisons-facts.cjs`. Counts include everything inherited from `okx`.</sub>

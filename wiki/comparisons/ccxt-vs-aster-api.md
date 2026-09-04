@@ -1,7 +1,7 @@
 <!-- title: CCXT vs the Aster API and aster-connector-python -->
 <!-- description: CCXT compared with Aster's official Python connector on v3 EIP-712 wallet signing versus v1 API keys, language coverage, streaming and unified structures. -->
 <!-- group: Exchange APIs and official SDKs -->
-<!-- summary: Aster's official connector is Python-only and signs with a v1 API key and secret. CCXT signs Aster v3 requests with EIP-712 typed data from your wallet key, in seven languages, across spot and perps in one client. -->
+<!-- summary: Aster's official connector is Python-only and signs with a v1 API key and secret. CCXT signs Aster v3 requests with EIP-712 typed data from your wallet key, in eight languages, across spot and perps in one client. -->
 <!-- weight: 100 -->
 
 # CCXT vs the Aster API and aster-connector-python
@@ -15,7 +15,7 @@ So the deciding question is not really "SDK or library". It is: **which generati
 ## TL;DR
 
 - **Pick aster-connector-python** if you already hold a V1 API key, you are happy in Python, and you want a thin client whose method names match Aster's V1 reference one for one.
-- **Pick CCXT** if you are starting now. New V1 keys can no longer be created, and CCXT signs V3 with your wallet key — spot and perpetuals from one client, in TypeScript, JavaScript, Python, PHP, C#, Go and Java.
+- **Pick CCXT** if you are starting now. New V1 keys can no longer be created, and CCXT signs V3 with your wallet key — spot and perpetuals from one client, in TypeScript, JavaScript, Python, PHP, C#, Go, Java and Rust.
 - **CCXT is not a lowest common denominator here.** All 165 Aster endpoints across the spot and futures hosts are callable as implicit methods, with signing applied.
 
 ## At a glance
@@ -23,7 +23,7 @@ So the deciding question is not really "SDK or library". It is: **which generati
 | | **CCXT** | **aster-connector-python** |
 | --- | --- | --- |
 | Venues covered | 104 (Aster is one of them) | Aster only |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | Python 3.6+ |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | Python 3.6+ |
 | Install | `pip install ccxt` (and the equivalent in six other languages) | from the repository — its `setup.py` name is not published on PyPI |
 | Authentication | V3 EIP-712 typed-data signing from a wallet `privateKey` | HMAC signature with `X-MBX-APIKEY` — the V1 scheme |
 | Products in one client | spot and perpetuals | its README documents one base URL, `https://fapi.asterdex.com` |
@@ -166,7 +166,7 @@ info = exchange.fapi_public_get_v3_exchange_info()
 
 Browse them on the [aster implicit API page](/docs/exchanges/aster/implicit-api).
 
-### Seven languages, one API
+### Eight languages, one API
 
 aster-connector-python is Python only. If your execution service is Go, C# or Java, Aster is a from-scratch integration — including the EIP-712 signing. CCXT is written once in TypeScript and transpiled, with identical method names and return structures:
 

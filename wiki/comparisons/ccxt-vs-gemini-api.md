@@ -1,7 +1,7 @@
 <!-- title: CCXT vs the Gemini API -->
 <!-- description: CCXT's Gemini integration compared with Gemini's own TypeScript and Go SDKs — language coverage, WebSockets, rate limits, sandbox and raw endpoint access. -->
 <!-- group: Exchange APIs and official SDKs -->
-<!-- summary: Gemini publishes official SDKs for TypeScript and Go only — Python and everything else gets raw HTTP samples. CCXT gives the same venue one API in seven languages, with all 82 raw endpoints still reachable. -->
+<!-- summary: Gemini publishes official SDKs for TypeScript and Go only — Python and everything else gets raw HTTP samples. CCXT gives the same venue one API in eight languages, with all 82 raw endpoints still reachable. -->
 <!-- weight: 100 -->
 
 # CCXT vs the Gemini API
@@ -21,7 +21,7 @@ The deciding question is narrower than usual here, because **Gemini's official S
 | | **CCXT** | **Gemini's own SDKs** |
 | --- | --- | --- |
 | Exchanges covered | 104 (Gemini is one of them) | Gemini only |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | TypeScript SDK and Go SDK; other languages get raw-HTTP samples |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | TypeScript SDK and Go SDK; other languages get raw-HTTP samples |
 | Packages to install | 1 (`ccxt`) | `@gemini-markets/sdk` (npm) or the Go module |
 | Gemini products in one client | spot and perpetuals, one `ccxt.gemini` instance | REST reference covers spot, derivatives, margin, staking, clearing and prediction markets |
 | Unified market data + trading API | yes — 32 unified capabilities, 16 `fetch*` methods | no — Gemini's own request and response shapes |
@@ -116,9 +116,9 @@ Both are readable. The difference is what the return value is: CCXT's is an [ord
 
 ## Where the differences actually bite
 
-### Seven languages, one API
+### Eight languages, one API
 
-CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, with identical method names, arguments and return structures in all of them. Gemini publishes an SDK in two of those seven. For Python, PHP, C#, Java or plain JavaScript, the practical choice for Gemini is CCXT or your own HTTP wrapper.
+CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go, Java and Rust, with identical method names, arguments and return structures in all of them. Gemini publishes an SDK in two of those seven. For Python, PHP, C#, Java or plain JavaScript, the practical choice for Gemini is CCXT or your own HTTP wrapper.
 
 <!-- tabs:start -->
 

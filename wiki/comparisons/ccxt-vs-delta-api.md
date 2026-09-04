@@ -1,7 +1,7 @@
 <!-- title: CCXT vs the Delta Exchange API and delta-rest-client -->
 <!-- description: CCXT and Delta Exchange's official Python REST client compared on symbols versus product ids, language coverage, rate limits, precision, errors and testnet handling. -->
 <!-- group: Exchange APIs and official SDKs -->
-<!-- summary: Delta's official client is one Python package covering REST only. CCXT covers Delta's spot, perpetuals and options in seven languages with 43 unified capabilities — but neither side ships WebSocket support for Delta. -->
+<!-- summary: Delta's official client is one Python package covering REST only. CCXT covers Delta's spot, perpetuals and options in eight languages with 43 unified capabilities — but neither side ships WebSocket support for Delta. -->
 <!-- weight: 100 -->
 
 # CCXT vs the Delta Exchange API and delta-rest-client
@@ -13,7 +13,7 @@ The question that decides it: **is Delta the only venue you will trade, in Pytho
 ## TL;DR
 
 - **Pick `delta-rest-client`** if Delta is your only venue, you work in Python, and you want method arguments that match Delta's docs literally — numeric `product_id`, integer contract `size`, and an explicit `base_url` for India versus global.
-- **Pick CCXT** if you want unified symbols and one `create_order` that means the same thing on Delta, Binance and Deribit — in seven languages, with rate limiting, precision handling and typed errors already written.
+- **Pick CCXT** if you want unified symbols and one `create_order` that means the same thing on Delta, Binance and Deribit — in eight languages, with rate limiting, precision handling and typed errors already written.
 - **Neither side streams.** CCXT implements **no `watch*` methods for Delta**, and the official Python client is REST-only. If you need Delta's WebSocket feed today, you write it against the raw socket either way. That is the honest state of both projects.
 
 ## At a glance
@@ -21,7 +21,7 @@ The question that decides it: **is Delta the only venue you will trade, in Pytho
 | | **CCXT** | **delta-rest-client** |
 | --- | --- | --- |
 | Venues covered | 104 (Delta is one of them) | Delta Exchange only |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | Python |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | Python |
 | Packages to install | 1 (`ccxt`) | 1 (`delta-rest-client`) |
 | Unified market data + trading API | yes — 43 unified capabilities, 30 `fetch*` methods | no — Delta's own request and response shapes |
 | Products | spot, perpetuals, futures, options from one client | all of them, addressed by numeric `product_id` |
@@ -155,9 +155,9 @@ exchange.set_sandbox_mode(True)   # swaps in testnet-api.delta.exchange
 
 One flag. Note the scope honestly: CCXT ships Delta's **global** hosts, `api.delta.exchange` and `testnet-api.delta.exchange`. Delta also runs a separate India deployment on `api.india.delta.exchange` with its own accounts, keys and product ids; the official client makes that a constructor argument, and in CCXT you would override `exchange.urls['api']` yourself.
 
-### Seven languages, one API
+### Eight languages, one API
 
-CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, with identical method names and return structures.
+CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go, Java and Rust, with identical method names and return structures.
 
 <!-- tabs:start -->
 

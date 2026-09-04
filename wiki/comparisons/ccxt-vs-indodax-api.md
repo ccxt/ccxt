@@ -21,7 +21,7 @@ So the real comparison is not CCXT against an SDK. It is **CCXT against the clie
 | | **CCXT** | **Raw INDODAX API** |
 | --- | --- | --- |
 | Official client library | — | none published; documentation repository only |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | any, you write the client |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | any, you write the client |
 | Symbols | `'BTC/IDR'` | `btc_idr` for public, `BTCIDR` in some payloads |
 | Unified capabilities | 19, of which 15 are `fetch*` | n/a |
 | Signing | built in | HMAC-SHA512 over the urlencoded body, `Key` + `Sign` headers, `nonce` or `timestamp` + `recvWindow` |
@@ -135,9 +135,9 @@ INDODAX's public endpoints use `btc_idr` and some payloads use `BTCIDR`. CCXT no
 
 INDODAX signals failure as `{"success": 0, "error": "..."}` with an HTTP 200. A hand-rolled client has to check the body of every response and match on error strings. CCXT does that and raises from a [typed exception tree](/docs/manual#error-handling) — `InsufficientFunds`, `InvalidOrder`, `OrderNotFound`, `AuthenticationError`, `RateLimitExceeded` and 36 more under `BaseError` — so one `except` block covers this venue and the next.
 
-### Seven languages, one API
+### Eight languages, one API
 
-CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, with identical method names and return structures. INDODAX's documentation ships a PHP signing example; every other language is yours to write and re-write.
+CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go, Java and Rust, with identical method names and return structures. INDODAX's documentation ships a PHP signing example; every other language is yours to write and re-write.
 
 <!-- tabs:start -->
 

@@ -13,7 +13,7 @@ So the comparison here is not CCXT against a vendor SDK. It is CCXT against the 
 ## TL;DR
 
 - **Write it yourself** if you need one or two endpoints, want zero dependencies, and are comfortable reading Korean-language reference docs.
-- **Pick CCXT** if you want unified symbols, signing, per-request pacing, typed errors and WebSocket streaming that already work, in seven languages, with the same method names you will use on the next exchange.
+- **Pick CCXT** if you want unified symbols, signing, per-request pacing, typed errors and WebSocket streaming that already work, in eight languages, with the same method names you will use on the next exchange.
 - **CCXT does not hide the venue.** All 67 Bithumb endpoints it models are callable as [implicit methods](/docs/exchanges/bithumb/implicit-api), signed and rate-limited.
 
 ## At a glance
@@ -23,7 +23,7 @@ So the comparison here is not CCXT against a vendor SDK. It is CCXT against the 
 | Exchanges covered | 104 (Bithumb is one of them) | Bithumb only |
 | Official client library | n/a | none — the docs point you at generic JWT and HTTP libraries |
 | Documentation language | English | Korean |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | whatever you write |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | whatever you write |
 | Unified market data + trading API | yes — 37 capabilities, same names on every exchange | raw JSON |
 | Symbols | `'BTC/KRW'` | `BTC_KRW`, `KRW-BTC` depending on the API generation |
 | Request signing | built in | your code — JWT (HS256) with a UUID nonce and a SHA-512 query hash |
@@ -184,7 +184,7 @@ amount = exchange.amount_to_precision('BTC/KRW', 0.0012345678)
 price = exchange.price_to_precision('BTC/KRW', 106354321.4)
 ```
 
-### Seven languages, one API
+### Eight languages, one API
 
 <!-- tabs:start -->
 
@@ -213,7 +213,7 @@ var ticker = await exchange.FetchTicker("BTC/KRW");
 
 <!-- tabs:end -->
 
-Bithumb's setup guide shows the JWT construction separately for Node, Python and Java, because there is no shared client to point at. CCXT is written once and transpiled to seven languages, so the token construction is the same code everywhere.
+Bithumb's setup guide shows the JWT construction separately for Node, Python and Java, because there is no shared client to point at. CCXT is written once and transpiled to eight languages, so the token construction is the same code everywhere.
 
 ### Nothing is hidden — the implicit API
 

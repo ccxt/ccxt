@@ -16,7 +16,7 @@ Kraken does not publish an official client library. The Python libraries people 
 
 - **Pick `krakenex`** if you want the smallest possible dependency, only need a handful of Spot REST endpoints, and LGPL-3.0 is fine for your project.
 - **Pick `python-kraken-sdk`** if you want Spot, xStocks and Futures in one Apache-2.0 Python package with a CLI and WebSocket clients, and you are happy importing a different class per product.
-- **Pick CCXT** if you want Spot and Futures behind one method vocabulary, in any of seven languages, with the rate limiting, nonce handling, error taxonomy and order-book reconciliation already written — and the same code shape on the next exchange.
+- **Pick CCXT** if you want Spot and Futures behind one method vocabulary, in any of eight languages, with the rate limiting, nonce handling, error taxonomy and order-book reconciliation already written — and the same code shape on the next exchange.
 - **Choosing CCXT does not hide anything.** All 61 raw Spot endpoints and 39 raw Futures endpoints are callable as [implicit methods](/docs/exchanges/kraken/implicit-api).
 
 ## At a glance
@@ -25,7 +25,7 @@ Kraken does not publish an official client library. The Python libraries people 
 | --- | --- | --- | --- |
 | Exchanges covered | 104 | Kraken Spot only | Kraken Spot + Futures |
 | Spot and Futures in one vocabulary | yes — `ccxt.kraken()` and `ccxt.krakenfutures()`, same method names | Spot only | separate `kraken.spot` and `kraken.futures` clients |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | Python | Python (>= 3.11) |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | Python | Python (>= 3.11) |
 | Unified market data + trading API | yes — same method names across every exchange | no — you pass Kraken method names as strings | no — Kraken's own shapes |
 | WebSockets | yes — 13 `watch*` on Spot, 12 on Futures, plus `createOrderWs`, `editOrderWs`, `cancelOrderWs`, `cancelOrdersWs`, `cancelAllOrdersWs` | **no** — REST only | yes, Spot and Futures WS clients |
 | Raw endpoint access | yes — 61 Spot + 39 Futures endpoints as implicit methods | yes, it is the whole product | yes, via a generic `request()` |
@@ -199,9 +199,9 @@ Kraken's documentation shows cURL and community libraries rather than a first-pa
 - **Asset-code translation.** `XBT` versus `BTC`, and the `X`/`Z` prefixes on Spot pair ids. CCXT does this in `load_markets` and keeps the raw id available.
 - **Precision and rounding.** Kraken rejects orders that violate lot size, tick size or minimum order volume, and its Futures contracts have their own sizing rules. CCXT gives you `amount_to_precision`, `price_to_precision` and `cost_to_precision`, backed by the `Precise` string-arithmetic class, so quantities never drift through float rounding into a rejected order.
 
-### Seven languages, one API
+### Eight languages, one API
 
-`krakenex` and `python-kraken-sdk` are Python-only. CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, with identical method names and return structures in all seven:
+`krakenex` and `python-kraken-sdk` are Python-only. CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go, Java and Rust, with identical method names and return structures in all eight:
 
 <!-- tabs:start -->
 

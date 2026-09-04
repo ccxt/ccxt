@@ -25,7 +25,7 @@ Same exchange and credentials as `binance`, different product line and host. The
 | WebSocket `watch*` methods | 31 |
 | Raw endpoints as implicit methods | 808 |
 | Testnet via `setSandboxMode` | no |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust |
 | Licence | MIT |
 
 <sub>Figures verified September 2026 against CCXT v{{CCXT_VERSION}}, read from the source tree with `build/comparisons-facts.cjs`. Counts include everything inherited from `binance`.</sub>
