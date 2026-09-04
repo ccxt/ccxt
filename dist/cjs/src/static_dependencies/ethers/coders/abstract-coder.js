@@ -2,12 +2,10 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-require('../utils/base58.js');
 var data = require('../utils/data.js');
 var errors = require('../utils/errors.js');
-var properties = require('../utils/properties.js');
-require('../utils/fixednumber.js');
 var maths = require('../utils/maths.js');
+var properties = require('../utils/properties.js');
 require('../utils/utf8.js');
 require('../../../base/functions/platform.js');
 require('../../../base/functions/encode.js');

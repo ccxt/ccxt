@@ -3,9 +3,8 @@
 Object.defineProperty(exports, '__esModule', { value: true });
 
 var abiCoder = require('./abi-coder.js');
-require('./utils/base58.js');
+var fragments = require('./fragments.js');
 require('./utils/errors.js');
-require('./utils/fixednumber.js');
 require('./utils/maths.js');
 require('./utils/utf8.js');
 require('../../base/functions/platform.js');
@@ -15,7 +14,6 @@ require('../../base/functions/time.js');
 require('../../base/functions/io.js');
 require('@noble/hashes/sha3.js');
 require('@noble/hashes/sha2.js');
-var fragments = require('./fragments.js');
 
 // ----------------------------------------------------------------------------
 var ethers = abiCoder.AbiCoder.defaultAbiCoder();
