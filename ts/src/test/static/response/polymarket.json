@@ -96,7 +96,7 @@
                         "id": "pUSD",
                         "numericId": null,
                         "code": "PUSD",
-                        "precision": 0.000001,
+                        "precision": 1e-06,
                         "type": "crypto",
                         "name": "pUSD",
                         "active": null,
@@ -257,7 +257,7 @@
                         "strike": null,
                         "optionType": null,
                         "precision": {
-                            "amount": 0.00001,
+                            "amount": 1e-05,
                             "price": 0.1
                         },
                         "limits": {
@@ -364,7 +364,7 @@
                         "strike": null,
                         "optionType": null,
                         "precision": {
-                            "amount": 0.00001,
+                            "amount": 1e-05,
                             "price": 0.1
                         },
                         "limits": {
@@ -446,12 +446,24 @@
         ],
         "fetchTicker": [
             {
-                "description": "parse the ticker endpoint fields",
+                "description": "parse the ticker endpoint fields, the requested instrument is deliberately not the first row",
                 "method": "fetchTicker",
                 "input": [
                     "SP500/USD:PUSD"
                 ],
                 "httpResponse": [
+                    {
+                        "instrument_id": 6,
+                        "symbol": "BTC-USD",
+                        "index_price": "79650",
+                        "mark_price": "79666",
+                        "last_price": "79744",
+                        "mid_price": "79663.5",
+                        "open_interest": "12.34567",
+                        "funding_rate": "0.0000125",
+                        "next_funding": 1788548400000,
+                        "timestamp": 1788546972857
+                    },
                     {
                         "instrument_id": 1,
                         "symbol": "SP500-USD",
@@ -915,7 +927,7 @@
                         "estimatedSettlePrice": null,
                         "timestamp": 1788546972857,
                         "datetime": "2026-09-04T18:36:12.857Z",
-                        "fundingRate": 0.00000625,
+                        "fundingRate": 6.25e-06,
                         "fundingTimestamp": null,
                         "fundingDatetime": null,
                         "nextFundingRate": null,
@@ -975,10 +987,10 @@
         ],
         "fetchFundingRate": [
             {
-                "description": "parse the current funding rate",
+                "description": "parse from the multi-row tickers payload, the endpoint ignores filters so the requested instrument is deliberately not the first row",
                 "method": "fetchFundingRate",
                 "input": [
-                    "SP500/USD:PUSD"
+                    "BTC/USD:PUSD"
                 ],
                 "httpResponse": [
                     {
@@ -992,29 +1004,41 @@
                         "funding_rate": "0.00000625",
                         "next_funding": 1788548400000,
                         "timestamp": 1788546972857
+                    },
+                    {
+                        "instrument_id": 6,
+                        "symbol": "BTC-USD",
+                        "index_price": "79650",
+                        "mark_price": "79666",
+                        "last_price": "79744",
+                        "mid_price": "79663.5",
+                        "open_interest": "12.34567",
+                        "funding_rate": "0.0000125",
+                        "next_funding": 1788548400000,
+                        "timestamp": 1788546972857
                     }
                 ],
                 "parsedResponse": {
                     "info": {
-                        "instrument_id": 1,
-                        "symbol": "SP500-USD",
-                        "index_price": "7713.1",
-                        "mark_price": "7715",
-                        "last_price": "7714",
-                        "mid_price": "7715",
-                        "open_interest": "1101.82729",
-                        "funding_rate": "0.00000625",
+                        "instrument_id": 6,
+                        "symbol": "BTC-USD",
+                        "index_price": "79650",
+                        "mark_price": "79666",
+                        "last_price": "79744",
+                        "mid_price": "79663.5",
+                        "open_interest": "12.34567",
+                        "funding_rate": "0.0000125",
                         "next_funding": 1788548400000,
                         "timestamp": 1788546972857
                     },
-                    "symbol": "SP500/USD:PUSD",
-                    "markPrice": 7715,
-                    "indexPrice": 7713.1,
+                    "symbol": "BTC/USD:PUSD",
+                    "markPrice": 79666,
+                    "indexPrice": 79650,
                     "interestRate": null,
                     "estimatedSettlePrice": null,
                     "timestamp": 1788546972857,
                     "datetime": "2026-09-04T18:36:12.857Z",
-                    "fundingRate": 0.00000625,
+                    "fundingRate": 1.25e-05,
                     "fundingTimestamp": null,
                     "fundingDatetime": null,
                     "nextFundingRate": null,
@@ -1054,7 +1078,7 @@
                             "timestamp": 1788541200037
                         },
                         "symbol": "SP500/USD:PUSD",
-                        "fundingRate": 0.00000625,
+                        "fundingRate": 6.25e-06,
                         "timestamp": 1788541200037,
                         "datetime": "2026-09-04T17:00:00.037Z"
                     },
@@ -1064,7 +1088,7 @@
                             "timestamp": 1788544800063
                         },
                         "symbol": "SP500/USD:PUSD",
-                        "fundingRate": 0.00000625,
+                        "fundingRate": 6.25e-06,
                         "timestamp": 1788544800063,
                         "datetime": "2026-09-04T18:00:00.063Z"
                     }
@@ -1073,10 +1097,10 @@
         ],
         "fetchOpenInterest": [
             {
-                "description": "parse the open interest",
+                "description": "parse from the multi-row tickers payload, the endpoint ignores filters so the requested instrument is deliberately not the first row",
                 "method": "fetchOpenInterest",
                 "input": [
-                    "SP500/USD:PUSD"
+                    "BTC/USD:PUSD"
                 ],
                 "httpResponse": [
                     {
@@ -1090,23 +1114,35 @@
                         "funding_rate": "0.00000625",
                         "next_funding": 1788548400000,
                         "timestamp": 1788546972857
+                    },
+                    {
+                        "instrument_id": 6,
+                        "symbol": "BTC-USD",
+                        "index_price": "79650",
+                        "mark_price": "79666",
+                        "last_price": "79744",
+                        "mid_price": "79663.5",
+                        "open_interest": "12.34567",
+                        "funding_rate": "0.0000125",
+                        "next_funding": 1788548400000,
+                        "timestamp": 1788546972857
                     }
                 ],
                 "parsedResponse": {
-                    "symbol": "SP500/USD:PUSD",
-                    "openInterestAmount": 1101.82729,
+                    "symbol": "BTC/USD:PUSD",
+                    "openInterestAmount": 12.34567,
                     "openInterestValue": null,
                     "timestamp": 1788546972857,
                     "datetime": "2026-09-04T18:36:12.857Z",
                     "info": {
-                        "instrument_id": 1,
-                        "symbol": "SP500-USD",
-                        "index_price": "7713.1",
-                        "mark_price": "7715",
-                        "last_price": "7714",
-                        "mid_price": "7715",
-                        "open_interest": "1101.82729",
-                        "funding_rate": "0.00000625",
+                        "instrument_id": 6,
+                        "symbol": "BTC-USD",
+                        "index_price": "79650",
+                        "mark_price": "79666",
+                        "last_price": "79744",
+                        "mid_price": "79663.5",
+                        "open_interest": "12.34567",
+                        "funding_rate": "0.0000125",
                         "next_funding": 1788548400000,
                         "timestamp": 1788546972857
                     },

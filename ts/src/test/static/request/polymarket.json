@@ -257,7 +257,7 @@
             {
                 "description": "fetch the current funding rate",
                 "method": "fetchFundingRate",
-                "url": "https://api.perpetuals.polymarket.com/v1/info/tickers?instrument_id=1",
+                "url": "https://api.perpetuals.polymarket.com/v1/info/tickers",
                 "input": [
                     "SP500/USD:PUSD"
                 ],
@@ -268,7 +268,7 @@
             {
                 "description": "fetch the open interest",
                 "method": "fetchOpenInterest",
-                "url": "https://api.perpetuals.polymarket.com/v1/info/tickers?instrument_id=1",
+                "url": "https://api.perpetuals.polymarket.com/v1/info/tickers",
                 "input": [
                     "SP500/USD:PUSD"
                 ],

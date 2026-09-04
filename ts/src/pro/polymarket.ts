@@ -190,7 +190,7 @@ export default class polymarket extends polymarketRest {
     /**
      * @method
      * @name polymarket#watchTicker
-     * @description watches a price ticker, which contains the index, mark, last and mid prices along with the open interest and the funding rate
+     * @description watches a price ticker, which carries the last, mark and index prices, the mid price, the open interest and the funding rate stay available on the raw frame under the info field
      * @see https://docs.polymarket.com/perps/realtime-updates
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint

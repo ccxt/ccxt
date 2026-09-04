@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/polymarket.js';
-import { ExchangeError, AuthenticationError, BadRequest, RateLimitExceeded, ExchangeNotAvailable, ArgumentsRequired } from './base/errors.js';
+import { ExchangeError, AuthenticationError, BadRequest, BadSymbol, RateLimitExceeded, ExchangeNotAvailable, ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import type { Dict, Int, Str, Strings, Market, Currencies, NullableDict, Ticker, Tickers, OrderBook, Trade, OHLCV, FundingRate, FundingRates, FundingRateHistory, OpenInterest, OpenInterests, TradingFees, Status, List, Endpoint, int } from './base/types.js';
 
@@ -409,11 +409,16 @@ export default class polymarket extends Exchange {
     override async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request: Dict = {
-            'instrument_id': market['id'],
-        };
-        const tickers = await this.fetchTickers ([ market['symbol'] ], this.extend (request, params));
-        return this.safeDict (tickers, market['symbol']) as Ticker;
+        symbol = market['symbol'];
+        // the tickers and statistics endpoints ignore the documented
+        // instrument_id filter and always answer with every instrument, so
+        // the single-market call reuses the bulk fetch and selects one row
+        const tickers = await this.fetchTickers ([ symbol ], params);
+        const ticker = this.safeDict (tickers, symbol);
+        if (ticker === undefined) {
+            throw new BadSymbol (this.id + ' fetchTicker() could not find a ticker for ' + symbol);
+        }
+        return ticker as Ticker;
     }
 
     /**
@@ -788,28 +793,16 @@ export default class polymarket extends Exchange {
     override async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request: Dict = {
-            'instrument_id': market['id'],
-        };
-        const response = await this.publicGetInfoTickers (this.extend (request, params));
-        //
-        //     [
-        //         {
-        //             "instrument_id": 1,
-        //             "symbol": "SP500-USD",
-        //             "index_price": "7713.1",
-        //             "mark_price": "7715",
-        //             "last_price": "7714",
-        //             "mid_price": "7715",
-        //             "open_interest": "1101.82729",
-        //             "funding_rate": "0.00000625",
-        //             "next_funding": 1788548400000,
-        //             "timestamp": 1788546972857
-        //         }
-        //     ]
-        //
-        const first = this.safeDict (response, 0, {});
-        return this.parseFundingRate (first, market);
+        symbol = market['symbol'];
+        // the tickers endpoint ignores the documented instrument_id filter
+        // and always answers with every instrument, so the single-market call
+        // reuses the bulk fetch and selects the requested row
+        const fundingRates = await this.fetchFundingRates ([ symbol ], params);
+        const fundingRate = this.safeDict (fundingRates, symbol);
+        if (fundingRate === undefined) {
+            throw new BadSymbol (this.id + ' fetchFundingRate() could not find the funding rate for ' + symbol);
+        }
+        return fundingRate as FundingRate;
     }
 
     /**
@@ -944,12 +937,16 @@ export default class polymarket extends Exchange {
     override async fetchOpenInterest (symbol: string, params = {}): Promise<OpenInterest> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request: Dict = {
-            'instrument_id': market['id'],
-        };
-        const response = await this.publicGetInfoTickers (this.extend (request, params));
-        const first = this.safeDict (response, 0, {});
-        return this.parseOpenInterest (first, market);
+        symbol = market['symbol'];
+        // the tickers endpoint ignores the documented instrument_id filter
+        // and always answers with every instrument, so the single-market call
+        // reuses the bulk fetch and selects the requested row
+        const openInterests = await this.fetchOpenInterests ([ symbol ], params);
+        const openInterest = this.safeDict (openInterests, symbol);
+        if (openInterest === undefined) {
+            throw new BadSymbol (this.id + ' fetchOpenInterest() could not find the open interest for ' + symbol);
+        }
+        return openInterest as OpenInterest;
     }
 
     /**

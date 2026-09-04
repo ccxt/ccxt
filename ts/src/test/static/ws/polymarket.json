@@ -1064,6 +1064,127 @@
                     }
                 }
             }
+        ],
+        "unWatchOrderBook": [
+            {
+                "description": "unsubscribe the order book, the unsub ack is matched by request id and clears the cached book",
+                "method": "unWatchOrderBook",
+                "input": [
+                    "SP500/USD:PUSD"
+                ],
+                "url": "wss://ws.perpetuals.polymarket.com/v1/ws",
+                "messages": [
+                    {
+                        "id": 1,
+                        "data": [
+                            {
+                                "status": "ok"
+                            }
+                        ]
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "id": 1,
+                        "req": "unsub",
+                        "chs": [
+                            "book::1"
+                        ]
+                    }
+                ],
+                "parsedResponse": true
+            }
+        ],
+        "unWatchTicker": [
+            {
+                "description": "unsubscribe the ticker",
+                "method": "unWatchTicker",
+                "input": [
+                    "SP500/USD:PUSD"
+                ],
+                "url": "wss://ws.perpetuals.polymarket.com/v1/ws",
+                "messages": [
+                    {
+                        "id": 1,
+                        "data": [
+                            {
+                                "status": "ok"
+                            }
+                        ]
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "id": 1,
+                        "req": "unsub",
+                        "chs": [
+                            "tickers::1"
+                        ]
+                    }
+                ],
+                "parsedResponse": true
+            }
+        ],
+        "unWatchTrades": [
+            {
+                "description": "unsubscribe the trades stream",
+                "method": "unWatchTrades",
+                "input": [
+                    "BTC/USD:PUSD"
+                ],
+                "url": "wss://ws.perpetuals.polymarket.com/v1/ws",
+                "messages": [
+                    {
+                        "id": 1,
+                        "data": [
+                            {
+                                "status": "ok"
+                            }
+                        ]
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "id": 1,
+                        "req": "unsub",
+                        "chs": [
+                            "trades::6"
+                        ]
+                    }
+                ],
+                "parsedResponse": true
+            }
+        ],
+        "unWatchOHLCV": [
+            {
+                "description": "unsubscribe the candle stream, exercises the per-timeframe cache cleanup branch",
+                "method": "unWatchOHLCV",
+                "input": [
+                    "SP500/USD:PUSD",
+                    "1h"
+                ],
+                "url": "wss://ws.perpetuals.polymarket.com/v1/ws",
+                "messages": [
+                    {
+                        "id": 1,
+                        "data": [
+                            {
+                                "status": "ok"
+                            }
+                        ]
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "id": 1,
+                        "req": "unsub",
+                        "chs": [
+                            "klines::1::1h"
+                        ]
+                    }
+                ],
+                "parsedResponse": true
+            }
         ]
     }
 }
