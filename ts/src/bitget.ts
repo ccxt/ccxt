@@ -6885,6 +6885,8 @@ export default class bitget extends Exchange {
             if (type === 'spot') {
                 if (marginMode !== undefined) {
                     productType = 'MARGIN';
+                } else {
+                    productType = 'SPOT';
                 }
             }
             request['category'] = productType;

@@ -21,7 +21,7 @@ So the choice here is not "CCXT or the vendor SDK". It is **CCXT or your own HTT
 | | **CCXT** | **Raw CoinEx API** |
 | --- | --- | --- |
 | Exchanges covered | 104 (CoinEx is one of them) | CoinEx only |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | any; sample code in C#, Go, Node.js, Python, Rust |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | any; sample code in C#, Go, Node.js, Python, Rust |
 | Installable client library | yes — `ccxt` | none published; `coinex_api_demo` is copy-paste sample code |
 | Unified market data + trading API | yes — 72 unified capabilities, 35 `fetch*` methods | CoinEx's own request/response shapes |
 | WebSockets | yes — 10 `watch*` methods, gzip frames decoded for you | yes — `wss://socket.coinex.com/v2/spot` and `/v2/futures`, raw |
@@ -214,7 +214,7 @@ Browse the full list on the [CoinEx implicit API page](/docs/exchanges/coinex/im
 Honest advantages of going direct:
 
 - **Zero dependencies and a smaller footprint.** A single signed `requests` call has no library between you and the venue. If your service reads one endpoint on a schedule, CCXT is more machinery than the job needs.
-- **The demo repository covers five languages CoinEx tested itself.** `coinex_api_demo` has working signing examples in C#, Go, Node.js, Python and Rust — useful if you are porting the signer into a language or runtime CCXT does not target.
+- **The demo repository covers five languages CoinEx tested itself.** `coinex_api_demo` has working signing examples in C#, Go, Node.js, Python and Rust — useful if you are porting the signer into a runtime CCXT does not target, or want to see CoinEx's own reference implementation of it.
 - **New endpoints are usable the day they ship.** A brand-new CoinEx endpoint is callable by URL immediately; a *unified* CCXT wrapper for it may follow later. (CCXT's implicit API closes most of this gap, but only after the endpoint is added to the exchange's API block.)
 - **Field-for-field fidelity with the docs.** Reading the CoinEx reference and calling the endpoint directly means what you see in the docs is what you get back. CCXT's unified names are a deliberate abstraction, which is one extra hop when debugging.
 

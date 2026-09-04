@@ -21,7 +21,7 @@ So the comparison is between [CCXT](/docs/manual) and your own HTTP and WebSocke
 | | **CCXT** | **Raw Toobit API** |
 | --- | --- | --- |
 | Exchanges covered | 104 (Toobit is one of them) | Toobit only |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | whatever you write it in |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | whatever you write it in |
 | Official client library | — | none; docs ship signing examples in Python, Java, Node.js, Go, cURL |
 | Install | `pip install ccxt` / `npm i ccxt` | your own HTTP and WebSocket client |
 | Products in one client | spot and perpetual swap | one code path per product family |

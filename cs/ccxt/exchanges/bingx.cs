@@ -2258,9 +2258,9 @@ public partial class bingx : Exchange
      * @name bingx#fetchFundingRateHistory
      * @description fetches historical funding rate prices
      * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/Get%20Funding%20Rate%20History
-     * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+     * @param {string} symbol unified symbol of the market to fetch the funding rate history for, inverse (Coin-M) markets are not supported
      * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
-     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
+     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch (max 1000)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest funding rate to fetch
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
@@ -2277,6 +2277,11 @@ public partial class bingx : Exchange
         {
             await this.loadMarkets();
         }
+        object market = this.market(symbol);
+        if (isTrue(isEqual(getValue(market, "inverse"), true)))
+        {
+            throw new NotSupported ((string)add(this.id, " fetchFundingRateHistory() is not supported for inverse swap markets")) ;
+        }
         object paginate = false;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
         paginate = ((IList<object>)paginateparametersVariable)[0];
@@ -2285,7 +2290,6 @@ public partial class bingx : Exchange
         {
             return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", parameters));
         }
-        object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
@@ -2295,14 +2299,11 @@ public partial class bingx : Exchange
         }
         if (isTrue(!isEqual(limit, null)))
         {
-            ((IDictionary<string,object>)request)["limit"] = limit;
+            ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 1000); // api maximum 1000
         }
-        object until = this.safeInteger2(parameters, "until", "startTime");
-        if (isTrue(!isEqual(until, null)))
-        {
-            parameters = this.omit(parameters, new List<object>() {"until"});
-            ((IDictionary<string,object>)request)["startTime"] = until;
-        }
+        var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
+        request = ((IList<object>)requestparametersVariable)[0];
+        parameters = ((IList<object>)requestparametersVariable)[1];
         object response = await this.swapV2PublicGetQuoteFundingRate(this.extend(request, parameters));
         //
         //    {
@@ -4369,7 +4370,7 @@ public partial class bingx : Exchange
                 }
             } else
             {
-                feeCurrencyCode = getValue(market, "quote");
+                feeCurrencyCode = ((bool) isTrue((isEqual(getValue(market, "inverse"), true)))) ? getValue(market, "settle") : getValue(market, "quote");
             }
         }
         object stopLoss = this.safeValue(order, "stopLoss");
@@ -4770,6 +4771,7 @@ public partial class bingx : Exchange
      * @param {number} timeout time in milliseconds, 0 represents cancel the timer
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.type] spot or swap market
+     * @param {string} [params.subType] 'linear' or 'inverse' (default is 'linear'), 'inverse' is not supported
      * @returns {object} the api result
      */
     public async override Task<object> cancelAllOrdersAfter(object timeout, object parameters = null)
@@ -4789,6 +4791,14 @@ public partial class bingx : Exchange
         var typeparametersVariable = this.handleMarketTypeAndParams("cancelAllOrdersAfter", null, parameters);
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
+        object subType = null;
+        var subTypeparametersVariable = this.handleSubTypeAndParams("cancelAllOrdersAfter", null, parameters);
+        subType = ((IList<object>)subTypeparametersVariable)[0];
+        parameters = ((IList<object>)subTypeparametersVariable)[1];
+        if (isTrue(isTrue((isEqual(type, "swap"))) && isTrue((isEqual(subType, "inverse")))))
+        {
+            throw new NotSupported ((string)add(this.id, " cancelAllOrdersAfter() is not supported for inverse swap markets")) ;
+        }
         if (isTrue(isEqual(type, "spot")))
         {
             response = await this.spotV1PrivatePostTradeCancelAllAfter(this.extend(request, parameters));
@@ -6407,7 +6417,7 @@ public partial class bingx : Exchange
      * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Query%20force%20orders
      * @param {string} [symbol] unified CCXT market symbol
      * @param {int} [since] the earliest time in ms to fetch liquidations for
-     * @param {int} [limit] the maximum number of liquidation structures to retrieve
+     * @param {int} [limit] the maximum number of liquidation structures to retrieve (max 100)
      * @param {object} [params] exchange specific parameters for the bingx api endpoint
      * @param {int} [params.until] timestamp in ms of the latest liquidation
      * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
@@ -6437,7 +6447,7 @@ public partial class bingx : Exchange
         }
         if (isTrue(!isEqual(limit, null)))
         {
-            ((IDictionary<string,object>)request)["limit"] = limit;
+            ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 100); // api maximum 100
         }
         object subType = null;
         var subTypeparametersVariable = this.handleSubTypeAndParams("fetchMyLiquidations", market, parameters);

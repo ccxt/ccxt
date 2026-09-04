@@ -8658,7 +8658,7 @@ class binance(Exchange, ImplicitAPI):
                 responseList = self.to_array(response)
         return self.parse_trades(responseList, market, since, limit)
 
-    def fetch_my_dust_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_my_dust_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         fetch all dust trades made by the user
 
@@ -11882,7 +11882,7 @@ class binance(Exchange, ImplicitAPI):
         sorted = self.sort_by(settlements, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
-    def fetch_my_settlement_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_my_settlement_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[dict]:
         """
         fetches historical settlement records of the user
 
@@ -12689,7 +12689,7 @@ class binance(Exchange, ImplicitAPI):
         #
         return self.parse_isolated_borrow_rates(response)
 
-    def fetch_borrow_rate_history(self, code: str, since: Int = None, limit: Int = None, params={}):
+    def fetch_borrow_rate_history(self, code: str, since: Int = None, limit: Int = None, params={}) -> list[dict]:
         """
         retrieves a history of a currencies borrow interest rate at specific time slots
 

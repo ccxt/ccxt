@@ -417,7 +417,7 @@ export default class bullish extends Exchange {
      * @param {string} params.tradingAccountId the trading account id
      * @returns {object[]} an array of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
      */
-    fetchBorrowRateHistory(code: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchBorrowRateHistory(code: string, since?: Int, limit?: Int, params?: {}): Promise<Dict[]>;
     parseBorrowRate(info: any, currency?: Currency): {
         currency: Str;
         rate: Num;

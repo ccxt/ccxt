@@ -919,7 +919,7 @@ func (this *Kraken) CreateDepositAddress(code string, options ...CreateDepositAd
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} of deposit methods
  */
-func (this *Kraken) FetchDepositMethods(code string, options ...FetchDepositMethodsOptions) (map[string]any, error) {
+func (this *Kraken) FetchDepositMethods(code string, options ...FetchDepositMethodsOptions) ([]map[string]any, error) {
 
 	opts := FetchDepositMethodsOptionsStruct{}
 
@@ -930,9 +930,9 @@ func (this *Kraken) FetchDepositMethods(code string, options ...FetchDepositMeth
 	var params *map[string]any = opts.Params
 	res := <-this.Core.FetchDepositMethods(code, params)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return nil, CreateReturnError(res)
 	}
-	return res.(map[string]any), nil
+	return NewMapArray(res), nil
 }
 
 /**

@@ -6,10 +6,6 @@
  *  @_section api/utils:Utilities  [about-utils]
  */
 
-export { decodeBase58, encodeBase58 } from "./base58.js";
-
-export { decodeBase64, encodeBase64 } from "./base64.js";
-
 import {
     getBytes, getBytesCopy, isHexString, isBytesLike, hexlify, concat, dataLength, dataSlice,
     stripZerosLeft, zeroPadValue, zeroPadBytes
@@ -25,21 +21,12 @@ export {
     assert, assertArgument, assertArgumentCount, assertPrivate, assertNormalize, makeError
 } from "./errors.js"
 
-export { EventPayload } from "./events.js";
-
-export { FixedNumber } from "./fixednumber.js"
-
 export {
     fromTwos, toTwos, mask,
     getBigInt, getNumber, getUint, toBigInt, toNumber, toBeHex, toBeArray, toQuantity
 } from "./maths.js";
 
 export { resolveProperties, defineProperties} from "./properties.js";
-
-export { decodeRlp } from "./rlp-decode.js";
-export { encodeRlp } from "./rlp-encode.js";
-
-export { formatEther, parseEther, formatUnits, parseUnits } from "./units.js";
 
 export {
     toUtf8Bytes,
@@ -48,8 +35,6 @@ export {
 
     Utf8ErrorFuncs,
 } from "./utf8.js";
-
-export { uuidV4 } from "./uuid.js";
 
 /////////////////////////////
 // Types
@@ -75,13 +60,7 @@ export type {
     CodedEthersError
 } from "./errors.js"
 
-export type { EventEmitterable, Listener } from "./events.js";
-
-export type { FixedFormat } from "./fixednumber.js"
-
 export type { BigNumberish, Numeric } from "./maths.js";
-
-export type { RlpStructuredData, RlpStructuredDataish } from "./rlp.js";
 
 export type {
     Utf8ErrorFunc,

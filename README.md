@@ -441,7 +441,7 @@ tokio = { version = "1", features = ["full"] }
 
 `ccxt` carries the REST exchanges; `ccxt-pro` adds the WebSocket (`watch*`) ones and is only needed if you stream. Both are async and expect a Tokio runtime.
 
-```Rust
+```rust
 use ccxt::{Binance, Params};
 
 let mut exchange = Binance::new(None);
@@ -907,7 +907,7 @@ You can check different examples in the `java/examples` folder.
 
 Every exchange has a typed wrapper returning native Rust types — `Ticker`, `Order`, `Market`, `OrderBook` — instead of a dynamic value. Methods are `async` and return `Result<T, ExchangeError>`.
 
-```Rust
+```rust
 use ccxt::{Binance, Config, Params};
 
 #[tokio::main]
@@ -931,7 +931,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 Neither construction nor the trailing `params` argument requires touching a dynamic value — both are builders over Rust primitives. `Config` nests `options` exactly as the other bindings do.
 
-```Rust
+```rust
 use ccxt::{Binance, Config, Params};
 
 let mut exchange = Binance::with_config(
@@ -961,7 +961,7 @@ let order = exchange
 
 Settings can also be changed after construction; the setters chain.
 
-```Rust
+```rust
 exchange.set_verbose(true);
 exchange.set_sandbox_mode(true);
 ```
@@ -970,7 +970,7 @@ exchange.set_sandbox_mode(true);
 
 Market metadata is typed too, so trading rules can be checked before sending an order without any extra request.
 
-```Rust
+```rust
 let market = exchange.market("BTC/USDT")?;
 println!("{} {}", market.symbol, market.market_type);
 println!("{:?} {:?}", market.limits.amount.min, market.limits.cost.min);
@@ -984,7 +984,7 @@ println!("{}", swaps.len());
 
 Errors arrive as `ExchangeError` carrying a `kind` plus an `is()` test that walks the unified hierarchy, so one handler covers a whole family — `is("InvalidOrder")` also matches `OrderNotFound` and `DuplicateOrderId`, `is("NetworkError")` also matches `RequestTimeout` and `RateLimitExceeded`.
 
-```Rust
+```rust
 match exchange.create_order("BTC/USDT", "limit", "buy", 0.001, Some(50000.0), Params::none()).await {
     Ok(order) => println!("{:?}", order.id),
     Err(e) if e.is("InsufficientFunds") => println!("not enough balance"),
@@ -1000,7 +1000,7 @@ match exchange.create_order("BTC/USDT", "limit", "buy", 0.001, Some(50000.0), Pa
 
 `from_id_with_config` builds any supported venue from its id, and the typed API is still available through the trait object.
 
-```Rust
+```rust
 use ccxt::{from_id_with_config, Config, Params, TypedExchangeExt};
 
 for id in ["binance", "bybit", "okx"] {
@@ -1017,7 +1017,7 @@ for id in ["binance", "bybit", "okx"] {
 
 WebSocket support lives in the `ccxt-pro` crate, with the same typed returns.
 
-```Rust
+```rust
 use ccxt::Params;
 use ccxt_pro::Binance;
 
@@ -1030,7 +1030,7 @@ loop {
 }
 ```
 
-```Rust
+```rust
 let symbols = vec!["BTC/USDT".to_string(), "ETH/USDT".to_string()];
 let trades = exchange.watch_trades_for_symbols(symbols, None, None, Params::none()).await?;
 ```

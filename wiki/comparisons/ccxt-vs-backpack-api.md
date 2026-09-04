@@ -1,7 +1,7 @@
 <!-- title: CCXT vs the Backpack Exchange API and its SDKs -->
 <!-- description: Backpack's only official client is Rust. CCXT compared with the community Python SDKs on ED25519 signing, language coverage, streaming and unified structures. -->
 <!-- group: Exchange APIs and official SDKs -->
-<!-- summary: Backpack ships one official client, in Rust; every other language is community-built and unendorsed. CCXT covers Backpack's spot, margin and perpetual markets with 69 unified capabilities in seven languages. -->
+<!-- summary: Backpack ships one official client, in Rust; every other language is community-built and unendorsed. CCXT covers Backpack's spot, margin and perpetual markets with 69 unified capabilities in eight languages. -->
 <!-- weight: 100 -->
 
 # CCXT vs the Backpack Exchange API and its SDKs
@@ -13,7 +13,7 @@ So unless you write Rust, the choice is between a community SDK and a unified li
 ## TL;DR
 
 - **Pick a community SDK** if Backpack is your only venue, you are in Python, and you want method and field names that match Backpack's own reference exactly — `execute_order`, `Bid`, `SOL_USDC`.
-- **Pick CCXT** if you want one maintained dependency covering Backpack's spot, margin and perpetual markets with the same 69 unified capabilities and the same method names you already use elsewhere, in seven languages.
+- **Pick CCXT** if you want one maintained dependency covering Backpack's spot, margin and perpetual markets with the same 69 unified capabilities and the same method names you already use elsewhere, in eight languages.
 - **Backpack's request signing is ED25519, not HMAC**, over a payload prefixed with a per-endpoint `instruction` string. It is a small piece of code to get wrong, and CCXT has already written it.
 
 ## At a glance
@@ -23,7 +23,7 @@ So unless you write Rust, the choice is between a community SDK and a unified li
 | Venues covered | 104 (Backpack is one of them) | Backpack only |
 | Official client languages | n/a — CCXT is third-party by design | **Rust only** (`bpx-api-client`) |
 | Community client languages | n/a | Python, JavaScript, TypeScript, Go — listed but unendorsed |
-| Languages you can use it from | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | whichever client exists for your language |
+| Languages you can use it from | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | whichever client exists for your language |
 | Packages to install | **1** (`ccxt`) | 1 per language, from a different author each time |
 | Markets in one client | spot, margin and perpetuals | per SDK |
 | Unified market data + trading API | yes — 69 capabilities on `backpack` | no — Backpack's own payload shapes |
@@ -154,15 +154,15 @@ CCXT also implements `watchOrderBookForSymbols`, `watchTradesForSymbols` and `wa
 
 Backpack does not sign with HMAC. Each private request is signed with **ED25519** over a payload that begins with a per-endpoint `instruction` string — `orderExecute`, `balanceQuery`, `orderCancelAll` and so on — followed by the request parameters in sorted order, a millisecond timestamp and a window. The signature goes out as `X-Signature` alongside `X-Timestamp`, `X-Window` and `X-API-Key`, and your secret is a base64-encoded seed rather than a shared HMAC key.
 
-None of that is hard, and all of it is easy to get subtly wrong — a parameter sorted in the wrong order or a missing instruction produces the same unhelpful rejection. CCXT carries the instruction map for every endpoint and does the signing in all seven languages.
+None of that is hard, and all of it is easy to get subtly wrong — a parameter sorted in the wrong order or a missing instruction produces the same unhelpful rejection. CCXT carries the instruction map for every endpoint and does the signing in all eight languages.
 
 ### Spot, margin and perpetuals in one client
 
 `backpack` in CCXT declares `spot`, `margin` and `swap`, and the derivatives capabilities are unified methods rather than raw calls: `fetch_positions`, `fetch_funding_rate`, `fetch_funding_rate_history`, `fetch_funding_history`, `fetch_open_interest`, `fetch_open_interest_history`, `fetch_mark_ohlcv` and `fetch_index_ohlcv`. Order entry covers `create_orders` for batching, `create_order_with_take_profit_and_stop_loss`, `create_trigger_order`, `create_post_only_order` and `create_reduce_only_order` — 69 capabilities in total, with the same names on the next venue.
 
-### Seven languages, one API
+### Eight languages, one API
 
-Backpack's only official client is Rust. CCXT does not target Rust, and this page will not pretend otherwise — but if your service is in TypeScript, Python, PHP, C#, Go or Java, CCXT is a maintained first-party-quality client where otherwise you would pick a community project or write your own:
+Backpack's only official client is Rust, and CCXT now targets Rust too — so on that axis the choice is no longer forced. In TypeScript, Python, PHP, C#, Go or Java, CCXT is the maintained option where otherwise you would pick a community project or write your own:
 
 <!-- tabs:start -->
 
@@ -230,13 +230,13 @@ Browse them on the [backpack implicit API page](/docs/exchanges/backpack/implici
 
 An honest list, because these are real:
 
-- **A Rust client, which CCXT does not have.** `bpx-api-client` is first-party and Apache-2.0. CCXT targets seven languages and Rust is not one of them. If your service is Rust, the official client is the only maintained option.
+- **A first-party Rust client, written as Rust.** `bpx-api-client` is Backpack's own and Apache-2.0, with an API shaped by the language rather than transpiled into it. CCXT reaches Rust too, but through a generated crate that carries the same vocabulary as its seven other targets.
 - **Endpoint coverage.** `backpack_exchange_sdk` describes itself as supporting "all 70 API endpoints including REST and WebSocket", including RFQ and strategy endpoints. CCXT defines 56 endpoints for `backpack`, so a handful of Backpack's newer surfaces are not reachable even as implicit methods.
 - **Lend and borrow.** Backpack's borrow/lend product is present in CCXT only as raw implicit endpoints (`api/v1/borrowLend`, `api/v1/borrowLend/positions`) — the source file marks the unified wrappers as still to do. If lending is central to your integration, a Backpack-specific SDK models it directly.
 - **Field-for-field fidelity.** `Bid`, `orderType`, `SOL_USDC_PERP`, `TimeInForce.GTC` — when you are reading Backpack's docs while debugging, an SDK that uses those exact names removes a translation step. CCXT's unified names are a deliberate abstraction.
 - **Typed enums and hints.** `backpack_exchange_sdk` ships enums for order type, side, time in force and self-trade prevention with full type annotations, which is a nicer editing experience than passing unified strings if you only ever target this venue.
 
-If Backpack is your only venue and you work in Rust — or you need its RFQ, strategy or lending endpoints — a Backpack-specific client is the better dependency.
+If Backpack is your only venue and you want a Rust client written natively as Rust — or you need its RFQ, strategy or lending endpoints — a Backpack-specific client is the better dependency.
 
 ## Migrating from a Backpack SDK to CCXT
 
@@ -265,7 +265,7 @@ Start with [Install](/docs/install), then the [Manual](/docs/manual), then the [
 ## FAQ
 
 **Is there an official Backpack Python SDK?**
-No. Backpack's own repository says only a Rust client is available, and its API Clients page warns that "Some of the SDKs listed below are community-built and are not officially maintained or endorsed by the Backpack team." The Python options — `bpx-py` and `backpack-exchange-sdk` — are community projects. CCXT is a third-party library too, but one maintained across 104 venues in seven languages.
+No. Backpack's own repository says only a Rust client is available, and its API Clients page warns that "Some of the SDKs listed below are community-built and are not officially maintained or endorsed by the Backpack team." The Python options — `bpx-py` and `backpack-exchange-sdk` — are community projects. CCXT is a third-party library too, but one maintained across 104 venues in eight languages.
 
 **How does CCXT sign Backpack requests?**
 With ED25519. Your `secret` is a base64-encoded seed; CCXT builds a payload of `instruction=<per-endpoint instruction>&<sorted params>&timestamp=<ms>&window=<ms>`, signs it, and sends `X-API-Key`, `X-Timestamp`, `X-Window` and `X-Signature`. You never write that code.

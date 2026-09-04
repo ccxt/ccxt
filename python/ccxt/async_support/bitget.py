@@ -6533,6 +6533,8 @@ class bitget(Exchange, ImplicitAPI):
             if type == 'spot':
                 if marginMode is not None:
                     productType = 'MARGIN'
+                else:
+                    productType = 'SPOT'
             request['category'] = productType
             if trigger is True:
                 response = await self.privateUtaGetV3TradeUnfilledStrategyOrders(self.extend(request, params))

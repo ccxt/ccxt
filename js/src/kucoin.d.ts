@@ -1236,7 +1236,7 @@ export default class kucoin extends Exchange {
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @returns {object[]} an array of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
      */
-    fetchBorrowRateHistory(code: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchBorrowRateHistory(code: string, since?: Int, limit?: Int, params?: {}): Promise<Dict[]>;
     parseBorrowRateHistories(response: any, codes: any, since: any, limit: any): Dict;
     /**
      * @method

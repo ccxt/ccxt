@@ -3294,7 +3294,7 @@ export default class kraken extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} of deposit methods
      */
-    async fetchDepositMethods (code: string, params = {}) {
+    async fetchDepositMethods (code: string, params = {}): Promise<Dict[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

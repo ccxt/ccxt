@@ -3225,7 +3225,7 @@ class htx extends Exchange {
         );
     }
 
-    public function fetch_account_id_by_type(string $type, ?string $marginMode = null, ?string $symbol = null, $params = array()) {
+    public function fetch_account_id_by_type(string $type, ?string $marginMode = null, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_account_id_by_type(...))($type, $marginMode, $symbol, $params);
     }
 
@@ -3242,7 +3242,7 @@ class htx extends Exchange {
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$account-structure $account structures~ indexed by the $account $type
          */
         $accounts = Async\await($this->load_accounts());
-        $accountId = $this->safe_value_2($params, 'accountId', 'account-id');
+        $accountId = $this->safe_string_2($params, 'accountId', 'account-id');
         if ($accountId !== null) {
             return $accountId;
         }

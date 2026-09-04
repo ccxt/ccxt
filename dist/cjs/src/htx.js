@@ -3194,7 +3194,7 @@ class htx extends htx$1["default"] {
      */
     async fetchAccountIdByType(type, marginMode = undefined, symbol = undefined, params = {}) {
         const accounts = await this.loadAccounts();
-        const accountId = this.safeValue2(params, 'accountId', 'account-id');
+        const accountId = this.safeString2(params, 'accountId', 'account-id');
         if (accountId !== undefined) {
             return accountId;
         }

@@ -21,7 +21,7 @@ So the real choice is not CCXT versus an SDK. It is **CCXT versus the HTTP clien
 | | **CCXT** | **Raw Zaif REST API** |
 | --- | --- | --- |
 | Exchanges covered | 104 (Zaif is one of them) | Zaif only |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | whatever you write it in |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | whatever you write it in |
 | Maintained official SDK | n/a | none published |
 | Community wrappers | n/a | `zaifapi` (PyPI, last release August 2018) · `zaif.jp` (npm, last publish December 2017) |
 | Unified market data + trading API | yes — 11 unified capabilities, 7 `fetch*` methods | no |
@@ -182,9 +182,9 @@ invoice = exchange.ecapi_post_get_invoice({'invoice_id': '...'})
 
 Signing, nonce generation, rate-limit accounting and error mapping all still apply. Browse them on the [zaif implicit API page](/docs/exchanges/zaif/implicit-api).
 
-### Seven languages, one API
+### Eight languages, one API
 
-CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, with identical method names and return structures. A hand-rolled Zaif client is a hand-rolled Zaif client in each language you need it in — and the HMAC-SHA512-over-urlencoded-body detail has to be re-derived every time.
+CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go, Java and Rust, with identical method names and return structures. A hand-rolled Zaif client is a hand-rolled Zaif client in each language you need it in — and the HMAC-SHA512-over-urlencoded-body detail has to be re-derived every time.
 
 <!-- tabs:start -->
 

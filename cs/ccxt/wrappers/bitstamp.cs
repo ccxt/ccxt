@@ -26,10 +26,10 @@ public partial class bitstamp
         var res = await this.fetchMarkets(parameters);
         return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
-    public async Task<Dictionary<string, object>> FetchMarketsFromCache(Dictionary<string, object> parameters = null)
+    public async Task<List<Dictionary<string, object>>> FetchMarketsFromCache(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchMarketsFromCache(parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
     }
     /// <summary>
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data

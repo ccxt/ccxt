@@ -1763,9 +1763,9 @@ class bingx(Exchange, ImplicitAPI):
 
         https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/Get%20Funding%20Rate%20History
 
-        :param str symbol: unified symbol of the market to fetch the funding rate history for
+        :param str symbol: unified symbol of the market to fetch the funding rate history for, inverse(Coin-M) markets are not supported
         :param int [since]: timestamp in ms of the earliest funding rate to fetch
-        :param int [limit]: the maximum amount of `funding rate structures <https://docs.ccxt.com/?id=funding-rate-history-structure>` to fetch
+        :param int [limit]: the maximum amount of `funding rate structures <https://docs.ccxt.com/?id=funding-rate-history-structure>` to fetch(max 1000)
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest funding rate to fetch
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
@@ -1775,22 +1775,21 @@ class bingx(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
         if self.markets is None:
             self.load_markets()
+        market = self.market(symbol)
+        if market['inverse'] is True:
+            raise NotSupported(self.id + ' fetchFundingRateHistory() is not supported for inverse swap markets')
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
         if paginate:
             return self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params)
-        market = self.market(symbol)
         request = {
             'symbol': market['id'],
         }
         if since is not None:
             request['startTime'] = since
         if limit is not None:
-            request['limit'] = limit
-        until = self.safe_integer_2(params, 'until', 'startTime')
-        if until is not None:
-            params = self.omit(params, ['until'])
-            request['startTime'] = until
+            request['limit'] = min(limit, 1000)  # api maximum 1000
+        request, params = self.handle_until_option('endTime', request, params)
         response = self.swapV2PublicGetQuoteFundingRate(self.extend(request, params))
         #
         #    {
@@ -3738,7 +3737,7 @@ class bingx(Exchange, ImplicitAPI):
                 else:
                     feeCurrencyCode = market['quote']
             else:
-                feeCurrencyCode = market['quote']
+                feeCurrencyCode = market['settle'] if (market['inverse'] is True) else market['quote']
         stopLoss = self.safe_value(order, 'stopLoss')
         stopLossPrice = None
         if (stopLoss is not None) and (stopLoss != ''):
@@ -4244,6 +4243,7 @@ class bingx(Exchange, ImplicitAPI):
         :param number timeout: time in milliseconds, 0 represents cancel the timer
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.type]: spot or swap market
+        :param str [params.subType]: 'linear' or 'inverse'(default is 'linear'), 'inverse' is not supported
         :returns dict: the api result
         """
         if self.markets is None:
@@ -4256,6 +4256,10 @@ class bingx(Exchange, ImplicitAPI):
         response: dict
         type = None
         type, params = self.handle_market_type_and_params('cancelAllOrdersAfter', None, params)
+        subType = None
+        subType, params = self.handle_sub_type_and_params('cancelAllOrdersAfter', None, params)
+        if (type == 'swap') and (subType == 'inverse'):
+            raise NotSupported(self.id + ' cancelAllOrdersAfter() is not supported for inverse swap markets')
         if type == 'spot':
             response = self.spotV1PrivatePostTradeCancelAllAfter(self.extend(request, params))
         elif type == 'swap':
@@ -5950,7 +5954,7 @@ class bingx(Exchange, ImplicitAPI):
 
         :param str [symbol]: unified CCXT market symbol
         :param int [since]: the earliest time in ms to fetch liquidations for
-        :param int [limit]: the maximum number of liquidation structures to retrieve
+        :param int [limit]: the maximum number of liquidation structures to retrieve(max 100)
         :param dict [params]: exchange specific parameters for the bingx api endpoint
         :param int [params.until]: timestamp in ms of the latest liquidation
         :returns dict: an array of `liquidation structures <https://docs.ccxt.com/?id=liquidation-structure>`
@@ -5968,7 +5972,7 @@ class bingx(Exchange, ImplicitAPI):
         if since is not None:
             request['startTime'] = since
         if limit is not None:
-            request['limit'] = limit
+            request['limit'] = min(limit, 100)  # api maximum 100
         subType = None
         subType, params = self.handle_sub_type_and_params('fetchMyLiquidations', market, params)
         response: dict

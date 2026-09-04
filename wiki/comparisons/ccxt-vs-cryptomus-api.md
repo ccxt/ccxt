@@ -23,9 +23,9 @@ So if you want to *trade* on Cryptomus, there is no official client library, and
 | | **CCXT** | **Cryptomus's own tooling** |
 | --- | --- | --- |
 | What it covers | the spot exchange: markets, order book, trades, orders, balance | payments, invoices, static wallets, payouts, personal wallets — plus a documented exchange API |
-| Official library | `ccxt`, installable in seven languages | `cryptomus/api-php-sdk` (PHP), payments and payouts only |
+| Official library | `ccxt`, installable in eight languages | `cryptomus/api-php-sdk` (PHP), payments and payouts only |
 | Exchanges covered | 104 (Cryptomus is one of them) | Cryptomus only |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | PHP for the SDK; any language against the raw API |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | PHP for the SDK; any language against the raw API |
 | Unified market data + trading API | yes — 13 unified capabilities, 10 `fetch*` methods | Cryptomus's own request/response shapes |
 | Raw endpoint access | yes — 16 endpoints as implicit methods, including the payment and payout service listings | it is the whole product |
 | WebSockets | **no** — CCXT implements no `watch*` methods for this venue | yes — token-authenticated socket with 7 stream types |

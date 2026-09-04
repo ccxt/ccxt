@@ -4289,7 +4289,7 @@ public class HtxCore extends HtxApi
             Object symbol = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
             Object accounts = (this.loadAccounts()).join();
-            Object accountId = this.safeValue2(parameters, "accountId", "account-id");
+            Object accountId = this.safeString2(parameters, "accountId", "account-id");
             if (Helpers.isTrue(!Helpers.isEqual(accountId, null)))
             {
                 return accountId;

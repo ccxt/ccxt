@@ -779,7 +779,7 @@ export default class binance extends Exchange {
      * @param {string} [params.type] 'spot' or 'margin', default spot
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    fetchMyDustTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchMyDustTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     parseDustTrade(trade: any, market?: Market): {
         id: undefined;
         timestamp: Int;
@@ -1234,7 +1234,7 @@ export default class binance extends Exchange {
      * @param {object} [params] exchange specific params
      * @returns {object[]} a list of [settlement history objects]
      */
-    fetchMySettlementHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchMySettlementHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Dict[]>;
     parseSettlement(settlement: any, market: any): {
         info: any;
         symbol: string;
@@ -1361,7 +1361,7 @@ export default class binance extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
      */
-    fetchBorrowRateHistory(code: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchBorrowRateHistory(code: string, since?: Int, limit?: Int, params?: {}): Promise<Dict[]>;
     parseBorrowRate(info: any, currency?: Currency): {
         currency: Str;
         rate: Num;

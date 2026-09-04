@@ -258,9 +258,9 @@ func (this *Bingx) FetchFundingRates(options ...FetchFundingRatesOptions) (Fundi
  * @name bingx#fetchFundingRateHistory
  * @description fetches historical funding rate prices
  * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/Get%20Funding%20Rate%20History
- * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+ * @param {string} symbol unified symbol of the market to fetch the funding rate history for, inverse (Coin-M) markets are not supported
  * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
- * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
+ * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch (max 1000)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest funding rate to fetch
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
@@ -824,6 +824,7 @@ func (this *Bingx) CancelOrders(ids []string, options ...CancelOrdersOptions) ([
  * @param {number} timeout time in milliseconds, 0 represents cancel the timer
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.type] spot or swap market
+ * @param {string} [params.subType] 'linear' or 'inverse' (default is 'linear'), 'inverse' is not supported
  * @returns {object} the api result
  */
 func (this *Bingx) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]any, error) {
@@ -1461,7 +1462,7 @@ func (this *Bingx) Withdraw(code string, amount float64, address string, options
  * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Query%20force%20orders
  * @param {string} [symbol] unified CCXT market symbol
  * @param {int} [since] the earliest time in ms to fetch liquidations for
- * @param {int} [limit] the maximum number of liquidation structures to retrieve
+ * @param {int} [limit] the maximum number of liquidation structures to retrieve (max 100)
  * @param {object} [params] exchange specific parameters for the bingx api endpoint
  * @param {int} [params.until] timestamp in ms of the latest liquidation
  * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}

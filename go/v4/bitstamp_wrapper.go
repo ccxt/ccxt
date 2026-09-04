@@ -41,12 +41,12 @@ func (this *Bitstamp) FetchMarkets(params ...any) ([]MarketInterface, error) {
 	}
 	return NewMarketInterfaceArray(res), nil
 }
-func (this *Bitstamp) FetchMarketsFromCache(params ...any) (map[string]any, error) {
+func (this *Bitstamp) FetchMarketsFromCache(params ...any) ([]map[string]any, error) {
 	res := <-this.Core.FetchMarketsFromCache(params...)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return nil, CreateReturnError(res)
 	}
-	return res.(map[string]any), nil
+	return NewMapArray(res), nil
 }
 
 /**

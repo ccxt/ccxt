@@ -13,7 +13,7 @@ The thing that decides between them is not coverage. It is the **session model**
 ## TL;DR
 
 - **Go direct to the API** if you want the authentication flow visible in your own code, you need FIX, or you are in a language CCXT does not target — Bullish's `api-examples` repository is a genuinely good starting point in Python and Java.
-- **Pick CCXT** if you want the login-token lifecycle, the trading-account lookup, the nonce window, the sandbox switch and the order-book streaming already implemented and tested, in seven languages, under MIT.
+- **Pick CCXT** if you want the login-token lifecycle, the trading-account lookup, the nonce window, the sandbox switch and the order-book streaming already implemented and tested, in eight languages, under MIT.
 - **Bullish has no packaged SDK to lose.** The `python-bullish-client` repository is a public archive, as are `python-signer`, `java-signer` and `cpp-signer`. What is maintained is `api-examples` (Python and Java scripts) and `js-signer`. There is no `bullish` package on PyPI.
 
 ## At a glance
@@ -21,7 +21,7 @@ The thing that decides between them is not coverage. It is the **session model**
 | | **CCXT** | **Bullish's own repositories** |
 | --- | --- | --- |
 | Exchanges covered | 104 (Bullish is one of them) | Bullish only |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | Python and Java examples; a TypeScript signer |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | Python and Java examples; a TypeScript signer |
 | Packaged client library | **1** (`ccxt`), on npm and PyPI | none — `python-bullish-client` is archived, nothing published to PyPI |
 | Unified market data + trading API | yes — 51 capabilities on `bullish` | no — raw payloads from the examples |
 | Session/login handling | automatic — HMAC login, JWT cached and refreshed | `generate_jwt_hmac.py` / `generate_jwt_ecdsa.py`, then your own refresh logic |
@@ -201,9 +201,9 @@ amount = exchange.amount_to_precision('BTC/USDC', 0.0012345678)
 price = exchange.price_to_precision('BTC/USDC', 91234.56789)
 ```
 
-### Seven languages, one API
+### Eight languages, one API
 
-CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, with identical method names and return structures. Bullish's examples are Python and Java; its maintained signer is TypeScript. In Go, PHP or C# there is nothing first-party to start from.
+CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go, Java and Rust, with identical method names and return structures. Bullish's examples are Python and Java; its maintained signer is TypeScript. In Go, PHP or C# there is nothing first-party to start from.
 
 ### Nothing is hidden — the implicit API
 
