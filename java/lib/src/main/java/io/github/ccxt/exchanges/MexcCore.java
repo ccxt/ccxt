@@ -4439,7 +4439,11 @@ public class MexcCore extends MexcApi
                 //         ]
                 //     }
                 //
-                return this.safeValue(response, "data");
+                // wrap the swap asset list so this helper always returns an account
+                // dict with a `balances` array — fetchAccounts reads response['balances']
+                return new java.util.HashMap<String, Object>() {{
+                    put( "balances", MexcCore.this.safeValue(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList())) );
+                }};
             }
             return null;
         });
@@ -4622,24 +4626,20 @@ public class MexcCore extends MexcApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(wallet)); i++)
             {
                 Object entry = Helpers.GetValue(wallet, i);
-                Object marketId = this.safeString(entry, "symbol");
-                Object symbol = this.safeSymbol(marketId);
                 Object base = this.safeValue(entry, "baseAsset", new java.util.HashMap<String, Object>() {{}});
                 Object quote = this.safeValue(entry, "quoteAsset", new java.util.HashMap<String, Object>() {{}});
                 Object baseCode = this.safeCurrencyCode(this.safeString(base, "asset"));
                 Object quoteCode = this.safeCurrencyCode(this.safeString(quote, "asset"));
-                Object subResult = new java.util.HashMap<String, Object>() {{}};
                 if (Helpers.isTrue(!Helpers.isEqual(baseCode, null)))
                 {
-                    Helpers.addElementToObject(subResult, baseCode, this.parseBalanceHelper(base));
+                    result = this.mergeBalanceAccount(result, baseCode, this.parseBalanceHelper(base));
                 }
                 if (Helpers.isTrue(!Helpers.isEqual(quoteCode, null)))
                 {
-                    Helpers.addElementToObject(subResult, quoteCode, this.parseBalanceHelper(quote));
+                    result = this.mergeBalanceAccount(result, quoteCode, this.parseBalanceHelper(quote));
                 }
-                Helpers.addElementToObject(result, symbol, this.safeBalance(subResult));
             }
-            return result;
+            return this.safeBalance(result);
         } else if (Helpers.isTrue(Helpers.isEqual(marketType, "swap")))
         {
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(wallet)); i++)

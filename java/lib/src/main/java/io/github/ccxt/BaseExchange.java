@@ -10270,6 +10270,39 @@ public Object describe()
         }};
     }
 
+    /**
+     * @ignore
+     * @method
+     * @description merges a per-market (isolated margin) account into a flat code-keyed balance dict, summing string fields when the code recurs across markets
+     * @param {object} result the code-keyed balance dict being built
+     * @param {string} code unified currency code
+     * @param {object} account a balance account with string free/used/total/debt
+     * @returns {object} result — callers MUST reassign (`result = this.mergeBalanceAccount (result, ...)`): PHP arrays are passed by value, so the mutation is not visible through the argument
+     */
+    public Object mergeBalanceAccount(Object result, Object code, Object account)
+    {
+        if (!Helpers.isTrue((Helpers.inOp(result, code))))
+        {
+            Helpers.addElementToObject(result, code, account);
+            return result;
+        }
+        Object fields = new java.util.ArrayList<Object>(java.util.Arrays.asList("free", "used", "total", "debt"));
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(fields)); i++)
+        {
+            Object field = Helpers.GetValue(fields, i);
+            Object current = this.safeString(Helpers.GetValue(result, code), field);
+            Object incoming = this.safeString(account, field);
+            if (Helpers.isTrue(Helpers.isEqual(current, null)))
+            {
+                Helpers.addElementToObject(Helpers.GetValue(result, code), field, incoming);
+            } else if (Helpers.isTrue(!Helpers.isEqual(incoming, null)))
+            {
+                Helpers.addElementToObject(Helpers.GetValue(result, code), field, Precise.stringAdd(current, incoming));
+            }
+        }
+        return result;
+    }
+
     public Object commonCurrencyCode(Object code)
     {
         if (!Helpers.isTrue(this.substituteCommonCurrencyCodes))
