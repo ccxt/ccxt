@@ -386,7 +386,6 @@ function testSafeFloat () {
     // @ts-expect-error
     assert (exchange.safeFloatN (inputList, [ 3, 2, 1 ]) === parseFloat (2));
 
-    
     // safeFloat - negative paths (missing key, empty string, non-numeric string, undefined container)
     assert (exchange.safeFloat (inputDict, 'nonexistent') === undefined, 'safeFloat failed for missing key');
     assert (exchange.safeFloat (inputDict, 'nonexistent', 5) === 5, 'safeFloat failed for missing key with default');
