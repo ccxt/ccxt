@@ -2650,7 +2650,6 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 messageHash = add(&messageHash, &add(&Value::Str(".".to_string()), &to_lower(&currencyId)));
                 subscription = self.safe_value(get_value(&client, &Value::Str("subscriptions".to_string())), messageHash.clone(), &[]);
             }
-            let mut type_var: Value = self.safe_string_k(subscription.clone(), "type", &[]);
             let mut subType: Value = self.safe_string_k(subscription.clone(), "subType", &[]);
             if is_equal(&topic, &Value::Str("accounts_unify".to_string())) {
                 // {
@@ -2680,44 +2679,22 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }  else if is_equal(&subType, &Value::Str("linear".to_string())) {
                 let mut margin: Value = self.safe_string_k(subscription.clone(), "margin", &[]);
                 if is_equal(&margin, &Value::Str("cross".to_string())) {
-                    let mut fieldName: Value = ternary(is_true(&(is_equal(&type_var, &Value::Str("future".to_string())))), Value::Str("futures_contract_detail".to_string()), Value::Str("contract_detail".to_string()));
-                    let mut balances: Value = self.safe_value(first.clone(), fieldName.clone(), &[Value::List(vec![])]);
-                    let mut balancesLength: Value = get_array_length(&balances);
-                    if is_greater_than(&balancesLength, &Value::Int(0)) {
-                        {
-                                                        let mut i: Value = Value::Int(0);
-                            let mut __for_first_400: bool = true;
-                            while { if !__for_first_400 { i = add(&i, &Value::Int(1)); } __for_first_400 = false; is_less_than(&i, &get_array_length(&balances)) } {
-                            let mut balance: Value = get_value(&balances, &i);
-                            let mut balance: Value = get_value(&balances, &i);
-                            let mut marketId: Value = self.safe_string2(balance.clone(), Value::Str("contract_code".to_string()), Value::Str("margin_account".to_string()), &[]);
-                            let mut market: Value = self.safe_market(&[marketId.clone()]);
-                            let mut currencyId: Value = self.safe_string_k(balance.clone(), "margin_asset", &[]);
-                            let mut currency: Value = self.safe_currency(currencyId.clone(), &[]);
-                            let mut code: Value = self.safe_string_k(market.clone(), "settle", &[get_value(&currency, &Value::Str("code".to_string()))]);
-                            // the exchange outputs positions for delisted markets
-                            // https://www.huobi.com/support/en-us/detail/74882968522337
-                            // we skip it if the market was delisted
-                            if !is_equal(&code, &Value::Null) {
-                                let mut account: Value = self.account();
-                                add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string2(balance.clone(), Value::Str("margin_balance".to_string()), Value::Str("margin_available".to_string()), &[]));
-                                add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string_k(balance.clone(), "margin_frozen", &[]));
-                                let mut accountsByCode: Value = Value::Map({
-                                    let mut m = indexmap::IndexMap::new();
-                                    m
-                                });
-                                add_element_to_object(&mut accountsByCode, &code, account.clone());
-                                let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
-                                { let __be_tmp = self.safe_balance(accountsByCode.clone()); add_element_to_object(&mut self.balance, &symbol, __be_tmp); };
-                            }
-                        }
-                        }
+                    // the cross account is one shared margin balance, keyed by the settle currency
+                    let mut currencyId: Value = self.safe_string2(first.clone(), Value::Str("margin_asset".to_string()), Value::Str("margin_account".to_string()), &[]);
+                    let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
+                    if !is_equal(&code, &Value::Null) {
+                        let mut account: Value = self.account();
+                        add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string2(first.clone(), Value::Str("withdraw_available".to_string()), Value::Str("margin_available".to_string()), &[]));
+                        add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string_k(first.clone(), "margin_frozen", &[]));
+                        add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string_k(first.clone(), "margin_balance", &[]));
+                        add_element_to_object(&mut self.balance, &code, account.clone());
+                        { let __t = self.safe_balance(self.balance.clone()); self.balance = __t; }
                     }
                 }  else {
                     {
                                                 let mut i: Value = Value::Int(0);
-                        let mut __for_first_401: bool = true;
-                        while { if !__for_first_401 { i = add(&i, &Value::Int(1)); } __for_first_401 = false; is_less_than(&i, &get_array_length(&data)) } {
+                        let mut __for_first_400: bool = true;
+                        while { if !__for_first_400 { i = add(&i, &Value::Int(1)); } __for_first_400 = false; is_less_than(&i, &get_array_length(&data)) } {
                         let mut isolatedBalance: Value = get_value(&data, &i);
                         let mut isolatedBalance: Value = get_value(&data, &i);
                         let mut account: Value = self.account();
@@ -2735,8 +2712,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }  else {
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_402: bool = true;
-                    while { if !__for_first_402 { i = add(&i, &Value::Int(1)); } __for_first_402 = false; is_less_than(&i, &get_array_length(&data)) } {
+                    let mut __for_first_401: bool = true;
+                    while { if !__for_first_401 { i = add(&i, &Value::Int(1)); } __for_first_401 = false; is_less_than(&i, &get_array_length(&data)) } {
                     let mut balance: Value = get_value(&data, &i);
                     let mut balance: Value = get_value(&data, &i);
                     let mut currencyId: Value = self.safe_string_k(balance.clone(), "symbol", &[]);
@@ -2800,8 +2777,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut subMessageHashes: Value = self.safe_list_k(subscription.clone(), "subMessageHashes", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_403: bool = true;
-            while { if !__for_first_403 { i = add(&i, &Value::Int(1)); } __for_first_403 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
+            let mut __for_first_402: bool = true;
+            while { if !__for_first_402 { i = add(&i, &Value::Int(1)); } __for_first_402 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
             let mut unsubHash: Value = get_value(&messageHashes, &i);
             let mut unsubHash: Value = get_value(&messageHashes, &i);
             let mut subHash: Value = get_value(&subMessageHashes, &i);
@@ -3313,8 +3290,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 if is_true(&Value::Bool(is_array(&data))) {
                     {
                                                 let mut i: Value = Value::Int(0);
-                        let mut __for_first_404: bool = true;
-                        while { if !__for_first_404 { i = add(&i, &Value::Int(1)); } __for_first_404 = false; is_less_than(&i, &get_array_length(&data)) } {
+                        let mut __for_first_403: bool = true;
+                        while { if !__for_first_403 { i = add(&i, &Value::Int(1)); } __for_first_403 = false; is_less_than(&i, &get_array_length(&data)) } {
                         let mut parsed: Value = self.parse_ws_trade(get_value(&data, &i), &[market.clone()]);
                         let mut symbol: Value = self.safe_string_k(parsed.clone(), "symbol", &[]);
                         if !is_equal(&symbol, &Value::Null) {
@@ -3342,8 +3319,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut market: Value = self.market(marketId.clone());
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_405: bool = true;
-                    while { if !__for_first_405 { i = add(&i, &Value::Int(1)); } __for_first_405 = false; is_less_than(&i, &get_array_length(&rawTrades)) } {
+                    let mut __for_first_404: bool = true;
+                    while { if !__for_first_404 { i = add(&i, &Value::Int(1)); } __for_first_404 = false; is_less_than(&i, &get_array_length(&rawTrades)) } {
                     let mut trade: Value = get_value(&rawTrades, &i);
                     let mut trade: Value = get_value(&rawTrades, &i);
                     let mut parsedTrade: Value = self.parse_trade(trade.clone(), &[market.clone()]);

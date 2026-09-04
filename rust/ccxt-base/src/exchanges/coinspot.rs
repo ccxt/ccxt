@@ -890,15 +890,15 @@ impl CoinspotCore {
         if is_true(&Value::Bool(is_array(&balances))) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_584: bool = true;
-                while { if !__for_first_584 { i = add(&i, &Value::Int(1)); } __for_first_584 = false; is_less_than(&i, &get_array_length(&balances)) } {
+                let mut __for_first_585: bool = true;
+                while { if !__for_first_585 { i = add(&i, &Value::Int(1)); } __for_first_585 = false; is_less_than(&i, &get_array_length(&balances)) } {
                 let mut currencies: Value = get_value(&balances, &i);
                 let mut currencies: Value = get_value(&balances, &i);
                 let mut currencyIds: Value = object_keys(&currencies);
                 {
                                         let mut j: Value = Value::Int(0);
-                    let mut __for_first_583: bool = true;
-                    while { if !__for_first_583 { j = add(&j, &Value::Int(1)); } __for_first_583 = false; is_less_than(&j, &get_array_length(&currencyIds)) } {
+                    let mut __for_first_584: bool = true;
+                    while { if !__for_first_584 { j = add(&j, &Value::Int(1)); } __for_first_584 = false; is_less_than(&j, &get_array_length(&currencyIds)) } {
                     let mut currencyId: Value = get_value(&currencyIds, &j);
                     let mut currencyId: Value = get_value(&currencyIds, &j);
                     let mut balance: Value = get_value(&currencies, &currencyId);
@@ -917,8 +917,8 @@ impl CoinspotCore {
             let mut currencyIds: Value = object_keys(&balances);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_585: bool = true;
-                while { if !__for_first_585 { i = add(&i, &Value::Int(1)); } __for_first_585 = false; is_less_than(&i, &get_array_length(&currencyIds)) } {
+                let mut __for_first_586: bool = true;
+                while { if !__for_first_586 { i = add(&i, &Value::Int(1)); } __for_first_586 = false; is_less_than(&i, &get_array_length(&currencyIds)) } {
                 let mut currencyId: Value = get_value(&currencyIds, &i);
                 let mut currencyId: Value = get_value(&currencyIds, &i);
                 let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
@@ -1129,8 +1129,8 @@ impl CoinspotCore {
         let mut ids: Value = object_keys(&prices);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_586: bool = true;
-            while { if !__for_first_586 { i = add(&i, &Value::Int(1)); } __for_first_586 = false; is_less_than(&i, &get_array_length(&ids)) } {
+            let mut __for_first_587: bool = true;
+            while { if !__for_first_587 { i = add(&i, &Value::Int(1)); } __for_first_587 = false; is_less_than(&i, &get_array_length(&ids)) } {
             let mut id: Value = get_value(&ids, &i);
             let mut id: Value = get_value(&ids, &i);
             let mut market: Value = self.safe_market(&[id.clone()]);
@@ -1254,16 +1254,16 @@ impl CoinspotCore {
         let mut buyTrades: Value = self.safe_list_k(response.clone(), "buyorders", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_587: bool = true;
-            while { if !__for_first_587 { i = add(&i, &Value::Int(1)); } __for_first_587 = false; is_less_than(&i, &get_array_length(&buyTrades)) } {
+            let mut __for_first_588: bool = true;
+            while { if !__for_first_588 { i = add(&i, &Value::Int(1)); } __for_first_588 = false; is_less_than(&i, &get_array_length(&buyTrades)) } {
             add_element_to_object(get_value_mut(&mut buyTrades, &i), &Value::Str("side".to_string()), Value::Str("buy".to_string()));
         }
         }
         let mut sellTrades: Value = self.safe_list_k(response.clone(), "sellorders", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_588: bool = true;
-            while { if !__for_first_588 { i = add(&i, &Value::Int(1)); } __for_first_588 = false; is_less_than(&i, &get_array_length(&sellTrades)) } {
+            let mut __for_first_589: bool = true;
+            while { if !__for_first_589 { i = add(&i, &Value::Int(1)); } __for_first_589 = false; is_less_than(&i, &get_array_length(&sellTrades)) } {
             add_element_to_object(get_value_mut(&mut sellTrades, &i), &Value::Str("side".to_string()), Value::Str("sell".to_string()));
         }
         }
