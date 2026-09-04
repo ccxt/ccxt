@@ -3185,7 +3185,7 @@ func (this *BitgetCore) handleUTAAndParamsBody(ch chan any, params any, methodNa
 				}()
 				// try block:
 
-				retRes193916 := (<-this.PrivateUtaGetV3AccountSettings(params))
+				retRes193916 := (<-this.PrivateUtaGetV3AccountSettings())
 				PanicOnError(retRes193916)
 				accountIsUTa = true
 				return nil
