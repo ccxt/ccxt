@@ -1941,7 +1941,6 @@ class htx(ccxt.async_support.htx):
                     return
                 messageHash += '.' + currencyId.lower()
                 subscription = self.safe_value(client.subscriptions, messageHash)
-            type = self.safe_string(subscription, 'type')
             subType = self.safe_string(subscription, 'subType')
             if topic == 'accounts_unify':
                 # {
@@ -1970,28 +1969,16 @@ class htx(ccxt.async_support.htx):
             elif subType == 'linear':
                 margin = self.safe_string(subscription, 'margin')
                 if margin == 'cross':
-                    fieldName = 'futures_contract_detail' if (type == 'future') else 'contract_detail'
-                    balances = self.safe_value(first, fieldName, [])
-                    balancesLength = len(balances)
-                    if balancesLength > 0:
-                        for i in range(0, len(balances)):
-                            balance = balances[i]
-                            marketId = self.safe_string_2(balance, 'contract_code', 'margin_account')
-                            market = self.safe_market(marketId)
-                            currencyId = self.safe_string(balance, 'margin_asset')
-                            currency = self.safe_currency(currencyId)
-                            code = self.safe_string(market, 'settle', currency['code'])
-                            # the exchange outputs positions for delisted markets
-                            # https://www.huobi.com/support/en-us/detail/74882968522337
-                            # we skip it if the market was delisted
-                            if code is not None:
-                                account = self.account()
-                                account['free'] = self.safe_string_2(balance, 'margin_balance', 'margin_available')
-                                account['used'] = self.safe_string(balance, 'margin_frozen')
-                                accountsByCode = {}
-                                accountsByCode[code] = account
-                                symbol = market['symbol']
-                                self.balance[symbol] = self.safe_balance(accountsByCode)
+                    # the cross account is one shared margin balance, keyed by the settle currency
+                    currencyId = self.safe_string_2(first, 'margin_asset', 'margin_account')
+                    code = self.safe_currency_code(currencyId)
+                    if code is not None:
+                        account = self.account()
+                        account['free'] = self.safe_string_2(first, 'withdraw_available', 'margin_available')
+                        account['used'] = self.safe_string(first, 'margin_frozen')
+                        account['total'] = self.safe_string(first, 'margin_balance')
+                        self.balance[code] = account
+                        self.balance = self.safe_balance(self.balance)
                 else:
                     # isolated margin
                     for i in range(0, len(data)):
