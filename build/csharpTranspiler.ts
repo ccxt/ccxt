@@ -24,6 +24,7 @@ type dict = { [key: string]: string }
 
 let exchanges = JSON.parse (fs.readFileSync("./exchanges.json", "utf8"));
 const exchangeIds: string[] = exchanges.ids
+const wsIds: string[] = exchanges.ws || []
 const predictionIds: string[] = exchanges.prediction || []
 const predictionWsIds: string[] = exchanges.predictionWs || []
 
@@ -974,7 +975,11 @@ const GLOBAL_WRAPPER_FILE = './cs/ccxt/base/Exchange.Wrappers.cs';
 const GLOBAL_TRADING_WRAPPER_FILE = './cs/ccxt/base/Exchange.TradingWrappers.cs';
 const BASE_TRADING_METHODS_FILE = './cs/ccxt/base/Exchange.TradingMethods.cs';
 const EXCHANGE_WRAPPER_FOLDER = './cs/ccxt/wrappers/'
-const EXCHANGE_WS_WRAPPER_FOLDER = './cs/ccxt/exchanges/pro/wrappers/'
+// ws + prediction class aliases are consolidated into one file each, mirroring the REST
+// Exchange.Wrappers.cs, so no per-exchange wrapper directory survives
+const WS_CLASS_ALIAS_FILE = './cs/ccxt/ws/Exchange.WsAliases.cs'
+const PREDICTION_CLASS_ALIAS_FILE = './cs/ccxt/base/Exchange.PredictionAliases.cs'
+const PREDICTION_WS_CLASS_ALIAS_FILE = './cs/ccxt/base/Exchange.PredictionWsAliases.cs'
 const ERRORS_FILE = './cs/ccxt/base/Exchange.Errors.cs';
 const BASE_METHODS_FILE = './cs/ccxt/base/Exchange.BaseMethods.cs';
 const EXCHANGES_FOLDER = './cs/ccxt/exchanges/';
@@ -982,7 +987,6 @@ const EXCHANGES_WS_FOLDER = './cs/ccxt/exchanges/pro/';
 const EXCHANGES_PREDICTION_FOLDER = './cs/ccxt/exchanges/prediction/';
 const EXCHANGE_PREDICTION_WRAPPER_FOLDER = './cs/ccxt/wrappers/prediction/';
 const EXCHANGES_PREDICTION_WS_FOLDER = './cs/ccxt/exchanges/prediction/pro/';
-const EXCHANGE_PREDICTION_WS_WRAPPER_FOLDER = './cs/ccxt/exchanges/prediction/pro/wrappers/';
 const GENERATED_TESTS_FOLDER = './cs/tests/Generated/Exchange/';
 const BASE_TESTS_FOLDER = './cs/tests/Generated/Base';
 const BASE_TESTS_FILE =  './cs/tests/Generated/TestMethods.cs';
@@ -2435,11 +2439,33 @@ class NewTranspiler {
         return res;
     }
 
+    createClassAliasFile (ids: string[], path: string, namespace: string) {
+        // one file per tier holding every `class Binance : binance` alias, so the
+        // generator never recreates a per-exchange wrapper directory
+        if (!ids.length) {
+            if (fs.existsSync (path)) {
+                fs.unlinkSync (path);
+                log.magenta ('×', (path as any).yellow)
+            }
+            return;
+        }
+        const header = this.createGeneratedHeader().join('\n');
+        const classes = [ '// class wrappers' ];
+        ids.forEach ((exchange: string) => {
+            const capitalized = exchange.charAt(0).toUpperCase() + exchange.slice(1);
+            const constructor = `public ${capitalized}(object args = null) : base(args) { }`;
+            classes.push (`public class  ${capitalized}: ${exchange} { ${constructor} }`);
+        });
+        const file = [ namespace, '', header, classes.join('\n') ].join('\n') + '\n';
+        log.magenta ('→', (path as any).yellow)
+        overwriteFileAndFolder (path, file);
+    }
+
     createCSharpWrappers(exchange:string, path: string, wrappers: any[], ws = false, prediction = false) {
         // Method wrappers have been retired: the PascalCase core is the public C# API.
-        // This emitter now only writes the documented `class Binance : binance` aliases
-        // (Exchange.Wrappers.cs for REST, per-file for ws / prediction). REST venue
-        // files that would be an empty partial class are deleted instead of rewritten.
+        // This emitter now only writes the documented `class Binance : binance` aliases,
+        // consolidated into one file per tier (createClassAliasFile). Any per-exchange
+        // wrapper file that would be an empty partial class is deleted instead.
         const namespace = this.getNamespace (ws);
         const header = this.createGeneratedHeader().join('\n');
         if (exchange === 'BaseExchange') {
@@ -2449,16 +2475,6 @@ class NewTranspiler {
             overwriteFileAndFolder (path, file);
             return;
         }
-        const needsCapitalizedClass = ws || this.isPrediction;
-        if (needsCapitalizedClass) {
-            const capitizedName = exchange.charAt(0).toUpperCase() + exchange.slice(1);
-            const capitalizeStatement = `public class  ${capitizedName}: ${exchange} { public ${capitizedName}(object args = null) : base(args) { } }`;
-            const file = [ namespace, '', header, capitalizeStatement ].join('\n') + '\n';
-            log.magenta ('→', (path as any).yellow)
-            overwriteFileAndFolder (path, file);
-            return;
-        }
-        // REST venue or Exchange-tier trading wrappers: nothing left to emit
         if (fs.existsSync (path)) {
             fs.unlinkSync (path);
             log.magenta ('×', (path as any).yellow)
@@ -2994,9 +3010,10 @@ class NewTranspiler {
         }
 
         // the wrapper folder is needed up front: a skipped exchange must have BOTH its
-        // transpiled class and its wrapper already up to date
+        // transpiled class and its wrapper already up to date. ws/prediction-ws aliases
+        // live in one consolidated file, so only the REST tiers have a folder stamp.
         const wrapperFolder = ws
-            ? (this.isPrediction ? EXCHANGE_PREDICTION_WS_WRAPPER_FOLDER : EXCHANGE_WS_WRAPPER_FOLDER)
+            ? undefined
             : (this.isPrediction ? EXCHANGE_PREDICTION_WRAPPER_FOLDER : EXCHANGE_WRAPPER_FOLDER);
 
         // incremental gate (same rule as the Python/PHP pass in build/transpile.ts):
@@ -3035,14 +3052,17 @@ class NewTranspiler {
                 const path = wrapperFolder + exchangeName + '.cs';
                 this.createCSharpWrappers(exchangeName, path, transpiled.methodsTypes)
             }
-        } else {
-            //
-            for (let i = 0; i < transpiledFiles.length; i++) {
-                const transpiled = transpiledFiles[i];
-                const exchangeName = exchangeFiles[i].replace('.ts','');
-                const path = wrapperFolder + exchangeName + '.cs';
-                this.createCSharpWrappers(exchangeName, path, transpiled.methodsTypes, true)
+        }
+        // ws / prediction-ws class aliases are written once, from the full id list, so a
+        // scoped run cannot truncate the file to just the exchanges it transpiled
+        if (ws) {
+            if (this.isPrediction) {
+                this.createClassAliasFile (predictionWsIds, PREDICTION_WS_CLASS_ALIAS_FILE, this.getNamespace (true));
+            } else {
+                this.createClassAliasFile (wsIds, WS_CLASS_ALIAS_FILE, this.getNamespace (true));
             }
+        } else if (this.isPrediction) {
+            this.createClassAliasFile (predictionIds, PREDICTION_CLASS_ALIAS_FILE, this.getNamespace (false));
         }
         exchangeFiles.map ((file: string, idx: number) => this.transpileDerivedExchangeFile (jsFolder, file, options, transpiledFiles[idx], force, ws, prediction))
 
