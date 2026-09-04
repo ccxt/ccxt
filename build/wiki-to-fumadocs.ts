@@ -205,11 +205,11 @@ function rewriteLinks (md: string): string {
         (_m, ex, frag) => `](/docs/exchanges/${ex}${frag ?? ''})`);
 
     // example links: ./examples/<lang>/<file>.md -> /docs/examples/<lang>/<file>
-    s = s.replace(/\]\((?:\.\/)?examples\/(js|py|ts|php|cs|go|java)\/([\w.\-]+)\.md\)/g, '](/docs/examples/$1/$2)');
+    s = s.replace(/\]\((?:\.\/)?examples\/(js|py|ts|php|cs|go|java|rust)\/([\w.\-]+)\.md\)/g, '](/docs/examples/$1/$2)');
     // example dir links: ./examples/<lang>/ -> /docs/examples/<lang>
-    s = s.replace(/\]\((?:\.\/)?examples\/(js|py|ts|php|cs|go|java)\/?\)/g, '](/docs/examples/$1)');
+    s = s.replace(/\]\((?:\.\/)?examples\/(js|py|ts|php|cs|go|java|rust)\/?\)/g, '](/docs/examples/$1)');
     // absolute example links missing the /docs prefix: /examples/<lang>(/file) -> /docs/examples/...
-    s = s.replace(/\]\(\/examples\/(js|py|ts|php|cs|go|java)((?:\/[^)]*)?)\)/g, '](/docs/examples/$1$2)');
+    s = s.replace(/\]\(\/examples\/(js|py|ts|php|cs|go|java|rust)((?:\/[^)]*)?)\)/g, '](/docs/examples/$1$2)');
 
     // relative guide query-anchor: ](Examples?id=js) / ](Manual?id=x) etc.
     s = s.replace(/\]\((?:\.\/)?([\w.\-]+)\?id=([\w-]+)\)/g, (_m, page, anchor) => {
@@ -319,7 +319,7 @@ function firstParagraph (md: string): string {
 }
 
 const ROUTE_DESC: Record<string, string> = {
-    'index': 'CCXT — a unified API for 100+ cryptocurrency and prediction-market exchanges in JavaScript, Python, PHP, C#, Go and Java.',
+    'index': 'CCXT — a unified API for 100+ cryptocurrency and prediction-market exchanges in JavaScript, Python, PHP, C#, Go, Java and Rust.',
     'base-spec': 'CCXT unified API specification — every method and the exchanges that implement it.',
     'prediction-markets': 'Trade prediction markets (Polymarket, Kalshi, Limitless, Myriad, Hyperliquid) with the CCXT unified API.',
     'exchange-markets': 'All cryptocurrency and prediction-market exchanges supported by CCXT.',
@@ -681,8 +681,8 @@ function main () {
             JSON.stringify({ title: 'Prediction Markets', icon: 'TrendingUp', description: 'Prediction-market exchanges (Polymarket, Kalshi, Limitless, Myriad, Hyperliquid)', root: true, pages: predPages }, null, 2));
     }
 
-    // 3) examples (js, py, ts, php)
-    const LANGS: Record<string, string> = { js: 'JavaScript', py: 'Python', ts: 'TypeScript', php: 'PHP', cs: 'C#', go: 'Go', java: 'Java' };
+    // 3) examples (js, py, ts, php, cs, go, java, rust)
+    const LANGS: Record<string, string> = { js: 'JavaScript', py: 'Python', ts: 'TypeScript', php: 'PHP', cs: 'C#', go: 'Go', java: 'Java', rust: 'Rust' };
     const exampleLangs: string[] = [];
     for (const lang of Object.keys(LANGS)) {
         const dir = path.join(WIKI, 'examples', lang);
@@ -725,6 +725,7 @@ function main () {
     const langBlurb: Record<string, string> = {
         js: 'Node.js and the browser', py: 'sync and async (asyncio)', ts: 'typed, for Node and bundlers',
         php: 'sync and async (ReactPHP)', cs: '.NET / C#', go: 'Go modules', java: 'Java (JVM)',
+        rust: 'async Rust (Tokio)',
     };
     const chooser = exampleLangs
         .map((l) => `- [${LANGS[l]} Examples](/docs/examples/${l}) — ${langBlurb[l] ?? ''}`)
