@@ -15,7 +15,7 @@ func TestIo() {
 	var fileName any = ccxt.Add(ccxt.Add("ccxt-test-io-", ccxt.ToString(ms)), ".ccxtfile")
 	// upper tmp dir
 	var tempDir any = exchange.GetTempDir()
-	assert(!ccxt.IsEqual(tempDir, nil) && !ccxt.IsEqual(tempDir, ""), "temp dir should not be empty")
+	assert(!ccxt.IsEqual(tempDir, nil) && (tempDir != ""), "temp dir should not be empty")
 	var filePath any = ccxt.Add(tempDir, fileName) // '../../../../../../../../../../../../tmp/' + fileName;
 	var fileContent string = "hello world"
 	assert(exchange.WriteFile(filePath, fileContent), ccxt.Add("can not write file ", filePath))

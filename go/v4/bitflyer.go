@@ -1313,7 +1313,7 @@ func (this *BitflyerCore) withdrawBody(ch chan any, code any, amount any, addres
 		retRes97912 := (<-this.LoadMarkets())
 		PanicOnError(retRes97912)
 	}
-	if !IsEqual(code, "JPY") && !IsEqual(code, "USD") && !IsEqual(code, "EUR") {
+	if (code != "JPY") && (code != "USD") && (code != "EUR") {
 		panic(ExchangeError(Add(Add(Add(this.Id, " allows withdrawing JPY, USD, EUR only, "), code), " is not supported")))
 	}
 	var currency any = this.Currency(code)
@@ -1648,7 +1648,7 @@ func (this *BitflyerCore) Sign(path any, optionalArgs ...any) any {
 		request = Add(request, "me/")
 	}
 	request = Add(request, path)
-	if IsEqual(method, "GET") {
+	if method == "GET" {
 		if IsGreaterThan(GetArrayLength(ObjectKeys(params)), 0) {
 			request = Add(request, Add("?", this.Urlencode(params)))
 		}
@@ -1661,7 +1661,7 @@ func (this *BitflyerCore) Sign(path any, optionalArgs ...any) any {
 		var content []any = []any{nonce, method, request}
 		var auth any = Join(content, "")
 		if IsGreaterThan(GetArrayLength(ObjectKeys(params)), 0) {
-			if !IsEqual(method, "GET") {
+			if method != "GET" {
 				body = this.Json(params)
 				auth = Add(auth, body)
 			}

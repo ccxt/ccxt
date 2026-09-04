@@ -31,13 +31,13 @@ func TestParseTimeframe() {
 	exchange.InitParent(map[string]any{
 		"id": "sampleexchange",
 	}, map[string]any{}, exchange)
-	Assert(ccxt.IsEqual(exchange.ParseTimeframe("1m"), 60))
-	Assert(ccxt.IsEqual(exchange.ParseTimeframe("5m"), 300))
-	Assert(ccxt.IsEqual(exchange.ParseTimeframe("1h"), 3600))
-	Assert(ccxt.IsEqual(exchange.ParseTimeframe("1d"), 86400))
-	Assert(ccxt.IsEqual(exchange.ParseTimeframe("1w"), 604800))
-	Assert(ccxt.IsEqual(exchange.ParseTimeframe("1M"), 2592000))  // todo: just approx
-	Assert(ccxt.IsEqual(exchange.ParseTimeframe("1y"), 31536000)) // todo: just approx
+	Assert((exchange.ParseTimeframe("1m") == 60))
+	Assert((exchange.ParseTimeframe("5m") == 300))
+	Assert((exchange.ParseTimeframe("1h") == 3600))
+	Assert((exchange.ParseTimeframe("1d") == 86400))
+	Assert((exchange.ParseTimeframe("1w") == 604800))
+	Assert((exchange.ParseTimeframe("1M") == 2592000))  // todo: just approx
+	Assert((exchange.ParseTimeframe("1y") == 31536000)) // todo: just approx
 }
 func TestTimeframes() {
 	TestRoundTimeframe()

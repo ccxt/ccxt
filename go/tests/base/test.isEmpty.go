@@ -11,21 +11,21 @@ func TestIsEmpty() {
 	exchange.InitParent(map[string]any{
 		"id": "sampleexchange",
 	}, map[string]any{}, exchange)
-	assert(ccxt.IsEqual(exchange.IsEmpty(nil), true), "undefined should be empty")
-	assert(ccxt.IsEqual(exchange.IsEmpty(nil), true), "null should be empty")
-	assert(ccxt.IsEqual(exchange.IsEmpty(map[string]any{}), true), "empty object should be empty")
-	assert(ccxt.IsEqual(exchange.IsEmpty([]any{}), true), "empty array should be empty")
-	assert(ccxt.IsEqual(exchange.IsEmpty(map[string]any{
+	assert((exchange.IsEmpty(nil) == true), "undefined should be empty")
+	assert((exchange.IsEmpty(nil) == true), "null should be empty")
+	assert((exchange.IsEmpty(map[string]any{}) == true), "empty object should be empty")
+	assert((exchange.IsEmpty([]any{}) == true), "empty array should be empty")
+	assert((exchange.IsEmpty(map[string]any{
 		"foo": 1,
-	}), false), "non-empty object should not be empty")
-	assert(ccxt.IsEqual(exchange.IsEmpty([]any{1, 2}), false), "non-empty array should not be empty")
+	}) == false), "non-empty object should not be empty")
+	assert((exchange.IsEmpty([]any{1, 2}) == false), "non-empty array should not be empty")
 	// below are scalars, so they are not checked.
 	// @ts-expect-error
-	assert(ccxt.IsEqual(exchange.IsEmpty(""), false), "empty string should return false")
+	assert((exchange.IsEmpty("") == false), "empty string should return false")
 	// @ts-expect-error
-	assert(ccxt.IsEqual(exchange.IsEmpty(0), false), "zero should return false")
+	assert((exchange.IsEmpty(0) == false), "zero should return false")
 	// @ts-expect-error
-	assert(ccxt.IsEqual(exchange.IsEmpty(false), false), "false should return false")
+	assert((exchange.IsEmpty(false) == false), "false should return false")
 	// @ts-expect-error
-	assert(ccxt.IsEqual(exchange.IsEmpty("non-empty string"), false), "non-empty string should not be empty")
+	assert((exchange.IsEmpty("non-empty string") == false), "non-empty string should not be empty")
 }

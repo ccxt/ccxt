@@ -436,7 +436,7 @@ func (this *BullishCore) SeparateBidsOrAsks(entry any) any {
 	// 301 = '0.06141566'
 	// 302 ='53714.0000000'
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(entry)); i++ {
-		if !ccxt.IsEqual(ccxt.Mod(i, 2), 0) {
+		if ccxt.Mod(i, 2) != 0 {
 			continue
 		}
 		var price *string = this.SafeString(entry, i)

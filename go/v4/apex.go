@@ -432,7 +432,7 @@ func (this *ApexCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes36512 := (<-this.LoadMarkets())
 		PanicOnError(retRes36512)
@@ -446,7 +446,7 @@ func (this *ApexCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	return nil
 }
 func (this *ApexCore) ParseAccount(account any) any {
-	var accountId any = this.SafeString(account, "id", "0")
+	var accountId *string = this.SafeString(account, "id", "0")
 	return map[string]any{
 		"id":   accountId,
 		"type": nil,
@@ -473,7 +473,7 @@ func (this *ApexCore) fetchAccountBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes39212 := (<-this.LoadMarkets())
 		PanicOnError(retRes39212)
@@ -610,9 +610,9 @@ func (this *ApexCore) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any 
 	return nil
 }
 func (this *ApexCore) ParseCurrency(currency any) any {
-	var currencyId any = this.SafeString(currency, "token")
+	var currencyId *string = this.SafeString(currency, "token")
 	var code any = this.SafeCurrencyCode(currencyId)
-	var name any = this.SafeString(currency, "displayName")
+	var name *string = this.SafeString(currency, "displayName")
 	var networks map[string]any = map[string]any{}
 	var chains any = GetValue(this.Options, "_temp_currencies_chains")
 	for j := 0; IsLessThan(j, GetArrayLength(chains)); j++ {
@@ -620,11 +620,11 @@ func (this *ApexCore) ParseCurrency(currency any) any {
 		var tokens any = this.SafeList(chain, "tokens", []any{})
 		for f := 0; IsLessThan(f, GetArrayLength(tokens)); f++ {
 			var token any = GetValue(tokens, f)
-			var tokenName any = this.SafeString(token, "token")
-			if IsTrue(IsEqual(tokenName, currencyId)) {
-				var networkId any = this.SafeString(chain, "chainId")
+			var tokenName *string = this.SafeString(token, "token")
+			if tokenName == currencyId || (tokenName != nil && currencyId != nil && *tokenName == *currencyId) {
+				var networkId *string = this.SafeString(chain, "chainId")
 				var networkCode any = this.NetworkIdToCode(networkId, code)
-				if IsTrue(!IsEqual(networkCode, nil)) {
+				if !IsEqual(networkCode, nil) {
 					AddElementToObject(networks, networkCode, map[string]any{
 						"info":      chain,
 						"id":        networkId,
@@ -651,8 +651,8 @@ func (this *ApexCore) ParseCurrency(currency any) any {
 	}
 	var networkKeys []string = ObjectKeys(networks)
 	var networksLength int = GetArrayLength(networkKeys)
-	var emptyChains bool = IsEqual(networksLength, 0) // non-functional coins
-	var valueForEmpty any = Ternary(IsTrue(emptyChains), false, nil)
+	var emptyChains bool = (networksLength == 0) // non-functional coins
+	var valueForEmpty any = Ternary(emptyChains, false, nil)
 	return this.SafeCurrencyStructure(map[string]any{
 		"info":      currency,
 		"code":      code,
@@ -765,13 +765,13 @@ func (this *ApexCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	return nil
 }
 func (this *ApexCore) ParseMarket(market any) any {
-	var id any = this.SafeString(market, "symbol")
-	var id2 any = this.SafeString(market, "crossSymbolName")
-	var quoteId any = this.SafeString(market, "l2PairId")
-	var baseId any = this.SafeString(market, "baseTokenId")
-	var quote any = this.SafeString(market, "settleAssetId")
+	var id *string = this.SafeString(market, "symbol")
+	var id2 *string = this.SafeString(market, "crossSymbolName")
+	var quoteId *string = this.SafeString(market, "l2PairId")
+	var baseId *string = this.SafeString(market, "baseTokenId")
+	var quote *string = this.SafeString(market, "settleAssetId")
 	var base any = this.SafeCurrencyCode(baseId)
-	var settleId any = this.SafeString(market, "settleAssetId")
+	var settleId *string = this.SafeString(market, "settleAssetId")
 	var settle any = this.SafeCurrencyCode(settleId)
 	var symbol any = Add(Add(Add(Add(baseId, "/"), quote), ":"), settle)
 	var expiry any = 0
@@ -800,8 +800,8 @@ func (this *ApexCore) ParseMarket(market any) any {
 		"taker":          takerFee,
 		"maker":          makerFee,
 		"contractSize":   this.SafeNumber(market, "minOrderSize"),
-		"expiry":         Ternary(IsTrue((IsEqual(expiry, 0))), nil, expiry),
-		"expiryDatetime": Ternary(IsTrue((IsEqual(expiry, 0))), nil, this.Iso8601(expiry)),
+		"expiry":         Ternary((expiry == 0), nil, expiry),
+		"expiryDatetime": Ternary((expiry == 0), nil, this.Iso8601(expiry)),
 		"strike":         nil,
 		"optionType":     nil,
 		"precision": map[string]any{
@@ -852,15 +852,15 @@ func (this *ApexCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var timestamp int64 = this.Milliseconds()
-	var marketId any = this.SafeString(ticker, "symbol")
+	var marketId *string = this.SafeString(ticker, "symbol")
 	market = this.SafeMarket(marketId, market)
 	var symbol any = this.SafeSymbol(marketId, market)
-	var last any = this.SafeString(ticker, "lastPrice")
-	var percentage any = this.SafeString(ticker, "price24hPcnt")
-	var quoteVolume any = this.SafeString(ticker, "turnover24h")
-	var baseVolume any = this.SafeString(ticker, "volume24h")
-	var high any = this.SafeString(ticker, "highPrice24h")
-	var low any = this.SafeString(ticker, "lowPrice24h")
+	var last *string = this.SafeString(ticker, "lastPrice")
+	var percentage *string = this.SafeString(ticker, "price24hPcnt")
+	var quoteVolume *string = this.SafeString(ticker, "turnover24h")
+	var baseVolume *string = this.SafeString(ticker, "volume24h")
+	var high *string = this.SafeString(ticker, "highPrice24h")
+	var low *string = this.SafeString(ticker, "lowPrice24h")
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
 		"timestamp":     timestamp,
@@ -906,7 +906,7 @@ func (this *ApexCore) fetchTickerBody(ch chan any, symbol any, optionalArgs ...a
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes78512 := (<-this.LoadMarkets())
 		PanicOnError(retRes78512)
@@ -946,7 +946,7 @@ func (this *ApexCore) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	_ = symbols
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes80812 := (<-this.LoadMarkets())
 		PanicOnError(retRes80812)
@@ -989,7 +989,7 @@ func (this *ApexCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes83012 := (<-this.LoadMarkets())
 		PanicOnError(retRes83012)
@@ -999,14 +999,14 @@ func (this *ApexCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 		"interval": this.SafeString(this.Timeframes, timeframe, timeframe),
 		"symbol":   this.SafeString(market, "id2"),
 	}
-	if IsTrue(IsEqual(limit, nil)) {
+	if IsEqual(limit, nil) {
 		limit = 200 // default is 200 when requested with `since`
 	}
 	AddElementToObject(request, "limit", limit) // max 200, default 200
 	requestparamsVariable := this.HandleUntilOption("end", request, params, 0.001)
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
-	if IsTrue(!IsEqual(since, nil)) {
+	if !IsEqual(since, nil) {
 		AddElementToObject(request, "start", MathFloor(Divide(since, 1000)))
 	}
 
@@ -1059,7 +1059,7 @@ func (this *ApexCore) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	_ = limit
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes88712 := (<-this.LoadMarkets())
 		PanicOnError(retRes88712)
@@ -1068,7 +1068,7 @@ func (this *ApexCore) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	var request map[string]any = map[string]any{
 		"symbol": this.SafeString(market, "id2"),
 	}
-	if IsTrue(IsEqual(limit, nil)) {
+	if IsEqual(limit, nil) {
 		limit = 100 // default is 200 when requested with `since`
 	}
 	AddElementToObject(request, "limit", limit) // max 100, default 100
@@ -1137,7 +1137,7 @@ func (this *ApexCore) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	_ = limit
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes94612 := (<-this.LoadMarkets())
 		PanicOnError(retRes94612)
@@ -1146,7 +1146,7 @@ func (this *ApexCore) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	var request map[string]any = map[string]any{
 		"symbol": this.SafeString(market, "id2"),
 	}
-	if IsTrue(IsEqual(limit, nil)) {
+	if IsEqual(limit, nil) {
 		limit = 500 // default is 50
 	}
 	AddElementToObject(request, "limit", limit)
@@ -1193,15 +1193,15 @@ func (this *ApexCore) ParseTrade(trade any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var marketId any = this.SafeString2(trade, "s", "symbol")
+	var marketId *string = this.SafeString2(trade, "s", "symbol")
 	market = this.SafeMarket(marketId, market)
-	var id any = this.SafeString2(trade, "i", "id")
-	var timestamp any = this.SafeIntegerN(trade, []any{"t", "T", "createdAt"})
-	var priceString any = this.SafeString2(trade, "p", "price")
-	var amountString any = this.SafeString2(trade, "v", "size")
-	var side any = this.SafeStringLower2(trade, "S", "side")
-	var typeVar any = this.SafeString(trade, "type")
-	var fee any = this.SafeString(trade, "fee")
+	var id *string = this.SafeString2(trade, "i", "id")
+	var timestamp *int64 = this.SafeIntegerN(trade, []any{"t", "T", "createdAt"})
+	var priceString *string = this.SafeString2(trade, "p", "price")
+	var amountString *string = this.SafeString2(trade, "v", "size")
+	var side *string = this.SafeStringLower2(trade, "S", "side")
+	var typeVar *string = this.SafeString(trade, "type")
+	var fee *string = this.SafeString(trade, "fee")
 	return this.SafeTrade(map[string]any{
 		"info":         trade,
 		"id":           id,
@@ -1238,7 +1238,7 @@ func (this *ApexCore) fetchOpenInterestBody(ch chan any, symbol any, optionalArg
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes103112 := (<-this.LoadMarkets())
 		PanicOnError(retRes103112)
@@ -1278,7 +1278,7 @@ func (this *ApexCore) ParseOpenInterest(interest any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var timestamp int64 = this.Milliseconds()
-	var marketId any = this.SafeString(interest, "symbol")
+	var marketId *string = this.SafeString(interest, "symbol")
 	market = this.SafeMarket(marketId, market)
 	var symbol any = this.SafeSymbol(marketId, market)
 	return this.SafeOpenInterest(map[string]any{
@@ -1320,10 +1320,10 @@ func (this *ApexCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(symbol, nil)) {
+	if IsEqual(symbol, nil) {
 		panic(ArgumentsRequired(Add(this.Id, " fetchFundingRateHistory() requires a symbol argument")))
 	}
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes109412 := (<-this.LoadMarkets())
 		PanicOnError(retRes109412)
@@ -1331,18 +1331,18 @@ func (this *ApexCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	var request map[string]any = map[string]any{}
 	var market any = this.Market(symbol)
 	AddElementToObject(request, "symbol", GetValue(market, "id"))
-	if IsTrue(!IsEqual(since, nil)) {
+	if !IsEqual(since, nil) {
 		AddElementToObject(request, "beginTimeInclusive", since)
 	}
-	if IsTrue(!IsEqual(limit, nil)) {
+	if !IsEqual(limit, nil) {
 		AddElementToObject(request, "limit", limit)
 	}
-	var page any = this.SafeInteger(params, "page")
-	if IsTrue(!IsEqual(page, nil)) {
+	var page *int64 = this.SafeInteger(params, "page")
+	if page != nil {
 		AddElementToObject(request, "page", page)
 	}
-	var endTimeExclusive any = this.SafeIntegerN(params, []any{"endTime", "endTimeExclusive", "until"})
-	if IsTrue(!IsEqual(endTimeExclusive, nil)) {
+	var endTimeExclusive *int64 = this.SafeIntegerN(params, []any{"endTime", "endTimeExclusive", "until"})
+	if endTimeExclusive != nil {
 		AddElementToObject(request, "endTimeExclusive", endTimeExclusive)
 	}
 
@@ -1367,8 +1367,8 @@ func (this *ApexCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	var resultList any = this.SafeList(data, "historyFunds", []any{})
 	for i := 0; IsLessThan(i, GetArrayLength(resultList)); i++ {
 		var entry any = GetValue(resultList, i)
-		var timestamp any = this.SafeInteger(entry, "fundingTimestamp")
-		var marketId any = this.SafeString(entry, "symbol")
+		var timestamp *int64 = this.SafeInteger(entry, "fundingTimestamp")
+		var marketId *string = this.SafeString(entry, "symbol")
 		AppendToArray(&rates, map[string]any{
 			"info":        entry,
 			"symbol":      this.SafeSymbol(marketId, market),
@@ -1439,20 +1439,20 @@ func (this *ApexCore) ParseOrder(order any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var timestamp any = this.SafeInteger(order, "createdAt")
-	var orderId any = this.SafeString(order, "id")
-	var clientOrderId any = this.SafeString(order, "clientId")
-	var marketId any = this.SafeString(order, "symbol")
+	var timestamp *int64 = this.SafeInteger(order, "createdAt")
+	var orderId *string = this.SafeString(order, "id")
+	var clientOrderId *string = this.SafeString(order, "clientId")
+	var marketId *string = this.SafeString(order, "symbol")
 	market = this.SafeMarket(marketId, market)
 	var symbol any = GetValue(market, "symbol")
-	var price any = this.SafeString(order, "price")
-	var amount any = this.SafeString(order, "size")
-	var orderType any = this.SafeString(order, "type")
-	var status any = this.SafeString(order, "status")
-	var side any = this.SafeStringLower(order, "side")
+	var price *string = this.SafeString(order, "price")
+	var amount *string = this.SafeString(order, "size")
+	var orderType *string = this.SafeString(order, "type")
+	var status *string = this.SafeString(order, "status")
+	var side *string = this.SafeStringLower(order, "side")
 	// const average = this.omitZero (this.safeString (order, 'avg_fill_price'));
 	var remaining any = this.OmitZero(this.SafeString(order, "remainingSize"))
-	var lastUpdateTimestamp any = this.SafeInteger(order, "updatedTime")
+	var lastUpdateTimestamp *int64 = this.SafeInteger(order, "updatedTime")
 	return this.SafeOrder(map[string]any{
 		"id":                  orderId,
 		"clientOrderId":       clientOrderId,
@@ -1494,7 +1494,7 @@ func (this *ApexCore) ParseTimeInForce(timeInForce any) any {
 	return this.SafeString(timeInForces, timeInForce)
 }
 func (this *ApexCore) ParseOrderStatus(status any) any {
-	if IsTrue(!IsEqual(status, nil)) {
+	if !IsEqual(status, nil) {
 		var statuses map[string]any = map[string]any{
 			"PENDING":     "open",
 			"OPEN":        "open",
@@ -1527,20 +1527,20 @@ func (this *ApexCore) SafeMarket(optionalArgs ...any) any {
 	_ = delimiter
 	marketType := GetArg(optionalArgs, 3, nil)
 	_ = marketType
-	if IsTrue(IsTrue(IsEqual(market, nil)) && IsTrue(!IsEqual(marketId, nil))) {
+	if IsEqual(market, nil) && !IsEqual(marketId, nil) {
 		var marketsMap any = this.Markets
 		var marketsById any = this.Markets_by_id
-		if IsTrue(IsTrue((!IsEqual(marketsMap, nil))) && IsTrue((InOp(marketsMap, marketId)))) {
+		if (!IsEqual(marketsMap, nil)) && (InOp(marketsMap, marketId)) {
 			market = GetValue(marketsMap, marketId)
-		} else if IsTrue(IsTrue((!IsEqual(marketsById, nil))) && IsTrue((InOp(marketsById, marketId)))) {
+		} else if (!IsEqual(marketsById, nil)) && (InOp(marketsById, marketId)) {
 			market = GetValue(marketsById, marketId)
 		} else {
 			var newMarketId any = this.AddHyphenBeforeUsdt(marketId)
-			if IsTrue(IsTrue((!IsEqual(marketsById, nil))) && IsTrue((InOp(marketsById, newMarketId)))) {
+			if (!IsEqual(marketsById, nil)) && (InOp(marketsById, newMarketId)) {
 				var markets any = GetValue(marketsById, newMarketId)
 				var numMarkets int = GetArrayLength(markets)
-				if IsTrue(IsGreaterThan(numMarkets, 0)) {
-					if IsTrue(IsEqual(GetValue(GetValue(GetValue(marketsById, newMarketId), 0), "id2"), marketId)) {
+				if IsGreaterThan(numMarkets, 0) {
+					if IsEqual(GetValue(GetValue(GetValue(marketsById, newMarketId), 0), "id2"), marketId) {
 						market = GetValue(GetValue(marketsById, newMarketId), 0)
 					}
 				}
@@ -1550,22 +1550,22 @@ func (this *ApexCore) SafeMarket(optionalArgs ...any) any {
 	return this.Exchange.SafeMarket(marketId, market, delimiter, marketType)
 }
 func (this *ApexCore) GenerateRandomClientIdOmni(_accountId any) any {
-	var hasAccountId bool = IsTrue((!IsEqual(_accountId, nil))) && IsTrue((!IsEqual(_accountId, "")))
-	var accountId any = Ternary(IsTrue(hasAccountId), _accountId, ToString(this.RandNumber(12)))
+	var hasAccountId bool = (!IsEqual(_accountId, nil)) && (_accountId != "")
+	var accountId any = Ternary(hasAccountId, _accountId, ToString(this.RandNumber(12)))
 	return Add(Add(Add(Add(Add("apexomni-", accountId), "-"), ToString(this.Milliseconds())), "-"), ToString(this.RandNumber(6)))
 }
 func (this *ApexCore) AddHyphenBeforeUsdt(symbol any) any {
 	var uppercaseSymbol string = ToUpper(symbol)
 	var index int = GetIndexOf(uppercaseSymbol, "USDT")
-	var symbolChar any = this.SafeString(symbol, Subtract(index, 1))
-	if IsTrue(IsTrue(IsGreaterThan(index, 0)) && IsTrue(!IsEqual(symbolChar, "-"))) {
+	var symbolChar *string = this.SafeString(symbol, Subtract(index, 1))
+	if IsGreaterThan(index, 0) && (symbolChar == nil || *symbolChar != "-") {
 		return Add(Add(Slice(symbol, 0, index), "-"), Slice(symbol, index, nil))
 	}
 	return symbol
 }
 func (this *ApexCore) GetSeeds() any {
-	var seeds any = this.SafeString(this.Options, "seeds")
-	if IsTrue(IsEqual(seeds, nil)) {
+	var seeds *string = this.SafeString(this.Options, "seeds")
+	if seeds == nil {
 		panic(ArgumentsRequired(Add(this.Id, " the \"seeds\" key is required in the options to access private endpoints. You can find it in API Management > Omni Key, and then set it as exchange.options[\"seeds\"] = XXXX")))
 	}
 	return seeds
@@ -1578,8 +1578,8 @@ func (this *ApexCore) GetAccountId() <-chan any {
 func (this *ApexCore) getAccountIdBody(ch chan any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	var accountId any = this.SafeString(this.Options, "accountId", "0")
-	if IsTrue(IsEqual(accountId, "0")) {
+	var accountId *string = this.SafeString(this.Options, "accountId", "0")
+	if accountId != nil && *accountId == "0" {
 
 		accountData := (<-this.FetchAccount())
 		PanicOnError(accountData)
@@ -1622,50 +1622,50 @@ func (this *ApexCore) createOrderBody(ch chan any, symbol any, typeVar any, side
 	_ = price
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes136412 := (<-this.LoadMarkets())
 		PanicOnError(retRes136412)
 	}
 	var market any = this.Market(symbol)
 	var orderType any = ToUpper(typeVar)
-	if IsTrue(IsEqual(side, nil)) {
+	if IsEqual(side, nil) {
 		panic(ArgumentsRequired(Add(this.Id, " createOrder() requires a side argument")))
 	}
 	var orderSide string = ToUpper(side)
 	var orderSize any = this.AmountToPrecision(symbol, amount)
 	var orderPrice any = "0"
-	if IsTrue(!IsEqual(price, nil)) {
+	if !IsEqual(price, nil) {
 		orderPrice = this.PriceToPrecision(symbol, price)
 	}
 	var fees any = this.SafeDict(this.Fees, "swap", map[string]any{})
-	var taker any = this.SafeString(fees, "taker", "0.0005")
-	var maker any = this.SafeString(fees, "maker", "0.0002")
+	var taker *string = this.SafeString(fees, "taker", "0.0005")
+	var maker *string = this.SafeString(fees, "maker", "0.0002")
 	var limitFee any = this.DecimalToPrecision(Precise.StringAdd(Precise.StringMul(Precise.StringMul(orderPrice, orderSize), taker), this.NumberToString(GetValue(GetValue(market, "precision"), "price"))), TRUNCATE, GetValue(GetValue(market, "precision"), "price"), this.PrecisionMode, this.PaddingMode)
 	var timeNow int64 = this.Milliseconds()
 	var triggerPrice any = this.SafeString(params, "triggerPrice")
-	var stopLossPrice any = this.SafeString(params, "stopLossPrice")
-	var takeProfitPrice any = this.SafeString(params, "takeProfitPrice")
-	if IsTrue(!IsEqual(stopLossPrice, nil)) {
-		orderType = Ternary(IsTrue((IsEqual(orderType, "MARKET"))), "STOP_MARKET", "STOP_LIMIT")
+	var stopLossPrice *string = this.SafeString(params, "stopLossPrice")
+	var takeProfitPrice *string = this.SafeString(params, "takeProfitPrice")
+	if stopLossPrice != nil {
+		orderType = Ternary((orderType == "MARKET"), "STOP_MARKET", "STOP_LIMIT")
 		triggerPrice = stopLossPrice
-	} else if IsTrue(!IsEqual(takeProfitPrice, nil)) {
-		orderType = Ternary(IsTrue((IsEqual(orderType, "MARKET"))), "TAKE_PROFIT_MARKET", "TAKE_PROFIT_LIMIT")
+	} else if takeProfitPrice != nil {
+		orderType = Ternary((orderType == "MARKET"), "TAKE_PROFIT_MARKET", "TAKE_PROFIT_LIMIT")
 		triggerPrice = takeProfitPrice
 	}
-	var isMarket bool = IsEqual(orderType, "MARKET")
-	if IsTrue(IsTrue(isMarket) && IsTrue((IsEqual(price, nil)))) {
+	var isMarket bool = (orderType == "MARKET")
+	if isMarket && (IsEqual(price, nil)) {
 		panic(ArgumentsRequired(Add(this.Id, " createOrder() requires a price argument for market orders")))
 	}
 	var timeInForce any = this.SafeStringUpper(params, "timeInForce")
 	var postOnly any = this.IsPostOnly(isMarket, nil, params)
-	if IsTrue(IsEqual(timeInForce, nil)) {
+	if IsEqual(timeInForce, nil) {
 		timeInForce = "GOOD_TIL_CANCEL"
 	}
-	if !IsTrue(isMarket) {
-		if IsTrue(postOnly) {
+	if !isMarket {
+		if EvalTruthy(postOnly) {
 			timeInForce = "POST_ONLY"
-		} else if IsTrue(IsEqual(timeInForce, "ioc")) {
+		} else if timeInForce == "ioc" {
 			timeInForce = "IMMEDIATE_OR_CANCEL"
 		}
 	}
@@ -1675,7 +1675,7 @@ func (this *ApexCore) createOrderBody(ch chan any, symbol any, typeVar any, side
 
 	accountId := (<-this.GetAccountId())
 	PanicOnError(accountId)
-	if IsTrue(IsEqual(clientOrderId, nil)) {
+	if IsEqual(clientOrderId, nil) {
 		clientOrderId = this.GenerateRandomClientIdOmni(accountId)
 	}
 	var finalClientOrderId any = clientOrderId // java req
@@ -1692,7 +1692,7 @@ func (this *ApexCore) createOrderBody(ch chan any, symbol any, typeVar any, side
 		"makerFeeRate": maker,
 		"takerFeeRate": taker,
 	}
-	if IsTrue(!IsEqual(triggerPrice, nil)) {
+	if !IsEqual(triggerPrice, nil) {
 		AddElementToObject(orderToSign, "triggerPrice", this.PriceToPrecision(symbol, triggerPrice))
 	}
 
@@ -1710,7 +1710,7 @@ func (this *ApexCore) createOrderBody(ch chan any, symbol any, typeVar any, side
 		"clientId":    finalClientOrderId,
 		"brokerId":    this.SafeString(this.Options, "brokerId", "6956"),
 	}
-	if IsTrue(!IsEqual(triggerPrice, nil)) {
+	if !IsEqual(triggerPrice, nil) {
 		AddElementToObject(request, "triggerPrice", this.PriceToPrecision(symbol, triggerPrice))
 	}
 	AddElementToObject(request, "signature", signature)
@@ -1745,7 +1745,7 @@ func (this *ApexCore) transferBody(ch chan any, code any, amount any, fromAccoun
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes146812 := (<-this.LoadMarkets())
 		PanicOnError(retRes146812)
@@ -1759,52 +1759,52 @@ func (this *ApexCore) transferBody(ch chan any, code any, amount any, fromAccoun
 	var spotConfig any = this.SafeDict(configData, "spotConfig", map[string]any{})
 	var spotAssets any = this.SafeList(spotConfig, "assets", []any{})
 	var globalConfig any = this.SafeDict(spotConfig, "global", map[string]any{})
-	var receiverAddress any = this.SafeString(globalConfig, "contractAssetPoolEthAddress", "")
-	var receiverZkAccountId any = this.SafeString(globalConfig, "contractAssetPoolZkAccountId", "")
-	var receiverSubAccountId any = this.SafeString(globalConfig, "contractAssetPoolSubAccount", "")
-	var receiverAccountId any = this.SafeString(globalConfig, "contractAssetPoolAccountId", "")
+	var receiverAddress *string = this.SafeString(globalConfig, "contractAssetPoolEthAddress", "")
+	var receiverZkAccountId *string = this.SafeString(globalConfig, "contractAssetPoolZkAccountId", "")
+	var receiverSubAccountId *string = this.SafeString(globalConfig, "contractAssetPoolSubAccount", "")
+	var receiverAccountId *string = this.SafeString(globalConfig, "contractAssetPoolAccountId", "")
 
 	accountResponse := (<-this.PrivateGetV3Account(params))
 	PanicOnError(accountResponse)
 	var accountData any = this.SafeDict(accountResponse, "data", map[string]any{})
 	var spotAccount any = this.SafeDict(accountData, "spotAccount", map[string]any{})
-	var zkAccountId any = this.SafeString(spotAccount, "zkAccountId", "")
-	var subAccountId any = this.SafeString(spotAccount, "defaultSubAccountId", "0")
+	var zkAccountId *string = this.SafeString(spotAccount, "zkAccountId", "")
+	var subAccountId *string = this.SafeString(spotAccount, "defaultSubAccountId", "0")
 	var subAccounts any = this.SafeList(spotAccount, "subAccounts", []any{})
 	var nonce any = "0"
-	if IsTrue(IsGreaterThan(GetArrayLength(subAccounts), 0)) {
+	if IsGreaterThan(GetArrayLength(subAccounts), 0) {
 		nonce = this.SafeString(GetValue(subAccounts, 0), "nonce", "0")
 	}
 	var finalNonce any = nonce // java req
-	var ethAddress any = this.SafeString(accountData, "ethereumAddress", "")
-	var accountId any = this.SafeString(accountData, "id", "")
+	var ethAddress *string = this.SafeString(accountData, "ethereumAddress", "")
+	var accountId *string = this.SafeString(accountData, "id", "")
 	var currency any = map[string]any{}
 	var assets any = []any{}
-	if IsTrue(IsTrue(!IsEqual(fromAccount, nil)) && IsTrue(IsEqual(ToLower(fromAccount), "contract"))) {
+	if !IsEqual(fromAccount, nil) && (ToLower(fromAccount) == "contract") {
 		assets = contractAssets
 	} else {
 		assets = spotAssets
 	}
 	for i := 0; IsLessThan(i, GetArrayLength(assets)); i++ {
-		if IsTrue(IsEqual(this.SafeString(GetValue(assets, i), "token", ""), code)) {
+		if IsEqual(this.SafeString(GetValue(assets, i), "token", ""), code) {
 			currency = GetValue(assets, i)
 		}
 	}
-	var tokenId any = this.SafeString(currency, "tokenId", "")
+	var tokenId *string = this.SafeString(currency, "tokenId", "")
 	var decimalsNum any = this.SafeNumber(currency, "decimals", 0)
-	var decimalsNumber any = Ternary(IsTrue((IsEqual(decimalsNum, nil))), 0, decimalsNum)
+	var decimalsNumber any = Ternary((IsEqual(decimalsNum, nil)), 0, decimalsNum)
 	var mathPowResult float64 = (MathPow(10, decimalsNumber))
 	var amountNumber any = this.ParseToInt(Multiply(amount, mathPowResult))
 	var timestampSeconds any = this.ParseToInt(Divide(this.Milliseconds(), 1000))
 	var clientOrderId any = this.SafeStringN(params, []any{"clientId", "clientOrderId", "client_order_id"})
-	if IsTrue(IsEqual(clientOrderId, nil)) {
+	if IsEqual(clientOrderId, nil) {
 		clientOrderId = this.GenerateRandomClientIdOmni(this.SafeString(this.Options, "accountId"))
 	}
 	var finalClientOrderId any = clientOrderId // java req
 	params = this.Omit(params, []any{"clientId", "clientOrderId", "client_order_id"})
-	if IsTrue(IsTrue(!IsEqual(fromAccount, nil)) && IsTrue(IsEqual(ToLower(fromAccount), "contract"))) {
+	if !IsEqual(fromAccount, nil) && (ToLower(fromAccount) == "contract") {
 		var formattedUint32 string = "4294967295"
-		var zkSignAccountId any = Precise.StringMod(accountId, formattedUint32)
+		var zkSignAccountId *string = Precise.StringMod(accountId, formattedUint32)
 		var expireTime any = Add(timestampSeconds, Multiply(Multiply(3600, 24), 28))
 		var orderToSign map[string]any = map[string]any{
 			"zkAccountId":          zkSignAccountId,
@@ -1896,10 +1896,10 @@ func (this *ApexCore) transferBody(ch chan any, code any, amount any, fromAccoun
 func (this *ApexCore) ParseTransfer(transfer any, optionalArgs ...any) any {
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var currencyId any = this.SafeString(transfer, "coin")
-	var timestamp any = this.SafeInteger(transfer, "timestamp")
-	var fromAccount any = this.SafeString(transfer, "fromAccount")
-	var toAccount any = this.SafeString(transfer, "toAccount")
+	var currencyId *string = this.SafeString(transfer, "coin")
+	var timestamp *int64 = this.SafeInteger(transfer, "timestamp")
+	var fromAccount *string = this.SafeString(transfer, "fromAccount")
+	var toAccount *string = this.SafeString(transfer, "toAccount")
 	return map[string]any{
 		"info":        transfer,
 		"id":          this.SafeString2(transfer, "transferId", "id"),
@@ -1934,14 +1934,14 @@ func (this *ApexCore) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes162712 := (<-this.LoadMarkets())
 		PanicOnError(retRes162712)
 	}
 	var market any = nil
 	var request map[string]any = map[string]any{}
-	if IsTrue(!IsEqual(symbol, nil)) {
+	if !IsEqual(symbol, nil) {
 		market = this.Market(symbol)
 		AddElementToObject(request, "symbol", GetValue(market, "id"))
 	}
@@ -1977,9 +1977,9 @@ func (this *ApexCore) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
 	var request map[string]any = map[string]any{}
-	var clientOrderId any = this.SafeStringN(params, []any{"clientId", "clientOrderId", "client_order_id"})
+	var clientOrderId *string = this.SafeStringN(params, []any{"clientId", "clientOrderId", "client_order_id"})
 	var response any = nil
-	if IsTrue(!IsEqual(clientOrderId, nil)) {
+	if clientOrderId != nil {
 		AddElementToObject(request, "id", clientOrderId)
 		params = this.Omit(params, []any{"clientId", "clientOrderId", "client_order_id"})
 
@@ -2021,15 +2021,15 @@ func (this *ApexCore) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes168012 := (<-this.LoadMarkets())
 		PanicOnError(retRes168012)
 	}
 	var request map[string]any = map[string]any{}
-	var clientOrderId any = this.SafeStringN(params, []any{"clientId", "clientOrderId", "client_order_id"})
+	var clientOrderId *string = this.SafeStringN(params, []any{"clientId", "clientOrderId", "client_order_id"})
 	var response any = nil
-	if IsTrue(!IsEqual(clientOrderId, nil)) {
+	if clientOrderId != nil {
 		AddElementToObject(request, "id", clientOrderId)
 		params = this.Omit(params, []any{"clientId", "clientOrderId", "client_order_id"})
 
@@ -2074,7 +2074,7 @@ func (this *ApexCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes171012 := (<-this.LoadMarkets())
 		PanicOnError(retRes171012)
@@ -2121,25 +2121,25 @@ func (this *ApexCore) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes173612 := (<-this.LoadMarkets())
 		PanicOnError(retRes173612)
 	}
 	var request map[string]any = map[string]any{}
 	var market any = nil
-	if IsTrue(!IsEqual(symbol, nil)) {
+	if !IsEqual(symbol, nil) {
 		market = this.Market(symbol)
 		AddElementToObject(request, "symbol", GetValue(market, "id"))
 	}
-	if IsTrue(!IsEqual(since, nil)) {
+	if !IsEqual(since, nil) {
 		AddElementToObject(request, "beginTimeInclusive", since)
 	}
-	if IsTrue(!IsEqual(limit, nil)) {
+	if !IsEqual(limit, nil) {
 		AddElementToObject(request, "limit", limit)
 	}
-	var endTimeExclusive any = this.SafeIntegerN(params, []any{"endTime", "endTimeExclusive", "until"})
-	if IsTrue(!IsEqual(endTimeExclusive, nil)) {
+	var endTimeExclusive *int64 = this.SafeIntegerN(params, []any{"endTime", "endTimeExclusive", "until"})
+	if endTimeExclusive != nil {
 		AddElementToObject(request, "endTimeExclusive", endTimeExclusive)
 		params = this.Omit(params, []any{"endTime", "endTimeExclusive", "until"})
 	}
@@ -2181,14 +2181,14 @@ func (this *ApexCore) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes177512 := (<-this.LoadMarkets())
 		PanicOnError(retRes177512)
 	}
 	var request map[string]any = map[string]any{}
-	var clientOrderId any = this.SafeString2(params, "clientOrderId", "clientId")
-	if IsTrue(!IsEqual(clientOrderId, nil)) {
+	var clientOrderId *string = this.SafeString2(params, "clientOrderId", "clientId")
+	if clientOrderId != nil {
 		AddElementToObject(request, "clientOrderId", clientOrderId)
 	} else {
 		AddElementToObject(request, "orderId", id)
@@ -2235,25 +2235,25 @@ func (this *ApexCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes180812 := (<-this.LoadMarkets())
 		PanicOnError(retRes180812)
 	}
 	var request map[string]any = map[string]any{}
 	var market any = nil
-	if IsTrue(!IsEqual(symbol, nil)) {
+	if !IsEqual(symbol, nil) {
 		market = this.Market(symbol)
 		AddElementToObject(request, "symbol", GetValue(market, "id"))
 	}
-	if IsTrue(!IsEqual(since, nil)) {
+	if !IsEqual(since, nil) {
 		AddElementToObject(request, "beginTimeInclusive", since)
 	}
-	if IsTrue(!IsEqual(limit, nil)) {
+	if !IsEqual(limit, nil) {
 		AddElementToObject(request, "limit", limit)
 	}
-	var endTimeExclusive any = this.SafeIntegerN(params, []any{"endTime", "endTimeExclusive", "until"})
-	if IsTrue(!IsEqual(endTimeExclusive, nil)) {
+	var endTimeExclusive *int64 = this.SafeIntegerN(params, []any{"endTime", "endTimeExclusive", "until"})
+	if endTimeExclusive != nil {
 		AddElementToObject(request, "endTimeExclusive", endTimeExclusive)
 		params = this.Omit(params, []any{"endTime", "endTimeExclusive", "until"})
 	}
@@ -2297,25 +2297,25 @@ func (this *ApexCore) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) 
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes184912 := (<-this.LoadMarkets())
 		PanicOnError(retRes184912)
 	}
 	var request map[string]any = map[string]any{}
 	var market any = nil
-	if IsTrue(!IsEqual(symbol, nil)) {
+	if !IsEqual(symbol, nil) {
 		market = this.Market(symbol)
 		AddElementToObject(request, "symbol", GetValue(market, "id"))
 	}
-	if IsTrue(!IsEqual(since, nil)) {
+	if !IsEqual(since, nil) {
 		AddElementToObject(request, "beginTimeInclusive", since)
 	}
-	if IsTrue(!IsEqual(limit, nil)) {
+	if !IsEqual(limit, nil) {
 		AddElementToObject(request, "limit", limit)
 	}
-	var endTimeExclusive any = this.SafeIntegerN(params, []any{"endTime", "endTimeExclusive", "until"})
-	if IsTrue(!IsEqual(endTimeExclusive, nil)) {
+	var endTimeExclusive *int64 = this.SafeIntegerN(params, []any{"endTime", "endTimeExclusive", "until"})
+	if endTimeExclusive != nil {
 		params = this.Omit(params, []any{"endTime", "endTimeExclusive", "until"})
 		AddElementToObject(request, "endTimeExclusive", endTimeExclusive)
 	}
@@ -2345,10 +2345,10 @@ func (this *ApexCore) ParseIncome(income any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var marketId any = this.SafeString(income, "symbol")
+	var marketId *string = this.SafeString(income, "symbol")
 	market = this.SafeMarket(marketId, market, nil, "contract")
 	var code string = "USDT"
-	var timestamp any = this.SafeInteger(income, "fundingTime")
+	var timestamp *int64 = this.SafeInteger(income, "fundingTime")
 	return map[string]any{
 		"info":      income,
 		"symbol":    this.SafeSymbol(marketId, market),
@@ -2383,17 +2383,17 @@ func (this *ApexCore) setLeverageBody(ch chan any, leverage any, optionalArgs ..
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(symbol, nil)) {
+	if IsEqual(symbol, nil) {
 		panic(ArgumentsRequired(Add(this.Id, " setLeverage() requires a symbol argument")))
 	}
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes192012 := (<-this.LoadMarkets())
 		PanicOnError(retRes192012)
 	}
 	var market any = this.Market(symbol)
 	var leverageString any = this.NumberToString(leverage)
-	var initialMarginRate any = Precise.StringDiv("1", leverageString, 4)
+	var initialMarginRate *string = Precise.StringDiv("1", leverageString, 4)
 	var request map[string]any = map[string]any{
 		"symbol":            GetValue(market, "id"),
 		"initialMarginRate": initialMarginRate,
@@ -2428,7 +2428,7 @@ func (this *ApexCore) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	_ = symbols
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes194512 := (<-this.LoadMarkets())
 		PanicOnError(retRes194512)
@@ -2460,15 +2460,15 @@ func (this *ApexCore) ParsePosition(position any, optionalArgs ...any) any {
 	// }
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var marketId any = this.SafeString(position, "symbol")
+	var marketId *string = this.SafeString(position, "symbol")
 	market = this.SafeMarket(marketId, market)
 	var symbol any = GetValue(market, "symbol")
-	var side any = this.SafeStringLower(position, "side")
-	var quantity any = this.SafeString(position, "size")
-	var timestamp any = this.SafeInteger(position, "updatedTime")
+	var side *string = this.SafeStringLower(position, "side")
+	var quantity *string = this.SafeString(position, "size")
+	var timestamp *int64 = this.SafeInteger(position, "updatedTime")
 	var leverage any = 20
-	var customInitialMarginRate any = this.SafeString2(position, "customInitialMarginRate", "customImr", "0")
-	if IsTrue(!IsEqual(this.PrecisionFromString(customInitialMarginRate), 0)) {
+	var customInitialMarginRate *string = this.SafeString2(position, "customInitialMarginRate", "customImr", "0")
+	if this.PrecisionFromString(customInitialMarginRate) != 0 {
 		leverage = this.ParseToInt(Precise.StringDiv("1", customInitialMarginRate, 4))
 	}
 	return this.SafePosition(map[string]any{
@@ -2516,8 +2516,8 @@ func (this *ApexCore) Sign(path any, optionalArgs ...any) any {
 	}
 	var signPath any = Add("/api/", path)
 	var signBody any = body
-	if IsTrue(!IsEqual(ToUpper(method), "POST")) {
-		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(params)), 0)) {
+	if ToUpper(method) != "POST" {
+		if IsGreaterThan(GetArrayLength(ObjectKeys(params)), 0) {
 			signPath = Add(signPath, Add("?", this.Rawencode(params)))
 			url = Add(url, Add("?", this.Rawencode(params)))
 		}
@@ -2525,11 +2525,11 @@ func (this *ApexCore) Sign(path any, optionalArgs ...any) any {
 		var sortedQuery map[string]any = this.Keysort(params)
 		signBody = this.Rawencode(sortedQuery)
 	}
-	if IsTrue(IsEqual(api, "private")) {
+	if IsEqual(api, "private") {
 		this.CheckRequiredCredentials()
 		var timestamp string = ToString(this.Milliseconds())
 		var messageString any = Add(Add(timestamp, ToUpper(method)), signPath)
-		if IsTrue(!IsEqual(signBody, nil)) {
+		if !IsEqual(signBody, nil) {
 			messageString = Add(messageString, signBody)
 		}
 		var signature string = this.Hmac(this.Encode(messageString), this.Encode(this.StringToBase64(this.Secret)), sha256, "base64")
@@ -2550,13 +2550,13 @@ func (this *ApexCore) HandleErrors(code any, reason any, url any, method any, he
 	// {"code":3,"msg":"Order price must be greater than 0. Order price is 0.","key":"ORDER_PRICE_MUST_GREETER_ZERO","detail":{"price":"0"}}
 	// {"code":400,"msg":"strconv.ParseInt: parsing \"dsfdfsd\": invalid syntax","timeCost":5320995}
 	//
-	if IsTrue(IsEqual(response, nil)) {
+	if IsEqual(response, nil) {
 		return nil
 	}
-	var errorCode any = this.SafeInteger(response, "code")
-	if IsTrue(IsTrue(!IsEqual(errorCode, nil)) && IsTrue(!IsEqual(errorCode, 0))) {
+	var errorCode *int64 = this.SafeInteger(response, "code")
+	if (errorCode != nil) && (errorCode == nil || *errorCode != 0) {
 		var feedback any = Add(Add(this.Id, " "), body)
-		var message any = this.SafeString2(response, "key", "msg")
+		var message *string = this.SafeString2(response, "key", "msg")
 		this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), message, feedback)
 		var status string = ToString(code)
 		this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), status, feedback)

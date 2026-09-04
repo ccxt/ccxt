@@ -1202,7 +1202,7 @@ func (this *IndependentreserveCore) createOrderBody(ch chan any, symbol any, typ
 	}
 	var response any = nil
 	AddElementToObject(request, "volume", amount)
-	if IsEqual(typeVar, "limit") {
+	if typeVar == "limit" {
 		AddElementToObject(request, "price", price)
 
 		response = (<-this.PrivatePostPlaceLimitOrder(this.Extend(request, params)))

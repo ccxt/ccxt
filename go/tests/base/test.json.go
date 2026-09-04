@@ -16,9 +16,9 @@ func TestJson() {
 		"k": "v",
 	}
 	var objJson any = exchange.Json(obj)
-	Assert(ccxt.IsEqual(objJson, "{\"k\":\"v\"}"))
+	Assert((objJson == "{\"k\":\"v\"}"))
 	// Test: list
 	var list []any = []any{1, 2}
 	var listJson any = exchange.Json(list)
-	Assert(ccxt.IsEqual(listJson, "[1,2]"))
+	Assert((listJson == "[1,2]"))
 }

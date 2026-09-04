@@ -7,7 +7,7 @@ import "github.com/ccxt/ccxt/go/v4"
 
 func TestOrderBook(exchange ccxt.ICoreExchange, skippedProperties any, method any, orderbook any, symbol any) {
 	// prediction-market structures are keyed by an outcome handle, not a `symbol`
-	if IsTrue(exchange.SafeBool(exchange.GetHas(), "prediction", false)) {
+	if EvalTruthy(exchange.SafeBool(exchange.GetHas(), "prediction", false)) {
 		skippedProperties = exchange.Extend(map[string]any{
 			"symbol": true,
 		}, skippedProperties)
@@ -30,14 +30,14 @@ func TestOrderBook(exchange ccxt.ICoreExchange, skippedProperties any, method an
 	var bidsLength int = GetArrayLength(bids)
 	for i := 0; IsLessThan(i, bidsLength); i++ {
 		var currentBidString any = exchange.SafeString(GetValue(bids, i), 0)
-		if !IsTrue((InOp(skippedProperties, "compareToNextItem"))) {
+		if !(InOp(skippedProperties, "compareToNextItem")) {
 			var nextI any = Add(i, 1)
-			if IsTrue(IsGreaterThan(bidsLength, nextI)) {
+			if IsGreaterThan(bidsLength, nextI) {
 				var nextBidString any = exchange.SafeString(GetValue(bids, nextI), 0)
 				Assert(ccxt.Precise.StringGt(currentBidString, nextBidString), Add(Add(Add(Add("current bid should be > than the next one: ", currentBidString), ">"), nextBidString), logText))
 			}
 		}
-		if !IsTrue((InOp(skippedProperties, "compareToZero"))) {
+		if !(InOp(skippedProperties, "compareToZero")) {
 			// compare price & volume to zero
 			AssertGreater(exchange, skippedProperties, method, GetValue(bids, i), 0, "0")
 			AssertGreater(exchange, skippedProperties, method, GetValue(bids, i), 1, "0")
@@ -47,21 +47,21 @@ func TestOrderBook(exchange ccxt.ICoreExchange, skippedProperties any, method an
 	var asksLength int = GetArrayLength(asks)
 	for i := 0; IsLessThan(i, asksLength); i++ {
 		var currentAskString any = exchange.SafeString(GetValue(asks, i), 0)
-		if !IsTrue((InOp(skippedProperties, "compareToNextItem"))) {
+		if !(InOp(skippedProperties, "compareToNextItem")) {
 			var nextI any = Add(i, 1)
-			if IsTrue(IsGreaterThan(asksLength, nextI)) {
+			if IsGreaterThan(asksLength, nextI) {
 				var nextAskString any = exchange.SafeString(GetValue(asks, nextI), 0)
 				Assert(ccxt.Precise.StringLt(currentAskString, nextAskString), Add(Add(Add(Add("current ask should be < than the next one: ", currentAskString), "<"), nextAskString), logText))
 			}
 		}
-		if !IsTrue((InOp(skippedProperties, "compareToZero"))) {
+		if !(InOp(skippedProperties, "compareToZero")) {
 			// compare price & volume to zero
 			AssertGreater(exchange, skippedProperties, method, GetValue(asks, i), 0, "0")
 			AssertGreater(exchange, skippedProperties, method, GetValue(asks, i), 1, "0")
 		}
 	}
-	if !IsTrue((InOp(skippedProperties, "spread"))) {
-		if IsTrue(IsTrue((IsGreaterThan(bidsLength, 0))) && IsTrue((IsGreaterThan(asksLength, 0)))) {
+	if !(InOp(skippedProperties, "spread")) {
+		if (IsGreaterThan(bidsLength, 0)) && (IsGreaterThan(asksLength, 0)) {
 			var firstBid any = exchange.SafeString(GetValue(bids, 0), 0)
 			var firstAsk any = exchange.SafeString(GetValue(asks, 0), 0)
 			// check bid-ask spread

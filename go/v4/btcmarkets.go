@@ -583,7 +583,7 @@ func (this *BtcmarketsCore) ParseTransaction(transaction any, optionalArgs ...an
 	var timestamp any = this.Parse8601(this.SafeString(transaction, "creationTime"))
 	var lastUpdate any = this.Parse8601(this.SafeString(transaction, "lastUpdate"))
 	var typeVar any = this.ParseTransactionType(this.SafeStringLower(transaction, "type"))
-	if IsEqual(typeVar, "withdraw") {
+	if typeVar == "withdraw" {
 		typeVar = "withdrawal"
 	}
 	var cryptoPaymentDetail any = this.SafeDict(transaction, "paymentDetail", map[string]any{})
@@ -1117,7 +1117,7 @@ func (this *BtcmarketsCore) ParseTrade(trade any, optionalArgs ...any) any {
 	var timestamp any = this.Parse8601(this.SafeString(trade, "timestamp"))
 	var marketId *string = this.SafeString(trade, "marketId")
 	market = this.SafeMarket(marketId, market, "-")
-	var feeCurrencyCode any = Ternary((IsEqual(GetValue(market, "quote"), "AUD")), GetValue(market, "quote"), GetValue(market, "base"))
+	var feeCurrencyCode any = Ternary((GetValue(market, "quote") == "AUD"), GetValue(market, "quote"), GetValue(market, "base"))
 	var side any = this.SafeString(trade, "side")
 	if IsEqual(side, "Bid") {
 		side = "buy"
@@ -1436,7 +1436,7 @@ func (this *BtcmarketsCore) CalculateFee(symbol any, typeVar any, side any, amou
 	var market any = this.Market(symbol)
 	var currency any = nil
 	var cost any = nil
-	if IsEqual(GetValue(market, "quote"), "AUD") {
+	if GetValue(market, "quote") == "AUD" {
 		currency = GetValue(market, "quote")
 		var amountString any = this.NumberToString(amount)
 		var priceString any = this.NumberToString(price)
@@ -1818,7 +1818,7 @@ func (this *BtcmarketsCore) withdrawBody(ch chan any, code any, amount any, addr
 		"assetName": GetValue(currency, "id"),
 		"amount":    this.CurrencyToPrecision(code, amount),
 	}
-	if !IsEqual(code, "AUD") {
+	if code != "AUD" {
 		this.CheckAddress(address)
 		AddElementToObject(request, "toAddress", address)
 	}
@@ -1869,7 +1869,7 @@ func (this *BtcmarketsCore) Sign(path any, optionalArgs ...any) any {
 		var nonce string = ToString(this.Nonce())
 		var secret any = this.Base64ToBinary(this.Secret)
 		var auth any = Add(Add(method, request), nonce)
-		if (IsEqual(method, "GET")) || (IsEqual(method, "DELETE")) {
+		if (method == "GET") || (method == "DELETE") {
 			if IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0) {
 				request = Add(request, Add("?", this.Urlencode(query)))
 			}

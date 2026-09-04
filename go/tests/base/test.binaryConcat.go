@@ -15,14 +15,14 @@ func TestBinaryConcat() {
 	var binary1 any = exchange.StringToBinary("hello")
 	var binary2 any = exchange.StringToBinary(" world")
 	var result1 any = exchange.BinaryConcat(binary1, binary2)
-	Assert(ccxt.IsEqual(exchange.BinaryToString(result1), "hello world"))
+	Assert((exchange.BinaryToString(result1) == "hello world"))
 	// Test 2: Concat three binaries
 	var binary3 any = exchange.StringToBinary("foo")
 	var binary4 any = exchange.StringToBinary("bar")
 	var binary5 any = exchange.StringToBinary("baz")
 	var result2 any = exchange.BinaryConcat(binary3, binary4, binary5)
-	Assert(ccxt.IsEqual(exchange.BinaryToString(result2), "foobarbaz"))
+	Assert((exchange.BinaryToString(result2) == "foobarbaz"))
 	// Test 3: Concat with hex bytes
 	var result3 any = exchange.BinaryConcat(exchange.Base16ToBinary("68656c6c6f"), exchange.StringToBinary(" world"))
-	Assert(ccxt.IsEqual(exchange.BinaryToString(result3), "hello world"))
+	Assert((exchange.BinaryToString(result3) == "hello world"))
 }

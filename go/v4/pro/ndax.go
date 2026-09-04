@@ -64,8 +64,8 @@ func (this *NdaxCore) watchTickerBody(ch chan any, symbol any, optionalArgs ...a
 	defer ccxt.ReturnPanicError(ch)
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var omsId any = this.SafeInteger(this.Options, "omsId", 1)
-	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+	var omsId *int64 = this.SafeInteger(this.Options, "omsId", 1)
+	if ccxt.IsEqual(this.Markets, nil) {
 
 		retRes5512 := (<-this.LoadMarkets())
 		ccxt.PanicOnError(retRes5512)
@@ -122,7 +122,7 @@ func (this *NdaxCore) HandleTicker(client any, message any) {
 	var ticker any = this.ParseTicker(payload)
 	var symbol any = ccxt.GetValue(ticker, "symbol")
 	var market any = this.Market(symbol)
-	if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
+	if !ccxt.IsEqual(symbol, nil) {
 		ccxt.AddElementToObject(this.Tickers, symbol, ticker)
 	}
 	var name string = "SubscribeLevel1"
@@ -155,8 +155,8 @@ func (this *NdaxCore) watchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	var omsId any = this.SafeInteger(this.Options, "omsId", 1)
-	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+	var omsId *int64 = this.SafeInteger(this.Options, "omsId", 1)
+	if ccxt.IsEqual(this.Markets, nil) {
 
 		retRes12912 := (<-this.LoadMarkets())
 		ccxt.PanicOnError(retRes12912)
@@ -182,7 +182,7 @@ func (this *NdaxCore) watchTradesBody(ch chan any, symbol any, optionalArgs ...a
 
 	trades := (<-this.Watch(url, messageHash, message, messageHash))
 	ccxt.PanicOnError(trades)
-	if ccxt.IsTrue(this.NewUpdates) {
+	if ccxt.EvalTruthy(this.NewUpdates) {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
 
@@ -215,16 +215,16 @@ func (this *NdaxCore) HandleTrades(client any, message any) {
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(payload)); i++ {
 		var trade any = this.ParseTrade(ccxt.GetValue(payload, i))
 		var symbol any = ccxt.GetValue(trade, "symbol")
-		var tradesArray any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(symbol, nil))), nil, this.SafeValue(this.Trades, symbol))
-		if ccxt.IsTrue(ccxt.IsEqual(tradesArray, nil)) {
-			var limit any = this.SafeInteger(this.Options, "tradesLimit", 1000)
+		var tradesArray any = ccxt.Ternary((ccxt.IsEqual(symbol, nil)), nil, this.SafeValue(this.Trades, symbol))
+		if ccxt.IsEqual(tradesArray, nil) {
+			var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 			tradesArray = ccxt.NewArrayCache(limit)
 		}
 		tradesArray.(ccxt.Appender).Append(trade)
-		if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
+		if !ccxt.IsEqual(symbol, nil) {
 			ccxt.AddElementToObject(this.Trades, symbol, tradesArray)
 		}
-		if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
+		if !ccxt.IsEqual(symbol, nil) {
 			ccxt.AddElementToObject(updates, symbol, true)
 		}
 	}
@@ -266,8 +266,8 @@ func (this *NdaxCore) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	var omsId any = this.SafeInteger(this.Options, "omsId", 1)
-	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+	var omsId *int64 = this.SafeInteger(this.Options, "omsId", 1)
+	if ccxt.IsEqual(this.Markets, nil) {
 
 		retRes22012 := (<-this.LoadMarkets())
 		ccxt.PanicOnError(retRes22012)
@@ -294,7 +294,7 @@ func (this *NdaxCore) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 
 	ohlcv := (<-this.Watch(url, messageHash, message, messageHash))
 	ccxt.PanicOnError(ohlcv)
-	if ccxt.IsTrue(this.NewUpdates) {
+	if ccxt.EvalTruthy(this.NewUpdates) {
 		limit = ccxt.ToGetsLimit(ohlcv).GetLimit(symbol, limit)
 	}
 
@@ -330,53 +330,53 @@ func (this *NdaxCore) HandleOHLCV(client any, message any) {
 	var updates map[string]any = map[string]any{}
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(payload)); i++ {
 		var ohlcv any = ccxt.GetValue(payload, i)
-		var marketId any = this.SafeString(ohlcv, 8)
+		var marketId *string = this.SafeString(ohlcv, 8)
 		var market any = this.SafeMarket(marketId)
 		var symbol any = ccxt.GetValue(market, "symbol")
-		if ccxt.IsTrue(!ccxt.IsEqual(marketId, nil)) {
+		if marketId != nil {
 			ccxt.AddElementToObject(updates, marketId, map[string]any{})
 		}
 		ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeValue(this.Ohlcvs, symbol, map[string]any{}))
 		var keys []string = ccxt.ObjectKeys(this.Timeframes)
 		for j := 0; ccxt.IsLessThan(j, ccxt.GetArrayLength(keys)); j++ {
 			var timeframe any = ccxt.GetValue(keys, j)
-			var interval any = this.SafeString(this.Timeframes, timeframe, timeframe)
+			var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 			var duration any = ccxt.Multiply(ccxt.ParseInt(interval), 1000)
-			var timestamp any = this.SafeInteger(ohlcv, 0)
-			if ccxt.IsTrue(ccxt.IsEqual(timestamp, nil)) {
+			var timestamp *int64 = this.SafeInteger(ohlcv, 0)
+			if timestamp == nil {
 				continue
 			}
 			var parsed []any = []any{this.ParseToInt(ccxt.Multiply((ccxt.Divide(timestamp, duration)), duration)), this.SafeFloat(ohlcv, 3), this.SafeFloat(ohlcv, 1), this.SafeFloat(ohlcv, 2), this.SafeFloat(ohlcv, 4), this.SafeFloat(ohlcv, 5)}
 			var stored any = this.SafeValue(ccxt.GetValue(this.Ohlcvs, symbol), timeframe, []any{})
 			var length int = ccxt.GetArrayLength(stored)
-			if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsGreaterThan(length, 0))) && ccxt.IsTrue((ccxt.IsEqual(ccxt.GetValue(parsed, 0), ccxt.GetValue(ccxt.GetValue(stored, ccxt.Subtract(length, 1)), 0))))) {
+			if (ccxt.IsGreaterThan(length, 0)) && (ccxt.IsEqual(ccxt.GetValue(parsed, 0), ccxt.GetValue(ccxt.GetValue(stored, ccxt.Subtract(length, 1)), 0))) {
 				var previous any = ccxt.GetValue(stored, ccxt.Subtract(length, 1))
 				var high any = ccxt.GetValue(parsed, 1)
-				if ccxt.IsTrue(ccxt.IsEqual(ccxt.GetValue(parsed, 1), nil)) {
+				if ccxt.IsEqual(ccxt.GetValue(parsed, 1), nil) {
 					high = ccxt.GetValue(previous, 1)
-				} else if ccxt.IsTrue(!ccxt.IsEqual(ccxt.GetValue(previous, 1), nil)) {
+				} else if !ccxt.IsEqual(ccxt.GetValue(previous, 1), nil) {
 					high = ccxt.MathMax(ccxt.GetValue(parsed, 1), ccxt.GetValue(previous, 1))
 				}
 				var low any = ccxt.GetValue(parsed, 2)
-				if ccxt.IsTrue(ccxt.IsEqual(ccxt.GetValue(parsed, 2), nil)) {
+				if ccxt.IsEqual(ccxt.GetValue(parsed, 2), nil) {
 					low = ccxt.GetValue(previous, 2)
-				} else if ccxt.IsTrue(!ccxt.IsEqual(ccxt.GetValue(previous, 2), nil)) {
+				} else if !ccxt.IsEqual(ccxt.GetValue(previous, 2), nil) {
 					low = ccxt.MathMin(ccxt.GetValue(parsed, 2), ccxt.GetValue(previous, 2))
 				}
 				ccxt.AddElementToObject(stored, ccxt.Subtract(length, 1), []any{ccxt.GetValue(parsed, 0), ccxt.GetValue(previous, 1), high, low, ccxt.GetValue(parsed, 4), this.Sum(ccxt.GetValue(parsed, 5), ccxt.GetValue(previous, 5))})
-				if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(marketId, nil))) && ccxt.IsTrue((!ccxt.IsEqual(timeframe, nil)))) {
+				if (marketId != nil) && (!ccxt.IsEqual(timeframe, nil)) {
 					ccxt.AddElementToObject(ccxt.GetValue(updates, marketId), timeframe, true)
 				}
 			} else {
-				if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsGreaterThan(length, 0))) && ccxt.IsTrue((ccxt.IsLessThan(this.ParseToInt(ccxt.GetValue(parsed, 0)), this.ParseToInt(ccxt.GetValue(ccxt.GetValue(stored, ccxt.Subtract(length, 1)), 0)))))) {
+				if (ccxt.IsGreaterThan(length, 0)) && (ccxt.IsLessThan(this.ParseToInt(ccxt.GetValue(parsed, 0)), this.ParseToInt(ccxt.GetValue(ccxt.GetValue(stored, ccxt.Subtract(length, 1)), 0)))) {
 					continue
 				} else {
 					ccxt.AppendToArray(&stored, parsed)
-					var limit any = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
-					if ccxt.IsTrue(ccxt.IsGreaterThanOrEqual(length, limit)) {
+					var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
+					if ccxt.IsGreaterThanOrEqual(length, limit) {
 						ccxt.Shift(stored)
 					}
-					if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(marketId, nil))) && ccxt.IsTrue((!ccxt.IsEqual(timeframe, nil)))) {
+					if (marketId != nil) && (!ccxt.IsEqual(timeframe, nil)) {
 						ccxt.AddElementToObject(ccxt.GetValue(updates, marketId), timeframe, true)
 					}
 				}
@@ -422,8 +422,8 @@ func (this *NdaxCore) watchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	var omsId any = this.SafeInteger(this.Options, "omsId", 1)
-	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+	var omsId *int64 = this.SafeInteger(this.Options, "omsId", 1)
+	if ccxt.IsEqual(this.Markets, nil) {
 
 		retRes37412 := (<-this.LoadMarkets())
 		ccxt.PanicOnError(retRes37412)
@@ -434,7 +434,7 @@ func (this *NdaxCore) watchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	var messageHash any = ccxt.Add(ccxt.Add(name, ":"), ccxt.GetValue(market, "id"))
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var requestId any = this.RequestId()
-	limit = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(limit, nil))), 100, limit)
+	limit = ccxt.Ternary((ccxt.IsEqual(limit, nil)), 100, limit)
 	var payload map[string]any = map[string]any{
 		"OMSId":        omsId,
 		"InstrumentId": this.SafeInteger(market, "id"),
@@ -489,49 +489,49 @@ func (this *NdaxCore) HandleOrderBook(client any, message any) {
 	//     ],
 	//
 	var firstBidAsk any = this.SafeValue(payload, 0, []any{})
-	var marketId any = this.SafeString(firstBidAsk, 7)
-	if ccxt.IsTrue(ccxt.IsEqual(marketId, nil)) {
+	var marketId *string = this.SafeString(firstBidAsk, 7)
+	if marketId == nil {
 		return
 	}
 	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var orderbook any = this.SafeValue(this.Orderbooks, symbol)
-	if ccxt.IsTrue(ccxt.IsEqual(orderbook, nil)) {
+	if ccxt.IsEqual(orderbook, nil) {
 		return
 	}
 	var timestamp any = nil
 	var nonce any = nil
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(payload)); i++ {
 		var bidask any = ccxt.GetValue(payload, i)
-		if ccxt.IsTrue(ccxt.IsEqual(timestamp, nil)) {
+		if ccxt.IsEqual(timestamp, nil) {
 			timestamp = this.SafeInteger(bidask, 2)
 		} else {
-			var newTimestamp any = this.SafeInteger(bidask, 2)
-			var currentTimestampValue any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(timestamp, nil))), 0, timestamp)
-			var newTimestampValue any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(newTimestamp, nil))), 0, newTimestamp)
+			var newTimestamp *int64 = this.SafeInteger(bidask, 2)
+			var currentTimestampValue any = ccxt.Ternary((ccxt.IsEqual(timestamp, nil)), 0, timestamp)
+			var newTimestampValue any = ccxt.Ternary((newTimestamp == nil), 0, newTimestamp)
 			timestamp = ccxt.MathMax(currentTimestampValue, newTimestampValue)
 		}
-		if ccxt.IsTrue(ccxt.IsEqual(nonce, nil)) {
+		if ccxt.IsEqual(nonce, nil) {
 			nonce = this.SafeInteger(bidask, 0)
 		} else {
-			var newNonce any = this.SafeInteger(bidask, 0)
-			var currentNonceValue any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(nonce, nil))), 0, nonce)
-			var newNonceValue any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(newNonce, nil))), 0, newNonce)
+			var newNonce *int64 = this.SafeInteger(bidask, 0)
+			var currentNonceValue any = ccxt.Ternary((ccxt.IsEqual(nonce, nil)), 0, nonce)
+			var newNonceValue any = ccxt.Ternary((newNonce == nil), 0, newNonce)
 			nonce = ccxt.MathMax(currentNonceValue, newNonceValue)
 		}
 		// 0 new, 1 update, 2 remove
-		var typeVar any = this.SafeInteger(bidask, 3)
-		var price any = this.SafeFloat(bidask, 6)
-		var amount any = this.SafeFloat(bidask, 8)
-		var side any = this.SafeInteger(bidask, 9)
+		var typeVar *int64 = this.SafeInteger(bidask, 3)
+		var price *float64 = this.SafeFloat(bidask, 6)
+		var amount *float64 = this.SafeFloat(bidask, 8)
+		var side *int64 = this.SafeInteger(bidask, 9)
 		// 0 buy, 1 sell, 2 short reserved for future use, 3 unknown
-		var orderbookSide any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(side, 0))), ccxt.GetValue(orderbook, "bids"), ccxt.GetValue(orderbook, "asks"))
+		var orderbookSide any = ccxt.Ternary((side != nil && *side == 0), ccxt.GetValue(orderbook, "bids"), ccxt.GetValue(orderbook, "asks"))
 		// 0 new, 1 update, 2 remove
-		if ccxt.IsTrue(ccxt.IsEqual(typeVar, 0)) {
+		if typeVar != nil && *typeVar == 0 {
 			orderbookSide.(ccxt.IOrderBookSide).Store(price, amount)
-		} else if ccxt.IsTrue(ccxt.IsEqual(typeVar, 1)) {
+		} else if typeVar != nil && *typeVar == 1 {
 			orderbookSide.(ccxt.IOrderBookSide).Store(price, amount)
-		} else if ccxt.IsTrue(ccxt.IsEqual(typeVar, 2)) {
+		} else if typeVar != nil && *typeVar == 2 {
 			orderbookSide.(ccxt.IOrderBookSide).Store(price, 0)
 		}
 	}
@@ -569,14 +569,14 @@ func (this *NdaxCore) HandleOrderBookSubscription(client any, message any, subsc
 	//         ],
 	//     ]
 	//
-	var symbol any = this.SafeString(subscription, "symbol")
+	var symbol *string = this.SafeString(subscription, "symbol")
 	var snapshot any = this.ParseOrderBook(payload, symbol)
-	var limit any = this.SafeInteger(subscription, "limit")
+	var limit *int64 = this.SafeInteger(subscription, "limit")
 	var orderbook any = this.OrderBook(snapshot, limit)
-	if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
+	if symbol != nil {
 		ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
 	}
-	var messageHash any = this.SafeString(subscription, "messageHash")
+	var messageHash *string = this.SafeString(subscription, "messageHash")
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
 func (this *NdaxCore) HandleSubscriptionStatus(client any, message any) {
@@ -589,11 +589,11 @@ func (this *NdaxCore) HandleSubscriptionStatus(client any, message any) {
 	//     }
 	//
 	var subscriptionsById map[string]any = this.IndexBy(client.(ccxt.ClientInterface).GetSubscriptions(), "id")
-	var id any = this.SafeInteger(message, "i")
-	var subscription any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(id, nil))), nil, this.SafeValue(subscriptionsById, id))
-	if ccxt.IsTrue(!ccxt.IsEqual(subscription, nil)) {
+	var id *int64 = this.SafeInteger(message, "i")
+	var subscription any = ccxt.Ternary((id == nil), nil, this.SafeValue(subscriptionsById, id))
+	if !ccxt.IsEqual(subscription, nil) {
 		var method any = this.SafeValue(subscription, "method")
-		if ccxt.IsTrue(!ccxt.IsEqual(method, nil)) {
+		if !ccxt.IsEqual(method, nil) {
 			ccxt.CallDynamically(method, client, message, subscription)
 		}
 	}
@@ -621,8 +621,8 @@ func (this *NdaxCore) HandleMessage(client any, message any) {
 	//         "o": "[[2,1,1608208308265,0,20782.49,1,25000,8,1,1]]"
 	//     }
 	//
-	var payload any = this.SafeString(message, "o")
-	if ccxt.IsTrue(ccxt.IsEqual(payload, nil)) {
+	var payload *string = this.SafeString(message, "o")
+	if payload == nil {
 		return
 	}
 	ccxt.AddElementToObject(message, "o", ccxt.JsonParse(payload))
@@ -636,9 +636,9 @@ func (this *NdaxCore) HandleMessage(client any, message any) {
 		"SubscribeTicker":       this.HandleOHLCV,
 		"TickerDataUpdateEvent": this.HandleOHLCV,
 	}
-	var event any = this.SafeString(message, "n")
-	var method any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(event, nil))), nil, this.SafeValue(methods, event))
-	if ccxt.IsTrue(!ccxt.IsEqual(method, nil)) {
+	var event *string = this.SafeString(message, "n")
+	var method any = ccxt.Ternary((event == nil), nil, this.SafeValue(methods, event))
+	if !ccxt.IsEqual(method, nil) {
 		ccxt.CallDynamically(method, client, message)
 	}
 }

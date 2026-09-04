@@ -511,7 +511,7 @@ func (this *DeribitCore) watchTradesForSymbolsBody(ch chan any, symbols any, opt
 	intervalparamsVariable := this.HandleOptionAndParams(params, "watchTradesForSymbols", "interval", "100ms")
 	interval = ccxt.GetValue(intervalparamsVariable, 0)
 	params = ccxt.GetValue(intervalparamsVariable, 1)
-	if ccxt.IsEqual(interval, "raw") {
+	if interval == "raw" {
 
 		retRes40412 := (<-this.Authenticate())
 		ccxt.PanicOnError(retRes40412)
@@ -739,7 +739,7 @@ func (this *DeribitCore) watchOrderBookForSymbolsBody(ch chan any, symbols any, 
 	intervalparamsVariable := this.HandleOptionAndParams(params, "watchOrderBookForSymbols", "interval", "100ms")
 	interval = ccxt.GetValue(intervalparamsVariable, 0)
 	params = ccxt.GetValue(intervalparamsVariable, 1)
-	if ccxt.IsEqual(interval, "raw") {
+	if interval == "raw" {
 
 		retRes57712 := (<-this.Authenticate())
 		ccxt.PanicOnError(retRes57712)
@@ -1162,7 +1162,7 @@ func (this *DeribitCore) watchMultipleWrapperBody(ch chan any, channelName any, 
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var rawSubscriptions any = []any{}
 	var messageHashes any = []any{}
-	var isOHLCV bool = (ccxt.IsEqual(channelName, "chart.trades"))
+	var isOHLCV bool = (channelName == "chart.trades")
 	var symbols any = ccxt.Ternary(isOHLCV, this.GetListFromObjectValues(symbolsArray, 0), symbolsArray)
 	this.MarketSymbols(symbols, nil, false)
 	if ccxt.IsEqual(symbolsArray, nil) {

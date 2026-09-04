@@ -1241,7 +1241,7 @@ func (this *CoinbaseexchangeCore) HandleMessage(client any, message any) {
 		"error":     this.HandleErrorMessage,
 	}
 	var length any = ccxt.Subtract(ccxt.GetLength(client.(ccxt.ClientInterface).GetUrl()), 0)
-	var authenticated bool = ccxt.IsEqual(ccxt.GetValue(client.(ccxt.ClientInterface).GetUrl(), ccxt.Subtract(length, 1)), "?")
+	var authenticated bool = (ccxt.GetValue(client.(ccxt.ClientInterface).GetUrl(), ccxt.Subtract(length, 1)) == "?")
 	var method any = this.SafeValue(methods, typeVar)
 	if ccxt.IsEqual(method, nil) {
 		if typeVar != nil && *typeVar == "match" {

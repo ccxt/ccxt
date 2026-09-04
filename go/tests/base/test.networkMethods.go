@@ -134,13 +134,13 @@ func HelperBatchNetworkTests() {
 				var secondaryNetworkCode any = ccxt.GetValue(chainMapping, "secondary")
 				var msg any = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add("network protocol test failed for networkCode:", randomNetworkCode), " & currencyCode: "), randomCurrencyCode), ", result: "), result), ", expected: ")
 				if ccxt.IsEqual(randomNetworkCode, primaryNetworkCode) {
-					if ccxt.IsEqual(randomCurrencyCode, chainBaseCoin) {
+					if randomCurrencyCode == chainBaseCoin {
 						assert(ccxt.IsEqual(result, primaryNetworkCode), ccxt.Add(msg, primaryNetworkCode))
 					} else {
 						assert(ccxt.IsEqual(result, secondaryNetworkCode), ccxt.Add(msg, secondaryNetworkCode))
 					}
 				} else if ccxt.IsEqual(randomNetworkCode, secondaryNetworkCode) {
-					if ccxt.IsEqual(randomCurrencyCode, chainBaseCoin) {
+					if randomCurrencyCode == chainBaseCoin {
 						assert(ccxt.IsEqual(result, primaryNetworkCode), ccxt.Add(msg, primaryNetworkCode))
 					} else {
 						assert(ccxt.IsEqual(result, secondaryNetworkCode), ccxt.Add(msg, secondaryNetworkCode))

@@ -398,14 +398,14 @@ func (this *P2bCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	return nil
 }
 func (this *P2bCore) ParseMarket(market any) any {
-	var marketId any = this.SafeString(market, "name")
-	var baseId any = this.SafeString(market, "stock")
-	var quoteId any = this.SafeString(market, "money")
+	var marketId *string = this.SafeString(market, "name")
+	var baseId *string = this.SafeString(market, "stock")
+	var quoteId *string = this.SafeString(market, "money")
 	var base any = this.SafeCurrencyCode(baseId)
 	var quote any = this.SafeCurrencyCode(quoteId)
 	var limits any = this.SafeDict(market, "limits")
-	var maxAmount any = this.SafeString(limits, "max_amount")
-	var maxPrice any = this.SafeString(limits, "max_price")
+	var maxAmount *string = this.SafeString(limits, "max_amount")
+	var maxPrice *string = this.SafeString(limits, "max_price")
 	return map[string]any{
 		"id":             marketId,
 		"symbol":         Add(Add(base, "/"), quote),
@@ -478,7 +478,7 @@ func (this *P2bCore) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	_ = symbols
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes44912 := (<-this.LoadMarkets())
 		PanicOnError(retRes44912)
@@ -536,7 +536,7 @@ func (this *P2bCore) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes49212 := (<-this.LoadMarkets())
 		PanicOnError(retRes49212)
@@ -569,7 +569,7 @@ func (this *P2bCore) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 	//    }
 	//
 	var result any = this.SafeValue(response, "result", map[string]any{})
-	var timestamp any = this.SafeIntegerProduct(response, "cache_time", 1000)
+	var timestamp *int64 = this.SafeIntegerProduct(response, "cache_time", 1000)
 
 	ch <- this.Extend(map[string]any{
 		"timestamp": timestamp,
@@ -611,11 +611,11 @@ func (this *P2bCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var timestamp any = this.SafeIntegerProduct(ticker, "at", 1000)
-	if IsTrue(InOp(ticker, "ticker")) {
+	var timestamp *int64 = this.SafeIntegerProduct(ticker, "at", 1000)
+	if InOp(ticker, "ticker") {
 		ticker = this.SafeValue(ticker, "ticker")
 	}
-	var last any = this.SafeString(ticker, "last")
+	var last *string = this.SafeString(ticker, "last")
 	return this.SafeTicker(map[string]any{
 		"symbol":        this.SafeString(market, "symbol"),
 		"timestamp":     timestamp,
@@ -665,7 +665,7 @@ func (this *P2bCore) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	_ = limit
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes60312 := (<-this.LoadMarkets())
 		PanicOnError(retRes60312)
@@ -674,7 +674,7 @@ func (this *P2bCore) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	var request map[string]any = map[string]any{
 		"market": GetValue(market, "id"),
 	}
-	if IsTrue(!IsEqual(limit, nil)) {
+	if !IsEqual(limit, nil) {
 		AddElementToObject(request, "limit", limit)
 	}
 
@@ -706,7 +706,7 @@ func (this *P2bCore) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	//    }
 	//
 	var result any = this.SafeValue(response, "result", map[string]any{})
-	var timestamp any = this.SafeIntegerProduct(response, "current_time", 1000)
+	var timestamp *int64 = this.SafeIntegerProduct(response, "current_time", 1000)
 
 	ch <- this.ParseOrderBook(result, GetValue(market, "symbol"), timestamp, "bids", "asks", 0, 1)
 	return nil
@@ -738,13 +738,13 @@ func (this *P2bCore) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	_ = limit
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes65712 := (<-this.LoadMarkets())
 		PanicOnError(retRes65712)
 	}
-	var lastId any = this.SafeInteger(params, "lastId")
-	if IsTrue(IsEqual(lastId, nil)) {
+	var lastId *int64 = this.SafeInteger(params, "lastId")
+	if lastId == nil {
 		panic(ArgumentsRequired(Add(this.Id, " fetchTrades () requires an extra parameter params[\"lastId\"]")))
 	}
 	var market any = this.Market(symbol)
@@ -752,7 +752,7 @@ func (this *P2bCore) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 		"market": GetValue(market, "id"),
 		"lastId": lastId,
 	}
-	if IsTrue(!IsEqual(limit, nil)) {
+	if !IsEqual(limit, nil) {
 		AddElementToObject(request, "limit", limit)
 	}
 
@@ -825,11 +825,11 @@ func (this *P2bCore) ParseTrade(trade any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var timestamp any = this.SafeIntegerProduct2(trade, "time", "deal_time", 1000)
+	var timestamp *int64 = this.SafeIntegerProduct2(trade, "time", "deal_time", 1000)
 	var takerOrMaker any = this.SafeString(trade, "role")
-	if IsTrue(IsEqual(takerOrMaker, "1")) {
+	if IsEqual(takerOrMaker, "1") {
 		takerOrMaker = "maker"
-	} else if IsTrue(IsEqual(takerOrMaker, "2")) {
+	} else if IsEqual(takerOrMaker, "2") {
 		takerOrMaker = "taker"
 	}
 	return this.SafeTrade(map[string]any{
@@ -881,7 +881,7 @@ func (this *P2bCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes77812 := (<-this.LoadMarkets())
 		PanicOnError(retRes77812)
@@ -891,7 +891,7 @@ func (this *P2bCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 		"market":   GetValue(market, "id"),
 		"interval": timeframe,
 	}
-	if IsTrue(!IsEqual(limit, nil)) {
+	if !IsEqual(limit, nil) {
 		AddElementToObject(request, "limit", limit)
 	}
 
@@ -960,7 +960,7 @@ func (this *P2bCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes84812 := (<-this.LoadMarkets())
 		PanicOnError(retRes84812)
@@ -1011,8 +1011,8 @@ func (this *P2bCore) ParseBalance(response any) any {
 		var currencyId any = GetValue(keys, i)
 		var balance any = GetValue(response, currencyId)
 		var code any = this.SafeCurrencyCode(currencyId)
-		var used any = this.SafeString(balance, "freeze")
-		var available any = this.SafeString(balance, "available")
+		var used *string = this.SafeString(balance, "freeze")
+		var available *string = this.SafeString(balance, "available")
 		var account map[string]any = map[string]any{
 			"free": available,
 			"used": used,
@@ -1047,12 +1047,12 @@ func (this *P2bCore) createOrderBody(ch chan any, symbol any, typeVar any, side 
 	_ = price
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes91912 := (<-this.LoadMarkets())
 		PanicOnError(retRes91912)
 	}
-	if IsTrue(IsEqual(typeVar, "market")) {
+	if typeVar == "market" {
 		panic(BadRequest(Add(this.Id, " createOrder () can only accept orders with type \"limit\"")))
 	}
 	var market any = this.Market(symbol)
@@ -1115,10 +1115,10 @@ func (this *P2bCore) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(symbol, nil)) {
+	if IsEqual(symbol, nil) {
 		panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument")))
 	}
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes97312 := (<-this.LoadMarkets())
 		PanicOnError(retRes97312)
@@ -1189,10 +1189,10 @@ func (this *P2bCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(symbol, nil)) {
+	if IsEqual(symbol, nil) {
 		panic(ArgumentsRequired(Add(this.Id, " fetchOpenOrders () requires the symbol argument")))
 	}
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes102612 := (<-this.LoadMarkets())
 		PanicOnError(retRes102612)
@@ -1201,7 +1201,7 @@ func (this *P2bCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{
 		"market": GetValue(market, "id"),
 	}
-	if IsTrue(!IsEqual(limit, nil)) {
+	if !IsEqual(limit, nil) {
 		AddElementToObject(request, "limit", limit)
 	}
 
@@ -1269,7 +1269,7 @@ func (this *P2bCore) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...a
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes108212 := (<-this.LoadMarkets())
 		PanicOnError(retRes108212)
@@ -1278,7 +1278,7 @@ func (this *P2bCore) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...a
 	var request map[string]any = map[string]any{
 		"orderId": id,
 	}
-	if IsTrue(!IsEqual(limit, nil)) {
+	if !IsEqual(limit, nil) {
 		AddElementToObject(request, "limit", limit)
 	}
 
@@ -1345,27 +1345,27 @@ func (this *P2bCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(symbol, nil)) {
+	if IsEqual(symbol, nil) {
 		panic(ArgumentsRequired(Add(this.Id, " fetchMyTrades() requires a symbol argument")))
 	}
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes114012 := (<-this.LoadMarkets())
 		PanicOnError(retRes114012)
 	}
 	var until any = this.SafeInteger(params, "until")
 	params = this.Omit(params, "until")
-	if IsTrue(IsEqual(until, nil)) {
-		if IsTrue(IsEqual(since, nil)) {
+	if IsEqual(until, nil) {
+		if IsEqual(since, nil) {
 			until = this.Milliseconds()
 		} else {
 			until = Add(since, 86400000)
 		}
 	}
-	if IsTrue(IsEqual(since, nil)) {
+	if IsEqual(since, nil) {
 		since = Subtract(until, 86400000)
 	}
-	if IsTrue(IsGreaterThan((Subtract(until, since)), 86400000)) {
+	if IsGreaterThan((Subtract(until, since)), 86400000) {
 		panic(BadRequest(Add(this.Id, " fetchMyTrades () the time between since and params[\"until\"] cannot be greater than 24 hours")))
 	}
 	var market any = this.Market(symbol)
@@ -1376,7 +1376,7 @@ func (this *P2bCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		"startTime": sinceSec,
 		"endTime":   untilSec,
 	}
-	if IsTrue(!IsEqual(limit, nil)) {
+	if !IsEqual(limit, nil) {
 		AddElementToObject(request, "limit", limit)
 	}
 
@@ -1446,7 +1446,7 @@ func (this *P2bCore) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes121712 := (<-this.LoadMarkets())
 		PanicOnError(retRes121712)
@@ -1454,20 +1454,20 @@ func (this *P2bCore) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any
 	var until any = this.SafeInteger(params, "until")
 	params = this.Omit(params, "until")
 	var market any = nil
-	if IsTrue(!IsEqual(symbol, nil)) {
+	if !IsEqual(symbol, nil) {
 		market = this.Market(symbol)
 	}
-	if IsTrue(IsEqual(until, nil)) {
-		if IsTrue(IsEqual(since, nil)) {
+	if IsEqual(until, nil) {
+		if IsEqual(since, nil) {
 			until = this.Milliseconds()
 		} else {
 			until = Add(since, 86400000)
 		}
 	}
-	if IsTrue(IsEqual(since, nil)) {
+	if IsEqual(since, nil) {
 		since = Subtract(until, 86400000)
 	}
-	if IsTrue(IsGreaterThan((Subtract(until, since)), 86400000)) {
+	if IsGreaterThan((Subtract(until, since)), 86400000) {
 		panic(BadRequest(Add(this.Id, " fetchClosedOrders () the time between since and params[\"until\"] cannot be greater than 24 hours")))
 	}
 	var sinceSec any = this.ParseToInt(Divide(since, 1000))
@@ -1476,10 +1476,10 @@ func (this *P2bCore) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any
 		"startTime": sinceSec,
 		"endTime":   untilSec,
 	}
-	if IsTrue(!IsEqual(market, nil)) {
+	if !IsEqual(market, nil) {
 		AddElementToObject(request, "market", GetValue(market, "id"))
 	}
-	if IsTrue(!IsEqual(limit, nil)) {
+	if !IsEqual(limit, nil) {
 		AddElementToObject(request, "limit", limit)
 	}
 
@@ -1564,8 +1564,8 @@ func (this *P2bCore) ParseOrder(order any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var timestamp any = this.SafeIntegerProduct2(order, "timestamp", "ctime", 1000)
-	var marketId any = this.SafeString(order, "market")
+	var timestamp *int64 = this.SafeIntegerProduct2(order, "timestamp", "ctime", 1000)
+	var marketId *string = this.SafeString(order, "market")
 	market = this.SafeMarket(marketId, market)
 	return this.SafeOrder(map[string]any{
 		"info":               order,
@@ -1607,12 +1607,12 @@ func (this *P2bCore) Sign(path any, optionalArgs ...any) any {
 	_ = body
 	var url any = Add(Add(GetValue(GetValue(this.Urls, "api"), api), "/"), this.ImplodeParams(path, params))
 	params = this.Omit(params, this.ExtractParams(path))
-	if IsTrue(IsEqual(method, "GET")) {
-		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(params)), 0)) {
+	if method == "GET" {
+		if IsGreaterThan(GetArrayLength(ObjectKeys(params)), 0) {
 			url = Add(url, Add("?", this.Urlencode(params)))
 		}
 	}
-	if IsTrue(IsEqual(api, "private")) {
+	if IsEqual(api, "private") {
 		AddElementToObject(params, "request", Add("/api/v2/", path))
 		AddElementToObject(params, "nonce", ToString(this.Nonce()))
 		var payload any = this.StringToBase64(this.Json(params)) // Body json encoded in base64
@@ -1632,7 +1632,7 @@ func (this *P2bCore) Sign(path any, optionalArgs ...any) any {
 	}
 }
 func (this *P2bCore) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
-	if IsTrue(IsEqual(response, nil)) {
+	if IsEqual(response, nil) {
 		return nil
 	}
 	//
@@ -1641,11 +1641,11 @@ func (this *P2bCore) HandleErrors(code any, reason any, url any, method any, hea
 	//     {"success":true,"errorCode":"","message":"","result":{...},"cache_time":1787611797.535462,"current_time":1787611797.535973}
 	//
 	var success any = this.SafeBool(response, "success", true)
-	if IsTrue(!IsEqual(success, true)) {
-		var errorCode any = this.SafeString(response, "errorCode")
+	if success != true {
+		var errorCode *string = this.SafeString(response, "errorCode")
 		var feedback any = Add(Add(this.Id, " "), body)
 		this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), errorCode, feedback)
-		if IsTrue(IsLessThan(code, 400)) {
+		if IsLessThan(code, 400) {
 			panic(ExchangeError(feedback))
 		}
 	}

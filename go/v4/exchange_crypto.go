@@ -363,30 +363,6 @@ func Eddsa(data2 any, secret any, curve any) string {
 	secretsBytes := []uint8{}
 	if s, ok := secret.([]uint8); ok {
 		secretsBytes = s
-	} else if s, ok := secret.(string); ok {
-		// mirror the js eddsa: a PEM-armored pkcs8 key carries the 32-byte
-		// seed in its trailing bytes; any other string is a raw seed
-		if strings.Contains(s, "-----BEGIN") {
-			cleaned := ""
-			lines := strings.Split(s, "\n")
-			for _, line := range lines {
-				trimmed := strings.TrimSpace(line)
-				if trimmed == "" || strings.HasPrefix(trimmed, "-----") {
-					continue
-				}
-				cleaned += trimmed
-			}
-			der, err := base64.StdEncoding.DecodeString(cleaned)
-			if err != nil {
-				panic("invalid pem ed25519 secret: " + err.Error())
-			}
-			if len(der) < 32 {
-				panic("invalid pem ed25519 secret: der too short")
-			}
-			secretsBytes = der[len(der)-32:]
-		} else {
-			secretsBytes = []uint8(s)
-		}
 	} else {
 		bytes, err := interfacesToBytes(secret.([]any))
 		if err != nil {

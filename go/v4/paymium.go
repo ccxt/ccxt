@@ -656,7 +656,7 @@ func (this *PaymiumCore) createOrderBody(ch chan any, symbol any, typeVar any, s
 		"direction": side,
 		"amount":    amount,
 	}
-	if !IsEqual(typeVar, "market") {
+	if typeVar != "market" {
 		AddElementToObject(request, "price", price)
 	}
 
@@ -736,7 +736,7 @@ func (this *PaymiumCore) transferBody(ch chan any, code any, amount any, fromAcc
 	if IsLessThan(GetIndexOf(toAccount, "@"), 0) {
 		panic(ExchangeError(Add(this.Id, " transfer() only allows transfers to an email address")))
 	}
-	if !IsEqual(code, "BTC") && !IsEqual(code, "EUR") {
+	if (code != "BTC") && (code != "EUR") {
 		panic(ExchangeError(Add(this.Id, " transfer() only allows BTC or EUR")))
 	}
 	var request map[string]any = map[string]any{
@@ -867,7 +867,7 @@ func (this *PaymiumCore) Sign(path any, optionalArgs ...any) any {
 			"Api-Key":   this.ApiKey,
 			"Api-Nonce": nonce,
 		}
-		if IsEqual(method, "POST") {
+		if method == "POST" {
 			if IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0) {
 				body = this.Json(query)
 				auth = Add(auth, body)

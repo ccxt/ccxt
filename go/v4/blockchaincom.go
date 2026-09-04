@@ -1696,7 +1696,7 @@ func (this *BlockchaincomCore) Sign(path any, optionalArgs ...any) any {
 		headers = map[string]any{
 			"X-API-Token": this.Secret,
 		}
-		if IsEqual(method, "GET") {
+		if method == "GET" {
 			if IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0) {
 				url = Add(url, Add("?", this.Urlencode(query)))
 			}

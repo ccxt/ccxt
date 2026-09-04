@@ -931,7 +931,7 @@ func (this *ToobitCore) fetchCurrenciesBody(ch chan any, optionalArgs ...any) an
 	for i := 0; IsLessThan(i, GetArrayLength(coins)); i++ {
 		var coin any = GetValue(coins, i)
 		var parsed any = this.ParseCurrency(coin)
-		if IsTrue(!IsEqual(parsed, nil)) {
+		if !IsEqual(parsed, nil) {
 			var code any = GetValue(parsed, "code")
 			AddElementToObject(result, code, parsed)
 		}
@@ -941,15 +941,15 @@ func (this *ToobitCore) fetchCurrenciesBody(ch chan any, optionalArgs ...any) an
 	return nil
 }
 func (this *ToobitCore) ParseCurrency(rawCurrency any) any {
-	var id any = this.SafeString(rawCurrency, "coinId")
+	var id *string = this.SafeString(rawCurrency, "coinId")
 	var code any = this.SafeCurrencyCode(id)
 	var networks map[string]any = map[string]any{}
 	var rawNetworks any = this.SafeList(rawCurrency, "chainTypes", []any{})
 	for j := 0; IsLessThan(j, GetArrayLength(rawNetworks)); j++ {
 		var rawNetwork any = GetValue(rawNetworks, j)
-		var networkId any = this.SafeString(rawNetwork, "chainType")
+		var networkId *string = this.SafeString(rawNetwork, "chainType")
 		var networkCode any = this.NetworkIdToCode(networkId, code)
-		if IsTrue(!IsEqual(networkCode, nil)) {
+		if !IsEqual(networkCode, nil) {
 			AddElementToObject(networks, networkCode, map[string]any{
 				"id":        networkId,
 				"network":   networkCode,
@@ -1018,7 +1018,7 @@ func (this *ToobitCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 	var response any = this.SafeDict(this.Options, "exchangeInfo")
-	if IsTrue(!IsEqual(response, nil)) {
+	if !IsEqual(response, nil) {
 		AddElementToObject(this.Options, "exchangeInfo", nil) // reset it to avoid using old cached data
 	} else {
 
@@ -1160,7 +1160,7 @@ func (this *ToobitCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	for i := 0; IsLessThan(i, GetArrayLength(all)); i++ {
 		var market any = GetValue(all, i)
 		var parsed any = this.ParseMarket(market)
-		if IsTrue(!IsEqual(parsed, nil)) {
+		if !IsEqual(parsed, nil) {
 			AppendToArray(&result, parsed)
 		}
 	}
@@ -1169,17 +1169,17 @@ func (this *ToobitCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	return nil
 }
 func (this *ToobitCore) ParseMarket(market any) any {
-	var id any = this.SafeString(market, "symbol")
-	var baseId any = this.SafeString(market, "baseAsset", "")
-	var quoteId any = this.SafeString(market, "quoteAsset")
+	var id *string = this.SafeString(market, "symbol")
+	var baseId *string = this.SafeString(market, "baseAsset", "")
+	var quoteId *string = this.SafeString(market, "quoteAsset")
 	var baseParts []string = Split(baseId, "-")
 	var baseIdClean any = GetValue(baseParts, 0)
 	var base any = this.SafeCurrencyCode(baseIdClean)
 	var quote any = this.SafeCurrencyCode(quoteId)
-	var settleId any = this.SafeString(market, "marginToken")
+	var settleId *string = this.SafeString(market, "marginToken")
 	var settle any = this.SafeCurrencyCode(settleId)
-	var status any = this.SafeString(market, "status")
-	var active bool = (IsEqual(status, "TRADING"))
+	var status *string = this.SafeString(market, "status")
+	var active bool = (status != nil && *status == "TRADING")
 	var filters any = this.SafeList(market, "filters", []any{})
 	var filtersByType map[string]any = this.IndexBy(filters, "filterType")
 	var priceFilter any = this.SafeDict(filtersByType, "PRICE_FILTER", map[string]any{})
@@ -1188,7 +1188,7 @@ func (this *ToobitCore) ParseMarket(market any) any {
 	var symbol any = Add(Add(base, "/"), quote)
 	var isContract bool = (InOp(market, "contractMultiplier"))
 	var inverse any = this.SafeBool2(market, "isInverse", "inverse")
-	if IsTrue(isContract) {
+	if isContract {
 		symbol = Add(symbol, Add(":", settle))
 	}
 	return this.SafeMarketStructure(map[string]any{
@@ -1200,16 +1200,16 @@ func (this *ToobitCore) ParseMarket(market any) any {
 		"baseId":         baseId,
 		"quoteId":        quoteId,
 		"settleId":       settleId,
-		"type":           Ternary(IsTrue(isContract), "swap", "spot"),
-		"spot":           !IsTrue(isContract),
+		"type":           Ternary(isContract, "swap", "spot"),
+		"spot":           !isContract,
 		"margin":         false,
 		"swap":           isContract,
 		"future":         false,
 		"option":         false,
 		"active":         active,
 		"contract":       isContract,
-		"linear":         Ternary(IsTrue(isContract), (!IsEqual(inverse, true)), nil),
-		"inverse":        Ternary(IsTrue(isContract), inverse, nil),
+		"linear":         Ternary(isContract, (!IsEqual(inverse, true)), nil),
+		"inverse":        Ternary(isContract, inverse, nil),
 		"contractSize":   this.SafeNumber(market, "contractMultiplier"),
 		"expiry":         nil,
 		"expiryDatetime": nil,
@@ -1265,7 +1265,7 @@ func (this *ToobitCore) fetchOrderBookBody(ch chan any, symbol any, optionalArgs
 	_ = limit
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes104012 := (<-this.LoadMarkets())
 		PanicOnError(retRes104012)
@@ -1274,7 +1274,7 @@ func (this *ToobitCore) fetchOrderBookBody(ch chan any, symbol any, optionalArgs
 	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
-	if IsTrue(!IsEqual(limit, nil)) {
+	if !IsEqual(limit, nil) {
 		AddElementToObject(request, "limit", limit)
 	}
 
@@ -1307,7 +1307,7 @@ func (this *ToobitCore) fetchOrderBookBody(ch chan any, symbol any, optionalArgs
 	//        ]
 	//    }
 	//
-	var timestamp any = this.SafeInteger(response, "t")
+	var timestamp *int64 = this.SafeInteger(response, "t")
 
 	ch <- this.ParseOrderBook(response, GetValue(market, "symbol"), timestamp, "b", "a")
 	return nil
@@ -1339,7 +1339,7 @@ func (this *ToobitCore) fetchTradesBody(ch chan any, symbol any, optionalArgs ..
 	_ = limit
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes109512 := (<-this.LoadMarkets())
 		PanicOnError(retRes109512)
@@ -1348,7 +1348,7 @@ func (this *ToobitCore) fetchTradesBody(ch chan any, symbol any, optionalArgs ..
 	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
-	if IsTrue(!IsEqual(limit, nil)) {
+	if !IsEqual(limit, nil) {
 		AddElementToObject(request, "limit", limit)
 	}
 
@@ -1412,35 +1412,35 @@ func (this *ToobitCore) ParseTrade(trade any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var timestamp any = this.SafeInteger2(trade, "t", "time")
-	var priceString any = this.SafeString2(trade, "p", "price")
-	var amountString any = this.SafeString2(trade, "q", "qty")
+	var timestamp *int64 = this.SafeInteger2(trade, "t", "time")
+	var priceString *string = this.SafeString2(trade, "p", "price")
+	var amountString *string = this.SafeString2(trade, "q", "qty")
 	var isBuyer any = this.SafeBool(trade, "isBuyer")
 	var side any = nil
 	var isBuyerMaker any = this.SafeBool(trade, "ibm")
-	if IsTrue(IsEqual(isBuyerMaker, nil)) {
+	if IsEqual(isBuyerMaker, nil) {
 		var isBuyerTaker any = this.SafeBool(trade, "m")
-		if IsTrue(!IsEqual(isBuyerTaker, nil)) {
-			isBuyerMaker = !IsTrue(isBuyerTaker)
+		if !IsEqual(isBuyerTaker, nil) {
+			isBuyerMaker = !EvalTruthy(isBuyerTaker)
 		}
 	}
-	if IsTrue(!IsEqual(isBuyerMaker, nil)) {
-		if IsTrue(isBuyerMaker) {
+	if !IsEqual(isBuyerMaker, nil) {
+		if EvalTruthy(isBuyerMaker) {
 			side = "sell"
 		} else {
 			side = "buy"
 		}
 	} else {
-		if IsTrue(IsEqual(isBuyer, true)) {
+		if IsEqual(isBuyer, true) {
 			side = "buy"
 		} else {
 			side = "sell"
 		}
 	}
-	var feeCurrencyId any = this.SafeString(trade, "feeCoinId")
-	var feeAmount any = this.SafeString(trade, "feeAmount")
+	var feeCurrencyId *string = this.SafeString(trade, "feeCoinId")
+	var feeAmount *string = this.SafeString(trade, "feeAmount")
 	var fee any = nil
-	if IsTrue(!IsEqual(feeAmount, nil)) {
+	if feeAmount != nil {
 		fee = map[string]any{
 			"currency": this.SafeCurrencyCode(feeCurrencyId),
 			"cost":     feeAmount,
@@ -1448,8 +1448,8 @@ func (this *ToobitCore) ParseTrade(trade any, optionalArgs ...any) any {
 	}
 	var isMaker any = this.SafeBool(trade, "isMaker")
 	var takerOrMaker any = nil
-	if IsTrue(!IsEqual(isMaker, nil)) {
-		takerOrMaker = Ternary(IsTrue(isMaker), "maker", "taker")
+	if !IsEqual(isMaker, nil) {
+		takerOrMaker = Ternary(EvalTruthy(isMaker), "maker", "taker")
 	}
 	market = this.SafeMarket(nil, market)
 	var symbol any = GetValue(market, "symbol")
@@ -1501,7 +1501,7 @@ func (this *ToobitCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes123512 := (<-this.LoadMarkets())
 		PanicOnError(retRes123512)
@@ -1511,15 +1511,15 @@ func (this *ToobitCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 		"symbol":   GetValue(market, "id"),
 		"interval": this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
-	if IsTrue(!IsEqual(since, nil)) {
+	if !IsEqual(since, nil) {
 		AddElementToObject(request, "startTime", since)
 	}
-	var until any = this.SafeInteger(params, "until")
-	if IsTrue(!IsEqual(until, nil)) {
+	var until *int64 = this.SafeInteger(params, "until")
+	if until != nil {
 		params = this.Omit(params, "until")
 		AddElementToObject(request, "endTime", until)
 	}
-	if IsTrue(!IsEqual(limit, nil)) {
+	if !IsEqual(limit, nil) {
 		AddElementToObject(request, "limit", limit)
 	}
 	var response any = []any{}
@@ -1527,11 +1527,11 @@ func (this *ToobitCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 	endpointparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCV", "price")
 	endpoint = GetValue(endpointparamsVariable, 0)
 	params = GetValue(endpointparamsVariable, 1)
-	if IsTrue(IsEqual(endpoint, "index")) {
+	if IsEqual(endpoint, "index") {
 
 		response = (<-this.CommonGetQuoteV1IndexKlines(this.Extend(request, params)))
 		PanicOnError(response)
-	} else if IsTrue(IsEqual(endpoint, "mark")) {
+	} else if IsEqual(endpoint, "mark") {
 
 		response = (<-this.CommonGetQuoteV1MarkPriceKlines(this.Extend(request, params)))
 		PanicOnError(response)
@@ -1541,7 +1541,7 @@ func (this *ToobitCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 		PanicOnError(response)
 	}
 	var candles any = []any{}
-	if IsTrue(IsArray(response)) {
+	if IsArray(response) {
 		candles = response
 	}
 
@@ -1576,7 +1576,7 @@ func (this *ToobitCore) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	_ = symbols
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes135412 := (<-this.LoadMarkets())
 		PanicOnError(retRes135412)
@@ -1585,13 +1585,13 @@ func (this *ToobitCore) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var typeVar any = nil
 	var market any = nil
 	var request map[string]any = map[string]any{}
-	if IsTrue(!IsEqual(symbols, nil)) {
-		var symbol any = this.SafeString(symbols, 0)
-		if IsTrue(!IsEqual(symbol, nil)) {
+	if !IsEqual(symbols, nil) {
+		var symbol *string = this.SafeString(symbols, 0)
+		if symbol != nil {
 			market = this.Market(symbol)
 		}
 		var length int = GetArrayLength(symbols)
-		if IsTrue(IsTrue((IsEqual(length, 1))) && IsTrue((!IsEqual(market, nil)))) {
+		if (length == 1) && (!IsEqual(market, nil)) {
 			AddElementToObject(request, "symbol", GetValue(market, "id"))
 		}
 	}
@@ -1599,7 +1599,7 @@ func (this *ToobitCore) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	typeVar = GetValue(typeVarparamsVariable, 0)
 	params = GetValue(typeVarparamsVariable, 1)
 	var response any = nil
-	if IsTrue(IsEqual(typeVar, "spot")) {
+	if typeVar == "spot" {
 
 		response = (<-this.CommonGetQuoteV1Ticker24hr(this.Extend(request, params)))
 		PanicOnError(response)
@@ -1631,12 +1631,12 @@ func (this *ToobitCore) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 func (this *ToobitCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var marketId any = this.SafeString(ticker, "s")
+	var marketId *string = this.SafeString(ticker, "s")
 	market = this.SafeMarket(marketId, market)
-	var timestamp any = this.SafeInteger(ticker, "t")
-	var last any = this.SafeString(ticker, "c")
-	var baseVolume any = this.SafeString(ticker, "v")
-	if IsTrue(IsTrue((IsEqual(GetValue(market, "contract"), true))) && IsTrue((!IsEqual(GetValue(market, "contractSize"), nil)))) {
+	var timestamp *int64 = this.SafeInteger(ticker, "t")
+	var last *string = this.SafeString(ticker, "c")
+	var baseVolume *string = this.SafeString(ticker, "v")
+	if (IsEqual(GetValue(market, "contract"), true)) && (!IsEqual(GetValue(market, "contractSize"), nil)) {
 		// 'v' counts contracts, and a ticker reports base volume
 		baseVolume = Precise.StringMul(baseVolume, this.NumberToString(GetValue(market, "contractSize")))
 	}
@@ -1686,16 +1686,16 @@ func (this *ToobitCore) fetchLastPricesBody(ch chan any, optionalArgs ...any) an
 	_ = symbols
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes144312 := (<-this.LoadMarkets())
 		PanicOnError(retRes144312)
 	}
 	symbols = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{}
-	if IsTrue(!IsEqual(symbols, nil)) {
+	if !IsEqual(symbols, nil) {
 		var length int = GetArrayLength(symbols)
-		if IsTrue(IsEqual(length, 1)) {
+		if length == 1 {
 			var market any = this.Market(GetValue(symbols, 0))
 			AddElementToObject(request, "symbol", GetValue(market, "id"))
 		}
@@ -1718,7 +1718,7 @@ func (this *ToobitCore) fetchLastPricesBody(ch chan any, optionalArgs ...any) an
 func (this *ToobitCore) ParseLastPrice(entry any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var marketId any = this.SafeString(entry, "s")
+	var marketId *string = this.SafeString(entry, "s")
 	market = this.SafeMarket(marketId, market)
 	return map[string]any{
 		"symbol":    GetValue(market, "symbol"),
@@ -1752,16 +1752,16 @@ func (this *ToobitCore) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any 
 	_ = symbols
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes149112 := (<-this.LoadMarkets())
 		PanicOnError(retRes149112)
 	}
 	symbols = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{}
-	if IsTrue(!IsEqual(symbols, nil)) {
+	if !IsEqual(symbols, nil) {
 		var length int = GetArrayLength(symbols)
-		if IsTrue(IsEqual(length, 1)) {
+		if length == 1 {
 			var market any = this.Market(GetValue(symbols, 0))
 			AddElementToObject(request, "symbol", GetValue(market, "id"))
 		}
@@ -1801,9 +1801,9 @@ func (this *ToobitCore) ParseBidsAsksCustom(tickers any, optionalArgs ...any) an
 func (this *ToobitCore) ParseBidAskCustom(ticker any) any {
 	// 's' is the exchange id and 't' a millisecond integer, the pair parseTicker
 	// reads through safeMarket and safeInteger. The caller filters on a unified symbol.
-	var marketId any = this.SafeString(ticker, "s")
+	var marketId *string = this.SafeString(ticker, "s")
 	var market any = this.SafeMarket(marketId)
-	var timestamp any = this.SafeInteger(ticker, "t")
+	var timestamp *int64 = this.SafeInteger(ticker, "t")
 	return map[string]any{
 		"timestamp": timestamp,
 		"datetime":  this.Iso8601(timestamp),
@@ -1837,16 +1837,16 @@ func (this *ToobitCore) fetchFundingRatesBody(ch chan any, optionalArgs ...any) 
 	_ = symbols
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes155712 := (<-this.LoadMarkets())
 		PanicOnError(retRes155712)
 	}
 	symbols = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{}
-	if IsTrue(!IsEqual(symbols, nil)) {
+	if !IsEqual(symbols, nil) {
 		var length int = GetArrayLength(symbols)
-		if IsTrue(IsEqual(length, 1)) {
+		if length == 1 {
 			var market any = this.Market(GetValue(symbols, 0))
 			AddElementToObject(request, "symbol", GetValue(market, "id"))
 		}
@@ -1869,10 +1869,10 @@ func (this *ToobitCore) fetchFundingRatesBody(ch chan any, optionalArgs ...any) 
 func (this *ToobitCore) ParseFundingRate(contract any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var marketId any = this.SafeString(contract, "symbol")
+	var marketId *string = this.SafeString(contract, "symbol")
 	var symbol any = this.SafeSymbol(marketId, market)
 	var nextFundingRate any = this.SafeNumber(contract, "rate")
-	var nextFundingRateTimestamp any = this.SafeInteger(contract, "nextFundingTime")
+	var nextFundingRateTimestamp *int64 = this.SafeInteger(contract, "nextFundingTime")
 	return map[string]any{
 		"info":                     contract,
 		"symbol":                   symbol,
@@ -1924,7 +1924,7 @@ func (this *ToobitCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs ..
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes162212 := (<-this.LoadMarkets())
 		PanicOnError(retRes162212)
@@ -1933,21 +1933,21 @@ func (this *ToobitCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs ..
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if IsTrue(paginate) {
+	if EvalTruthy(paginate) {
 
 		retRes162719 := (<-this.FetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params))
 		PanicOnError(retRes162719)
 		ch <- retRes162719
 		return nil
 	}
-	if IsTrue(IsEqual(symbol, nil)) {
+	if IsEqual(symbol, nil) {
 		panic(ArgumentsRequired(Add(this.Id, " fetchFundingRateHistory() requires a symbol argument")))
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
-	if IsTrue(!IsEqual(limit, nil)) {
+	if !IsEqual(limit, nil) {
 		AddElementToObject(request, "limit", limit)
 	}
 
@@ -1969,8 +1969,8 @@ func (this *ToobitCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs ..
 func (this *ToobitCore) ParseFundingRateHistory(contract any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var timestamp any = this.SafeInteger(contract, "settleTime")
-	var marketId any = this.SafeString(contract, "symbol")
+	var timestamp *int64 = this.SafeInteger(contract, "settleTime")
+	var marketId *string = this.SafeString(contract, "symbol")
 	return map[string]any{
 		"info":        contract,
 		"symbol":      this.SafeSymbol(marketId, market),
@@ -1999,7 +1999,7 @@ func (this *ToobitCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes167512 := (<-this.LoadMarkets())
 		PanicOnError(retRes167512)
@@ -2009,7 +2009,7 @@ func (this *ToobitCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchBalance", nil, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
-	if IsTrue(this.InArray(marketType, []any{"swap", "future"})) {
+	if this.InArray(marketType, []any{"swap", "future"}) {
 
 		response = (<-this.PrivateGetApiV1FuturesBalance())
 		PanicOnError(response)
@@ -2036,7 +2036,7 @@ func (this *ToobitCore) ParseBalance(response any) any {
 		AddElementToObject(account, "free", this.SafeString2(balance, "free", "availableBalance"))
 		AddElementToObject(account, "total", this.SafeString2(balance, "total", "balance"))
 		AddElementToObject(account, "used", this.SafeString(balance, "locked"))
-		if IsTrue(!IsEqual(code, nil)) {
+		if !IsEqual(code, nil) {
 			AddElementToObject(result, code, account)
 		}
 	}
@@ -2070,7 +2070,7 @@ func (this *ToobitCore) createOrderBody(ch chan any, symbol any, typeVar any, si
 	_ = price
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes175312 := (<-this.LoadMarkets())
 		PanicOnError(retRes175312)
@@ -2078,7 +2078,7 @@ func (this *ToobitCore) createOrderBody(ch chan any, symbol any, typeVar any, si
 	var market any = this.Market(symbol)
 	var request any = map[string]any{}
 	var response any = map[string]any{}
-	if IsTrue(IsEqual(GetValue(market, "spot"), true)) {
+	if IsEqual(GetValue(market, "spot"), true) {
 		requestparamsVariable := this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
 		request = GetValue(requestparamsVariable, 0)
 		params = GetValue(requestparamsVariable, 1)
@@ -2125,11 +2125,11 @@ func (this *ToobitCore) CreateOrderRequest(symbol any, typeVar any, side any, am
 	_ = price
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(typeVar, nil)) {
+	if IsEqual(typeVar, nil) {
 		panic(ArgumentsRequired(Add(this.Id, " requires a type argument")))
 	}
 	var market any = this.Market(symbol)
-	if IsTrue(IsEqual(side, nil)) {
+	if IsEqual(side, nil) {
 		panic(ArgumentsRequired(Add(this.Id, " createOrder() requires a side argument")))
 	}
 	var id any = GetValue(market, "id")
@@ -2137,15 +2137,15 @@ func (this *ToobitCore) CreateOrderRequest(symbol any, typeVar any, side any, am
 		"symbol": id,
 		"side":   ToUpper(side),
 	}
-	if IsTrue(!IsEqual(price, nil)) {
+	if !IsEqual(price, nil) {
 		AddElementToObject(request, "price", this.PriceToPrecision(symbol, price))
 	}
 	var cost any = nil
 	costparamsVariable := this.HandleParamString(params, "cost")
 	cost = GetValue(costparamsVariable, 0)
 	params = GetValue(costparamsVariable, 1)
-	if IsTrue(IsTrue(IsEqual(typeVar, "market")) && IsTrue(IsEqual(side, "buy"))) {
-		if IsTrue(IsEqual(cost, nil)) {
+	if (typeVar == "market") && (side == "buy") {
+		if IsEqual(cost, nil) {
 			panic(ArgumentsRequired(Add(this.Id, " createOrder() requires params[\"cost\"] for market buy order")))
 		}
 		AddElementToObject(request, "quantity", this.CostToPrecision(symbol, cost))
@@ -2153,10 +2153,10 @@ func (this *ToobitCore) CreateOrderRequest(symbol any, typeVar any, side any, am
 		AddElementToObject(request, "quantity", this.AmountToPrecision(symbol, amount))
 	}
 	var isPostOnly any = nil
-	isPostOnlyparamsVariable := this.HandlePostOnly(IsEqual(typeVar, "market"), false, params)
+	isPostOnlyparamsVariable := this.HandlePostOnly((typeVar == "market"), false, params)
 	isPostOnly = GetValue(isPostOnlyparamsVariable, 0)
 	params = GetValue(isPostOnlyparamsVariable, 1)
-	if IsTrue(IsEqual(isPostOnly, true)) {
+	if IsEqual(isPostOnly, true) {
 		AddElementToObject(request, "type", "LIMIT_MAKER")
 	} else {
 		AddElementToObject(request, "type", ToUpper(typeVar))
@@ -2168,10 +2168,10 @@ func (this *ToobitCore) CreateContractOrderRequest(symbol any, typeVar any, side
 	_ = price
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(typeVar, nil)) {
+	if IsEqual(typeVar, nil) {
 		panic(ArgumentsRequired(Add(this.Id, " requires a type argument")))
 	}
-	if IsTrue(IsEqual(side, nil)) {
+	if IsEqual(side, nil) {
 		panic(ArgumentsRequired(Add(this.Id, " requires a side argument")))
 	}
 	var market any = this.Market(symbol)
@@ -2183,70 +2183,70 @@ func (this *ToobitCore) CreateContractOrderRequest(symbol any, typeVar any, side
 	reduceOnlyparamsVariable := this.HandleParamBool(params, "reduceOnly")
 	reduceOnly = GetValue(reduceOnlyparamsVariable, 0)
 	params = GetValue(reduceOnlyparamsVariable, 1)
-	if IsTrue(IsEqual(side, "buy")) {
-		side = Ternary(IsTrue((IsEqual(reduceOnly, true))), "BUY_CLOSE", "BUY_OPEN")
-	} else if IsTrue(IsEqual(side, "sell")) {
-		side = Ternary(IsTrue((IsEqual(reduceOnly, true))), "SELL_CLOSE", "SELL_OPEN")
+	if side == "buy" {
+		side = Ternary((IsEqual(reduceOnly, true)), "BUY_CLOSE", "BUY_OPEN")
+	} else if side == "sell" {
+		side = Ternary((IsEqual(reduceOnly, true)), "SELL_CLOSE", "SELL_OPEN")
 	}
 	AddElementToObject(request, "side", side)
-	if IsTrue(!IsEqual(price, nil)) {
+	if !IsEqual(price, nil) {
 		AddElementToObject(request, "price", this.PriceToPrecision(symbol, price))
 	}
-	if IsTrue(this.InArray(typeVar, []any{"limit", "LIMIT"})) {
+	if this.InArray(typeVar, []any{"limit", "LIMIT"}) {
 		AddElementToObject(request, "type", ToUpper(typeVar))
 		AddElementToObject(request, "price", this.PriceToPrecision(symbol, price))
-	} else if IsTrue(IsEqual(typeVar, "market")) {
+	} else if typeVar == "market" {
 		AddElementToObject(request, "type", "LIMIT") // weird, but exchange works this way
 		AddElementToObject(request, "priceType", "MARKET")
 	}
 	var isPostOnly any = nil
-	isPostOnlyparamsVariable := this.HandlePostOnly(IsEqual(typeVar, "market"), false, params)
+	isPostOnlyparamsVariable := this.HandlePostOnly((typeVar == "market"), false, params)
 	isPostOnly = GetValue(isPostOnlyparamsVariable, 0)
 	params = GetValue(isPostOnlyparamsVariable, 1)
-	if IsTrue(IsEqual(isPostOnly, true)) {
+	if IsEqual(isPostOnly, true) {
 		AddElementToObject(request, "timeInForce", "LIMIT_MAKER")
 	}
 	var values any = this.HandleTriggerPricesAndParams(symbol, params)
 	var triggerPrice any = GetValue(values, 0)
 	params = GetValue(values, 3)
-	if IsTrue(!IsEqual(triggerPrice, nil)) {
+	if !IsEqual(triggerPrice, nil) {
 		AddElementToObject(request, "stopPrice", triggerPrice)
 	}
 	var stopLoss any = this.SafeDict(params, "stopLoss")
 	var takeProfit any = this.SafeDict(params, "takeProfit")
-	var hasStopLoss any = (!IsEqual(stopLoss, nil))
-	var hasTakeProfit any = (!IsEqual(takeProfit, nil))
+	var hasStopLoss bool = (!IsEqual(stopLoss, nil))
+	var hasTakeProfit bool = (!IsEqual(takeProfit, nil))
 	var triggerPriceTypes map[string]any = map[string]any{
 		"mark": "MARK_PRICE",
 		"last": "CONTRACT_PRICE",
 	}
-	if IsTrue(hasStopLoss) {
+	if hasStopLoss {
 		AddElementToObject(request, "stopLoss", this.SafeValue(stopLoss, "triggerPrice"))
 		var limitPrice any = this.SafeValue(stopLoss, "price")
-		if IsTrue(!IsEqual(limitPrice, nil)) {
+		if !IsEqual(limitPrice, nil) {
 			AddElementToObject(request, "slOrderType", "LIMIT")
 			AddElementToObject(request, "slLimitPrice", this.PriceToPrecision(symbol, limitPrice))
 		}
-		var triggerPriceType any = this.SafeString(stopLoss, "triggerPriceType")
-		if IsTrue(!IsEqual(triggerPriceType, nil)) {
+		var triggerPriceType *string = this.SafeString(stopLoss, "triggerPriceType")
+		if triggerPriceType != nil {
 			AddElementToObject(request, "slTriggerBy", this.SafeString(triggerPriceTypes, triggerPriceType, triggerPriceType))
 		}
 		params = this.Omit(params, "stopLoss")
 	}
-	if IsTrue(hasTakeProfit) {
+	if hasTakeProfit {
 		AddElementToObject(request, "takeProfit", this.SafeValue(takeProfit, "triggerPrice"))
 		var limitPrice any = this.SafeValue(takeProfit, "price")
-		if IsTrue(!IsEqual(limitPrice, nil)) {
+		if !IsEqual(limitPrice, nil) {
 			AddElementToObject(request, "tpOrderType", "LIMIT")
 			AddElementToObject(request, "tpLimitPrice", this.PriceToPrecision(symbol, limitPrice))
 		}
-		var triggerPriceType any = this.SafeString(takeProfit, "triggerPriceType")
-		if IsTrue(!IsEqual(triggerPriceType, nil)) {
+		var triggerPriceType *string = this.SafeString(takeProfit, "triggerPriceType")
+		if triggerPriceType != nil {
 			AddElementToObject(request, "tpTriggerBy", this.SafeString(triggerPriceTypes, triggerPriceType, triggerPriceType))
 		}
 		params = this.Omit(params, "takeProfit")
 	}
-	if !IsTrue((InOp(params, "newClientOrderId"))) {
+	if !(InOp(params, "newClientOrderId")) {
 		AddElementToObject(request, "newClientOrderId", this.Uuid())
 	}
 	return []any{request, params}
@@ -2312,25 +2312,25 @@ func (this *ToobitCore) ParseOrder(order any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var timestamp any = this.SafeInteger2(order, "transactTime", "time")
-	var marketId any = this.SafeString(order, "symbol")
+	var timestamp *int64 = this.SafeInteger2(order, "transactTime", "time")
+	var marketId *string = this.SafeString(order, "symbol")
 	market = this.SafeMarket(marketId, market)
-	var rawType any = this.SafeString(order, "type")
-	var rawSideLower any = this.SafeStringLower(order, "side")
+	var rawType *string = this.SafeString(order, "type")
+	var rawSideLower *string = this.SafeStringLower(order, "side")
 	var reduceOnly any = nil
-	if IsTrue(!IsEqual(rawSideLower, nil)) {
+	if rawSideLower != nil {
 		// contract orders arrive as BUY_OPEN, SELL_CLOSE and the like -
 		// the suffix is the only signal that carries reduceOnly, so read
 		// it before discarding it (spot sides have no suffix: undefined)
 		var sideParts []string = Split(rawSideLower, "_")
-		var sideSuffix any = this.SafeString(sideParts, 1)
-		if IsTrue(!IsEqual(sideSuffix, nil)) {
-			reduceOnly = (IsEqual(sideSuffix, "close"))
+		var sideSuffix *string = this.SafeString(sideParts, 1)
+		if sideSuffix != nil {
+			reduceOnly = (sideSuffix != nil && *sideSuffix == "close")
 		}
 		rawSideLower = this.SafeString(sideParts, 0)
 	}
 	var triggerPrice any = this.OmitZero(this.SafeString(order, "stopPrice"))
-	if IsTrue(IsEqual(triggerPrice, "0.0")) {
+	if IsEqual(triggerPrice, "0.0") {
 		triggerPrice = nil
 	}
 	return this.SafeOrder(map[string]any{
@@ -2345,7 +2345,7 @@ func (this *ToobitCore) ParseOrder(order any, optionalArgs ...any) any {
 		"symbol":              GetValue(market, "symbol"),
 		"type":                this.ParseOrderType(rawType),
 		"timeInForce":         this.SafeString(order, "timeInForce"),
-		"postOnly":            (IsEqual(rawType, "LIMIT_MAKER")),
+		"postOnly":            (rawType != nil && *rawType == "LIMIT_MAKER"),
 		"side":                rawSideLower,
 		"price":               this.OmitZero(this.SafeString(order, "price")),
 		"triggerPrice":        triggerPrice,
@@ -2372,7 +2372,7 @@ func (this *ToobitCore) ParseOrderStatus(status any) any {
 		"CANCELED":         "canceled",
 		"REJECTED":         "canceled",
 	}
-	if IsTrue(IsEqual(status, nil)) {
+	if IsEqual(status, nil) {
 		return nil
 	}
 	return this.SafeString(statuses, status, status)
@@ -2383,7 +2383,7 @@ func (this *ToobitCore) ParseOrderType(status any) any {
 		"LIMIT":       "limit",
 		"LIMIT_MAKER": "limit",
 	}
-	if IsTrue(IsEqual(status, nil)) {
+	if IsEqual(status, nil) {
 		return nil
 	}
 	return this.SafeString(statuses, status, status)
@@ -2413,11 +2413,11 @@ func (this *ToobitCore) cancelOrderBody(ch chan any, id any, optionalArgs ...any
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
 	var request map[string]any = map[string]any{}
-	if IsTrue(IsEqual(this.SafeString(params, "clientOrderId"), nil)) {
+	if this.SafeString(params, "clientOrderId") == nil {
 		AddElementToObject(request, "orderId", id)
 	}
 	var market any = nil
-	if IsTrue(!IsEqual(symbol, nil)) {
+	if !IsEqual(symbol, nil) {
 		market = this.Market(symbol)
 		AddElementToObject(request, "symbol", GetValue(market, "id"))
 	}
@@ -2425,11 +2425,11 @@ func (this *ToobitCore) cancelOrderBody(ch chan any, id any, optionalArgs ...any
 	marketTypeparamsVariable := this.HandleMarketTypeAndParams("cancelOrder", market, params, "none")
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
-	if IsTrue(IsEqual(marketType, "none")) {
+	if marketType == "none" {
 		panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument or the \"defaultType\" parameter to be set to \"spot\" or \"swap\"")))
 	}
 	var response any = map[string]any{}
-	if IsTrue(IsEqual(marketType, "spot")) {
+	if marketType == "spot" {
 
 		response = (<-this.PrivateDeleteApiV1SpotOrder(this.Extend(request, params)))
 		PanicOnError(response)
@@ -2440,7 +2440,7 @@ func (this *ToobitCore) cancelOrderBody(ch chan any, id any, optionalArgs ...any
 	}
 	// response same as in `createOrder`
 	var status any = this.ParseOrderStatus(this.SafeString(response, "status"))
-	if IsTrue(!IsEqual(status, "open")) {
+	if !IsEqual(status, "open") {
 		panic(OrderNotFound(Add(Add(Add(Add(this.Id, " order "), id), " can not be canceled, "), this.Json(response))))
 	}
 
@@ -2470,14 +2470,14 @@ func (this *ToobitCore) cancelAllOrdersBody(ch chan any, optionalArgs ...any) an
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes209812 := (<-this.LoadMarkets())
 		PanicOnError(retRes209812)
 	}
 	var request map[string]any = map[string]any{}
 	var market any = nil
-	if IsTrue(!IsEqual(symbol, nil)) {
+	if !IsEqual(symbol, nil) {
 		market = this.Market(symbol)
 		AddElementToObject(request, "symbol", GetValue(market, "id"))
 	}
@@ -2485,11 +2485,11 @@ func (this *ToobitCore) cancelAllOrdersBody(ch chan any, optionalArgs ...any) an
 	marketTypeparamsVariable := this.HandleMarketTypeAndParams("cancelAllOrders", market, params, "none")
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
-	if IsTrue(IsEqual(marketType, "none")) {
+	if marketType == "none" {
 		panic(ArgumentsRequired(Add(this.Id, " cancelAllOrders() requires a symbol argument or the \"defaultType\" parameter to be set to \"spot\" or \"swap\"")))
 	}
 	var response any = nil
-	if IsTrue(IsEqual(marketType, "spot")) {
+	if marketType == "spot" {
 
 		response = (<-this.PrivateDeleteApiV1SpotOpenOrders(this.Extend(request, params)))
 		PanicOnError(response)
@@ -2528,7 +2528,7 @@ func (this *ToobitCore) cancelOrdersBody(ch chan any, ids any, optionalArgs ...a
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes214312 := (<-this.LoadMarkets())
 		PanicOnError(retRes214312)
@@ -2538,18 +2538,18 @@ func (this *ToobitCore) cancelOrdersBody(ch chan any, ids any, optionalArgs ...a
 		"ids": idsString,
 	}
 	var market any = nil
-	if IsTrue(!IsEqual(symbol, nil)) {
+	if !IsEqual(symbol, nil) {
 		market = this.Market(symbol)
 	}
 	var marketType any = nil
 	marketTypeparamsVariable := this.HandleMarketTypeAndParams("cancelOrders", market, params, "none")
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
-	if IsTrue(IsEqual(marketType, "none")) {
+	if marketType == "none" {
 		panic(ArgumentsRequired(Add(this.Id, " cancelOrders() requires a symbol argument or the \"defaultType\" parameter to be set to \"spot\" or \"swap\"")))
 	}
 	var response any = nil
-	if IsTrue(IsEqual(marketType, "spot")) {
+	if marketType == "spot" {
 
 		response = (<-this.PrivateDeleteApiV1SpotCancelOrderByIds(this.Extend(request, params)))
 		PanicOnError(response)
@@ -2587,10 +2587,10 @@ func (this *ToobitCore) fetchOrderBody(ch chan any, id any, optionalArgs ...any)
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(symbol, nil)) {
+	if IsEqual(symbol, nil) {
 		panic(ArgumentsRequired(Add(this.Id, " fetchOrder() requires a symbol argument")))
 	}
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes220312 := (<-this.LoadMarkets())
 		PanicOnError(retRes220312)
@@ -2600,7 +2600,7 @@ func (this *ToobitCore) fetchOrderBody(ch chan any, id any, optionalArgs ...any)
 	}
 	var market any = this.Market(symbol)
 	var response any = map[string]any{}
-	if IsTrue(IsEqual(GetValue(market, "spot"), true)) {
+	if IsEqual(GetValue(market, "spot"), true) {
 
 		response = (<-this.PrivateGetApiV1SpotOrder(this.Extend(request, params)))
 		PanicOnError(response)
@@ -2670,18 +2670,18 @@ func (this *ToobitCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) an
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes226012 := (<-this.LoadMarkets())
 		PanicOnError(retRes226012)
 	}
 	var request map[string]any = map[string]any{}
 	var market any = nil
-	if IsTrue(!IsEqual(symbol, nil)) {
+	if !IsEqual(symbol, nil) {
 		market = this.Market(symbol)
 		AddElementToObject(request, "symbol", GetValue(market, "id"))
 	}
-	if IsTrue(!IsEqual(limit, nil)) {
+	if !IsEqual(limit, nil) {
 		AddElementToObject(request, "limit", limit)
 	}
 	var marketType any = nil
@@ -2689,7 +2689,7 @@ func (this *ToobitCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) an
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
 	var response any = []any{}
-	if IsTrue(IsEqual(marketType, "spot")) {
+	if marketType == "spot" {
 
 		response = (<-this.PrivateGetApiV1SpotOpenOrders(this.Extend(request, params)))
 		PanicOnError(response)
@@ -2730,23 +2730,23 @@ func (this *ToobitCore) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes232212 := (<-this.LoadMarkets())
 		PanicOnError(retRes232212)
 	}
 	var request any = map[string]any{}
-	if IsTrue(!IsEqual(limit, nil)) {
+	if !IsEqual(limit, nil) {
 		AddElementToObject(request, "limit", limit)
 	}
-	if IsTrue(!IsEqual(since, nil)) {
+	if !IsEqual(since, nil) {
 		AddElementToObject(request, "startTime", since)
 	}
 	requestparamsVariable := this.HandleUntilOption("endTime", request, params)
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
 	var market any = nil
-	if IsTrue(!IsEqual(symbol, nil)) {
+	if !IsEqual(symbol, nil) {
 		market = this.Market(symbol)
 		AddElementToObject(request, "symbol", GetValue(market, "id"))
 	}
@@ -2755,7 +2755,7 @@ func (this *ToobitCore) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
 	var response any = []any{}
-	if IsTrue(IsEqual(marketType, "spot")) {
+	if marketType == "spot" {
 
 		response = (<-this.PrivateGetApiV1SpotTradeOrders(request))
 		PanicOnError(response)
@@ -2795,18 +2795,18 @@ func (this *ToobitCore) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) 
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes238912 := (<-this.LoadMarkets())
 		PanicOnError(retRes238912)
 	}
 	var request any = map[string]any{}
 	var market any = nil
-	if IsTrue(!IsEqual(symbol, nil)) {
+	if !IsEqual(symbol, nil) {
 		market = this.Market(symbol)
 		AddElementToObject(request, "symbol", GetValue(market, "id"))
 	}
-	if IsTrue(!IsEqual(since, nil)) {
+	if !IsEqual(since, nil) {
 		AddElementToObject(request, "startTime", since)
 	}
 	requestparamsVariable := this.HandleUntilOption("endTime", request, params)
@@ -2817,7 +2817,7 @@ func (this *ToobitCore) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) 
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
 	var response any = []any{}
-	if IsTrue(IsEqual(marketType, "spot")) {
+	if marketType == "spot" {
 		panic(NotSupported(Add(Add(Add(this.Id, " fetchOrders() is not supported for "), marketType), " markets")))
 	} else {
 
@@ -2826,7 +2826,7 @@ func (this *ToobitCore) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) 
 	}
 	var ordersList any = []any{}
 	var responseList any = []any{}
-	if IsTrue(IsArray(response)) {
+	if IsArray(response) {
 		responseList = response
 	}
 	for i := 0; IsLessThan(i, GetArrayLength(responseList)); i++ {
@@ -2868,19 +2868,19 @@ func (this *ToobitCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any 
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(symbol, nil)) {
+	if IsEqual(symbol, nil) {
 		panic(ArgumentsRequired(Add(this.Id, " fetchMyTrades() requires a symbol argument")))
 	}
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes246412 := (<-this.LoadMarkets())
 		PanicOnError(retRes246412)
 	}
 	var request any = map[string]any{}
-	if IsTrue(!IsEqual(since, nil)) {
+	if !IsEqual(since, nil) {
 		AddElementToObject(request, "startTime", since)
 	}
-	if IsTrue(!IsEqual(limit, nil)) {
+	if !IsEqual(limit, nil) {
 		AddElementToObject(request, "limit", limit)
 	}
 	var market any = this.Market(symbol)
@@ -2893,7 +2893,7 @@ func (this *ToobitCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any 
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
 	var response any = []any{}
-	if IsTrue(IsEqual(marketType, "spot")) {
+	if marketType == "spot" {
 
 		response = (<-this.PrivateGetApiV1AccountTrades(this.Extend(request, params)))
 		PanicOnError(response)
@@ -2929,15 +2929,15 @@ func (this *ToobitCore) transferBody(ch chan any, code any, amount any, fromAcco
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes254612 := (<-this.LoadMarkets())
 		PanicOnError(retRes254612)
 	}
 	var currency any = this.Currency(code)
 	var accountsByType any = this.SafeDict(this.Options, "accountsByType", map[string]any{})
-	var fromId any = this.SafeString(accountsByType, fromAccount, fromAccount)
-	var toId any = this.SafeString(accountsByType, toAccount, toAccount)
+	var fromId *string = this.SafeString(accountsByType, fromAccount, fromAccount)
+	var toId *string = this.SafeString(accountsByType, toAccount, toAccount)
 	var request map[string]any = map[string]any{
 		"asset":           GetValue(currency, "id"),
 		"quantity":        this.CurrencyToPrecision(code, amount),
@@ -3008,24 +3008,24 @@ func (this *ToobitCore) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes260312 := (<-this.LoadMarkets())
 		PanicOnError(retRes260312)
 	}
 	var currency any = nil
 	var request any = map[string]any{}
-	if IsTrue(!IsEqual(code, nil)) {
+	if !IsEqual(code, nil) {
 		currency = this.Currency(code)
 		AddElementToObject(request, "coin", GetValue(currency, "id"))
 	}
-	if IsTrue(!IsEqual(since, nil)) {
+	if !IsEqual(since, nil) {
 		AddElementToObject(request, "startTime", since)
 	}
 	requestparamsVariable := this.HandleUntilOption("endTime", request, params)
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
-	if IsTrue(!IsEqual(limit, nil)) {
+	if !IsEqual(limit, nil) {
 		AddElementToObject(request, "limit", limit)
 	}
 	var marketType any = nil
@@ -3033,7 +3033,7 @@ func (this *ToobitCore) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
 	var response any = nil
-	if IsTrue(IsEqual(marketType, "spot")) {
+	if marketType == "spot" {
 
 		response = (<-this.PrivateGetApiV1AccountBalanceFlow(this.Extend(request, params)))
 		PanicOnError(response)
@@ -3067,14 +3067,14 @@ func (this *ToobitCore) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 func (this *ToobitCore) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var currencyId any = this.SafeString(item, "coinId")
+	var currencyId *string = this.SafeString(item, "coinId")
 	currency = this.SafeCurrency(currencyId, currency)
-	var timestamp any = this.SafeInteger(item, "created")
+	var timestamp *int64 = this.SafeInteger(item, "created")
 	var after any = this.SafeNumber(item, "total")
-	var amountRaw any = this.SafeString(item, "change", "")
+	var amountRaw *string = this.SafeString(item, "change", "")
 	var amount any = this.ParseNumber(Precise.StringAbs(amountRaw))
 	var direction string = "in"
-	if IsTrue(StartsWith(amountRaw, "-")) {
+	if StartsWith(amountRaw, "-") {
 		direction = "out"
 	}
 	return this.SafeLedgerEntry(map[string]any{
@@ -3121,7 +3121,7 @@ func (this *ToobitCore) fetchTradingFeesBody(ch chan any, optionalArgs ...any) a
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes269512 := (<-this.LoadMarkets())
 		PanicOnError(retRes269512)
@@ -3132,14 +3132,14 @@ func (this *ToobitCore) fetchTradingFeesBody(ch chan any, optionalArgs ...any) a
 	marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchTradingFees", nil, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
-	if IsTrue(IsEqual(marketType, "spot")) {
+	if marketType == "spot" {
 		panic(NotSupported(Add(Add(Add(this.Id, " fetchTradingFees(): does not support "), marketType), " markets")))
-	} else if IsTrue(this.InArray(marketType, []any{"swap", "future"})) {
+	} else if this.InArray(marketType, []any{"swap", "future"}) {
 		var symbol any = nil
 		symbolparamsVariable := this.HandleParamString(params, "symbol")
 		symbol = GetValue(symbolparamsVariable, 0)
 		params = GetValue(symbolparamsVariable, 1)
-		if IsTrue(IsEqual(symbol, nil)) {
+		if IsEqual(symbol, nil) {
 			panic(BadRequest(Add(this.Id, " fetchTradingFees requires a params[\"symbol\"]")))
 		}
 		market = this.Market(symbol)
@@ -3160,7 +3160,7 @@ func (this *ToobitCore) fetchTradingFeesBody(ch chan any, optionalArgs ...any) a
 	//
 	var result map[string]any = map[string]any{}
 	var entry any = response
-	var marketId any = this.SafeString(entry, "symbol")
+	var marketId *string = this.SafeString(entry, "symbol")
 	market = this.SafeMarket(marketId, market)
 	var fee any = this.ParseTradingFee(entry, market)
 	AddElementToObject(result, GetValue(market, "symbol"), fee)
@@ -3171,7 +3171,7 @@ func (this *ToobitCore) fetchTradingFeesBody(ch chan any, optionalArgs ...any) a
 func (this *ToobitCore) ParseTradingFee(data any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var marketId any = this.SafeString(data, "symbol")
+	var marketId *string = this.SafeString(data, "symbol")
 	return map[string]any{
 		"info":       data,
 		"symbol":     this.SafeSymbol(marketId, market),
@@ -3259,32 +3259,32 @@ func (this *ToobitCore) fetchDepositsOrWithdrawalsHelperBody(ch chan any, typeVa
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes277612 := (<-this.LoadMarkets())
 		PanicOnError(retRes277612)
 	}
 	var currency any = nil
 	var request any = map[string]any{}
-	if IsTrue(!IsEqual(code, nil)) {
+	if !IsEqual(code, nil) {
 		currency = this.Currency(code)
 		AddElementToObject(request, "coin", GetValue(currency, "id"))
 	}
-	if IsTrue(!IsEqual(since, nil)) {
+	if !IsEqual(since, nil) {
 		AddElementToObject(request, "startTime", since)
 	}
 	requestparamsVariable := this.HandleUntilOption("endTime", request, params)
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
-	if IsTrue(!IsEqual(limit, nil)) {
+	if !IsEqual(limit, nil) {
 		AddElementToObject(request, "limit", limit)
 	}
 	var response any = []any{}
-	if IsTrue(IsEqual(typeVar, "deposits")) {
+	if IsEqual(typeVar, "deposits") {
 
 		response = (<-this.PrivateGetApiV1AccountDepositOrders(this.Extend(request, params)))
 		PanicOnError(response)
-	} else if IsTrue(IsEqual(typeVar, "withdrawals")) {
+	} else if IsEqual(typeVar, "withdrawals") {
 
 		response = (<-this.PrivateGetApiV1AccountWithdrawOrders(this.Extend(request, params)))
 		PanicOnError(response)
@@ -3336,24 +3336,24 @@ func (this *ToobitCore) ParseTransaction(transaction any, optionalArgs ...any) a
 	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var timestamp any = this.SafeInteger(transaction, "time")
-	var currencyId any = this.SafeString2(transaction, "coin", "coinId")
+	var timestamp *int64 = this.SafeInteger(transaction, "time")
+	var currencyId *string = this.SafeString2(transaction, "coin", "coinId")
 	var code any = this.SafeCurrencyCode(currencyId, currency)
-	var feeString any = this.SafeString(transaction, "fee")
-	var feeCoin any = this.SafeString(transaction, "feeCoinName")
+	var feeString *string = this.SafeString(transaction, "fee")
+	var feeCoin *string = this.SafeString(transaction, "feeCoinName")
 	var fee any = nil
-	if IsTrue(!IsEqual(feeString, nil)) {
+	if feeString != nil {
 		fee = map[string]any{
 			"cost":     this.ParseNumber(feeString),
 			"currency": this.SafeCurrencyCode(feeCoin),
 		}
 	}
-	var tagTo any = this.SafeString2(transaction, "addressTag", "addressExt")
-	var tagFrom any = this.SafeString(transaction, "fromAddressTag")
-	var addressTo any = this.SafeString(transaction, "address")
-	var addressFrom any = this.SafeString(transaction, "fromAddress")
+	var tagTo *string = this.SafeString2(transaction, "addressTag", "addressExt")
+	var tagFrom *string = this.SafeString(transaction, "fromAddressTag")
+	var addressTo *string = this.SafeString(transaction, "address")
+	var addressFrom *string = this.SafeString(transaction, "fromAddress")
 	var isWithdraw bool = (InOp(transaction, "arriveQuantity"))
-	var typeVar any = Ternary(IsTrue(isWithdraw), "withdrawal", "deposit")
+	var typeVar any = Ternary(isWithdraw, "withdrawal", "deposit")
 	return map[string]any{
 		"info":        transaction,
 		"id":          this.SafeString(transaction, "id"),
@@ -3384,7 +3384,7 @@ func (this *ToobitCore) ParseTransactionStatus(status any) any {
 		"11": "failed",
 		"3":  "ok",
 	}
-	if IsTrue(IsEqual(status, nil)) {
+	if IsEqual(status, nil) {
 		return nil
 	}
 	return this.SafeString(statuses, status, status)
@@ -3409,7 +3409,7 @@ func (this *ToobitCore) fetchDepositAddressBody(ch chan any, code any, optionalA
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes295512 := (<-this.LoadMarkets())
 		PanicOnError(retRes295512)
@@ -3421,7 +3421,7 @@ func (this *ToobitCore) fetchDepositAddressBody(ch chan any, code any, optionalA
 	networkCodeparamsOmittedVariable := this.HandleNetworkCodeAndParams(this.Extend(request, params))
 	networkCode := GetValue(networkCodeparamsOmittedVariable, 0)
 	paramsOmitted := GetValue(networkCodeparamsOmittedVariable, 1)
-	if IsTrue(IsEqual(networkCode, nil)) {
+	if IsEqual(networkCode, nil) {
 		panic(ArgumentsRequired(Add(this.Id, " fetchDepositAddress() : param[\"network\"] is required")))
 	}
 	AddElementToObject(request, "chainType", this.NetworkCodeToId(networkCode, code))
@@ -3446,7 +3446,7 @@ func (this *ToobitCore) fetchDepositAddressBody(ch chan any, code any, optionalA
 func (this *ToobitCore) ParseDepositAddress(depositAddress any, optionalArgs ...any) any {
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var address any = this.SafeString(depositAddress, "address")
+	var address *string = this.SafeString(depositAddress, "address")
 	this.CheckAddress(address)
 	return map[string]any{
 		"info":     depositAddress,
@@ -3487,10 +3487,10 @@ func (this *ToobitCore) withdrawBody(ch chan any, code any, amount any, address 
 	networkCodeparamsVariable := this.HandleNetworkCodeAndParams(params)
 	networkCode = GetValue(networkCodeparamsVariable, 0)
 	params = GetValue(networkCodeparamsVariable, 1)
-	if IsTrue(IsEqual(networkCode, nil)) {
+	if IsEqual(networkCode, nil) {
 		panic(ArgumentsRequired(Add(this.Id, " withdraw() : param[\"network\"] is required")))
 	}
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes301412 := (<-this.LoadMarkets())
 		PanicOnError(retRes301412)
@@ -3503,7 +3503,7 @@ func (this *ToobitCore) withdrawBody(ch chan any, code any, amount any, address 
 		"chainType":     this.NetworkCodeToId(networkCode, code),
 		"clientOrderId": this.Milliseconds(),
 	}
-	if IsTrue(!IsEqual(tag, nil)) {
+	if !IsEqual(tag, nil) {
 		AddElementToObject(request, "addressExt", tag)
 	}
 
@@ -3545,16 +3545,16 @@ func (this *ToobitCore) setMarginModeBody(ch chan any, marginMode any, optionalA
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(symbol, nil)) {
+	if IsEqual(symbol, nil) {
 		panic(ArgumentsRequired(Add(this.Id, " setMarginMode() requires a symbol argument")))
 	}
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes305512 := (<-this.LoadMarkets())
 		PanicOnError(retRes305512)
 	}
 	var market any = this.Market(symbol)
-	if IsTrue(!IsEqual(GetValue(market, "type"), "swap")) {
+	if GetValue(market, "type") != "swap" {
 		panic(BadSymbol(Add(this.Id, " setMarginMode() supports swap contracts only")))
 	}
 	marginMode = ToUpper(marginMode)
@@ -3595,10 +3595,10 @@ func (this *ToobitCore) setLeverageBody(ch chan any, leverage any, optionalArgs 
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(symbol, nil)) {
+	if IsEqual(symbol, nil) {
 		panic(ArgumentsRequired(Add(this.Id, " setLeverage() requires a symbol argument")))
 	}
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes308812 := (<-this.LoadMarkets())
 		PanicOnError(retRes308812)
@@ -3638,7 +3638,7 @@ func (this *ToobitCore) fetchLeverageBody(ch chan any, symbol any, optionalArgs 
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes311312 := (<-this.LoadMarkets())
 		PanicOnError(retRes311312)
@@ -3667,10 +3667,10 @@ func (this *ToobitCore) fetchLeverageBody(ch chan any, symbol any, optionalArgs 
 func (this *ToobitCore) ParseLeverage(leverage any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var marketId any = this.SafeString2(leverage, "symbolId", "symbol")
-	var leverageValue any = this.SafeInteger(leverage, "leverage")
-	var marginType any = this.SafeStringLower(leverage, "marginType")
-	var marginMode any = Ternary(IsTrue((IsEqual(marginType, "cross"))), "cross", "isolated")
+	var marketId *string = this.SafeString2(leverage, "symbolId", "symbol")
+	var leverageValue *int64 = this.SafeInteger(leverage, "leverage")
+	var marginType *string = this.SafeStringLower(leverage, "marginType")
+	var marginMode any = Ternary((marginType != nil && *marginType == "cross"), "cross", "isolated")
 	return map[string]any{
 		"info":          leverage,
 		"symbol":        this.SafeSymbol(marketId, market),
@@ -3701,20 +3701,20 @@ func (this *ToobitCore) fetchPositionsBody(ch chan any, optionalArgs ...any) any
 	_ = symbols
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes315812 := (<-this.LoadMarkets())
 		PanicOnError(retRes315812)
 	}
 	var request map[string]any = map[string]any{}
 	var market any = nil
-	if IsTrue(!IsEqual(symbols, nil)) {
+	if !IsEqual(symbols, nil) {
 		var length int = GetArrayLength(symbols)
-		if IsTrue(IsGreaterThan(length, 1)) {
+		if IsGreaterThan(length, 1) {
 			panic(BadRequest(Add(this.Id, " fetchPositions() only accepts an array with a single symbol or without symbols argument")))
 		}
-		var firstSymbol any = this.SafeString(symbols, 0)
-		if IsTrue(!IsEqual(firstSymbol, nil)) {
+		var firstSymbol *string = this.SafeString(symbols, 0)
+		if firstSymbol != nil {
 			market = this.Market(firstSymbol)
 			AddElementToObject(request, "symbol", GetValue(market, "id"))
 		}
@@ -3752,11 +3752,11 @@ func (this *ToobitCore) fetchPositionsBody(ch chan any, optionalArgs ...any) any
 func (this *ToobitCore) ParsePosition(position any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var marketId any = this.SafeString(position, "symbol")
+	var marketId *string = this.SafeString(position, "symbol")
 	market = this.SafeMarket(marketId, market)
-	var side any = this.SafeStringLower(position, "side")
-	var quantity any = this.SafeString(position, "position")
-	var leverage any = this.SafeInteger(position, "leverage")
+	var side *string = this.SafeStringLower(position, "side")
+	var quantity *string = this.SafeString(position, "position")
+	var leverage *int64 = this.SafeInteger(position, "leverage")
 	return this.SafePosition(map[string]any{
 		"info":                        position,
 		"id":                          this.SafeString(position, "id"),
@@ -3796,14 +3796,14 @@ func (this *ToobitCore) Sign(path any, optionalArgs ...any) any {
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
 	var url any = Add(Add(GetValue(GetValue(this.Urls, "api"), api), "/"), this.ImplodeParams(path, params))
-	var isPost bool = IsEqual(method, "POST")
-	var isDelete bool = IsEqual(method, "DELETE")
+	var isPost bool = (method == "POST")
+	var isDelete bool = (method == "DELETE")
 	var extraQuery map[string]any = map[string]any{}
 	var query any = this.Omit(params, this.ExtractParams(path))
-	if IsTrue(!IsEqual(api, "private")) {
+	if !IsEqual(api, "private") {
 		// Public endpoints
-		if !IsTrue(isPost) {
-			if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
+		if !isPost {
+			if IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0) {
 				url = Add(url, Add("?", this.Urlencode(query)))
 			}
 		}
@@ -3815,9 +3815,9 @@ func (this *ToobitCore) Sign(path any, optionalArgs ...any) any {
 		AddElementToObject(extraQuery, "timestamp", ToString(timestamp))
 		var queryExtended map[string]any = this.Extend(query, extraQuery)
 		var queryString any = ""
-		if IsTrue(IsTrue(isPost) || IsTrue(isDelete)) {
+		if isPost || isDelete {
 			// everything else except Batch-Orders
-			if !IsTrue(IsArray(params)) {
+			if !IsArray(params) {
 				body = this.Urlencode(queryExtended)
 			} else {
 				queryString = this.Urlencode(extraQuery)
@@ -3827,11 +3827,11 @@ func (this *ToobitCore) Sign(path any, optionalArgs ...any) any {
 			queryString = this.Urlencode(queryExtended)
 		}
 		var payload any = queryString
-		if IsTrue(!IsEqual(body, nil)) {
+		if !IsEqual(body, nil) {
 			payload = Add(body, payload)
 		}
 		var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha256, "hex")
-		if IsTrue(!IsEqual(queryString, "")) {
+		if queryString != "" {
 			queryString = Add(queryString, Add("&signature=", signature))
 			url = Add(url, Add("?", queryString))
 		} else {
@@ -3852,12 +3852,12 @@ func (this *ToobitCore) Sign(path any, optionalArgs ...any) any {
 	}
 }
 func (this *ToobitCore) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
-	if IsTrue(IsEqual(response, nil)) {
+	if IsEqual(response, nil) {
 		return nil
 	}
-	var errorCode any = this.SafeString(response, "code")
-	var message any = this.SafeString(response, "msg")
-	if IsTrue(IsTrue(IsTrue((IsTrue(!IsEqual(errorCode, nil)) && IsTrue(!IsEqual(errorCode, "")))) && IsTrue(!IsEqual(errorCode, "200"))) && IsTrue(!IsEqual(errorCode, "0"))) {
+	var errorCode *string = this.SafeString(response, "code")
+	var message *string = this.SafeString(response, "msg")
+	if ((errorCode != nil) && (errorCode == nil || *errorCode != "")) && (errorCode == nil || *errorCode != "200") && (errorCode == nil || *errorCode != "0") {
 		var feedback any = Add(Add(this.Id, " "), body)
 		this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), errorCode, feedback)
 		this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), message, feedback)

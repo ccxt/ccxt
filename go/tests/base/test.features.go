@@ -25,7 +25,7 @@ func testFeaturesBody(ch chan any, exchange ccxt.ICoreExchange, skippedPropertie
 		if IsEqual(value, nil) {
 			continue
 		}
-		if IsEqual(marketType, "spot") {
+		if marketType == "spot" {
 			TestFeaturesInner(exchange, skippedProperties, value)
 		} else {
 			var subKeys []string = ObjectKeys(value)

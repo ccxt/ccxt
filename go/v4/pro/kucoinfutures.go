@@ -117,7 +117,7 @@ func (this *KucoinfuturesCore) transferBody(ch chan any, code any, amount any, f
 
 		response = (<-this.FuturesPrivatePostTransferOut(this.Extend(request, params)))
 		ccxt.PanicOnError(response)
-	} else if ccxt.IsEqual(toAccount, "future") || ccxt.IsEqual(toAccount, "swap") || ccxt.IsEqual(toAccount, "contract") {
+	} else if (toAccount == "future") || (toAccount == "swap") || (toAccount == "contract") {
 		ccxt.AddElementToObject(request, "payAccountType", this.ParseTransferType(fromAccount))
 
 		response = (<-this.FuturesPrivatePostTransferIn(this.Extend(request, params)))

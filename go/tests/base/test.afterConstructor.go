@@ -23,7 +23,7 @@ func HelperTestInitThrottler() {
 	Assert(exchange.InArray(ccxt.GetValue(tokenBucket, "capacity"), []any{1, 1}))
 	var cost any = exchange.ParseToNumeric(exchange.SafeString2(tokenBucket, "cost", "defaultCost")) // python sync, todo fix
 	Assert(exchange.InArray(cost, []any{1, 1}))
-	Assert(!ccxt.IsTrue((ccxt.InOp(tokenBucket, "maxCapacity"))) || ccxt.IsTrue(exchange.InArray(ccxt.GetValue(tokenBucket, "maxCapacity"), []any{1000, 1000})))
+	Assert(!(ccxt.InOp(tokenBucket, "maxCapacity")) || ccxt.EvalTruthy(exchange.InArray(ccxt.GetValue(tokenBucket, "maxCapacity"), []any{1000, 1000})))
 }
 func HelperTestSandboxState(exchange *ccxt.Exchange, optionalArgs ...any) {
 	expectEnabled := ccxt.GetArg(optionalArgs, 0, true)
@@ -31,7 +31,7 @@ func HelperTestSandboxState(exchange *ccxt.Exchange, optionalArgs ...any) {
 	Assert(!ccxt.IsEqual(exchange.Urls, nil))
 	Assert(ccxt.InOp(exchange.Urls, "test"))
 	var isSandboxModeEnabled any = ExchangeProp(exchange, "isSandboxModeEnabled")
-	if ccxt.IsTrue(expectEnabled) {
+	if ccxt.EvalTruthy(expectEnabled) {
 		Assert(ccxt.IsEqual(isSandboxModeEnabled, true))
 		Assert(ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(exchange.Urls, "api"), "public"), "https://testnet.org"))
 		Assert(ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(exchange.Urls, "apiBackup"), "public"), "https://example.com"))
@@ -97,7 +97,7 @@ func HelperTestInitMarket() {
 			"BTC/USD": sampleMarket,
 		},
 	}, map[string]any{}, exchange2)
-	Assert(ccxt.IsTrue((!ccxt.IsEqual(exchange2.Markets, nil))) && ccxt.IsTrue((!ccxt.IsEqual(ccxt.GetValue(exchange2.Markets, "BTC/USD"), nil))))
+	Assert((!ccxt.IsEqual(exchange2.Markets, nil)) && (!ccxt.IsEqual(ccxt.GetValue(exchange2.Markets, "BTC/USD"), nil)))
 }
 func HelperTestProperties() {
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)
@@ -200,7 +200,7 @@ func HelperTestProperties() {
 	})
 	// fetch history
 	var fetchHistoryCache any = exchange.GetFetchCache()
-	assert(ccxt.IsEqual(ccxt.GetArrayLength(fetchHistoryCache), 0), "fetchHistoryCache should be an empty array")
+	assert((ccxt.GetArrayLength(fetchHistoryCache) == 0), "fetchHistoryCache should be an empty array")
 }
 func TestAfterConstructor() {
 	// here should be added all needed tests

@@ -424,13 +424,13 @@ func (this *IndodaxCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any 
 	var rawMarkets any = this.ToArray(response)
 	for i := 0; IsLessThan(i, GetArrayLength(rawMarkets)); i++ {
 		var market any = GetValue(rawMarkets, i)
-		var id any = this.SafeString(market, "id")
-		var baseId any = this.SafeString(market, "traded_currency")
-		var quoteId any = this.SafeString(market, "base_currency")
+		var id *string = this.SafeString(market, "id")
+		var baseId *string = this.SafeString(market, "traded_currency")
+		var quoteId *string = this.SafeString(market, "base_currency")
 		var base any = this.SafeCurrencyCode(baseId)
 		var quote any = this.SafeCurrencyCode(quoteId)
-		var isMaintenance any = this.SafeInteger(market, "is_maintenance")
-		var inMaintenance bool = IsTrue((!IsEqual(isMaintenance, nil))) && IsTrue((!IsEqual(isMaintenance, 0)))
+		var isMaintenance *int64 = this.SafeInteger(market, "is_maintenance")
+		var inMaintenance bool = (isMaintenance != nil) && (isMaintenance == nil || *isMaintenance != 0)
 		AppendToArray(&result, map[string]any{
 			"id":             id,
 			"symbol":         Add(Add(base, "/"), quote),
@@ -446,7 +446,7 @@ func (this *IndodaxCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any 
 			"swap":           false,
 			"future":         false,
 			"option":         false,
-			"active":         Ternary(IsTrue(inMaintenance), false, true),
+			"active":         Ternary(inMaintenance, false, true),
 			"contract":       false,
 			"linear":         nil,
 			"inverse":        nil,
@@ -492,7 +492,7 @@ func (this *IndodaxCore) ParseBalance(response any) any {
 	var balances any = this.SafeValue(response, "return", map[string]any{})
 	var free any = this.SafeValue(balances, "balance", map[string]any{})
 	var used any = this.SafeValue(balances, "balance_hold", map[string]any{})
-	var timestamp any = this.SafeTimestamp(balances, "server_time")
+	var timestamp *int64 = this.SafeTimestamp(balances, "server_time")
 	var result map[string]any = map[string]any{
 		"info":      response,
 		"timestamp": timestamp,
@@ -505,7 +505,7 @@ func (this *IndodaxCore) ParseBalance(response any) any {
 		var account any = this.Account()
 		AddElementToObject(account, "free", this.SafeString(free, currencyId))
 		AddElementToObject(account, "used", this.SafeString(used, currencyId))
-		if IsTrue(!IsEqual(code, nil)) {
+		if !IsEqual(code, nil) {
 			AddElementToObject(result, code, account)
 		}
 	}
@@ -530,7 +530,7 @@ func (this *IndodaxCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any 
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes47212 := (<-this.LoadMarkets())
 		PanicOnError(retRes47212)
@@ -595,7 +595,7 @@ func (this *IndodaxCore) fetchOrderBookBody(ch chan any, symbol any, optionalArg
 	_ = limit
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes52012 := (<-this.LoadMarkets())
 		PanicOnError(retRes52012)
@@ -627,10 +627,10 @@ func (this *IndodaxCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var symbol any = this.SafeSymbol(nil, market)
-	var timestamp any = this.SafeTimestamp(ticker, "server_time")
+	var timestamp *int64 = this.SafeTimestamp(ticker, "server_time")
 	var baseVolume any = Add("vol_", this.SafeStringLower(market, "baseId"))
 	var quoteVolume any = Add("vol_", this.SafeStringLower(market, "quoteId"))
-	var last any = this.SafeString(ticker, "last")
+	var last *string = this.SafeString(ticker, "last")
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
 		"timestamp":     timestamp,
@@ -674,7 +674,7 @@ func (this *IndodaxCore) fetchTickerBody(ch chan any, symbol any, optionalArgs .
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes58312 := (<-this.LoadMarkets())
 		PanicOnError(retRes58312)
@@ -727,7 +727,7 @@ func (this *IndodaxCore) fetchTickersBody(ch chan any, optionalArgs ...any) any 
 	_ = symbols
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes61912 := (<-this.LoadMarkets())
 		PanicOnError(retRes61912)
@@ -769,7 +769,7 @@ func (this *IndodaxCore) fetchTickersBody(ch chan any, optionalArgs ...any) any 
 func (this *IndodaxCore) ParseTrade(trade any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var timestamp any = this.SafeTimestamp(trade, "date")
+	var timestamp *int64 = this.SafeTimestamp(trade, "date")
 	return this.SafeTrade(map[string]any{
 		"id":           this.SafeString(trade, "tid"),
 		"info":         trade,
@@ -812,7 +812,7 @@ func (this *IndodaxCore) fetchTradesBody(ch chan any, symbol any, optionalArgs .
 	_ = limit
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes68412 := (<-this.LoadMarkets())
 		PanicOnError(retRes68412)
@@ -872,25 +872,25 @@ func (this *IndodaxCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ..
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes72912 := (<-this.LoadMarkets())
 		PanicOnError(retRes72912)
 	}
 	var market any = this.Market(symbol)
-	var selectedTimeframe any = this.SafeString(this.Timeframes, timeframe, timeframe)
+	var selectedTimeframe *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var now int64 = this.Seconds()
-	var until any = this.SafeInteger(params, "until", now)
+	var until *int64 = this.SafeInteger(params, "until", now)
 	params = this.Omit(params, []any{"until"})
 	var request map[string]any = map[string]any{
 		"to":     until,
 		"tf":     selectedTimeframe,
 		"symbol": GetValue(market, "id"),
 	}
-	if IsTrue(IsEqual(limit, nil)) {
+	if IsEqual(limit, nil) {
 		limit = 1000
 	}
-	if IsTrue(!IsEqual(since, nil)) {
+	if !IsEqual(since, nil) {
 		AddElementToObject(request, "from", MathFloor(Divide(since, 1000)))
 	} else {
 		var duration any = this.ParseTimeframe(timeframe)
@@ -968,26 +968,26 @@ func (this *IndodaxCore) ParseOrder(order any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var side any = nil
-	if IsTrue(InOp(order, "type")) {
+	if InOp(order, "type") {
 		side = GetValue(order, "type")
 	}
 	var status any = this.ParseOrderStatus(this.SafeString(order, "status", "open"))
 	var symbol any = nil
 	var cost any = nil
-	var price any = this.SafeString(order, "price")
+	var price *string = this.SafeString(order, "price")
 	var amount any = nil
 	var remaining any = nil
 	var filled any = nil
-	var marketId any = this.SafeString(order, "pair")
+	var marketId *string = this.SafeString(order, "pair")
 	market = this.SafeMarket(marketId, market)
-	if IsTrue(!IsEqual(market, nil)) {
+	if !IsEqual(market, nil) {
 		symbol = GetValue(market, "symbol")
 		var quoteId any = GetValue(market, "quoteId")
 		var baseId any = GetValue(market, "baseId")
-		if IsTrue(IsTrue((IsEqual(GetValue(market, "quoteId"), "idr"))) && IsTrue((InOp(order, "order_rp")))) {
+		if (IsEqual(GetValue(market, "quoteId"), "idr")) && (InOp(order, "order_rp")) {
 			quoteId = "rp"
 		}
-		if IsTrue(IsTrue((IsEqual(GetValue(market, "baseId"), "idr"))) && IsTrue((InOp(order, "remain_rp")))) {
+		if (IsEqual(GetValue(market, "baseId"), "idr")) && (InOp(order, "remain_rp")) {
 			baseId = "rp"
 		}
 		cost = this.SafeString(order, Add("order_", quoteId))
@@ -997,9 +997,9 @@ func (this *IndodaxCore) ParseOrder(order any, optionalArgs ...any) any {
 		// only in a dynamic receive_{base} field, https://github.com/ccxt/ccxt/issues/26413
 		filled = this.SafeString(order, Add("receive_", baseId))
 	}
-	var timestamp any = this.SafeInteger(order, "submit_time")
+	var timestamp *int64 = this.SafeInteger(order, "submit_time")
 	var fee any = nil
-	var id any = this.SafeString(order, "order_id")
+	var id *string = this.SafeString(order, "order_id")
 	return this.SafeOrder(map[string]any{
 		"info":               order,
 		"id":                 id,
@@ -1047,10 +1047,10 @@ func (this *IndodaxCore) fetchOrderBody(ch chan any, id any, optionalArgs ...any
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(symbol, nil)) {
+	if IsEqual(symbol, nil) {
 		panic(ArgumentsRequired(Add(this.Id, " fetchOrder() requires a symbol argument")))
 	}
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes89012 := (<-this.LoadMarkets())
 		PanicOnError(retRes89012)
@@ -1100,14 +1100,14 @@ func (this *IndodaxCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) a
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes91712 := (<-this.LoadMarkets())
 		PanicOnError(retRes91712)
 	}
 	var market any = nil
 	var request map[string]any = map[string]any{}
-	if IsTrue(!IsEqual(symbol, nil)) {
+	if !IsEqual(symbol, nil) {
 		market = this.Market(symbol)
 		AddElementToObject(request, "pair", GetValue(market, "id"))
 	}
@@ -1117,13 +1117,13 @@ func (this *IndodaxCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) a
 	var openOrdersResult any = this.SafeDict(response, "return", map[string]any{})
 	var rawOrders any = GetValue(openOrdersResult, "orders")
 	// { success: 1, return: { orders: null }} if no orders
-	if IsTrue(IsTrue((IsEqual(rawOrders, nil))) || IsTrue((IsEqual(rawOrders, nil)))) {
+	if (IsEqual(rawOrders, nil)) || (IsEqual(rawOrders, nil)) {
 
 		ch <- []any{}
 		return nil
 	}
 	// { success: 1, return: { orders: [ ... objects ] }} for orders fetched by symbol
-	if IsTrue(!IsEqual(symbol, nil)) {
+	if !IsEqual(symbol, nil) {
 
 		ch <- this.ParseOrders(rawOrders, market, since, limit)
 		return nil
@@ -1170,10 +1170,10 @@ func (this *IndodaxCore) fetchClosedOrdersBody(ch chan any, optionalArgs ...any)
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(symbol, nil)) {
+	if IsEqual(symbol, nil) {
 		panic(ArgumentsRequired(Add(this.Id, " fetchClosedOrders() requires a symbol argument")))
 	}
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes96512 := (<-this.LoadMarkets())
 		PanicOnError(retRes96512)
@@ -1218,7 +1218,7 @@ func (this *IndodaxCore) createOrderBody(ch chan any, symbol any, typeVar any, s
 	_ = price
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes99312 := (<-this.LoadMarkets())
 		PanicOnError(retRes99312)
@@ -1231,47 +1231,47 @@ func (this *IndodaxCore) createOrderBody(ch chan any, symbol any, typeVar any, s
 	}
 	var priceIsRequired bool = false
 	var quantityIsRequired bool = false
-	if IsTrue(IsEqual(typeVar, "market")) {
-		if IsTrue(IsEqual(side, "buy")) {
+	if typeVar == "market" {
+		if IsEqual(side, "buy") {
 			var quoteAmount any = nil
 			var cost any = this.SafeNumber(params, "cost")
 			params = this.Omit(params, "cost")
-			if IsTrue(!IsEqual(cost, nil)) {
+			if !IsEqual(cost, nil) {
 				quoteAmount = this.CostToPrecision(symbol, cost)
 			} else {
-				if IsTrue(IsEqual(price, nil)) {
+				if IsEqual(price, nil) {
 					panic(InvalidOrder(Add(this.Id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price).")))
 				}
 				var amountString any = this.NumberToString(amount)
 				var priceString any = this.NumberToString(price)
-				var costRequest any = Precise.StringMul(amountString, priceString)
+				var costRequest *string = Precise.StringMul(amountString, priceString)
 				quoteAmount = this.CostToPrecision(symbol, costRequest)
 			}
 			AddElementToObject(request, GetValue(market, "quoteId"), quoteAmount)
 		} else {
 			quantityIsRequired = true
 		}
-	} else if IsTrue(IsEqual(typeVar, "limit")) {
+	} else if typeVar == "limit" {
 		priceIsRequired = true
 		quantityIsRequired = true
-		if IsTrue(IsEqual(side, "buy")) {
+		if IsEqual(side, "buy") {
 			AddElementToObject(request, GetValue(market, "quoteId"), this.ParseToNumeric(this.CostToPrecision(symbol, Precise.StringMul(this.NumberToString(amount), this.NumberToString(price)))))
 		}
 	}
-	if IsTrue(priceIsRequired) {
-		if IsTrue(IsEqual(price, nil)) {
+	if priceIsRequired {
+		if IsEqual(price, nil) {
 			panic(InvalidOrder(Add(Add(Add(this.Id, " createOrder() requires a price argument for a "), typeVar), " order")))
 		}
 		AddElementToObject(request, "price", price)
 	}
-	if IsTrue(quantityIsRequired) {
+	if quantityIsRequired {
 		AddElementToObject(request, GetValue(market, "baseId"), this.AmountToPrecision(symbol, amount))
 	}
 
 	result := (<-this.PrivatePostTrade(this.Extend(request, params)))
 	PanicOnError(result)
 	var data any = this.SafeValue(result, "return", map[string]any{})
-	var id any = this.SafeString(data, "order_id")
+	var id *string = this.SafeString(data, "order_id")
 
 	ch <- this.SafeOrder(map[string]any{
 		"info": result,
@@ -1302,14 +1302,14 @@ func (this *IndodaxCore) cancelOrderBody(ch chan any, id any, optionalArgs ...an
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(symbol, nil)) {
+	if IsEqual(symbol, nil) {
 		panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument")))
 	}
 	var side any = this.SafeValue(params, "side")
-	if IsTrue(IsEqual(side, nil)) {
+	if IsEqual(side, nil) {
 		panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires an extra \"side\" param")))
 	}
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes106712 := (<-this.LoadMarkets())
 		PanicOnError(retRes106712)
@@ -1367,7 +1367,7 @@ func (this *IndodaxCore) fetchTransactionFeeBody(ch chan any, code any, optional
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes111012 := (<-this.LoadMarkets())
 		PanicOnError(retRes111012)
@@ -1390,7 +1390,7 @@ func (this *IndodaxCore) fetchTransactionFeeBody(ch chan any, code any, optional
 	//     }
 	//
 	var data any = this.SafeValue(response, "return", map[string]any{})
-	var currencyId any = this.SafeString(data, "currency")
+	var currencyId *string = this.SafeString(data, "currency")
 
 	ch <- map[string]any{
 		"info":     response,
@@ -1477,13 +1477,13 @@ func (this *IndodaxCore) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs 
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes118412 := (<-this.LoadMarkets())
 		PanicOnError(retRes118412)
 	}
 	var request map[string]any = map[string]any{}
-	if IsTrue(!IsEqual(since, nil)) {
+	if !IsEqual(since, nil) {
 		var startTime string = this.Yyyymmdd(since)
 		AddElementToObject(request, "start", startTime)
 		AddElementToObject(request, "end", this.Yyyymmdd(this.Milliseconds()))
@@ -1553,7 +1553,7 @@ func (this *IndodaxCore) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs 
 	var deposit any = this.SafeValue(data, "deposit", map[string]any{})
 	var transactions any = []any{}
 	var currency any = nil
-	if IsTrue(IsEqual(code, nil)) {
+	if IsEqual(code, nil) {
 		var keys []string = ObjectKeys(withdraw)
 		for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
 			var key any = GetValue(keys, i)
@@ -1603,7 +1603,7 @@ func (this *IndodaxCore) withdrawBody(ch chan any, code any, amount any, address
 	tag = GetValue(tagparamsVariable, 0)
 	params = GetValue(tagparamsVariable, 1)
 	this.CheckAddress(address)
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes129112 := (<-this.LoadMarkets())
 		PanicOnError(retRes129112)
@@ -1622,7 +1622,7 @@ func (this *IndodaxCore) withdrawBody(ch chan any, code any, amount any, address
 		"withdraw_address": address,
 		"request_id":       ToString(requestId),
 	}
-	if IsTrue(IsTrue((!IsEqual(tag, nil))) && IsTrue((!IsEqual(tag, "")))) {
+	if (!IsEqual(tag, nil)) && (tag != "") {
 		AddElementToObject(request, "withdraw_memo", tag)
 	}
 
@@ -1691,12 +1691,12 @@ func (this *IndodaxCore) ParseTransaction(transaction any, optionalArgs ...any) 
 	//     },
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var status any = this.SafeString(transaction, "status")
-	var timestamp any = this.SafeTimestamp2(transaction, "success_time", "submit_time")
-	var depositId any = this.SafeString(transaction, "deposit_id")
+	var status *string = this.SafeString(transaction, "status")
+	var timestamp *int64 = this.SafeTimestamp2(transaction, "success_time", "submit_time")
+	var depositId *string = this.SafeString(transaction, "deposit_id")
 	var feeCost any = this.SafeNumber(transaction, "fee")
 	var fee any = nil
-	if IsTrue(!IsEqual(feeCost, nil)) {
+	if !IsEqual(feeCost, nil) {
 		fee = map[string]any{
 			"currency": this.SafeCurrencyCode(nil, currency),
 			"cost":     feeCost,
@@ -1713,7 +1713,7 @@ func (this *IndodaxCore) ParseTransaction(transaction any, optionalArgs ...any) 
 		"address":     this.SafeString(transaction, "withdraw_address"),
 		"addressTo":   nil,
 		"amount":      this.SafeNumberN(transaction, []any{"amount", "withdraw_amount", "deposit_amount"}),
-		"type":        Ternary(IsTrue((IsEqual(depositId, nil))), "withdraw", "deposit"),
+		"type":        Ternary((depositId == nil), "withdraw", "deposit"),
 		"currency":    this.SafeCurrencyCode(nil, currency),
 		"status":      this.ParseTransactionStatus(status),
 		"updated":     nil,
@@ -1754,7 +1754,7 @@ func (this *IndodaxCore) fetchDepositAddressesBody(ch chan any, optionalArgs ...
 	_ = codes
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes142512 := (<-this.LoadMarkets())
 		PanicOnError(retRes142512)
@@ -1807,36 +1807,36 @@ func (this *IndodaxCore) fetchDepositAddressesBody(ch chan any, optionalArgs ...
 	for i := 0; IsLessThan(i, GetArrayLength(addressKeys)); i++ {
 		var marketId any = GetValue(addressKeys, i)
 		var code any = this.SafeCurrencyCode(marketId)
-		var address any = this.SafeString(addresses, marketId)
-		if IsTrue(IsTrue((!IsEqual(address, nil))) && IsTrue((IsTrue((IsEqual(codes, nil))) || IsTrue((this.InArray(code, codes)))))) {
+		var address *string = this.SafeString(addresses, marketId)
+		if (address != nil) && ((IsEqual(codes, nil)) || (this.InArray(code, codes))) {
 			this.CheckAddress(address)
 			var network any = nil
-			if IsTrue(InOp(networks, marketId)) {
-				var networkId any = this.SafeString(networks, marketId)
-				if IsTrue(IsEqual(networkId, nil)) {
+			if InOp(networks, marketId) {
+				var networkId *string = this.SafeString(networks, marketId)
+				if networkId == nil {
 					panic(ExchangeError(Add(this.Id, " fetchDepositAddresses() missing networkId")))
 				}
-				if IsTrue(IsGreaterThanOrEqual(GetIndexOf(networkId, ","), 0)) {
+				if IsGreaterThanOrEqual(GetIndexOf(networkId, ","), 0) {
 					network = []any{}
-					if IsTrue(IsEqual(networkId, nil)) {
+					if networkId == nil {
 						panic(ExchangeError(Add(this.Id, " fetchDepositAddresses() missing networkId")))
 					}
 					var networkIds []string = Split(networkId, ",")
 					for j := 0; IsLessThan(j, GetArrayLength(networkIds)); j++ {
 						var _netIdTmp any = this.NetworkIdToCode(GetValue(networkIds, j), code)
-						if IsTrue(!IsEqual(_netIdTmp, nil)) {
+						if !IsEqual(_netIdTmp, nil) {
 							AppendToArray(&network, ToUpper(_netIdTmp))
 						}
 					}
 				} else {
 					var _netIdTmp any = this.NetworkIdToCode(networkId, code)
-					if IsTrue(!IsEqual(_netIdTmp, nil)) {
+					if !IsEqual(_netIdTmp, nil) {
 						network = ToUpper(_netIdTmp)
 					}
 				}
 			}
 			var finalNetwork any = network // java req
-			if IsTrue(!IsEqual(code, nil)) {
+			if !IsEqual(code, nil) {
 				AddElementToObject(result, code, map[string]any{
 					"info":     map[string]any{},
 					"currency": code,
@@ -1863,11 +1863,11 @@ func (this *IndodaxCore) Sign(path any, optionalArgs ...any) any {
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
 	var url any = GetValue(GetValue(this.Urls, "api"), api)
-	if IsTrue(IsEqual(api, "public")) {
+	if IsEqual(api, "public") {
 		var query any = this.Omit(params, this.ExtractParams(path))
 		var requestPath any = Add("/", this.ImplodeParams(path, params))
 		url = Add(url, requestPath)
-		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
+		if IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0) {
 			url = Add(url, Add("?", this.UrlencodeWithArrayRepeat(query)))
 		}
 	} else {
@@ -1891,27 +1891,27 @@ func (this *IndodaxCore) Sign(path any, optionalArgs ...any) any {
 	}
 }
 func (this *IndodaxCore) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
-	if IsTrue(IsEqual(response, nil)) {
+	if IsEqual(response, nil) {
 		return nil
 	}
 	// { success: 0, error: "invalid order." }
 	// or
 	// [{ data, ... }, { ... }, ... ]
 	// {"success":"1","status":"approved","withdraw_currency":"strm","withdraw_address":"0x2b9A8cd5535D99b419aEfFBF1ae8D90a7eBdb24E","withdraw_amount":"2165.05767839","fee":"21.11000000","amount_after_fee":"2143.94767839","submit_time":"1730759489","withdraw_id":"strm-3423","txid":""}
-	if IsTrue(IsArray(response)) {
+	if IsArray(response) {
 		return nil // public endpoints may return []-arrays
 	}
 	var error any = this.SafeValue(response, "error", "")
-	if IsTrue(!IsTrue((InOp(response, "success"))) && IsTrue(IsEqual(error, ""))) {
+	if !(InOp(response, "success")) && IsEqual(error, "") {
 		return nil // no 'success' property on public responses
 	}
-	var status any = this.SafeString(response, "success")
-	if IsTrue(IsEqual(status, "approved")) {
+	var status *string = this.SafeString(response, "success")
+	if status != nil && *status == "approved" {
 		return nil
 	}
-	if IsTrue(IsEqual(this.SafeInteger(response, "success", 0), 1)) {
+	if IsEqual(this.SafeInteger(response, "success", 0), 1) {
 		// { success: 1, return: { orders: [] }}
-		if !IsTrue((InOp(response, "return"))) {
+		if !(InOp(response, "return")) {
 			panic(ExchangeError(Add(Add(this.Id, ": malformed response: "), this.Json(response))))
 		} else {
 			return nil
