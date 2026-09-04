@@ -3836,7 +3836,11 @@ export default class mexc extends Exchange {
             //         ]
             //     }
             //
-            return this.safeValue(response, 'data');
+            // wrap the swap asset list so this helper always returns an account
+            // dict with a `balances` array — fetchAccounts reads response['balances']
+            return {
+                'balances': this.safeValue(response, 'data', []),
+            };
         }
         return undefined;
     }

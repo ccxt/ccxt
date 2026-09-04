@@ -2077,7 +2077,6 @@ class htx extends htx$1["default"] {
                 messageHash += '.' + currencyId.toLowerCase();
                 subscription = this.safeValue(client.subscriptions, messageHash);
             }
-            const type = this.safeString(subscription, 'type');
             const subType = this.safeString(subscription, 'subType');
             if (topic === 'accounts_unify') {
                 // {
@@ -2108,30 +2107,16 @@ class htx extends htx$1["default"] {
             else if (subType === 'linear') {
                 const margin = this.safeString(subscription, 'margin');
                 if (margin === 'cross') {
-                    const fieldName = (type === 'future') ? 'futures_contract_detail' : 'contract_detail';
-                    const balances = this.safeValue(first, fieldName, []);
-                    const balancesLength = balances.length;
-                    if (balancesLength > 0) {
-                        for (let i = 0; i < balances.length; i++) {
-                            const balance = balances[i];
-                            const marketId = this.safeString2(balance, 'contract_code', 'margin_account');
-                            const market = this.safeMarket(marketId);
-                            const currencyId = this.safeString(balance, 'margin_asset');
-                            const currency = this.safeCurrency(currencyId);
-                            const code = this.safeString(market, 'settle', currency['code']);
-                            // the exchange outputs positions for delisted markets
-                            // https://www.huobi.com/support/en-us/detail/74882968522337
-                            // we skip it if the market was delisted
-                            if (code !== undefined) {
-                                const account = this.account();
-                                account['free'] = this.safeString2(balance, 'margin_balance', 'margin_available');
-                                account['used'] = this.safeString(balance, 'margin_frozen');
-                                const accountsByCode = {};
-                                accountsByCode[code] = account;
-                                const symbol = market['symbol'];
-                                this.balance[symbol] = this.safeBalance(accountsByCode);
-                            }
-                        }
+                    // the cross account is one shared margin balance, keyed by the settle currency
+                    const currencyId = this.safeString2(first, 'margin_asset', 'margin_account');
+                    const code = this.safeCurrencyCode(currencyId);
+                    if (code !== undefined) {
+                        const account = this.account();
+                        account['free'] = this.safeString2(first, 'withdraw_available', 'margin_available');
+                        account['used'] = this.safeString(first, 'margin_frozen');
+                        account['total'] = this.safeString(first, 'margin_balance');
+                        this.balance[code] = account;
+                        this.balance = this.safeBalance(this.balance);
                     }
                 }
                 else {

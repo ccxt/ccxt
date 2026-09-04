@@ -1823,7 +1823,7 @@ okx.fetchGreeks (symbol, params?)
 fetches all option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>object</code> - a [greeks structure](https://docs.ccxt.com/?id=greeks-structure)
+**Returns**: <code>object</code> - a dictionary of [greeks structures](https://docs.ccxt.com/?id=greeks-structure) indexed by market symbol
 
 **See**: https://www.okx.com/docs-v5/en/#public-data-rest-api-get-option-market-data  
 
