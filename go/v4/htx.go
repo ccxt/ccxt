@@ -4289,7 +4289,7 @@ func (this *HtxCore) fetchAccountIdByTypeBody(ch chan any, typeVar any, optional
 
 	accounts := (<-this.LoadAccounts())
 	PanicOnError(accounts)
-	var accountId any = this.SafeValue2(params, "accountId", "account-id")
+	var accountId any = this.SafeString2(params, "accountId", "account-id")
 	if IsTrue(!IsEqual(accountId, nil)) {
 
 		ch <- accountId
