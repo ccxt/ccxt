@@ -9861,7 +9861,7 @@ public partial class okx : Exchange
      * @param {string} [params.type] the contract market type, 'option', 'swap' or 'future', the default is 'option'
      * @returns {object[]} a list of [underlying assets]{@link https://docs.ccxt.com/?id=underlying-assets-structure}
      */
-    public async virtual Task<object> fetchUnderlyingAssets(object parameters = null)
+    public async virtual Task<List<string>> FetchUnderlyingAssets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -9897,7 +9897,7 @@ public partial class okx : Exchange
         //     }
         //
         object underlyings = this.safeList(response, "data", new List<object>() {});
-        return getValue(underlyings, 0);
+        return ccxt.BaseExchange.ToStringList(getValue(underlyings, 0));
     }
 
     /**

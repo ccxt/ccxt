@@ -2325,7 +2325,7 @@ public partial class gate : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object result = new List<object>() {};
-        object underlyings = await this.fetchOptionUnderlyings();
+        object underlyings = ccxt.BaseExchange.FromStringList(await this.FetchOptionUnderlyings());
         for (object i = 0; isLessThan(i, getArrayLength(underlyings)); postFixIncrement(ref i))
         {
             object underlying = getValue(underlyings, i);
@@ -2453,7 +2453,7 @@ public partial class gate : Exchange
         return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
 
-    public async virtual Task<object> fetchOptionUnderlyings()
+    public async virtual Task<List<string>> FetchOptionUnderlyings()
     {
         object underlyingsResponse = await this.publicOptionsGetUnderlyings();
         //
@@ -2475,7 +2475,7 @@ public partial class gate : Exchange
                 ((IList<object>)underlyings).Add(name);
             }
         }
-        return underlyings;
+        return ccxt.BaseExchange.ToStringList(underlyings);
     }
 
     public virtual object prepareRequest(object market = null, object type = null, object parameters = null)
@@ -9262,7 +9262,7 @@ public partial class gate : Exchange
      * @param {string} [params.type] the contract market type, 'option', 'swap' or 'future', the default is 'option'
      * @returns {object[]} a list of [underlying assets]{@link https://docs.ccxt.com/?id=underlying-assets-structure}
      */
-    public async virtual Task<object> fetchUnderlyingAssets(object parameters = null)
+    public async virtual Task<List<string>> FetchUnderlyingAssets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -9301,7 +9301,7 @@ public partial class gate : Exchange
                 ((IList<object>)underlyings).Add(name);
             }
         }
-        return underlyings;
+        return ccxt.BaseExchange.ToStringList(underlyings);
     }
 
     /**

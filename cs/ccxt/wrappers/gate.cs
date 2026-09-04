@@ -11,11 +11,6 @@ public partial class gate
         var res = this.createExpiredOptionMarket(symbol);
         return new MarketInterface(res);
     }
-    public async Task<List<string>> FetchOptionUnderlyings()
-    {
-        var res = await this.fetchOptionUnderlyings();
-        return ((IList<object>)res).Select(item => (item as string)).ToList();
-    }
     public List<Dictionary<string, object>> CreateOrdersRequest(List<OrderRequest> orders, Dictionary<string, object> parameters = null)
     {
         var res = this.createOrdersRequest(orders, parameters);
@@ -35,31 +30,5 @@ public partial class gate
     {
         var res = this.fetchOrderRequest(id, symbol, parameters);
         return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
-    }
-    /// <summary>
-    /// fetches the market ids of underlying assets for a specific contract market type
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#list-all-underlying-assets"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : exchange specific params
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.type</term>
-    /// <description>
-    /// string : the contract market type, 'option', 'swap' or 'future', the default is 'option'
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object[]</term> a list of [underlying assets]{@link https://docs.ccxt.com/?id=underlying-assets-structure}.</returns>
-    public async Task<List<string>> FetchUnderlyingAssets(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchUnderlyingAssets(parameters);
-        return ((IList<object>)res).Select(item => (item as string)).ToList();
     }
 }

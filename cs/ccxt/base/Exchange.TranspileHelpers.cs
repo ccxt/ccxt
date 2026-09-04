@@ -979,6 +979,33 @@ public partial class BaseExchange
         return null;
     }
 
+    // a `Promise<string[]>` core (fetchUnderlyingAssets, fetchOptionUnderlyings) hands back
+    // a `List<object>` of strings from the generated body; project it to `List<string>`
+    public static List<string> ToStringList(object values)
+    {
+        if (values == null)
+        {
+            return null;
+        }
+        if (values is List<string> already)
+        {
+            return already;
+        }
+        var result = new List<string>();
+        foreach (var item in (System.Collections.IEnumerable)values)
+        {
+            result.Add(ToStringValue(item));
+        }
+        return result;
+    }
+
+    // the generated helpers (getValue / getArrayLength / safeString) already read
+    // List<string> by index, so the reverse is a pass-through
+    public static object FromStringList(object values)
+    {
+        return values;
+    }
+
     public static object FromDict(object value)
     {
         return value;

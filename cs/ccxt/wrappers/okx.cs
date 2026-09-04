@@ -21,30 +21,4 @@ public partial class okx
         var res = this.editOrderRequest(id, symbol, type, side, amount, price, parameters);
         return ((Dictionary<string, object>)res);
     }
-    /// <summary>
-    /// fetches the market ids of underlying assets for a specific contract market type
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://www.okx.com/docs-v5/en/#public-data-rest-api-get-underlying"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : exchange specific params
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.type</term>
-    /// <description>
-    /// string : the contract market type, 'option', 'swap' or 'future', the default is 'option'
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object[]</term> a list of [underlying assets]{@link https://docs.ccxt.com/?id=underlying-assets-structure}.</returns>
-    public async Task<List<string>> FetchUnderlyingAssets(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchUnderlyingAssets(parameters);
-        return ((IList<object>)res).Select(item => (item as string)).ToList();
-    }
 }

@@ -332,6 +332,7 @@ const TYPED_CORES: Record<string, string> = {
     'fetchOption': 'Option',
     'fetchOptionChain': 'OptionChain',
     'fetchOptionMarkets': 'List<MarketInterface>',
+    'fetchOptionUnderlyings': 'List<string>',
     'fetchOptionOHLCV': 'List<OHLCV>',
     'fetchOptionPositions': 'List<Position>',
     'fetchOrder': 'Order',
@@ -422,6 +423,7 @@ const TYPED_CORES: Record<string, string> = {
     'fetchTransfer': 'TransferEntry',
     'fetchTransfers': 'List<TransferEntry>',
     'fetchUSDTMarkets': 'List<MarketInterface>',
+    'fetchUnderlyingAssets': 'List<string>',
     'fetchUTAMarkets': 'List<MarketInterface>',
     'fetchUtaMarkets': 'List<MarketInterface>',
     'fetchUTAOHLCV': 'List<OHLCV>',
@@ -1589,6 +1591,9 @@ class NewTranspiler {
         if (csharpType === 'string') {
             return 'ccxt.BaseExchange.ToStringValue';
         }
+        if (csharpType === 'List<string>') {
+            return 'ccxt.BaseExchange.ToStringList';
+        }
         return 'ccxt.BaseExchange.To' + this.typedCoreHelperSuffix (csharpType);
     }
 
@@ -1604,7 +1609,7 @@ class NewTranspiler {
             return csharpType; // SNAPSHOT_CORES already spell the fully qualified name
         }
         // raw / primitive core types are not ccxt. structs
-        if (csharpType === 'Int64' || csharpType === 'string' || csharpType === 'Dictionary<string, object>' || csharpType === 'List<Dictionary<string, object>>') {
+        if (csharpType === 'Int64' || csharpType === 'string' || csharpType === 'List<string>' || csharpType === 'Dictionary<string, object>' || csharpType === 'List<Dictionary<string, object>>') {
             return csharpType;
         }
         if (csharpType === OHLCV_DICT_TYPE) {
@@ -1667,6 +1672,9 @@ class NewTranspiler {
         }
         if (csharpType === 'string') {
             return 'ccxt.BaseExchange.FromStringValue';
+        }
+        if (csharpType === 'List<string>') {
+            return 'ccxt.BaseExchange.FromStringList';
         }
         const family = csharpType.startsWith ('List<') ? csharpType.slice (5, -1) : csharpType;
         if (!REVERSIBLE_FAMILIES.includes (family)) {
