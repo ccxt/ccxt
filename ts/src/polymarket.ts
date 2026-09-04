@@ -23,7 +23,7 @@ export default class polymarket extends Exchange {
             // 1000 weighted tokens per minute per IP -> 60ms per weight unit
             'rateLimit': 60,
             'certified': false,
-            'pro': false,
+            'pro': true,
             'dex': true,
             'has': {
                 'CORS': undefined,

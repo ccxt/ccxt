@@ -222,6 +222,7 @@ import pacificaPro from  './src/pro/pacifica.js'
 import paradexPro from  './src/pro/paradex.js'
 import phemexPro from  './src/pro/phemex.js'
 import poloniexPro from  './src/pro/poloniex.js'
+import polymarketPro from  './src/pro/polymarket.js'
 import toobitPro from  './src/pro/toobit.js'
 import upbitPro from  './src/pro/upbit.js'
 import weexPro from  './src/pro/weex.js'
@@ -416,6 +417,7 @@ const pro = {
     'paradex':                paradexPro,
     'phemex':                 phemexPro,
     'poloniex':               poloniexPro,
+    'polymarket':             polymarketPro,
     'toobit':                 toobitPro,
     'upbit':                  upbitPro,
     'weex':                   weexPro,
