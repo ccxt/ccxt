@@ -5690,7 +5690,7 @@ export default class binance extends Exchange {
      * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async editSpotOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num, price: Num = undefined, params = {}) {
+    async editSpotOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num, price: Num = undefined, params = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -5932,7 +5932,7 @@ export default class binance extends Exchange {
      * @param {boolean} [params.portfolioMargin] set to true if you would like to edit an order in a portfolio margin account
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async editContractOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num, price: Num = undefined, params = {}) {
+    async editContractOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num, price: Num = undefined, params = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -10775,7 +10775,7 @@ export default class binance extends Exchange {
      * @param {float} params.recvWindow
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=futures-transfer-structure}
      */
-    async futuresTransfer (code: string, amount: any, type: any, params = {}) {
+    async futuresTransfer (code: string, amount: any, type: any, params = {}): Promise<TransferEntry> {
         if ((type < 1) || (type > 4)) {
             throw new ArgumentsRequired (this.id + ' type must be between 1 and 4');
         }
@@ -11788,7 +11788,7 @@ export default class binance extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    async fetchOptionPositions (symbols: Strings = undefined, params = {}) {
+    async fetchOptionPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -11958,7 +11958,7 @@ export default class binance extends Exchange {
      * @param {boolean} [params.useV2] set to true if you want to use obsolete endpoint, where some more additional fields were provided
      * @returns {object} data on account positions
      */
-    async fetchAccountPositions (symbols: Strings = undefined, params = {}) {
+    async fetchAccountPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
         if (symbols !== undefined) {
             if (!Array.isArray (symbols)) {
                 throw new ArgumentsRequired (this.id + ' fetchPositions() requires an array argument for symbols');
@@ -13660,7 +13660,7 @@ export default class binance extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} The gift code id, code, currency and amount
      */
-    async createGiftCode (code: string, amount: any, params = {}) {
+    async createGiftCode (code: string, amount: any, params = {}): Promise<Dict> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
