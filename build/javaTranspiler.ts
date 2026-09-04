@@ -6,6 +6,7 @@ import errors from "../js/src/base/errors.js"
 import { basename, join, resolve } from 'path'
 import { createFolderRecursively, replaceInFile, overwriteFile, checkCreateFolder } from './fsLocal.js'
 import { writeOverloadStrippedFile, removeOverloadStrippedFile } from './stripOverloads.js'
+import { patchJavaLocalTypes } from './javaLocalTypes.js'
 import { writeFile } from 'fs/promises';
 import { platform } from 'process'
 import fs from 'fs'
@@ -452,6 +453,9 @@ class NewTranspiler {
         this.transpiler.setVerboseMode(false);
         this.transpiler.csharpTranspiler.transformLeadingComment = this.transformLeadingComment.bind(this);
         this.patchJavaPropertyTypes();
+        // narrows `Object x = this.safeString(...)` locals to `String` — see
+        // build/javaLocalTypes.js (also applied per worker thread in java-worker.js)
+        patchJavaLocalTypes(this.transpiler);
     }
 
     // ast-transpiler resolves CLASS FIELD types through BaseTranspiler.getType(), which for a

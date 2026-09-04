@@ -1,5 +1,6 @@
 import { Transpiler } from 'ast-transpiler';
 import { getProgramBatch } from './worker-program-batch.js';
+import { patchJavaLocalTypes } from './javaLocalTypes.js';
 import log from 'ololog'
 
 // piscina reuses worker threads across tasks — cache the Transpiler per thread
@@ -26,6 +27,9 @@ export default async ({transpilerConfig, configKey, file, files, roots}) => {
         if (!programCache) programCache = Transpiler.createProgramCache();
         cachedTranspiler = new Transpiler(transpilerConfig, programCache);
         cachedTranspiler.setVerboseMode(false);
+        // same printer hook the main thread installs in setupTranspiler(); the
+        // batch below prints through this very javaTranspiler instance
+        patchJavaLocalTypes(cachedTranspiler);
         cachedConfigKey = key;
     }
     const transpiler = cachedTranspiler;
