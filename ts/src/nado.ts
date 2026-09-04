@@ -509,6 +509,7 @@ export default class nado extends Exchange {
      * @param {boolean} [params.spotLeverage] whether leverage should be used for spot, defaults to true, exchange-specific alias params.spot_leverage
      * @param {boolean} [params.placeRequiresUnfilled] when true, aborts the new order if the canceled order had partial fills or the cancel failed, exchange-specific alias params.place_requires_unfilled, defaults to true
      * @param {int} [params.id] client-provided request id, returned by the exchange in the response
+     * @param {float} [params.triggerPrice] not supported, editing trigger orders throws NotSupported, the same applies to params.stopPrice, params.stopLossPrice and params.takeProfitPrice
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     override async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}): Promise<Order> {
@@ -553,7 +554,7 @@ export default class nado extends Exchange {
         }
         const triggerPrice = this.safeStringN (params, [ 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice' ]);
         if (triggerPrice !== undefined) {
-            throw new NotSupported (this.id + ' editOrder() does not support trigger orders, cancel the trigger order and create a new one instead');
+            throw new NotSupported (this.id + ' editOrder() and editOrderWs() do not support trigger orders, cancel the trigger order and create a new one instead');
         }
         if (amount === undefined) {
             throw new ArgumentsRequired (this.id + ' editOrder() requires an amount argument');
@@ -2921,8 +2922,8 @@ export default class nado extends Exchange {
         const expires = this.sum (this.milliseconds (), recvWindow);
         const highBits = Precise.stringMul (this.numberToString (expires), '1048576');
         // the exchange defines the nonce to be the recv time moved left by 20 bits
-        // plus 20 random low bits, otherwise two orders created during the same
-        // millisecond would collide on the same nonce and get rejected
+        // plus a random value on the low bits, otherwise two orders created
+        // during the same millisecond would collide on the same nonce and get rejected
         const entropy = this.randNumber (6);
         return Precise.stringAdd (highBits, this.numberToString (entropy));
     }

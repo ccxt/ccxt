@@ -215,6 +215,20 @@
           }
         ],
         "output": { "tx": { "sender": "0x123000000000000000000000000000000000012364656661756c740000000000", "recvTime": "1783494888934" }, "type": "list_trigger_orders", "product_ids": [], "signature": "", "limit": 10 }
+      },
+      {
+        "description": "fetchOrders caps the limit at the maximum of 500 accepted by list_trigger_orders",
+        "method": "fetchOrders",
+        "url": "https://trigger.test.nado.xyz/v1/query",
+        "input": [
+          "BTC/USDT0:USDT0",
+          null,
+          1000,
+          {
+            "trigger": true
+          }
+        ],
+        "output": { "tx": { "sender": "0x123000000000000000000000000000000000012364656661756c740000000000", "recvTime": "1783494888934" }, "type": "list_trigger_orders", "product_ids": [ 2 ], "limit": 500, "signature": "" }
       }
     ],
     "fetchOpenOrders": [
