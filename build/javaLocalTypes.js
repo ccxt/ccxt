@@ -55,6 +55,13 @@ function isThisCall (node) {
         && node.expression.expression.kind === ts.SyntaxKind.ThisKeyword;
 }
 
+// `this.x(...)` or `super.x(...)`: both resolve against the class hierarchy
+function isThisOrSuperCall (node) {
+    return node !== undefined && ts.isCallExpression (node)
+        && ts.isPropertyAccessExpression (node.expression)
+        && (node.expression.expression.kind === ts.SyntaxKind.ThisKeyword || node.expression.expression.kind === ts.SyntaxKind.SuperKeyword);
+}
+
 // `this.safeString(...)` resolving to the base accessor in ts/src/base/functions/type.ts
 // (an exchange override would be transpiled with an `Object` return, so it must not classify)
 function isBaseStringAccessorCall (printer, node) {
@@ -75,7 +82,12 @@ function isBaseStringAccessorCall (printer, node) {
 // true when the printed Java for `node` is statically a String (or null).
 // `selfName` is the local being classified: a self-reference (`x = cond ? 'a' : x`)
 // is consistent with whatever type that local ends up with.
-function isProvablyStringExpression (printer, node, selfName) {
+//
+// A bare base accessor call is only accepted at the TOP level (`nested` false):
+// the accessor is declared `Object` in Java, and the reassignment hook below casts
+// exactly that shape (`x = (String)this.safeString(...)`). Inside a ternary arm
+// the same call would print uncast and javac rejects the conditional.
+function isProvablyStringExpression (printer, node, selfName, nested = false) {
     if (node === undefined) {
         return false;
     }
@@ -87,16 +99,16 @@ function isProvablyStringExpression (printer, node, selfName) {
         case ts.SyntaxKind.Identifier:
             return node.escapedText === 'undefined' || node.escapedText === selfName;
         case ts.SyntaxKind.ParenthesizedExpression:
-            return isProvablyStringExpression (printer, node.expression, selfName);
+            return isProvablyStringExpression (printer, node.expression, selfName, nested);
         case ts.SyntaxKind.ConditionalExpression:
-            return isProvablyStringExpression (printer, node.whenTrue, selfName) && isProvablyStringExpression (printer, node.whenFalse, selfName);
+            return isProvablyStringExpression (printer, node.whenTrue, selfName, true) && isProvablyStringExpression (printer, node.whenFalse, selfName, true);
         case ts.SyntaxKind.BinaryExpression:
             // `'lit' + x` prints Helpers.add(String, Object) → String
             return node.operatorToken.kind === ts.SyntaxKind.PlusToken
                 && (node.left.kind === ts.SyntaxKind.StringLiteral || node.left.kind === ts.SyntaxKind.NoSubstitutionTemplateLiteral);
         case ts.SyntaxKind.CallExpression: {
             if (isBaseStringAccessorCall (printer, node)) {
-                return true;
+                return !nested;
             }
             const callee = node.expression;
             if (!ts.isPropertyAccessExpression (callee)) {
@@ -153,12 +165,19 @@ function identifierIndex (scope) {
     return index;
 }
 
+// resolves to an `async` method (or one declared to return a Promise — an overload
+// signature carries the return type but not the modifier)
 function isAsyncMethodCall (printer, callNode) {
     const declaration = printer.getChecker ().getResolvedSignature (callNode)?.declaration;
-    if (declaration === undefined || !ts.canHaveModifiers (declaration)) {
+    if (declaration === undefined) {
         return false;
     }
-    return (ts.getModifiers (declaration) ?? []).some ((m) => m.kind === ts.SyntaxKind.AsyncKeyword);
+    if (ts.canHaveModifiers (declaration) && (ts.getModifiers (declaration) ?? []).some ((m) => m.kind === ts.SyntaxKind.AsyncKeyword)) {
+        return true;
+    }
+    const returnType = declaration.type;
+    return returnType !== undefined && ts.isTypeReferenceNode (returnType)
+        && ts.isIdentifier (returnType.typeName) && returnType.typeName.escapedText === 'Promise';
 }
 
 // reject the refinement when a later use needs the local to stay `Object`
@@ -210,14 +229,38 @@ function isSafeToNarrow (printer, declaration, sourceName, isProFile) {
         }
         // A pro core extends the REST *wrapper* class, whose typed overloads
         // (`Ticker fetchTicker(String symbol)`) would win Java overload resolution
-        // over the `Object...` core once the argument is a String. Keep such
-        // arguments `Object` so the call keeps binding to the core.
-        if (isProFile && ts.isCallExpression (parent) && parent.arguments.indexOf (n) !== -1
-            && isThisCall (parent) && isAsyncMethodCall (printer, parent)) {
+        // over the `Object...` core once an argument expression is a String. Keep
+        // any local that feeds such a call `Object` (directly or nested — e.g.
+        // `Helpers.add(String, String)` also returns String) so the call keeps
+        // binding to the core.
+        if (isProFile && feedsInheritedAsyncCall (printer, n, scope)) {
             return false;
         }
     }
     return true;
+}
+
+// is `n` an argument of a `this.<async>()` call, either directly or through the
+// expression forms whose printed Java type is String whenever an operand is
+// (`(x)`, `x + y` → Helpers.add(String, ..) → String, `c ? x : y`). Anything else
+// in between (another call, an element access) prints as Object and breaks the chain.
+function feedsInheritedAsyncCall (printer, n, scope) {
+    let child = n;
+    let current = n.parent;
+    while (current !== undefined && current !== scope) {
+        if (ts.isCallExpression (current)) {
+            return current.arguments.indexOf (child) !== -1 && isThisOrSuperCall (current) && isAsyncMethodCall (printer, current);
+        }
+        const propagates = ts.isParenthesizedExpression (current)
+            || (ts.isBinaryExpression (current) && current.operatorToken.kind === ts.SyntaxKind.PlusToken)
+            || (ts.isConditionalExpression (current) && current.condition !== child);
+        if (!propagates) {
+            return false;
+        }
+        child = current;
+        current = current.parent;
+    }
+    return false;
 }
 
 function javaLocalType (printer, declaration) {
