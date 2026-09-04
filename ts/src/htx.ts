@@ -3159,9 +3159,9 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
      */
-    async fetchAccountIdByType (type: string, marginMode: Str = undefined, symbol: Str = undefined, params = {}) {
+    async fetchAccountIdByType (type: string, marginMode: Str = undefined, symbol: Str = undefined, params = {}): Promise<Str> {
         const accounts = await this.loadAccounts ();
-        const accountId = this.safeValue2 (params, 'accountId', 'account-id');
+        const accountId = this.safeString2 (params, 'accountId', 'account-id');
         if (accountId !== undefined) {
             return accountId;
         }
