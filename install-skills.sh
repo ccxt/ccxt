@@ -22,7 +22,7 @@ BLUE=$(printf '\033[0;34m')
 NC=$(printf '\033[0m') # No Color
 
 # Skill names (space-separated list instead of a bash array)
-ALL_SKILLS="ccxt-typescript ccxt-python ccxt-php ccxt-csharp ccxt-go ccxt-cli ccxt-mcp"
+ALL_SKILLS="ccxt-typescript ccxt-python ccxt-php ccxt-csharp ccxt-go ccxt-rust ccxt-cli ccxt-mcp"
 
 # GitHub URL for remote installation
 GITHUB_RAW_URL="https://raw.githubusercontent.com/ccxt/ccxt/master/.claude/skills"
@@ -73,6 +73,7 @@ OPTIONS:
     --php           Install only ccxt-php skill
     --csharp        Install only ccxt-csharp skill
     --go            Install only ccxt-go skill
+    --rust          Install only ccxt-rust skill
     --cli           Install only ccxt-cli skill
     --all           Install all skills (default)
     --remote        Force download from GitHub, even inside the repo
@@ -262,11 +263,12 @@ interactive_mode() {
     echo "  3) ccxt-php        - PHP (sync & async, REST & WebSocket)"
     echo "  4) ccxt-csharp     - C#/.NET (REST & WebSocket)"
     echo "  5) ccxt-go         - Go (REST & WebSocket)"
-    echo "  6) ccxt-cli        - Command-line interface (terminal, no code)"
-    echo "  7) All skills      - Install all of the above"
-    echo "  8) Exit            - Cancel installation"
+    echo "  6) ccxt-rust       - Rust (async/tokio, REST & WebSocket)"
+    echo "  7) ccxt-cli        - Command-line interface (terminal, no code)"
+    echo "  8) All skills      - Install all of the above"
+    echo "  9) Exit            - Cancel installation"
     echo ""
-    printf 'Enter your choice (1-8): '
+    printf 'Enter your choice (1-9): '
 
     # When the script is piped into sh (curl ... | sh), stdin is the script
     # itself and is already at EOF, so read from the terminal directly.
@@ -299,12 +301,15 @@ interactive_mode() {
             selected_skills="ccxt-go"
             ;;
         6)
-            selected_skills="ccxt-cli"
+            selected_skills="ccxt-rust"
             ;;
         7)
-            selected_skills="$ALL_SKILLS"
+            selected_skills="ccxt-cli"
             ;;
         8)
+            selected_skills="$ALL_SKILLS"
+            ;;
+        9)
             echo "Installation cancelled."
             exit 0
             ;;
@@ -346,6 +351,9 @@ main() {
                 ;;
             --go)
                 selected_skills="$selected_skills ccxt-go"
+                ;;
+            --rust)
+                selected_skills="$selected_skills ccxt-rust"
                 ;;
             --cli)
                 selected_skills="$selected_skills ccxt-cli"
