@@ -1162,8 +1162,14 @@ func AddElementToObject(arrayOrDict any, stringOrInt any, value any) {
 				if value != nil {
 					// Convert value to the correct type
 					valueVal := reflect.ValueOf(value)
-					if valueVal.Type().ConvertibleTo(field.Type()) {
-						field.Set(valueVal.Convert(field.Type()))
+					fieldType := field.Type()
+					if fieldType.Kind() == reflect.Ptr && !valueVal.Type().ConvertibleTo(fieldType) && valueVal.Type().ConvertibleTo(fieldType.Elem()) {
+						// e.g. assigning an int64 to a `*int64` field (WsOrderBook.Timestamp)
+						ptr := reflect.New(fieldType.Elem())
+						ptr.Elem().Set(valueVal.Convert(fieldType.Elem()))
+						field.Set(ptr)
+					} else if valueVal.Type().ConvertibleTo(fieldType) {
+						field.Set(valueVal.Convert(fieldType))
 					}
 				}
 			}
