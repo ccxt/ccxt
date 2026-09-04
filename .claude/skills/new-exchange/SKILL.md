@@ -212,7 +212,7 @@ Capture a request/response fixture as soon as a method works once. Re-run on eve
 
 ```bash
 # request fixture (URL/body assertion) — NO HTTP
-npm run cli.ts -- <id> fetchTicker BTC/USDT --report
+npm run cli.ts -- <id> fetchTicker BTC/USDT --request
 # response fixture (parser assertion) — NO HTTP
 npm run cli.ts -- <id> fetchTicker BTC/USDT --response
 ```
