@@ -1951,8 +1951,11 @@ class BaseExchange(object):
 
     @staticmethod
     def round_timeframe(timeframe, timestamp, direction=ROUND_DOWN):
-        amount = float(timeframe[:-1])
-        unit = timeframe[-1]
+        try:
+            amount = float(timeframe[:-1])
+        except ValueError:
+            amount = 0
+        unit = timeframe[-1] if len(timeframe) else ''
         is_integer_amount = amount == int(amount)
         if unit in ('w', 'M', 'y') and amount >= 1 and is_integer_amount:
             amount = int(amount)

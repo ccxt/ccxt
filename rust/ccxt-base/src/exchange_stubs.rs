@@ -2414,19 +2414,25 @@ impl Exchange {
                 let monday = rounded - chrono::Duration::days(days_since_monday);
                 let epoch_monday = Utc.with_ymd_and_hms(1970, 1, 5, 0, 0, 0).unwrap();
                 let weeks_since_epoch_monday = (monday - epoch_monday).num_days() / 7;
-                rounded = epoch_monday + chrono::Duration::days((weeks_since_epoch_monday / amount) * amount * 7);
-                if matches!(&direction, Value::Int(d) if *d == crate::runtime::ROUND_UP) { rounded = rounded + chrono::Duration::days(amount * 7); }
+                rounded = epoch_monday + chrono::Duration::days(weeks_since_epoch_monday.div_euclid(amount) * amount * 7);
+                if matches!(&direction, Value::Int(d) if *d == crate::runtime::ROUND_UP) {
+                    rounded = rounded + chrono::Duration::days(amount * 7);
+                }
             } else if unit == 'M' {
-                let months_since_year_zero = date.year() * 12 + date.month0() as i32;
-                let rounded_months = (months_since_year_zero / amount as i32) * amount as i32;
-                let year = rounded_months / 12;
-                let month = (rounded_months % 12 + 1) as u32;
+                let months_since_year_zero = date.year() as i64 * 12 + date.month0() as i64;
+                let rounded_months = months_since_year_zero.div_euclid(amount) * amount;
+                let year = rounded_months.div_euclid(12) as i32;
+                let month = (rounded_months.rem_euclid(12) + 1) as u32;
                 rounded = Utc.with_ymd_and_hms(year, month, 1, 0, 0, 0).unwrap();
-                if matches!(&direction, Value::Int(d) if *d == crate::runtime::ROUND_UP) { rounded = rounded + chrono::Months::new(amount as u32); }
+                if matches!(&direction, Value::Int(d) if *d == crate::runtime::ROUND_UP) {
+                    rounded = rounded + chrono::Months::new(amount as u32);
+                }
             } else {
-                let year = (date.year() / amount as i32) * amount as i32;
-                rounded = Utc.with_ymd_and_hms(year, 1, 1, 0, 0, 0).unwrap();
-                if matches!(&direction, Value::Int(d) if *d == crate::runtime::ROUND_UP) { rounded = rounded + chrono::Months::new((amount * 12) as u32); }
+                let year = (date.year() as i64).div_euclid(amount) * amount;
+                rounded = Utc.with_ymd_and_hms(year as i32, 1, 1, 0, 0, 0).unwrap();
+                if matches!(&direction, Value::Int(d) if *d == crate::runtime::ROUND_UP) {
+                    rounded = rounded + chrono::Months::new((amount * 12) as u32);
+                }
             }
             return Value::Int(rounded.timestamp_millis());
         }

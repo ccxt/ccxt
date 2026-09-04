@@ -89,6 +89,15 @@ func ParseTimeframe(timeframe2 any) int64 {
 	return int64(amount * float64(scale))
 }
 
+func FloorDiv(value int64, divisor int64) int64 {
+	quotient := value / divisor
+	remainder := value % divisor
+	if remainder != 0 && ((remainder > 0) != (divisor > 0)) {
+		quotient -= 1
+	}
+	return quotient
+}
+
 func (this *BaseExchange) RoundTimeframe(timeframe any, timestamp any, direction ...any) any {
 	// Default direction is ROUND_DOWN
 	roundDirection := ROUND_DOWN
@@ -115,6 +124,9 @@ func (this *BaseExchange) RoundTimeframe(timeframe any, timestamp any, direction
 	default:
 		return nil
 	}
+	if ms == 0 {
+		return nil
+	}
 	frame := timeframe.(string)
 	amount, err := strconv.Atoi(frame[:len(frame)-1])
 	unit := frame[len(frame)-1:]
@@ -125,23 +137,24 @@ func (this *BaseExchange) RoundTimeframe(timeframe any, timestamp any, direction
 			daysSinceMonday := (int(date.Weekday()) + 6) % 7
 			monday := time.Date(date.Year(), date.Month(), date.Day()-daysSinceMonday, 0, 0, 0, 0, time.UTC)
 			epochMonday := time.Date(1970, time.January, 5, 0, 0, 0, 0, time.UTC)
-			weeksSinceEpochMonday := int(monday.Sub(epochMonday).Hours() / (24 * 7))
-			rounded = epochMonday.AddDate(0, 0, (weeksSinceEpochMonday/amount)*amount*7)
+			weeksSinceEpochMonday := FloorDiv(monday.Unix()-epochMonday.Unix(), 604800)
+			roundedWeeks := FloorDiv(weeksSinceEpochMonday, int64(amount)) * int64(amount)
+			rounded = epochMonday.AddDate(0, 0, int(roundedWeeks)*7)
 			if roundDirection == ROUND_UP {
 				rounded = rounded.AddDate(0, 0, amount*7)
 			}
 		} else if unit == "M" {
 			monthsSinceYearZero := date.Year()*12 + int(date.Month()) - 1
-			roundedMonths := (monthsSinceYearZero / amount) * amount
-			year := roundedMonths / 12
+			roundedMonths := FloorDiv(int64(monthsSinceYearZero), int64(amount)) * int64(amount)
+			year := FloorDiv(roundedMonths, 12)
 			month := time.Month(roundedMonths%12 + 1)
-			rounded = time.Date(year, month, 1, 0, 0, 0, 0, time.UTC)
+			rounded = time.Date(int(year), month, 1, 0, 0, 0, 0, time.UTC)
 			if roundDirection == ROUND_UP {
 				rounded = rounded.AddDate(0, amount, 0)
 			}
 		} else {
-			year := (date.Year() / amount) * amount
-			rounded = time.Date(year, time.January, 1, 0, 0, 0, 0, time.UTC)
+			year := FloorDiv(int64(date.Year()), int64(amount)) * int64(amount)
+			rounded = time.Date(int(year), time.January, 1, 0, 0, 0, 0, time.UTC)
 			if roundDirection == ROUND_UP {
 				rounded = rounded.AddDate(amount, 0, 0)
 			}
