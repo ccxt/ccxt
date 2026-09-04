@@ -3025,7 +3025,7 @@ class htx(Exchange, ImplicitAPI):
             'code': None,
         }
 
-    def fetch_account_id_by_type(self, type: str, marginMode: Str = None, symbol: Str = None, params={}):
+    def fetch_account_id_by_type(self, type: str, marginMode: Str = None, symbol: Str = None, params={}) -> Str:
         """
         fetch all the accounts by a type and marginModeassociated with a profile
 
@@ -3038,7 +3038,7 @@ class htx(Exchange, ImplicitAPI):
         :returns dict: a dictionary of `account structures <https://docs.ccxt.com/?id=account-structure>` indexed by the account type
         """
         accounts = self.load_accounts()
-        accountId = self.safe_value_2(params, 'accountId', 'account-id')
+        accountId = self.safe_string_2(params, 'accountId', 'account-id')
         if accountId is not None:
             return accountId
         if type == 'spot':

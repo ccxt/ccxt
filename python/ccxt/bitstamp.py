@@ -782,7 +782,7 @@ class bitstamp(Exchange, ImplicitAPI):
             'networks': {},
         }
 
-    def fetch_markets_from_cache(self, params={}):
+    def fetch_markets_from_cache(self, params={}) -> list[dict]:
         # self method is now redundant
         # currencies are now fetched before markets
         options = self.safe_value(self.options, 'fetchMarkets', {})
