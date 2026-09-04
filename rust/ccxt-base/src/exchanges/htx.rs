@@ -5482,7 +5482,7 @@ impl HtxCore {
     m
 }));
         let mut accounts: Value = self.load_accounts(&[]).await;
-        let mut accountId: Value = self.safe_value2(params.clone(), Value::Str("accountId".to_string()), Value::Str("account-id".to_string()), &[]);
+        let mut accountId: Value = self.safe_string2(params.clone(), Value::Str("accountId".to_string()), Value::Str("account-id".to_string()), &[]);
         if !is_equal(&accountId, &Value::Null) {
             return accountId;
         }
