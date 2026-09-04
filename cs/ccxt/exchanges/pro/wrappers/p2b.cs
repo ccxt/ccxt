@@ -4,7 +4,3 @@ namespace ccxt.pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 public class  P2b: p2b { public P2b(object args = null) : base(args) { } }
-public partial class p2b
-{
-
-}

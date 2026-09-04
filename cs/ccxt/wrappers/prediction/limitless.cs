@@ -4,7 +4,3 @@ namespace ccxt.prediction;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 public class  Limitless: limitless { public Limitless(object args = null) : base(args) { } }
-public partial class limitless
-{
-
-}

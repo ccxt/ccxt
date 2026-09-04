@@ -4,11 +4,3 @@ namespace ccxt.pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 public class  Coinbase: coinbase { public Coinbase(object args = null) : base(args) { } }
-public partial class coinbase
-{
-    public Dictionary<string, object> CreateWSAuth(string name, List<string> productIds)
-    {
-        var res = this.createWSAuth(name, productIds);
-        return ((Dictionary<string, object>)res);
-    }
-}

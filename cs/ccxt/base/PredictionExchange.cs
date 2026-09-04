@@ -2109,13 +2109,3 @@ public partial class PredictionExchange : BaseExchange
     }
 }
 
-
-
-public partial class PredictionExchange
-{
-    public Dictionary<string, Market> SetMarkets(object markets, object currencies = null)
-    {
-        var res = this.setMarkets(markets, currencies);
-        return ((Dictionary<string, Market>)res);
-    }
-}

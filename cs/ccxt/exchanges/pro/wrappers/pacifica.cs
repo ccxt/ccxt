@@ -4,7 +4,3 @@ namespace ccxt.pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 public class  Pacifica: pacifica { public Pacifica(object args = null) : base(args) { } }
-public partial class pacifica
-{
-
-}

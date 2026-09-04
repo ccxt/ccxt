@@ -4,7 +4,3 @@ namespace ccxt.pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 public class  Bithumb: bithumb { public Bithumb(object args = null) : base(args) { } }
-public partial class bithumb
-{
-
-}

@@ -4,11 +4,3 @@ namespace ccxt.pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 public class  Deepcoin: deepcoin { public Deepcoin(object args = null) : base(args) { } }
-public partial class deepcoin
-{
-    public Dictionary<string, object> CreatePublicRequest(object market, double requestId, string topicID, string suffix = "", bool unWatch = false)
-    {
-        var res = this.createPublicRequest(market, requestId, topicID, suffix, unWatch);
-        return ((Dictionary<string, object>)res);
-    }
-}

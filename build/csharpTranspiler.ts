@@ -2381,6 +2381,10 @@ class NewTranspiler {
     }
 
     createWrapper (exchangeName: string, methodWrapper: any, isWs = false) {
+        // the PascalCase core IS the public C# API. Method wrappers (cast-only and
+        // converting) have been retired; only the `class Binance : binance` aliases
+        // remain, emitted by createExchangesWrappers / needsCapitalizedClass.
+        return '';
         // non-async methods with a declared Promise<T> return type (pure delegators) must be wrapped like async ones
         const isAsync = methodWrapper.async || (methodWrapper.returnType ?? '').startsWith ('Promise');
         const methodName = methodWrapper.name;
@@ -2432,33 +2436,33 @@ class NewTranspiler {
     }
 
     createCSharpWrappers(exchange:string, path: string, wrappers: any[], ws = false, prediction = false) {
-        // ast-transpiler drops the `= {}` default of a type-annotated params bag, which would
-        // emit it as a required parameter sitting after optionals (CS1737)
-        restoreParamsBagInitializers(wrappers);
-        const wrappersIndented = wrappers.map(wrapper => this.createWrapper(exchange, wrapper, ws)).filter(wrapper => wrapper !== '').join('\n');
-        const shouldCreateClassWrappers = exchange === 'BaseExchange';
-        const classes = shouldCreateClassWrappers ? this.createExchangesWrappers().filter(e=> !!e).join('\n') : '';
-        // const exchangeName = ws ? exchange + 'Ws' : exchange;
+        // Method wrappers have been retired: the PascalCase core is the public C# API.
+        // This emitter now only writes the documented `class Binance : binance` aliases
+        // (Exchange.Wrappers.cs for REST, per-file for ws / prediction). REST venue
+        // files that would be an empty partial class are deleted instead of rewritten.
         const namespace = this.getNamespace (ws);
-        const capitizedName = exchange.charAt(0).toUpperCase() + exchange.slice(1);
-        // prediction REST exchanges are not part of createExchangesWrappers (Exchange.Wrappers.cs),
-        // so their Capitalized wrapper class is emitted into their own wrapper file
+        const header = this.createGeneratedHeader().join('\n');
+        if (exchange === 'BaseExchange') {
+            const classes = this.createExchangesWrappers().filter(e => !!e).join('\n');
+            const file = [ namespace, '', header, classes ].join('\n') + '\n';
+            log.magenta ('→', (path as any).yellow)
+            overwriteFileAndFolder (path, file);
+            return;
+        }
         const needsCapitalizedClass = ws || this.isPrediction;
-        const capitalizeStatement = needsCapitalizedClass ? `public class  ${capitizedName}: ${exchange} { public ${capitizedName}(object args = null) : base(args) { } }` : '';
-        const file = [
-            namespace,
-            '',
-            this.createGeneratedHeader().join('\n'),
-            capitalizeStatement,
-            `public partial class ${exchange}`,
-            '{',
-            wrappersIndented,
-            '}',
-            classes
-        ].join('\n')
-        log.magenta ('→', (path as any).yellow)
-
-        overwriteFileAndFolder (path, file);
+        if (needsCapitalizedClass) {
+            const capitizedName = exchange.charAt(0).toUpperCase() + exchange.slice(1);
+            const capitalizeStatement = `public class  ${capitizedName}: ${exchange} { public ${capitizedName}(object args = null) : base(args) { } }`;
+            const file = [ namespace, '', header, capitalizeStatement ].join('\n') + '\n';
+            log.magenta ('→', (path as any).yellow)
+            overwriteFileAndFolder (path, file);
+            return;
+        }
+        // REST venue or Exchange-tier trading wrappers: nothing left to emit
+        if (fs.existsSync (path)) {
+            fs.unlinkSync (path);
+            log.magenta ('×', (path as any).yellow)
+        }
     }
 
     transpileErrorHierarchy (force = true) {
@@ -2750,15 +2754,8 @@ class NewTranspiler {
                 this.createGeneratedHeader().join('\n'),
                 "public partial class PredictionExchange : BaseExchange\n{\n\n"
             ]).join("\n");
-            // typed wrappers (Task<PredictionTrade> etc.) emitted as a second partial so a prediction
-            // venue that does NOT override a unified method still exposes the prediction-typed signature
-            // instead of inheriting the crypto-typed wrapper from Exchange.Wrappers.cs
-            const prevIsPrediction = this.isPrediction;
-            this.isPrediction = true;
-            const typedWrappers = (baseFile.methodsTypes || []).map((w: any) => this.createWrapper('PredictionExchange', w)).filter((w: string) => w !== '').join('\n');
-            this.isPrediction = prevIsPrediction;
-            const wrapperPartial = '\n\npublic partial class PredictionExchange\n{\n' + typedWrappers + '\n}\n';
-            const file = fileHeader + fields + this.pascalizeTypedCores (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCores (baseMethods, true))), true) + "\n" + wrapperPartial;
+            // method wrappers retired: PascalCase cores on PredictionExchange are the public API
+            const file = fileHeader + fields + this.pascalizeTypedCores (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCores (baseMethods, true))), true) + "\n";
             fs.writeFileSync (predictionBase, file);
             this._predictionBaseWritten = true;
             log.green ('Transpiled prediction base methods to', (predictionBase as any).yellow)
