@@ -1,0 +1,648 @@
+{
+    "SP500/USD:PUSD": {
+        "id": "1",
+        "lowercaseId": null,
+        "symbol": "SP500/USD:PUSD",
+        "base": "SP500",
+        "quote": "USD",
+        "settle": "PUSD",
+        "baseId": "SP500",
+        "quoteId": "USD",
+        "settleId": "pUSD",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": null,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0004,
+        "maker": 0.000125,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.00001,
+            "price": 0.1
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 20
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": 10,
+                "max": 5000000
+            }
+        },
+        "marginModes": {
+            "cross": true,
+            "isolated": true
+        },
+        "created": null,
+        "info": {
+            "instrument_id": 1,
+            "instrument_type": "perpetual",
+            "category": "index",
+            "isolated_only": false,
+            "symbol": "SP500-USD",
+            "base_asset": "SP500",
+            "quote_asset": "pUSD",
+            "funding_interval": "1h",
+            "quantity_decimals": 5,
+            "price_decimals": 1,
+            "price_bounds": "0.05",
+            "liquidation_fee": "0.005",
+            "max_order_count": 200,
+            "min_notional": "10",
+            "max_market_notional": "1000000",
+            "max_limit_notional": "5000000",
+            "max_leverage": 20,
+            "risk_tiers": [
+                {
+                    "lower_bound": "0",
+                    "max_leverage": 20
+                },
+                {
+                    "lower_bound": "250000",
+                    "max_leverage": 10
+                },
+                {
+                    "lower_bound": "1000000",
+                    "max_leverage": 8
+                },
+                {
+                    "lower_bound": "2500000",
+                    "max_leverage": 6
+                },
+                {
+                    "lower_bound": "5000000",
+                    "max_leverage": 5
+                },
+                {
+                    "lower_bound": "7500000",
+                    "max_leverage": 2
+                },
+                {
+                    "lower_bound": "10000000",
+                    "max_leverage": 1
+                }
+            ],
+            "ui_live_time": 1785542400000
+        },
+        "tierBased": true,
+        "percentage": true
+    },
+    "GOLD/USD:PUSD": {
+        "id": "2",
+        "lowercaseId": null,
+        "symbol": "GOLD/USD:PUSD",
+        "base": "GOLD",
+        "quote": "USD",
+        "settle": "PUSD",
+        "baseId": "GOLD",
+        "quoteId": "USD",
+        "settleId": "pUSD",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": null,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0004,
+        "maker": 0.000125,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.00001,
+            "price": 0.1
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 20
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": 10,
+                "max": 5000000
+            }
+        },
+        "marginModes": {
+            "cross": true,
+            "isolated": true
+        },
+        "created": null,
+        "info": {
+            "instrument_id": 2,
+            "instrument_type": "perpetual",
+            "category": "commodity",
+            "isolated_only": false,
+            "symbol": "GOLD-USD",
+            "base_asset": "GOLD",
+            "quote_asset": "pUSD",
+            "funding_interval": "1h",
+            "quantity_decimals": 5,
+            "price_decimals": 1,
+            "price_bounds": "0.05",
+            "liquidation_fee": "0.005",
+            "max_order_count": 200,
+            "min_notional": "10",
+            "max_market_notional": "1000000",
+            "max_limit_notional": "5000000",
+            "max_leverage": 20,
+            "risk_tiers": [
+                {
+                    "lower_bound": "0",
+                    "max_leverage": 20
+                },
+                {
+                    "lower_bound": "250000",
+                    "max_leverage": 10
+                },
+                {
+                    "lower_bound": "1000000",
+                    "max_leverage": 8
+                },
+                {
+                    "lower_bound": "2500000",
+                    "max_leverage": 6
+                },
+                {
+                    "lower_bound": "5000000",
+                    "max_leverage": 5
+                },
+                {
+                    "lower_bound": "7500000",
+                    "max_leverage": 2
+                },
+                {
+                    "lower_bound": "10000000",
+                    "max_leverage": 1
+                }
+            ],
+            "ui_live_time": 1785542400000
+        },
+        "tierBased": true,
+        "percentage": true
+    },
+    "BTC/USD:PUSD": {
+        "id": "6",
+        "lowercaseId": null,
+        "symbol": "BTC/USD:PUSD",
+        "base": "BTC",
+        "quote": "USD",
+        "settle": "PUSD",
+        "baseId": "BTC",
+        "quoteId": "USD",
+        "settleId": "pUSD",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": null,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0004,
+        "maker": 0.000125,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.00001,
+            "price": 0.1
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 20
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": 10,
+                "max": 5000000
+            }
+        },
+        "marginModes": {
+            "cross": true,
+            "isolated": true
+        },
+        "created": null,
+        "info": {
+            "instrument_id": 6,
+            "instrument_type": "perpetual",
+            "category": "crypto",
+            "isolated_only": false,
+            "symbol": "BTC-USD",
+            "base_asset": "BTC",
+            "quote_asset": "pUSD",
+            "funding_interval": "1h",
+            "quantity_decimals": 5,
+            "price_decimals": 1,
+            "price_bounds": "0.05",
+            "liquidation_fee": "0.005",
+            "max_order_count": 200,
+            "min_notional": "10",
+            "max_market_notional": "1000000",
+            "max_limit_notional": "5000000",
+            "max_leverage": 20,
+            "risk_tiers": [
+                {
+                    "lower_bound": "0",
+                    "max_leverage": 20
+                },
+                {
+                    "lower_bound": "250000",
+                    "max_leverage": 10
+                },
+                {
+                    "lower_bound": "1000000",
+                    "max_leverage": 8
+                },
+                {
+                    "lower_bound": "2500000",
+                    "max_leverage": 6
+                },
+                {
+                    "lower_bound": "5000000",
+                    "max_leverage": 5
+                },
+                {
+                    "lower_bound": "7500000",
+                    "max_leverage": 2
+                },
+                {
+                    "lower_bound": "10000000",
+                    "max_leverage": 1
+                }
+            ],
+            "ui_live_time": 1785542400000
+        },
+        "tierBased": true,
+        "percentage": true
+    },
+    "ETH/USD:PUSD": {
+        "id": "7",
+        "lowercaseId": null,
+        "symbol": "ETH/USD:PUSD",
+        "base": "ETH",
+        "quote": "USD",
+        "settle": "PUSD",
+        "baseId": "ETH",
+        "quoteId": "USD",
+        "settleId": "pUSD",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": null,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0004,
+        "maker": 0.000125,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.0001,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 20
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": 10,
+                "max": 5000000
+            }
+        },
+        "marginModes": {
+            "cross": true,
+            "isolated": true
+        },
+        "created": null,
+        "info": {
+            "instrument_id": 7,
+            "instrument_type": "perpetual",
+            "category": "crypto",
+            "isolated_only": false,
+            "symbol": "ETH-USD",
+            "base_asset": "ETH",
+            "quote_asset": "pUSD",
+            "funding_interval": "1h",
+            "quantity_decimals": 4,
+            "price_decimals": 2,
+            "price_bounds": "0.05",
+            "liquidation_fee": "0.005",
+            "max_order_count": 200,
+            "min_notional": "10",
+            "max_market_notional": "1000000",
+            "max_limit_notional": "5000000",
+            "max_leverage": 20,
+            "risk_tiers": [
+                {
+                    "lower_bound": "0",
+                    "max_leverage": 20
+                },
+                {
+                    "lower_bound": "250000",
+                    "max_leverage": 10
+                },
+                {
+                    "lower_bound": "1000000",
+                    "max_leverage": 8
+                },
+                {
+                    "lower_bound": "2500000",
+                    "max_leverage": 6
+                },
+                {
+                    "lower_bound": "5000000",
+                    "max_leverage": 5
+                },
+                {
+                    "lower_bound": "7500000",
+                    "max_leverage": 2
+                },
+                {
+                    "lower_bound": "10000000",
+                    "max_leverage": 1
+                }
+            ],
+            "ui_live_time": 1785542400000
+        },
+        "tierBased": true,
+        "percentage": true
+    },
+    "TSLA/USD:PUSD": {
+        "id": "21",
+        "lowercaseId": null,
+        "symbol": "TSLA/USD:PUSD",
+        "base": "TSLA",
+        "quote": "USD",
+        "settle": "PUSD",
+        "baseId": "TSLA",
+        "quoteId": "USD",
+        "settleId": "pUSD",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": null,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0004,
+        "maker": 0.000125,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.0001,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 10
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": 10,
+                "max": 2500000
+            }
+        },
+        "marginModes": {
+            "cross": true,
+            "isolated": true
+        },
+        "created": null,
+        "info": {
+            "instrument_id": 21,
+            "instrument_type": "perpetual",
+            "category": "equity",
+            "isolated_only": false,
+            "symbol": "TSLA-USD",
+            "base_asset": "TSLA",
+            "quote_asset": "pUSD",
+            "funding_interval": "1h",
+            "quantity_decimals": 4,
+            "price_decimals": 2,
+            "price_bounds": "0.10",
+            "liquidation_fee": "0.005",
+            "max_order_count": 200,
+            "min_notional": "10",
+            "max_market_notional": "500000",
+            "max_limit_notional": "2500000",
+            "max_leverage": 10,
+            "risk_tiers": [
+                {
+                    "lower_bound": "0",
+                    "max_leverage": 10
+                },
+                {
+                    "lower_bound": "500000",
+                    "max_leverage": 5
+                },
+                {
+                    "lower_bound": "1000000",
+                    "max_leverage": 3
+                },
+                {
+                    "lower_bound": "3000000",
+                    "max_leverage": 2
+                },
+                {
+                    "lower_bound": "5000000",
+                    "max_leverage": 1
+                }
+            ],
+            "ui_live_time": 1785542400000
+        },
+        "tierBased": true,
+        "percentage": true
+    },
+    "XRP/USD:PUSD": {
+        "id": "33",
+        "lowercaseId": null,
+        "symbol": "XRP/USD:PUSD",
+        "base": "XRP",
+        "quote": "USD",
+        "settle": "PUSD",
+        "baseId": "XRP",
+        "quoteId": "USD",
+        "settleId": "pUSD",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": null,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0004,
+        "maker": 0.000125,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 1,
+            "price": 0.000001
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 20
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": 10,
+                "max": 5000000
+            }
+        },
+        "marginModes": {
+            "cross": true,
+            "isolated": true
+        },
+        "created": null,
+        "info": {
+            "instrument_id": 33,
+            "instrument_type": "perpetual",
+            "category": "crypto",
+            "isolated_only": false,
+            "symbol": "XRP-USD",
+            "base_asset": "XRP",
+            "quote_asset": "pUSD",
+            "funding_interval": "1h",
+            "quantity_decimals": 0,
+            "price_decimals": 6,
+            "price_bounds": "0.05",
+            "liquidation_fee": "0.005",
+            "max_order_count": 200,
+            "min_notional": "10",
+            "max_market_notional": "1000000",
+            "max_limit_notional": "5000000",
+            "max_leverage": 20,
+            "risk_tiers": [
+                {
+                    "lower_bound": "0",
+                    "max_leverage": 20
+                },
+                {
+                    "lower_bound": "250000",
+                    "max_leverage": 10
+                },
+                {
+                    "lower_bound": "500000",
+                    "max_leverage": 8
+                },
+                {
+                    "lower_bound": "1000000",
+                    "max_leverage": 6
+                },
+                {
+                    "lower_bound": "2000000",
+                    "max_leverage": 5
+                },
+                {
+                    "lower_bound": "3000000",
+                    "max_leverage": 2
+                },
+                {
+                    "lower_bound": "5000000",
+                    "max_leverage": 1
+                }
+            ],
+            "ui_live_time": 1785542400000
+        },
+        "tierBased": true,
+        "percentage": true
+    }
+}

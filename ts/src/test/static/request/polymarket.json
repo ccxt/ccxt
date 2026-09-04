@@ -1,0 +1,279 @@
+{
+    "exchange": "polymarket",
+    "skipKeys": [],
+    "outputType": "json",
+    "options": {},
+    "methods": {
+        "fetchTime": [
+            {
+                "description": "fetch the server time",
+                "method": "fetchTime",
+                "url": "https://api.perpetuals.polymarket.com/v1/info/time",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchStatus": [
+            {
+                "description": "fetch the exchange status",
+                "method": "fetchStatus",
+                "url": "https://api.perpetuals.polymarket.com/v1/info/exchange",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchMarkets": [
+            {
+                "description": "fetch all instruments",
+                "method": "fetchMarkets",
+                "url": "https://api.perpetuals.polymarket.com/v1/info/instruments",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchCurrencies": [
+            {
+                "description": "fetch the collateral assets",
+                "method": "fetchCurrencies",
+                "url": "https://api.perpetuals.polymarket.com/v1/info/assets",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchTradingFees": [
+            {
+                "description": "fetch the default fee schedule",
+                "method": "fetchTradingFees",
+                "url": "https://api.perpetuals.polymarket.com/v1/info/fees",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchBidsAsks": [
+            {
+                "description": "fetch best bids and asks for all markets",
+                "method": "fetchBidsAsks",
+                "url": "https://api.perpetuals.polymarket.com/v1/info/bbo",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "fetch the order book with the default depth",
+                "method": "fetchOrderBook",
+                "url": "https://api.perpetuals.polymarket.com/v1/info/book?instrument_id=1",
+                "input": [
+                    "SP500/USD:PUSD"
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch the order book with an explicit depth",
+                "method": "fetchOrderBook",
+                "url": "https://api.perpetuals.polymarket.com/v1/info/book?instrument_id=1&depth=10",
+                "input": [
+                    "SP500/USD:PUSD",
+                    10
+                ],
+                "output": null
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "fetch public trades",
+                "method": "fetchTrades",
+                "url": "https://api.perpetuals.polymarket.com/v1/info/trades?instrument_id=6",
+                "input": [
+                    "BTC/USD:PUSD"
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch public trades with since",
+                "method": "fetchTrades",
+                "url": "https://api.perpetuals.polymarket.com/v1/info/trades?instrument_id=6&start_timestamp=1788500000000",
+                "input": [
+                    "BTC/USD:PUSD",
+                    1788500000000
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch public trades with until alone",
+                "method": "fetchTrades",
+                "url": "https://api.perpetuals.polymarket.com/v1/info/trades?instrument_id=6&end_timestamp=1788540000000",
+                "input": [
+                    "BTC/USD:PUSD",
+                    null,
+                    null,
+                    {
+                        "until": 1788540000000
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch public trades with since and until",
+                "method": "fetchTrades",
+                "url": "https://api.perpetuals.polymarket.com/v1/info/trades?instrument_id=6&start_timestamp=1788500000000&end_timestamp=1788540000000",
+                "input": [
+                    "BTC/USD:PUSD",
+                    1788500000000,
+                    null,
+                    {
+                        "until": 1788540000000
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetch candles with since",
+                "method": "fetchOHLCV",
+                "url": "https://api.perpetuals.polymarket.com/v1/info/klines?instrument_id=1&interval=1h&start_timestamp=1788500000000",
+                "input": [
+                    "SP500/USD:PUSD",
+                    "1h",
+                    1788500000000
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch candles with an explicit limit and until, the range start derives from both",
+                "method": "fetchOHLCV",
+                "url": "https://api.perpetuals.polymarket.com/v1/info/klines?instrument_id=1&interval=1h&end_timestamp=1788540000000&start_timestamp=1786743600000",
+                "input": [
+                    "SP500/USD:PUSD",
+                    "1h",
+                    null,
+                    500,
+                    {
+                        "until": 1788540000000
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch candles with until alone, the range start derives from until",
+                "method": "fetchOHLCV",
+                "url": "https://api.perpetuals.polymarket.com/v1/info/klines?instrument_id=1&interval=1h&end_timestamp=1788540000000&start_timestamp=1788183600000",
+                "input": [
+                    "SP500/USD:PUSD",
+                    "1h",
+                    null,
+                    null,
+                    {
+                        "until": 1788540000000
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch candles with since and until",
+                "method": "fetchOHLCV",
+                "url": "https://api.perpetuals.polymarket.com/v1/info/klines?instrument_id=1&interval=1h&end_timestamp=1788540000000&start_timestamp=1788500000000",
+                "input": [
+                    "SP500/USD:PUSD",
+                    "1h",
+                    1788500000000,
+                    null,
+                    {
+                        "until": 1788540000000
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "fetchFundingRateHistory": [
+            {
+                "description": "fetch funding rate history",
+                "method": "fetchFundingRateHistory",
+                "url": "https://api.perpetuals.polymarket.com/v1/info/funding?instrument_id=1",
+                "input": [
+                    "SP500/USD:PUSD"
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch funding rate history with since",
+                "method": "fetchFundingRateHistory",
+                "url": "https://api.perpetuals.polymarket.com/v1/info/funding?instrument_id=1&start_timestamp=1788500000000",
+                "input": [
+                    "SP500/USD:PUSD",
+                    1788500000000
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch funding rate history with until alone",
+                "method": "fetchFundingRateHistory",
+                "url": "https://api.perpetuals.polymarket.com/v1/info/funding?instrument_id=1&end_timestamp=1788540000000",
+                "input": [
+                    "SP500/USD:PUSD",
+                    null,
+                    null,
+                    {
+                        "until": 1788540000000
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch funding rate history with since and until",
+                "method": "fetchFundingRateHistory",
+                "url": "https://api.perpetuals.polymarket.com/v1/info/funding?instrument_id=1&start_timestamp=1788500000000&end_timestamp=1788540000000",
+                "input": [
+                    "SP500/USD:PUSD",
+                    1788500000000,
+                    null,
+                    {
+                        "until": 1788540000000
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "fetchFundingRates": [
+            {
+                "description": "fetch funding rates for all markets",
+                "method": "fetchFundingRates",
+                "url": "https://api.perpetuals.polymarket.com/v1/info/tickers",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchOpenInterests": [
+            {
+                "description": "fetch open interests for all markets",
+                "method": "fetchOpenInterests",
+                "url": "https://api.perpetuals.polymarket.com/v1/info/tickers",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchFundingRate": [
+            {
+                "description": "fetch the current funding rate",
+                "method": "fetchFundingRate",
+                "url": "https://api.perpetuals.polymarket.com/v1/info/tickers?instrument_id=1",
+                "input": [
+                    "SP500/USD:PUSD"
+                ],
+                "output": null
+            }
+        ],
+        "fetchOpenInterest": [
+            {
+                "description": "fetch the open interest",
+                "method": "fetchOpenInterest",
+                "url": "https://api.perpetuals.polymarket.com/v1/info/tickers?instrument_id=1",
+                "input": [
+                    "SP500/USD:PUSD"
+                ],
+                "output": null
+            }
+        ]
+    }
+}

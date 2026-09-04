@@ -1,7 +1,33 @@
 {
-    "USDC": {
-        "id": "USDC",
-        "code": "USDC",
-        "info": {}
+    "PUSD": {
+        "info": {
+            "asset": "pUSD",
+            "address": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+            "decimals": 6,
+            "collateral_ratio": "1.00",
+            "withdrawal_fee": "0.000000"
+        },
+        "id": "pUSD",
+        "numericId": null,
+        "code": "PUSD",
+        "precision": 0.000001,
+        "type": "crypto",
+        "name": "pUSD",
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": 0,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
     }
 }
