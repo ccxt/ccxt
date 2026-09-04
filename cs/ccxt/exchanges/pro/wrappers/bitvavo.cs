@@ -6,24 +6,5 @@ namespace ccxt.pro;
 public class  Bitvavo: bitvavo { public Bitvavo(object args = null) : base(args) { } }
 public partial class bitvavo
 {
-    /// <summary>
-    /// fetches all available currencies on an exchange
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.bitvavo.com/#tag/General/paths/~1assets/get"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> an associative dictionary of currencies.</returns>
-    public async Task<Currencies> FetchCurrenciesWs(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchCurrenciesWs(parameters);
-        return new Currencies(res);
-    }
+
 }

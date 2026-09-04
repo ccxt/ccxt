@@ -550,7 +550,7 @@ public partial class gemini : Exchange
     public async override Task<object> fetchCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.fetchCurrenciesFromWeb(parameters);
+        return ccxt.BaseExchange.FromCurrencies(await this.FetchCurrenciesFromWeb(parameters));
     }
 
     /**
@@ -561,13 +561,13 @@ public partial class gemini : Exchange
      * @param {object} [params] extra parameters specific to the endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    public async virtual Task<object> fetchCurrenciesFromWeb(object parameters = null)
+    public async virtual Task<ccxt.Currencies> FetchCurrenciesFromWeb(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object data = await this.fetchWebEndpoint("fetchCurrencies", "webExchangeGet", true, "=\"currencyData\">", "</script>");
         if (isTrue(isEqual(data, null)))
         {
-            return new Dictionary<string, object>() {};
+            return ccxt.BaseExchange.ToCurrencies(new Dictionary<string, object>() {});
         }
         //
         //    {
@@ -591,7 +591,7 @@ public partial class gemini : Exchange
         //
         ((IDictionary<string,object>)this.options)["tradingPairs"] = this.safeList(data, "tradingPairs");
         object currenciesArray = this.safeValue(data, "currencies", new List<object>() {});
-        return this.parseCurrencies(currenciesArray);
+        return ccxt.BaseExchange.ToCurrencies(this.parseCurrencies(currenciesArray));
     }
 
     public override object parseCurrency(object rawCurrency)

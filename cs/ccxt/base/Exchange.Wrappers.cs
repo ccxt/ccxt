@@ -6,11 +6,6 @@ namespace ccxt;
 
 public partial class BaseExchange
 {
-    public async Task<Currencies> FetchCurrenciesWs(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchCurrenciesWs(parameters);
-        return new Currencies(res);
-    }
     public Dictionary<string, object> CreateSafeDictionary(bool isWs = false)
     {
         var res = this.createSafeDictionary(isWs);

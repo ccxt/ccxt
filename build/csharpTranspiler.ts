@@ -190,6 +190,9 @@ const TYPED_CORES: Record<string, string> = {
     'fetchContractTickers': 'Tickers',
     'fetchCrossBorrowRates': 'CrossBorrowRates',
     'fetchCurrenciesFromCache': 'Dictionary<string, object>',
+    // gemini: parseCurrencies dict, or `{}` when the web scrape is empty. Currencies
+    // is reversible and Currency already has the extra bag, so the struct is lossless.
+    'fetchCurrenciesFromWeb': 'Currencies',
     'fetchCurrency': 'Dictionary<string, object>',
     'fetchCurrencyById': 'Dictionary<string, object>',
     'fetchDepositMethodId': 'Dictionary<string, object>',
@@ -1536,6 +1539,13 @@ class NewTranspiler {
             'setSandBoxMode',
             'loadOrderBook',
             'fetchCurrencies',
+            // same as fetchCurrencies: a hand-written PascalCase public method already
+            // lives on Exchange.cs (new Currencies(await fetchCurrenciesWs())). Emitting
+            // a generated wrapper is a second overload (object vs Dictionary params) and
+            // bitvavo's ws override stays on the camelCase core that the hand-written
+            // method already calls. Blacklist, don't type — the BaseExchange decl is
+            // never rewritten, so a typed override would be CS0508.
+            'fetchCurrenciesWs',
             'loadMarketsHelper',
             'createNetworksByIdObject',
             'setMarketsFromExchange',

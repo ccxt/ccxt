@@ -6,23 +6,5 @@ namespace ccxt;
 
 public partial class gemini
 {
-    /// <summary>
-    /// fetches all available currencies on an exchange
-    /// </summary>
-    /// <remarks>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> an associative dictionary of currencies.</returns>
-    public async Task<Currencies> FetchCurrenciesFromWeb(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchCurrenciesFromWeb(parameters);
-        return new Currencies(res);
-    }
+
 }
