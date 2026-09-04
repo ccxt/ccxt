@@ -50,6 +50,7 @@ from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat,
 # lighter
 import os
 
+from ccxt.static_dependencies import keccak
 # import ctypes
 
 # -----------------------------------------------------------------------------
@@ -1442,7 +1443,6 @@ class BaseExchange(object):
         else:
             # Fallback for less common algorithms
             binary = hashlib.new(algorithm, request).digest()
-        # Early return for binary digest (most common after hex)
         if digest == 'hex':
             return Exchange.binary_to_base16(binary)
         elif digest == 'base64':
