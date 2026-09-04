@@ -54,7 +54,7 @@ func writeZeros(b *strings.Builder, n int) {
 }
 
 func NumberToString(x any) string {
-	switch v := x.(type) {
+	switch v := derefScalar(x).(type) {
 	case nil:
 		return ""
 	case string:
@@ -278,7 +278,7 @@ func matchExponentPrefix(s string, i int) int {
 }
 
 func (this *BaseExchange) PrecisionFromString(str2 any) int {
-	str := str2.(string)
+	str, _ := derefScalar(str2).(string)
 	if strings.ContainsAny(str, "eE") {
 		// equivalent to regexp `\d\.?\d*[eE]`.ReplaceAllString(str, "")
 		var b strings.Builder
@@ -559,7 +559,7 @@ func (this *BaseExchange) _decimalToPrecision(x any, roundingMode2, numPrecision
 	nAfterDot := int(math.Max(float64(readEnd-afterDot), 0))
 	actualLength := readEnd - readStart
 	desiredLength := actualLength
-	if paddingMode.(int) != NO_PADDING {
+	if derefScalar(paddingMode).(int) != NO_PADDING {
 		desiredLength = precisionEnd - readStart
 	}
 	pad := int(math.Max(float64(desiredLength-actualLength), 0))

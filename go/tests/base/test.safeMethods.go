@@ -54,7 +54,7 @@ func TestSafeString() {
 	assert(ccxt.IsEqual(exchange.SafeString(inputDict, "floatString"), "0.123"), "safeString failed for float string")
 	assert(ccxt.IsEqual(exchange.SafeString(inputDict, "longInt"), "123456789012345"), "safeString failed for long integer")
 	// With defaults
-	assert(ccxt.IsEqual(exchange.SafeString(inputDict, "nonexistent", "MiXed_Case"), "MiXed_Case"), "safeString failed for nonexistent key with default")
+	assert((ccxt.IsEqual(exchange.SafeString(inputDict, "nonexistent", "MiXed_Case"), "MiXed_Case")), "safeString failed for nonexistent key with default")
 	// the below fails in other langs
 	// // @ts-expect-error
 	// assert (exchange.safeString (inputDict, 'nonexistent', 1) === 1, 'safeString failed for nonexistent key with default integer');
@@ -77,7 +77,7 @@ func TestSafeString() {
 	Assert(ccxt.IsEqual(exchange.SafeStringN(inputDict, []any{"a", "b", "emptyString"}), nil))
 	Assert(ccxt.IsEqual(exchange.SafeStringN(inputList, []any{3, 2, 0}), "Hi"))
 	// With defaults
-	Assert(ccxt.IsEqual(exchange.SafeStringN(inputDict, []any{"a", "b", "nonexistent"}, "MiXed_Case"), "MiXed_Case"))
+	Assert((ccxt.IsEqual(exchange.SafeStringN(inputDict, []any{"a", "b", "nonexistent"}, "MiXed_Case"), "MiXed_Case")))
 	// safeStringLower
 	Assert(ccxt.IsEqual(exchange.SafeStringLower(inputDict, "i"), "1"))
 	Assert(ccxt.IsEqual(exchange.SafeStringLower(inputDict, "f"), "0.123"))
@@ -352,10 +352,10 @@ func TestSafeNumber() {
 	Assert(ccxt.IsEqual(exchange.SafeNumber(inputList, "dict"), nil))
 	Assert(ccxt.IsEqual(exchange.SafeNumber(inputList, "str"), nil))
 	// safeNumber2
-	Assert(ccxt.IsEqual(exchange.SafeNumber2(inputDict, "a", "i"), exchange.ParseNumber(1)))
-	Assert(ccxt.IsEqual(exchange.SafeNumber2(inputDict, "a", "f"), exchange.ParseNumber(0.123)))
-	Assert(ccxt.IsEqual(exchange.SafeNumber2(inputDict, "a", "strNumber"), exchange.ParseNumber(3)))
-	Assert(ccxt.IsEqual(exchange.SafeNumber2(inputList, 2, 1), exchange.ParseNumber(2)))
+	Assert((exchange.SafeNumber2(inputDict, "a", "i") == exchange.ParseNumber(1)))
+	Assert((exchange.SafeNumber2(inputDict, "a", "f") == exchange.ParseNumber(0.123)))
+	Assert((exchange.SafeNumber2(inputDict, "a", "strNumber") == exchange.ParseNumber(3)))
+	Assert((exchange.SafeNumber2(inputList, 2, 1) == exchange.ParseNumber(2)))
 	// safeNumberN
 	Assert(ccxt.IsEqual(exchange.SafeNumberN(inputDict, []any{"a", "b", "i"}), exchange.ParseNumber(1)))
 	Assert(ccxt.IsEqual(exchange.SafeNumberN(inputDict, []any{"a", "b", "f"}), exchange.ParseNumber(0.123)))
@@ -406,7 +406,7 @@ func TestCacheSafeCalls() {
 	arrayCacheByTimestamp := ccxt.NewArrayCacheByTimestamp(100)
 	arrayCacheByTimestamp.Append([]any{1000, 50000, 1, 2, 3})
 	var arrayCacheByTimestampData any = exchange.SafeValue(arrayCacheByTimestamp, "Data")
-	var cacheByTimestampData any = ccxt.Ternary(ccxt.IsTrue(!ccxt.IsEqual(arrayCacheByTimestampData, nil)), arrayCacheByTimestampData, arrayCacheByTimestamp)
+	var cacheByTimestampData any = ccxt.Ternary(!ccxt.IsEqual(arrayCacheByTimestampData, nil), arrayCacheByTimestampData, arrayCacheByTimestamp)
 	Assert(ccxt.IsGreaterThan(ccxt.GetArrayLength(cacheByTimestampData), 0))
 	// Test cache types - ccxt.ArrayCacheBySymbolById
 	arrayCacheBySymbolById := ccxt.NewArrayCacheBySymbolById(100)
@@ -420,7 +420,7 @@ func TestCacheSafeCalls() {
 	Assert(!ccxt.IsEqual(ccxt.GetValue(arrayCacheBySymbolByIdHashmap, "ETH/USDT"), nil))
 	Assert(!ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(arrayCacheBySymbolByIdHashmap, "ETH/USDT"), "order2"), nil))
 	var arrayCacheBySymbolByIdData any = exchange.SafeValue(arrayCacheBySymbolById, "Data")
-	var cacheBySymbolByIdData any = ccxt.Ternary(ccxt.IsTrue(!ccxt.IsEqual(arrayCacheBySymbolByIdData, nil)), arrayCacheBySymbolByIdData, arrayCacheBySymbolById)
+	var cacheBySymbolByIdData any = ccxt.Ternary(!ccxt.IsEqual(arrayCacheBySymbolByIdData, nil), arrayCacheBySymbolByIdData, arrayCacheBySymbolById)
 	Assert(ccxt.IsGreaterThan(ccxt.GetArrayLength(cacheBySymbolByIdData), 0))
 	// Test cache types - ccxt.ArrayCacheBySymbolBySide
 	arrayCacheBySymbolBySide := ccxt.NewArrayCacheBySymbolBySide()
@@ -433,7 +433,7 @@ func TestCacheSafeCalls() {
 	var arrayCacheBySymbolBySideHashmap any = arrayCacheBySymbolBySide.Hashmap
 	Assert(!ccxt.IsEqual(ccxt.GetValue(arrayCacheBySymbolBySideHashmap, "BNB/USDT"), nil))
 	var arrayCacheBySymbolBySideData any = exchange.SafeValue(arrayCacheBySymbolBySide, "Data")
-	var cacheBySymbolBySideData any = ccxt.Ternary(ccxt.IsTrue(!ccxt.IsEqual(arrayCacheBySymbolBySideData, nil)), arrayCacheBySymbolBySideData, arrayCacheBySymbolBySide)
+	var cacheBySymbolBySideData any = ccxt.Ternary(!ccxt.IsEqual(arrayCacheBySymbolBySideData, nil), arrayCacheBySymbolBySideData, arrayCacheBySymbolBySide)
 	Assert(ccxt.IsGreaterThan(ccxt.GetArrayLength(cacheBySymbolBySideData), 0))
 	// Test map[string]map[string]interface{} (ccxt.ArrayCache.hashmap)
 	// Use direct property access for object attributes

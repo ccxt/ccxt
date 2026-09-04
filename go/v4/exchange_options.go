@@ -394,7 +394,7 @@ func (this *BaseExchange) initializeProperties(extendedProperties map[string]any
 	this.PaddingMode = int(SafeInteger(extendedProperties, "paddingMode", this.PaddingMode).(int64))
 	this.CommonCurrencies = SafeValue(extendedProperties, "commonCurrencies", map[string]any{}).(map[string]any)
 	subVal := SafeValue(extendedProperties, "substituteCommonCurrencyCodes", true)
-	this.SubstituteCommonCurrencyCodes = subVal != nil && subVal.(bool)
+	this.SubstituteCommonCurrencyCodes = subVal != nil && derefScalar(subVal).(bool)
 	this.Name = SafeString(extendedProperties, "name", "").(string)
 	this.HttpsProxy = SafeString(extendedProperties, "httpsProxy", nil)
 	this.HttpProxy = SafeString(extendedProperties, "httpProxy", nil)

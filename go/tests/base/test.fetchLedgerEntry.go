@@ -19,10 +19,10 @@ func testFetchLedgerEntryBody(ch chan any, exchange ccxt.ICoreExchange, skippedP
 	PanicOnError(items)
 	var length int = GetArrayLength(items)
 	AssertNonEmtpyArray(exchange, skippedProperties, method, items, code)
-	if IsTrue(IsGreaterThan(length, 0)) {
+	if IsGreaterThan(length, 0) {
 		var firstItem any = GetValue(items, 0)
 		var id any = GetValue(firstItem, "id")
-		if IsTrue(!IsEqual(id, nil)) {
+		if !IsEqual(id, nil) {
 
 			item := (<-exchange.FetchLedgerEntry(id))
 			PanicOnError(item)

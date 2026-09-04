@@ -92,7 +92,9 @@ type Client struct {
 }
 
 func (this *Client) Resolve(data any, subHash any) any {
-	hash, ok := subHash.(string)
+	// message hashes are built in generated WS code from Safe* values, so they
+	// arrive pointer-carried; normalize before asserting
+	hash, ok := derefScalar(subHash).(string)
 	if !ok {
 		panic(fmt.Sprintf("subHash must be a string, got %T: %v", subHash, subHash))
 	}
@@ -119,7 +121,7 @@ func (this *Client) ReusableFuture(messageHash any) *Future {
 }
 
 func (this *Client) NewFuture(messageHash any) *Future {
-	hash, _ := messageHash.(string)
+	hash, _ := derefScalar(messageHash).(string)
 	this.FuturesMu.Lock()
 	// a retained rejection fails this consumer fast. the spent future stays
 	// out of the map so the next consumer is not poisoned by the old error.
@@ -154,7 +156,7 @@ func (this *Client) Reject(err any, messageHash ...any) {
 	hash := messageHash[0]
 	if fut, ok := this.Futures[hash.(string)]; ok {
 		fut.(*Future).Reject(err.(error))
-		delete(this.Futures, hash.(string))
+		delete(this.Futures, derefScalar(hash).(string))
 	} else {
 		// ts parity: an error arriving while no consumer future exists is
 		// retained so the next NewFuture fails fast instead of the error
@@ -162,7 +164,7 @@ func (this *Client) Reject(err any, messageHash ...any) {
 		if this.Rejections == nil {
 			this.Rejections = map[string]any{}
 		}
-		this.Rejections[hash.(string)] = err
+		this.Rejections[derefScalar(hash).(string)] = err
 	}
 	this.FuturesMu.Unlock()
 }
@@ -234,7 +236,7 @@ func NewClient(url string, onMessageCallback func(client any, err any), onErrorC
 		Futures:             finalConfig["Futures"].(map[string]any),
 		Subscriptions:       finalConfig["Subscriptions"].(*sync.Map), // map[string]chan any
 		Rejections:          finalConfig["Rejections"].(map[string]any),
-		Verbose:             finalConfig["Verbose"].(bool),
+		Verbose:             derefScalar(finalConfig["Verbose"]).(bool),
 		KeepAlive:           ParseInt(finalConfig["keepAlive"]),
 		MaxPingPongMisses:   finalConfig["MaxPingPongMisses"],
 		IsConnected:         finalConfig["IsConnected"],
@@ -261,7 +263,7 @@ func NewClient(url string, onMessageCallback func(client any, err any), onErrorC
 		ReadLoopClosed:        make(chan struct{}),
 		Connected:             NewFuture(),
 		Disconnected:          NewFuture(),
-		DecompressBinary:      finalConfig["DecompressBinary"].(bool),
+		DecompressBinary:      derefScalar(finalConfig["DecompressBinary"]).(bool),
 	}
 
 	return c
@@ -352,7 +354,7 @@ func (this *Client) IsOpen() (any, error) {
 }
 
 func (this *Client) OnConnectionTimeout() {
-	if !this.IsConnected.(bool) {
+	if !derefScalar(this.IsConnected).(bool) {
 		err := RequestTimeout("Connection to " + this.Url + " failed due to a connection timeout")
 		this.OnError(err)
 		if this.Connection != nil {
@@ -529,11 +531,11 @@ func (this *Client) OnMessage(messageEvent any) {
 		messageStr = str
 	} else if bytes, ok := message.([]byte); ok {
 		// Handle binary data
-		if this.Gunzip != nil && this.Gunzip.(bool) {
+		if this.Gunzip != nil && derefScalar(this.Gunzip).(bool) {
 			// Would need to implement gzip decompression
 			gunzipOut, _ := gunzipData(bytes)
 			messageStr = string(gunzipOut)
-		} else if this.Inflate != nil && this.Inflate.(bool) {
+		} else if this.Inflate != nil && derefScalar(this.Inflate).(bool) {
 			// Would need to implement zlib inflation
 			messageStr = string(bytes)
 		} else {

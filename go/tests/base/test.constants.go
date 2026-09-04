@@ -7,13 +7,13 @@ import ccxt "github.com/ccxt/ccxt/go/v4"
 
 func TestConstants() {
 	// assert all
-	assert(ccxt.IsEqual(ccxt.ROUND, 1), "ROUND should be 1")
-	assert(ccxt.IsEqual(ccxt.TRUNCATE, 0), "TRUNCATE should be 0")
-	assert(ccxt.IsEqual(ccxt.ROUND_UP, 2), "ROUND_UP should be 2")
-	assert(ccxt.IsEqual(ccxt.ROUND_DOWN, 3), "ROUND_DOWN should be 3")
-	assert(ccxt.IsEqual(ccxt.DECIMAL_PLACES, 2), "DECIMAL_PLACES should be 2")
-	assert(ccxt.IsEqual(ccxt.SIGNIFICANT_DIGITS, 3), "SIGNIFICANT_DIGITS should be 3")
-	assert(ccxt.IsEqual(ccxt.TICK_SIZE, 4), "TICK_SIZE should be 4")
-	assert(ccxt.IsEqual(ccxt.NO_PADDING, 5), "NO_PADDING should be 5")
-	assert(ccxt.IsEqual(ccxt.PAD_WITH_ZERO, 6), "PAD_WITH_ZERO should be 6")
+	assert((ccxt.ROUND == 1), "ROUND should be 1")
+	assert((ccxt.TRUNCATE == 0), "TRUNCATE should be 0")
+	assert((ccxt.ROUND_UP == 2), "ROUND_UP should be 2")
+	assert((ccxt.ROUND_DOWN == 3), "ROUND_DOWN should be 3")
+	assert((ccxt.DECIMAL_PLACES == 2), "DECIMAL_PLACES should be 2")
+	assert((ccxt.SIGNIFICANT_DIGITS == 3), "SIGNIFICANT_DIGITS should be 3")
+	assert((ccxt.TICK_SIZE == 4), "TICK_SIZE should be 4")
+	assert((ccxt.NO_PADDING == 5), "NO_PADDING should be 5")
+	assert((ccxt.PAD_WITH_ZERO == 6), "PAD_WITH_ZERO should be 6")
 }

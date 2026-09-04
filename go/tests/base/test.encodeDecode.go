@@ -14,7 +14,7 @@ func TestEncode() {
 	var input string = "encode-test"
 	var encoded any = exchange.Encode(input)
 	var decoded any = exchange.Decode(encoded)
-	assert(ccxt.IsEqual(decoded, input), ccxt.Add(ccxt.Add(ccxt.Add("decoded should be equal to input, got ", decoded), " instead of "), input))
+	assert((decoded == input), ccxt.Add(ccxt.Add(ccxt.Add("decoded should be equal to input, got ", decoded), " instead of "), input))
 }
 func TestDecode() {
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)
@@ -25,7 +25,7 @@ func TestDecode() {
 	var input string = "decode-test"
 	var encoded any = exchange.Encode(input)
 	var decoded any = exchange.Decode(encoded)
-	assert(ccxt.IsEqual(decoded, input), ccxt.Add(ccxt.Add(ccxt.Add("decoded should be equal to input, got ", decoded), " instead of "), input))
+	assert((decoded == input), ccxt.Add(ccxt.Add(ccxt.Add("decoded should be equal to input, got ", decoded), " instead of "), input))
 }
 func TestEncodeDecode() {
 	TestEncode()

@@ -11,12 +11,12 @@ func TestStrip() {
 	exchange.InitParent(map[string]any{
 		"id": "sampleexchange",
 	}, map[string]any{}, exchange)
-	Assert(ccxt.IsEqual(exchange.Strip(" asd"), "asd"))
-	Assert(ccxt.IsEqual(exchange.Strip("    asd"), "asd"))
-	Assert(ccxt.IsEqual(exchange.Strip("asd "), "asd"))
-	Assert(ccxt.IsEqual(exchange.Strip("asd    "), "asd"))
-	Assert(ccxt.IsEqual(exchange.Strip(" asd "), "asd"))
-	Assert(ccxt.IsEqual(exchange.Strip("    asd    "), "asd"))
-	Assert(ccxt.IsEqual(exchange.Strip("asd"), "asd"))
-	Assert(ccxt.IsEqual(exchange.Strip(""), ""))
+	Assert((exchange.Strip(" asd") == "asd"))
+	Assert((exchange.Strip("    asd") == "asd"))
+	Assert((exchange.Strip("asd ") == "asd"))
+	Assert((exchange.Strip("asd    ") == "asd"))
+	Assert((exchange.Strip(" asd ") == "asd"))
+	Assert((exchange.Strip("    asd    ") == "asd"))
+	Assert((exchange.Strip("asd") == "asd"))
+	Assert((exchange.Strip("") == ""))
 }

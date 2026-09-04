@@ -194,7 +194,7 @@ type ICoreExchange interface {
 	ParseToInt(value any) any
 	SafeValue(value any, key any, defaultValue ...any) any
 	SafeBool(value any, key any, defaultValue ...any) any
-	SafeString(obj any, key any, defaultValue ...any) any
+	SafeString(obj any, key any, defaultValue ...any) *string
 	Describe() any
 	SetSandboxMode(enable any)
 	FeatureValue(symbol any, optionalArgs ...any) any
@@ -274,24 +274,24 @@ type ICoreExchange interface {
 	NetworkIdToCode(optionalArgs ...any) any
 	SafeValueN(obj any, keys any, defaultValue ...any) any
 	SafeDict2(dictionary any, key1 any, key2 any, optionalArgs ...any) any
-	SafeString2(obj any, key any, key2 any, defaultValue ...any) any
-	SafeStringUpper2(obj any, key any, key2 any, defaultValue ...any) any
-	SafeInteger2(obj any, key any, key2 any, defaultValue ...any) any
-	SafeIntegerN(obj any, keys []any, defaultValue ...any) any
-	SafeIntegerProductN(obj any, keys []any, multiplier any, defaultValue ...any) any
-	SafeFloat2(obj any, key any, key2 any, defaultValue ...any) any
-	SafeFloat(obj any, key any, defaultValue ...any) any
-	SafeStringLowerN(obj any, keys []any, defaultValue ...any) any
-	SafeStringUpperN(obj any, keys []any, defaultValue ...any) any
-	SafeInteger(obj any, key any, defaultValue ...any) any
-	SafeStringUpper(obj any, key any, defaultValue ...any) any
-	SafeStringLower(obj any, key any, defaultValue ...any) any
-	SafeStringLower2(obj any, key any, key2 any, defaultValue ...any) any
-	SafeFloatN(obj any, keys []any, defaultValue ...any) any
-	SafeStringN(obj any, keys2 any, defaultValue ...any) any
+	SafeString2(obj any, key any, key2 any, defaultValue ...any) *string
+	SafeStringUpper2(obj any, key any, key2 any, defaultValue ...any) *string
+	SafeInteger2(obj any, key any, key2 any, defaultValue ...any) *int64
+	SafeIntegerN(obj any, keys []any, defaultValue ...any) *int64
+	SafeIntegerProductN(obj any, keys []any, multiplier any, defaultValue ...any) *int64
+	SafeFloat2(obj any, key any, key2 any, defaultValue ...any) *float64
+	SafeFloat(obj any, key any, defaultValue ...any) *float64
+	SafeStringLowerN(obj any, keys []any, defaultValue ...any) *string
+	SafeStringUpperN(obj any, keys []any, defaultValue ...any) *string
+	SafeInteger(obj any, key any, defaultValue ...any) *int64
+	SafeStringUpper(obj any, key any, defaultValue ...any) *string
+	SafeStringLower(obj any, key any, defaultValue ...any) *string
+	SafeStringLower2(obj any, key any, key2 any, defaultValue ...any) *string
+	SafeFloatN(obj any, keys []any, defaultValue ...any) *float64
+	SafeStringN(obj any, keys2 any, defaultValue ...any) *string
 	SafeIntegerOmitZero(obj any, key any, optionalArgs ...any) any
-	SafeIntegerProduct(obj any, key any, multiplier any, defaultValue ...any) any
-	SafeIntegerProduct2(obj any, key1, key2 any, multiplier any, defaultValue ...any) any
+	SafeIntegerProduct(obj any, key any, multiplier any, defaultValue ...any) *int64
+	SafeIntegerProduct2(obj any, key1, key2 any, multiplier any, defaultValue ...any) *int64
 	SafeBoolN(dictionaryOrList any, keys any, optionalArgs ...any) any
 	SafeBool2(dictionary any, key1 any, key2 any, optionalArgs ...any) any
 	SafeNumber(obj any, key any, optionalArgs ...any) any
@@ -301,10 +301,10 @@ type ICoreExchange interface {
 	SafeDictN(dictionaryOrList any, keys any, optionalArgs ...any) any
 	SafeListN(dictionaryOrList any, keys any, optionalArgs ...any) any
 	SafeList(dictionaryOrList any, key any, optionalArgs ...any) any
-	SafeTimestamp(obj any, key any, defaultValue ...any) any
+	SafeTimestamp(obj any, key any, defaultValue ...any) *int64
 	SafeNumberN(obj any, arr any, optionalArgs ...any) any
-	SafeTimestamp2(obj any, key1, key2 any, defaultValue ...any) any
-	SafeTimestampN(obj any, keys []any, defaultValue ...any) any
+	SafeTimestamp2(obj any, key1, key2 any, defaultValue ...any) *int64
+	SafeTimestampN(obj any, keys []any, defaultValue ...any) *int64
 	SafeList2(dictionaryOrList any, key1 any, key2 any, optionalArgs ...any) any
 	Omit(a any, parameters ...any) any
 	CheckProxyUrlSettings(optionalArgs ...any) any

@@ -71,7 +71,7 @@ func (this *LunoCore) watchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
 	this.CheckRequiredCredentials()
-	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+	if ccxt.IsEqual(this.Markets, nil) {
 
 		retRes5212 := (<-this.LoadMarkets())
 		ccxt.PanicOnError(retRes5212)
@@ -92,7 +92,7 @@ func (this *LunoCore) watchTradesBody(ch chan any, symbol any, optionalArgs ...a
 
 	trades := (<-this.Watch(url, messageHash, request, subscriptionHash, subscription))
 	ccxt.PanicOnError(trades)
-	if ccxt.IsTrue(this.NewUpdates) {
+	if ccxt.EvalTruthy(this.NewUpdates) {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
 
@@ -117,15 +117,15 @@ func (this *LunoCore) HandleTrades(client any, message any, subscription any) {
 	//
 	var rawTrades any = this.SafeValue(message, "trade_updates", []any{})
 	var length int = ccxt.GetArrayLength(rawTrades)
-	if ccxt.IsTrue(ccxt.IsEqual(length, 0)) {
+	if ccxt.IsEqual(length, 0) {
 		return
 	}
 	var symbol any = ccxt.GetValue(subscription, "symbol")
 	var market any = this.Market(symbol)
 	var messageHash any = ccxt.Add("trades:", symbol)
 	var stored any = this.SafeValue(this.Trades, symbol)
-	if ccxt.IsTrue(ccxt.IsEqual(stored, nil)) {
-		var limit any = this.SafeInteger(this.Options, "tradesLimit", 1000)
+	if ccxt.IsEqual(stored, nil) {
+		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		stored = ccxt.NewArrayCache(limit)
 		ccxt.AddElementToObject(this.Trades, symbol, stored)
 	}
@@ -151,7 +151,7 @@ func (this *LunoCore) ParseTrade(trade any, optionalArgs ...any) any {
 	//
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
-	var symbol any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(market, nil))), nil, ccxt.GetValue(market, "symbol"))
+	var symbol any = ccxt.Ternary((ccxt.IsEqual(market, nil)), nil, ccxt.GetValue(market, "symbol"))
 	return this.SafeTrade(map[string]any{
 		"info":         trade,
 		"id":           nil,
@@ -193,7 +193,7 @@ func (this *LunoCore) watchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
 	this.CheckRequiredCredentials()
-	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+	if ccxt.IsEqual(this.Markets, nil) {
 
 		retRes15612 := (<-this.LoadMarkets())
 		ccxt.PanicOnError(retRes15612)
@@ -253,12 +253,12 @@ func (this *LunoCore) HandleOrderBook(client any, message any, subscription any)
 	//
 	var symbol any = ccxt.GetValue(subscription, "symbol")
 	var messageHash any = ccxt.Add("orderbook:", symbol)
-	var timestamp any = this.SafeInteger(message, "timestamp")
-	if !ccxt.IsTrue((ccxt.InOp(this.Orderbooks, symbol))) {
+	var timestamp *int64 = this.SafeInteger(message, "timestamp")
+	if !(ccxt.InOp(this.Orderbooks, symbol)) {
 		ccxt.AddElementToObject(this.Orderbooks, symbol, this.IndexedOrderBook(map[string]any{}))
 	}
 	var asks any = this.SafeValue(message, "asks")
-	if ccxt.IsTrue(!ccxt.IsEqual(asks, nil)) {
+	if !ccxt.IsEqual(asks, nil) {
 		var snapshot any = this.CustomParseOrderBook(message, symbol, timestamp, "bids", "asks", "price", "volume", "id")
 		ccxt.AddElementToObject(this.Orderbooks, symbol, this.IndexedOrderBook(snapshot))
 	} else {
@@ -268,7 +268,7 @@ func (this *LunoCore) HandleOrderBook(client any, message any, subscription any)
 		ccxt.AddElementToObject(ob, "datetime", this.Iso8601(timestamp))
 	}
 	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
-	var nonce any = this.SafeInteger(message, "sequence")
+	var nonce *int64 = this.SafeInteger(message, "sequence")
 	ccxt.AddElementToObject(orderbook, "nonce", nonce)
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
@@ -320,8 +320,8 @@ func (this *LunoCore) CustomParseBidAsk(bidask any, optionalArgs ...any) any {
 	var price any = this.SafeNumber(bidask, priceKey)
 	var amount any = this.SafeNumber(bidask, amountKey)
 	var result any = []any{price, amount}
-	if ccxt.IsTrue(!ccxt.IsEqual(thirdKey, nil)) {
-		var thirdValue any = this.SafeString(bidask, thirdKey)
+	if !ccxt.IsEqual(thirdKey, nil) {
+		var thirdValue *string = this.SafeString(bidask, thirdKey)
 		ccxt.AppendToArray(&result, thirdValue)
 	}
 	return result
@@ -373,24 +373,24 @@ func (this *LunoCore) HandleDelta(orderbook any, message any) {
 	var createUpdate any = this.SafeValue(message, "create_update")
 	var asksOrderSide any = ccxt.GetValue(orderbook, "asks")
 	var bidsOrderSide any = ccxt.GetValue(orderbook, "bids")
-	if ccxt.IsTrue(!ccxt.IsEqual(createUpdate, nil)) {
+	if !ccxt.IsEqual(createUpdate, nil) {
 		var bidAskArray any = this.CustomParseBidAsk(createUpdate, "price", "volume", "order_id")
-		var typeVar any = this.SafeString(createUpdate, "type")
-		if ccxt.IsTrue(ccxt.IsEqual(typeVar, "ASK")) {
+		var typeVar *string = this.SafeString(createUpdate, "type")
+		if typeVar != nil && *typeVar == "ASK" {
 			asksOrderSide.(ccxt.IOrderBookSide).StoreArray(bidAskArray)
-		} else if ccxt.IsTrue(ccxt.IsEqual(typeVar, "BID")) {
+		} else if typeVar != nil && *typeVar == "BID" {
 			bidsOrderSide.(ccxt.IOrderBookSide).StoreArray(bidAskArray)
 		}
 	}
 	var deleteUpdate any = this.SafeValue(message, "delete_update")
-	if ccxt.IsTrue(!ccxt.IsEqual(deleteUpdate, nil)) {
-		var orderId any = this.SafeString(deleteUpdate, "order_id")
+	if !ccxt.IsEqual(deleteUpdate, nil) {
+		var orderId *string = this.SafeString(deleteUpdate, "order_id")
 		asksOrderSide.(ccxt.IOrderBookSide).StoreArray([]any{0, 0, orderId})
 		bidsOrderSide.(ccxt.IOrderBookSide).StoreArray([]any{0, 0, orderId})
 	}
 }
 func (this *LunoCore) HandleMessage(client any, message any) {
-	if ccxt.IsTrue(ccxt.IsEqual(message, "")) {
+	if ccxt.IsEqual(message, "") {
 		return
 	}
 	var subscriptions any = ccxt.ObjectValues(client.(ccxt.ClientInterface).GetSubscriptions())

@@ -18,7 +18,7 @@ func testFetchOHLCVBody(ch chan any, exchange ccxt.ICoreExchange, skippedPropert
 	Assert(IsGreaterThan(GetArrayLength(timeframeKeys), 0), Add(Add(Add(exchange.GetId(), " "), method), " - no timeframes found"))
 	// prefer 1m timeframe if available, otherwise return the first one
 	var chosenTimeframeKey any = "1m"
-	if !IsTrue(exchange.InArray(chosenTimeframeKey, timeframeKeys)) {
+	if !EvalTruthy(exchange.InArray(chosenTimeframeKey, timeframeKeys)) {
 		chosenTimeframeKey = GetValue(timeframeKeys, 0)
 	}
 	var limit any = 10

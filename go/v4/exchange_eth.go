@@ -317,20 +317,20 @@ func (this *BaseExchange) EthEncodeStructuredData(domain2 any, messageTypes2 any
 	val, ok := messageData["nonce"]
 	if ok {
 		// messageData["nonce"] = uint64(val.(int64))
-		messageData["nonce"] = (*math.HexOrDecimal256)(big.NewInt(val.(int64)))
+		messageData["nonce"] = (*math.HexOrDecimal256)(big.NewInt(derefScalar(val).(int64)))
 	}
 
 	val, ok = messageData["time"]
 	if ok {
 		// messageData["time"] = uint64(val.(int64))
-		messageData["time"] = (*math.HexOrDecimal256)(big.NewInt(val.(int64)))
+		messageData["time"] = (*math.HexOrDecimal256)(big.NewInt(derefScalar(val).(int64)))
 	}
 
 	domainTyped := apitypes.TypedDataDomain{
-		Name:              this.SafeString(domain, "name", "").(string),
-		Version:           this.SafeString(domain, "version", "").(string),
-		ChainId:           (*math.HexOrDecimal256)(big.NewInt(this.SafeInteger(domain, "chainId").(int64))),
-		VerifyingContract: this.SafeString(domain, "verifyingContract", "").(string),
+		Name:              SafeString(domain, "name", "").(string),
+		Version:           SafeString(domain, "version", "").(string),
+		ChainId:           (*math.HexOrDecimal256)(big.NewInt(SafeInteger(domain, "chainId", nil).(int64))),
+		VerifyingContract: SafeString(domain, "verifyingContract", "").(string),
 	}
 
 	messageTypesTyped := map[string][]apitypes.Type{}
@@ -343,8 +343,8 @@ func (this *BaseExchange) EthEncodeStructuredData(domain2 any, messageTypes2 any
 		for i, type_ := range types {
 			typeMap := type_.(map[string]any)
 			messageTypesTyped[key][i] = apitypes.Type{
-				Name: typeMap["name"].(string),
-				Type: typeMap["type"].(string),
+				Name: derefScalar(typeMap["name"]).(string),
+				Type: derefScalar(typeMap["type"]).(string),
 			}
 		}
 	}
@@ -395,6 +395,9 @@ func (this *BaseExchange) EthAbiEncode(types2 any, args2 any) any {
 // static types EIP-712 signers use (uintN, intN, address, bytesN, bool); the ABI head encoding
 // of static types is simply each value padded to 32 bytes, so no dynamic-type support is needed.
 func ethAbiEncodeWord(typeStr string, value any) []byte {
+	// a Safe*-carried pointer must encode as the value it points at, not fall
+	// through every type switch below and encode as a zero word
+	value = derefScalar(value)
 	word := make([]byte, 32)
 	if typeStr == "address" {
 		s, _ := value.(string)
@@ -587,7 +590,7 @@ func (this *BaseExchange) Packb(data any) []uint8 {
 		return p
 	}
 
-	typeA := this.SafeString(converted, "type", "").(string)
+	typeA := SafeString(converted, "type", "").(string)
 
 	switch typeA {
 	case "order":
@@ -862,7 +865,7 @@ func SafeInt(v any) int64 {
 func (this *BaseExchange) LoadLighterLibrary(path any, chainId any, privateKey any, apiKeyIndex any, accountIndex any, createClient bool) <-chan any {
 	ch := make(chan any)
 	go func() {
-		ch <- this.loadLighterLibraryHelper(path.(string), uint32(SafeInt(chainId)), privateKey.(string), uint8(SafeInt(apiKeyIndex)), int64(SafeInt(accountIndex)), createClient)
+		ch <- this.loadLighterLibraryHelper(derefScalar(path).(string), uint32(SafeInt(chainId)), derefScalar(privateKey).(string), uint8(SafeInt(apiKeyIndex)), int64(SafeInt(accountIndex)), createClient)
 	}()
 	return ch
 }
@@ -876,7 +879,7 @@ func (this *BaseExchange) loadLighterLibraryHelper(path string, chainId uint32, 
 }
 
 func (this *BaseExchange) LighterCreateClient(signer any, chainId any, privateKey any, apiKeyIndex any, accountIndex any) any {
-	return this.lighterCreateClient(signer, uint32(SafeInt(chainId)), privateKey.(string), uint8(SafeInt(apiKeyIndex)), int64(SafeInt(accountIndex)))
+	return this.lighterCreateClient(signer, uint32(SafeInt(chainId)), derefScalar(privateKey).(string), uint8(SafeInt(apiKeyIndex)), int64(SafeInt(accountIndex)))
 }
 
 func (this *BaseExchange) lighterCreateClient(signer any, chainId uint32, privateKey string, apiKeyIndex uint8, accountIndex int64) any {
@@ -1183,7 +1186,7 @@ func (this *BaseExchange) LighterSignTransfer(signer any, request any) any {
 
 func (this *BaseExchange) lighterSignTransfer(signer *client.TxClient, request map[string]any) any {
 	var memoArr [32]byte
-	bs := []byte(request["memo"].(string))
+	bs := []byte(derefScalar(request["memo"]).(string))
 	if len(bs) != 32 {
 		panic(fmt.Errorf("memo expected to be 32 bytes long"))
 	}
@@ -1349,7 +1352,7 @@ func (this *BaseExchange) LighterSignChangePubkey(signer any, request any) any {
 }
 
 func (this *BaseExchange) lighterSignChangePubkey(signer *client.TxClient, request map[string]any) any {
-	decPubkey, err := hexutil.Decode(request["pubkey"].(string))
+	decPubkey, err := hexutil.Decode(derefScalar(request["pubkey"]).(string))
 	if err != nil {
 		panic(err)
 	}
@@ -1555,16 +1558,19 @@ func toTypedDataDomain(domain map[string]any) (apitypes.TypedDataDomain, error) 
 	if domain == nil {
 		return d, nil
 	}
-	if v, ok := domain["name"].(string); ok {
+	// domain fields arrive from generated exchange code, where Safe* now yields
+	// pointer-carried scalars; a raw type assertion would silently drop them and
+	// geth would then report the field as '<nil>' during hashing
+	if v, ok := derefScalar(domain["name"]).(string); ok {
 		d.Name = v
 	}
-	if v, ok := domain["version"].(string); ok {
+	if v, ok := derefScalar(domain["version"]).(string); ok {
 		d.Version = v
 	}
-	if v, ok := domain["verifyingContract"].(string); ok {
+	if v, ok := derefScalar(domain["verifyingContract"]).(string); ok {
 		d.VerifyingContract = v
 	}
-	if v, ok := domain["chainId"]; ok {
+	if v, ok := domain["chainId"]; ok && derefScalar(v) != nil {
 		bi, err := toBigInt(v)
 		if err != nil {
 			return d, fmt.Errorf("chainId: %w", err)
@@ -1583,7 +1589,7 @@ func normalizeTypedMessage(types map[string][]apitypes.Type, primaryType string,
 }
 
 func normalizeStruct(types map[string][]apitypes.Type, typeName string, value any) (apitypes.TypedDataMessage, error) {
-	obj, ok := value.(map[string]any)
+	obj, ok := derefScalar(value).(map[string]any)
 	if !ok {
 		return nil, fmt.Errorf("value for %s must be object", typeName)
 	}
@@ -1596,6 +1602,7 @@ func normalizeStruct(types map[string][]apitypes.Type, typeName string, value an
 	// Include all fields from type definition - ALL fields must be present
 	for _, f := range fields {
 		raw, exists := obj[f.Name]
+		raw = derefScalar(raw)
 
 		// If field doesn't exist or is nil, provide default zero value
 		if !exists || raw == nil {
@@ -1736,7 +1743,7 @@ func normalizeValue(types map[string][]apitypes.Type, typeName string, value any
 }
 
 func toBigInt(v any) (*big.Int, error) {
-	switch n := v.(type) {
+	switch n := derefScalar(v).(type) {
 	case nil:
 		return nil, fmt.Errorf("nil int value")
 	case *big.Int:

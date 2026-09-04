@@ -710,7 +710,7 @@ export default class ndax extends Exchange {
             }
             const bidask = this.parseOrderBookBidAsk (level, priceKey, amountKey);
             const levelSide = this.safeInteger (level, 9);
-            const side = (levelSide !== undefined && levelSide !== null && levelSide !== 0) ? asksKey : bidsKey;
+            const side = (levelSide !== undefined && levelSide !== 0) ? asksKey : bidsKey;
             result[side].push (bidask);
         }
         result['bids'] = this.sortBy (result['bids'], 0, true);

@@ -29,7 +29,7 @@ func testWatchPositionsBody(ch chan any, exchange ccxt.ICoreExchange, skippedPro
 						}
 						ret_ = func() any {
 							// catch block:
-							if !IsTrue(IsTemporaryFailure(e)) {
+							if !EvalTruthy(IsTemporaryFailure(e)) {
 								panic(e)
 							}
 							now = exchange.Milliseconds()
@@ -43,15 +43,15 @@ func testWatchPositionsBody(ch chan any, exchange ccxt.ICoreExchange, skippedPro
 
 				response = (UnWrapType(<-exchange.WatchPositions([]any{symbol})))
 				PanicOnError(response)
-				if IsTrue(IsEqual(response, nil)) {
+				if IsEqual(response, nil) {
 					panic(Error(Add(exchange.GetId(), " watch returned undefined response")))
 				}
 				return nil
 			}()
 
 		}
-		if IsTrue(IsEqual(success, true)) {
-			if IsTrue(IsEqual(response, nil)) {
+		if success == true {
+			if IsEqual(response, nil) {
 				panic(Error(Add(exchange.GetId(), " watch returned undefined response")))
 			}
 			AssertNonEmtpyArray(exchange, skippedProperties, method, response, symbol)
@@ -76,7 +76,7 @@ func testWatchPositionsBody(ch chan any, exchange ccxt.ICoreExchange, skippedPro
 						}
 						ret_ = func() any {
 							// catch block:
-							if !IsTrue(IsTemporaryFailure(e)) {
+							if !EvalTruthy(IsTemporaryFailure(e)) {
 								panic(e)
 							}
 							now = exchange.Milliseconds()
@@ -94,7 +94,7 @@ func testWatchPositionsBody(ch chan any, exchange ccxt.ICoreExchange, skippedPro
 			}()
 
 		}
-		if IsTrue(IsEqual(success2, true)) {
+		if success2 == true {
 			Assert(IsArray(positionsForSymbols), Add(Add(Add(Add(exchange.GetId(), " "), method), " must return an array, returned "), exchange.Json(positionsForSymbols)))
 			// max theoretical 4 positions: two for one-way-mode and two for two-way mode
 			Assert(IsLessThanOrEqual(GetArrayLength(positionsForSymbols), 4), Add(Add(Add(Add(exchange.GetId(), " "), method), " positions length for particular symbol should be less than 4, returned "), exchange.Json(positionsForSymbols)))

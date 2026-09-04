@@ -7,7 +7,7 @@ import "github.com/ccxt/ccxt/go/v4"
 
 func TestTradingFee(exchange ccxt.ICoreExchange, skippedProperties any, method any, symbol any, entry any) {
 	// prediction-market fee structures are keyed by an outcome handle, not a `symbol`
-	if IsTrue(exchange.SafeBool(exchange.GetHas(), "prediction", false)) {
+	if EvalTruthy(exchange.SafeBool(exchange.GetHas(), "prediction", false)) {
 		skippedProperties = exchange.Extend(map[string]any{
 			"symbol": true,
 		}, skippedProperties)

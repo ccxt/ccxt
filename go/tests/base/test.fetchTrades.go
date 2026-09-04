@@ -23,7 +23,7 @@ func testFetchTradesBody(ch chan any, exchange ccxt.ICoreExchange, skippedProper
 		TestTrade(exchange, skippedProperties, method, GetValue(trades, i), symbol, now)
 		AssertInArray(exchange, skippedProperties, method, GetValue(trades, i), "takerOrMaker", []any{"taker", nil})
 	}
-	if !IsTrue((InOp(skippedProperties, "timestampSort"))) {
+	if !(InOp(skippedProperties, "timestampSort")) {
 		AssertTimestampOrder(exchange, method, symbol, trades)
 	}
 

@@ -99,8 +99,8 @@ func TestClone() {
 	assert(ccxt.IsEqual(ccxt.GetValue(simpleClone, "z"), nil), "clone A: z")
 	ccxt.AddElementToObject(simpleClone, "x", 999)
 	ccxt.AddElementToObject(simpleClone, "y", "mutated")
-	assert(ccxt.IsEqual(ccxt.GetValue(simpleOrig, "x"), 1), "clone A: mutating clone must not change original x")
-	assert(ccxt.IsEqual(ccxt.GetValue(simpleOrig, "y"), "hello"), "clone A: mutating clone must not change original y")
+	assert((ccxt.GetValue(simpleOrig, "x") == 1), "clone A: mutating clone must not change original x")
+	assert((ccxt.GetValue(simpleOrig, "y") == "hello"), "clone A: mutating clone must not change original y")
 	// mutating the original must not affect an already-taken clone
 	ccxt.AddElementToObject(simpleOrig, "x", 42)
 	assert(ccxt.IsEqual(ccxt.GetValue(simpleClone, "x"), 999), "clone A: mutating original must not change clone x")
@@ -116,14 +116,14 @@ func TestClone() {
 	var nestedClone any = exchange.Clone(nestedOrig)
 	// top-level scalar: independent
 	ccxt.AddElementToObject(nestedClone, "top", "cloned")
-	assert(ccxt.IsEqual(ccxt.GetValue(nestedOrig, "top"), "original"), "clone B: top-level scalar independence – original unchanged")
+	assert((ccxt.GetValue(nestedOrig, "top") == "original"), "clone B: top-level scalar independence – original unchanged")
 	assert(ccxt.IsEqual(ccxt.GetValue(nestedClone, "top"), "cloned"), "clone B: top-level scalar independence – clone updated")
 	ccxt.AddElementToObject(nestedOrig, "top", "changed_orig")
 	assert(ccxt.IsEqual(ccxt.GetValue(nestedClone, "top"), "cloned"), "clone B: changing original top must not affect clone")
 	// -------------------------------------------------------------------------
 	// --- test C: cloning an empty object ---
 	var emptyClone any = exchange.Clone(map[string]any{})
-	assert(ccxt.IsEqual(ccxt.GetArrayLength(ccxt.ObjectKeys(emptyClone)), 0), "clone C: cloning empty object gives empty object")
+	assert((ccxt.GetArrayLength(ccxt.ObjectKeys(emptyClone)) == 0), "clone C: cloning empty object gives empty object")
 	ccxt.AddElementToObject(emptyClone, "newKey", "injected")
 	// confirm the operation didn't throw and the value was set
 	assert(ccxt.IsEqual(ccxt.GetValue(emptyClone, "newKey"), "injected"), "clone C: can add key to clone of empty object")
@@ -140,7 +140,7 @@ func TestClone() {
 	assert(ccxt.IsEqual(ccxt.GetValue(undefClone, "absent"), nil), "clone D: undefined value preserved")
 	// mutate clone – original untouched
 	ccxt.AddElementToObject(undefClone, "present", "no")
-	assert(ccxt.IsEqual(ccxt.GetValue(withUndef, "present"), "yes"), "clone D: mutating clone must not change original")
+	assert((ccxt.GetValue(withUndef, "present") == "yes"), "clone D: mutating clone must not change original")
 	// -------------------------------------------------------------------------
 	// --- test E: multi-step: clone → mutate clone → re-clone original → compare ---
 	var masterOrig map[string]any = map[string]any{
@@ -152,14 +152,14 @@ func TestClone() {
 	ccxt.AddElementToObject(clone1, "a", 100)
 	ccxt.AddElementToObject(clone1, "d", 999) // add extra key
 	// original still pristine
-	assert(ccxt.IsEqual(ccxt.GetValue(masterOrig, "a"), 1), "clone E: original a untouched after clone1 mutation")
-	assert(!ccxt.IsTrue((ccxt.InOp(masterOrig, "d"))), "clone E: extra key must not appear in original")
+	assert((ccxt.GetValue(masterOrig, "a") == 1), "clone E: original a untouched after clone1 mutation")
+	assert(!(ccxt.InOp(masterOrig, "d")), "clone E: extra key must not appear in original")
 	// second independent clone from the still-pristine original
 	var clone2 any = exchange.Clone(masterOrig)
 	assert(ccxt.IsEqual(ccxt.GetValue(clone2, "a"), 1), "clone E: clone2 starts from pristine original")
-	assert(!ccxt.IsTrue((ccxt.InOp(clone2, "d"))), "clone E: clone2 must not inherit clone1 extra key")
+	assert(!(ccxt.InOp(clone2, "d")), "clone E: clone2 must not inherit clone1 extra key")
 	// mutate clone2 differently
 	ccxt.AddElementToObject(clone2, "b", 200)
 	assert(ccxt.IsEqual(ccxt.GetValue(clone1, "b"), 2), "clone E: clone1.b unaffected by clone2 mutation")
-	assert(ccxt.IsEqual(ccxt.GetValue(masterOrig, "b"), 2), "clone E: original.b unaffected by clone2 mutation")
+	assert((ccxt.GetValue(masterOrig, "b") == 2), "clone E: original.b unaffected by clone2 mutation")
 }

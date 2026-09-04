@@ -633,11 +633,11 @@ func TestWsCache() {
 		"side":      "long",
 		"contracts": 4,
 	}) // update first position
-	Assert(IsTrue(IsEqual(GetValue(GetValue(cacheSymbolSide4.ToArray(), 0), "contracts"), 1)) && IsTrue(IsEqual(GetValue(GetValue(cacheSymbolSide4.ToArray(), 0), "symbol"), symbol)))
-	Assert(IsTrue(IsEqual(GetValue(GetValue(cacheSymbolSide4.ToArray(), 1), "contracts"), 3)) && IsTrue(IsEqual(GetValue(GetValue(cacheSymbolSide4.ToArray(), 1), "symbol"), symbol3)))
-	Assert(IsTrue(IsEqual(GetValue(GetValue(cacheSymbolSide4.ToArray(), 2), "contracts"), 4)) && IsTrue(IsEqual(GetValue(GetValue(cacheSymbolSide4.ToArray(), 2), "symbol"), symbol2)))
+	Assert(IsEqual(GetValue(GetValue(cacheSymbolSide4.ToArray(), 0), "contracts"), 1) && IsEqual(GetValue(GetValue(cacheSymbolSide4.ToArray(), 0), "symbol"), symbol))
+	Assert(IsEqual(GetValue(GetValue(cacheSymbolSide4.ToArray(), 1), "contracts"), 3) && IsEqual(GetValue(GetValue(cacheSymbolSide4.ToArray(), 1), "symbol"), symbol3))
+	Assert(IsEqual(GetValue(GetValue(cacheSymbolSide4.ToArray(), 2), "contracts"), 4) && IsEqual(GetValue(GetValue(cacheSymbolSide4.ToArray(), 2), "symbol"), symbol2))
 	var arrayLength int = GetArrayLength(cacheSymbolSide4.ToArray())
-	Assert(IsEqual(arrayLength, 3))
+	Assert((arrayLength == 3))
 
 	// ----------------------------------------------------------------------------
 
@@ -656,7 +656,7 @@ func TestWsCache() {
 		"i":      2,
 	})
 	cacheClearById.Clear()
-	Assert(IsEqual(GetArrayLength(cacheClearById), 0))
+	Assert((GetArrayLength(cacheClearById) == 0))
 	Assert(IsEqual(cacheClearById.GetLimit(nil, 10), 0)) // no phantom updates
 	cacheClearById.Append(map[string]any{
 		"symbol": "BTC/USDT",
@@ -687,7 +687,7 @@ func TestWsCache() {
 	cacheClearTimestamp.Append([]any{100, 1, 2, 3})
 	cacheClearTimestamp.Append([]any{200, 4, 5, 6})
 	cacheClearTimestamp.Clear()
-	Assert(IsEqual(GetArrayLength(cacheClearTimestamp), 0))
+	Assert((GetArrayLength(cacheClearTimestamp) == 0))
 	Assert(IsEqual(cacheClearTimestamp.GetLimit(nil, 10), 0)) // no phantom updates
 	cacheClearTimestamp.Append([]any{100, 7, 8, 9})
 	Assert(Equals(cacheClearTimestamp, []any{[]any{100, 7, 8, 9}}))
@@ -708,7 +708,7 @@ func TestWsCache() {
 	})
 	cacheClearBySide.Clear()
 	var clearedBySideLength int = GetArrayLength(cacheClearBySide)
-	Assert(IsEqual(clearedBySideLength, 0))
+	Assert((clearedBySideLength == 0))
 	cacheClearBySide.Append(map[string]any{
 		"symbol":    "BTC/USDT",
 		"side":      "long",
@@ -720,7 +720,7 @@ func TestWsCache() {
 		"contracts": 4,
 	})
 	var reappendedBySideLength int = GetArrayLength(cacheClearBySide)
-	Assert(IsEqual(reappendedBySideLength, 2))
+	Assert((reappendedBySideLength == 2))
 	Assert(IsEqual(GetValue(GetValue(cacheClearBySide, 0), "contracts"), 3))
 	Assert(IsEqual(GetValue(GetValue(cacheClearBySide, 1), "contracts"), 4))
 
@@ -740,7 +740,7 @@ func TestWsCache() {
 		"symbol": "BTC/USDT",
 		"data":   3,
 	})
-	Assert(IsEqual(GetArrayLength(cacheUnbounded), 3))
+	Assert((GetArrayLength(cacheUnbounded) == 3))
 
 	// ----------------------------------------------------------------------------
 
@@ -759,7 +759,7 @@ func TestWsCache() {
 		"id":     "a1",
 		"status": "closed",
 	})
-	Assert(IsEqual(GetArrayLength(cachePartial), 1))
+	Assert((GetArrayLength(cachePartial) == 1))
 	Assert(IsEqual(GetValue(GetValue(cachePartial, 0), "status"), "closed"))
 	Assert(IsEqual(GetValue(GetValue(cachePartial, 0), "amount"), 5))
 	Assert(IsEqual(GetValue(GetValue(cachePartial, 0), "fee"), 7))
@@ -779,7 +779,7 @@ func TestWsCache() {
 		"id":     "12",
 		"i":      2,
 	})
-	Assert(IsEqual(GetArrayLength(cacheColliding), 2))
+	Assert((GetArrayLength(cacheColliding) == 2))
 	Assert(IsEqual(GetValue(GetValue(cacheColliding, 0), "i"), 1))
 	Assert(IsEqual(GetValue(GetValue(cacheColliding, 1), "i"), 2))
 
@@ -833,7 +833,7 @@ func TestWsCache() {
 	cacheShortOhlcv := NewArrayCacheByTimestamp()
 	cacheShortOhlcv.Append([]any{100, 1, 2, 3, 4, 5})
 	cacheShortOhlcv.Append([]any{100, 9, 9})
-	Assert(IsEqual(GetArrayLength(cacheShortOhlcv), 1))
+	Assert((GetArrayLength(cacheShortOhlcv) == 1))
 	Assert(Equals(cacheShortOhlcv, []any{[]any{100, 9, 9}}))
 
 	// ----------------------------------------------------------------------------
@@ -890,7 +890,7 @@ func TestWsCache() {
 		"id":     1,
 		"status": "closed",
 	})
-	Assert(IsEqual(GetArrayLength(cacheNumericId), 1))
+	Assert((GetArrayLength(cacheNumericId) == 1))
 	Assert(IsEqual(GetValue(GetValue(cacheNumericId, 0), "status"), "closed"))
 	Assert(IsEqual(GetValue(GetValue(cacheNumericId, 0), "amount"), 5))
 
@@ -908,10 +908,10 @@ func TestWsCache() {
 		})
 	}
 	var evictedLength int = GetArrayLength(cacheEvictBuckets)
-	Assert(IsEqual(evictedLength, 3))
+	Assert((evictedLength == 3))
 	var bucketKeys []string = ObjectKeys(cacheEvictBuckets.Hashmap)
 	var bucketCount int = GetArrayLength(bucketKeys)
-	Assert(IsEqual(bucketCount, 3)) // no empty leftover buckets
+	Assert((bucketCount == 3)) // no empty leftover buckets
 
 	// ----------------------------------------------------------------------------
 

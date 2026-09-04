@@ -8,7 +8,7 @@ import "github.com/ccxt/ccxt/go/v4"
 func TestTrade(exchange ccxt.ICoreExchange, skippedProperties any, method any, entry any, symbol any, now any) {
 	// prediction-market structures are keyed by an outcome handle, not a `symbol`, and the
 	// PredictionTrade type carries a single `fee` but omits the `fees` list entirely
-	if IsTrue(exchange.SafeBool(exchange.GetHas(), "prediction", false)) {
+	if EvalTruthy(exchange.SafeBool(exchange.GetHas(), "prediction", false)) {
 		skippedProperties = exchange.Extend(map[string]any{
 			"symbol": true,
 			"fees":   true,
@@ -42,9 +42,9 @@ func TestTrade(exchange ccxt.ICoreExchange, skippedProperties any, method any, e
 	AssertInArray(exchange, skippedProperties, method, entry, "side", []any{"buy", "sell"})
 	AssertInArray(exchange, skippedProperties, method, entry, "takerOrMaker", []any{"taker", "maker"})
 	AssertFeeStructure(exchange, skippedProperties, method, entry, "fee")
-	if !IsTrue((InOp(skippedProperties, "fees"))) {
+	if !(InOp(skippedProperties, "fees")) {
 		// todo: remove undefined check and probably non-empty array check later
-		if IsTrue(!IsEqual(GetValue(entry, "fees"), nil)) {
+		if !IsEqual(GetValue(entry, "fees"), nil) {
 			for i := 0; IsLessThan(i, GetArrayLength(GetValue(entry, "fees"))); i++ {
 				AssertFeeStructure(exchange, skippedProperties, method, GetValue(entry, "fees"), i)
 			}

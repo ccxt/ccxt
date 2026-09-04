@@ -95,7 +95,7 @@ func (this *KucoinfuturesCore) transferBody(ch chan any, code any, amount any, f
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes7312 := (<-this.LoadMarkets())
 		PanicOnError(retRes7312)
@@ -108,12 +108,12 @@ func (this *KucoinfuturesCore) transferBody(ch chan any, code any, amount any, f
 	}
 	var toAccountString any = this.ParseTransferType(toAccount)
 	var response any = nil
-	if IsTrue(IsTrue(IsEqual(toAccountString, "TRADE")) || IsTrue(IsEqual(toAccountString, "MAIN"))) {
+	if IsEqual(toAccountString, "TRADE") || IsEqual(toAccountString, "MAIN") {
 		AddElementToObject(request, "recAccountType", toAccountString)
 
 		response = (<-this.FuturesPrivatePostTransferOut(this.Extend(request, params)))
 		PanicOnError(response)
-	} else if IsTrue(IsTrue(IsTrue(IsEqual(toAccount, "future")) || IsTrue(IsEqual(toAccount, "swap"))) || IsTrue(IsEqual(toAccount, "contract"))) {
+	} else if (toAccount == "future") || (toAccount == "swap") || (toAccount == "contract") {
 		AddElementToObject(request, "payAccountType", this.ParseTransferType(fromAccount))
 
 		response = (<-this.FuturesPrivatePostTransferIn(this.Extend(request, params)))

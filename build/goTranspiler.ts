@@ -932,7 +932,7 @@ class NewTranspiler {
             [/([a-zA-Z]\w*)\.GetLimit/g, 'ToGetsLimit($1).GetLimit'],
             [/order.Limit([^"])/g, 'ToGetsLimit(orderbooks).Limit$1'],
             // OrderBook
-            [/\.Cache\s*=\s*(.+)/g, '.(OrderBookInterface).SetCache($1)'],
+            [/\.Cache\s*=(?!=)\s*(.+)/g, '.(OrderBookInterface).SetCache($1)'],
             [/(?:&)?(storedOrderBook|orderbook)\.Cache/g, '$1.(OrderBookInterface).GetCache()'],
             [/orderbook(s)?\.(Reset|Limit)/g, 'orderbook$1.(OrderBookInterface).$2'],
             [/([a-zA-Z0-9]+).StoreArray/g, '$1.(IOrderBookSide).StoreArray'],
@@ -947,9 +947,9 @@ class NewTranspiler {
             [/client\.Subscriptions/g, 'client.(ClientInterface).GetSubscriptions()'],
             [/client\.Rejections/g, 'client.(ClientInterface).GetRejections()'],
             [/client\.(Url)/g, 'client.(ClientInterface).Get$1()'],
-            [/client\.LastPong\s*=\s*(.*)/g, 'client.(ClientInterface).SetLastPong($1)'],
+            [/client\.LastPong\s*=(?!=)\s*(.*)/g, 'client.(ClientInterface).SetLastPong($1)'],
             [/client\.LastPong/g, 'client.(ClientInterface).GetLastPong()'],
-            [/client\.KeepAlive\s*=\s*(.*)/g, 'client.(ClientInterface).SetKeepAlive($1)'],
+            [/client\.KeepAlive\s*=(?!=)\s*(.*)/g, 'client.(ClientInterface).SetKeepAlive($1)'],
             [/client\.KeepAlive/g, 'client.(ClientInterface).GetKeepAlive()'],
             [/client\.ReusableFuture\(([^\)]*)\)/g, 'client.(ClientInterface).ReusableFuture($1)'],
             [/(retRes\d+)\s+:=\s+<-future.\(<-chan any\)/g, '$1 := <- future.(*ccxt.Future).Await()'],
@@ -3500,6 +3500,9 @@ func (this *${className}) Init(userConfig map[string]any) {
                 [/ any(?= \= map\[string\]any )/g, ' map[string]any'], // fix incorrect variable type
                 [ /any\sfunc\sEquals.+\n.*\n.+\n.+/gm, '' ], // remove equals
                 [/Precise\.String/gm, 'ccxt.Precise.String'],
+                // Safe* accessors return a typed pointer in Go, so the printer's inlined
+                // `call == "literal"` does not compile; route those back through IsEqual.
+                [/exchange\.(Safe\w+)\((.+?)\) == ("(?:[^"\\]|\\.)*")/g, 'IsEqual(exchange.$1($2), $3)'],
                 [ /testSharedMethods\./gm, '' ], // no need of class reference
                 [ /func Equals\(.+\n.*\n.*\n.*\}/gm, '' ], // remove equals
                 [ /\@SKIP_START_GO[\s\S]*?\@SKIP_END_GO/gm, '' ],
@@ -3557,7 +3560,7 @@ func (this *${className}) Init(userConfig map[string]any) {
             // for exactly the method called. A prediction venue that overrides only some of these runs
             // the has-gated test for the ones it has, and each single-method assertion succeeds.
             [/exchange\.(FetchL2OrderBook|FetchPositions|FetchTickers|FetchOpenOrders|EditOrder|FetchOrder|CancelOrderWithClientOrderId|CancelOrdersWithClientOrderIds|EditOrderWithClientOrderId|FetchOrderWithClientOrderId|FetchBidsAsks|WatchBidsAsks|WatchOrderBookForSymbols|WatchPosition|WatchTradesForSymbols)\(/g, 'exchange.(ccxt.I$1).$1('],
-            [/exchange.(\w+)\s*=\s*(.+)/g, 'exchange.Set$1($2)'],
+            [/exchange\.(\w+)\s*=(?!=)\s*(.+)/g, 'exchange.Set$1($2)'],
             [/exchange\.(\w+)(,|;|\)|\s)/g, 'exchange.Get$1()$2'],
             [/InitOfflineExchange\(exchangeName any, optionalArgs \.\.\.any\) any\s+{/g, 'InitOfflineExchange(exchangeName any, optionalArgs ...any) ccxt.ICoreExchange {'],
             [/assert\(/g, 'Assert('],
@@ -3675,7 +3678,7 @@ func (this *${className}) Init(userConfig map[string]any) {
                 [/exchange\.(FetchL2OrderBook|FetchPositions|FetchTickers|FetchOpenOrders|EditOrder|FetchOrder|CancelOrderWithClientOrderId|CancelOrdersWithClientOrderIds|EditOrderWithClientOrderId|FetchOrderWithClientOrderId|FetchBidsAsks|WatchBidsAsks|WatchOrderBookForSymbols|WatchPosition|WatchTradesForSymbols)\(/g, 'exchange.(ccxt.I$1).$1('],
                 [/testSharedMethods\./g, ''], // no need of class reference
                 [/assert/gm, 'Assert'],
-                [/exchange.(\w+)\s*=\s*(.+)/g, 'exchange.Set$1($2)'],
+                [/exchange\.(\w+)\s*=(?!=)\s*(.+)/g, 'exchange.Set$1($2)'],
                 [/exchange\.(\w+)(,|;|\)|\s)/g, 'exchange.Get$1()$2'],
                 [/Precise\./gm, 'ccxt.Precise.'],
                 [/Spawn\(createOrderAfterDelay/g, 'Spawn(CreateOrderAfterDelay'],

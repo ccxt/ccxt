@@ -171,7 +171,7 @@ func (this *BaseExchange) OmitMap(aa any, k any) any {
 		// keys = []string{k.(string)}
 	case []any:
 		for _, v := range k.([]any) {
-			keys = append(keys, v.(string))
+			keys = append(keys, derefScalar(v).(string))
 		}
 	}
 
@@ -202,7 +202,7 @@ func (this *BaseExchange) OmitN(aa any, keys []any) any {
 // contains checks if a slice contains a specific element.
 func (this *BaseExchange) Contains(slice []any, elem string) bool {
 	for _, s := range slice {
-		if s.(string) == elem {
+		if derefScalar(s).(string) == elem {
 			return true
 		}
 	}
@@ -311,7 +311,7 @@ func (this *BaseExchange) Aggregate(bidasks any) []any {
 }
 
 func (this *BaseExchange) ExtractParams(str2 any) []any {
-	str := str2.(string)
+	str := derefScalar(str2).(string)
 	// Compile the regular expression
 	regex := regexp.MustCompile(`\{([^\}]+)\}`)
 

@@ -35,7 +35,7 @@ func testWatchBidsAsksHelperBody(ch chan any, exchange ccxt.ICoreExchange, skipp
 	var ends any = Add(now, 15000)
 	var maxIdleTime any = 5000
 	var idle bool = false
-	for IsTrue((IsLessThan(now, ends))) && !IsTrue(idle) {
+	for (IsLessThan(now, ends)) && !idle {
 		var success bool = true
 		var shouldReturn bool = false
 		var response any = map[string]any{}
@@ -53,11 +53,11 @@ func testWatchBidsAsksHelperBody(ch chan any, exchange ccxt.ICoreExchange, skipp
 							// for some exchanges, multi symbol methods might require symbols array to be present, so
 							// so, if method throws "arguments-required" exception, we don't fail test, but just skip silently,
 							// because tests will make a second call of this method with symbols array
-							if IsTrue(IsTrue((IsInstance(e, ArgumentsRequired))) && IsTrue((IsTrue(IsEqual(argSymbols, nil)) || IsTrue(IsEqual(GetArrayLength(argSymbols), 0))))) {
+							if (IsInstance(e, ArgumentsRequired)) && (IsEqual(argSymbols, nil) || (GetArrayLength(argSymbols) == 0)) {
 								// todo: provide random symbols to try
 								// return false;
 								shouldReturn = true
-							} else if !IsTrue(IsTemporaryFailure(e)) {
+							} else if !EvalTruthy(IsTemporaryFailure(e)) {
 								panic(e)
 							}
 							success = false
@@ -74,16 +74,16 @@ func testWatchBidsAsksHelperBody(ch chan any, exchange ccxt.ICoreExchange, skipp
 
 		}
 		now = exchange.Milliseconds()
-		if IsTrue(shouldReturn) {
+		if shouldReturn {
 
 			ch <- false
 			return nil
 		}
-		if IsTrue(IsEqual(success, true)) {
+		if success == true {
 			Assert(exchange.IsDictionary(response), Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), method), " "), exchange.Json(argSymbols)), " must return a dictionary. "), exchange.Json(response)))
 			var values any = ObjectValues(response)
 			var checkedSymbol any = nil
-			if IsTrue(IsTrue(!IsEqual(argSymbols, nil)) && IsTrue(IsEqual(GetArrayLength(argSymbols), 1))) {
+			if !IsEqual(argSymbols, nil) && (GetArrayLength(argSymbols) == 1) {
 				checkedSymbol = GetValue(argSymbols, 0)
 			}
 			AssertNonEmtpyArray(exchange, skippedProperties, method, values, checkedSymbol)
@@ -91,7 +91,7 @@ func testWatchBidsAsksHelperBody(ch chan any, exchange ccxt.ICoreExchange, skipp
 				var ticker any = GetValue(values, i)
 				TestTicker(exchange, skippedProperties, method, ticker, checkedSymbol)
 			}
-			if IsTrue(IsGreaterThan((Subtract(now, startTime)), maxIdleTime)) {
+			if IsGreaterThan((Subtract(now, startTime)), maxIdleTime) {
 				idle = true
 			}
 		}

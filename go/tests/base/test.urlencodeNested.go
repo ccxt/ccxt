@@ -25,5 +25,5 @@ func TestUrlencodeNested() {
 	var expected2b string = "d[0]=1&d[1]=2&b[c]=2&b[target]=%2B%26"
 	var expected2d string = "d[0]=1&d[1]=2&b[target]=%2B%26&b[c]=2"
 	var result2 any = exchange.UrlencodeNested(dict2)
-	assert(ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue(ccxt.IsEqual(result2, expected2a)) || ccxt.IsTrue(ccxt.IsEqual(result2, expected2b))) || ccxt.IsTrue(ccxt.IsEqual(result2, expected2c))) || ccxt.IsTrue(ccxt.IsEqual(result2, expected2d)), ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add("urlencodeNested: expected ", expected2a), " or "), expected2b), " or "), expected2c), " or "), expected2d), " but got "), result2))
+	assert(ccxt.IsEqual(result2, expected2a) || ccxt.IsEqual(result2, expected2b) || ccxt.IsEqual(result2, expected2c) || ccxt.IsEqual(result2, expected2d), ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add("urlencodeNested: expected ", expected2a), " or "), expected2b), " or "), expected2c), " or "), expected2d), " but got "), result2))
 }

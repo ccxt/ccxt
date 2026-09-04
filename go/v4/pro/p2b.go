@@ -132,14 +132,14 @@ func (this *P2bCore) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+	if ccxt.IsEqual(this.Markets, nil) {
 
 		retRes9812 := (<-this.LoadMarkets())
 		ccxt.PanicOnError(retRes9812)
 	}
 	var timeframes any = this.SafeValue(this.Options, "timeframes", map[string]any{})
-	var channel any = this.SafeInteger(timeframes, timeframe)
-	if ccxt.IsTrue(ccxt.IsEqual(channel, nil)) {
+	var channel *int64 = this.SafeInteger(timeframes, timeframe)
+	if channel == nil {
 		panic(ccxt.BadRequest(ccxt.Add(ccxt.Add(this.Id, " watchOHLCV cannot take a timeframe of "), timeframe)))
 	}
 	var market any = this.Market(symbol)
@@ -148,7 +148,7 @@ func (this *P2bCore) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 
 	ohlcv := (<-this.Subscribe("kline.subscribe", messageHash, request, params))
 	ccxt.PanicOnError(ohlcv)
-	if ccxt.IsTrue(this.NewUpdates) {
+	if ccxt.EvalTruthy(this.NewUpdates) {
 		limit = ccxt.ToGetsLimit(ohlcv).GetLimit(symbol, limit)
 	}
 
@@ -177,7 +177,7 @@ func (this *P2bCore) watchTickerBody(ch chan any, symbol any, optionalArgs ...an
 	defer ccxt.ReturnPanicError(ch)
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+	if ccxt.IsEqual(this.Markets, nil) {
 
 		retRes13112 := (<-this.LoadMarkets())
 		ccxt.PanicOnError(retRes13112)
@@ -223,7 +223,7 @@ func (this *P2bCore) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	_ = symbols
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+	if ccxt.IsEqual(this.Markets, nil) {
 
 		retRes15812 := (<-this.LoadMarkets())
 		ccxt.PanicOnError(retRes15812)
@@ -312,14 +312,14 @@ func (this *P2bCore) watchTradesForSymbolsBody(ch chan any, symbols any, optiona
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+	if ccxt.IsEqual(this.Markets, nil) {
 
 		retRes20912 := (<-this.LoadMarkets())
 		ccxt.PanicOnError(retRes20912)
 	}
 	symbols = this.MarketSymbols(symbols, nil, false, true, true)
 	var messageHashes any = []any{}
-	if ccxt.IsTrue(!ccxt.IsEqual(symbols, nil)) {
+	if !ccxt.IsEqual(symbols, nil) {
 		for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
 			ccxt.AppendToArray(&messageHashes, ccxt.Add("deals::", ccxt.GetValue(symbols, i)))
 		}
@@ -335,9 +335,9 @@ func (this *P2bCore) watchTradesForSymbolsBody(ch chan any, symbols any, optiona
 
 	trades := (<-this.WatchMultiple(url, messageHashes, query, messageHashes))
 	ccxt.PanicOnError(trades)
-	if ccxt.IsTrue(this.NewUpdates) {
+	if ccxt.EvalTruthy(this.NewUpdates) {
 		var first any = this.SafeValue(trades, 0)
-		var tradeSymbol any = this.SafeString(first, "symbol")
+		var tradeSymbol *string = this.SafeString(first, "symbol")
 		limit = ccxt.ToGetsLimit(trades).GetLimit(tradeSymbol, limit)
 	}
 
@@ -368,7 +368,7 @@ func (this *P2bCore) watchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+	if ccxt.IsEqual(this.Markets, nil) {
 
 		retRes24812 := (<-this.LoadMarkets())
 		ccxt.PanicOnError(retRes24812)
@@ -376,8 +376,8 @@ func (this *P2bCore) watchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	var market any = this.Market(symbol)
 	var name string = "depth.subscribe"
 	var messageHash any = ccxt.Add("orderbook::", ccxt.GetValue(market, "symbol"))
-	var interval any = this.SafeString(params, "interval", "0.001")
-	if ccxt.IsTrue(ccxt.IsEqual(limit, nil)) {
+	var interval *string = this.SafeString(params, "interval", "0.001")
+	if ccxt.IsEqual(limit, nil) {
 		limit = 100
 	}
 	var request []any = []any{ccxt.GetValue(market, "id"), limit, interval}
@@ -409,21 +409,21 @@ func (this *P2bCore) HandleOHLCV(client any, message any) any {
 	//
 	var data any = this.SafeList(message, "params")
 	data = this.SafeList(data, 0)
-	var method any = this.SafeString(message, "method")
+	var method *string = this.SafeString(message, "method")
 	var splitMethod []string = ccxt.Split(method, ".")
-	var channel any = this.SafeString(splitMethod, 0)
-	var marketId any = this.SafeString(data, 7)
+	var channel *string = this.SafeString(splitMethod, 0)
+	var marketId *string = this.SafeString(data, 7)
 	var market any = this.SafeMarket(marketId)
 	var timeframes any = this.SafeDict(this.Options, "timeframes", map[string]any{})
 	var timeframe any = this.FindTimeframe(channel, timeframes)
-	var symbol any = this.SafeString(market, "symbol")
+	var symbol *string = this.SafeString(market, "symbol")
 	var messageHash any = ccxt.Add(ccxt.Add(channel, "::"), symbol)
 	var parsed any = this.ParseOHLCV(data, market)
 	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeValue(this.Ohlcvs, symbol, map[string]any{}))
 	var stored any = this.SafeValue(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)
-	if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
-		if ccxt.IsTrue(ccxt.IsEqual(stored, nil)) {
-			var limit any = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
+	if symbol != nil {
+		if ccxt.IsEqual(stored, nil) {
+			var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 			stored = ccxt.NewArrayCacheByTimestamp(limit)
 			ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), timeframe, stored)
 		}
@@ -454,12 +454,12 @@ func (this *P2bCore) HandleTrade(client any, message any) any {
 	//
 	var data any = this.SafeList(message, "params", []any{})
 	var trades any = this.SafeList(data, 1)
-	var marketId any = this.SafeString(data, 0)
+	var marketId *string = this.SafeString(data, 0)
 	var market any = this.SafeMarket(marketId)
-	var symbol any = this.SafeString(market, "symbol")
+	var symbol *string = this.SafeString(market, "symbol")
 	var tradesArray any = this.SafeValue(this.Trades, symbol)
-	if ccxt.IsTrue(ccxt.IsEqual(tradesArray, nil)) {
-		var tradesLimit any = this.SafeInteger(this.Options, "tradesLimit", 1000)
+	if ccxt.IsEqual(tradesArray, nil) {
+		var tradesLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		tradesArray = ccxt.NewArrayCache(tradesLimit)
 		ccxt.AddElementToObject(this.Trades, symbol, tradesArray)
 	}
@@ -506,15 +506,15 @@ func (this *P2bCore) HandleTicker(client any, message any) any {
 	//    }
 	//
 	var data any = this.SafeList(message, "params", []any{})
-	var marketId any = this.SafeString(data, 0)
+	var marketId *string = this.SafeString(data, 0)
 	var market any = this.SafeMarket(marketId)
-	var method any = this.SafeString(message, "method")
+	var method *string = this.SafeString(message, "method")
 	var splitMethod []string = ccxt.Split(method, ".")
-	var messageHashStart any = this.SafeString(splitMethod, 0)
+	var messageHashStart *string = this.SafeString(splitMethod, 0)
 	var tickerData any = this.SafeDict(data, 1)
 	var ticker any = nil
-	if ccxt.IsTrue(ccxt.IsEqual(method, "price.update")) {
-		var lastPrice any = this.SafeString(data, 1)
+	if method != nil && *method == "price.update" {
+		var lastPrice *string = this.SafeString(data, 1)
 		ticker = this.SafeTicker(map[string]any{
 			"last":   lastPrice,
 			"close":  lastPrice,
@@ -553,25 +553,25 @@ func (this *P2bCore) HandleOrderBook(client any, message any) {
 	var data any = this.SafeDict(params, 1)
 	var asks any = this.SafeList(data, "asks")
 	var bids any = this.SafeList(data, "bids")
-	var marketId any = this.SafeString(params, 2)
+	var marketId *string = this.SafeString(params, 2)
 	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var messageHash any = ccxt.Add("orderbook::", ccxt.GetValue(market, "symbol"))
 	var subscription any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash, map[string]any{})
-	var limit any = this.SafeInteger(subscription, "limit")
+	var limit *int64 = this.SafeInteger(subscription, "limit")
 	var orderbook any = this.SafeValue(this.Orderbooks, symbol)
-	if ccxt.IsTrue(ccxt.IsEqual(orderbook, nil)) {
+	if ccxt.IsEqual(orderbook, nil) {
 		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, limit))
 		orderbook = ccxt.GetValue(this.Orderbooks, symbol)
 	}
-	if ccxt.IsTrue(ccxt.IsEqual(isFullUpdate, true)) {
+	if isFullUpdate == true {
 		// the first parameter signals whether the message carries all
 		// records or only the changed ones, a full set replaces the book,
 		// otherwise stale levels that left the depth window would linger
 		// and cross the book, see https://github.com/ccxt/ccxt/issues/24944
 		orderbook.(ccxt.OrderBookInterface).Reset(map[string]any{})
 	}
-	if ccxt.IsTrue(!ccxt.IsEqual(bids, nil)) {
+	if !ccxt.IsEqual(bids, nil) {
 		for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(bids)); i++ {
 			var bid any = this.SafeValue(bids, i)
 			var price any = this.SafeNumber(bid, 0)
@@ -580,7 +580,7 @@ func (this *P2bCore) HandleOrderBook(client any, message any) {
 			bookSide.(ccxt.IOrderBookSide).Store(price, amount)
 		}
 	}
-	if ccxt.IsTrue(!ccxt.IsEqual(asks, nil)) {
+	if !ccxt.IsEqual(asks, nil) {
 		for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(asks)); i++ {
 			var ask any = this.SafeValue(asks, i)
 			var price any = this.SafeNumber(ask, 0)
@@ -593,15 +593,15 @@ func (this *P2bCore) HandleOrderBook(client any, message any) {
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
 func (this *P2bCore) HandleMessage(client any, message any) {
-	if ccxt.IsTrue(ccxt.IsEqual(this.HandleErrorMessage(client, message), true)) {
+	if ccxt.IsEqual(this.HandleErrorMessage(client, message), true) {
 		return
 	}
-	var result any = this.SafeString(message, "result")
-	if ccxt.IsTrue(ccxt.IsEqual(result, "pong")) {
+	var result *string = this.SafeString(message, "result")
+	if result != nil && *result == "pong" {
 		this.HandlePong(client, message)
 		return
 	}
-	var method any = this.SafeString(message, "method")
+	var method *string = this.SafeString(message, "method")
 	var methods map[string]any = map[string]any{
 		"depth.update": this.HandleOrderBook,
 		"price.update": this.HandleTicker,
@@ -610,13 +610,13 @@ func (this *P2bCore) HandleMessage(client any, message any) {
 		"deals.update": this.HandleTrade,
 	}
 	var endpoint any = this.SafeValue(methods, method)
-	if ccxt.IsTrue(!ccxt.IsEqual(endpoint, nil)) {
+	if !ccxt.IsEqual(endpoint, nil) {
 		ccxt.CallDynamically(endpoint, client, message)
 	}
 }
 func (this *P2bCore) HandleErrorMessage(client any, message any) any {
-	var error any = this.SafeString(message, "error")
-	if ccxt.IsTrue(!ccxt.IsEqual(error, nil)) {
+	var error *string = this.SafeString(message, "error")
+	if error != nil {
 		panic(ccxt.ExchangeError(ccxt.Add(ccxt.Add(this.Id, " error: "), this.Json(error))))
 	}
 	return false

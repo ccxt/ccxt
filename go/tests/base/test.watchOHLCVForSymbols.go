@@ -20,7 +20,7 @@ func testWatchOHLCVForSymbolsBody(ch chan any, exchange ccxt.ICoreExchange, skip
 	Assert(IsGreaterThan(GetArrayLength(timeframeKeys), 0), Add(Add(Add(exchange.GetId(), " "), method), " - no timeframes found"))
 	// prefer 1m timeframe if available, otherwise return the first one
 	var chosenTimeframeKey any = "1m"
-	if !IsTrue(exchange.InArray(chosenTimeframeKey, timeframeKeys)) {
+	if !EvalTruthy(exchange.InArray(chosenTimeframeKey, timeframeKeys)) {
 		chosenTimeframeKey = GetValue(timeframeKeys, 0)
 	}
 	var limit any = 10
@@ -28,7 +28,7 @@ func testWatchOHLCVForSymbolsBody(ch chan any, exchange ccxt.ICoreExchange, skip
 	var since any = Subtract(Subtract(exchange.Milliseconds(), Multiply(Multiply(duration, limit), 1000)), 1000)
 	var maxIdleTime any = 5000
 	var idle bool = false
-	for IsTrue((IsLessThan(now, ends))) && !IsTrue(idle) {
+	for (IsLessThan(now, ends)) && !idle {
 		var response any = nil
 		var success bool = true
 		var startTime any = exchange.Milliseconds()
@@ -42,7 +42,7 @@ func testWatchOHLCVForSymbolsBody(ch chan any, exchange ccxt.ICoreExchange, skip
 						}
 						ret_ = func() any {
 							// catch block:
-							if !IsTrue(IsTemporaryFailure(e)) {
+							if !EvalTruthy(IsTemporaryFailure(e)) {
 								panic(e)
 							}
 							success = false
@@ -54,7 +54,7 @@ func testWatchOHLCVForSymbolsBody(ch chan any, exchange ccxt.ICoreExchange, skip
 
 				response = (UnWrapType(<-exchange.WatchOHLCVForSymbols([]any{[]any{symbol, chosenTimeframeKey}}, since, limit)))
 				PanicOnError(response)
-				if IsTrue(IsEqual(response, nil)) {
+				if IsEqual(response, nil) {
 					panic(Error(Add(exchange.GetId(), " watch returned undefined response")))
 				}
 				return nil
@@ -62,7 +62,7 @@ func testWatchOHLCVForSymbolsBody(ch chan any, exchange ccxt.ICoreExchange, skip
 
 		}
 		now = exchange.Milliseconds()
-		if IsTrue(IsTrue((IsEqual(success, true))) && IsTrue((!IsEqual(response, nil)))) {
+		if (success == true) && (!IsEqual(response, nil)) {
 			var AssertionMessage any = Add(Add(Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), method), " "), symbol), " "), chosenTimeframeKey), " | "), exchange.Json(response))
 			Assert(exchange.IsDictionary(response), Add("Response must be a dictionary. ", AssertionMessage))
 			Assert(InOp(response, symbol), Add("Response should contain the symbol as key. ", AssertionMessage))
@@ -74,7 +74,7 @@ func testWatchOHLCVForSymbolsBody(ch chan any, exchange ccxt.ICoreExchange, skip
 			for i := 0; IsLessThan(i, GetArrayLength(ohlcvs)); i++ {
 				TestOHLCV(exchange, skippedProperties, method, GetValue(ohlcvs, i), symbol, now)
 			}
-			if IsTrue(IsGreaterThan((Subtract(now, startTime)), maxIdleTime)) {
+			if IsGreaterThan((Subtract(now, startTime)), maxIdleTime) {
 				idle = true
 			}
 		}

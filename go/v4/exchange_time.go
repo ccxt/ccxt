@@ -3,7 +3,6 @@ package ccxt
 import (
 	"math"
 	"reflect"
-	"regexp"
 	"strings"
 	"time"
 )
@@ -60,6 +59,9 @@ func (this *BaseExchange) Microseconds() int64 {
 // }
 
 func (this *BaseExchange) ParseDate(datetime2 any) any {
+	// SafeString now yields *string, so the kind check must run on the
+	// dereferenced value or every pointer-carried datetime returns nil
+	datetime2 = derefScalar(datetime2)
 	if datetime2 == nil || reflect.TypeOf(datetime2).Kind() != reflect.String {
 		return nil
 	}
@@ -90,51 +92,31 @@ func (this *BaseExchange) ParseDate(datetime2 any) any {
 	return timestamp
 }
 
-// iso8601PlainIntegerRegex matches a string consisting only of ASCII digits,
-// mirroring the /^[0-9]+$/ guard used by the other language implementations.
-var iso8601PlainIntegerRegex = regexp.MustCompile("^[0-9]+$")
-
 // Iso8601 converts a timestamp to an ISO 8601 formatted string.
 func Iso8601(ts2 any) any {
 	if ts2 == nil {
 		return nil
 	}
-	// reject the values the other language implementations reject before the
-	// numeric conversion: non-numeric strings (e.g. "123abc" or ""), NaN/±Inf and
-	// out-of-range float magnitudes. int64(NaN)/int64(±Inf) is implementation
-	// -defined in Go, so guarding here keeps the result identical across archs.
-	// A plain-integer string like "1755432123456" still falls through to ParseInt.
-	switch v := ts2.(type) {
-	case string:
-		if !iso8601PlainIntegerRegex.MatchString(v) {
-			return nil
-		}
-	case float64:
-		if math.IsNaN(v) || math.IsInf(v, 0) || v < 0 || v > 8640000000000000 {
-			return nil
-		}
-	case float32:
-		f := float64(v)
-		if math.IsNaN(f) || math.IsInf(f, 0) || f < 0 || f > 8640000000000000 {
-			return nil
-		}
-	}
 
+	// if IsNumber(ts) {
 	ts := ParseInt(ts2)
 
 	if ts == math.MinInt64 {
 		return nil
 	}
-	// negative values and anything past 8.64e15 ms are outside the supported range
-	if ts < 0 || ts > 8640000000000000 {
+	// }
+	// startdatetime, err := strconv.ParseInt(fmt.Sprintf("%v", ts), 10, 64)
+	// if err != nil || startdatetime < 0 {
+	// 	return nil
+	// }
+	startdatetime := ts
+
+	if startdatetime <= 0 {
 		return nil
 	}
 
-	// split into whole seconds + leftover milliseconds so the nanosecond argument
-	// of time.Unix never overflows int64 for large (year 9999) timestamps
-	seconds := ts / 1000
-	milliseconds := ts % 1000
-	date := time.Unix(seconds, milliseconds*int64(time.Millisecond)).UTC()
+	// Convert timestamp to time and set to UTC
+	date := time.Unix(0, startdatetime*int64(time.Millisecond)).UTC()
 	return date.Format("2006-01-02T15:04:05.000Z")
 }
 
@@ -167,7 +149,7 @@ func (this *BaseExchange) Ymdhms(ts any, args ...any) string {
 	}
 	startdatetime := ParseInt(ts)
 	date := time.Unix(0, startdatetime*int64(time.Millisecond)).UTC()
-	return date.Format("2006-01-02" + infix.(string) + "15:04:05")
+	return date.Format("2006-01-02" + derefScalar(infix).(string) + "15:04:05")
 }
 
 // yyyymmdd converts a timestamp to a formatted date string "yyyy-MM-dd".
@@ -181,7 +163,7 @@ func (this *BaseExchange) Yyyymmdd(ts any, args ...any) string {
 	}
 	startdatetime := ParseInt(ts)
 	date := time.Unix(0, startdatetime*int64(time.Millisecond)).UTC()
-	return date.Format("2006" + infix.(string) + "01" + infix.(string) + "02")
+	return date.Format("2006" + derefScalar(infix).(string) + "01" + derefScalar(infix).(string) + "02")
 }
 
 // yymmdd converts a timestamp to a formatted date string "yy-MM-dd".
@@ -195,7 +177,7 @@ func (this *BaseExchange) Yymmdd(ts any, args ...any) string {
 	}
 	startdatetime := ParseInt(ts)
 	date := time.Unix(0, startdatetime*int64(time.Millisecond)).UTC()
-	return date.Format("06" + infix.(string) + "01" + infix.(string) + "02")
+	return date.Format("06" + derefScalar(infix).(string) + "01" + derefScalar(infix).(string) + "02")
 }
 
 // ymd converts a timestamp to a formatted date string "yyyy-MM-dd".
@@ -209,7 +191,7 @@ func (this *BaseExchange) Ymd(ts any, args ...any) string {
 	}
 	startdatetime := ParseInt(ts)
 	date := time.Unix(0, startdatetime*int64(time.Millisecond)).UTC()
-	return date.Format("2006" + infix.(string) + "01" + infix.(string) + "02")
+	return date.Format("2006" + derefScalar(infix).(string) + "01" + derefScalar(infix).(string) + "02")
 }
 
 // parse8601 parses an ISO 8601 date string and returns the timestamp in milliseconds since the Unix epoch.
@@ -261,6 +243,9 @@ func (this *BaseExchange) Ymd(ts any, args ...any) string {
 // }
 
 func (this *BaseExchange) Parse8601(datetime2 any) any {
+	// SafeString now yields *string, so the kind check must run on the
+	// dereferenced value or every pointer-carried datetime returns nil
+	datetime2 = derefScalar(datetime2)
 	if datetime2 == nil || reflect.TypeOf(datetime2).Kind() != reflect.String {
 		return nil
 	}
