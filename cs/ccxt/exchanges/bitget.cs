@@ -3170,7 +3170,7 @@ public partial class bitget : Exchange
             bool accountIsUTa = false;
             try
             {
-                await this.privateUtaGetV3AccountSettings(parameters);
+                await this.privateUtaGetV3AccountSettings();
                 accountIsUTa = true;
             } catch(Exception e)
             {
