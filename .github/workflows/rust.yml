@@ -5,7 +5,7 @@ env:
   HEAD_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
   CARGO_PROFILE_DEV_DEBUG: "0"
   CARGO_PROFILE_TEST_DEBUG: "0"
-  CARGO_BUILD_JOBS: "1"
+  CARGO_BUILD_JOBS: "2"
 
 on:
   workflow_dispatch:
