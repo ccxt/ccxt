@@ -717,14 +717,21 @@ pub use crate::precise::Precise;
 #[allow(non_snake_case)]
 pub mod Math {
     use super::Value;
-    use super::as_f64;
+    use super::{as_f64, as_i64, both_ints};
+    // integer inputs must stay integers (same contract as add/sub/mul above):
+    // a Float result serializes as `10.0` in request JSON bodies, which servers
+    // with strict integer fields reject (e.g. nado archive `limit: u32` -> HTTP 422),
+    // while every other language port keeps the value integral
     pub fn min(a: &Value, b: &Value) -> Value {
+        if both_ints(a, b) { return Value::Int(as_i64(a).unwrap().min(as_i64(b).unwrap())); }
         match (as_f64(a), as_f64(b)) { (Some(x), Some(y)) => Value::Float(x.min(y)), _ => Value::Null }
     }
     pub fn max(a: &Value, b: &Value) -> Value {
+        if both_ints(a, b) { return Value::Int(as_i64(a).unwrap().max(as_i64(b).unwrap())); }
         match (as_f64(a), as_f64(b)) { (Some(x), Some(y)) => Value::Float(x.max(y)), _ => Value::Null }
     }
     pub fn abs(a: &Value) -> Value {
+        if let Value::Int(n) = a { return Value::Int(n.abs()); }
         match as_f64(a) { Some(x) => Value::Float(x.abs()), None => Value::Null }
     }
     pub fn pow(a: &Value, b: &Value) -> Value {
@@ -1477,3 +1484,26 @@ pub fn to_fixed(x: &Value, digits: &Value) -> Value {
 /// so the `use crate::runtime::*` glob doesn't need to import std collections.
 pub fn empty_map() -> Value { Value::Map(HashMap::new()) }
 pub fn empty_array() -> Value { Value::Array(vec![]) }
+
+#[cfg(test)]
+mod math_tests {
+    use super::{Math, Value};
+
+    // integer inputs must come back as Value::Int — a Float result serializes
+    // as `10.0` in request JSON bodies and strict-integer servers reject it
+    // (nado archive `candlesticks.limit: u32` answered HTTP 422 on live tests)
+    #[test]
+    fn min_max_abs_preserve_integers() {
+        assert_eq!(Math::min(&Value::Int(10), &Value::Int(500)), Value::Int(10));
+        assert_eq!(Math::max(&Value::Int(10), &Value::Int(500)), Value::Int(500));
+        assert_eq!(Math::abs(&Value::Int(-5)), Value::Int(5));
+    }
+
+    #[test]
+    fn min_max_abs_keep_float_semantics() {
+        assert_eq!(Math::min(&Value::Float(1.5), &Value::Int(2)), Value::Float(1.5));
+        assert_eq!(Math::max(&Value::Int(1), &Value::Float(2.5)), Value::Float(2.5));
+        assert_eq!(Math::abs(&Value::Float(-1.5)), Value::Float(1.5));
+        assert_eq!(Math::min(&Value::Null, &Value::Int(1)), Value::Null);
+    }
+}
