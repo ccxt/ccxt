@@ -982,7 +982,7 @@ class coincheck(Exchange, ImplicitAPI):
         #     {"success":false,"error":"invalid authentication"}
         #
         success = self.safe_bool(response, 'success', True)
-        if not success:
+        if success is not True:
             error = self.safe_string(response, 'error')
             feedback = self.id + ' ' + self.json(response)
             self.throw_exactly_matched_exception(self.exceptions['exact'], error, feedback)

@@ -1035,7 +1035,7 @@ class foxbit extends Exchange {
                 $request['time_in_force'] = $timeInForce;
             }
         }
-        if ($postOnly) {
+        if ($postOnly === true) {
             $request['post_only'] = true;
         }
         if ($triggerPrice !== null) {
@@ -1111,7 +1111,7 @@ class foxbit extends Exchange {
                 }
                 unset($orderParams['timeInForce']);
             }
-            if ($postOnly) {
+            if ($postOnly === true) {
                 $request['post_only'] = true;
                 unset($orderParams['postOnly']);
             }

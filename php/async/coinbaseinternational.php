@@ -86,8 +86,8 @@ class coinbaseinternational extends Exchange {
                 'fetchMarginMode' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
-                'fetchMyBuys' => true,
-                'fetchMySells' => true,
+                'fetchMyBuys' => false,
+                'fetchMySells' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenInterestHistory' => false,
@@ -353,7 +353,7 @@ class coinbaseinternational extends Exchange {
         for ($i = 0; $i < count($accounts); $i++) {
             $account = $accounts[$i];
             $info = $this->safe_dict($account, 'info', array());
-            if ($this->safe_bool($info, 'is_default')) {
+            if ($this->safe_bool($info, 'is_default') === true) {
                 $portfolioId = $this->safe_string($info, 'portfolio_id');
                 $this->options['portfolio'] = $portfolioId;
                 return array( $portfolioId, $params );
@@ -1032,7 +1032,7 @@ class coinbaseinternational extends Exchange {
         $maxEntriesPerRequest = 100;
         list($maxEntriesPerRequest, $params) = $this->handle_option_and_params($params, 'fetchDepositsWithdrawals', 'maxEntriesPerRequest', $maxEntriesPerRequest);
         $pageKey = 'ccxtPageKey';
-        if ($paginate) {
+        if ($paginate === true) {
             return Async\await($this->fetch_paginated_call_incremental('fetchDepositsWithdrawals', $code, $since, $limit, $params, $pageKey, $maxEntriesPerRequest));
         }
         $page = $this->safe_integer($params, $pageKey, 1) - 1;
@@ -1848,7 +1848,7 @@ class coinbaseinternational extends Exchange {
             'amount' => $amount,
             'fromAccount' => $fromAccount,
             'toAccount' => $toAccount,
-            'status' => $success ? 'ok' : 'failed',
+            'status' => ($success === true) ? 'ok' : 'failed',
         );
     }
 
@@ -2018,6 +2018,9 @@ class coinbaseinternational extends Exchange {
 
     public function parse_order_status(?string $status) {
         $statuses = array(
+            // order_status carries WORKING and DONE; the other keys are event_type
+            // values, which the same payload reports in its own field
+            'WORKING' => 'open',
             'NEW' => 'open',
             'PARTIAL_FILLED' => 'open',
             'FILLED' => 'closed',

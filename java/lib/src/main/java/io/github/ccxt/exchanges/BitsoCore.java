@@ -2146,7 +2146,7 @@ public class BitsoCore extends BitsoApi
                     Helpers.addElementToObject(result, code, new java.util.HashMap<String, Object>() {{
     put( "deposit", new java.util.HashMap<String, Object>() {{
         put( "fee", BitsoCore.this.safeNumber(entry, "fee") );
-        put( "percentage", !Helpers.isTrue(BitsoCore.this.safeValue(entry, "is_fixed")) );
+        put( "percentage", (!Helpers.isEqual(BitsoCore.this.safeValue(entry, "is_fixed"), true)) );
     }} );
     put( "withdraw", new java.util.HashMap<String, Object>() {{
         put( "fee", null );
@@ -2415,7 +2415,7 @@ public class BitsoCore extends BitsoApi
                     success = false;
                 }
             }
-            if (!Helpers.isTrue(success))
+            if (Helpers.isTrue(!Helpers.isEqual(success, true)))
             {
                 Object feedback = Helpers.add(Helpers.add(this.id, " "), this.json(response));
                 Object error = this.safeValue(response, "error");

@@ -919,7 +919,7 @@ class bitvavo(Exchange, ImplicitAPI):
         taker = self.safe_value(trade, 'taker')
         takerOrMaker = None
         if taker is not None:
-            takerOrMaker = 'taker' if taker else 'maker'
+            takerOrMaker = 'taker' if (taker is True) else 'maker'
         feeCostString = self.safe_string(trade, 'fee')
         fee = None
         if feeCostString is not None:

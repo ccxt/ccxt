@@ -14,7 +14,7 @@ public partial class testMainClass : BaseTest
         object now = exchange.milliseconds();
         object ends = add(now, 15000);
         List<object> timeframeKeys = new List<object>(((IDictionary<string,object>)exchange.timeframes).Keys);
-        assert(getArrayLength(timeframeKeys), add(add(add(exchange.id, " "), method), " - no timeframes found"));
+        assert(isGreaterThan(getArrayLength(timeframeKeys), 0), add(add(add(exchange.id, " "), method), " - no timeframes found"));
         // prefer 1m timeframe if available, otherwise return the first one
         object chosenTimeframeKey = "1m";
         if (!isTrue(exchange.inArray(chosenTimeframeKey, timeframeKeys)))
@@ -33,7 +33,7 @@ public partial class testMainClass : BaseTest
             object startTime = exchange.milliseconds();
             try
             {
-                response = await exchange.watchOHLCV(symbol, chosenTimeframeKey, since, limit);
+                response = detypeForComparison(await exchange.WatchOHLCV(((string)symbol),((string)chosenTimeframeKey),ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit)));
                 if (isTrue(isEqual(response, null)))
                 {
                     throw new Exception ((string)add(exchange.id, " watch returned undefined response")) ;

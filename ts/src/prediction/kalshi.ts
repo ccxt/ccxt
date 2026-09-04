@@ -273,7 +273,7 @@ export default class kalshi extends Exchange {
                 const parsed = this.parseBinaryMarketToOutcomes (raw);
                 const eventTicker = this.safeString (raw, 'event_ticker');
                 const eventTitle = this.safeString (raw, 'title', eventTicker);
-                const eventKey = eventTitle ? this.shortenSlug (eventTitle) : undefined;
+                const eventKey = (eventTitle !== undefined && eventTitle !== '') ? this.shortenSlug (eventTitle) : undefined;
                 for (let j = 0; j < parsed.length; j++) {
                     const m = parsed[j];
                     flatMarkets.push (m);
@@ -299,7 +299,7 @@ export default class kalshi extends Exchange {
             }
             cursor = this.safeString (response, 'cursor');
             const collectedLength = flatMarkets.length;
-            if (!cursor || rawMarketsLength < limit || collectedLength >= maxMarkets) {
+            if ((cursor === undefined || cursor === '') || rawMarketsLength < limit || collectedLength >= maxMarkets) {
                 break;
             }
         }
@@ -466,7 +466,7 @@ export default class kalshi extends Exchange {
         // errors (e.g. not_found -> BadSymbol) so callers can distinguish them from a transport
         // outage (the base otherwise maps a bare 404 to the exchange-not-available error). unmapped codes fall
         // through to the base http-status handling.
-        if (!response) {
+        if ((response === undefined) || (response === null)) {
             return undefined;
         }
         const error = this.safeDict (response, 'error');
@@ -665,7 +665,7 @@ export default class kalshi extends Exchange {
             'linear': undefined,
             'inverse': undefined,
             'contractSize': undefined,
-            'expiry': endDate ? this.parse8601 (endDate) : undefined,
+            'expiry': (endDate !== undefined && endDate !== '') ? this.parse8601 (endDate) : undefined,
             'expiryDatetime': endDate,
             'strike': undefined,
             'optionType': undefined,
@@ -786,7 +786,7 @@ export default class kalshi extends Exchange {
         //
         const tradingActive = this.safeBool (response, 'trading_active', false);
         return {
-            'status': tradingActive ? 'ok' : 'maintenance',
+            'status': (tradingActive === true) ? 'ok' : 'maintenance',
             'updated': undefined,
             'eta': undefined,
             'url': undefined,
@@ -901,7 +901,7 @@ export default class kalshi extends Exchange {
         //
         const marketAny = market;
         const outcomeObj = this.safeOutcome (this.safeString (marketAny, 'outcome'), marketAny);
-        const outcomeLabel = market ? this.safeString (market, 'label', this.safeString (market['info'], 'outcomeLabel', 'YES')) : 'YES';
+        const outcomeLabel = (market !== undefined && market !== null) ? this.safeString (market, 'label', this.safeString (market['info'], 'outcomeLabel', 'YES')) : 'YES';
         const isNo = outcomeLabel.toUpperCase () === 'NO';
         const now = this.milliseconds ();
         const outcome = this.safeString (outcomeObj, 'outcome');
@@ -1486,7 +1486,7 @@ export default class kalshi extends Exchange {
             cost = price * amount;
         }
         const isTaker = this.safeBool (fill, 'is_taker', true);
-        const takerOrMaker = (isTaker) ? 'taker' : 'maker';
+        const takerOrMaker = (isTaker === true) ? 'taker' : 'maker';
         const feeCost = this.safeNumber (fill, 'fee_cost');
         let fee: Fee = undefined;
         if (feeCost !== undefined) {
@@ -2572,6 +2572,8 @@ export default class kalshi extends Exchange {
         }
         const ticker = this.safeString (rawEvent, 'event_ticker');
         const title = this.safeString (rawEvent, 'title');
+        const hasTitle = (title !== undefined) && (title !== '');
+        const eventSlug = hasTitle ? this.shortenSlug (title) : undefined;
         let created = this.parse8601 (this.safeString (rawEvent, 'created_date_iso'));
         if (created === undefined) {
             created = earliestCreated;
@@ -2579,7 +2581,7 @@ export default class kalshi extends Exchange {
         return this.extend ({
             'id': ticker,
             'slug': ticker,
-            'event': title ? this.shortenSlug (title) : undefined,
+            'event': eventSlug,
             'title': title,
             'markets': marketsList,
             'volume': totalVolume,
@@ -2622,7 +2624,7 @@ export default class kalshi extends Exchange {
         let url = baseUrl + '/' + implodedPath;
         const query = this.omit (params, this.extractParams (path));
         const querystring = this.urlencode (query);
-        if (method === 'GET' && querystring) {
+        if (method === 'GET' && (querystring !== '')) {
             url += '?' + querystring;
         }
         const existingHeaders = (headers !== undefined) ? headers : {};
@@ -2649,7 +2651,7 @@ export default class kalshi extends Exchange {
                 'KALSHI-ACCESS-SIGNATURE': signature,
                 'KALSHI-ACCESS-TIMESTAMP': timestamp,
             });
-            if (method !== 'GET' && querystring) {
+            if (method !== 'GET' && (querystring !== '')) {
                 // kalshi expects a JSON body; the signature covers only timestamp+method+path
                 body = this.json (query);
             }

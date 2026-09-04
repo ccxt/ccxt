@@ -139,7 +139,7 @@ class kraken extends \ccxt\async\kraken {
         $isMarket = ($type === 'market');
         $postOnly = null;
         list($postOnly, $params) = $this->handle_post_only($isMarket, false, $params);
-        if ($postOnly) {
+        if ($postOnly === true) {
             $request['params']['post_only'] = true;
         }
         $clientOrderId = $this->safe_string($params, 'clientOrderId');
@@ -178,7 +178,7 @@ class kraken extends \ccxt\async\kraken {
         $priceType = ($isTrailingPercentOrder || $isTrailingLimitPercentOrder) ? 'pct' : 'quote';
         if ($method === 'createOrderWs') {
             $reduceOnly = $this->safe_bool($params, 'reduceOnly');
-            if ($reduceOnly) {
+            if ($reduceOnly === true) {
                 $request['params']['reduce_only'] = true;
             }
             $timeInForce = $this->safe_string_lower($params, 'timeInForce');
@@ -1033,7 +1033,7 @@ class kraken extends \ccxt\async\kraken {
         $orderbook->limit();
         // $checksum temporarily disabled because the exchange $checksum was not reliable
         $checksum = $this->handle_option('watchOrderBook', 'checksum', false);
-        if ($checksum) {
+        if ($checksum === true) {
             $payloadArray = array();
             if ($c !== null) {
                 $checkAsks = $orderbook['asks'];
@@ -1741,7 +1741,7 @@ class kraken extends \ccxt\async\kraken {
                 $method($client, $message);
             }
         }
-        if ($this->handle_error_message($client, $message)) {
+        if ($this->handle_error_message($client, $message) === true) {
             $event = $this->safe_string_2($message, 'event', 'method');
             $methods = array(
                 'heartbeat' => array($this, 'handle_heartbeat'),

@@ -89,8 +89,8 @@ class coinbaseinternational(Exchange, ImplicitAPI):
                 'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
-                'fetchMyBuys': True,
-                'fetchMySells': True,
+                'fetchMyBuys': False,
+                'fetchMySells': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenInterestHistory': False,
@@ -349,7 +349,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         for i in range(0, len(accounts)):
             account = accounts[i]
             info = self.safe_dict(account, 'info', {})
-            if self.safe_bool(info, 'is_default'):
+            if self.safe_bool(info, 'is_default') is True:
                 portfolioId = self.safe_string(info, 'portfolio_id')
                 self.options['portfolio'] = portfolioId
                 return [portfolioId, params]
@@ -935,7 +935,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         maxEntriesPerRequest = 100
         maxEntriesPerRequest, params = self.handle_option_and_params(params, 'fetchDepositsWithdrawals', 'maxEntriesPerRequest', maxEntriesPerRequest)
         pageKey = 'ccxtPageKey'
-        if paginate:
+        if paginate is True:
             return self.fetch_paginated_call_incremental('fetchDepositsWithdrawals', code, since, limit, params, pageKey, maxEntriesPerRequest)
         page = self.safe_integer(params, pageKey, 1) - 1
         offSet = self.safe_integer_2(params, 'offset', 'result_offset', page * maxEntriesPerRequest)
@@ -1672,7 +1672,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             'amount': amount,
             'fromAccount': fromAccount,
             'toAccount': toAccount,
-            'status': 'ok' if success else 'failed',
+            'status': 'ok' if (success is True) else 'failed',
         }
 
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
@@ -1824,6 +1824,9 @@ class coinbaseinternational(Exchange, ImplicitAPI):
 
     def parse_order_status(self, status: Str):
         statuses = {
+            # order_status carries WORKING and DONE; the other keys are event_type
+            # values, which the same payload reports in its own field
+            'WORKING': 'open',
             'NEW': 'open',
             'PARTIAL_FILLED': 'open',
             'FILLED': 'closed',

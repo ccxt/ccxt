@@ -1390,7 +1390,7 @@ public class BitbankCore extends BitbankApi
         }
         Object success = this.safeInteger(response, "success");
         Object data = this.safeValue(response, "data");
-        if (Helpers.isTrue(!Helpers.isTrue(success) || !Helpers.isTrue(data)))
+        if (Helpers.isTrue(Helpers.isTrue((Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(success, null)) || Helpers.isTrue(Helpers.isEqual(success, null))) || Helpers.isTrue(Helpers.isEqual(success, 0)))) || Helpers.isTrue((Helpers.isEqual(data, null)))))
         {
             Object errorMessages = new java.util.HashMap<String, Object>() {{
                 put( "10000", "URL does not exist" );

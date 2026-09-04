@@ -1765,7 +1765,7 @@ class bitso extends bitso$1["default"] {
                     result[code] = {
                         'deposit': {
                             'fee': this.safeNumber(entry, 'fee'),
-                            'percentage': !this.safeValue(entry, 'is_fixed'),
+                            'percentage': (this.safeValue(entry, 'is_fixed') !== true),
                         },
                         'withdraw': {
                             'fee': undefined,
@@ -1982,7 +1982,7 @@ class bitso extends bitso$1["default"] {
                     success = false;
                 }
             }
-            if (!success) {
+            if (success !== true) {
                 const feedback = this.id + ' ' + this.json(response);
                 const error = this.safeValue(response, 'error');
                 if (error === undefined) {

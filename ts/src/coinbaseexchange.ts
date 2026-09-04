@@ -1588,7 +1588,7 @@ export default class coinbaseexchange extends Exchange {
             request['time_in_force'] = timeInForce;
         }
         const postOnly = this.safeValue2 (params, 'postOnly', 'post_only', false);
-        if (postOnly) {
+        if (postOnly === true) {
             request['post_only'] = true;
         }
         params = this.omit (params, [ 'timeInForce', 'time_in_force', 'stopPrice', 'stop_price', 'clientOrderId', 'client_oid', 'postOnly', 'post_only', 'triggerPrice' ]);
@@ -1734,7 +1734,7 @@ export default class coinbaseexchange extends Exchange {
             }
             response = await this.privatePostWithdrawalsCrypto (this.extend (request, params));
         }
-        if (!response) {
+        if (response === undefined) {
             throw new ExchangeError (this.id + ' withdraw() error: ' + this.json (response));
         }
         return this.parseTransaction (response, currency);
@@ -2025,14 +2025,14 @@ export default class coinbaseexchange extends Exchange {
 
     parseTransactionStatus (transaction: any) {
         const canceled = this.safeValue (transaction, 'canceled_at');
-        if (canceled) {
+        if ((canceled !== undefined) && (canceled !== null)) {
             return 'canceled';
         }
         const processed = this.safeValue (transaction, 'processed_at');
         const completed = this.safeValue (transaction, 'completed_at');
-        if (completed) {
+        if ((completed !== undefined) && (completed !== null)) {
             return 'ok';
-        } else if (processed && !completed) {
+        } else if ((processed !== undefined) && (processed !== null)) {
             return 'failed';
         } else {
             return 'pending';

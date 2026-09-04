@@ -10,7 +10,7 @@ public partial class testMainClass : BaseTest
     async static public Task<object> testFetchMarkets(BaseExchange exchange, object skippedProperties)
     {
         string method = "fetchMarkets";
-        object markets = await ((dynamic)exchange).fetchMarkets();
+        object markets = await invokeExchangeDynamically(exchange, "fetchMarkets");
         testSharedMethods.assertDictionaryResponse(exchange, method, markets);
         List<object> marketValues = new List<object>(((IDictionary<string,object>)markets).Values);
         testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, marketValues);

@@ -867,7 +867,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
             }
         } else {
             $isCancel = $this->safe_value($message, 'is_cancel');
-            if ($isCancel) {
+            if ($isCancel === true) {
                 // Kraken documents is_cancel as "fully filled, cancelled, or
                 // rejected". Derive unified $status from `$reason` instead of
                 // mapping every removal to canceled. Preserve $reason on $info
@@ -1614,7 +1614,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
             'symbol' => $this->safe_string($market, 'symbol'),
             'order' => $this->safe_string($trade, 'order_id'),
             'type' => $this->safe_string($trade, 'type'),
-            'side' => $isBuy ? 'buy' : 'sell',
+            'side' => ($isBuy === true) ? 'buy' : 'sell',
             'takerOrMaker' => $this->safe_string($trade, 'fill_type'),
             'price' => $this->safe_string($trade, 'price'),
             'amount' => $this->safe_string($trade, 'qty'),

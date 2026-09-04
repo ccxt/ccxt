@@ -86,7 +86,7 @@ class grvt(ccxt.async_support.grvt):
         #     prev_sequence_number: "0",
         #  }
         #
-        if self.handle_error_message(client, message):
+        if self.handle_error_message(client, message) is True:
             return
         methods = {
             'v1.ticker.s': self.handle_ticker,

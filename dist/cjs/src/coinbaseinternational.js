@@ -83,8 +83,8 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
-                'fetchMyBuys': true,
-                'fetchMySells': true,
+                'fetchMyBuys': false,
+                'fetchMySells': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterestHistory': false,
@@ -345,7 +345,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         for (let i = 0; i < accounts.length; i++) {
             const account = accounts[i];
             const info = this.safeDict(account, 'info', {});
-            if (this.safeBool(info, 'is_default')) {
+            if (this.safeBool(info, 'is_default') === true) {
                 const portfolioId = this.safeString(info, 'portfolio_id');
                 this.options['portfolio'] = portfolioId;
                 return [portfolioId, params];
@@ -969,7 +969,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         let maxEntriesPerRequest = 100;
         [maxEntriesPerRequest, params] = this.handleOptionAndParams(params, 'fetchDepositsWithdrawals', 'maxEntriesPerRequest', maxEntriesPerRequest);
         const pageKey = 'ccxtPageKey';
-        if (paginate) {
+        if (paginate === true) {
             return await this.fetchPaginatedCallIncremental('fetchDepositsWithdrawals', code, since, limit, params, pageKey, maxEntriesPerRequest);
         }
         const page = this.safeInteger(params, pageKey, 1) - 1;
@@ -1729,7 +1729,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
             'amount': amount,
             'fromAccount': fromAccount,
             'toAccount': toAccount,
-            'status': success ? 'ok' : 'failed',
+            'status': (success === true) ? 'ok' : 'failed',
         };
     }
     /**
@@ -1894,6 +1894,9 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
     }
     parseOrderStatus(status) {
         const statuses = {
+            // order_status carries WORKING and DONE; the other keys are event_type
+            // values, which the same payload reports in its own field
+            'WORKING': 'open',
             'NEW': 'open',
             'PARTIAL_FILLED': 'open',
             'FILLED': 'closed',

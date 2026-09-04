@@ -10,7 +10,7 @@ public partial class testMainClass : BaseTest
     async static public Task<object> testFetchTradingFee(BaseExchange exchange, object skippedProperties, object symbol)
     {
         string method = "fetchTradingFee";
-        object fee = await ((dynamic)exchange).fetchTradingFee(symbol);
+        object fee = await invokeExchangeDynamically(exchange, "fetchTradingFee", symbol);
         testSharedMethods.assertDictionaryResponse(exchange, method, fee, symbol);
         testTradingFee(exchange, skippedProperties, method, symbol, fee);
         return true;

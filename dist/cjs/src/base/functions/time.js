@@ -62,25 +62,71 @@ class TimedOut extends Error {
         this.message = message;
     }
 }
+// iso8601 is a hot function (called once per parsed trade, order, candle, etc) and it is
+// called with scattered, non-ordered timestamps (multi-symbol feeds, daily OHLCV bars,
+// historical pagination), so it is completely stateless and makes no locality assumptions:
+// the civil date is derived from the day number with pure integer math (classic
+// civil-from-days algorithm, inlined below) and a Date object is never allocated — every
+// call costs the same few divisions regardless of ordering. The tables below are static
+// bounded data (zero-padded strings and the 8030 post-epoch year strings), not caches:
+// every lookup is O(1) for any input, nothing is ever invalidated. The output is
+// byte-for-byte identical to new Date (ms).toISOString () (including the extended-year
+// '+YYYYYY-' format above year 9999)
+const iso8601TwoDigits = [];
+for (let i = 0; i < 60; i++) {
+    iso8601TwoDigits.push((i < 10) ? ('0' + i) : ('' + i));
+}
+const iso8601ThreeDigits = [];
+for (let i = 0; i < 1000; i++) {
+    iso8601ThreeDigits.push((i < 10) ? ('00' + i) : ((i < 100) ? ('0' + i) : ('' + i)));
+}
 const iso8601 = (timestamp) => {
     let _timestampNumber = undefined;
     if (typeof timestamp === 'number') {
         _timestampNumber = Math.floor(timestamp);
     }
-    else {
+    else if ((typeof timestamp === 'string') && timestamp.match(/^[0-9]+$/)) {
+        // only plain-integer strings are accepted, e.g. '1755432123456' (not '123abc' or '')
         _timestampNumber = parseInt(timestamp, 10);
     }
-    // undefined, null and lots of nasty non-numeric values yield NaN
-    if (Number.isNaN(_timestampNumber) || _timestampNumber < 0) {
+    // undefined, null and lots of nasty non-numeric values are rejected here
+    if ((_timestampNumber === undefined) || Number.isNaN(_timestampNumber) || _timestampNumber < 0) {
         return undefined;
     }
-    // last line of defence
-    try {
-        return new Date(_timestampNumber).toISOString();
-    }
-    catch (e) {
+    // values above 8.64e15 (100,000,000 days) are outside the supported Date range
+    if (_timestampNumber > 8640000000000000) {
         return undefined;
     }
+    const seconds = Math.floor(_timestampNumber / 1000);
+    const milliseconds = _timestampNumber - (seconds * 1000);
+    const timeOfDay = seconds - (Math.floor(seconds / 86400) * 86400);
+    const day = (seconds - timeOfDay) / 86400;
+    // civil-from-days: convert days since 1970-01-01 to a gregorian date
+    const z = day + 719468;
+    const era = Math.floor(z / 146097);
+    const doe = z - (era * 146097); // [0, 146096] day of era
+    const yoe = Math.floor((doe - Math.floor(doe / 1460) + Math.floor(doe / 36524) - Math.floor(doe / 146096)) / 365); // [0, 399] year of era
+    const doy = doe - ((365 * yoe) + Math.floor(yoe / 4) - Math.floor(yoe / 100)); // [0, 365] day of year
+    const mp = Math.floor(((5 * doy) + 2) / 153); // [0, 11] month index counting from March
+    const dayOfMonth = doy - Math.floor(((153 * mp) + 2) / 5) + 1; // [1, 31]
+    const month = (mp < 10) ? (mp + 3) : (mp - 9); // [1, 12]
+    const yearExact = yoe + (era * 400);
+    const year = (month <= 2) ? (yearExact + 1) : yearExact;
+    let yearString = undefined;
+    if (year > 9999) {
+        yearString = '+' + ('' + year).padStart(6, '0');
+    }
+    else if (year >= 1000) {
+        yearString = '' + year;
+    }
+    else {
+        yearString = ('' + year).padStart(4, '0');
+    }
+    const hours = Math.floor(timeOfDay / 3600);
+    const minutesSeconds = timeOfDay - (hours * 3600);
+    const minutes = Math.floor(minutesSeconds / 60);
+    const secondsOfMinute = minutesSeconds - (minutes * 60);
+    return yearString + '-' + iso8601TwoDigits[month] + '-' + iso8601TwoDigits[dayOfMonth] + 'T' + iso8601TwoDigits[hours] + ':' + iso8601TwoDigits[minutes] + ':' + iso8601TwoDigits[secondsOfMinute] + '.' + iso8601ThreeDigits[milliseconds] + 'Z';
 };
 const parse8601 = (x) => {
     if (typeof x !== 'string' || !x) {

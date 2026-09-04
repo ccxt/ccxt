@@ -691,7 +691,7 @@ class bitstamp(Exchange, ImplicitAPI):
                 elif payoffType == 'Inverse':
                     subType = 'inverse'
             isSpot = (type == 'spot')
-            settle = self.safe_currency_code(settleId) if settleId else None
+            settle = self.safe_currency_code(settleId) if (settleId is not None and settleId != '') else None
             result.append({
                 'id': self.safe_string(market, 'market_symbol'),
                 'symbol': symbol,
@@ -782,7 +782,7 @@ class bitstamp(Exchange, ImplicitAPI):
             'networks': {},
         }
 
-    async def fetch_markets_from_cache(self, params={}):
+    async def fetch_markets_from_cache(self, params={}) -> list[dict]:
         # self method is now redundant
         # currencies are now fetched before markets
         options = self.safe_value(self.options, 'fetchMarkets', {})
@@ -2590,7 +2590,7 @@ class bitstamp(Exchange, ImplicitAPI):
                     body = self.urlencode({'foo': 'bar'})
                     contentType = 'application/x-www-form-urlencoded'
                     headers['Content-Type'] = contentType
-            authBody = body if body else ''
+            authBody = body if (body is not None and body != '') else ''
             auth = xAuth + method + url.replace('https://', '') + contentType + xAuthNonce + xAuthTimestamp + xAuthVersion + authBody
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
             headers['X-Auth-Signature'] = signature

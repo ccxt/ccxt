@@ -1259,7 +1259,7 @@ class paradex extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if (!$market['contract']) {
+        if ($market['contract'] !== true) {
             throw new BadRequest($this->id . ' fetchOpenInterest() supports contract markets only');
         }
         $request = array(
@@ -1718,7 +1718,7 @@ class paradex extends Exchange {
             $request['trigger_price'] = $stopPrice;
         }
         $request['size'] = $sizeString;
-        if ($reduceOnly) {
+        if ($reduceOnly === true) {
             $request['flags'] = array(
                 'REDUCE_ONLY',
             );
@@ -2568,15 +2568,16 @@ class paradex extends Exchange {
             $quantity = Precise::string_mul('-1', $quantity);
         }
         $timestamp = $this->safe_integer($position, 'time');
+        $liquidationPrice = $this->parse_number($this->omit_zero($this->safe_string($position, 'liquidation_price')));
         return $this->safe_position(array(
             'info' => $position,
             'id' => $this->safe_string($position, 'id'),
             'symbol' => $symbol,
-            'entryPrice' => $this->safe_string($position, 'average_entry_price'),
+            'entryPrice' => $this->safe_number($position, 'average_entry_price'),
             'markPrice' => null,
             'notional' => null,
-            'collateral' => $this->safe_string($position, 'cost'),
-            'unrealizedPnl' => $this->safe_string($position, 'unrealized_pnl'),
+            'collateral' => $this->safe_number($position, 'cost'),
+            'unrealizedPnl' => $this->safe_number($position, 'unrealized_pnl'),
             'side' => $side,
             'contracts' => $this->parse_number($quantity),
             'contractSize' => null,
@@ -2588,7 +2589,7 @@ class paradex extends Exchange {
             'initialMargin' => null,
             'initialMarginPercentage' => null,
             'leverage' => null,
-            'liquidationPrice' => null,
+            'liquidationPrice' => $liquidationPrice,
             'marginRatio' => null,
             'marginMode' => null,
             'percentage' => null,
@@ -3553,7 +3554,7 @@ class paradex extends Exchange {
     }
 
     public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
-        if (!$response) {
+        if ($response === null) {
             return null; // fallback to default error handler
         }
         //

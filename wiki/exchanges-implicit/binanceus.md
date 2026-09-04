@@ -692,7 +692,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `fapiPublicGetPremiumIndex` | GET | `premiumIndex` | 1 |
 | `fapiPublicGetTicker24hr` | GET | `ticker/24hr` | 1 |
 | `fapiPublicGetTickerPrice` | GET | `ticker/price` | 1 |
-| `fapiPublicGetTickerBookTicker` | GET | `ticker/bookTicker` | 1 |
+| `fapiPublicGetTickerBookTicker` | GET | `ticker/bookTicker` | 2 |
 | `fapiPublicGetOpenInterest` | GET | `openInterest` | 1 |
 | `fapiPublicGetIndexInfo` | GET | `indexInfo` | 1 |
 | `fapiPublicGetAssetIndex` | GET | `assetIndex` | 1 |

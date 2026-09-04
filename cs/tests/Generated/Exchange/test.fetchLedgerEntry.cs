@@ -10,7 +10,7 @@ public partial class testMainClass : BaseTest
     async static public Task<object> testFetchLedgerEntry(BaseExchange exchange, object skippedProperties, object code)
     {
         string method = "fetchLedgerEntry";
-        object items = await ((dynamic)exchange).fetchLedger(code);
+        object items = await invokeExchangeDynamically(exchange, "fetchLedger", code);
         int length = getArrayLength(items);
         testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, items, code);
         if (isTrue(isGreaterThan(length, 0)))
@@ -19,7 +19,7 @@ public partial class testMainClass : BaseTest
             object id = getValue(firstItem, "id");
             if (isTrue(!isEqual(id, null)))
             {
-                object item = await ((dynamic)exchange).fetchLedgerEntry(id);
+                object item = await invokeExchangeDynamically(exchange, "fetchLedgerEntry", id);
                 object now = exchange.milliseconds();
                 testLedgerEntry(exchange, skippedProperties, method, item, code, now);
             }

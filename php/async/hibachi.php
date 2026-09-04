@@ -951,7 +951,7 @@ class hibachi extends Exchange {
             $request['orderFlags'] = 'POST_ONLY';
         } elseif ($timeInForce === 'ioc') {
             $request['orderFlags'] = 'IOC';
-        } elseif ($reduceOnly) {
+        } elseif ($reduceOnly === true) {
             $request['orderFlags'] = 'REDUCE_ONLY';
         }
         if ($triggerPrice !== null) {
@@ -2325,7 +2325,7 @@ class hibachi extends Exchange {
         return $result;
     }
 
-    public function fetch_my_settlement_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_settlement_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_my_settlement_history(...))($symbol, $since, $limit, $params);
     }
 

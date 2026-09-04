@@ -391,7 +391,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             {
                 Object symbol = Helpers.GetValue(symbols, i);
                 Object market = this.market(symbol);
-                Object suffix = ((Helpers.isTrue((use1sFreq)))) ? "@1s" : "";
+                Object suffix = ((Helpers.isTrue((Helpers.isEqual(use1sFreq, true))))) ? "@1s" : "";
                 ((java.util.List<Object>)subscriptionArgs).add(Helpers.add(Helpers.add(this.safeStringLower(market, "id"), "@markPrice"), suffix));
                 ((java.util.List<Object>)messageHashes).add(Helpers.add("ticker:", Helpers.GetValue(market, "symbol")));
             }
@@ -458,7 +458,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             {
                 Object symbol = Helpers.GetValue(symbols, i);
                 Object market = this.market(symbol);
-                Object suffix = ((Helpers.isTrue((use1sFreq)))) ? "@1s" : "";
+                Object suffix = ((Helpers.isTrue((Helpers.isEqual(use1sFreq, true))))) ? "@1s" : "";
                 ((java.util.List<Object>)subscriptionArgs).add(Helpers.add(Helpers.add(this.safeStringLower(market, "id"), "@markPrice"), suffix));
                 ((java.util.List<Object>)messageHashes).add(Helpers.add("unsubscribe:ticker:", Helpers.GetValue(market, "symbol")));
             }
@@ -1045,9 +1045,9 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
         {
             if (Helpers.isTrue(Helpers.isEqual(side, null)))
             {
-                side = ((Helpers.isTrue(Helpers.GetValue(trade, "m")))) ? "sell" : "buy"; // this is reversed intentionally
+                side = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(trade, "m"), true))))) ? "sell" : "buy"; // this is reversed intentionally
             }
-            takerOrMaker = ((Helpers.isTrue(Helpers.GetValue(trade, "m")))) ? "maker" : "taker";
+            takerOrMaker = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(trade, "m"), true))))) ? "maker" : "taker";
         }
         Object fee = null;
         Object feeCost = this.safeString(trade, "n");
@@ -1718,7 +1718,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             Object options = this.safeDict(this.options, "watchBalance");
             Object fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
             Object awaitBalanceSnapshot = this.safeBool(options, "awaitBalanceSnapshot", true);
-            if (Helpers.isTrue(Helpers.isTrue(fetchBalanceSnapshot) && Helpers.isTrue(awaitBalanceSnapshot)))
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(fetchBalanceSnapshot, true))) && Helpers.isTrue((Helpers.isEqual(awaitBalanceSnapshot, true)))))
             {
                 client.future((String)Helpers.add(type, ":fetchBalanceSnapshot")).getFuture().join();
             }
@@ -1737,7 +1737,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
         }
         Object options = this.safeValue(this.options, "watchBalance");
         Object fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
-        if (Helpers.isTrue(fetchBalanceSnapshot))
+        if (Helpers.isTrue(Helpers.isEqual(fetchBalanceSnapshot, true)))
         {
             Object messageHash = Helpers.add(type, ":fetchBalanceSnapshot");
             if (!Helpers.isTrue((Helpers.inOp(client.futures, messageHash))))
@@ -1908,7 +1908,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             Object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);
             Object awaitPositionsSnapshot = this.handleOption("watchPositions", "awaitPositionsSnapshot", true);
             Object cache = this.positions;
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(fetchPositionsSnapshot) && Helpers.isTrue(awaitPositionsSnapshot)) && Helpers.isTrue(Helpers.isEqual(cache, null))))
+            if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(fetchPositionsSnapshot, true))) && Helpers.isTrue((Helpers.isEqual(awaitPositionsSnapshot, true)))) && Helpers.isTrue((Helpers.isEqual(cache, null)))))
             {
                 Object snapshot = client.future("fetchPositionsSnapshot").getFuture().join();
                 return this.filterBySymbolsSinceLimit(snapshot, symbols, since, limit, true);
@@ -1930,7 +1930,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             return;
         }
         Object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", false);
-        if (Helpers.isTrue(fetchPositionsSnapshot))
+        if (Helpers.isTrue(Helpers.isEqual(fetchPositionsSnapshot, true)))
         {
             Object messageHash = "fetchPositionsSnapshot";
             if (!Helpers.isTrue((Helpers.inOp(client.futures, messageHash))))

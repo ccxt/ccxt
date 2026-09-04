@@ -62,7 +62,7 @@ public partial class p2b : ccxt.p2b
     /**
      * @ignore
      * @method
-     * @description Connects to a websocket channel
+     * @description connects to a websocket channel
      * @param {string} name name of the channel
      * @param {string} messageHash string to look up in handler
      * @param {string[]|float[]} request endpoint parameters
@@ -94,19 +94,21 @@ public partial class p2b : ccxt.p2b
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<object> watchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        timeframe ??= "15m";
+        object timeframeVar = timeframe;
+        object limitVar = limit;
+        timeframeVar ??= "15m";
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
         object timeframes = this.safeValue(this.options, "timeframes", new Dictionary<string, object>() {});
-        object channel = this.safeInteger(timeframes, timeframe);
+        object channel = this.safeInteger(timeframes, timeframeVar);
         if (isTrue(isEqual(channel, null)))
         {
-            throw new BadRequest ((string)add(add(this.id, " watchOHLCV cannot take a timeframe of "), timeframe)) ;
+            throw new BadRequest ((string)add(add(this.id, " watchOHLCV cannot take a timeframe of "), timeframeVar)) ;
         }
         object market = this.market(symbol);
         object request = new List<object>() {getValue(market, "id"), channel};
@@ -114,9 +116,9 @@ public partial class p2b : ccxt.p2b
         object ohlcv = await this.subscribe("kline.subscribe", messageHash, request, parameters);
         if (isTrue(this.newUpdates))
         {
-            limit = callDynamically(ohlcv, "getLimit", new object[] {symbol, limit});
+            limitVar = callDynamically(ohlcv, "getLimit", new object[] {symbol, limitVar});
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
+        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitVar, 0, true));
     }
 
     /**
@@ -130,8 +132,9 @@ public partial class p2b : ccxt.p2b
      * @param {object} [params.method] 'state' (default) or 'price'
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> watchTicker(object symbol, object parameters = null)
+    public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
     {
+        object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
@@ -142,13 +145,13 @@ public partial class p2b : ccxt.p2b
         var nameparametersVariable = this.handleOptionAndParams(parameters, "watchTicker", "name", name);
         name = ((IList<object>)nameparametersVariable)[0];
         parameters = ((IList<object>)nameparametersVariable)[1];
-        object market = this.market(symbol);
-        symbol = getValue(market, "symbol");
+        object market = this.market(symbolVar);
+        symbolVar = getValue(market, "symbol");
         ((IDictionary<string,object>)getValue(this.options, "tickerSubs"))[(string)((string)getValue(market, "id"))] = true; // we need to re-subscribe to all tickers upon watching a new ticker
         object tickerSubs = getValue(this.options, "tickerSubs");
         List<object> request = new List<object>(((IDictionary<string,object>)tickerSubs).Keys);
         object messageHash = add(add(name, "::"), getValue(market, "symbol"));
-        return await this.subscribe(add(name, ".subscribe"), messageHash, request, parameters);
+        return ccxt.BaseExchange.ToTicker(await this.subscribe(add(name, ".subscribe"), messageHash, request, parameters));
     }
 
     /**
@@ -204,10 +207,10 @@ public partial class p2b : ccxt.p2b
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.watchTradesForSymbols(new List<object>() {symbol}, since, limit, parameters);
+        return await this.WatchTradesForSymbols(new List<object>() {symbol},ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
     }
 
     /**
@@ -221,8 +224,9 @@ public partial class p2b : ccxt.p2b
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<object> watchTradesForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(object symbols, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
@@ -250,9 +254,9 @@ public partial class p2b : ccxt.p2b
         {
             object first = this.safeValue(trades, 0);
             object tradeSymbol = this.safeString(first, "symbol");
-            limit = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limit});
+            limitVar = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar});
         }
-        return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
 
     /**
@@ -266,8 +270,9 @@ public partial class p2b : ccxt.p2b
      * @param {float} [params.interval] 0, 0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, interval of precision for order, default=0.001
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
+    public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
@@ -277,13 +282,13 @@ public partial class p2b : ccxt.p2b
         string name = "depth.subscribe";
         object messageHash = add("orderbook::", getValue(market, "symbol"));
         object interval = this.safeString(parameters, "interval", "0.001");
-        if (isTrue(isEqual(limit, null)))
+        if (isTrue(isEqual(limitVar, null)))
         {
-            limit = 100;
+            limitVar = 100;
         }
-        object request = new List<object>() {getValue(market, "id"), limit, interval};
+        object request = new List<object>() {getValue(market, "id"), limitVar, interval};
         object orderbook = await this.subscribe(name, messageHash, request, parameters);
-        return (orderbook as IOrderBook).limit();
+        return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 
     public virtual object handleOHLCV(WebSocketClient client, object message)
@@ -476,7 +481,7 @@ public partial class p2b : ccxt.p2b
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
             orderbook = getValue(this.orderbooks, symbol);
         }
-        if (isTrue(isFullUpdate))
+        if (isTrue(isEqual(isFullUpdate, true)))
         {
             // the first parameter signals whether the message carries all
             // records or only the changed ones, a full set replaces the book,
@@ -512,7 +517,7 @@ public partial class p2b : ccxt.p2b
 
     public override void handleMessage(WebSocketClient client, object message)
     {
-        if (isTrue(this.handleErrorMessage(client as WebSocketClient, message)))
+        if (isTrue(isEqual(this.handleErrorMessage(client as WebSocketClient, message), true)))
         {
             return;
         }

@@ -682,13 +682,13 @@ class digifinex extends digifinex$1["default"] {
                 type = 'swap';
                 symbol = base + '/' + quote + ':' + settle;
                 isInverse = this.safeValue(market, 'is_inverse');
-                isLinear = (!isInverse) ? true : false;
+                isLinear = (isInverse !== true) ? true : false;
                 const isTrading = this.safeValue(market, 'isTrading');
-                if (isTrading) {
+                if (isTrading === true) {
                     isAllowed = 1;
                 }
             }
-            const isActive = isAllowed ? true : false;
+            const isActive = (isAllowed !== 0);
             result.push({
                 'id': id,
                 'symbol': symbol,
@@ -1123,7 +1123,7 @@ class digifinex extends digifinex$1["default"] {
         const market = this.market(symbol);
         const request = {};
         let response = undefined;
-        if (market['swap']) {
+        if (market['swap'] === true) {
             request['instrument_id'] = market['id'];
             response = await this.publicSwapGetPublicTicker(this.extend(request, params));
         }
@@ -1181,7 +1181,7 @@ class digifinex extends digifinex$1["default"] {
         const data = this.safeValue(response, 'data', {});
         const firstTicker = this.safeValue(tickers, 0, {});
         let result = undefined;
-        if (market['swap']) {
+        if (market['swap'] === true) {
             result = data;
         }
         else {
@@ -1238,7 +1238,7 @@ class digifinex extends digifinex$1["default"] {
         const symbol = this.safeSymbol(marketId, market, undefined, marketType);
         market = this.safeMarket(marketId, market, undefined, marketType);
         let timestamp = this.safeTimestamp(ticker, 'date');
-        if (market['swap']) {
+        if (market['swap'] === true) {
             timestamp = this.safeInteger(ticker, 'timestamp');
         }
         const last = this.safeString(ticker, 'last');
@@ -1381,7 +1381,7 @@ class digifinex extends digifinex$1["default"] {
                 type = 'limit';
             }
             const isMaker = this.safeValue(trade, 'is_maker');
-            takerOrMaker = isMaker ? 'maker' : 'taker';
+            takerOrMaker = (isMaker === true) ? 'maker' : 'taker';
         }
         let fee = undefined;
         const feeCostString = this.safeString(trade, 'fee');
@@ -1475,10 +1475,10 @@ class digifinex extends digifinex$1["default"] {
         const market = this.market(symbol);
         const request = {};
         if (limit !== undefined) {
-            request['limit'] = market['swap'] ? Math.min(limit, 100) : limit;
+            request['limit'] = (market['swap'] === true) ? Math.min(limit, 100) : limit;
         }
         let response = undefined;
-        if (market['swap']) {
+        if (market['swap'] === true) {
             request['instrument_id'] = market['id'];
             response = await this.publicSwapGetPublicTrades(this.extend(request, params));
         }
@@ -1541,7 +1541,7 @@ class digifinex extends digifinex$1["default"] {
         //         0.029927
         //     ]
         //
-        if (this.safeBool(market, 'swap')) {
+        if (this.safeBool(market, 'swap') === true) {
             return [
                 this.safeInteger(ohlcv, 0),
                 this.safeNumber(ohlcv, 1), // open
@@ -1583,7 +1583,7 @@ class digifinex extends digifinex$1["default"] {
         const market = this.market(symbol);
         const request = {};
         let response = undefined;
-        if (market['swap']) {
+        if (market['swap'] === true) {
             request['instrument_id'] = market['id'];
             request['granularity'] = timeframe;
             if (limit !== undefined) {
@@ -1657,7 +1657,7 @@ class digifinex extends digifinex$1["default"] {
         //     }
         //
         let candles = undefined;
-        if (market['swap']) {
+        if (market['swap'] === true) {
             const data = this.safeValue(response, 'data', {});
             candles = this.safeValue(data, 'candles', []);
         }
@@ -1694,7 +1694,7 @@ class digifinex extends digifinex$1["default"] {
         const marginMode = marginResult[0];
         const request = this.createOrderRequest(symbol, type, side, amount, price, params);
         let response = undefined;
-        if (market['swap']) {
+        if (market['swap'] === true) {
             response = await this.privateSwapPostTradeOrderPlace(request);
         }
         else {
@@ -1782,7 +1782,7 @@ class digifinex extends digifinex$1["default"] {
         const market = this.market(symbol);
         const request = {};
         let response = undefined;
-        if (market['swap']) {
+        if (market['swap'] === true) {
             response = await this.privateSwapPostTradeBatchOrder(ordersRequests);
         }
         else {
@@ -1813,7 +1813,7 @@ class digifinex extends digifinex$1["default"] {
         //     }
         //
         let data = [];
-        if (market['swap']) {
+        if (market['swap'] === true) {
             data = this.safeValue(response, 'data', []);
         }
         else {
@@ -1872,11 +1872,11 @@ class digifinex extends digifinex$1["default"] {
             const timeInForce = this.safeString(params, 'timeInForce');
             let orderType = undefined;
             if (side === 'buy') {
-                const requestType = (reduceOnly) ? 4 : 1;
+                const requestType = (reduceOnly === true) ? 4 : 1;
                 request['type'] = requestType;
             }
             else {
-                const requestType = (reduceOnly) ? 3 : 2;
+                const requestType = (reduceOnly === true) ? 3 : 2;
                 request['type'] = requestType;
             }
             if (isLimitOrder) {
@@ -1968,7 +1968,7 @@ class digifinex extends digifinex$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (!market['spot']) {
+        if (market['spot'] !== true) {
             throw new errors.NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
         params['createMarketBuyOrderRequiresPrice'] = false;
@@ -3421,7 +3421,7 @@ class digifinex extends digifinex$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (!market['swap']) {
+        if (market['swap'] !== true) {
             throw new errors.BadSymbol(this.id + ' fetchFundingRate() supports swap contracts only');
         }
         const request = {
@@ -3521,7 +3521,7 @@ class digifinex extends digifinex$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (!market['swap']) {
+        if (market['swap'] !== true) {
             throw new errors.BadSymbol(this.id + ' fetchFundingRateHistory() supports swap contracts only');
         }
         const request = {
@@ -3582,7 +3582,7 @@ class digifinex extends digifinex$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (!market['swap']) {
+        if (market['swap'] !== true) {
             throw new errors.BadRequest(this.id + ' fetchTradingFee() supports swap markets only');
         }
         const request = {
@@ -4085,7 +4085,7 @@ class digifinex extends digifinex$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (!market['swap']) {
+        if (market['swap'] !== true) {
             throw new errors.BadRequest(this.id + ' fetchMarketLeverageTiers() supports swap markets only');
         }
         const request = {
@@ -4555,7 +4555,7 @@ class digifinex extends digifinex$1["default"] {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
     handleErrors(statusCode, statusText, url, method, responseHeaders, responseBody, response, requestHeaders, requestBody) {
-        if (!response) {
+        if (response === undefined) {
             return undefined; // fall back to default error handler
         }
         const code = this.safeString(response, 'code');

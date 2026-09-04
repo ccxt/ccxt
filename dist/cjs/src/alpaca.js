@@ -308,6 +308,7 @@ class alpaca extends alpaca$1["default"] {
                 'APCA-PARTNER-ID': 'ccxt',
             },
             'options': {
+                'minCostUSD': 10, // alpaca floors USD-quoted crypto buy orders at 10 USD notional, a venue parameter that has changed before
                 'defaultExchange': 'CBSE',
                 'exchanges': [
                     'CBSE', // Coinbase
@@ -411,12 +412,14 @@ class alpaca extends alpaca$1["default"] {
                     '40410000': errors.InvalidOrder, // { "code": 40410000, "message": "order is not found."}
                     '40010001': errors.BadRequest, // {"code":40010001,"message":"invalid order type for crypto order"}
                     '40110000': errors.PermissionDenied, // { "code": 40110000, "message": "request is not authorized"}
-                    '40310000': errors.InsufficientFunds, // {"available":"0","balance":"0","code":40310000,"message":"insufficient balance for USDT (requested: 221.63, available: 0)","symbol":"USDT"}
                     '42910000': errors.RateLimitExceeded, // {"code":42910000,"message":"rate limit exceeded"}
                 },
                 'broad': {
                     'Invalid format for parameter': errors.BadRequest, // {"message":"Invalid format for parameter start: error parsing '0' as RFC3339 or 2006-01-02 time: parsing time \"0\" as \"2006-01-02\": cannot parse \"0\" as \"2006\""}
                     'Invalid symbol': errors.BadSymbol, // {"message":"Invalid symbol(s): BTC/USDdsda does not match ^[A-Z]+/[A-Z]+$"}
+                    'cost basis must be': errors.InvalidOrder, // {"code":40310000,"message":"cost basis must be >= minimal amount of order 10"}
+                    'insufficient balance for': errors.InsufficientFunds, // {"available":"0","balance":"0","code":40310000,"message":"insufficient balance for USDT (requested: 221.63, available: 0)","symbol":"USDT"}
+                    'orders are rejected by user request': errors.PermissionDenied, // {"code":40310000,"message":"new orders are rejected by user request"} — the account has suspend_trade enabled
                 },
             },
         });
@@ -538,6 +541,12 @@ class alpaca extends alpaca$1["default"] {
         const minAmount = this.safeNumber(asset, 'min_order_size');
         const amount = this.safeNumber(asset, 'min_trade_increment');
         const price = this.safeNumber(asset, 'price_increment');
+        let minCost = undefined;
+        if ((assetClass === 'crypto') && (quote === 'USD')) {
+            // alpaca rejects USD-quoted crypto buy orders below 10 USD notional: {"code":40310000,"message":"cost basis must be >= minimal amount of order 10"}
+            // USDT-, USDC- and BTC-quoted pairs accept smaller orders, and sell orders are not floored — verified live 2026-08-25
+            minCost = this.safeNumber(this.options, 'minCostUSD', this.parseNumber('10'));
+        }
         return this.safeMarketStructure({
             'id': marketId,
             'symbol': symbol,
@@ -580,7 +589,7 @@ class alpaca extends alpaca$1["default"] {
                     'max': undefined,
                 },
                 'cost': {
-                    'min': undefined,
+                    'min': minCost,
                     'max': undefined,
                 },
             },
@@ -747,6 +756,9 @@ class alpaca extends alpaca$1["default"] {
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @param {int} [params.paginationCalls] the maximum number of requests while following next_page_token, default 10 — when the cap is reached the result is silently truncated to the pages already fetched, so raise it for long ranges, 10 requests cover roughly 30 days of 1h candles
      * @param {string} [params.loc] crypto location, default: us
      * @param {string} [params.method] method, default: marketPublicGetV1beta3CryptoLocBars
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
@@ -759,6 +771,10 @@ class alpaca extends alpaca$1["default"] {
         const marketId = market['id'];
         const loc = this.safeString(params, 'loc', 'us');
         const method = this.safeString(params, 'method', 'marketPublicGetV1beta3CryptoLocBars');
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'paginate', false);
+        let paginationCalls = 10;
+        [paginationCalls, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'paginationCalls', 10);
         const request = {
             'symbols': marketId,
             'loc': loc,
@@ -770,10 +786,15 @@ class alpaca extends alpaca$1["default"] {
                 request['limit'] = limit;
             }
             if (since !== undefined) {
-                request['start'] = this.yyyymmdd(since);
+                request['start'] = this.iso8601(since);
+            }
+            const until = this.safeInteger(params, 'until');
+            if (until !== undefined) {
+                params = this.omit(params, 'until');
+                request['end'] = this.iso8601(until);
             }
             request['timeframe'] = this.safeString(this.timeframes, timeframe, timeframe);
-            const response = await this.marketPublicGetV1beta3CryptoLocBars(this.extend(request, params));
+            let response = await this.marketPublicGetV1beta3CryptoLocBars(this.extend(request, params));
             //
             //    {
             //        "bars": {
@@ -803,8 +824,28 @@ class alpaca extends alpaca$1["default"] {
             //        "next_page_token": "QlRDL1VTRHxNfDIwMjItMDctMjFUMDU6MDE6MDAuMDAwMDAwMDAwWg=="
             //     }
             //
-            const bars = this.safeDict(response, 'bars', {});
+            let bars = this.safeDict(response, 'bars', {});
             ohlcvs = this.safeList(bars, marketId, []);
+            if (paginate) {
+                // the endpoint answers with a server-sized page plus a next_page_token regardless of the requested limit
+                let pageToken = this.safeString(response, 'next_page_token');
+                for (let i = 1; i < paginationCalls; i++) {
+                    const ohlcvsLength = ohlcvs.length;
+                    if ((pageToken === undefined) || ((limit !== undefined) && (ohlcvsLength >= limit))) {
+                        break;
+                    }
+                    request['page_token'] = pageToken;
+                    response = await this.marketPublicGetV1beta3CryptoLocBars(this.extend(request, params));
+                    bars = this.safeDict(response, 'bars', {});
+                    const page = this.safeList(bars, marketId, []);
+                    const pageLength = page.length;
+                    if (pageLength === 0) {
+                        break;
+                    }
+                    ohlcvs = this.arrayConcat(ohlcvs, page);
+                    pageToken = this.safeString(response, 'next_page_token');
+                }
+            }
         }
         else if (method === 'marketPublicGetV1beta3CryptoLocLatestBars') {
             const response = await this.marketPublicGetV1beta3CryptoLocLatestBars(this.extend(request, params));
@@ -880,17 +921,19 @@ class alpaca extends alpaca$1["default"] {
      * @name alpaca#fetchTickers
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
      * @see https://docs.alpaca.markets/reference/cryptosnapshots-1
-     * @param {string[]} symbols unified symbols of the markets to fetch tickers for
+     * @param {string[]} [symbols] unified symbols of the markets to fetch tickers for, defaults to all markets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.loc] crypto location, default: us
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
-        if (symbols === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' fetchTickers() requires a symbols argument');
-        }
         if (this.markets === undefined) {
             await this.loadMarkets();
+        }
+        if (symbols === undefined) {
+            // every listed market is a crypto market because fetchMarkets requests asset_class=crypto, so default to all of them
+            const allSymbols = this.sort(this.symbols); // symbol iteration order differs per language
+            symbols = allSymbols;
         }
         symbols = this.marketSymbols(symbols);
         const loc = this.safeString(params, 'loc', 'us');
@@ -1714,7 +1757,7 @@ class alpaca extends alpaca$1["default"] {
             currency = this.currency(code);
         }
         const sandboxMode = this.isSandboxModeEnabled || this.safeBool(this.options, 'sandboxMode', false);
-        if (sandboxMode) {
+        if (sandboxMode === true) {
             // paper-trading hosts do not serve the crypto wallets api at all, so route
             // through the account activities ledger instead, filtered to transfer-like
             // entries, see https://github.com/ccxt/ccxt/issues/24847
@@ -2070,11 +2113,16 @@ class alpaca extends alpaca$1["default"] {
         if (code !== undefined) {
             this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
         }
-        const message = this.safeValue(response, 'message');
+        const message = this.safeString(response, 'message');
         if (message !== undefined) {
             this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
-            throw new errors.ExchangeError(feedback);
+            const codeAsString = code.toString();
+            if ((code < 400) || !(codeAsString in this.httpExceptions)) {
+                // an error envelope must always throw — also for statuses the http-status handler has no entry for
+                throw new errors.ExchangeError(feedback);
+            }
+            // unmapped messages on the remaining error statuses fall through to the default http-status handler
         }
         return undefined;
     }

@@ -497,7 +497,7 @@ class gemini(ccxt.async_support.gemini):
             raise NotSupported(self.id + ' watchMultiple requires at least one symbol')
         symbols = self.market_symbols(symbols, None, False, True, True)
         firstMarket = self.market(symbols[0])
-        if not firstMarket['spot'] and not firstMarket['linear']:
+        if (firstMarket['spot'] is not True) and (firstMarket['linear'] is not True):
             raise NotSupported(self.id + ' watchMultiple supports only spot or linear-swap symbols')
         messageHashes = []
         marketIds = []

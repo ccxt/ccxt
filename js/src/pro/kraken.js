@@ -130,7 +130,7 @@ export default class kraken extends krakenRest {
         const isMarket = (type === 'market');
         let postOnly = undefined;
         [postOnly, params] = this.handlePostOnly(isMarket, false, params);
-        if (postOnly) {
+        if (postOnly === true) {
             request['params']['post_only'] = true;
         }
         const clientOrderId = this.safeString(params, 'clientOrderId');
@@ -169,7 +169,7 @@ export default class kraken extends krakenRest {
         const priceType = (isTrailingPercentOrder || isTrailingLimitPercentOrder) ? 'pct' : 'quote';
         if (method === 'createOrderWs') {
             const reduceOnly = this.safeBool(params, 'reduceOnly');
-            if (reduceOnly) {
+            if (reduceOnly === true) {
                 request['params']['reduce_only'] = true;
             }
             const timeInForce = this.safeStringLower(params, 'timeInForce');
@@ -965,7 +965,7 @@ export default class kraken extends krakenRest {
         orderbook.limit();
         // checksum temporarily disabled because the exchange checksum was not reliable
         const checksum = this.handleOption('watchOrderBook', 'checksum', false);
-        if (checksum) {
+        if (checksum === true) {
             const payloadArray = [];
             if (c !== undefined) {
                 const checkAsks = orderbook['asks'];
@@ -1639,7 +1639,7 @@ export default class kraken extends krakenRest {
                 method.call(this, client, message);
             }
         }
-        if (this.handleErrorMessage(client, message)) {
+        if (this.handleErrorMessage(client, message) === true) {
             const event = this.safeString2(message, 'event', 'method');
             const methods = {
                 'heartbeat': this.handleHeartbeat,

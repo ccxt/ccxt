@@ -1071,15 +1071,15 @@ class luno extends Exchange {
             } elseif (($type === 'BID') || ($type === 'BUY')) {
                 $side = 'buy';
             }
-            if ($side === 'sell' && $trade['is_buy']) {
+            if (($side === 'sell') && ($trade['is_buy'] === true)) {
                 $takerOrMaker = 'maker';
-            } elseif ($side === 'buy' && !$trade['is_buy']) {
+            } elseif (($side === 'buy') && ($trade['is_buy'] !== true)) {
                 $takerOrMaker = 'maker';
             } else {
                 $takerOrMaker = 'taker';
             }
         } else {
-            $side = $trade['is_buy'] ? 'buy' : 'sell';
+            $side = ($trade['is_buy'] === true) ? 'buy' : 'sell';
         }
         $feeBaseString = $this->safe_string($trade, 'fee_base');
         $feeCounterString = $this->safe_string($trade, 'fee_counter');

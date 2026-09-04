@@ -1258,7 +1258,7 @@ func (this *Binance) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, er
  * @param {string} [params.type] 'spot' or 'margin', default spot
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *Binance) FetchMyDustTrades(options ...FetchMyDustTradesOptions) (map[string]any, error) {
+func (this *Binance) FetchMyDustTrades(options ...FetchMyDustTradesOptions) ([]Trade, error) {
 
 	opts := FetchMyDustTradesOptionsStruct{}
 
@@ -1275,9 +1275,9 @@ func (this *Binance) FetchMyDustTrades(options ...FetchMyDustTradesOptions) (map
 	var params *map[string]any = opts.Params
 	res := <-this.Core.FetchMyDustTrades(symbol, since, limit, params)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return nil, CreateReturnError(res)
 	}
-	return res.(map[string]any), nil
+	return NewTradeArray(res), nil
 }
 
 /**
@@ -2072,7 +2072,7 @@ func (this *Binance) FetchSettlementHistory(options ...FetchSettlementHistoryOpt
  * @param {object} [params] exchange specific params
  * @returns {object[]} a list of [settlement history objects]
  */
-func (this *Binance) FetchMySettlementHistory(options ...FetchMySettlementHistoryOptions) (map[string]any, error) {
+func (this *Binance) FetchMySettlementHistory(options ...FetchMySettlementHistoryOptions) ([]map[string]any, error) {
 
 	opts := FetchMySettlementHistoryOptionsStruct{}
 
@@ -2089,9 +2089,9 @@ func (this *Binance) FetchMySettlementHistory(options ...FetchMySettlementHistor
 	var params *map[string]any = opts.Params
 	res := <-this.Core.FetchMySettlementHistory(symbol, since, limit, params)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return nil, CreateReturnError(res)
 	}
-	return res.(map[string]any), nil
+	return NewMapArray(res), nil
 }
 
 /**
@@ -2247,7 +2247,7 @@ func (this *Binance) FetchIsolatedBorrowRates(params ...any) (IsolatedBorrowRate
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
  */
-func (this *Binance) FetchBorrowRateHistory(code string, options ...FetchBorrowRateHistoryOptions) (map[string]any, error) {
+func (this *Binance) FetchBorrowRateHistory(code string, options ...FetchBorrowRateHistoryOptions) ([]map[string]any, error) {
 
 	opts := FetchBorrowRateHistoryOptionsStruct{}
 
@@ -2262,9 +2262,9 @@ func (this *Binance) FetchBorrowRateHistory(code string, options ...FetchBorrowR
 	var params *map[string]any = opts.Params
 	res := <-this.Core.FetchBorrowRateHistory(code, since, limit, params)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return nil, CreateReturnError(res)
 	}
-	return res.(map[string]any), nil
+	return NewMapArray(res), nil
 }
 
 /**

@@ -771,7 +771,7 @@ public class NdaxCore extends NdaxApi
             put( "type", finalType );
             put( "precision", NdaxCore.this.safeNumber(rawCurrency, "TickSize") );
             put( "info", rawCurrency );
-            put( "active", !Helpers.isTrue(NdaxCore.this.safeBool(rawCurrency, "IsDisabled")) );
+            put( "active", (!Helpers.isEqual(NdaxCore.this.safeBool(rawCurrency, "IsDisabled"), true)) );
             put( "deposit", NdaxCore.this.safeBool(rawCurrency, "DepositEnabled") );
             put( "withdraw", NdaxCore.this.safeBool(rawCurrency, "WithdrawEnabled") );
             put( "fee", null );
@@ -873,6 +873,7 @@ public class NdaxCore extends NdaxApi
         Object sessionRunning = (Helpers.isEqual(sessionStatus, "Running"));
         final Object finalBase = base;
         final Object finalSessionRunning = sessionRunning;
+        final Object finalIsDisable = isDisable;
         return this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
             put( "id", id );
             put( "symbol", Helpers.add(Helpers.add(finalBase, "/"), quote) );
@@ -888,7 +889,7 @@ public class NdaxCore extends NdaxApi
             put( "swap", false );
             put( "future", false );
             put( "option", false );
-            put( "active", (Helpers.isTrue(finalSessionRunning) && !Helpers.isTrue(isDisable)) );
+            put( "active", (Helpers.isTrue(finalSessionRunning) && Helpers.isTrue((!Helpers.isEqual(finalIsDisable, true)))) );
             put( "contract", false );
             put( "linear", null );
             put( "inverse", null );
@@ -968,7 +969,7 @@ public class NdaxCore extends NdaxApi
             }
             Object bidask = this.parseOrderBookBidAsk(level, priceKey, amountKey);
             Object levelSide = this.safeInteger(level, 9);
-            Object side = ((Helpers.isTrue(levelSide))) ? asksKey : bidsKey;
+            Object side = ((Helpers.isTrue((Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(levelSide, null)) && Helpers.isTrue(!Helpers.isEqual(levelSide, null))) && Helpers.isTrue(!Helpers.isEqual(levelSide, 0)))))) ? asksKey : bidsKey;
             ((java.util.List<Object>)Helpers.GetValue(result, side)).add(bidask);
         }
         Helpers.addElementToObject(result, "bids", this.sortBy(Helpers.GetValue(result, "bids"), 0, true));
@@ -1447,7 +1448,7 @@ public class NdaxCore extends NdaxApi
             id = this.safeString(trade, 0);
             marketId = this.safeString(trade, 1);
             Object takerSide = this.safeValue(trade, 8);
-            side = ((Helpers.isTrue(takerSide))) ? "sell" : "buy";
+            side = ((Helpers.isTrue((Helpers.isEqual(takerSide, true))))) ? "sell" : "buy";
             orderId = this.safeString(trade, 4);
         } else
         {

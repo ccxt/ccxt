@@ -220,7 +220,7 @@ class mudrex(Exchange, ImplicitAPI):
         if response is None or not isinstance(response, dict):
             return None
         success = self.safe_bool(response, 'success', True)
-        if not success:
+        if success is not True:
             errors = self.safe_list(response, 'errors', [])
             first = self.safe_dict(errors, 0, {})
             text = self.safe_string(first, 'text', self.json(response))
@@ -442,7 +442,7 @@ class mudrex(Exchange, ImplicitAPI):
                 if (itemsLength is None) or (itemsLength == 0):
                     items = self.safe_list(data, 'results', [])
                     itemsLength = len(items)
-                if not itemsLength and ('symbol' in data):
+                if (itemsLength == 0) and ('symbol' in data):
                     items = [data]
             else:
                 items = self.to_array(data)

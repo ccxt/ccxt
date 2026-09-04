@@ -1789,7 +1789,7 @@ export default class bitso extends Exchange {
                     result[code] = {
                         'deposit': {
                             'fee': this.safeNumber (entry, 'fee'),
-                            'percentage': !this.safeValue (entry, 'is_fixed'),
+                            'percentage': (this.safeValue (entry, 'is_fixed') !== true),
                         },
                         'withdraw': {
                             'fee': undefined,
@@ -2011,7 +2011,7 @@ export default class bitso extends Exchange {
                     success = false;
                 }
             }
-            if (!success) {
+            if (success !== true) {
                 const feedback = this.id + ' ' + this.json (response);
                 const error = this.safeValue (response, 'error');
                 if (error === undefined) {

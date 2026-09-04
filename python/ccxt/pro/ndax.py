@@ -284,7 +284,7 @@ class ndax(ccxt.async_support.ndax):
                 ]
                 stored = self.safe_value(self.ohlcvs[symbol], timeframe, [])
                 length = len(stored)
-                if length and (parsed[0] == stored[length - 1][0]):
+                if (length > 0) and (parsed[0] == stored[length - 1][0]):
                     previous = stored[length - 1]
                     high = parsed[1]
                     if parsed[1] is None:
@@ -307,7 +307,7 @@ class ndax(ccxt.async_support.ndax):
                     if (marketId is not None) and (timeframe is not None):
                         updates[marketId][timeframe] = True
                 else:
-                    if length and (self.parse_to_int(parsed[0]) < self.parse_to_int(stored[length - 1][0])):
+                    if (length > 0) and (self.parse_to_int(parsed[0]) < self.parse_to_int(stored[length - 1][0])):
                         continue
                     else:
                         stored.append(parsed)

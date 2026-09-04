@@ -982,7 +982,7 @@ export default class deribit extends Exchange {
                     linear = (settle === quote);
                 }
                 const parsedMarketValue = this.safeValue (parsedMarkets, symbol);
-                if (parsedMarketValue) {
+                if (parsedMarketValue !== undefined) {
                     continue;
                 }
                 if (symbol !== undefined) {
@@ -1583,7 +1583,7 @@ export default class deribit extends Exchange {
         // For options amount and linear is in corresponding cryptocurrency contracts, e.g., BTC or ETH
         const amount = this.safeString (trade, 'amount');
         let cost = Precise.stringMul (amount, priceString);
-        if (market['inverse']) {
+        if (market['inverse'] === true) {
             cost = Precise.stringDiv (amount, priceString);
         }
         const liquidity = this.safeString (trade, 'liquidity');
@@ -1797,11 +1797,11 @@ export default class deribit extends Exchange {
                 'maker': market['maker'],
                 'taker': market['taker'],
             };
-            if (market['swap']) {
+            if (market['swap'] === true) {
                 fee = this.extend (fee, perpetualFee);
-            } else if (market['future']) {
+            } else if (market['future'] === true) {
                 fee = this.extend (fee, futureFee);
-            } else if (market['option']) {
+            } else if (market['option'] === true) {
                 fee = this.extend (fee, optionFee);
             }
             parsedFees[symbol] = fee;
@@ -1951,7 +1951,7 @@ export default class deribit extends Exchange {
         const filledString = this.safeString (order, 'filled_amount');
         const amount = this.safeString (order, 'amount');
         let cost = Precise.stringMul (filledString, averageString);
-        if (this.safeBool (market, 'inverse')) {
+        if (this.safeBool (market, 'inverse') === true) {
             if (averageString !== '0') {
                 cost = Precise.stringDiv (amount, averageString);
             }
@@ -2150,7 +2150,7 @@ export default class deribit extends Exchange {
                 }
             }
         }
-        if (reduceOnly) {
+        if (reduceOnly === true) {
             request['reduce_only'] = true;
         }
         if (postOnly) {
@@ -3300,7 +3300,8 @@ export default class deribit extends Exchange {
         const eachItemDuration = '1h';
         if (paginate) {
             // fix for: https://github.com/ccxt/ccxt/issues/25040
-            return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, eachItemDuration, this.extend (params, { 'isDeribitPaginationCall': true }), maxEntriesPerRequest) as FundingRateHistory[];
+            const paginationParams = this.extend (params, { 'isDeribitPaginationCall': true });
+            return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, eachItemDuration, paginationParams, maxEntriesPerRequest) as FundingRateHistory[];
         }
         const duration = this.parseTimeframe (eachItemDuration) * 1000;
         let time = this.milliseconds ();
@@ -3421,7 +3422,7 @@ export default class deribit extends Exchange {
             return await this.fetchPaginatedCallCursor ('fetchLiquidations', symbol, since, limit, params, 'continuation', 'continuation', undefined) as Liquidation[];
         }
         const market = this.market (symbol);
-        if (market['spot']) {
+        if (market['spot'] === true) {
             throw new NotSupported (this.id + ' fetchLiquidations() does not support ' + market['type'] + ' markets');
         }
         const request: Dict = {
@@ -3500,7 +3501,7 @@ export default class deribit extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (market['spot']) {
+        if (market['spot'] === true) {
             throw new NotSupported (this.id + ' fetchMyLiquidations() does not support ' + market['type'] + ' markets');
         }
         const request: Dict = {
@@ -3879,7 +3880,7 @@ export default class deribit extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (!market['contract']) {
+        if (market['contract'] !== true) {
             throw new BadRequest (this.id + ' fetchOpenInterest() supports contract markets only');
         }
         const request: Dict = {
@@ -3953,7 +3954,7 @@ export default class deribit extends Exchange {
         const openInterest = this.safeNumber (interest, 'open_interest');
         let openInterestAmount: Num = undefined;
         let openInterestValue: Num = undefined;
-        if (market['option'] || (market['future'] && market['linear'])) {
+        if ((market['option'] === true) || ((market['future'] === true) && (market['linear'] === true))) {
             openInterestAmount = openInterest;
         } else {
             openInterestValue = openInterest;
@@ -3999,7 +4000,7 @@ export default class deribit extends Exchange {
     }
 
     override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
-        if (!response) {
+        if ((response === undefined) || (response === null)) {
             return undefined; // fallback to default error handler
         }
         //

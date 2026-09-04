@@ -83,7 +83,7 @@ class woo extends woo$1["default"] {
         return newValue;
     }
     async watchPublic(messageHash, message) {
-        const urlUid = (this.uid) ? '/' + this.uid : '';
+        const urlUid = (this.uid !== '') ? '/' + this.uid : '';
         const url = this.urls['api']['ws']['public'] + urlUid;
         const requestId = this.requestId(url);
         const subscribe = {
@@ -93,7 +93,7 @@ class woo extends woo$1["default"] {
         return await this.watch(url, messageHash, request, messageHash, subscribe);
     }
     async unwatchPublic(subHash, symbol, topic, params = {}) {
-        const urlUid = (this.uid) ? '/' + this.uid : '';
+        const urlUid = (this.uid !== '') ? '/' + this.uid : '';
         const url = this.urls['api']['ws']['public'] + urlUid;
         const requestId = this.requestId(url);
         const unsubHash = 'unsubscribe::' + subHash;
@@ -137,7 +137,7 @@ class woo extends woo$1["default"] {
         [method, params] = this.handleOptionAndParams(params, 'watchOrderBook', 'method', 'orderbook');
         const market = this.market(symbol);
         const topic = market['id'] + '@' + method;
-        const urlUid = (this.uid) ? '/' + this.uid : '';
+        const urlUid = (this.uid !== '') ? '/' + this.uid : '';
         const url = this.urls['api']['ws']['public'] + urlUid;
         const requestId = this.requestId(url);
         const request = {
@@ -952,7 +952,7 @@ class woo extends woo$1["default"] {
             await this.loadMarkets();
         }
         const trigger = this.safeBool2(params, 'stop', 'trigger', false);
-        const topic = (trigger) ? 'algoexecutionreportv2' : 'executionreport';
+        const topic = (trigger === true) ? 'algoexecutionreportv2' : 'executionreport';
         params = this.omit(params, ['stop', 'trigger']);
         let messageHash = topic;
         if (symbol !== undefined) {
@@ -989,7 +989,7 @@ class woo extends woo$1["default"] {
             await this.loadMarkets();
         }
         const trigger = this.safeBool2(params, 'stop', 'trigger', false);
-        const topic = (trigger) ? 'algoexecutionreportv2' : 'executionreport';
+        const topic = (trigger === true) ? 'algoexecutionreportv2' : 'executionreport';
         params = this.omit(params, ['stop', 'trigger']);
         let messageHash = 'myTrades';
         if (symbol !== undefined) {
@@ -1289,7 +1289,7 @@ class woo extends woo$1["default"] {
         this.setPositionsCache(client, symbols);
         const fetchPositionsSnapshot = this.handleOption('watchPositions', 'fetchPositionsSnapshot', true);
         const awaitPositionsSnapshot = this.handleOption('watchPositions', 'awaitPositionsSnapshot', true);
-        if (fetchPositionsSnapshot && awaitPositionsSnapshot && this.positions === undefined) {
+        if ((fetchPositionsSnapshot === true) && (awaitPositionsSnapshot === true) && (this.positions === undefined)) {
             const snapshot = await client.future('fetchPositionsSnapshot');
             return this.filterBySymbolsSinceLimit(snapshot, symbols, since, limit, true);
         }
@@ -1305,7 +1305,7 @@ class woo extends woo$1["default"] {
     }
     setPositionsCache(client, type, symbols = undefined) {
         const fetchPositionsSnapshot = this.handleOption('watchPositions', 'fetchPositionsSnapshot', false);
-        if (fetchPositionsSnapshot) {
+        if (fetchPositionsSnapshot === true) {
             const messageHash = 'fetchPositionsSnapshot';
             if (!(messageHash in client.futures)) {
                 client.future(messageHash);
@@ -1509,7 +1509,7 @@ class woo extends woo$1["default"] {
             return false;
         }
         const success = this.safeBool(message, 'success');
-        if (success) {
+        if (success === true) {
             return false;
         }
         const errorMessage = this.safeString(message, 'errorMsg');
@@ -1557,7 +1557,7 @@ class woo extends woo$1["default"] {
         this.cleanCache(subscription);
     }
     handleMessage(client, message) {
-        if (this.handleErrorMessage(client, message)) {
+        if (this.handleErrorMessage(client, message) === true) {
             return;
         }
         const methods = {
@@ -1659,7 +1659,7 @@ class woo extends woo$1["default"] {
         //
         const messageHash = 'authenticated';
         const success = this.safeValue(message, 'success');
-        if (success) {
+        if (success === true) {
             // client.resolve (message, messageHash);
             const future = this.safeValue(client.futures, 'authenticated');
             future.resolve(true);

@@ -67,7 +67,7 @@ class p2b(ccxt.async_support.p2b):
     async def subscribe(self, name: str, messageHash: str, request: object, params={}):
         """
  @ignore
-        Connects to a websocket channel
+        connects to a websocket channel
         :param str name: name of the channel
         :param str messageHash: string to look up in handler
         :param str[]|float[] request: endpoint parameters
@@ -417,7 +417,7 @@ class p2b(ccxt.async_support.p2b):
         if orderbook is None:
             self.orderbooks[symbol] = self.order_book({}, limit)
             orderbook = self.orderbooks[symbol]
-        if isFullUpdate:
+        if isFullUpdate is True:
             # the first parameter signals whether the message carries all
             # records or only the changed ones, a full set replaces the book,
             # otherwise stale levels that left the depth window would linger
@@ -441,7 +441,7 @@ class p2b(ccxt.async_support.p2b):
         client.resolve(orderbook, messageHash)
 
     def handle_message(self, client: Client, message: object):
-        if self.handle_error_message(client, message):
+        if self.handle_error_message(client, message) is True:
             return
         result = self.safe_string(message, 'result')
         if result == 'pong':

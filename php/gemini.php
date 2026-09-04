@@ -445,7 +445,9 @@ class gemini extends Exchange {
     public function parse_currency(array $rawCurrency): array {
         $id = $this->safe_string($rawCurrency, 0);
         $code = $this->safe_currency_code($id);
-        $type = $this->safe_string($rawCurrency, 7) ? 'fiat' : 'crypto';
+        $fiatFlag = $this->safe_string($rawCurrency, 7);
+        $isFiat = ($fiatFlag !== null) && ($fiatFlag !== '');
+        $type = $isFiat ? 'fiat' : 'crypto';
         $precision = $this->parse_number($this->parse_precision($this->safe_string($rawCurrency, 5)));
         $networks = array();
         $networkId = $this->safe_string($rawCurrency, 9);
@@ -1424,10 +1426,10 @@ class gemini extends Exchange {
         $remaining = $this->safe_string($order, 'remaining_amount');
         $filled = $this->safe_string($order, 'executed_amount');
         $status = 'closed';
-        if ($order['is_live']) {
+        if ($order['is_live'] === true) {
             $status = 'open';
         }
-        if ($order['is_cancelled']) {
+        if ($order['is_cancelled'] === true) {
             $status = 'canceled';
         }
         $price = $this->safe_string($order, 'price');
@@ -1639,7 +1641,7 @@ class gemini extends Exchange {
             }
             $postOnly = $this->safe_bool($params, 'postOnly', false);
             $params = $this->omit($params, 'postOnly');
-            if ($postOnly) {
+            if ($postOnly === true) {
                 $request['options'] = array( 'maker-or-cancel' );
             }
             // allowing override for auction-only and indication-of-interest order $options

@@ -690,7 +690,7 @@ class bitstamp extends Exchange {
                 }
             }
             $isSpot = ($type === 'spot');
-            $settle = $settleId ? $this->safe_currency_code($settleId) : null;
+            $settle = ($settleId !== null && $settleId !== '') ? $this->safe_currency_code($settleId) : null;
             $result[] = array(
                 'id' => $this->safe_string($market, 'market_symbol'),
                 'symbol' => $symbol,
@@ -785,7 +785,7 @@ class bitstamp extends Exchange {
         );
     }
 
-    public function fetch_markets_from_cache($params = array()) {
+    public function fetch_markets_from_cache($params = array()): PromiseInterface {
         return Async\async(self::do_fetch_markets_from_cache(...))($params);
     }
 
@@ -2873,7 +2873,7 @@ class bitstamp extends Exchange {
                     $headers['Content-Type'] = $contentType;
                 }
             }
-            $authBody = $body ? $body : '';
+            $authBody = ($body !== null && $body !== '') ? $body : '';
             $auth = $xAuth . $method . str_replace('https://', '', $url) . $contentType . $xAuthNonce . $xAuthTimestamp . $xAuthVersion . $authBody;
             $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
             $headers['X-Auth-Signature'] = $signature;

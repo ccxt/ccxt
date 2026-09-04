@@ -8,7 +8,6 @@ namespace ccxt\async;
 use Exception; // a common import
 use ccxt\async\abstract\alpaca as Exchange;
 use ccxt\ExchangeError;
-use ccxt\ArgumentsRequired;
 use ccxt\NotSupported;
 use ccxt\Precise;
 use React\Async;
@@ -312,6 +311,7 @@ class alpaca extends Exchange {
                 'APCA-PARTNER-ID' => 'ccxt',
             ),
             'options' => array(
+                'minCostUSD' => 10, // alpaca floors USD-quoted crypto buy orders at 10 USD notional, a venue parameter that has changed before
                 'defaultExchange' => 'CBSE',
                 'exchanges' => array(
                     'CBSE', // Coinbase
@@ -415,12 +415,14 @@ class alpaca extends Exchange {
                     '40410000' => '\\ccxt\\InvalidOrder', // array( "code" => 40410000, "message" => "order is not found.")
                     '40010001' => '\\ccxt\\BadRequest', // array("code":40010001,"message":"invalid order type for crypto order")
                     '40110000' => '\\ccxt\\PermissionDenied', // array( "code" => 40110000, "message" => "request is not authorized")
-                    '40310000' => '\\ccxt\\InsufficientFunds', // array("available":"0","balance":"0","code":40310000,"message":"insufficient balance for USDT (requested => 221.63, available => 0)","symbol":"USDT")
                     '42910000' => '\\ccxt\\RateLimitExceeded', // array("code":42910000,"message":"rate limit exceeded")
                 ),
                 'broad' => array(
                     'Invalid format for parameter' => '\\ccxt\\BadRequest', // array("message":"Invalid format for parameter start => error parsing '0' or 2006-01-02 time => parsing time \"0\" as \"2006-01-02\" => cannot parse \"0\" as \"2006\"")
                     'Invalid symbol' => '\\ccxt\\BadSymbol', // array("message":"Invalid symbol(s) => BTC/USDdsda does not match ^[A-Z]+/[A-Z]+$")
+                    'cost basis must be' => '\\ccxt\\InvalidOrder', // array("code":40310000,"message":"cost basis must be >= minimal amount of order 10")
+                    'insufficient balance for' => '\\ccxt\\InsufficientFunds', // array("available":"0","balance":"0","code":40310000,"message":"insufficient balance for USDT (requested => 221.63, available => 0)","symbol":"USDT")
+                    'orders are rejected by user request' => '\\ccxt\\PermissionDenied', // array("code":40310000,"message":"new orders are rejected by user request") — the account has suspend_trade enabled
                 ),
             ),
         ));
@@ -551,6 +553,12 @@ class alpaca extends Exchange {
         $minAmount = $this->safe_number($asset, 'min_order_size');
         $amount = $this->safe_number($asset, 'min_trade_increment');
         $price = $this->safe_number($asset, 'price_increment');
+        $minCost = null;
+        if (($assetClass === 'crypto') && ($quote === 'USD')) {
+            // alpaca rejects USD-quoted crypto buy orders below 10 USD notional => array("code":40310000,"message":"cost basis must be >= minimal $amount of order 10")
+            // USDT-, USDC- and BTC-quoted pairs accept smaller orders, and sell orders are not floored — verified live 2026-08-25
+            $minCost = $this->safe_number($this->options, 'minCostUSD', $this->parse_number('10'));
+        }
         return $this->safe_market_structure(array(
             'id' => $marketId,
             'symbol' => $symbol,
@@ -593,7 +601,7 @@ class alpaca extends Exchange {
                     'max' => null,
                 ),
                 'cost' => array(
-                    'min' => null,
+                    'min' => $minCost,
                     'max' => null,
                 ),
             ),
@@ -774,6 +782,9 @@ class alpaca extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @param {int} [$params->paginationCalls] the maximum number of requests while following next_page_token, default 10 — when the cap is reached the result is silently truncated to the pages already fetched, so raise it for long ranges, 10 requests cover roughly 30 days of 1h candles
          * @param {string} [$params->loc] crypto location, default => us
          * @param {string} [$params->method] $method, default => marketPublicGetV1beta3CryptoLocBars
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume
@@ -785,6 +796,10 @@ class alpaca extends Exchange {
         $marketId = $market['id'];
         $loc = $this->safe_string($params, 'loc', 'us');
         $method = $this->safe_string($params, 'method', 'marketPublicGetV1beta3CryptoLocBars');
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate', false);
+        $paginationCalls = 10;
+        list($paginationCalls, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginationCalls', 10);
         $request = array(
             'symbols' => $marketId,
             'loc' => $loc,
@@ -796,7 +811,12 @@ class alpaca extends Exchange {
                 $request['limit'] = $limit;
             }
             if ($since !== null) {
-                $request['start'] = $this->yyyymmdd($since);
+                $request['start'] = $this->iso8601($since);
+            }
+            $until = $this->safe_integer($params, 'until');
+            if ($until !== null) {
+                $params = $this->omit($params, 'until');
+                $request['end'] = $this->iso8601($until);
             }
             $request['timeframe'] = $this->safe_string($this->timeframes, $timeframe, $timeframe);
             $response = Async\await($this->marketPublicGetV1beta3CryptoLocBars($this->extend($request, $params)));
@@ -831,6 +851,26 @@ class alpaca extends Exchange {
             //
             $bars = $this->safe_dict($response, 'bars', array());
             $ohlcvs = $this->safe_list($bars, $marketId, array());
+            if ($paginate) {
+                // the endpoint answers with a server-sized $page plus a next_page_token regardless of the requested $limit
+                $pageToken = $this->safe_string($response, 'next_page_token');
+                for ($i = 1; $i < $paginationCalls; $i++) {
+                    $ohlcvsLength = count($ohlcvs);
+                    if (($pageToken === null) || (($limit !== null) && ($ohlcvsLength >= $limit))) {
+                        break;
+                    }
+                    $request['page_token'] = $pageToken;
+                    $response = Async\await($this->marketPublicGetV1beta3CryptoLocBars($this->extend($request, $params)));
+                    $bars = $this->safe_dict($response, 'bars', array());
+                    $page = $this->safe_list($bars, $marketId, array());
+                    $pageLength = count($page);
+                    if ($pageLength === 0) {
+                        break;
+                    }
+                    $ohlcvs = $this->array_concat($ohlcvs, $page);
+                    $pageToken = $this->safe_string($response, 'next_page_token');
+                }
+            }
         } elseif ($method === 'marketPublicGetV1beta3CryptoLocLatestBars') {
             $response = Async\await($this->marketPublicGetV1beta3CryptoLocLatestBars($this->extend($request, $params)));
             //
@@ -916,16 +956,18 @@ class alpaca extends Exchange {
          *
          * @see https://docs.alpaca.markets/reference/cryptosnapshots-1
          *
-         * @param {string[]} $symbols unified $symbols of the markets to fetch tickers for
+         * @param {string[]} [$symbols] unified $symbols of the markets to fetch tickers for, defaults to all markets
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->loc] crypto location, default => us
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structures~
          */
-        if ($symbols === null) {
-            throw new ArgumentsRequired($this->id . ' fetchTickers() requires a $symbols argument');
-        }
         if ($this->markets === null) {
             Async\await($this->load_markets());
+        }
+        if ($symbols === null) {
+            // every listed $market is a crypto $market because fetchMarkets requests asset_class=crypto, so default to all of them
+            $allSymbols = $this->sort($this->symbols); // symbol iteration order differs per language
+            $symbols = $allSymbols;
         }
         $symbols = $this->market_symbols($symbols);
         $loc = $this->safe_string($params, 'loc', 'us');
@@ -1826,7 +1868,7 @@ class alpaca extends Exchange {
             $currency = $this->currency($code);
         }
         $sandboxMode = $this->isSandboxModeEnabled || $this->safe_bool($this->options, 'sandboxMode', false);
-        if ($sandboxMode) {
+        if ($sandboxMode === true) {
             // paper-trading hosts do not serve the crypto wallets api at all, so route
             // through the account $activities $ledger instead, $filtered to transfer-like
             // entries, see https://github.com/ccxt/ccxt/issues/24847
@@ -2203,11 +2245,16 @@ class alpaca extends Exchange {
         if ($code !== null) {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
         }
-        $message = $this->safe_value($response, 'message');
+        $message = $this->safe_string($response, 'message');
         if ($message !== null) {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
-            throw new ExchangeError($feedback);
+            $codeAsString = (string) $code;
+            if (($code < 400) || !(is_array($this->httpExceptions) && array_key_exists($codeAsString ?? '', $this->httpExceptions))) {
+                // an error envelope must always throw — also for statuses the http-status handler has no entry for
+                throw new ExchangeError($feedback);
+            }
+            // unmapped messages on the remaining error statuses fall through to the default http-status handler
         }
         return null;
     }

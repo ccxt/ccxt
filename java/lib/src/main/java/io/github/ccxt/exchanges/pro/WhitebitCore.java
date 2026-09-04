@@ -258,7 +258,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
         Object orderbook = Helpers.GetValue(this.orderbooks, symbol);
         Helpers.addElementToObject(orderbook, "timestamp", timestamp);
         Helpers.addElementToObject(orderbook, "datetime", this.iso8601(timestamp));
-        if (Helpers.isTrue(isSnapshot))
+        if (Helpers.isTrue(Helpers.isEqual(isSnapshot, true)))
         {
             Object snapshot = this.parseOrderBook(data, symbol);
             Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
@@ -933,7 +933,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
             return;
         }
         Object fetchBalanceSnapshot = this.handleOption("watchBalance", "fetchBalanceSnapshot", true);
-        if (Helpers.isTrue(fetchBalanceSnapshot))
+        if (Helpers.isTrue(Helpers.isEqual(fetchBalanceSnapshot, true)))
         {
             Object messageHash = Helpers.add(type, ":fetchBalanceSnapshot");
             if (!Helpers.isTrue((Helpers.inOp(client.futures, messageHash))))
@@ -1122,7 +1122,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
                 Object market = this.market(symbol);
                 Object marketId = Helpers.GetValue(market, "id");
                 Object isSubscribed = this.safeBool(subscription, marketId, false);
-                if (!Helpers.isTrue(isSubscribed))
+                if (Helpers.isTrue(!Helpers.isEqual(isSubscribed, true)))
                 {
                     if (Helpers.isTrue(!Helpers.isEqual(marketId, null)))
                     {
@@ -1340,7 +1340,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
         // pong
         //    { error: null, result: "pong", id: 0 }
         //
-        if (!Helpers.isTrue(this.handleErrorMessage(client, message)))
+        if (Helpers.isTrue(!Helpers.isEqual(this.handleErrorMessage(client, message), true)))
         {
             return;
         }

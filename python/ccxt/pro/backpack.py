@@ -1231,7 +1231,7 @@ class backpack(ccxt.async_support.backpack):
         })
 
     def handle_message(self, client: Client, message: object):
-        if not self.handle_error_message(client, message):
+        if self.handle_error_message(client, message) is not True:
             return
         data = self.safe_dict(message, 'data')
         event = self.safe_string(data, 'e')

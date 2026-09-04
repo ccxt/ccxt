@@ -126,7 +126,7 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
         //     ]
         //
         Object topic = this.safeString(message, "topic");
-        if (Helpers.isTrue(this.handleErrorMessage(client, message)))
+        if (Helpers.isTrue(Helpers.isEqual(this.handleErrorMessage(client, message), true)))
         {
             return;
         }
@@ -729,7 +729,7 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
         //     }
         //
         Object isSnapshot = this.safeBool(message, "f", false);
-        if (Helpers.isTrue(isSnapshot))
+        if (Helpers.isTrue(Helpers.isEqual(isSnapshot, true)))
         {
             this.setOrderBookSnapshot(client, message, "diffDepth");
             return;
@@ -1198,6 +1198,8 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object marketId = this.safeString(trade, "s");
         Object ts = this.safeString(trade, "t");
+        Object isMaker = (Helpers.isEqual(this.safeBool(trade, "m"), true));
+        Object takerOrMaker = ((Helpers.isTrue(isMaker))) ? "maker" : "taker";
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", ToobitCore.this.safeString(trade, "T") );
@@ -1207,7 +1209,7 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
             put( "order", ToobitCore.this.safeString(trade, "o") );
             put( "type", null );
             put( "side", ToobitCore.this.safeStringLower(trade, "S") );
-            put( "takerOrMaker", ((Helpers.isTrue(ToobitCore.this.safeBool(trade, "m")))) ? "maker" : "taker" );
+            put( "takerOrMaker", takerOrMaker );
             put( "price", ToobitCore.this.safeString(trade, "p") );
             put( "amount", ToobitCore.this.safeString(trade, "q") );
             put( "cost", null );
@@ -1240,6 +1242,7 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
                 (this.loadMarkets()).join();
             }
             (this.authenticate()).join();
+            Object type = "swap"; // the only account type that carries positions here
             Object messageHash = "";
             if (!Helpers.isTrue(this.isEmpty(symbols)))
             {
@@ -1250,14 +1253,14 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
                 }
                 messageHash = Helpers.add("::", String.join((String)",", (java.util.List<String>)symbols));
             }
+            messageHash = Helpers.add(Helpers.add(type, ":positions"), messageHash);
             Object url = this.getUserStreamUrl();
             Client client = this.client(url);
-            (this.authenticate(url)).join();
-            this.setPositionsCache(client, symbols);
-            Object cache = this.positions;
+            this.setPositionsCache(client, type, symbols);
+            Object cache = this.safeValue(this.positions, type);
             if (Helpers.isTrue(Helpers.isEqual(cache, null)))
             {
-                Object snapshot = client.future("fetchPositionsSnapshot").getFuture().join();
+                Object snapshot = client.future((String)Helpers.add(type, ":fetchPositionsSnapshot")).getFuture().join();
                 return this.filterBySymbolsSinceLimit(snapshot, symbols, since, limit, true);
             }
             Object newPositions = (this.watch(url, messageHash, null, messageHash, null)).join();
@@ -1283,7 +1286,7 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
             return;
         }
         Object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", false);
-        if (Helpers.isTrue(fetchPositionsSnapshot))
+        if (Helpers.isTrue(Helpers.isEqual(fetchPositionsSnapshot, true)))
         {
             Object messageHash = Helpers.add(type, ":fetchPositionsSnapshot");
             if (!Helpers.isTrue((Helpers.inOp(client.futures, messageHash))))
@@ -1354,8 +1357,7 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
         //     }
         // ]
         //
-        Object subscriptions = Helpers.objectKeys(client.subscriptions);
-        Object accountType = Helpers.GetValue(subscriptions, 0);
+        Object accountType = "swap";
         if (Helpers.isTrue(Helpers.isEqual(this.positions, null)))
         {
             this.positions = new java.util.HashMap<String, Object>() {{}};
@@ -1365,10 +1367,16 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
             Helpers.addElementToObject(this.positions, accountType, new ArrayCache.ArrayCacheBySymbolBySide());
         }
         Object cache = Helpers.GetValue(this.positions, accountType);
-        Object newPositions = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(message)); i++)
+        // handleMessage's fallback dispatches one item at a time
+        Object rawPositions = message;
+        if (!Helpers.isTrue(Helpers.isArray(message)))
         {
-            Object rawPosition = Helpers.GetValue(message, i);
+            rawPositions = new java.util.ArrayList<Object>(java.util.Arrays.asList(message));
+        }
+        Object newPositions = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawPositions)); i++)
+        {
+            Object rawPosition = Helpers.GetValue(rawPositions, i);
             Object position = this.parseWsPosition(rawPosition);
             Object timestamp = this.safeInteger(rawPosition, "E");
             Helpers.addElementToObject(position, "timestamp", timestamp);
@@ -1376,6 +1384,10 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
             ((java.util.List<Object>)newPositions).add(position);
             Helpers.callDynamically(cache, "append", new Object[]{position});
         }
+        // no local may be named `positions` in this method: build/transpile.ts
+        // appends `$` to every local name wherever it appears, string literals
+        // included, so a local `positions` rewrites the hash prefix below to
+        // ':$positions::' and find_message_hashes () matches nothing in PHP
         Object messageHashes = this.findMessageHashes(client, Helpers.add(accountType, ":positions::"));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(messageHashes)); i++)
         {
@@ -1383,10 +1395,10 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
             Object parts = Helpers.split(messageHash, "::");
             Object symbolsString = Helpers.GetValue(parts, 1);
             Object symbols = Helpers.split(symbolsString, ",");
-            Object positions = this.filterByArray(newPositions, "symbol", symbols, false);
-            if (!Helpers.isTrue(this.isEmpty(positions)))
+            Object filtered = this.filterByArray(newPositions, "symbol", symbols, false);
+            if (!Helpers.isTrue(this.isEmpty(filtered)))
             {
-                client.resolve(positions, messageHash);
+                client.resolve(filtered, messageHash);
             }
         }
         client.resolve(newPositions, Helpers.add(accountType, ":positions"));
@@ -1430,39 +1442,63 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Client client = this.client(this.getUserStreamUrl());
-            Object messageHash = "authenticated";
-            io.github.ccxt.ws.Future future = client.reusableFuture((String)messageHash);
-            Object authenticated = this.safeValue(client.subscriptions, messageHash);
-            if (Helpers.isTrue(Helpers.isEqual(authenticated, null)))
+            Object time = this.milliseconds();
+            Object lastAuthenticatedTime = this.safeInteger(Helpers.GetValue(this.options, "ws"), "lastAuthenticatedTime", 0);
+            Object listenKeyRefreshRate = this.safeInteger(Helpers.GetValue(this.options, "ws"), "listenKeyRefreshRate", 1200000);
+            Object delay = this.sum(listenKeyRefreshRate, 10000);
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.subtract(time, lastAuthenticatedTime), delay)))
             {
                 this.checkRequiredCredentials();
-                Object time = this.milliseconds();
-                Object lastAuthenticatedTime = this.safeInteger(Helpers.GetValue(this.options, "ws"), "lastAuthenticatedTime", 0);
-                Object listenKeyRefreshRate = this.safeInteger(Helpers.GetValue(this.options, "ws"), "listenKeyRefreshRate", 1200000);
-                Object delay = this.sum(listenKeyRefreshRate, 10000);
-                if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.subtract(time, lastAuthenticatedTime), delay)))
+                // single-flight leader election on a never-dialed client, see
+                // https://github.com/ccxt/ccxt/issues/29393. the election used to
+                // run on this.client ("getUserStreamUrl" ()), but that url
+                // embeds the listenKey it is about to mint, so the client the
+                // flight registers on is not the client the next caller looks at:
+                // the cold call elected on .../ws/undefined and every later call
+                // landed on .../ws/<key> with an empty subscriptions map, found
+                // the key still fresh, skipped the fetch and hung on a future
+                // nobody resolves. client.futures is the registry: client.future ()
+                // is the atomic check-and-insert and client.resolve () /
+                // client.reject () settle and remove the entry under the same lock
+                // in every port
+                Object messageHash = "authenticate";
+                Client client = this.client("authenticationFlights");
+                if (Helpers.isTrue(Helpers.inOp(client.futures, messageHash)))
                 {
-                    try
-                    {
-                        Helpers.addElementToObject(client.subscriptions, messageHash, true);
-                        Object response = (this.privatePostApiV1UserDataStream(parameters)).join();
-                        Helpers.addElementToObject(Helpers.GetValue(this.options, "ws"), "listenKey", this.safeString(response, "listenKey"));
-                        Helpers.addElementToObject(Helpers.GetValue(this.options, "ws"), "lastAuthenticatedTime", time);
-                        ((io.github.ccxt.ws.Future)future).resolve(true);
-                        this.scheduleCallback(listenKeyRefreshRate, "keepAliveListenKey", parameters);
-                    } catch(Exception e)
-                    {
-                        var err = new AuthenticationError(Helpers.add(Helpers.add(this.id, " "), this.exceptionMessage(e)));
-                        client.reject(err, messageHash);
-                        if (Helpers.isTrue(Helpers.inOp(client.subscriptions, messageHash)))
-                        {
-                            ((java.util.Map<String,Object>)client.subscriptions).remove((String)messageHash);
-                        }
-                    }
+                    // a flight is already in progress - wake when the leader
+                    // settles it: the listenKey is then in the bucket
+                    client.future((String)messageHash).getFuture().join();
+                    return null;
                 }
+                // reusableFuture (), not future () - the two match in
+                // js/py/php/cs/java, but go's Client.Future () yields a channel
+                // that the trailing suspension point below would panic on
+                io.github.ccxt.ws.Future future = client.reusableFuture((String)messageHash);
+                try
+                {
+                    Object response = (this.privatePostApiV1UserDataStream(parameters)).join();
+                    Object listenKey = this.safeString(response, "listenKey");
+                    if (Helpers.isTrue(Helpers.isEqual(listenKey, null)))
+                    {
+                        throw new AuthenticationError((String)Helpers.add(this.id, " authenticate() received an empty listenKey")) ;
+                    }
+                    Helpers.addElementToObject(Helpers.GetValue(this.options, "ws"), "listenKey", listenKey);
+                    Helpers.addElementToObject(Helpers.GetValue(this.options, "ws"), "lastAuthenticatedTime", time);
+                    this.scheduleCallback(listenKeyRefreshRate, "keepAliveListenKey", parameters);
+                    // settle the flight: client.resolve () removes the future from
+                    // client.futures and wakes every waiter
+                    client.resolve(listenKey, messageHash);
+                } catch(Exception e)
+                {
+                    // reject the flight - waiters throw and the next caller re-leads.
+                    // no rethrow here, the trailing suspension point rethrows to this
+                    // caller AND attaches the handler an alone leader needs
+                    var err = new AuthenticationError(Helpers.add(Helpers.add(this.id, " "), this.exceptionMessage(e)));
+                    client.reject(err, messageHash);
+                }
+                ((io.github.ccxt.ws.Future)future).getFuture().join();
             }
-            return ((io.github.ccxt.ws.Future)future).getFuture().join();
+            return null;
         });
 
     }

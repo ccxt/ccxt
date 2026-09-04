@@ -228,7 +228,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             market = self.market(symbol)
-            if market['active']:
+            if market['active'] is True:
                 output.append(symbol)
         return output
 
@@ -760,7 +760,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         return True
 
     def handle_message(self, client: object, message: object):
-        if self.handle_error_message(client, message):
+        if self.handle_error_message(client, message) is True:
             return
         channel = self.safe_string(message, 'channel', '')
         methods = {

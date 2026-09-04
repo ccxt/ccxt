@@ -25,13 +25,13 @@ func testFetchCurrenciesBody(ch chan any, exchange ccxt.ICoreExchange, skippedPr
 	var featuresSpot any = exchange.SafeDict(features, "spot", map[string]any{})
 	var fetchCurrencies any = exchange.SafeDict(featuresSpot, "fetchCurrencies", map[string]any{})
 	var isFetchCurrenciesPrivate any = exchange.SafeValue(fetchCurrencies, "private", false)
-	if !EvalTruthy(isFetchCurrenciesPrivate) {
+	if IsTrue(!IsEqual(isFetchCurrenciesPrivate, true)) {
 		var values any = ObjectValues(currencies)
 		AssertNonEmtpyArray(exchange, skippedProperties, method, values)
 		var currenciesLength int = GetArrayLength(values)
 		// ensure exchange returns enough length of currencies
 		var skipAmount bool = (InOp(skippedProperties, "amountOfCurrencies"))
-		Assert(skipAmount || IsGreaterThan(currenciesLength, 5), Add(Add(Add(Add(exchange.GetId(), " "), method), " must return at least several currencies, but it returned "), ToString(currenciesLength)))
+		Assert(IsTrue(skipAmount) || IsTrue(IsGreaterThan(currenciesLength, 5)), Add(Add(Add(Add(exchange.GetId(), " "), method), " must return at least several currencies, but it returned "), ToString(currenciesLength)))
 		// allow skipped exchanges
 		var skipActive bool = (InOp(skippedProperties, "activeCurrenciesQuota"))
 		var skipMajorCurrencyCheck bool = (InOp(skippedProperties, "activeMajorCurrencies"))
@@ -41,7 +41,7 @@ func testFetchCurrenciesBody(ch chan any, exchange ccxt.ICoreExchange, skippedPr
 			TestCurrency(exchange, skippedProperties, method, currency)
 			// detailed check for deposit/withdraw
 			var active any = exchange.SafeBool(currency, "active")
-			if IsEqual(active, false) {
+			if IsTrue(IsEqual(active, false)) {
 				numInactiveCurrencies = Add(numInactiveCurrencies, 1)
 			}
 			// ensure that major currencies are active and enabled for deposit and withdrawal
@@ -49,14 +49,14 @@ func testFetchCurrenciesBody(ch chan any, exchange ccxt.ICoreExchange, skippedPr
 			var withdraw any = exchange.SafeBool(currency, "withdraw")
 			var deposit any = exchange.SafeBool(currency, "deposit")
 			var isMicaCompliant any = exchange.SafeBool(exchange.GetOptions(), "mica", false)
-			var skipUsdtForMica bool = EvalTruthy(isMicaCompliant) && IsEqual(code, "USDT")
-			if EvalTruthy(exchange.InArray(code, requiredActiveCurrencies)) && !skipMajorCurrencyCheck && !skipUsdtForMica {
-				Assert(EvalTruthy(withdraw) && EvalTruthy(deposit), Add(Add(Add("Major currency ", code), " should have withdraw and deposit flags enabled ::: "), exchange.Json(currency)))
+			var skipUsdtForMica bool = IsTrue((IsEqual(isMicaCompliant, true))) && IsTrue((IsEqual(code, "USDT")))
+			if IsTrue(IsTrue(IsTrue(exchange.InArray(code, requiredActiveCurrencies)) && !IsTrue(skipMajorCurrencyCheck)) && IsTrue((!IsEqual(skipUsdtForMica, true)))) {
+				Assert(IsTrue((IsEqual(withdraw, true))) && IsTrue((IsEqual(deposit, true))), Add(Add(Add("Major currency ", code), " should have withdraw and deposit flags enabled ::: "), exchange.Json(currency)))
 			}
 		}
 		// check at least X% of currencies are active
 		var inactiveCurrenciesPercentage any = Multiply((Divide(numInactiveCurrencies, currenciesLength)), 100)
-		Assert(skipActive || (IsLessThan(inactiveCurrenciesPercentage, maxInactiveCurrenciesPercentage)), Add(Add(Add(Add("Percentage of inactive currencies is too high at ", ToString(inactiveCurrenciesPercentage)), "% that is more than the allowed maximum of "), ToString(maxInactiveCurrenciesPercentage)), "%"))
+		Assert(IsTrue(skipActive) || IsTrue((IsLessThan(inactiveCurrenciesPercentage, maxInactiveCurrenciesPercentage))), Add(Add(Add(Add("Percentage of inactive currencies is too high at ", ToString(inactiveCurrenciesPercentage)), "% that is more than the allowed maximum of "), ToString(maxInactiveCurrenciesPercentage)), "%"))
 		DetectCurrencyConflicts(exchange, currencies)
 	}
 
@@ -71,11 +71,11 @@ func DetectCurrencyConflicts(exchange ccxt.ICoreExchange, currencyValues any) an
 		var key any = GetValue(keys, i)
 		var currency any = GetValue(currencyValues, key)
 		var code any = GetValue(currency, "code")
-		if !(InOp(ids, code)) {
+		if !IsTrue((InOp(ids, code))) {
 			AddElementToObject(ids, code, GetValue(currency, "id"))
 		} else {
-			var isDifferent bool = !IsEqual(GetValue(ids, code), GetValue(currency, "id"))
-			Assert(!isDifferent, Add(Add(Add(Add(Add(Add(exchange.GetId(), " fetchCurrencies() has different ids for the same code: "), code), " "), GetValue(ids, code)), " "), GetValue(currency, "id")))
+			var isDifferent any = !IsEqual(GetValue(ids, code), GetValue(currency, "id"))
+			Assert(!IsTrue(isDifferent), Add(Add(Add(Add(Add(Add(exchange.GetId(), " fetchCurrencies() has different ids for the same code: "), code), " "), GetValue(ids, code)), " "), GetValue(currency, "id")))
 		}
 	}
 	return true

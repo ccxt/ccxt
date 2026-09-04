@@ -480,7 +480,7 @@ class polymarket extends Exchange {
             for ($ei = 0; $ei < count($allEvents); $ei++) {
                 $rawEvent = $allEvents[$ei];
                 $eventId = $this->safe_string($rawEvent, 'id');
-                if ($eventId && !(is_array($seen) && array_key_exists($eventId ?? '', $seen))) {
+                if (($eventId !== null && $eventId !== '') && !(is_array($seen) && array_key_exists($eventId ?? '', $seen))) {
                     $seen[$eventId] = true;
                     $rawEvents[] = $rawEvent;
                 }
@@ -727,7 +727,7 @@ class polymarket extends Exchange {
             $active = $this->safe_bool($market, 'active', false);
             $closed = $this->safe_bool($market, 'closed', false);
             // resolution => a closed/uma-resolved $market settles each outcome price to 0 or 1
-            $marketResolved = $closed || ($this->safe_string_lower($market, 'umaResolutionStatus') === 'resolved');
+            $marketResolved = ($closed === true) || ($this->safe_string_lower($market, 'umaResolutionStatus') === 'resolved');
             $resolvedOutcome = null;
             // gamma exposes the order-book tick; minimumTickSize is the clob alias
             $tickSize = $this->safe_number_2($market, 'orderPriceMinTickSize', 'minimumTickSize', 0.01);
@@ -755,13 +755,13 @@ class polymarket extends Exchange {
             if ($parsedPrices !== null) {
                 $parsedPricesLength = count(($parsedPrices));
             }
-            if ($parsedOutcomes && ($parsedOutcomesLength !== null)) {
+            if (($parsedOutcomes !== null) && ($parsedOutcomesLength !== null)) {
                 $outcomeLabels = $parsedOutcomes;
             }
-            if ($parsedTokenIds && ($parsedTokenIdsLength !== null)) {
+            if (($parsedTokenIds !== null) && ($parsedTokenIdsLength !== null)) {
                 $clobTokenIds = $parsedTokenIds;
             }
-            if ($parsedPrices && ($parsedPricesLength !== null)) {
+            if (($parsedPrices !== null) && ($parsedPricesLength !== null)) {
                 $outcomePrices = $parsedPrices;
             }
             $outcomeLabelsLength = count($outcomeLabels);
@@ -777,7 +777,7 @@ class polymarket extends Exchange {
                 $outcomeLabel = $outcomeLabels[$oi];
                 $clobTokenId = $clobTokenIds[$oi];
                 $outcomePrice = $this->safe_number($outcomePrices, $oi);
-                if (!$clobTokenId) {
+                if (($clobTokenId === null) || ($clobTokenId === '')) {
                     continue;
                 }
                 $outcomeHandle = $this->slug_to_outcome_symbol($eventSlug, $marketSlug, $outcomeLabel);
@@ -807,7 +807,7 @@ class polymarket extends Exchange {
                     'market' => $marketSymbol,
                     'label' => $outcomeLabel,
                     'price' => $outcomePrice,
-                    'active' => $active && !$closed,
+                    'active' => ($active === true) && ($closed !== true),
                     'winner' => $winner,
                     'settleFraction' => $settleFraction,
                     // carry the order precision so createOrder needs no extra request
@@ -842,14 +842,14 @@ class polymarket extends Exchange {
                 'future' => false,
                 'option' => false,
                 'prediction' => true,
-                'active' => $active && !$closed,
+                'active' => ($active === true) && ($closed !== true),
                 'resolved' => $marketResolved,
                 'resolvedOutcome' => $marketResolvedOutcome,
                 'contract' => false,
                 'linear' => null,
                 'inverse' => null,
                 'contractSize' => null,
-                'expiry' => $endDate ? $this->parse8601($endDate) : null,
+                'expiry' => ($endDate !== null && $endDate !== '') ? $this->parse8601($endDate) : null,
                 'expiryDatetime' => $endDate,
                 'strike' => null,
                 'optionType' => null,
@@ -2182,7 +2182,7 @@ class polymarket extends Exchange {
             if (strlen($builderHex) <= 40) {
                 $builderFeeEnabled = $this->safe_bool($this->options, 'builderFee', true);
                 $feeRate = 0;
-                if ($builderFeeEnabled) {
+                if ($builderFeeEnabled === true) {
                     $feeRate = $this->safe_integer($this->options, 'feeRate', 0);
                 }
                 $feeHex = $this->int_to_base16($feeRate);
@@ -2215,7 +2215,7 @@ class polymarket extends Exchange {
         );
         $exchangeV2 = $this->safe_string($this->options, 'exchangeAddress', '0xE111180000d2663C0091e4f400237545B87B996B');
         $negRiskExchangeV2 = $this->safe_string($this->options, 'negRiskExchangeAddress', '0xe2222d279d744050d28e00520010520000310F59');
-        $exchangeAddress = $negRisk ? $negRiskExchangeV2 : $exchangeV2;
+        $exchangeAddress = ($negRisk === true) ? $negRiskExchangeV2 : $exchangeV2;
         $domainVersion = $this->safe_string($this->options, 'ctfExchangeVersion', '2');
         $signature = $this->sign_clob_order($message, $exchangeAddress, $domainVersion, $signatureType);
         $owner = $this->safe_string($this->options, 'l2ApiKey', $this->apiKey);
@@ -2704,7 +2704,7 @@ class polymarket extends Exchange {
         $closed = $this->safe_bool($rawEvent, 'closed', false);
         $active = null;
         if ($rawActive !== null) {
-            $active = $rawActive && !$closed;
+            $active = ($rawActive === true) && ($closed !== true);
         }
         // surface gamma's tag objects top-level stringarray() so the unified `tags` filter
         // — filterEventsByTags reads event['tags'], not event.info.tags — can actually match.
@@ -2722,7 +2722,7 @@ class polymarket extends Exchange {
         return $this->extend(array(
             'id' => $this->safe_string($rawEvent, 'id'),
             'slug' => $slug,
-            'event' => $slug ? $this->shorten_slug($slug) : null,
+            'event' => ($slug !== null && $slug !== '') ? $this->shorten_slug($slug) : null,
             'title' => $this->safe_string($rawEvent, 'title'),
             'tags' => $parsedTags,
             'markets' => $marketsList,
@@ -2761,7 +2761,7 @@ class polymarket extends Exchange {
         // the CLOB api returns array( "error" => "..." ) (and createOrder variants use "errorMsg");
         // map the known messages so callers can distinguish a dead book or a rejected order
         // from a transport outage (the base otherwise maps a bare 404 to a retryable error)
-        if (!$response) {
+        if ($response === null) {
             return null;
         }
         $errorMessage = $this->safe_string_2($response, 'error', 'errorMsg');
@@ -2815,7 +2815,7 @@ class polymarket extends Exchange {
                 }
             }
             $querystring = $hasArrayParam ? $this->urlencode_with_array_repeat($query) : $this->urlencode($query);
-            if ($querystring) {
+            if ($querystring !== '') {
                 $url .= '?' . $querystring;
             }
         } elseif ($isArrayBody) {
@@ -3087,7 +3087,7 @@ class polymarket extends Exchange {
         $events = (gettype($message) === 'array' && array_keys($message) === array_keys(array_keys($message))) ? $message : array( $message );
         for ($i = 0; $i < count($events); $i++) {
             $event = $events[$i];
-            if (!$event || gettype($event) !== 'array') {
+            if (($event === null) || ($event === null) || (gettype($event) !== 'array')) {
                 continue;
             }
             $eventType = $this->safe_string($event, 'event_type');

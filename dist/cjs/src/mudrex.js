@@ -221,7 +221,7 @@ class mudrex extends mudrex$1["default"] {
             return undefined;
         }
         const success = this.safeBool(response, 'success', true);
-        if (!success) {
+        if (success !== true) {
             const errors$1 = this.safeList(response, 'errors', []);
             const first = this.safeDict(errors$1, 0, {});
             const text = this.safeString(first, 'text', this.json(response));
@@ -463,7 +463,7 @@ class mudrex extends mudrex$1["default"] {
                     items = this.safeList(data, 'results', []);
                     itemsLength = items.length;
                 }
-                if (!itemsLength && ('symbol' in data)) {
+                if ((itemsLength === 0) && ('symbol' in data)) {
                     items = [data];
                 }
             }

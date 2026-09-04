@@ -311,7 +311,7 @@ public class CoinbaseinternationalCore extends io.github.ccxt.exchanges.Coinbase
         {
             Object symbol = Helpers.GetValue(symbols, i);
             Object market = this.market(symbol);
-            if (Helpers.isTrue(Helpers.GetValue(market, "active")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "active"), true)))
             {
                 ((java.util.List<Object>)output).add(symbol);
             }
@@ -969,7 +969,7 @@ public class CoinbaseinternationalCore extends io.github.ccxt.exchanges.Coinbase
 
     public void handleMessage(Client client, Object message)
     {
-        if (Helpers.isTrue(this.handleErrorMessage(client, message)))
+        if (Helpers.isTrue(Helpers.isEqual(this.handleErrorMessage(client, message), true)))
         {
             return;
         }

@@ -1200,7 +1200,7 @@ class bitbank extends Exchange {
         }
         $success = $this->safe_integer($response, 'success');
         $data = $this->safe_value($response, 'data');
-        if (!$success || !$data) {
+        if (($success === null || $success === null || $success === 0) || ($data === null)) {
             $errorMessages = array(
                 '10000' => 'URL does not exist',
                 '10001' => 'A system error occurred. Please contact support',

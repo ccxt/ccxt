@@ -1,0 +1,164 @@
+[package]
+name = "ccxt-examples"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+# `ccxt` is the typed API crate; it re-exports the whole `ccxt-base` engine at
+# its root, so `ccxt::Value` etc. resolve here alongside the typed `ccxt::Binance`.
+ccxt = { path = "../../rust/ccxt" }
+# The transpiled pro/ WebSocket venues live in their own crate. Optional so the
+# default examples build (and CI) stays on the lighter set.
+ccxt-pro = { path = "../../rust/ccxt-pro", optional = true }
+# The typed prediction-market API crate (`ccxt_prediction::Kalshi`, …).
+ccxt-prediction = { path = "../../rust/ccxt-prediction" }
+tokio = { version = "1", features = ["full"] }
+futures = "0.3"
+async-trait = "0.1"
+
+[features]
+# Opt-in: pulls in the transpiled pro/ WebSocket venue crate (`ccxt-pro`). Only
+# the watch*/probe bins need it, so the default `cargo build --bins` (and CI)
+# stays on the lighter transpiled-base set.
+ws = ["dep:ccxt-pro"]
+
+# Typed prediction-market API demo (`ccxt_prediction::Kalshi::fetch_ticker`, …).
+[[bin]]
+name = "prediction_typed_demo"
+path = "src/prediction_typed_demo.rs"
+
+# Typed WebSocket API demo (`ccxt_pro::Binance::watch_ticker`, …). Gated on `ws`.
+[[bin]]
+name = "ws_typed_demo"
+path = "src/ws_typed_demo.rs"
+required-features = ["ws"]
+
+[[bin]]
+name = "binance_basics"
+path = "src/binance_basics.rs"
+
+[[bin]]
+name = "exchanges_smoke"
+path = "src/exchanges_smoke.rs"
+
+[[bin]]
+name = "cli"
+path = "src/cli.rs"
+
+[[bin]]
+name = "bench_parse_markets"
+path = "src/bench_parse_markets.rs"
+
+[[bin]]
+name = "binance_typed"
+path = "src/binance_typed.rs"
+
+[[bin]]
+name = "orderbook_diff"
+path = "src/orderbook_diff.rs"
+
+# WebSocket cross-exchange order-book comparison. Gated behind `ws` so the
+# default examples build doesn't compile the pro venues.
+[[bin]]
+name = "watch_orderbook_compare"
+path = "src/watch_orderbook_compare.rs"
+required-features = ["ws"]
+
+[[bin]]
+name = "ws_health_probe"
+path = "src/ws_health_probe.rs"
+required-features = ["ws"]
+
+[[bin]]
+name = "watch_trades_count"
+path = "src/watch_trades_count.rs"
+required-features = ["ws"]
+
+# Keep debug symbols in release so `sample`/Instruments can attribute
+# hot frames. Negligible perf impact, larger binary.
+[profile.release]
+debug = true
+
+# The examples recompile the whole `ccxt` crate from scratch (a separate
+# manifest, so no artifact reuse from the workspace build). Drop debug info in
+# the default dev profile — for a ~100-exchange generated crate, debuginfo
+# generation is a large share of compile time and memory, and these examples
+# are smoke/CLI programs that don't need it. Keeps the CI examples step well
+# under the job timeout.
+[profile.dev]
+debug = 0
+
+[[bin]]
+name = "iexchange_demo"
+path = "src/iexchange_demo.rs"
+
+# Order-book update micro-benchmark (no network).
+[[bin]]
+name = "ob_bench"
+path = "src/ob_bench.rs"
+
+# Unified error handling around createOrder / cancelOrder: provokes a series of
+# failures and routes each through one hierarchy-based policy function.
+[[bin]]
+name = "binance-order-error-handling"
+path = "src/binance_order_error_handling.rs"
+
+# Typed-wrapper walkthrough: all swap markets -> active only -> first 10 ->
+# batched prices, without touching the dynamic `Value` enum.
+[[bin]]
+name = "binance-active-swap-prices"
+path = "src/binance_active_swap_prices.rs"
+
+# Two simultaneous WS subscriptions: channel multiplexing on one connection,
+# and two independent instances running concurrently.
+[[bin]]
+name = "multi_sub"
+path = "src/multi_sub.rs"
+required-features = ["ws"]
+
+# watchOrders + watchMyTrades at once: both private channels off one user-data
+# stream and one authentication.
+[[bin]]
+name = "watch_orders_and_my_trades"
+path = "src/watch_orders_and_my_trades.rs"
+required-features = ["ws"]
+
+# Live watch_order_book CPU benchmark (5s tick report).
+[[bin]]
+name = "ob_live_bench"
+path = "src/ob_live_bench.rs"
+required-features = ["ws"]
+
+# Order placement with exchange-specific extras (clientOrderId, postOnly,
+# selfTradePrevention) built through the typed `Params` builder.
+[[bin]]
+name = "binance-order-with-params"
+path = "src/binance_order_with_params.rs"
+
+[[bin]]
+name = "generic_typed_order"
+path = "src/generic_typed_order.rs"
+
+[[bin]]
+name = "exchange-verbose-sandbox"
+path = "src/exchange_verbose_sandbox.rs"
+
+[[bin]]
+name = "watch_trades"
+path = "src/watch_trades.rs"
+required-features = ["ws"]
+
+[[bin]]
+name = "watch_and_buy"
+path = "src/watch_and_buy.rs"
+required-features = ["ws"]
+
+[[bin]]
+name = "multi_exchange_ohlcv_chart"
+path = "src/multi_exchange_ohlcv_chart.rs"
+
+[[bin]]
+name = "binance-with-proxy"
+path = "src/binance_with_proxy.rs"
+required-features = ["ws"]

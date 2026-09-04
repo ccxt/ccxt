@@ -81,10 +81,10 @@ public class BitfinexCore extends io.github.ccxt.exchanges.Bitfinex
                 put( "checksum", false );
             }})).join();
             Object checksum = this.safeBool(this.options, "checksum", true);
-            if (Helpers.isTrue(Helpers.isTrue(checksum) && Helpers.isTrue((Helpers.isEqual(channel, "book")))))
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(checksum, true))) && Helpers.isTrue((Helpers.isEqual(channel, "book")))))
             {
                 Object sub = Helpers.GetValue(client.subscriptions, messageHash);
-                if (Helpers.isTrue(Helpers.isTrue(sub) && !Helpers.isTrue(Helpers.GetValue(sub, "checksum"))))
+                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(sub, null))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(sub, "checksum"), true)))))
                 {
                     Helpers.addElementToObject(Helpers.GetValue(client.subscriptions, messageHash), "checksum", true);
                     (client.send(new java.util.HashMap<String, Object>() {{
@@ -967,7 +967,7 @@ public class BitfinexCore extends io.github.ccxt.exchanges.Bitfinex
             ((java.util.Map<String,Object>)client.subscriptions).remove((String)messageHash);
             ((java.util.Map<String,Object>)this.orderbooks).remove((String)symbol);
             Object checksum = this.handleOption("watchOrderBook", "checksum", true);
-            if (Helpers.isTrue(checksum))
+            if (Helpers.isTrue(Helpers.isEqual(checksum, true)))
             {
                 var error = new ChecksumError(Helpers.add(Helpers.add(this.id, " "), this.orderbookChecksumMessage(symbol)));
                 client.reject(error, messageHash);

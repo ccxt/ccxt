@@ -522,7 +522,7 @@ interface binance {
     fapiPublicGetPremiumIndex(params?: {}): Promise<List>;
     fapiPublicGetTicker24hr(params?: {}): Promise<Dict | List>;
     fapiPublicGetTickerPrice(params?: {}): Promise<Dict | List>;
-    fapiPublicGetTickerBookTicker(params?: {}): Promise<List>;
+    fapiPublicGetTickerBookTicker(params?: {}): Promise<Dict | List>;
     fapiPublicGetOpenInterest(params?: {}): Promise<Dict>;
     fapiPublicGetIndexInfo(params?: {}): Promise<List>;
     fapiPublicGetAssetIndex(params?: {}): Promise<Dict>;

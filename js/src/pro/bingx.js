@@ -398,7 +398,7 @@ export default class bingx extends bingxRest {
             limit = trades.getLimit(symbol, limit);
         }
         const result = this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
-        if (this.handleOption('watchTrades', 'ignoreDuplicates', true)) {
+        if (this.handleOption('watchTrades', 'ignoreDuplicates', true) === true) {
             let filtered = this.removeRepeatedTradesFromArray(result);
             filtered = this.sortBy(filtered, 'timestamp');
             return filtered;
@@ -578,7 +578,7 @@ export default class bingx extends bingxRest {
             request['reqType'] = 'sub';
         }
         let subscriptionArgs = {};
-        if (market['inverse']) {
+        if (market['inverse'] === true) {
             subscriptionArgs = {
                 'id': uuid,
                 'unsubscribe': false,
@@ -718,7 +718,7 @@ export default class bingx extends bingxRest {
         let snapshot;
         let timestamp = this.safeInteger2(message, 'timestamp', 'ts');
         timestamp = this.safeInteger2(data, 'timestamp', 'ts', timestamp);
-        if (market['inverse']) {
+        if (market['inverse'] === true) {
             snapshot = this.parseOrderBook(data, symbol, timestamp, 'bids', 'asks', 'p', 'a');
         }
         else {
@@ -749,9 +749,11 @@ export default class bingx extends bingxRest {
         //
         // for spot, opening-time (t) is used instead of closing-time (T), to be compatible with fetchOHLCV
         // for linear swap, (T) is the opening time
-        let timestamp = this.safeBool(market, 'spot') ? 't' : 'T';
-        if (this.safeBool(market, 'swap')) {
-            timestamp = this.safeBool(market, 'inverse') ? 't' : 'T';
+        const isSpot = (this.safeBool(market, 'spot') === true);
+        const isInverse = (this.safeBool(market, 'inverse') === true);
+        let timestamp = isSpot ? 't' : 'T';
+        if (this.safeBool(market, 'swap') === true) {
+            timestamp = isInverse ? 't' : 'T';
         }
         return [
             this.safeInteger(ohlcv, timestamp),
@@ -837,7 +839,7 @@ export default class bingx extends bingxRest {
         const market = this.safeMarket(marketId, undefined, undefined, marketType);
         let candles = undefined;
         if (isSwap) {
-            if (market['inverse']) {
+            if (market['inverse'] === true) {
                 candles = [this.safeDict(message, 'data', {})];
             }
             else {
@@ -1245,7 +1247,7 @@ export default class bingx extends bingxRest {
             return;
         }
         const fetchPositionsSnapshot = this.handleOption('watchPositions', 'fetchPositionsSnapshot', true);
-        if (fetchPositionsSnapshot) {
+        if (fetchPositionsSnapshot === true) {
             const messageHash = type + ':fetchPositionsSnapshot';
             if (!(messageHash in client.futures)) {
                 client.future(messageHash);
@@ -1831,7 +1833,7 @@ export default class bingx extends bingxRest {
         const subscriptionsById = this.indexBy(client.subscriptions, 'id');
         const subscription = this.safeDict(subscriptionsById, id, {});
         const isUnSubMessage = this.safeBool(subscription, 'unsubscribe', false);
-        if (isUnSubMessage) {
+        if (isUnSubMessage === true) {
             this.handleUnSubscription(client, subscription);
         }
         return message;

@@ -322,7 +322,7 @@ public class MudrexCore extends MudrexApi
             return null;
         }
         Object success = this.safeBool(response, "success", true);
-        if (!Helpers.isTrue(success))
+        if (Helpers.isTrue(!Helpers.isEqual(success, true)))
         {
             Object errors = this.safeList(response, "errors", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object first = this.safeDict(errors, 0, new java.util.HashMap<String, Object>() {{}});
@@ -633,7 +633,7 @@ public class MudrexCore extends MudrexApi
                         items = this.safeList(data, "results", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                         itemsLength = Helpers.getArrayLength(items);
                     }
-                    if (Helpers.isTrue(!Helpers.isTrue(itemsLength) && Helpers.isTrue((Helpers.inOp(data, "symbol")))))
+                    if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(itemsLength, 0))) && Helpers.isTrue((Helpers.inOp(data, "symbol")))))
                     {
                         items = new java.util.ArrayList<Object>(java.util.Arrays.asList(data));
                     }

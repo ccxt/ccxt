@@ -888,7 +888,7 @@ class hibachi(Exchange, ImplicitAPI):
             request['orderFlags'] = 'POST_ONLY'
         elif timeInForce == 'ioc':
             request['orderFlags'] = 'IOC'
-        elif reduceOnly:
+        elif reduceOnly is True:
             request['orderFlags'] = 'REDUCE_ONLY'
         if triggerPrice is not None:
             request['triggerPrice'] = triggerPrice
@@ -2096,7 +2096,7 @@ class hibachi(Exchange, ImplicitAPI):
             result.append(self.parse_settlement(settlements[i], market))
         return result
 
-    async def fetch_my_settlement_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_my_settlement_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[dict]:
         """
         fetches historical settlement records of the user
 

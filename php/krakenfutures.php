@@ -684,10 +684,10 @@ class krakenfutures extends Exchange {
         $baseVolume = null;
         $quoteVolume = null;
         $isIndex = $this->safe_bool($market, 'index', false);
-        if (!$isIndex) {
-            if ($market['linear']) {
+        if ($isIndex !== true) {
+            if ($market['linear'] === true) {
                 $baseVolume = $volume;
-            } elseif ($market['inverse']) {
+            } elseif ($market['inverse'] === true) {
                 $quoteVolume = $volume;
             }
         }
@@ -1132,7 +1132,7 @@ class krakenfutures extends Exchange {
         $cost = null;
         $linear = $this->safe_bool($market, 'linear');
         if (($amount !== null) && ($price !== null) && ($market !== null)) {
-            if ($linear) {
+            if ($linear === true) {
                 $cost = Precise::string_mul($amount, $price); // in quote
             } else {
                 $cost = Precise::string_div($amount, $price); // in base
@@ -1184,7 +1184,7 @@ class krakenfutures extends Exchange {
             'side' => $side,
             'takerOrMaker' => $takerOrMaker,
             'price' => $price,
-            'amount' => $linear ? $amount : null,
+            'amount' => ($linear === true) ? $amount : null,
             'cost' => $cost,
             'fee' => $fee,
         ));
@@ -1246,7 +1246,7 @@ class krakenfutures extends Exchange {
                 $request['stopPrice'] = $this->price_to_precision($symbol, $takeProfitTriggerPrice);
             }
         }
-        if ($reduceOnly) {
+        if ($reduceOnly === true) {
             $request['reduceOnly'] = true;
         }
         $request['orderType'] = $type;
@@ -1725,7 +1725,7 @@ class krakenfutures extends Exchange {
             $request['since'] = $since;
         }
         $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop', false);
-        if ($isTrigger) {
+        if ($isTrigger === true) {
             $params = $this->omit($params, array( 'trigger', 'stop' ));
             $response = $this->historyGetTriggers($this->extend($request, $params));
         } else {
@@ -1785,7 +1785,7 @@ class krakenfutures extends Exchange {
             $request['from'] = $since;
         }
         $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop', false);
-        if ($isTrigger) {
+        if ($isTrigger === true) {
             $params = $this->omit($params, array( 'trigger', 'stop' ));
             $response = $this->historyGetTriggers($this->extend($request, $params));
         } else {
@@ -2247,7 +2247,7 @@ class krakenfutures extends Exchange {
         $statusId = null;
         $price = null;
         $trades = array();
-        if ($orderEventsLength) {
+        if ($orderEventsLength > 0) {
             $executions = array();
             for ($i = 0; $i < count($orderEvents); $i++) {
                 $item = $orderEvents[$i];
@@ -2338,7 +2338,7 @@ class krakenfutures extends Exchange {
         if (($filled !== null) && ($market !== null)) {
             $whichPrice = ($average !== null) ? $average : $price;
             if ($whichPrice !== null) {
-                if ($market['linear']) {
+                if ($market['linear'] === true) {
                     $cost = Precise::string_mul($filled, $whichPrice); // in quote
                 } else {
                     $cost = Precise::string_div($filled, $whichPrice); // in base
@@ -2954,7 +2954,7 @@ class krakenfutures extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if (!$market['swap']) {
+        if ($market['swap'] !== true) {
             throw new BadRequest($this->id . ' fetchFundingRateHistory() supports swap contracts only');
         }
         $request = array(
@@ -3034,7 +3034,7 @@ class krakenfutures extends Exchange {
         // longer call .length on a non-list value
         $positions = $this->safe_list($response, 'openPositions');
         if ($positions === null) {
-            throw new ExchangeError($this->id . ' fetchPositions() returned a $response without an "openPositions" list');
+            throw new ExchangeNotAvailable($this->id . ' fetchPositions() returned a $response without an "openPositions" list');
         }
         for ($i = 0; $i < count($positions); $i++) {
             $position = $this->parse_position($positions[$i]);
@@ -3272,7 +3272,7 @@ class krakenfutures extends Exchange {
             $market = $this->market($account);
             $marketId = $market['id'];
             $splitId = explode('_', $marketId);
-            if ($market['inverse']) {
+            if ($market['inverse'] === true) {
                 return 'fi_' . $this->safe_string($splitId, 1);
             } else {
                 return 'fv_' . $this->safe_string($splitId, 1);

@@ -486,7 +486,7 @@ func (this *Htx) FetchAccounts(params ...any) ([]Account, error) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
  */
-func (this *Htx) FetchAccountIdByType(typeVar string, options ...FetchAccountIdByTypeOptions) (map[string]any, error) {
+func (this *Htx) FetchAccountIdByType(typeVar string, options ...FetchAccountIdByTypeOptions) (string, error) {
 
 	opts := FetchAccountIdByTypeOptionsStruct{}
 
@@ -501,9 +501,9 @@ func (this *Htx) FetchAccountIdByType(typeVar string, options ...FetchAccountIdB
 	var params *map[string]any = opts.Params
 	res := <-this.Core.FetchAccountIdByType(typeVar, marginMode, symbol, params)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return "", CreateReturnError(res)
 	}
-	return res.(map[string]any), nil
+	return res.(string), nil
 }
 
 /**

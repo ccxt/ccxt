@@ -943,7 +943,7 @@ class foxbit(Exchange, ImplicitAPI):
                 request['post_only'] = True
             else:
                 request['time_in_force'] = timeInForce
-        if postOnly:
+        if postOnly is True:
             request['post_only'] = True
         if triggerPrice is not None:
             request['stop_price'] = self.price_to_precision(symbol, triggerPrice)
@@ -1003,7 +1003,7 @@ class foxbit(Exchange, ImplicitAPI):
                 else:
                     request['time_in_force'] = timeInForce
                 del orderParams['timeInForce']
-            if postOnly:
+            if postOnly is True:
                 request['post_only'] = True
                 del orderParams['postOnly']
             if triggerPrice is not None:

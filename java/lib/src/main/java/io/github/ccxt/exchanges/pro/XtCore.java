@@ -855,7 +855,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
             Object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);
             Object awaitPositionsSnapshot = this.handleOption("watchPositions", "awaitPositionsSnapshot", true);
             Object cache = this.positions;
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(fetchPositionsSnapshot) && Helpers.isTrue(awaitPositionsSnapshot)) && Helpers.isTrue(this.isEmpty(cache))))
+            if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(fetchPositionsSnapshot, true))) && Helpers.isTrue((Helpers.isEqual(awaitPositionsSnapshot, true)))) && Helpers.isTrue(this.isEmpty(cache))))
             {
                 Object snapshot = client.future("fetchPositionsSnapshot").getFuture().join();
                 return this.filterBySymbolsSinceLimit(snapshot, symbols, since, limit, true);
@@ -891,7 +891,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            if (!Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 throw new NotSupported((String)Helpers.add(this.id, " watchFundingRate() supports swap contracts only")) ;
             }
@@ -921,7 +921,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            if (!Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 throw new NotSupported((String)Helpers.add(this.id, " unWatchFundingRate() supports swap contracts only")) ;
             }
@@ -974,7 +974,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
         }
         Object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot");
-        if (Helpers.isTrue(fetchPositionsSnapshot))
+        if (Helpers.isTrue(Helpers.isEqual(fetchPositionsSnapshot, true)))
         {
             Object messageHash = "fetchPositionsSnapshot";
             if (!Helpers.isTrue((Helpers.inOp(client.futures, messageHash))))
@@ -1814,7 +1814,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
         }
         Object market = this.market(tradeSymbol);
         Helpers.callDynamically(stored, "append", new Object[]{parsedTrade});
-        Object tradeType = ((Helpers.isTrue(Helpers.GetValue(market, "contract")))) ? "contract" : "spot";
+        Object tradeType = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "contract"), true))))) ? "contract" : "spot";
         client.resolve(stored, Helpers.add("trade::", tradeType));
     }
 
@@ -1892,7 +1892,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
         {
             Object subscription = this.safeDict(subscriptionsById, id, new java.util.HashMap<String, Object>() {{}});
             unsubscribe = this.safeBool(subscription, "unsubscribe", false);
-            if (Helpers.isTrue(unsubscribe))
+            if (Helpers.isTrue(Helpers.isEqual(unsubscribe, true)))
             {
                 this.handleUnSubscription(client, subscription);
             }

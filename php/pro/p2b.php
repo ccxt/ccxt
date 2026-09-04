@@ -73,7 +73,7 @@ class p2b extends \ccxt\async\p2b {
     private function do_subscribe(string $name, string $messageHash, mixed $request, $params = array()) {
         /**
          * @ignore
-         * Connects to a websocket channel
+         * connects to a websocket channel
          * @param {string} $name name of the channel
          * @param {string} $messageHash string to look up in handler
          * @param {stringarray()|float[]} $request endpoint parameters
@@ -470,7 +470,7 @@ class p2b extends \ccxt\async\p2b {
             $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
             $orderbook = $this->orderbooks[$symbol];
         }
-        if ($isFullUpdate) {
+        if ($isFullUpdate === true) {
             // the first parameter signals whether the $message carries all
             // records or only the changed ones, a full set replaces the book,
             // otherwise stale levels that left the depth window would linger
@@ -500,7 +500,7 @@ class p2b extends \ccxt\async\p2b {
     }
 
     public function handle_message(Client $client, mixed $message) {
-        if ($this->handle_error_message($client, $message)) {
+        if ($this->handle_error_message($client, $message) === true) {
             return;
         }
         $result = $this->safe_string($message, 'result');

@@ -1620,7 +1620,7 @@ export default class hollaex extends Exchange {
         //
         const wallet = this.safeValue (response, 'wallet', []);
         const addresses = (network === undefined) ? wallet : this.filterBy (wallet, 'network', network);
-        return this.parseDepositAddresses (addresses, codes) as DepositAddress[];
+        return this.parseDepositAddresses (addresses, codes, false) as DepositAddress[];
     }
 
     /**
@@ -1856,11 +1856,11 @@ export default class hollaex extends Exchange {
         let status = this.safeValue (transaction, 'status');
         const dismissed = this.safeValue (transaction, 'dismissed');
         const rejected = this.safeValue (transaction, 'rejected');
-        if (status) {
+        if (status === true) {
             status = 'ok';
-        } else if (dismissed) {
+        } else if (dismissed === true) {
             status = 'canceled';
-        } else if (rejected) {
+        } else if (rejected === true) {
             status = 'failed';
         } else {
             status = 'pending';
@@ -1990,7 +1990,7 @@ export default class hollaex extends Exchange {
             'networks': {},
         };
         const allowWithdrawal = this.safeValue (fee, 'allow_withdrawal');
-        if (allowWithdrawal) {
+        if (allowWithdrawal === true) {
             result['withdraw'] = { 'fee': this.safeNumber (fee, 'withdrawal_fee'), 'percentage': false };
         }
         const withdrawalFees = this.safeValue (fee, 'withdrawal_fees');

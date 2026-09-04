@@ -203,6 +203,7 @@ cancel all open orders in a market
 * [paradex](/exchanges/paradex.md#cancelallorders)
 * [phemex](/exchanges/phemex.md#cancelallorders)
 * [poloniex](/exchanges/poloniex.md#cancelallorders)
+* [revolutx](/exchanges/revolutx.md#cancelallorders)
 * [toobit](/exchanges/toobit.md#cancelallorders)
 * [weex](/exchanges/weex.md#cancelallorders)
 * [whitebit](/exchanges/whitebit.md#cancelallorders)
@@ -227,6 +228,7 @@ dead man's switch, cancel all orders after the given timeout
 | timeout | <code>number</code> | Yes | time in milliseconds, 0 represents cancel the timer |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.type | <code>string</code> | No | spot or swap market |
+| params.subType | <code>string</code> | No | 'linear' or 'inverse' (default is 'linear'), 'inverse' is not supported |
 
 ##### Supported exchanges
 * [bingx](/exchanges/bingx.md#cancelallordersafter)
@@ -434,6 +436,7 @@ cancels an open order
 * [paradex](/exchanges/paradex.md#cancelorder)
 * [paymium](/exchanges/paymium.md#cancelorder)
 * [phemex](/exchanges/phemex.md#cancelorder)
+* [revolutx](/exchanges/revolutx.md#cancelorder)
 * [tokocrypto](/exchanges/tokocrypto.md#cancelorder)
 * [toobit](/exchanges/toobit.md#cancelorder)
 * [upbit](/exchanges/upbit.md#cancelorder)
@@ -502,6 +505,7 @@ cancel multiple orders
 * [bingx](/exchanges/bingx.md#cancelorders)
 * [bitfinex](/exchanges/bitfinex.md#cancelorders)
 * [bitget](/exchanges/bitget.md#cancelorders)
+* [bithumb](/exchanges/bithumb.md#cancelorders)
 * [bitmex](/exchanges/bitmex.md#cancelorders)
 * [bitopro](/exchanges/bitopro.md#cancelorders)
 * [bitso](/exchanges/bitso.md#cancelorders)
@@ -884,6 +888,7 @@ create a currency deposit address
 
 ##### Supported exchanges
 * [bitfinex](/exchanges/bitfinex.md#createdepositaddress)
+* [bithumb](/exchanges/bithumb.md#createdepositaddress)
 * [coinbase](/exchanges/coinbase.md#createdepositaddress)
 * [coinbaseexchange](/exchanges/coinbaseexchange.md#createdepositaddress)
 * [coinbaseinternational](/exchanges/coinbaseinternational.md#createdepositaddress)
@@ -964,6 +969,7 @@ create a market buy order by providing the symbol and cost
 * [binance](/exchanges/binance.md#createmarketbuyorderwithcost)
 * [bingx](/exchanges/bingx.md#createmarketbuyorderwithcost)
 * [bitget](/exchanges/bitget.md#createmarketbuyorderwithcost)
+* [bithumb](/exchanges/bithumb.md#createmarketbuyorderwithcost)
 * [bitrue](/exchanges/bitrue.md#createmarketbuyorderwithcost)
 * [bittrade](/exchanges/bittrade.md#createmarketbuyorderwithcost)
 * [bybit](/exchanges/bybit.md#createmarketbuyorderwithcost)
@@ -1143,6 +1149,7 @@ create a trade order
 * [paymium](/exchanges/paymium.md#createorder)
 * [phemex](/exchanges/phemex.md#createorder)
 * [poloniex](/exchanges/poloniex.md#createorder)
+* [revolutx](/exchanges/revolutx.md#createorder)
 * [tokocrypto](/exchanges/tokocrypto.md#createorder)
 * [toobit](/exchanges/toobit.md#createorder)
 * [upbit](/exchanges/upbit.md#createorder)
@@ -1212,6 +1219,7 @@ create a list of trade orders
 * [bingx](/exchanges/bingx.md#createorders)
 * [bitfinex](/exchanges/bitfinex.md#createorders)
 * [bitget](/exchanges/bitget.md#createorders)
+* [bithumb](/exchanges/bithumb.md#createorders)
 * [blofin](/exchanges/blofin.md#createorders)
 * [bybit](/exchanges/bybit.md#createorders)
 * [bydfi](/exchanges/bydfi.md#createorders)
@@ -1448,15 +1456,15 @@ create a trade order that is executed as a TWAP order over a specified duration.
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified symbol of the market to create an order in |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
-| amount | <code>float</code> | Yes | how much of currency you want to trade in units of base currency |
+| amount | <code>float</code> | Yes | how much of currency you want to trade in units of base currency, only required for sale |
 | duration | <code>int</code> | Yes | the duration of the TWAP order in milliseconds |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.randomize | <code>bool</code> | No | whether to randomize the time intervals of the TWAP order slices (default is false, meaning equal intervals) |
-| params.reduceOnly | <code>bool</code> | No | true or false whether the order is reduce-only |
-| params.expiresAfter | <code>int</code> | No | time in ms after which the twap order expires |
-| params.vaultAddress | <code>string</code> | No | the vault address for order |
+| params.frequency | <code>string</code> | Yes | required order interval in seconds, 15, 20, 30, 60 or 120 |
+| params.price | <code>string</code> | No | order price, required for purchase |
+| params.generation | <code>int</code> | No | *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2 |
 
 ##### Supported exchanges
+* [bithumb](/exchanges/bithumb.md#createtwaporder)
 * [hyperliquid](/exchanges/hyperliquid.md#createtwaporder)
 
 ---
@@ -1631,6 +1639,7 @@ edit a trade order
 * [paradex](/exchanges/paradex.md#editorder)
 * [phemex](/exchanges/phemex.md#editorder)
 * [poloniex](/exchanges/poloniex.md#editorder)
+* [revolutx](/exchanges/revolutx.md#editorder)
 * [upbit](/exchanges/upbit.md#editorder)
 * [whitebit](/exchanges/whitebit.md#editorder)
 * [woo](/exchanges/woo.md#editorder)
@@ -1969,6 +1978,7 @@ query for balance and get the amount of funds available for trading or funds loc
 * [paymium](/exchanges/paymium.md#fetchbalance)
 * [phemex](/exchanges/phemex.md#fetchbalance)
 * [poloniex](/exchanges/poloniex.md#fetchbalance)
+* [revolutx](/exchanges/revolutx.md#fetchbalance)
 * [tokocrypto](/exchanges/tokocrypto.md#fetchbalance)
 * [toobit](/exchanges/toobit.md#fetchbalance)
 * [upbit](/exchanges/upbit.md#fetchbalance)
@@ -2176,6 +2186,7 @@ fetches information on multiple canceled orders made by the user
 * [binance](/exchanges/binance.md#fetchcanceledorders)
 * [bingx](/exchanges/bingx.md#fetchcanceledorders)
 * [bitget](/exchanges/bitget.md#fetchcanceledorders)
+* [bithumb](/exchanges/bithumb.md#fetchcanceledorders)
 * [bitteam](/exchanges/bitteam.md#fetchcanceledorders)
 * [blockchaincom](/exchanges/blockchaincom.md#fetchcanceledorders)
 * [bullish](/exchanges/bullish.md#fetchcanceledorders)
@@ -2246,6 +2257,7 @@ fetches information on multiple closed orders made by the user
 * [bitfinex](/exchanges/bitfinex.md#fetchclosedorders)
 * [bitflyer](/exchanges/bitflyer.md#fetchclosedorders)
 * [bitget](/exchanges/bitget.md#fetchclosedorders)
+* [bithumb](/exchanges/bithumb.md#fetchclosedorders)
 * [bitmex](/exchanges/bitmex.md#fetchclosedorders)
 * [bitopro](/exchanges/bitopro.md#fetchclosedorders)
 * [bitrue](/exchanges/bitrue.md#fetchclosedorders)
@@ -2291,6 +2303,7 @@ fetches information on multiple closed orders made by the user
 * [pacifica](/exchanges/pacifica.md#fetchclosedorders)
 * [phemex](/exchanges/phemex.md#fetchclosedorders)
 * [poloniex](/exchanges/poloniex.md#fetchclosedorders)
+* [revolutx](/exchanges/revolutx.md#fetchclosedorders)
 * [tokocrypto](/exchanges/tokocrypto.md#fetchclosedorders)
 * [toobit](/exchanges/toobit.md#fetchclosedorders)
 * [upbit](/exchanges/upbit.md#fetchclosedorders)
@@ -2666,6 +2679,7 @@ fetches all available currencies on an exchange
 * [onetrading](/exchanges/onetrading.md#fetchcurrencies)
 * [phemex](/exchanges/phemex.md#fetchcurrencies)
 * [poloniex](/exchanges/poloniex.md#fetchcurrencies)
+* [revolutx](/exchanges/revolutx.md#fetchcurrencies)
 * [toobit](/exchanges/toobit.md#fetchcurrencies)
 * [weex](/exchanges/weex.md#fetchcurrencies)
 * [whitebit](/exchanges/whitebit.md#fetchcurrencies)
@@ -2706,10 +2720,13 @@ fetch information on a deposit
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | id | <code>string</code> | Yes | deposit id |
-| code | <code>string</code> | Yes | bitso does not support filtering by currency code and will ignore this argument |
+| code | <code>string</code> | Yes | unified currency code |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.txid | <code>string</code> | No | the transaction id for the deposit |
+| params.generation | <code>int</code> | No | *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2 |
 
 ##### Supported exchanges
+* [bithumb](/exchanges/bithumb.md#fetchdeposit)
 * [bitso](/exchanges/bitso.md#fetchdeposit)
 * [blockchaincom](/exchanges/blockchaincom.md#fetchdeposit)
 * [coinbase](/exchanges/coinbase.md#fetchdeposit)
@@ -2744,6 +2761,7 @@ fetch the deposit address for a currency associated with this account
 * [bitbns](/exchanges/bitbns.md#fetchdepositaddress)
 * [bitfinex](/exchanges/bitfinex.md#fetchdepositaddress)
 * [bitget](/exchanges/bitget.md#fetchdepositaddress)
+* [bithumb](/exchanges/bithumb.md#fetchdepositaddress)
 * [bitmex](/exchanges/bitmex.md#fetchdepositaddress)
 * [bitso](/exchanges/bitso.md#fetchdepositaddress)
 * [bitstamp](/exchanges/bitstamp.md#fetchdepositaddress)
@@ -2800,9 +2818,10 @@ fetch deposit addresses for multiple currencies (when available)
 | --- | --- | --- | --- |
 | codes | <code>Array&lt;string&gt;</code> | No | list of unified currency codes, default is undefined (all currencies) |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.accountId | <code>string</code> | No | account ID to fetch deposit addresses for |
+| params.generation | <code>int</code> | No | *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2 |
 
 ##### Supported exchanges
+* [bithumb](/exchanges/bithumb.md#fetchdepositaddresses)
 * [coinbase](/exchanges/coinbase.md#fetchdepositaddresses)
 * [coinone](/exchanges/coinone.md#fetchdepositaddresses)
 * [deepcoin](/exchanges/deepcoin.md#fetchdepositaddresses)
@@ -2985,6 +3004,7 @@ fetch all deposits made to an account
 * [bitbns](/exchanges/bitbns.md#fetchdeposits)
 * [bitflyer](/exchanges/bitflyer.md#fetchdeposits)
 * [bitget](/exchanges/bitget.md#fetchdeposits)
+* [bithumb](/exchanges/bithumb.md#fetchdeposits)
 * [bitopro](/exchanges/bitopro.md#fetchdeposits)
 * [bitrue](/exchanges/bitrue.md#fetchdeposits)
 * [bitso](/exchanges/bitso.md#fetchdeposits)
@@ -4030,6 +4050,7 @@ retrieves data on all markets for alpaca
 * [paradex](/exchanges/paradex.md#fetchmarkets)
 * [phemex](/exchanges/phemex.md#fetchmarkets)
 * [poloniex](/exchanges/poloniex.md#fetchmarkets)
+* [revolutx](/exchanges/revolutx.md#fetchmarkets)
 * [tokocrypto](/exchanges/tokocrypto.md#fetchmarkets)
 * [toobit](/exchanges/toobit.md#fetchmarkets)
 * [upbit](/exchanges/upbit.md#fetchmarkets)
@@ -4282,6 +4303,7 @@ fetch all trades made by the user
 * [paradex](/exchanges/paradex.md#fetchmytrades)
 * [phemex](/exchanges/phemex.md#fetchmytrades)
 * [poloniex](/exchanges/poloniex.md#fetchmytrades)
+* [revolutx](/exchanges/revolutx.md#fetchmytrades)
 * [tokocrypto](/exchanges/tokocrypto.md#fetchmytrades)
 * [toobit](/exchanges/toobit.md#fetchmytrades)
 * [weex](/exchanges/weex.md#fetchmytrades)
@@ -4359,6 +4381,9 @@ fetches historical candlestick data containing the open, high, low, and close pr
 | since | <code>int</code> | No | timestamp in ms of the earliest candle to fetch |
 | limit | <code>int</code> | No | the maximum amount of candles to fetch |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | timestamp in ms of the latest candle to fetch |
+| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
+| params.paginationCalls | <code>int</code> | No | the maximum number of requests while following next_page_token, default 10 — when the cap is reached the result is silently truncated to the pages already fetched, so raise it for long ranges, 10 requests cover roughly 30 days of 1h candles |
 | params.loc | <code>string</code> | No | crypto location, default: us |
 | params.method | <code>string</code> | No | method, default: marketPublicGetV1beta3CryptoLocBars |
 
@@ -4432,6 +4457,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 * [paradex](/exchanges/paradex.md#fetchohlcv)
 * [phemex](/exchanges/phemex.md#fetchohlcv)
 * [poloniex](/exchanges/poloniex.md#fetchohlcv)
+* [revolutx](/exchanges/revolutx.md#fetchohlcv)
 * [tokocrypto](/exchanges/tokocrypto.md#fetchohlcv)
 * [toobit](/exchanges/toobit.md#fetchohlcv)
 * [upbit](/exchanges/upbit.md#fetchohlcv)
@@ -4701,6 +4727,7 @@ fetch all unfilled currently open orders
 * [paradex](/exchanges/paradex.md#fetchopenorders)
 * [phemex](/exchanges/phemex.md#fetchopenorders)
 * [poloniex](/exchanges/poloniex.md#fetchopenorders)
+* [revolutx](/exchanges/revolutx.md#fetchopenorders)
 * [tokocrypto](/exchanges/tokocrypto.md#fetchopenorders)
 * [toobit](/exchanges/toobit.md#fetchopenorders)
 * [upbit](/exchanges/upbit.md#fetchopenorders)
@@ -4888,6 +4915,7 @@ fetches information on an order made by the user
 * [paradex](/exchanges/paradex.md#fetchorder)
 * [phemex](/exchanges/phemex.md#fetchorder)
 * [poloniex](/exchanges/poloniex.md#fetchorder)
+* [revolutx](/exchanges/revolutx.md#fetchorder)
 * [tokocrypto](/exchanges/tokocrypto.md#fetchorder)
 * [toobit](/exchanges/toobit.md#fetchorder)
 * [upbit](/exchanges/upbit.md#fetchorder)
@@ -4997,6 +5025,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 * [paymium](/exchanges/paymium.md#fetchorderbook)
 * [phemex](/exchanges/phemex.md#fetchorderbook)
 * [poloniex](/exchanges/poloniex.md#fetchorderbook)
+* [revolutx](/exchanges/revolutx.md#fetchorderbook)
 * [tokocrypto](/exchanges/tokocrypto.md#fetchorderbook)
 * [toobit](/exchanges/toobit.md#fetchorderbook)
 * [upbit](/exchanges/upbit.md#fetchorderbook)
@@ -5173,6 +5202,7 @@ fetches information on multiple orders made by the user
 * [binance](/exchanges/binance.md#fetchorders)
 * [bingx](/exchanges/bingx.md#fetchorders)
 * [bitflyer](/exchanges/bitflyer.md#fetchorders)
+* [bithumb](/exchanges/bithumb.md#fetchorders)
 * [bitmex](/exchanges/bitmex.md#fetchorders)
 * [bitopro](/exchanges/bitopro.md#fetchorders)
 * [bitteam](/exchanges/bitteam.md#fetchorders)
@@ -5212,6 +5242,7 @@ fetches information on multiple orders made by the user
 * [pacifica](/exchanges/pacifica.md#fetchorders)
 * [paradex](/exchanges/paradex.md#fetchorders)
 * [phemex](/exchanges/phemex.md#fetchorders)
+* [revolutx](/exchanges/revolutx.md#fetchorders)
 * [tokocrypto](/exchanges/tokocrypto.md#fetchorders)
 * [toobit](/exchanges/toobit.md#fetchorders)
 * [weex](/exchanges/weex.md#fetchorders)
@@ -5935,6 +5966,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 * [paymium](/exchanges/paymium.md#fetchticker)
 * [phemex](/exchanges/phemex.md#fetchticker)
 * [poloniex](/exchanges/poloniex.md#fetchticker)
+* [revolutx](/exchanges/revolutx.md#fetchticker)
 * [tokocrypto](/exchanges/tokocrypto.md#fetchticker)
 * [upbit](/exchanges/upbit.md#fetchticker)
 * [whitebit](/exchanges/whitebit.md#fetchticker)
@@ -5979,7 +6011,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbols of the markets to fetch tickers for |
+| symbols | <code>Array&lt;string&gt;</code> | No | unified symbols of the markets to fetch tickers for, defaults to all markets |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.loc | <code>string</code> | No | crypto location, default: us |
 
@@ -6052,6 +6084,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 * [paradex](/exchanges/paradex.md#fetchtickers)
 * [phemex](/exchanges/phemex.md#fetchtickers)
 * [poloniex](/exchanges/poloniex.md#fetchtickers)
+* [revolutx](/exchanges/revolutx.md#fetchtickers)
 * [tokocrypto](/exchanges/tokocrypto.md#fetchtickers)
 * [toobit](/exchanges/toobit.md#fetchtickers)
 * [upbit](/exchanges/upbit.md#fetchtickers)
@@ -6229,6 +6262,7 @@ get the list of most recent trades for a particular symbol
 * [paymium](/exchanges/paymium.md#fetchtrades)
 * [phemex](/exchanges/phemex.md#fetchtrades)
 * [poloniex](/exchanges/poloniex.md#fetchtrades)
+* [revolutx](/exchanges/revolutx.md#fetchtrades)
 * [tokocrypto](/exchanges/tokocrypto.md#fetchtrades)
 * [toobit](/exchanges/toobit.md#fetchtrades)
 * [upbit](/exchanges/upbit.md#fetchtrades)
@@ -6678,15 +6712,37 @@ fetch data on a currency withdrawal via the withdrawal id
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | id | <code>string</code> | Yes | withdrawal id |
-| code | <code>string</code> | Yes | unified currency code of the currency withdrawn, default is undefined |
+| code | <code>string</code> | No | the currency code |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.txid | <code>string</code> | No | the transaction id for the withdrawal |
+| params.generation | <code>int</code> | No | *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2 |
 
 ##### Supported exchanges
+* [bithumb](/exchanges/bithumb.md#fetchwithdrawal)
 * [bitopro](/exchanges/bitopro.md#fetchwithdrawal)
 * [blockchaincom](/exchanges/blockchaincom.md#fetchwithdrawal)
 * [hollaex](/exchanges/hollaex.md#fetchwithdrawal)
 * [okx](/exchanges/okx.md#fetchwithdrawal)
 * [upbit](/exchanges/upbit.md#fetchwithdrawal)
+
+---
+
+<a name="fetchWithdrawalWhitelist" id="fetchwithdrawalwhitelist"></a>
+
+## fetchWithdrawalWhitelist
+fetch a list of allowed withdrawal addresses
+
+**Kind**: instance   
+**Returns**: <code>Array&lt;object&gt;</code> - a list response from the exchange
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.generation | <code>int</code> | No | *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2 |
+
+##### Supported exchanges
+* [bithumb](/exchanges/bithumb.md#fetchwithdrawalwhitelist)
 
 ---
 
@@ -6715,6 +6771,7 @@ fetch all withdrawals made from an account
 * [bitbns](/exchanges/bitbns.md#fetchwithdrawals)
 * [bitflyer](/exchanges/bitflyer.md#fetchwithdrawals)
 * [bitget](/exchanges/bitget.md#fetchwithdrawals)
+* [bithumb](/exchanges/bithumb.md#fetchwithdrawals)
 * [bitopro](/exchanges/bitopro.md#fetchwithdrawals)
 * [bitrue](/exchanges/bitrue.md#fetchwithdrawals)
 * [bitstamp](/exchanges/bitstamp.md#fetchwithdrawals)

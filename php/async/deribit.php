@@ -1006,7 +1006,7 @@ class deribit extends Exchange {
                     $linear = ($settle === $quote);
                 }
                 $parsedMarketValue = $this->safe_value($parsedMarkets, $symbol);
-                if ($parsedMarketValue) {
+                if ($parsedMarketValue !== null) {
                     continue;
                 }
                 if ($symbol !== null) {
@@ -1631,7 +1631,7 @@ class deribit extends Exchange {
         // For options $amount and linear is in corresponding cryptocurrency contracts, e.g., BTC or ETH
         $amount = $this->safe_string($trade, 'amount');
         $cost = Precise::string_mul($amount, $priceString);
-        if ($market['inverse']) {
+        if ($market['inverse'] === true) {
             $cost = Precise::string_div($amount, $priceString);
         }
         $liquidity = $this->safe_string($trade, 'liquidity');
@@ -1853,11 +1853,11 @@ class deribit extends Exchange {
                 'maker' => $market['maker'],
                 'taker' => $market['taker'],
             );
-            if ($market['swap']) {
+            if ($market['swap'] === true) {
                 $fee = $this->extend($fee, $perpetualFee);
-            } elseif ($market['future']) {
+            } elseif ($market['future'] === true) {
                 $fee = $this->extend($fee, $futureFee);
-            } elseif ($market['option']) {
+            } elseif ($market['option'] === true) {
                 $fee = $this->extend($fee, $optionFee);
             }
             $parsedFees[$symbol] = $fee;
@@ -2011,7 +2011,7 @@ class deribit extends Exchange {
         $filledString = $this->safe_string($order, 'filled_amount');
         $amount = $this->safe_string($order, 'amount');
         $cost = Precise::string_mul($filledString, $averageString);
-        if ($this->safe_bool($market, 'inverse')) {
+        if ($this->safe_bool($market, 'inverse') === true) {
             if ($averageString !== '0') {
                 $cost = Precise::string_div($amount, $averageString);
             }
@@ -2218,7 +2218,7 @@ class deribit extends Exchange {
                 }
             }
         }
-        if ($reduceOnly) {
+        if ($reduceOnly === true) {
             $request['reduce_only'] = true;
         }
         if ($postOnly) {
@@ -3440,7 +3440,8 @@ class deribit extends Exchange {
         $eachItemDuration = '1h';
         if ($paginate) {
             // fix for => https://github.com/ccxt/ccxt/issues/25040
-            return Async\await($this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, $eachItemDuration, $this->extend($params, array( 'isDeribitPaginationCall' => true )), $maxEntriesPerRequest));
+            $paginationParams = $this->extend($params, array( 'isDeribitPaginationCall' => true ));
+            return Async\await($this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, $eachItemDuration, $paginationParams, $maxEntriesPerRequest));
         }
         $duration = $this->parse_timeframe($eachItemDuration) * 1000;
         $time = $this->milliseconds();
@@ -3565,7 +3566,7 @@ class deribit extends Exchange {
             return Async\await($this->fetch_paginated_call_cursor('fetchLiquidations', $symbol, $since, $limit, $params, 'continuation', 'continuation', null));
         }
         $market = $this->market($symbol);
-        if ($market['spot']) {
+        if ($market['spot'] === true) {
             throw new NotSupported($this->id . ' fetchLiquidations() does not support ' . $market['type'] . ' markets');
         }
         $request = array(
@@ -3648,7 +3649,7 @@ class deribit extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if ($market['spot']) {
+        if ($market['spot'] === true) {
             throw new NotSupported($this->id . ' fetchMyLiquidations() does not support ' . $market['type'] . ' markets');
         }
         $request = array(
@@ -4043,7 +4044,7 @@ class deribit extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if (!$market['contract']) {
+        if ($market['contract'] !== true) {
             throw new BadRequest($this->id . ' fetchOpenInterest() supports contract markets only');
         }
         $request = array(
@@ -4117,7 +4118,7 @@ class deribit extends Exchange {
         $openInterest = $this->safe_number($interest, 'open_interest');
         $openInterestAmount = null;
         $openInterestValue = null;
-        if ($market['option'] || ($market['future'] && $market['linear'])) {
+        if (($market['option'] === true) || (($market['future'] === true) && ($market['linear'] === true))) {
             $openInterestAmount = $openInterest;
         } else {
             $openInterestValue = $openInterest;
@@ -4163,7 +4164,7 @@ class deribit extends Exchange {
     }
 
     public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
-        if (!$response) {
+        if (($response === null) || ($response === null)) {
             return null; // fallback to default $error handler
         }
         //

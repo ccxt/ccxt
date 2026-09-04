@@ -986,7 +986,7 @@ class toobit extends Exchange {
             'option' => false,
             'active' => $active,
             'contract' => $isContract,
-            'linear' => $isContract ? !$inverse : null,
+            'linear' => $isContract ? ($inverse !== true) : null,
             'inverse' => $isContract ? $inverse : null,
             'contractSize' => $this->safe_number($market, 'contractMultiplier'),
             'expiry' => null,
@@ -1172,7 +1172,7 @@ class toobit extends Exchange {
                 $side = 'buy';
             }
         } else {
-            if ($isBuyer) {
+            if ($isBuyer === true) {
                 $side = 'buy';
             } else {
                 $side = 'sell';
@@ -1395,7 +1395,7 @@ class toobit extends Exchange {
         $timestamp = $this->safe_integer($ticker, 't');
         $last = $this->safe_string($ticker, 'c');
         $baseVolume = $this->safe_string($ticker, 'v');
-        if ($market['contract'] && ($market['contractSize'] !== null)) {
+        if (($market['contract'] === true) && ($market['contractSize'] !== null)) {
             // 'v' counts contracts, and a $ticker reports base volume
             $baseVolume = Precise::string_mul($baseVolume, $this->number_to_string($market['contractSize']));
         }
@@ -1522,9 +1522,15 @@ class toobit extends Exchange {
     }
 
     public function parse_bid_ask_custom(mixed $ticker) {
+        // 's' is the exchange id and 't' a millisecond integer, the pair parseTicker
+        // reads through safeMarket and safeInteger. The caller filters on a unified symbol.
+        $marketId = $this->safe_string($ticker, 's');
+        $market = $this->safe_market($marketId);
+        $timestamp = $this->safe_integer($ticker, 't');
         return array(
-            'timestamp' => $this->safe_string($ticker, 't'),
-            'symbol' => $this->safe_string($ticker, 's'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'symbol' => $market['symbol'],
             'bid' => $this->safe_number($ticker, 'b'),
             'bidVolume' => $this->safe_number($ticker, 'bq'),
             'ask' => $this->safe_number($ticker, 'a'),
@@ -1745,7 +1751,7 @@ class toobit extends Exchange {
         $market = $this->market($symbol);
         $request = array();
         $response = array();
-        if ($market['spot']) {
+        if ($market['spot'] === true) {
             list($request, $params) = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
             $response = $this->privatePostApiV1SpotOrder($this->extend($request, $params));
         } else {
@@ -1806,7 +1812,7 @@ class toobit extends Exchange {
         }
         $isPostOnly = null;
         list($isPostOnly, $params) = $this->handle_post_only($type === 'market', false, $params);
-        if ($isPostOnly) {
+        if ($isPostOnly === true) {
             $request['type'] = 'LIMIT_MAKER';
         } else {
             $request['type'] = strtoupper($type);
@@ -1829,9 +1835,9 @@ class toobit extends Exchange {
         $reduceOnly = null;
         list($reduceOnly, $params) = $this->handle_param_bool($params, 'reduceOnly');
         if ($side === 'buy') {
-            $side = $reduceOnly ? 'BUY_CLOSE' : 'BUY_OPEN';
+            $side = ($reduceOnly === true) ? 'BUY_CLOSE' : 'BUY_OPEN';
         } elseif ($side === 'sell') {
-            $side = $reduceOnly ? 'SELL_CLOSE' : 'SELL_OPEN';
+            $side = ($reduceOnly === true) ? 'SELL_CLOSE' : 'SELL_OPEN';
         }
         $request['side'] = $side;
         if ($price !== null) {
@@ -1846,7 +1852,7 @@ class toobit extends Exchange {
         }
         $isPostOnly = null;
         list($isPostOnly, $params) = $this->handle_post_only($type === 'market', false, $params);
-        if ($isPostOnly) {
+        if ($isPostOnly === true) {
             $request['timeInForce'] = 'LIMIT_MAKER';
         }
         $values = $this->handle_trigger_prices_and_params($symbol, $params);
@@ -2197,7 +2203,7 @@ class toobit extends Exchange {
         );
         $market = $this->market($symbol);
         $response = array();
-        if ($market['spot']) {
+        if ($market['spot'] === true) {
             $response = $this->privateGetApiV1SpotOrder($this->extend($request, $params));
         } else {
             $response = $this->privateGetApiV1FuturesOrder($this->extend($request, $params));
@@ -3280,7 +3286,7 @@ class toobit extends Exchange {
         }
         $errorCode = $this->safe_string($response, 'code');
         $message = $this->safe_string($response, 'msg');
-        if ($errorCode && $errorCode !== '200' && $errorCode !== '0') {
+        if (($errorCode !== null && $errorCode !== '') && $errorCode !== '200' && $errorCode !== '0') {
             $feedback = $this->id . ' ' . $body;
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);

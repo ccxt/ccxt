@@ -569,7 +569,7 @@ export default class bigone extends Exchange {
         }
         const chainLength = chains.length;
         let type = undefined;
-        if (this.safeBool(rawCurrency, 'is_fiat')) {
+        if (this.safeBool(rawCurrency, 'is_fiat') === true) {
             type = 'fiat';
         }
         else if (chainLength === 0) {
@@ -761,7 +761,7 @@ export default class bigone extends Exchange {
                 'option': false,
                 'active': this.safeBool(market, 'enable'),
                 'contract': true,
-                'linear': !inverse,
+                'linear': (inverse !== true),
                 'inverse': inverse,
                 'contractSize': this.safeNumber(market, 'multiplier'),
                 'expiry': undefined,
@@ -1049,7 +1049,7 @@ export default class bigone extends Exchange {
         }
         const market = this.market(symbol);
         let response;
-        if (market['contract']) {
+        if (market['contract'] === true) {
             const request = {
                 'symbol': market['id'],
             };
@@ -1297,7 +1297,7 @@ export default class bigone extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['contract']) {
+        if (market['contract'] === true) {
             throw new NotSupported(this.id + ' fetchTrades () can only fetch trades for spot markets');
         }
         const request = {
@@ -1366,7 +1366,7 @@ export default class bigone extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['contract']) {
+        if (market['contract'] === true) {
             throw new NotSupported(this.id + ' fetchOHLCV () can only fetch ohlcvs for spot markets');
         }
         const until = this.safeInteger(params, 'until');
@@ -1522,7 +1522,7 @@ export default class bigone extends Exchange {
         }
         const immediateOrCancel = this.safeBool(order, 'immediate_or_cancel');
         let timeInForce = undefined;
-        if (immediateOrCancel) {
+        if (immediateOrCancel === true) {
             timeInForce = 'IOC';
         }
         const type = this.parseType(this.safeString(order, 'type'));
@@ -1576,7 +1576,7 @@ export default class bigone extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (!market['spot']) {
+        if (market['spot'] !== true) {
             throw new NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
         params['createMarketBuyOrderRequiresPrice'] = false;
@@ -1632,7 +1632,7 @@ export default class bigone extends Exchange {
                 if (timeInForce === 'IOC') {
                     request['immediate_or_cancel'] = true;
                 }
-                if (postOnly) {
+                if (postOnly === true) {
                     request['post_only'] = true;
                 }
             }
@@ -2298,7 +2298,7 @@ export default class bigone extends Exchange {
         const transfer = this.parseTransfer(response, currency);
         const transferOptions = this.safeDict(this.options, 'transfer', {});
         const fillResponseFromRequest = this.safeBool(transferOptions, 'fillResponseFromRequest', true);
-        if (fillResponseFromRequest) {
+        if (fillResponseFromRequest === true) {
             transfer['fromAccount'] = fromAccount;
             transfer['toAccount'] = toAccount;
             transfer['amount'] = amount;

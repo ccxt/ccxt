@@ -120,7 +120,7 @@ export default class okx extends okxRest {
             throw new ArgumentsRequired(this.id + ' getUrl() requires a channel argument');
         }
         const isSandbox = this.options['sandboxMode'];
-        const sandboxSuffix = isSandbox ? '?brokerId=9999' : '';
+        const sandboxSuffix = (isSandbox === true) ? '?brokerId=9999' : '';
         const isBusiness = (access === 'business');
         const isPublic = (access === 'public');
         const url = this.urls['api']['ws'];
@@ -834,7 +834,8 @@ export default class okx extends okxRest {
         }
         const isTrigger = this.safeValue2(params, 'stop', 'trigger', false);
         params = this.omit(params, ['stop', 'trigger']);
-        await this.authenticate({ 'access': isTrigger ? 'business' : 'private' });
+        const accessType = (isTrigger === true) ? 'business' : 'private';
+        await this.authenticate({ 'access': accessType });
         symbols = this.marketSymbols(symbols, undefined, true, true);
         const messageHash = 'myLiquidations';
         const messageHashes = [];
@@ -1746,8 +1747,9 @@ export default class okx extends okxRest {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        await this.authenticate({ 'access': isTrigger ? 'business' : 'private' });
-        const channel = isTrigger ? 'orders-algo' : 'orders';
+        const access = (isTrigger === true) ? 'business' : 'private';
+        await this.authenticate({ 'access': access });
+        const channel = (isTrigger === true) ? 'orders-algo' : 'orders';
         let messageHash = channel + '::myTrades';
         let market = undefined;
         if (symbol !== undefined) {
@@ -1942,7 +1944,8 @@ export default class okx extends okxRest {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        await this.authenticate({ 'access': isTrigger ? 'business' : 'private' });
+        const accessType = (isTrigger === true) ? 'business' : 'private';
+        await this.authenticate({ 'access': accessType });
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -1966,7 +1969,7 @@ export default class okx extends okxRest {
         const request = {
             'instType': uppercaseType,
         };
-        const channel = isTrigger ? 'orders-algo' : 'orders';
+        const channel = (isTrigger === true) ? 'orders-algo' : 'orders';
         const orders = await this.subscribe('private', channel, channel, symbol, this.extend(request, params));
         if (this.newUpdates) {
             limit = orders.getLimit(symbol, limit);
@@ -2439,7 +2442,7 @@ export default class okx extends okxRest {
         //
         let errorCode = this.safeString(message, 'code');
         try {
-            if (errorCode && errorCode !== '0') {
+            if ((errorCode !== undefined && errorCode !== '') && errorCode !== '0') {
                 const feedback = this.id + ' ' + this.json(message);
                 if (errorCode !== '1') {
                     this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
@@ -2488,7 +2491,7 @@ export default class okx extends okxRest {
         return true;
     }
     handleMessage(client, message) {
-        if (!this.handleErrorMessage(client, message)) {
+        if (this.handleErrorMessage(client, message) !== true) {
             return;
         }
         //

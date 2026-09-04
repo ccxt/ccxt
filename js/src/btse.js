@@ -636,7 +636,7 @@ export default class btse extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets(params = {}) {
-        if (this.options['adjustForTimeDifference']) {
+        if (this.options['adjustForTimeDifference'] === true) {
             await this.loadTimeDifference();
         }
         const response = await this.publicGetPublicApiMarketV1Markets(params);
@@ -957,7 +957,7 @@ export default class btse extends Exchange {
         }
         await this.loadMarkets();
         const market = this.market(symbol);
-        if (!(market['contract'])) {
+        if (market['contract'] !== true) {
             throw new BadRequest(this.id + ' fetchFundingRateHistory() supports contract markets only');
         }
         let period = undefined;
@@ -1251,7 +1251,7 @@ export default class btse extends Exchange {
     async fetchMarketLeverageTiers(symbol, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
-        if (!market['contract']) {
+        if (market['contract'] !== true) {
             throw new BadRequest(this.id + ' fetchMarketLeverageTiers() supports contract markets only');
         }
         const result = await this.fetchLeverageTiers([symbol], params);
@@ -1340,7 +1340,7 @@ export default class btse extends Exchange {
         market = this.safeMarket(marketId, market);
         const last = this.safeString(ticker, 'lastPrice');
         let baseVolume = this.safeString(ticker, 'amount');
-        if ((baseVolume !== undefined) && (market !== undefined) && market['contract']) {
+        if ((baseVolume !== undefined) && (market !== undefined) && (market['contract'] === true)) {
             // for contract markets the amount field is denominated in contracts, verified live -
             // scaling by contractSize converts it into base currency units
             const contractSizeString = this.numberToString(market['contractSize']);
@@ -1365,7 +1365,9 @@ export default class btse extends Exchange {
             'last': last,
             'previousClose': this.safeString(ticker, 'prevClosePrice'),
             'change': this.safeString(ticker, 'priceChange'),
-            'percentage': this.safeString(ticker, 'priceChangePercent'),
+            // priceChangePercent is a ratio rounded to three decimals, not a percentage,
+            // so it is left out and safeTicker derives percentage from change and open
+            'percentage': undefined,
             'average': undefined,
             'baseVolume': baseVolume,
             'quoteVolume': this.safeString(ticker, 'volume'),
@@ -1386,7 +1388,7 @@ export default class btse extends Exchange {
     async fetchOpenInterest(symbol, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
-        if (market['spot']) {
+        if (market['spot'] === true) {
             throw new BadRequest(this.id + ' fetchOpenInterest() symbol does not support market ' + symbol);
         }
         const request = {
@@ -1452,7 +1454,7 @@ export default class btse extends Exchange {
     async fetchFundingRate(symbol, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
-        if (market['spot']) {
+        if (market['spot'] === true) {
             throw new BadRequest(this.id + ' fetchFundingRate() symbol does not support spot markets');
         }
         const request = {
@@ -1524,7 +1526,10 @@ export default class btse extends Exchange {
         const nextFundingTimestamp = this.safeIntegerOmitZero(contract, 'nextFundingTime');
         const fundingIntervalMinutes = this.safeInteger(contract, 'fundingIntervalMinutes');
         let interval = undefined;
-        if (fundingIntervalMinutes !== undefined) {
+        // a wire value of zero minutes reaches this, and zero hours is not an
+        // interval: a caller annualising a rate divides by it. anything under an
+        // hour rounds to the same string, and the vocabulary has no minutes
+        if ((fundingIntervalMinutes !== undefined) && (fundingIntervalMinutes >= 60)) {
             const hours = this.parseToInt(fundingIntervalMinutes / 60);
             interval = hours.toString() + 'h';
         }
@@ -1624,7 +1629,7 @@ export default class btse extends Exchange {
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
         const paginate = this.safeBool(params, 'paginate', false);
-        if (paginate) {
+        if (paginate === true) {
             params = this.omit(params, 'paginate');
             return await this.fetchPaginatedCallDynamic('fetchMyTrades', symbol, since, limit, params);
         }
@@ -1895,7 +1900,7 @@ export default class btse extends Exchange {
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
-        if (market['spot']) {
+        if (market['spot'] === true) {
             return await this.createSpotOrder(symbol, type, side, amount, price, params);
         }
         else {
@@ -2431,11 +2436,11 @@ export default class btse extends Exchange {
             request['orderPrice'] = this.priceToPrecision(symbol, price);
         }
         const isSlide = this.safeBool(params, 'slide', false);
-        if ((amount === undefined) && (price === undefined) && (triggerPrice === undefined) && !isSlide) {
+        if ((amount === undefined) && (price === undefined) && (triggerPrice === undefined) && (isSlide !== true)) {
             throw new ArgumentsRequired(this.id + ' editOrder() requires an amount argument, a price argument or a triggerPrice parameter');
         }
         let response = undefined;
-        if (market['spot']) {
+        if (market['spot'] === true) {
             request['symbol'] = market['id'];
             response = await this.privatePutSpotApiV4TradeOrders(this.extend(request, params));
         }
@@ -2494,7 +2499,7 @@ export default class btse extends Exchange {
             request['orderId'] = id;
         }
         let response = undefined;
-        if (market['spot']) {
+        if (market['spot'] === true) {
             request['symbol'] = market['id'];
             response = await this.privateDeleteSpotApiV4TradeOrders(this.extend(request, params));
         }
@@ -3215,7 +3220,7 @@ export default class btse extends Exchange {
             'symbol': market['id'],
         };
         let response = undefined;
-        if (market['spot']) {
+        if (market['spot'] === true) {
             response = await this.privateGetSpotApiV4TradeFees(this.extend(request, params));
         }
         else {
@@ -3519,11 +3524,11 @@ export default class btse extends Exchange {
             if (!('hedged' in params)) {
                 throw new ArgumentsRequired(this.id + ' setMarginMode() requires a hedged parameter for cross margin mode');
             }
-            else if (hedged) {
+            else if (hedged === true) {
                 positionMode = 'HEDGE';
             }
         }
-        else if (('hedged' in params) && (!hedged)) {
+        else if (('hedged' in params) && (hedged !== true)) {
             throw new BadRequest(this.id + ' setMarginMode() hedged parameter cannot be false for isolated margin mode');
         }
         else {
@@ -3678,7 +3683,7 @@ export default class btse extends Exchange {
         return response;
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-        if (!response) {
+        if ((response === undefined) || (response === null)) {
             return undefined; // fallback to default error handler
         }
         //
@@ -3693,7 +3698,7 @@ export default class btse extends Exchange {
         //     {"status":400,"errorCode":-7,"message":"Authenticate failed","extraData":null}
         //
         const success = this.safeBool(response, 'success', true);
-        if (!success) {
+        if (success !== true) {
             const spotErrorCode = this.safeString(response, 'code');
             const spotMessage = this.safeString(response, 'msg');
             const feedback = this.id + ' ' + body;
@@ -3761,7 +3766,7 @@ export default class btse extends Exchange {
         // body like its POST and PUT counterparts, while the spot v4 and the
         // legacy apis keep DELETE params in the query string, verified live
         // in both directions
-        const isBodyDelete = (method === 'DELETE') && path.startsWith('futures/api/v3/');
+        const isBodyDelete = (method === 'DELETE') && (path.startsWith('futures/api/v3/') === true);
         let queryString = '';
         if (((method === 'GET') || (method === 'DELETE')) && !isBodyDelete) {
             if (Object.keys(query).length > 0) {
@@ -3784,7 +3789,7 @@ export default class btse extends Exchange {
             // sign the /api/v... remainder, while the public-api wallet, otc and markets
             // endpoints mount on the bare host and sign the full path with the leading slash
             let signPath = undefined;
-            if (path.startsWith('public-api/')) {
+            if (path.startsWith('public-api/') === true) {
                 signPath = '/' + path;
             }
             else {

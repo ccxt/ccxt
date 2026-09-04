@@ -11,6 +11,7 @@ var Precise = require('../base/Precise.js');
 require('../base/functions/platform.js');
 require('../base/functions/encode.js');
 var crypto = require('../base/functions/crypto.js');
+require('../base/functions/time.js');
 require('../base/functions/io.js');
 
 // ----------------------------------------------------------------------------
@@ -206,7 +207,7 @@ class limitless extends limitless$1["default"] {
         const maxMarkets = this.safeInteger(params, 'limit', this.safeInteger(this.options, 'fetchMarketsLimit', 1000));
         let allRaw = [];
         const queriesLength = queries.length;
-        if (queries && queriesLength > 0) {
+        if (queriesLength > 0) {
             const requestedLimit = this.safeInteger(params, 'limit', 50);
             // the search endpoint rejects limit > 50 - cap the per-query request and let
             // maxMarkets bound the overall collection
@@ -220,7 +221,7 @@ class limitless extends limitless$1["default"] {
                 for (let j = 0; j < found.length; j++) {
                     const raw = found[j];
                     const slug = this.safeString(raw, 'slug');
-                    if (slug && !(slug in seen)) {
+                    if ((slug !== undefined && slug !== '') && !(slug in seen)) {
                         seen[slug] = true;
                         allRaw.push(raw);
                     }
@@ -271,7 +272,7 @@ class limitless extends limitless$1["default"] {
                     const rawPageMarkets = this.safeList(response, 'data', responseRows);
                     const page_markets = (rawPageMarkets !== undefined) ? rawPageMarkets : [];
                     const pageMarketsLength = page_markets.length;
-                    if (!page_markets || pageMarketsLength === 0) {
+                    if (pageMarketsLength === 0) {
                         break;
                     }
                     for (let i = 0; i < page_markets.length; i++) {
@@ -293,7 +294,7 @@ class limitless extends limitless$1["default"] {
         for (let i = 0; i < expandedRaw.length; i++) {
             const raw = expandedRaw[i];
             const groupId = this.safeStringN(raw, ['groupSlug', 'groupId'], this.safeString(raw, 'slug'));
-            const eventKey = groupId ? this.shortenSlug(groupId) : undefined;
+            const eventKey = (groupId !== undefined && groupId !== '') ? this.shortenSlug(groupId) : undefined;
             const m = this.parseMarket(raw);
             markets.push(m);
             if ((eventKey !== undefined) && (eventKey !== '')) {
@@ -412,7 +413,7 @@ class limitless extends limitless$1["default"] {
         // market is tradeable only while it is FUNDED and not yet expired
         const isExpired = this.safeBool(raw, 'expired', false);
         const marketStatus = this.safeString(raw, 'status');
-        const active = !isExpired && (marketStatus === 'FUNDED');
+        const active = (isExpired !== true) && (marketStatus === 'FUNDED');
         // expiry is a ms timestamp string (`expirationTimestamp`); `deadline`/`expiresAt` do not exist
         const expiryTimestamp = this.safeInteger(raw, 'expirationTimestamp');
         // limitless reports lifetime volume (human-readable in `volumeFormatted`), not a 24h figure
@@ -817,6 +818,10 @@ class limitless extends limitless$1["default"] {
         const groupId = this.safeString(event, 'address', this.safeString(event, 'groupId', this.safeString(event, 'slug')));
         const endDate = this.safeString(event, 'deadline', this.safeString(event, 'expiresAt'));
         const title = this.safeString(event, 'title', groupId);
+        const hasGroupId = (groupId !== undefined) && (groupId !== '');
+        const eventSlug = hasGroupId ? this.shortenSlug(groupId) : undefined;
+        const hasEndDate = (endDate !== undefined) && (endDate !== '');
+        const endTimestamp = hasEndDate ? this.parse8601(endDate) : undefined;
         const markets = [];
         const rawMarkets = this.safeList(event, 'markets', []);
         // aggregate 24h volume across the markets so sort by volume works
@@ -841,7 +846,7 @@ class limitless extends limitless$1["default"] {
         return this.extend({
             'id': groupId,
             'slug': groupId,
-            'event': groupId ? this.shortenSlug(groupId) : undefined,
+            'event': eventSlug,
             'title': title,
             'description': this.safeString(event, 'description'),
             'markets': markets,
@@ -855,7 +860,7 @@ class limitless extends limitless$1["default"] {
             'tags': this.safeList(event, 'tags'),
             'created': this.parse8601(this.safeString(event, 'createdAt')),
             'createdDatetime': this.safeString(event, 'createdAt'),
-            'end': endDate ? this.parse8601(endDate) : undefined,
+            'end': endTimestamp,
             'endDatetime': endDate,
             'lastUpdatedAt': this.parse8601(this.safeString(event, 'updatedAt')),
             'resolutionSource': this.safeString(event, 'resolutionSource'),
@@ -1416,7 +1421,7 @@ class limitless extends limitless$1["default"] {
             let pointTs = this.safeInteger(point, 'timestamp');
             if (pointTs === undefined) {
                 const tsString = this.safeString(point, 'timestamp');
-                pointTs = tsString ? this.parse8601(tsString) : undefined;
+                pointTs = (tsString !== undefined && tsString !== '') ? this.parse8601(tsString) : undefined;
             }
             else if (pointTs < 1000000000000) {
                 // old responses may return unix seconds
@@ -2017,7 +2022,7 @@ class limitless extends limitless$1["default"] {
         const tradeWalletOption = this.safeString(accountInfo, 'tradeWalletOption');
         const usesSmartWallet = (tradeWalletOption === 'smartWallet');
         const walletFromAccount = (usesSmartWallet) ? this.safeString(accountInfo, 'smartWallet') : this.safeString(accountInfo, 'account');
-        let maker = this.walletAddress ? this.walletAddress : walletFromAccount;
+        let maker = (this.walletAddress !== '') ? this.walletAddress : walletFromAccount;
         [maker, params] = this.handleOptionAndParams(params, 'createOrder', 'maker', maker);
         try {
             this.checkAddress(maker);
@@ -2896,7 +2901,7 @@ class limitless extends limitless$1["default"] {
                 for (let j = 0; j < found.length; j++) {
                     const raw = found[j];
                     const rawSlug = this.safeString(raw, 'slug');
-                    if (rawSlug && !(rawSlug in seen)) {
+                    if ((rawSlug !== undefined && rawSlug !== '') && !(rawSlug in seen)) {
                         seen[rawSlug] = true;
                         rawMarkets.push(raw);
                     }
@@ -2931,7 +2936,7 @@ class limitless extends limitless$1["default"] {
         for (let i = 0; i < rawMarketsLength; i++) {
             const raw = expandedMarkets[i];
             const groupId = this.safeStringN(raw, ['groupSlug', 'groupId'], this.safeString(raw, 'slug'));
-            const eventKey = groupId ? this.shortenSlug(groupId) : undefined;
+            const eventKey = (groupId !== undefined && groupId !== '') ? this.shortenSlug(groupId) : undefined;
             const m = this.parseMarket(raw);
             if (m === undefined) {
                 throw new errors.ExchangeError(this.id + ' fetchEvents() missing m');
@@ -3097,7 +3102,7 @@ class limitless extends limitless$1["default"] {
         let url = '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
         const querystring = this.urlencodeWithArrayRepeat(query);
-        if (method === 'GET' && querystring) {
+        if (method === 'GET' && (querystring !== '')) {
             url += '?' + querystring;
         }
         if (access === 'private') {
@@ -3105,7 +3110,7 @@ class limitless extends limitless$1["default"] {
             if (headers === undefined) {
                 headers = {};
             }
-            if (method === 'POST' && querystring) {
+            if (method === 'POST' && (querystring !== '')) {
                 bodyString = this.json(query);
                 body = bodyString;
                 const headerDefaults = (headers !== undefined) ? headers : {};

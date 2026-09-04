@@ -1591,7 +1591,7 @@ class hollaex extends hollaex$1["default"] {
         //
         const wallet = this.safeValue(response, 'wallet', []);
         const addresses = (network === undefined) ? wallet : this.filterBy(wallet, 'network', network);
-        return this.parseDepositAddresses(addresses, codes);
+        return this.parseDepositAddresses(addresses, codes, false);
     }
     /**
      * @method
@@ -1823,13 +1823,13 @@ class hollaex extends hollaex$1["default"] {
         let status = this.safeValue(transaction, 'status');
         const dismissed = this.safeValue(transaction, 'dismissed');
         const rejected = this.safeValue(transaction, 'rejected');
-        if (status) {
+        if (status === true) {
             status = 'ok';
         }
-        else if (dismissed) {
+        else if (dismissed === true) {
             status = 'canceled';
         }
-        else if (rejected) {
+        else if (rejected === true) {
             status = 'failed';
         }
         else {
@@ -1958,7 +1958,7 @@ class hollaex extends hollaex$1["default"] {
             'networks': {},
         };
         const allowWithdrawal = this.safeValue(fee, 'allow_withdrawal');
-        if (allowWithdrawal) {
+        if (allowWithdrawal === true) {
             result['withdraw'] = { 'fee': this.safeNumber(fee, 'withdrawal_fee'), 'percentage': false };
         }
         const withdrawalFees = this.safeValue(fee, 'withdrawal_fees');

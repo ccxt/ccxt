@@ -293,7 +293,7 @@ export default class pacifica extends pacificaRest {
             const orderId = this.safeString(order, 'i');
             const clientOrderId = this.safeString(order, 'I');
             let status = undefined;
-            if ((error !== undefined) || (!success)) {
+            if ((error !== undefined) || (success !== true)) {
                 status = 'closed';
             }
             else {
@@ -1343,7 +1343,7 @@ export default class pacifica extends pacificaRest {
         //     }
         // }
         //
-        if (this.handleErrorMessage(client, message)) {
+        if (this.handleErrorMessage(client, message) === true) {
             return;
         }
         const postType = this.safeString(message, 'type');

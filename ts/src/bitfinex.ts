@@ -874,7 +874,7 @@ export default class bitfinex extends Exchange {
     parseCurrenciesCustom (ids: any, indexed: any, indexedNetworks: any) {
         const allowedIds: Str[] = [];
         for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
+            const id: string = ids[i];
             if (id.endsWith ('F0')) {
                 // we get a lot of F0 currencies, skip those
                 continue;
@@ -1790,7 +1790,7 @@ export default class bitfinex extends Exchange {
         }
         const ioc = (timeInForce === 'IOC');
         const fok = (timeInForce === 'FOK');
-        const postOnly = (postOnlyParam || (timeInForce === 'PO'));
+        const postOnly = ((postOnlyParam === true) || (timeInForce === 'PO'));
         if ((ioc || fok) && (price === undefined)) {
             throw new InvalidOrder (this.id + ' createOrder() requires a price argument with IOC and FOK orders');
         }
@@ -1807,7 +1807,7 @@ export default class bitfinex extends Exchange {
         }
         let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
-        if (market['spot'] && (marginMode === undefined)) {
+        if ((market['spot'] === true) && (marginMode === undefined)) {
             // The EXCHANGE prefix is only required for non margin spot markets
             orderType = 'EXCHANGE ' + orderType;
         }
@@ -1817,7 +1817,7 @@ export default class bitfinex extends Exchange {
         if (postOnly) {
             flags = this.sum (flags, 4096);
         }
-        if (reduceOnly) {
+        if (reduceOnly === true) {
             flags = this.sum (flags, 1024);
         }
         if (flags !== 0) {
@@ -2755,7 +2755,7 @@ export default class bitfinex extends Exchange {
             if (market['quote'] in fiat) {
                 fee['maker'] = makerFeeFiat;
                 fee['taker'] = takerFeeFiat;
-            } else if (market['contract']) {
+            } else if (market['contract'] === true) {
                 fee['maker'] = makerFeeDeriv;
                 fee['taker'] = takerFeeDeriv;
             } else { // TODO check if stable coin
@@ -2872,7 +2872,7 @@ export default class bitfinex extends Exchange {
         }
         const withdrawOptions = this.safeValue (this.options, 'withdraw', {});
         const includeFee = this.safeBool (withdrawOptions, 'includeFee', false);
-        if (includeFee) {
+        if (includeFee === true) {
             request['fee_deduct'] = 1;
         }
         const response = await this.privatePostAuthWWithdraw (this.extend (request, params));
@@ -3845,7 +3845,7 @@ export default class bitfinex extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (!market['swap']) {
+        if (market['swap'] !== true) {
             throw new NotSupported (this.id + ' setMargin() only support swap markets');
         }
         const request: Dict = {
@@ -4009,7 +4009,7 @@ export default class bitfinex extends Exchange {
                 request['price_aux_limit'] = this.priceToPrecision (symbol, price);
             }
         }
-        const postOnly = (postOnlyParam || (timeInForce === 'PO'));
+        const postOnly = ((postOnlyParam === true) || (timeInForce === 'PO'));
         if ((type !== 'market') && (triggerPrice === undefined)) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
@@ -4018,7 +4018,7 @@ export default class bitfinex extends Exchange {
         if (postOnly) {
             flags = this.sum (flags, 4096);
         }
-        if (reduceOnly) {
+        if (reduceOnly === true) {
             flags = this.sum (flags, 1024);
         }
         if (flags !== 0) {

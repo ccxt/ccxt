@@ -689,11 +689,11 @@ export default class krakenfutures extends Exchange {
         let baseVolume = undefined;
         let quoteVolume = undefined;
         const isIndex = this.safeBool(market, 'index', false);
-        if (!isIndex) {
-            if (market['linear']) {
+        if (isIndex !== true) {
+            if (market['linear'] === true) {
                 baseVolume = volume;
             }
-            else if (market['inverse']) {
+            else if (market['inverse'] === true) {
                 quoteVolume = volume;
             }
         }
@@ -1135,7 +1135,7 @@ export default class krakenfutures extends Exchange {
         let cost = undefined;
         const linear = this.safeBool(market, 'linear');
         if ((amount !== undefined) && (price !== undefined) && (market !== undefined)) {
-            if (linear) {
+            if (linear === true) {
                 cost = Precise.stringMul(amount, price); // in quote
             }
             else {
@@ -1189,7 +1189,7 @@ export default class krakenfutures extends Exchange {
             'side': side,
             'takerOrMaker': takerOrMaker,
             'price': price,
-            'amount': linear ? amount : undefined,
+            'amount': (linear === true) ? amount : undefined,
             'cost': cost,
             'fee': fee,
         });
@@ -1255,7 +1255,7 @@ export default class krakenfutures extends Exchange {
                 request['stopPrice'] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
             }
         }
-        if (reduceOnly) {
+        if (reduceOnly === true) {
             request['reduceOnly'] = true;
         }
         request['orderType'] = type;
@@ -1725,7 +1725,7 @@ export default class krakenfutures extends Exchange {
         }
         const isTrigger = this.safeBool2(params, 'trigger', 'stop', false);
         let response;
-        if (isTrigger) {
+        if (isTrigger === true) {
             params = this.omit(params, ['trigger', 'stop']);
             response = await this.historyGetTriggers(this.extend(request, params));
         }
@@ -1787,7 +1787,7 @@ export default class krakenfutures extends Exchange {
         }
         let response;
         const isTrigger = this.safeBool2(params, 'trigger', 'stop', false);
-        if (isTrigger) {
+        if (isTrigger === true) {
             params = this.omit(params, ['trigger', 'stop']);
             response = await this.historyGetTriggers(this.extend(request, params));
         }
@@ -2246,7 +2246,7 @@ export default class krakenfutures extends Exchange {
         let statusId = undefined;
         let price = undefined;
         let trades = [];
-        if (orderEventsLength) {
+        if (orderEventsLength > 0) {
             const executions = [];
             for (let i = 0; i < orderEvents.length; i++) {
                 const item = orderEvents[i];
@@ -2341,7 +2341,7 @@ export default class krakenfutures extends Exchange {
         if ((filled !== undefined) && (market !== undefined)) {
             const whichPrice = (average !== undefined) ? average : price;
             if (whichPrice !== undefined) {
-                if (market['linear']) {
+                if (market['linear'] === true) {
                     cost = Precise.stringMul(filled, whichPrice); // in quote
                 }
                 else {
@@ -2954,7 +2954,7 @@ export default class krakenfutures extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (!market['swap']) {
+        if (market['swap'] !== true) {
             throw new BadRequest(this.id + ' fetchFundingRateHistory() supports swap contracts only');
         }
         const request = {
@@ -3032,7 +3032,7 @@ export default class krakenfutures extends Exchange {
         // longer call .length on a non-list value
         const positions = this.safeList(response, 'openPositions');
         if (positions === undefined) {
-            throw new ExchangeError(this.id + ' fetchPositions() returned a response without an "openPositions" list');
+            throw new ExchangeNotAvailable(this.id + ' fetchPositions() returned a response without an "openPositions" list');
         }
         for (let i = 0; i < positions.length; i++) {
             const position = this.parsePosition(positions[i]);
@@ -3267,7 +3267,7 @@ export default class krakenfutures extends Exchange {
             const market = this.market(account);
             const marketId = market['id'];
             const splitId = marketId.split('_');
-            if (market['inverse']) {
+            if (market['inverse'] === true) {
                 return 'fi_' + this.safeString(splitId, 1);
             }
             else {

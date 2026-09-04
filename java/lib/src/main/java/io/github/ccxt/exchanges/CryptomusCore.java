@@ -876,7 +876,7 @@ public class CryptomusCore extends CryptomusApi
                         }
                     } else
                     {
-                        cost = ((Helpers.isTrue(cost))) ? cost : amountToString;
+                        cost = ((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(cost, null)) && Helpers.isTrue(!Helpers.isEqual(cost, "")))))) ? cost : amountToString;
                     }
                     Helpers.addElementToObject(request, "value", cost);
                 } else

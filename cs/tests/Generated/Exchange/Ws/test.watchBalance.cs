@@ -19,7 +19,7 @@ public partial class testMainClass : BaseTest
             bool success = true;
             try
             {
-                response = await exchange.watchBalance();
+                response = detypeForComparison(await exchange.WatchBalance());
             } catch(Exception e)
             {
                 if (!isTrue(testSharedMethods.isTemporaryFailure(e)))

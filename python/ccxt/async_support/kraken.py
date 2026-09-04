@@ -606,7 +606,7 @@ class kraken(Exchange, ImplicitAPI):
         """
         promises = []
         promises.append(self.publicGetAssetPairs(params))
-        if self.options['adjustForTimeDifference']:
+        if self.options['adjustForTimeDifference'] is True:
             promises.append(self.load_time_difference())
         responses = await asyncio.gather(*promises)
         assetsResponse = responses[0]
@@ -1112,7 +1112,7 @@ class kraken(Exchange, ImplicitAPI):
             for i in range(0, len(symbols)):
                 symbol = symbols[i]
                 market = self.market(symbol)
-                if market['active']:
+                if market['active'] is True:
                     marketIds.append(market['id'])
             request['pair'] = ','.join(marketIds)
         response = await self.publicGetTicker(self.extend(request, params))
@@ -1949,7 +1949,7 @@ class kraken(Exchange, ImplicitAPI):
         if orderDescription is not None:
             parts = orderDescription.split(' ')
             side = self.safe_string(parts, 0)
-            if not isUsingCost:
+            if isUsingCost is not True:
                 amount = self.safe_string(parts, 1)
             else:
                 cost = self.safe_string(parts, 1)
@@ -2143,7 +2143,7 @@ class kraken(Exchange, ImplicitAPI):
                     request['price'] = trailingPercentString
                 else:
                     request['price'] = trailingAmountString
-        if reduceOnly:
+        if reduceOnly is True:
             if method == 'createOrderWs':
                 request['reduce_only'] = True  # ws request can't have stringified bool
             else:
@@ -2165,7 +2165,7 @@ class kraken(Exchange, ImplicitAPI):
         isMarket = (type == 'market')
         postOnly = None
         postOnly, params = self.handle_post_only(isMarket, False, params)
-        if postOnly:
+        if postOnly is True:
             extendedPostFlags = flags + ',post' if (flags is not None) else 'post'
             request['oflags'] = extendedPostFlags
         if (flags is not None) and not ('oflags' in request):
@@ -2200,7 +2200,7 @@ class kraken(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        if not market['spot']:
+        if market['spot'] is not True:
             raise NotSupported(self.id + ' editOrder() does not support ' + market['type'] + ' orders, only spot orders are accepted')
         request = {
             'txid': id,
@@ -2213,7 +2213,7 @@ class kraken(Exchange, ImplicitAPI):
         isMarket = (type == 'market')
         postOnly = None
         postOnly, params = self.handle_post_only(isMarket, False, params)
-        if postOnly:
+        if postOnly is True:
             request['post_only'] = 'true'  # not using hasattr(self, boolean) case, because the urlencodedNested transforms it into 'True' string
         if amount is not None:
             request['order_qty'] = self.amount_to_precision(symbol, amount)
@@ -3077,7 +3077,7 @@ class kraken(Exchange, ImplicitAPI):
         }
         return await self.fetch_deposit_address(code, self.extend(request, params))
 
-    async def fetch_deposit_methods(self, code: str, params={}):
+    async def fetch_deposit_methods(self, code: str, params={}) -> list[dict]:
         """
         fetch deposit methods for a currency associated with self account
 
@@ -3493,7 +3493,7 @@ class kraken(Exchange, ImplicitAPI):
                 message = self.id + ' ' + body
                 if 'error' in response:
                     numErrors = len(response['error'])
-                    if numErrors:
+                    if numErrors > 0:
                         for i in range(0, len(response['error'])):
                             error = response['error'][i]
                             self.throw_exactly_matched_exception(self.exceptions['exact'], error, message)

@@ -66,10 +66,11 @@ func (this *KucoinfuturesCore) fetchBidsAsksBody(ch chan any, optionalArgs ...an
 	var request map[string]any = map[string]any{
 		"method": "futuresPublicGetAllTickers",
 	}
+	var extendedRequest map[string]any = this.Extend(request, params)
 
-	retRes5615 := (<-this.FetchTickers(symbols, this.Extend(request, params)))
-	PanicOnError(retRes5615)
-	ch <- retRes5615
+	retRes5715 := (<-this.FetchTickers(symbols, extendedRequest))
+	PanicOnError(retRes5715)
+	ch <- retRes5715
 	return nil
 }
 
@@ -96,8 +97,8 @@ func (this *KucoinfuturesCore) transferBody(ch chan any, code any, amount any, f
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes7212 := (<-this.LoadMarkets())
-		PanicOnError(retRes7212)
+		retRes7312 := (<-this.LoadMarkets())
+		PanicOnError(retRes7312)
 	}
 	var currency any = this.Currency(code)
 	var amountToPrecision any = this.CurrencyToPrecision(code, amount)

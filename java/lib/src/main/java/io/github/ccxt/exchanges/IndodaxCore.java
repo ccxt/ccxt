@@ -426,6 +426,7 @@ public class IndodaxCore extends IndodaxApi
                 Object base = this.safeCurrencyCode(baseId);
                 Object quote = this.safeCurrencyCode(quoteId);
                 Object isMaintenance = this.safeInteger(market, "is_maintenance");
+                Object inMaintenance = Helpers.isTrue((!Helpers.isEqual(isMaintenance, null))) && Helpers.isTrue((!Helpers.isEqual(isMaintenance, 0)));
     final Object finalBase = base;
                             ((java.util.List<Object>)result).add(new java.util.HashMap<String, Object>() {{
                     put( "id", id );
@@ -442,7 +443,7 @@ public class IndodaxCore extends IndodaxApi
                     put( "swap", false );
                     put( "future", false );
                     put( "option", false );
-                    put( "active", ((Helpers.isTrue(isMaintenance))) ? false : true );
+                    put( "active", ((Helpers.isTrue(inMaintenance))) ? false : true );
                     put( "contract", false );
                     put( "linear", null );
                     put( "inverse", null );
@@ -1072,7 +1073,7 @@ public class IndodaxCore extends IndodaxApi
             Object openOrdersResult = this.safeDict(response, "return", new java.util.HashMap<String, Object>() {{}});
             Object rawOrders = Helpers.GetValue(openOrdersResult, "orders");
             // { success: 1, return: { orders: null }} if no orders
-            if (!Helpers.isTrue(rawOrders))
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(rawOrders, null))) || Helpers.isTrue((Helpers.isEqual(rawOrders, null)))))
             {
                 return new java.util.ArrayList<Object>(java.util.Arrays.asList());
             }

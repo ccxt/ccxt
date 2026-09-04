@@ -1777,7 +1777,7 @@ class bitso extends Exchange {
                     $result[$code] = array(
                         'deposit' => array(
                             'fee' => $this->safe_number($entry, 'fee'),
-                            'percentage' => !$this->safe_value($entry, 'is_fixed'),
+                            'percentage' => ($this->safe_value($entry, 'is_fixed') !== true),
                         ),
                         'withdraw' => array(
                             'fee' => null,
@@ -1997,7 +1997,7 @@ class bitso extends Exchange {
                     $success = false;
                 }
             }
-            if (!$success) {
+            if ($success !== true) {
                 $feedback = $this->id . ' ' . $this->json($response);
                 $error = $this->safe_value($response, 'error');
                 if ($error === null) {

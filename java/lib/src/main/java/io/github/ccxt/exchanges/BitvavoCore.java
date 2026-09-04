@@ -1059,7 +1059,7 @@ final Object finalBase = base;
         Object takerOrMaker = null;
         if (Helpers.isTrue(!Helpers.isEqual(taker, null)))
         {
-            takerOrMaker = ((Helpers.isTrue(taker))) ? "taker" : "maker";
+            takerOrMaker = ((Helpers.isTrue((Helpers.isEqual(taker, true))))) ? "taker" : "maker";
         }
         Object feeCostString = this.safeString(trade, "fee");
         Object fee = null;

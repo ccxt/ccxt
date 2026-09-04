@@ -1216,7 +1216,7 @@ export default class paradex extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (!market['contract']) {
+        if (market['contract'] !== true) {
             throw new BadRequest (this.id + ' fetchOpenInterest() supports contract markets only');
         }
         const request: Dict = {
@@ -1655,7 +1655,7 @@ export default class paradex extends Exchange {
             request['trigger_price'] = stopPrice;
         }
         request['size'] = sizeString;
-        if (reduceOnly) {
+        if (reduceOnly === true) {
             request['flags'] = [
                 'REDUCE_ONLY',
             ];
@@ -2451,15 +2451,16 @@ export default class paradex extends Exchange {
             quantity = Precise.stringMul ('-1', quantity);
         }
         const timestamp = this.safeInteger (position, 'time');
+        const liquidationPrice = this.parseNumber (this.omitZero (this.safeString (position, 'liquidation_price')));
         return this.safePosition ({
             'info': position,
             'id': this.safeString (position, 'id'),
             'symbol': symbol,
-            'entryPrice': this.safeString (position, 'average_entry_price'),
+            'entryPrice': this.safeNumber (position, 'average_entry_price'),
             'markPrice': undefined,
             'notional': undefined,
-            'collateral': this.safeString (position, 'cost'),
-            'unrealizedPnl': this.safeString (position, 'unrealized_pnl'),
+            'collateral': this.safeNumber (position, 'cost'),
+            'unrealizedPnl': this.safeNumber (position, 'unrealized_pnl'),
             'side': side,
             'contracts': this.parseNumber (quantity),
             'contractSize': undefined,
@@ -2471,7 +2472,7 @@ export default class paradex extends Exchange {
             'initialMargin': undefined,
             'initialMarginPercentage': undefined,
             'leverage': undefined,
-            'liquidationPrice': undefined,
+            'liquidationPrice': liquidationPrice,
             'marginRatio': undefined,
             'marginMode': undefined,
             'percentage': undefined,
@@ -3388,7 +3389,7 @@ export default class paradex extends Exchange {
     }
 
     override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
-        if (!response) {
+        if (response === undefined) {
             return undefined; // fallback to default error handler
         }
         //

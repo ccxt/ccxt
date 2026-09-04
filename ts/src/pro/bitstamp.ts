@@ -544,7 +544,7 @@ export default class bitstamp extends bitstampRest {
     }
 
     override handleMessage (client: Client, message: any) {
-        if (!this.handleErrorMessage (client, message)) {
+        if (this.handleErrorMessage (client, message) !== true) {
             return;
         }
         //

@@ -112,7 +112,7 @@ class bitget extends \ccxt\async\bitget {
         $instType = null;
         if ($market === null) {
             list($instType, $params) = $this->handleProductTypeAndParams(null, $params);
-        } elseif (($market['swap']) || ($market['future'])) {
+        } elseif (($market['swap'] === true) || ($market['future'] === true)) {
             list($instType, $params) = $this->handleProductTypeAndParams($market, $params);
         } else {
             $instType = 'SPOT';
@@ -741,7 +741,7 @@ class bitget extends \ccxt\async\bitget {
         //     }
         //
         $volumeIndex = 5;
-        if (($market !== null) && $market['inverse']) {
+        if (($market !== null) && ($market['inverse'] === true)) {
             $volumeIndex = 6;
         }
         return array(
@@ -968,7 +968,7 @@ class bitget extends \ccxt\async\bitget {
             // UTA order books do not provide a crc32 $checksum (they rely on seq/pseq for integrity),
             // so only validate the $checksum when the exchange actually sends one
             $responseChecksum = $this->safe_integer($rawOrderBook, 'checksum');
-            if (!$isSnapshot && $checksum && ($responseChecksum !== null)) {
+            if (!$isSnapshot && ($checksum === true) && ($responseChecksum !== null)) {
                 $storedAsks = $storedOrderBook['asks'];
                 $storedBids = $storedOrderBook['bids'];
                 $asksLength = count($storedAsks);
@@ -1111,7 +1111,7 @@ class bitget extends \ccxt\async\bitget {
             $limit = $trades->getLimit($tradeSymbol, $limit);
         }
         $result = $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
-        if ($this->handle_option('watchTrades', 'ignoreDuplicates', true)) {
+        if ($this->handle_option('watchTrades', 'ignoreDuplicates', true) === true) {
             $filtered = $this->remove_repeated_trades_from_array($result);
             $filtered = $this->sort_by($filtered, 'timestamp');
             return $filtered;
@@ -1635,7 +1635,7 @@ class bitget extends \ccxt\async\bitget {
         $marketId = null;
         $isTrigger = null;
         list($isTrigger, $params) = $this->is_trigger_order($params);
-        $messageHash = ($isTrigger) ? 'triggerOrder' : 'order';
+        $messageHash = ($isTrigger === true) ? 'triggerOrder' : 'order';
         $subscriptionHash = 'order:trades';
         if ($symbol !== null) {
             $market = $this->market($symbol);
@@ -1671,11 +1671,11 @@ class bitget extends \ccxt\async\bitget {
         if ($type === 'spot' && ($symbol !== null)) {
             $subscriptionHash = $subscriptionHash . ':' . $symbol;
         }
-        if ($isTrigger) {
+        if ($isTrigger === true) {
             $subscriptionHash = $subscriptionHash . ':stop'; // we don't want to re-use the same subscription hash for stop $orders
         }
         $instId = ($type === 'spot' || $type === 'margin') ? $marketId : 'default'; // different from other streams here the 'rest' id is required for spot markets, contract markets require default here
-        $channel = $isTrigger ? 'orders-algo' : 'orders';
+        $channel = ($isTrigger === true) ? 'orders-algo' : 'orders';
         $marginMode = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params('watchOrders', $params);
         if ($marginMode !== null) {
@@ -2549,12 +2549,12 @@ class bitget extends \ccxt\async\bitget {
     }
 
     private function do_watch_public(mixed $uta, mixed $messageHash, mixed $args, $params = array()) {
-        $url = $uta ? $this->urls['api']['ws']['utaPublic'] : $this->urls['api']['ws']['public'];
+        $url = ($uta === true) ? $this->urls['api']['ws']['utaPublic'] : $this->urls['api']['ws']['public'];
         $sandboxMode = $this->safe_bool_2($this->options, 'sandboxMode', 'sandbox', false);
-        if ($sandboxMode) {
+        if ($sandboxMode === true) {
             $instType = $this->safe_string($args, 'instType');
             if (($instType !== 'SCOIN-FUTURES') && ($instType !== 'SUSDT-FUTURES') && ($instType !== 'SUSDC-FUTURES')) {
-                if ($uta) {
+                if ($uta === true) {
                     $url = $this->urls['api']['demo']['utaPublic'];
                 } else {
                     $url = $this->urls['api']['demo']['public'];
@@ -2574,12 +2574,12 @@ class bitget extends \ccxt\async\bitget {
     }
 
     private function do_un_watch_public(mixed $uta, mixed $messageHash, mixed $args, $params = array()) {
-        $url = $uta ? $this->urls['api']['ws']['utaPublic'] : $this->urls['api']['ws']['public'];
+        $url = ($uta === true) ? $this->urls['api']['ws']['utaPublic'] : $this->urls['api']['ws']['public'];
         $sandboxMode = $this->safe_bool_2($this->options, 'sandboxMode', 'sandbox', false);
-        if ($sandboxMode) {
+        if ($sandboxMode === true) {
             $instType = $this->safe_string($args, 'instType');
             if (($instType !== 'SCOIN-FUTURES') && ($instType !== 'SUSDT-FUTURES') && ($instType !== 'SUSDC-FUTURES')) {
-                if ($uta) {
+                if ($uta === true) {
                     $url = $this->urls['api']['demo']['utaPublic'];
                 } else {
                     $url = $this->urls['api']['demo']['public'];
@@ -2599,13 +2599,13 @@ class bitget extends \ccxt\async\bitget {
     }
 
     private function do_watch_public_multiple(mixed $uta, mixed $messageHashes, mixed $argsArray, $params = array()) {
-        $url = $uta ? $this->urls['api']['ws']['utaPublic'] : $this->urls['api']['ws']['public'];
+        $url = ($uta === true) ? $this->urls['api']['ws']['utaPublic'] : $this->urls['api']['ws']['public'];
         $sandboxMode = $this->safe_bool_2($this->options, 'sandboxMode', 'sandbox', false);
-        if ($sandboxMode) {
+        if ($sandboxMode === true) {
             $argsArrayFirst = $this->safe_dict($argsArray, 0, array());
             $instType = $this->safe_string($argsArrayFirst, 'instType');
             if (($instType !== 'SCOIN-FUTURES') && ($instType !== 'SUSDT-FUTURES') && ($instType !== 'SUSDC-FUTURES')) {
-                $url = $uta ? $this->urls['api']['demo']['utaPublic'] : $this->urls['api']['demo']['public'];
+                $url = ($uta === true) ? $this->urls['api']['demo']['utaPublic'] : $this->urls['api']['demo']['public'];
             }
         }
         $request = array(
@@ -2654,12 +2654,12 @@ class bitget extends \ccxt\async\bitget {
     }
 
     private function do_watch_private(mixed $uta, mixed $messageHash, mixed $subscriptionHash, mixed $args, $params = array()) {
-        $url = $uta ? $this->urls['api']['ws']['utaPrivate'] : $this->urls['api']['ws']['private'];
+        $url = ($uta === true) ? $this->urls['api']['ws']['utaPrivate'] : $this->urls['api']['ws']['private'];
         $sandboxMode = $this->safe_bool_2($this->options, 'sandboxMode', 'sandbox', false);
-        if ($sandboxMode) {
+        if ($sandboxMode === true) {
             $instType = $this->safe_string($args, 'instType');
             if (($instType !== 'SCOIN-FUTURES') && ($instType !== 'SUSDT-FUTURES') && ($instType !== 'SUSDC-FUTURES')) {
-                if ($uta) {
+                if ($uta === true) {
                     $url = $this->urls['api']['demo']['utaPrivate'];
                 } else {
                     $url = $this->urls['api']['demo']['private'];
@@ -2795,7 +2795,7 @@ class bitget extends \ccxt\async\bitget {
         //         }
         //     }
         //
-        if ($this->handle_error_message($client, $message)) {
+        if ($this->handle_error_message($client, $message) === true) {
             return;
         }
         $content = $this->safe_string($message, 'message');

@@ -7,36 +7,11 @@ public class  Bithumb: bithumb { public Bithumb(object args = null) : base(args)
 public partial class bithumb
 {
     /// <summary>
-    /// watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://apidocs.bithumb.com/v1.2.0/reference/%EB%B9%97%EC%8D%B8-%EA%B1%B0%EB%9E%98%EC%86%8C-%EC%A0%95%EB%B3%B4-%EC%88%98%EC%8B%A0"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.channel</term>
-    /// <description>
-    /// string : the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}.</returns>
-    public async Task<Ticker> WatchTicker(string symbol, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.watchTicker(symbol, parameters);
-        return new Ticker(res);
-    }
-    /// <summary>
     /// watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
     /// </summary>
     /// <remarks>
     /// See <see href="https://apidocs.bithumb.com/v1.2.0/reference/%EB%B9%97%EC%8D%B8-%EA%B1%B0%EB%9E%98%EC%86%8C-%EC%A0%95%EB%B3%B4-%EC%88%98%EC%8B%A0"/>  <br/>
+    /// See <see href="https://apidocs.bithumb.com/reference/%ED%98%84%EC%9E%AC%EA%B0%80-ticker"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -44,122 +19,24 @@ public partial class bithumb
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.tickTypes</term>
+    /// <description>
+    /// string : generation 1 only, the tick type to subscribe to, '24H' by default (30M, 1H, 12H, 24H, MID)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.generation</term>
+    /// <description>
+    /// int : if you want to use the API generation 1 or 2, default is 2
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}.</returns>
+    /// <returns> <term>object</term> a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure} indexed by market symbols.</returns>
     public async Task<Tickers> WatchTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.watchTickers(symbols, parameters);
         return new Tickers(res);
-    }
-    /// <summary>
-    /// watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://apidocs.bithumb.com/v1.2.0/reference/%EB%B9%97%EC%8D%B8-%EA%B1%B0%EB%9E%98%EC%86%8C-%EC%A0%95%EB%B3%B4-%EC%88%98%EC%8B%A0"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>limit</term>
-    /// <description>
-    /// int : the maximum amount of order book entries to return
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
-    public async Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.watchOrderBook(symbol, limit, parameters);
-        return ((ccxt.pro.IOrderBook) res).Copy();
-    }
-    /// <summary>
-    /// get the list of most recent trades for a particular symbol
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://apidocs.bithumb.com/v1.2.0/reference/%EB%B9%97%EC%8D%B8-%EA%B1%B0%EB%9E%98%EC%86%8C-%EC%A0%95%EB%B3%B4-%EC%88%98%EC%8B%A0"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>since</term>
-    /// <description>
-    /// int : timestamp in ms of the earliest trade to fetch
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>limit</term>
-    /// <description>
-    /// int : the maximum amount of trades to fetch
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object[]</term> a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}.</returns>
-    public async Task<List<Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.watchTrades(symbol, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
-    }
-    /// <summary>
-    /// watch balance and get the amount of funds available for trading or funds locked in orders
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://apidocs.bithumb.com/v2.1.5/reference/%EB%82%B4-%EC%9E%90%EC%82%B0-myasset"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}.</returns>
-    public async Task<Balances> WatchBalance(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.watchBalance(parameters);
-        return new Balances(res);
-    }
-    /// <summary>
-    /// watches information on multiple orders made by the user
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://apidocs.bithumb.com/v2.1.5/reference/%EB%82%B4-%EC%A3%BC%EB%AC%B8-%EB%B0%8F-%EC%B2%B4%EA%B2%B0-myorder"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>since</term>
-    /// <description>
-    /// int : the earliest time in ms to fetch orders for
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>limit</term>
-    /// <description>
-    /// int : the maximum number of order structures to retrieve
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object[]</term> a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
-    public async Task<List<Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.watchOrders(symbol, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
 }

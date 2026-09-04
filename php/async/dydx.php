@@ -1630,7 +1630,7 @@ class dydx extends Exchange {
          */
         $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop', false);
         $params = $this->omit($params, array( 'trigger', 'stop' ));
-        if (!$isTrigger && ($symbol === null)) {
+        if (($isTrigger !== true) && ($symbol === null)) {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
         }
         if ($this->markets === null) {
@@ -1649,7 +1649,7 @@ class dydx extends Exchange {
         $goodTillBlockTimeInSeconds = 2592000;
         list($goodTillBlockTimeInSeconds, $params) = $this->handle_option_and_params($params, 'cancelOrder', 'goodTillBlockTimeInSeconds', $goodTillBlockTimeInSeconds); // default is 30 days
         $goodTillBlockTime = null;
-        $defaultOrderFlags = ($isTrigger) ? 32 : 64;
+        $defaultOrderFlags = ($isTrigger === true) ? 32 : 64;
         $orderFlags = $this->safe_integer($params, 'orderFlags', $defaultOrderFlags);
         $subAccountId = 0;
         list($subAccountId, $params) = $this->handle_option_and_params($params, 'cancelOrder', 'subAccountId', $subAccountId);
@@ -2630,7 +2630,7 @@ class dydx extends Exchange {
     }
 
     public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
-        if (!$response) {
+        if (($response === null) || ($response === null)) {
             return null; // fallback to default error handler
         }
         //

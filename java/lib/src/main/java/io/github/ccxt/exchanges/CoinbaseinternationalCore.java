@@ -86,8 +86,8 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
                 put( "fetchMarginMode", false );
                 put( "fetchMarkets", true );
                 put( "fetchMarkOHLCV", false );
-                put( "fetchMyBuys", true );
-                put( "fetchMySells", true );
+                put( "fetchMyBuys", false );
+                put( "fetchMySells", false );
                 put( "fetchMyTrades", true );
                 put( "fetchOHLCV", true );
                 put( "fetchOpenInterestHistory", false );
@@ -411,7 +411,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
             {
                 Object account = Helpers.GetValue(accounts, i);
                 Object info = this.safeDict(account, "info", new java.util.HashMap<String, Object>() {{}});
-                if (Helpers.isTrue(this.safeBool(info, "is_default")))
+                if (Helpers.isTrue(Helpers.isEqual(this.safeBool(info, "is_default"), true)))
                 {
                     Object portfolioId = this.safeString(info, "portfolio_id");
                     Helpers.addElementToObject(this.options, "portfolio", portfolioId);
@@ -1210,7 +1210,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
             maxEntriesPerRequest = ((java.util.List<Object>) maxEntriesPerRequestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) maxEntriesPerRequestparametersVariable).get(1);
             Object pageKey = "ccxtPageKey";
-            if (Helpers.isTrue(paginate))
+            if (Helpers.isTrue(Helpers.isEqual(paginate, true)))
             {
                 return (this.fetchPaginatedCallIncremental("fetchDepositsWithdrawals", code, since, limit, parameters, pageKey, maxEntriesPerRequest)).join();
             }
@@ -2112,6 +2112,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
             }};
             Object response = (this.v1PrivatePostPortfoliosTransfer(this.extend(request, parameters))).join();
             Object success = this.safeBool(response, "success");
+            final Object finalSuccess = success;
             return new java.util.HashMap<String, Object>() {{
                 put( "info", response );
                 put( "id", null );
@@ -2121,7 +2122,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
                 put( "amount", amount );
                 put( "fromAccount", fromAccount );
                 put( "toAccount", toAccount );
-                put( "status", ((Helpers.isTrue(success))) ? "ok" : "failed" );
+                put( "status", ((Helpers.isTrue((Helpers.isEqual(finalSuccess, true))))) ? "ok" : "failed" );
             }};
         });
 
@@ -2321,6 +2322,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
     public Object parseOrderStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
+            put( "WORKING", "open" );
             put( "NEW", "open" );
             put( "PARTIAL_FILLED", "open" );
             put( "FILLED", "closed" );

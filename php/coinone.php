@@ -1226,7 +1226,7 @@ class coinone extends Exchange {
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
             $value = $walletAddress[$key];
-            if ((!$value) || ($value === '-1')) {
+            if (($value === null) || ($value === null) || ($value === '') || ($value === '-1')) {
                 continue;
             }
             $parts = explode('_', $key);

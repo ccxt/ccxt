@@ -357,13 +357,13 @@ class upbit extends Exchange {
         $walletLocked = $this->safe_value($memberInfo, 'wallet_locked');
         $locked = $this->safe_value($memberInfo, 'locked');
         $active = true;
-        if (($canWithdraw !== null) && !$canWithdraw) {
+        if (($canWithdraw !== null) && ($canWithdraw !== true)) {
             $active = false;
         } elseif ($walletState !== 'working') {
             $active = false;
-        } elseif (($walletLocked !== null) && $walletLocked) {
+        } elseif (($walletLocked !== null) && ($walletLocked === true)) {
             $active = false;
-        } elseif (($locked !== null) && $locked) {
+        } elseif (($locked !== null) && ($locked === true)) {
             $active = false;
         }
         $maxOnetimeWithdrawal = $this->safe_string($withdrawLimits, 'onetime');
@@ -1288,7 +1288,7 @@ class upbit extends Exchange {
         $cost = $this->safe_string($params, 'cost');
         if ($cost !== null) {
             $quoteAmount = $this->cost_to_precision($symbol, $cost);
-        } elseif ($createMarketBuyOrderRequiresPrice) {
+        } elseif ($createMarketBuyOrderRequiresPrice === true) {
             if ($price === null || $amount === null) {
                 throw new InvalidOrder($this->id . ' createOrder() requires the $price and $amount argument for market buy orders to calculate the total $cost to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option or param to false and pass the $cost to spend (quote quantity) in the $amount argument');
             }
@@ -1413,7 +1413,7 @@ class upbit extends Exchange {
             throw new ArgumentsRequired($this->id . ' createOrder() requires a $timeInForce parameter for best $type orders');
         }
         $params = $this->omit($params, array( 'timeInForce', 'time_in_force', 'postOnly', 'clientOrderId', 'cost', 'selfTradePrevention', 'smp_type', 'test' ));
-        if ($test) {
+        if ($test === true) {
             $response = Async\await($this->privatePostOrdersTest($this->extend($request, $params)));
         } else {
             $response = Async\await($this->privatePostOrders($this->extend($request, $params)));
@@ -2357,7 +2357,7 @@ class upbit extends Exchange {
         //         }
         //     )
         //
-        return $this->parse_deposit_addresses($response, $codes);
+        return $this->parse_deposit_addresses($response, $codes, false);
     }
 
     public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {

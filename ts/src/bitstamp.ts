@@ -685,7 +685,7 @@ export default class bitstamp extends Exchange {
                 }
             }
             const isSpot = (type === 'spot');
-            const settle = settleId ? this.safeCurrencyCode (settleId) : undefined;
+            const settle = (settleId !== undefined && settleId !== '') ? this.safeCurrencyCode (settleId) : undefined;
             result.push ({
                 'id': this.safeString (market, 'market_symbol'),
                 'symbol': symbol,
@@ -780,7 +780,7 @@ export default class bitstamp extends Exchange {
         };
     }
 
-    async fetchMarketsFromCache (params = {}) {
+    async fetchMarketsFromCache (params = {}): Promise<Dict[]> {
         // this method is now redundant
         // currencies are now fetched before markets
         const options = this.safeValue (this.options, 'fetchMarkets', {});
@@ -2757,7 +2757,7 @@ export default class bitstamp extends Exchange {
                     headers['Content-Type'] = contentType;
                 }
             }
-            const authBody = body ? body : '';
+            const authBody = (body !== undefined && body !== '') ? body : '';
             const auth = xAuth + method + url.replace ('https://', '') + contentType + xAuthNonce + xAuthTimestamp + xAuthVersion + authBody;
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
             headers['X-Auth-Signature'] = signature;
