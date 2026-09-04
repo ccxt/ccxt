@@ -323,6 +323,18 @@ impl Binance {
         Ok(dict_from_value(&v, Leverage::from_value))
     }
 
+    /// Typed wrapper around `setMargin`.
+    pub async fn set_margin(&mut self, symbol: &str, amount: f64, params: impl Into<Params>) -> crate::Result<MarginModification> {
+        let v = crate::runtime::call_typed(self.core_mut().set_margin(Value::Str(symbol.to_string()), Value::Float(amount), &[params.into().into_value()])).await?;
+        Ok(MarginModification::from_value(v))
+    }
+
+    /// Typed wrapper around `fetchMarginAdjustmentHistory`.
+    pub async fn fetch_margin_adjustment_history(&mut self, symbol: Option<&str>, type_: Option<&str>, since: Option<f64>, limit: Option<f64>, params: impl Into<Params>) -> crate::Result<Vec<MarginModification>> {
+        let v = crate::runtime::call_typed(self.core_mut().fetch_margin_adjustment_history(&[symbol.map(|s| Value::Str(s.to_string())).unwrap_or(Value::Null), type_.map(|s| Value::Str(s.to_string())).unwrap_or(Value::Null), since.map(Value::Float).unwrap_or(Value::Null), limit.map(Value::Float).unwrap_or(Value::Null), params.into().into_value()])).await?;
+        Ok(vec_from_value(&v, MarginModification::from_value))
+    }
+
     /// Typed wrapper around `fetchDepositAddressesByNetwork`.
     pub async fn fetch_deposit_addresses_by_network(&mut self, code: &str, params: impl Into<Params>) -> crate::Result<Vec<DepositAddress>> {
         let v = crate::runtime::call_typed(self.core_mut().fetch_deposit_addresses_by_network(Value::Str(code.to_string()), &[params.into().into_value()])).await?;

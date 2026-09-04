@@ -80,6 +80,7 @@ const KNOWN_STRUCT_TYPES = new Map<string, string>([
     ['BorrowRate', 'BorrowRate'],
     ['BorrowInterest', 'BorrowInterest'],
     ['Status', 'Status'],
+    ['MarginModification', 'MarginModification'],
 ]);
 
 // Plural CCXT collection types — these are `pub type X = HashMap<String, T>;`

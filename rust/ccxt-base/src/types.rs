@@ -801,6 +801,41 @@ impl DepositAddress {
     }
 }
 
+/// Unified margin modification — the result of `addMargin` / `reduceMargin` /
+/// `setMargin`, and each row of `fetchMarginAdjustmentHistory`. Mirrors the TS
+/// `MarginModification` interface (`ts/src/base/types.ts`).
+#[derive(Debug, Clone, Default)]
+pub struct MarginModification {
+    pub symbol:      Option<String>,
+    pub mod_type:    Option<String>,   // "add" | "reduce" | "set"
+    pub margin_mode: Option<String>,   // "cross" | "isolated"
+    pub amount:      Option<f64>,
+    pub total:       Option<f64>,
+    pub code:        Option<String>,
+    pub status:      Option<String>,
+    pub timestamp:   Option<i64>,
+    pub datetime:    Option<String>,
+    pub raw:         Value,
+}
+
+impl MarginModification {
+    pub fn from_value(v: Value) -> Self {
+        use crate::value::{safe_string, safe_number, safe_integer};
+        let mut m = MarginModification::default();
+        m.symbol      = safe_string(&v, "symbol",     None);
+        m.mod_type    = safe_string(&v, "type",       None);
+        m.margin_mode = safe_string(&v, "marginMode", None);
+        m.amount      = safe_number(&v, "amount",     None);
+        m.total       = safe_number(&v, "total",      None);
+        m.code        = safe_string(&v, "code",       None);
+        m.status      = safe_string(&v, "status",     None);
+        m.timestamp   = safe_integer(&v, "timestamp", None);
+        m.datetime    = safe_string(&v, "datetime",   None);
+        m.raw = v;
+        m
+    }
+}
+
 // -----------------------------------------------------------------------------
 // Collection aliases (mirror the plural names used in Go's exchange_types.go)
 // -----------------------------------------------------------------------------
