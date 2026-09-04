@@ -50,7 +50,6 @@ from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat,
 # lighter
 import os
 
-from ccxt.static_dependencies import keccak
 # import ctypes
 
 # -----------------------------------------------------------------------------
@@ -1429,6 +1428,7 @@ class BaseExchange(object):
     def hash(request, algorithm='md5', digest='hex'):
         # fast paths for the common algorithms; hashlib.new() fallback for the rest.
         if algorithm == 'keccak':
+            from ccxt.static_dependencies import keccak
             binary = bytes(keccak.SHA3(request))
         elif algorithm == 'md5':
             binary = hashlib.md5(request).digest()
