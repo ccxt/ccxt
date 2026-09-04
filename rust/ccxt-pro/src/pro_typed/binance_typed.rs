@@ -383,6 +383,18 @@ impl Binance {
         Ok(dict_from_value(&v, Leverage::from_value))
     }
 
+    /// Typed wrapper around `addMargin`.
+    pub async fn add_margin(&mut self, symbol: &str, amount: f64, params: impl Into<Params>) -> crate::Result<MarginModification> {
+        let v = crate::runtime::call_typed(self.core_mut().add_margin(Value::Str(symbol.to_string()), Value::Float(amount), &[params.into().into_value()])).await?;
+        Ok(MarginModification::from_value(v))
+    }
+
+    /// Typed wrapper around `reduceMargin`.
+    pub async fn reduce_margin(&mut self, symbol: &str, amount: f64, params: impl Into<Params>) -> crate::Result<MarginModification> {
+        let v = crate::runtime::call_typed(self.core_mut().reduce_margin(Value::Str(symbol.to_string()), Value::Float(amount), &[params.into().into_value()])).await?;
+        Ok(MarginModification::from_value(v))
+    }
+
     /// Typed wrapper around `setMargin`.
     pub async fn set_margin(&mut self, symbol: &str, amount: f64, params: impl Into<Params>) -> crate::Result<MarginModification> {
         let v = crate::runtime::call_typed(self.core_mut().set_margin(Value::Str(symbol.to_string()), Value::Float(amount), &[params.into().into_value()])).await?;
@@ -423,6 +435,42 @@ impl Binance {
     pub async fn fetch_open_interests(&mut self, symbols: Option<Vec<String>>, params: impl Into<Params>) -> crate::Result<OpenInterests> {
         let v = crate::runtime::call_typed(self.core_mut().fetch_open_interests(&[match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(Value::Str).collect())), None => Value::Null }, params.into().into_value()])).await?;
         Ok(dict_from_value(&v, OpenInterest::from_value))
+    }
+
+    /// Typed wrapper around `repayCrossMargin`.
+    pub async fn repay_cross_margin(&mut self, code: &str, amount: f64, params: impl Into<Params>) -> crate::Result<MarginLoan> {
+        let v = crate::runtime::call_typed(self.core_mut().repay_cross_margin(Value::Str(code.to_string()), Value::Float(amount), &[params.into().into_value()])).await?;
+        Ok(MarginLoan::from_value(v))
+    }
+
+    /// Typed wrapper around `repayIsolatedMargin`.
+    pub async fn repay_isolated_margin(&mut self, symbol: &str, code: &str, amount: f64, params: impl Into<Params>) -> crate::Result<MarginLoan> {
+        let v = crate::runtime::call_typed(self.core_mut().repay_isolated_margin(Value::Str(symbol.to_string()), Value::Str(code.to_string()), Value::Float(amount), &[params.into().into_value()])).await?;
+        Ok(MarginLoan::from_value(v))
+    }
+
+    /// Typed wrapper around `borrowCrossMargin`.
+    pub async fn borrow_cross_margin(&mut self, code: &str, amount: f64, params: impl Into<Params>) -> crate::Result<MarginLoan> {
+        let v = crate::runtime::call_typed(self.core_mut().borrow_cross_margin(Value::Str(code.to_string()), Value::Float(amount), &[params.into().into_value()])).await?;
+        Ok(MarginLoan::from_value(v))
+    }
+
+    /// Typed wrapper around `borrowIsolatedMargin`.
+    pub async fn borrow_isolated_margin(&mut self, symbol: &str, code: &str, amount: f64, params: impl Into<Params>) -> crate::Result<MarginLoan> {
+        let v = crate::runtime::call_typed(self.core_mut().borrow_isolated_margin(Value::Str(symbol.to_string()), Value::Str(code.to_string()), Value::Float(amount), &[params.into().into_value()])).await?;
+        Ok(MarginLoan::from_value(v))
+    }
+
+    /// Typed wrapper around `borrowMargin`.
+    pub async fn borrow_margin(&mut self, code: &str, amount: f64, symbol: Option<&str>, params: impl Into<Params>) -> crate::Result<MarginLoan> {
+        let v = crate::runtime::call_typed(self.core_mut().borrow_margin(Value::Str(code.to_string()), Value::Float(amount), &[symbol.map(|s| Value::Str(s.to_string())).unwrap_or(Value::Null), params.into().into_value()])).await?;
+        Ok(MarginLoan::from_value(v))
+    }
+
+    /// Typed wrapper around `repayMargin`.
+    pub async fn repay_margin(&mut self, code: &str, amount: f64, symbol: Option<&str>, params: impl Into<Params>) -> crate::Result<MarginLoan> {
+        let v = crate::runtime::call_typed(self.core_mut().repay_margin(Value::Str(code.to_string()), Value::Float(amount), &[symbol.map(|s| Value::Str(s.to_string())).unwrap_or(Value::Null), params.into().into_value()])).await?;
+        Ok(MarginLoan::from_value(v))
     }
 
     /// Typed wrapper around `fetchOHLCV`.

@@ -836,6 +836,37 @@ impl MarginModification {
     }
 }
 
+/// Unified margin borrow/repay receipt returned by `borrowCrossMargin`,
+/// `borrowIsolatedMargin`, `repayCrossMargin` and `repayIsolatedMargin`.
+/// Mirrors the TS `MarginLoan` interface (`ts/src/base/types.ts`): every
+/// venue's `parseMarginLoan` emits exactly `id`/`currency`/`amount`/`symbol`/
+/// `timestamp`/`datetime` (+ `info`).
+#[derive(Debug, Clone, Default)]
+pub struct MarginLoan {
+    pub id:        Option<String>,
+    pub currency:  Option<String>,
+    pub amount:    Option<f64>,
+    pub symbol:    Option<String>,
+    pub timestamp: Option<i64>,
+    pub datetime:  Option<String>,
+    pub raw:       Value,
+}
+
+impl MarginLoan {
+    pub fn from_value(v: Value) -> Self {
+        use crate::value::{safe_string, safe_number, safe_integer};
+        let mut m = MarginLoan::default();
+        m.id        = safe_string(&v, "id",        None);
+        m.currency  = safe_string(&v, "currency",  None);
+        m.amount    = safe_number(&v, "amount",    None);
+        m.symbol    = safe_string(&v, "symbol",    None);
+        m.timestamp = safe_integer(&v, "timestamp", None);
+        m.datetime  = safe_string(&v, "datetime",  None);
+        m.raw = v;
+        m
+    }
+}
+
 /// Unified currency-conversion record (`fetchConvertQuote`, `createConvertTrade`,
 /// `fetchConvertTrade`, and each row of `fetchConvertTradeHistory`). Mirrors the
 /// TS `Conversion` interface.
@@ -1232,7 +1263,7 @@ pub fn vec_from_value<T>(v: &Value, decode: fn(Value) -> T) -> Vec<T> {
 
 #[cfg(test)]
 mod from_value_tests {
-    use super::{Market, Order, OrderBook, MarginModification, Conversion, IsolatedBorrowRate, BorrowRate, PositionModeInfo, LastPrice, LeverageTier, DepositWithdrawFee};
+    use super::{Market, Order, OrderBook, MarginModification, Conversion, IsolatedBorrowRate, BorrowRate, PositionModeInfo, LastPrice, LeverageTier, DepositWithdrawFee, MarginLoan};
     use crate::Value;
     use crate::value::HashMap;
 
@@ -1388,5 +1419,28 @@ mod from_value_tests {
         assert_eq!(lp.symbol.as_deref(), Some("ETH/USDT"));
         assert_eq!(lp.price, Some(3000.5));
         assert_eq!(lp.side.as_deref(), Some("buy"));
+    }
+
+    // Mirrors binance `parseMarginLoan`: `id` from `tranId`, `currency` from the
+    // unified code, `symbol` undefined for cross margin. A decoder keyed on the
+    // raw exchange fields (`tranId`/`asset`) would silently read all-`None`.
+    #[test]
+    fn margin_loan_reads_unified_keys() {
+        let m = MarginLoan::from_value(dict(&[
+            ("id", Value::Str("108988250265".into())),
+            ("currency", Value::Str("USDC".into())),
+            ("amount", Value::Int(10)),
+            ("symbol", Value::Null),
+            ("timestamp", Value::Int(1_727_170_761_267)),
+            ("datetime", Value::Str("2024-09-24T09:39:21.267Z".into())),
+            ("info", dict(&[("tranId", Value::Int(108988250265)), ("asset", Value::Str("USDC".into()))])),
+        ]));
+        assert_eq!(m.id.as_deref(), Some("108988250265"));
+        assert_eq!(m.currency.as_deref(), Some("USDC"));
+        assert_eq!(m.amount, Some(10.0));
+        assert_eq!(m.symbol, None);
+        assert_eq!(m.timestamp, Some(1_727_170_761_267));
+        assert_eq!(m.datetime.as_deref(), Some("2024-09-24T09:39:21.267Z"));
+        assert!(matches!(m.raw, Value::Dict(_)));
     }
 }

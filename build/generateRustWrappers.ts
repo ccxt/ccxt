@@ -96,6 +96,7 @@ const KNOWN_STRUCT_TYPES = new Map<string, string>([
     ['Option', 'OptionContract'],
     ['LastPrice', 'LastPrice'],
     ['DepositWithdrawFee', 'DepositWithdrawFee'],
+    ['MarginLoan', 'MarginLoan'],
 ]);
 
 // Plural CCXT collection types — these are `pub type X = HashMap<String, T>;`
@@ -191,6 +192,10 @@ interface MethodInfo {
 const ALLOWED_PREFIXES = [
     'fetch', 'create', 'edit', 'cancel', 'close',
     'setP', 'setM', 'setL', 'transfer', 'withdraw',
+    // Margin-account unified methods (`borrowCrossMargin`, `repayIsolatedMargin`,
+    // `addMargin`, `reduceMargin`, …). Without these the `Promise<MarginLoan>` /
+    // `Promise<MarginModification>` methods never reach `mapReturnType` at all.
+    'borrow', 'repay', 'addMargin', 'reduceMargin',
     // WS (`watch*`) methods — emitted only into the `ccxt_pro` typed layer;
     // the REST / prediction passes filter them out (they'd never be reachable
     // on a REST/prediction Core anyway).
