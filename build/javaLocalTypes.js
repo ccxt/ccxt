@@ -30,9 +30,22 @@ import ts from 'typescript6';
 // runtime value is always an instance of that type (or null). Transpiled base
 // methods (safeBool/safeDict/safeList/safeNumber...) do NOT qualify: their Java
 // bodies return whatever the TS default argument was, boxed as Object.
+//
+// SafeMethods.SafeStringTyped / safeString2 / SafeStringN coerce the found value to
+// String and drop a non-String default (`instanceof String s ? s : null`), so they
+// are String-or-null unconditionally.
 const STRING_ACCESSORS = new Set([
     'safeString', 'safeString2', 'safeStringN',
 ]);
+
+// SafeMethods.safeStringUpper* / safeStringLower* return the found value
+// `.toUpperCase()`d, but hand the DEFAULT back untouched (`Object`). They classify
+// only when the default is absent or provably a String; index of that argument:
+const STRING_CASE_ACCESSORS = {
+    'safeStringUpper': 2, 'safeStringLower': 2,
+    'safeStringUpper2': 3, 'safeStringLower2': 3,
+    'safeStringUpperN': 2, 'safeStringLowerN': 2,
+};
 
 // hand-written base methods declared with a String return in Java
 // (BaseExchange.iso8601 / numberToString) — used only to prove a later
@@ -69,14 +82,18 @@ function isBaseStringAccessorCall (printer, node) {
         return false;
     }
     const name = node.expression.name.escapedText;
-    if (!STRING_ACCESSORS.has (name)) {
+    const defaultIndex = STRING_CASE_ACCESSORS[name];
+    if (!STRING_ACCESSORS.has (name) && defaultIndex === undefined) {
         return false;
     }
     const declaration = printer.getChecker ().getResolvedSignature (node)?.declaration;
-    if (declaration === undefined) {
+    if (declaration === undefined || !ACCESSOR_DECLARATION_FILE.test (declaration.getSourceFile ().fileName)) {
         return false;
     }
-    return ACCESSOR_DECLARATION_FILE.test (declaration.getSourceFile ().fileName);
+    if (defaultIndex !== undefined && node.arguments.length > defaultIndex) {
+        return isProvablyStringExpression (printer, node.arguments[defaultIndex], undefined);
+    }
+    return true;
 }
 
 // true when the printed Java for `node` is statically a String (or null).
