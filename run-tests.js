@@ -32,6 +32,7 @@ const langKeys = {
     '--go': false,      // run GO tests only
     '--java': false,    // run Java tests only
     '--rust': false,
+    '--cpp': false,     // run C++ tests only
 }
 
 const debugKeys = {
@@ -398,6 +399,7 @@ const testExchange = async (exchange) => {
         { key: '--go',           language: 'GO',           exec: [ ...goExec,          ...args] },
         { key: '--java',         language: 'Java',         exec: [ './java/gradlew', '-p', 'java', 'tests:run', getJavaArgs(args)] },
         { key: '--rust',         language: 'Rust',         exec: [ ...rustExec,        ...args] },
+        { key: '--cpp',          language: 'C++',          exec: ['cpp/build/ccxt-tests',                                     ...args] },
     ];
 
     // select tests based on cli arguments
@@ -406,7 +408,10 @@ const testExchange = async (exchange) => {
     if (langsAreProvided) {
         selectedTests = allTests.filter (t => langKeys[t.key]);
     } else {
-        selectedTests = allTests.filter (t => t.key !== '--ts'); // exclude TypeScript when running all tests without specific languages
+        // exclude TypeScript when running all tests without specific languages, and C++
+        // too: the C++ port implements --baseTests only (no HTTP layer yet), so it would
+        // report a failure on every per-exchange run. Ask for it explicitly with --cpp.
+        selectedTests = allTests.filter (t => (t.key !== '--ts') && (t.key !== '--cpp'));
     }
 
     // remove skipped tests
