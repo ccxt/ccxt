@@ -26,16 +26,6 @@ public partial class BaseExchange
         var res = this.createCcxtTradeId(timestamp, side, amount, price, takerOrMaker);
         return ((string)res);
     }
-    public async Task<Dictionary<string, object>> FetchWebEndpoint(object method, object endpointMethod, object returnAsJson, string startRegex = null, string endRegex = null)
-    {
-        var res = await this.fetchWebEndpoint(method, endpointMethod, returnAsJson, startRegex, endRegex);
-        return ((Dictionary<string, object>)res);
-    }
-    public async Task<Dictionary<string, object>> Fetch2(object path, object api = null, string method = "GET", Dictionary<string, object> parameters = null, object headers = null, object body = null, Dictionary<string, object> config = null)
-    {
-        var res = await this.fetch2(path, api, method, parameters, headers, body, config);
-        return ((Dictionary<string, object>)res);
-    }
     public MarketInterface CreateExpiredOptionMarket(string symbol)
     {
         var res = this.createExpiredOptionMarket(symbol);
@@ -45,26 +35,6 @@ public partial class BaseExchange
     {
         var res = this.createOHLCVObject(symbol, timeframe, data);
         return ((Dictionary<string, Dictionary<string, OHLCV[]>>)res);
-    }
-    public async Task<Dictionary<string, object>> FetchPaginatedCallDynamic(string method, string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null, Int64? maxEntriesPerRequest = null, bool removeRepeated = true)
-    {
-        var res = await this.fetchPaginatedCallDynamic(method, symbol, since, limit, parameters, maxEntriesPerRequest, removeRepeated);
-        return ((Dictionary<string, object>)res);
-    }
-    public async Task<Dictionary<string, object>> FetchPaginatedCallDeterministic(string method, string symbol = null, Int64? since = null, Int64? limit = null, string timeframe = null, Dictionary<string, object> parameters = null, Int64? maxEntriesPerRequest = null)
-    {
-        var res = await this.fetchPaginatedCallDeterministic(method, symbol, since, limit, timeframe, parameters, maxEntriesPerRequest);
-        return ((Dictionary<string, object>)res);
-    }
-    public async Task<Dictionary<string, object>> FetchPaginatedCallCursor(string method, string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null, string cursorReceived = null, string cursorSent = null, Int64? cursorIncrement = null, Int64? maxEntriesPerRequest = null)
-    {
-        var res = await this.fetchPaginatedCallCursor(method, symbol, since, limit, parameters, cursorReceived, cursorSent, cursorIncrement, maxEntriesPerRequest);
-        return ((Dictionary<string, object>)res);
-    }
-    public async Task<Dictionary<string, object>> FetchPaginatedCallIncremental(string method, string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null, string pageKey = null, Int64? maxEntriesPerRequest = null)
-    {
-        var res = await this.fetchPaginatedCallIncremental(method, symbol, since, limit, parameters, pageKey, maxEntriesPerRequest);
-        return ((Dictionary<string, object>)res);
     }
 }
 // class wrappers

@@ -1570,7 +1570,21 @@ class NewTranspiler {
             'watchSwapPublic',
             'watchTopics',
             'setPositionsCache',
-            'setPositionCache'
+            'setPositionCache',
+            // internal HTTP / pagination transport: not public API (users never call
+            // fetch2 / fetchPaginatedCallCursor). fetch2 and fetchWebEndpoint return
+            // polymorphic JSON (dict | list | string). fetchPaginatedCall* return a
+            // concatenated List<object> of whatever the inner method produced, and
+            // ~80 consumers immediately wrap that in ToTradeList / ToOrderList / …
+            // which still hard-cast `(IList<object>)` — List<T> is invariant, so
+            // typing them as List<Dictionary<string, object>> would throw at those
+            // sites even after the toArray re-box. Blacklist, don't force a type.
+            'fetch2',
+            'fetchWebEndpoint',
+            'fetchPaginatedCallDynamic',
+            'fetchPaginatedCallDeterministic',
+            'fetchPaginatedCallCursor',
+            'fetchPaginatedCallIncremental',
         ] // improve this later
         if (isWs) {
             if (methodName.indexOf('Snapshot') !== -1 || methodName.indexOf('Subscription') !== -1 || methodName.indexOf('Cache') !== -1) {
