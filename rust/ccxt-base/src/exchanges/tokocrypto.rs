@@ -1166,7 +1166,6 @@ impl TokocryptoCore {
                     m.insert("margin".to_string(), Value::Bool((is_equal(&marginTradingEnable, &Value::Str("1".to_string())))));
                     m.insert("swap".to_string(), Value::Bool(false));
                     m.insert("future".to_string(), Value::Bool(false));
-                    m.insert("delivery".to_string(), Value::Bool(false));
                     m.insert("option".to_string(), Value::Bool(false));
                     m.insert("active".to_string(), active.clone());
                     m.insert("contract".to_string(), Value::Bool(false));
