@@ -189,10 +189,10 @@ public partial class htx
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type.</returns>
-    public async Task<Dictionary<string, object>> FetchAccountIdByType(string type, string marginMode = null, string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<string> FetchAccountIdByType(string type, string marginMode = null, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchAccountIdByType(type, marginMode, symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return ((string)res);
     }
     /// <summary>
     /// query for balance and get the amount of funds available for trading or funds locked in orders

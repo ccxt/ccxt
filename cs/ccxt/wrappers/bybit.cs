@@ -365,10 +365,10 @@ public partial class bybit
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> an array of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchBorrowRateHistory(string code, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    public async Task<List<Dictionary<string, object>>> FetchBorrowRateHistory(string code, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchBorrowRateHistory(code, since, limit, parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
     }
     /// <summary>
     /// transfer currency internally between wallets on the same account
@@ -525,10 +525,10 @@ public partial class bybit
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [settlement history objects].</returns>
-    public async Task<Dictionary<string, object>> FetchMySettlementHistory(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    public async Task<List<Dictionary<string, object>>> FetchMySettlementHistory(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchMySettlementHistory(symbol, since, limit, parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
     }
     /// <summary>
     /// fetch the historical volatility of an option market based on an underlying asset

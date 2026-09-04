@@ -167,10 +167,10 @@ public partial class kraken
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> of deposit methods.</returns>
-    public async Task<Dictionary<string, object>> FetchDepositMethods(string code, Dictionary<string, object> parameters = null)
+    public async Task<List<Dictionary<string, object>>> FetchDepositMethods(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositMethods(code, parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
     }
     /// <summary>
     /// transfer from spot wallet to futures wallet

@@ -172,10 +172,10 @@ public partial class hibachi
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [settlement history objects]{@link https://docs.ccxt.com/#/?id=settlement-history-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchMySettlementHistory(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    public async Task<List<Dictionary<string, object>>> FetchMySettlementHistory(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchMySettlementHistory(symbol, since, limit, parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
     }
     /// <summary>
     /// fetches the current integer timestamp in milliseconds from the exchange server

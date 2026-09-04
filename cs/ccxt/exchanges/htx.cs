@@ -4121,7 +4121,7 @@ public partial class htx : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object accounts = await this.loadAccounts();
-        object accountId = this.safeValue2(parameters, "accountId", "account-id");
+        object accountId = this.safeString2(parameters, "accountId", "account-id");
         if (isTrue(!isEqual(accountId, null)))
         {
             return accountId;

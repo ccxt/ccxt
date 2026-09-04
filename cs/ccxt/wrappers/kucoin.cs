@@ -515,10 +515,10 @@ public partial class kucoin
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> an array of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchBorrowRateHistory(string code, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    public async Task<List<Dictionary<string, object>>> FetchBorrowRateHistory(string code, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchBorrowRateHistory(code, since, limit, parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
     }
     /// <summary>
     /// fetch deposit and withdraw fees - *IMPORTANT* use fetchDepositWithdrawFee to get more in-depth info
