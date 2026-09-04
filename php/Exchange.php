@@ -652,7 +652,7 @@ class BaseExchange {
     public static function safe_string_n($object, $array, $default_value = null) {
         $value = static::get_object_value_from_key_array($object, $array);
         if ($value !== null) {
-            if (is_string($value) && $value !== '') return $value;
+            if (is_string($value)) { if ($value !== '') return $value; }
             else if (is_numeric($value)) return (string)$value;
         }
         return $default_value;
@@ -661,7 +661,7 @@ class BaseExchange {
     public static function safe_string_lower_n($object, $array, $default_value = null) {
         $value = static::get_object_value_from_key_array($object, $array);
         if ($value !== null) {
-            if (is_string($value) && $value !== '') return strtolower($value);
+            if (is_string($value)) { if ($value !== '') return strtolower($value); }
             else if (is_numeric($value)) return strtolower((string)$value);
         }
         return $default_value;
@@ -670,7 +670,7 @@ class BaseExchange {
     public static function safe_string_upper_n($object, $array, $default_value = null) {
         $value = static::get_object_value_from_key_array($object, $array);
         if ($value !== null) {
-            if (is_string($value) && $value !== '') return strtoupper($value);
+            if (is_string($value)) { if ($value !== '') return strtoupper($value); }
             else if (is_numeric($value)) return strtoupper((string)$value);
         }
         return $default_value;
