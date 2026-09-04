@@ -8,9 +8,11 @@ import java.util.Map;
 public final class DepositWithdrawFeeNetwork {
     public Double fee;
     public Boolean percentage;
+    public final Object __raw;
 
     @SuppressWarnings("unchecked")
     public DepositWithdrawFeeNetwork(Object raw) {
+        this.__raw = raw;
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.fee = TypeHelper.safeFloat(data, "fee");
         this.percentage = TypeHelper.safeBool(data, "percentage");

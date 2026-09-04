@@ -19,9 +19,11 @@ public final class Trade {
     public String takerOrMaker;
     public Fee fee;
     public Map<String, Object> info;
+    public final Object __raw;
 
     @SuppressWarnings("unchecked")
     public Trade(Object raw) {
+        this.__raw = raw;
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.amount = TypeHelper.safeFloat(data, "amount");
         this.price = TypeHelper.safeFloat(data, "price");

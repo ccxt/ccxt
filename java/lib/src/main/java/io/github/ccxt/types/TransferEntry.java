@@ -15,9 +15,11 @@ public final class TransferEntry {
     public String toAccount;
     public String status;
     public Map<String, Object> info;
+    public final Object __raw;
 
     @SuppressWarnings("unchecked")
     public TransferEntry(Object raw) {
+        this.__raw = raw;
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.id = TypeHelper.safeString(data, "id");
         this.timestamp = TypeHelper.safeInteger(data, "timestamp");

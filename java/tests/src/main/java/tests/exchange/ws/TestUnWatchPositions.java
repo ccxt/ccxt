@@ -34,11 +34,11 @@ public class TestUnWatchPositions extends BaseTest {
         try
         {
             // First call uses snapshot
-            positionsSubscription = (exchange.watchPositions()).join();
+            positionsSubscription = detypeForComparison((exchange.watchPositions()).join());
             // trigger a position update
             exchange.spawn(() -> { try { this.createOrderAfterDelay( exchange).join(); } catch(Exception _e) { throw new RuntimeException(_e); } });
             // Second call uses subscription
-            positionsSubscription = (exchange.watchPositions()).join();
+            positionsSubscription = detypeForComparison((exchange.watchPositions()).join());
         } catch(Exception e)
         {
             if (!Helpers.isTrue(TestSharedMethods.isTemporaryFailure(e)))
@@ -79,9 +79,9 @@ public class TestUnWatchPositions extends BaseTest {
         Object resubscribeResponse = null;
         try
         {
-            resubscribeResponse = (exchange.watchPositions()).join();
+            resubscribeResponse = detypeForComparison((exchange.watchPositions()).join());
             exchange.spawn(() -> { try { this.createOrderAfterDelay( exchange).join(); } catch(Exception _e) { throw new RuntimeException(_e); } });
-            resubscribeResponse = (exchange.watchPositions()).join();
+            resubscribeResponse = detypeForComparison((exchange.watchPositions()).join());
         } catch(Exception e)
         {
             if (!Helpers.isTrue(TestSharedMethods.isTemporaryFailure(e)))

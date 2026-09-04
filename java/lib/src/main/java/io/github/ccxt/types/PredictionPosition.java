@@ -35,9 +35,11 @@ public final class PredictionPosition {
     public Double settleFraction;
     public Double payout;
     public Map<String, Object> info;
+    public final Object __raw;
 
     @SuppressWarnings("unchecked")
     public PredictionPosition(Object raw) {
+        this.__raw = raw;
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.id = TypeHelper.safeString(data, "id");
         this.timestamp = TypeHelper.safeInteger(data, "timestamp");

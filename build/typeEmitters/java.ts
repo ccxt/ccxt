@@ -86,10 +86,10 @@ const FIELD_RENAMES: Record<string, string> = {
  * skip list stays visible instead of silently shrinking coverage.
  */
 const SKIPPED: Record<string, string> = {
-    'OrderBook': 'bespoke constructor (unwraps io.github.ccxt.ws.WsOrderBook and guards null data) - no drift against TS',
-    'Balances': 'bespoke constructor (flattens free/used/total sub-maps and the per-currency Balance rows)',
-    'Network': 'no TS declaration (models an entry of CurrencyInterface.networks, typed Dictionary<any> in TS)',
-    'NetworkLimits': 'no TS declaration (nested inside the Java-only Network POJO)',
+    'OrderBook': 'bespoke constructor (unwraps io.github.ccxt.ws.WsOrderBook and guards null data) - no drift against TS; carries a hand-maintained __raw snapshot field',
+    'Balances': 'bespoke constructor (flattens free/used/total sub-maps and the per-currency Balance rows); carries a hand-maintained __raw field',
+    'Network': 'no TS declaration (models an entry of CurrencyInterface.networks, typed Dictionary<any> in TS); hand-written, carries __raw',
+    'NetworkLimits': 'no TS declaration (nested inside the Java-only Network POJO); hand-written, carries __raw',
 };
 
 interface ExistingField {
@@ -522,9 +522,16 @@ function renderTuple (type: IRType, existing: ExistingFile | undefined): string 
     }
     out.push ('public final class ' + type.name + ' {');
     out.push (...fieldLines);
+    // Lossless inverse support, same contract as the interface renderer. A tuple
+    // widens every slot to Long/Double, so rebuilding the list from the parsed
+    // fields is not an inverse: an integer volume of `2` comes back as `2.0`, and
+    // any slot the tuple doc does not name is dropped outright. Keeping the list
+    // the object was built from makes `TypedCores.from*` exact for tuples too.
+    out.push (INDENT + 'public final Object __raw;');
     out.push ('');
     // index-based constructors perform no unchecked cast, so they carry no @SuppressWarnings
     out.push (INDENT + 'public ' + type.name + '(Object raw) {');
+    out.push (BODY + 'this.__raw = raw;');
     out.push (...bodyLines);
     out.push (INDENT + '}');
     out.push ('}');
@@ -580,11 +587,22 @@ function renderInterface (ir: TypesIR, className: string, fields: IRField[], exi
     }
     out.push ('public final class ' + className + ' {');
     out.push (...fieldLines);
+    // Lossless inverse support. A unified type is a *projection*: it names a fixed field
+    // set, while the payload CCXT actually produced carries a variable key set (venue
+    // extras, `fees`, keys no TS interface names). Rebuilding a map from the fields alone
+    // is therefore not an inverse -- it both drops real keys and invents nulls for keys the
+    // payload never had. Keeping a reference to the map the object was built from makes
+    // `TypedCores.from*` an exact inverse, which is what lets a strictly-typed core hand
+    // its result back to untyped code (reflective dispatch, pagination, the static-response
+    // comparator) with no observable change. It aliases the same map the constructor already
+    // read, so it costs a reference, not a copy.
+    out.push (INDENT + 'public final Object __raw;');
     out.push ('');
     if (existing === undefined || existing.ctorAnnotated) {
         out.push (INDENT + '@SuppressWarnings("unchecked")');
     }
     out.push (INDENT + 'public ' + className + '(Object raw) {');
+    out.push (BODY + 'this.__raw = raw;');
     out.push (BODY + 'Map<String, Object> data = TypeHelper.toMap(raw);');
     out.push (...bodyLines);
     out.push (INDENT + '}');
@@ -713,9 +731,13 @@ function renderNewDictionary (className: string, elementClass: string, elementIs
     if (hasInfo) {
         out.push (INDENT + 'public Map<String, Object> info;');
     }
+    // Lossless inverse support, same contract as the interface renderer: the
+    // wrapper is a projection, `from*` must hand back the exact input map.
+    out.push (INDENT + 'public final Object __raw;');
     out.push ('');
     out.push (INDENT + '@SuppressWarnings("unchecked")');
     out.push (INDENT + 'public ' + className + '(Object raw) {');
+    out.push (BODY + 'this.__raw = raw;');
     out.push (BODY + 'Map<String, Object> data = TypeHelper.toMap(raw);');
     if (hasInfo) {
         out.push (BODY + 'this.info = TypeHelper.getInfo(data);');

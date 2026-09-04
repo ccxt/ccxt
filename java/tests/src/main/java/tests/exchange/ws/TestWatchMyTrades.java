@@ -25,7 +25,7 @@ public class TestWatchMyTrades extends BaseTest {
             Object response = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             try
             {
-                response = (exchange.watchMyTrades(symbol)).join();
+                response = detypeForComparison((exchange.watchMyTrades(symbol)).join());
             } catch(Exception e)
             {
                 if (!Helpers.isTrue(TestSharedMethods.isTemporaryFailure(e)))

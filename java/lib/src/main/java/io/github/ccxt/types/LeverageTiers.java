@@ -11,9 +11,11 @@ import java.util.stream.Collectors;
 
 public final class LeverageTiers {
     public Map<String, List<LeverageTier>> tiers;
+    public final Object __raw;
 
     @SuppressWarnings("unchecked")
     public LeverageTiers(Object raw) {
+        this.__raw = raw;
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.tiers = new LinkedHashMap<>();
         for (Map.Entry<String, Object> entry : data.entrySet()) {

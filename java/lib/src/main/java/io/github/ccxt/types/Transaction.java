@@ -26,9 +26,11 @@ public final class Transaction {
     public String comment;
     public Boolean internal;
     public Map<String, Object> info;
+    public final Object __raw;
 
     @SuppressWarnings("unchecked")
     public Transaction(Object raw) {
+        this.__raw = raw;
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.id = TypeHelper.safeString(data, "id");
         this.txid = TypeHelper.safeString(data, "txid");

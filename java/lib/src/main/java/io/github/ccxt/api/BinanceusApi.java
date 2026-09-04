@@ -6,9 +6,9 @@
 // -------------------------------------------------------------------------------
 
 package io.github.ccxt.api;
-import io.github.ccxt.exchanges.BinanceCore;
+import io.github.ccxt.exchanges.Binance;
 
-public class BinanceusApi extends BinanceCore
+public class BinanceusApi extends Binance
 {
 
     public BinanceusApi () {

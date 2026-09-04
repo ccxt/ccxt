@@ -39,7 +39,7 @@ public class TestWatchOHLCV extends BaseTest {
             Object startTime = exchange.milliseconds();
             try
             {
-                response = (exchange.watchOHLCV(symbol, chosenTimeframeKey, since, limit)).join();
+                response = detypeForComparison((exchange.watchOHLCV(symbol, chosenTimeframeKey, since, limit)).join());
                 if (Helpers.isTrue(Helpers.isEqual(response, null)))
                 {
                     throw new RuntimeException((String)Helpers.add(exchange.id, " watch returned undefined response")) ;

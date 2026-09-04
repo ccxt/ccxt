@@ -25,7 +25,7 @@ public class TestWatchPosition extends BaseTest {
             Object success = true;
             try
             {
-                response = (exchange.watchPosition(symbol)).join();
+                response = detypeForComparison((exchange.watchPosition(symbol)).join());
             } catch(Exception e)
             {
                 if (!Helpers.isTrue(TestSharedMethods.isTemporaryFailure(e)))

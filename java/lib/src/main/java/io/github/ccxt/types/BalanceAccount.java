@@ -12,9 +12,11 @@ public final class BalanceAccount {
     public String debt;
     public String frozen;
     public Map<String, Object> info;
+    public final Object __raw;
 
     @SuppressWarnings("unchecked")
     public BalanceAccount(Object raw) {
+        this.__raw = raw;
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.free = TypeHelper.safeString(data, "free");
         this.used = TypeHelper.safeString(data, "used");

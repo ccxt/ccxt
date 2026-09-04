@@ -9,9 +9,11 @@ import java.util.NoSuchElementException;
 
 public final class MarginModes {
     public Map<String, MarginMode> modes;
+    public final Object __raw;
 
     @SuppressWarnings("unchecked")
     public MarginModes(Object raw) {
+        this.__raw = raw;
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.modes = new LinkedHashMap<>();
         for (Map.Entry<String, Object> entry : data.entrySet()) {

@@ -129,14 +129,14 @@ function shouldCreateWrapper(name: string): boolean {
     return ALLOWED_PREFIXES.some(p => name.startsWith(p));
 }
 
-interface ParamInfo {
+export interface ParamInfo {
     name: string;
     javaType: string;
     isOptional: boolean;
     defaultValue: string | null;
 }
 
-interface MethodInfo {
+export interface MethodInfo {
     name: string;
     javaReturnType: string;
     isArray: boolean;
@@ -199,7 +199,7 @@ export const ZERO_REQUIRED_TYPED_WHITELIST = new Set([
 // internal call sites don't trigger overload-resolution collisions; verified
 // via grep over ts/src/pro/*.ts). Keeps the user-facing surface symmetric
 // with their REST `fetch*` counterparts which already get truncations.
-const WATCH_ZERO_ARG_WHITELIST = new Set([
+export const WATCH_ZERO_ARG_WHITELIST = new Set([
     'watchTickers',
     'watchBalance',
     'watchOrders',
@@ -207,7 +207,7 @@ const WATCH_ZERO_ARG_WHITELIST = new Set([
     'watchPositions',
 ]);
 
-function parseMethodsFromTS(sourceFile: string = TS_BASE_FILE): MethodInfo[] {
+export function parseMethodsFromTS(sourceFile: string = TS_BASE_FILE): MethodInfo[] {
     const transpiler = new Transpiler({ verbose: false, csharp: { parser: { ELEMENT_ACCESS_WRAPPER_OPEN: "getValue(", ELEMENT_ACCESS_WRAPPER_CLOSE: ")" } } });
     const strippedBaseFile = writeOverloadStrippedFile (sourceFile);
     const baseFile: any = transpiler.transpileJavaByPath(strippedBaseFile);
@@ -267,11 +267,11 @@ function safeName(name: string): string {
     return reserved[name] || name;
 }
 
-function camelCase(name: string): string {
+export function camelCase(name: string): string {
     return name.charAt(0).toLowerCase() + name.slice(1);
 }
 
-function capitalize(s: string): string {
+export function capitalize(s: string): string {
     return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
@@ -618,7 +618,7 @@ const PREDICTION_TYPE_MAP: Record<string, string> = {
     'TradingFeeInterface': 'PredictionTradingFee',
     'OpenInterest': 'PredictionOpenInterest',
 };
-function toPredictionMethods(rest: MethodInfo[]): MethodInfo[] {
+export function toPredictionMethods(rest: MethodInfo[]): MethodInfo[] {
     return rest.map((m) => {
         if (m.isArray && m.elementType && PREDICTION_TYPE_MAP[m.elementType]) {
             const elem = PREDICTION_TYPE_MAP[m.elementType];
@@ -634,11 +634,11 @@ function toPredictionMethods(rest: MethodInfo[]): MethodInfo[] {
 // Exchange.ts, so the shared restMethods list (parsed from Exchange.ts) misses them. Parse the
 // prediction base and add the methods NOT already present. Every prediction Core extends
 // PredictionExchange, so super.<method>() resolves on all — safe to share across the exchanges.
-const PREDICTION_BASE_TS = './ts/src/base/PredictionExchange.ts';
+export const PREDICTION_BASE_TS = './ts/src/base/PredictionExchange.ts';
 // Exchange-specific prediction methods that are NOT on any base (e.g. limitless.redeem returns a
 // plain dict / Object and only exists on limitless). Only their own exchange's wrapper gets them,
 // so super.<method>() resolves. Declared explicitly to avoid wrapping internal exchange helpers.
-const PREDICTION_EXCHANGE_METHODS: Record<string, MethodInfo[]> = {
+export const PREDICTION_EXCHANGE_METHODS: Record<string, MethodInfo[]> = {
     'limitless': [{
         name: 'redeem',
         javaReturnType: 'Object', isArray: false, elementType: null,
@@ -655,7 +655,7 @@ const PREDICTION_EXCHANGE_METHODS: Record<string, MethodInfo[]> = {
 // method whose super.<method>() resolves nowhere — and would re-expose the symbol-based surface
 // (closePosition, fetchGreeks, ...) prediction deliberately drops. Exclude them from the wrappers,
 // matching javaTranspiler's PredictionExchange injection.
-function predictionTierExcludeNames(): Set<string> {
+export function predictionTierExcludeNames(): Set<string> {
     const src = fs.readFileSync(TS_BASE_FILE, 'utf8').split('\n');
     const es = src.findIndex(l => l.startsWith('export default class Exchange extends BaseExchange'));
     const re = /^    (?:async )?([a-zA-Z][a-zA-Z0-9]*) \(/;

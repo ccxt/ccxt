@@ -6,9 +6,9 @@
 // -------------------------------------------------------------------------------
 
 package io.github.ccxt.api;
-import io.github.ccxt.exchanges.HitbtcCore;
+import io.github.ccxt.exchanges.Hitbtc;
 
-public class FmfwioApi extends HitbtcCore
+public class FmfwioApi extends Hitbtc
 {
 
     public FmfwioApi () {

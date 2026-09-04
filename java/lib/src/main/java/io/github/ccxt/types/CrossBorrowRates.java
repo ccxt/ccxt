@@ -9,9 +9,11 @@ import java.util.NoSuchElementException;
 
 public final class CrossBorrowRates {
     public Map<String, CrossBorrowRate> rates;
+    public final Object __raw;
 
     @SuppressWarnings("unchecked")
     public CrossBorrowRates(Object raw) {
+        this.__raw = raw;
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.rates = new LinkedHashMap<>();
         for (Map.Entry<String, Object> entry : data.entrySet()) {

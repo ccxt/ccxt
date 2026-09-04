@@ -11,9 +11,11 @@ public final class Status {
     public Long eta;
     public String url;
     public Map<String, Object> info;
+    public final Object __raw;
 
     @SuppressWarnings("unchecked")
     public Status(Object raw) {
+        this.__raw = raw;
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.status = TypeHelper.safeString(data, "status");
         this.updated = TypeHelper.safeInteger(data, "updated");

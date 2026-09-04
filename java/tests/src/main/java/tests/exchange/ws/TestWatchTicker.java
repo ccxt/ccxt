@@ -28,7 +28,7 @@ public class TestWatchTicker extends BaseTest {
             Object startTime = exchange.milliseconds();
             try
             {
-                response = (exchange.watchTicker(symbol)).join();
+                response = detypeForComparison((exchange.watchTicker(symbol)).join());
             } catch(Exception e)
             {
                 if (!Helpers.isTrue(TestSharedMethods.isTemporaryFailure(e)))

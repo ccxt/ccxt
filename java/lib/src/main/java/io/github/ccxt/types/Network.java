@@ -13,9 +13,11 @@ public final class Network {
     public Boolean withdraw;
     public NetworkLimits limits;
     public Map<String, Object> info;
+    public final Object __raw;
 
     @SuppressWarnings("unchecked")
     public Network(Object raw) {
+        this.__raw = raw;
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.id = TypeHelper.safeString(data, "id");
         this.network = TypeHelper.safeString(data, "network");

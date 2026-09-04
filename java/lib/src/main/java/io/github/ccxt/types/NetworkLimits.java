@@ -5,9 +5,11 @@ import java.util.Map;
 public final class NetworkLimits {
     public MinMax withdraw;
     public MinMax deposit;
+    public final Object __raw;
 
     @SuppressWarnings("unchecked")
     public NetworkLimits(Object raw) {
+        this.__raw = raw;
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.withdraw = data.containsKey("withdraw") && data.get("withdraw") != null ? new MinMax(data.get("withdraw")) : null;
         this.deposit = data.containsKey("deposit") && data.get("deposit") != null ? new MinMax(data.get("deposit")) : null;

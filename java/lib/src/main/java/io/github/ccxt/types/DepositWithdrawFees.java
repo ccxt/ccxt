@@ -10,9 +10,11 @@ import java.util.NoSuchElementException;
 public final class DepositWithdrawFees {
     public Map<String, DepositWithdrawFee> fees;
     public Map<String, Object> info;
+    public final Object __raw;
 
     @SuppressWarnings("unchecked")
     public DepositWithdrawFees(Object raw) {
+        this.__raw = raw;
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.info = TypeHelper.getInfo(data);
         this.fees = new LinkedHashMap<>();

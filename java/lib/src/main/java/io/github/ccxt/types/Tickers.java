@@ -10,9 +10,11 @@ import java.util.NoSuchElementException;
 public final class Tickers {
     public Map<String, Ticker> tickers;
     public Map<String, Object> info;
+    public final Object __raw;
 
     @SuppressWarnings("unchecked")
     public Tickers(Object raw) {
+        this.__raw = raw;
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.info = TypeHelper.getInfo(data);
         this.tickers = new LinkedHashMap<>();

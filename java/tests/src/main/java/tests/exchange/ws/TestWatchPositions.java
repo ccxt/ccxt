@@ -25,7 +25,7 @@ public class TestWatchPositions extends BaseTest {
             Object success = true;
             try
             {
-                response = (exchange.watchPositions(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)))).join();
+                response = detypeForComparison((exchange.watchPositions(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)))).join());
                 if (Helpers.isTrue(Helpers.isEqual(response, null)))
                 {
                     throw new RuntimeException((String)Helpers.add(exchange.id, " watch returned undefined response")) ;
@@ -61,7 +61,7 @@ public class TestWatchPositions extends BaseTest {
             Object success2 = true;
             try
             {
-                positionsForSymbols = (exchange.watchPositions(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)))).join();
+                positionsForSymbols = detypeForComparison((exchange.watchPositions(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)))).join());
             } catch(Exception e)
             {
                 if (!Helpers.isTrue(TestSharedMethods.isTemporaryFailure(e)))

@@ -12,9 +12,11 @@ public final class TradingFeeInterface {
     public Boolean percentage;
     public Boolean tierBased;
     public Map<String, Object> info;
+    public final Object __raw;
 
     @SuppressWarnings("unchecked")
     public TradingFeeInterface(Object raw) {
+        this.__raw = raw;
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.symbol = TypeHelper.safeString(data, "symbol");
         this.maker = TypeHelper.safeFloat(data, "maker");

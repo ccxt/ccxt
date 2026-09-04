@@ -41,9 +41,11 @@ public final class PredictionMarket {
     public String resolutionSource;
     public String image;
     public Map<String, Object> info;
+    public final Object __raw;
 
     @SuppressWarnings("unchecked")
     public PredictionMarket(Object raw) {
+        this.__raw = raw;
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.id = TypeHelper.safeString(data, "id");
         this.market = TypeHelper.safeString(data, "market");

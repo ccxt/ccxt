@@ -19,6 +19,7 @@ import { isMainEntry } from "./transpile.js";
 import { filterDirtyExchangeFiles, skipUpToDateStage, testStageInputs } from "./transpile.js";
 import { unCamelCase } from "../js/src/base/functions.js";
 import { ZERO_REQUIRED_TYPED_WHITELIST } from "./generateJavaWrappers.js";
+import { TYPED_CORES as JAVA_TYPED_CORES } from "./javaTypedCores.js";
 
 ansi.nice
 
@@ -3279,6 +3280,66 @@ class NewTranspiler {
         await this.transpileAndSaveJavaExchangeTests(tests);
     }
 
+    // WS tests bind the unified methods STATICALLY (`(exchange.watchTicker(symbol)).join()`
+    // on an `Exchange`-typed variable), so unlike the REST tests they never go through
+    // Helpers.callDynamically -> BaseTest.detypeForComparison. Once a watch* core is typed
+    // (build/javaTypedCores.ts) the joined value is a Ticker/List<Trade>/... and the
+    // transpiled TS assertions (`exchange.isDictionary(response)`, string-key reads) see a
+    // unified type object instead of the map. Project on the TEST path only, via the
+    // exact `__raw` inverse, so the test asserts on the very map the exchange produced.
+    // Java analogue of C#'s detypeWsTypedCoreCalls (ccxt/ccxt#30110). Only names in the
+    // crypto TYPED_CORES table are touched: the WS tests run against regular venues only.
+    // A snapshot core that hands back a live ws structure on purpose (an order book) is
+    // not in that table and is left alone.
+    detypeWsTypedCoreCalls (content: string): string {
+        const typed = new Set<string> (Object.keys (JAVA_TYPED_CORES).filter (name => name.startsWith ('watch')));
+        const callRe = /\(exchange\.(\w+)\(/g;
+        let out = '';
+        let last = 0;
+        let match = callRe.exec (content);
+        while (match !== null) {
+            if (typed.has (match[1])) {
+                // `(exchange.watchX(` -- the `(` after `watchX` is the argument list
+                const open = match.index + match[0].length - 1;
+                const close = this.matchingParen (content, open);
+                // the transpiled shape is `(exchange.watchX(args)).join()`; wrap the joined value
+                if (close !== -1 && content.slice (close + 1, close + 9) === ').join()') {
+                    out += content.slice (last, match.index);
+                    out += 'detypeForComparison(' + content.slice (match.index, close + 9) + ')';
+                    last = close + 9;
+                    callRe.lastIndex = last;
+                }
+            }
+            match = callRe.exec (content);
+        }
+        return out + content.slice (last);
+    }
+
+    // index of the `)` closing the `(` at `open`, skipping string and char literals
+    matchingParen (content: string, open: number): number {
+        let depth = 0;
+        let i = open;
+        while (i < content.length) {
+            const ch = content[i];
+            if (ch === '"' || ch === '\'') {
+                const quote = ch;
+                i += 1;
+                while (i < content.length && content[i] !== quote) {
+                    i += (content[i] === '\\') ? 2 : 1;
+                }
+            } else if (ch === '(') {
+                depth += 1;
+            } else if (ch === ')') {
+                depth -= 1;
+                if (depth === 0) {
+                    return i;
+                }
+            }
+            i += 1;
+        }
+        return -1;
+    }
+
     async transpileWsExchangeTests(force = true) {
 
         const baseFolders = {
@@ -3450,6 +3511,15 @@ class NewTranspiler {
                     const argsArray = callArgs.trim() === '' ? 'new Object[]{}' : `new Object[]{${callArgs}}`;
                     return `((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "${name}", ${argsArray})).join()`;
                 });
+            } else {
+                // WS tests bind the unified methods STATICALLY on an `Exchange`-typed
+                // variable, so unlike the REST tests they never pass through
+                // Helpers.callDynamically -> detypeForComparison. A typed watch* core
+                // hands back a Ticker/List<Trade>/... and `exchange.isDictionary(response)`
+                // then sees a unified type object, not the map the TS test asserts on.
+                // Project on the TEST path only (Java analogue of C#'s
+                // detypeWsTypedCoreCalls in ccxt/ccxt#30110).
+                contentIndentend = this.detypeWsTypedCoreCalls(contentIndentend);
             }
             // const namespace = isWs ? 'using ccxt;\nusing ccxt.pro;' : 'using ccxt;';
 

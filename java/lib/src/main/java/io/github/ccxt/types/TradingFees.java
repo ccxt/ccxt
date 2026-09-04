@@ -10,9 +10,11 @@ import java.util.NoSuchElementException;
 public final class TradingFees {
     public Map<String, TradingFeeInterface> fees;
     public Map<String, Object> info;
+    public final Object __raw;
 
     @SuppressWarnings("unchecked")
     public TradingFees(Object raw) {
+        this.__raw = raw;
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.info = TypeHelper.getInfo(data);
         this.fees = new LinkedHashMap<>();

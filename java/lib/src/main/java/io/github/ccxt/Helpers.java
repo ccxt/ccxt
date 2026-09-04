@@ -68,6 +68,36 @@ public class Helpers {
     }
 
     /**
+     * Type-preserving variant of {@link #joinUnwrapped}.
+     *
+     * <p>{@link #joinUnwrapped} is declared over {@code CompletableFuture<Object>},
+     * which is fine while every transpiled core returns {@code Object}. Once a core
+     * is typed — {@code CompletableFuture<Order> fetchOrder(...)} — the sync facade
+     * needs to block on a {@code CompletableFuture<T>} and hand back a {@code T}
+     * without a cast at every one of the ~2000 wrapper call sites. Generics do that
+     * once, here.
+     *
+     * <p>Error behaviour is identical to {@link #joinUnwrapped}: the
+     * {@link CompletionException} is peeled and the underlying ccxt error rethrown
+     * so users catch {@code InsufficientFunds} rather than a wrapper.
+     */
+    public static <T> T joinTyped(CompletableFuture<T> future) {
+        try {
+            return future.join();
+        } catch (CompletionException ce) {
+            Throwable t = ce.getCause();
+            while (t != null
+                    && t.getClass() == RuntimeException.class
+                    && t.getCause() instanceof io.github.ccxt.errors.BaseError) {
+                t = t.getCause();
+            }
+            if (t instanceof RuntimeException re) throw re;
+            if (t instanceof Error err) throw err;
+            throw ce;
+        }
+    }
+
+    /**
      * Unwrap a {@link CompletionException} (and any transpile-bridge
      * {@link RuntimeException} wrappers) to expose the underlying ccxt error.
      *

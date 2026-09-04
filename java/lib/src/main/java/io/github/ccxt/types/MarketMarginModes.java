@@ -8,9 +8,11 @@ import java.util.Map;
 public final class MarketMarginModes {
     public Boolean cross;
     public Boolean isolated;
+    public final Object __raw;
 
     @SuppressWarnings("unchecked")
     public MarketMarginModes(Object raw) {
+        this.__raw = raw;
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.cross = TypeHelper.safeBool(data, "cross");
         this.isolated = TypeHelper.safeBool(data, "isolated");

@@ -11,9 +11,11 @@ public final class DepositWithdrawFee {
     public DepositWithdrawFeeNetwork deposit;
     public Map<String, DepositWithdrawFeeNetwork> networks;
     public Map<String, Object> info;
+    public final Object __raw;
 
     @SuppressWarnings("unchecked")
     public DepositWithdrawFee(Object raw) {
+        this.__raw = raw;
         Map<String, Object> data = TypeHelper.toMap(raw);
         Object withdrawRaw = TypeHelper.safeValue(data, "withdraw");
         this.withdraw = withdrawRaw != null ? new DepositWithdrawFeeNetwork(withdrawRaw) : null;

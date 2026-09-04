@@ -49,9 +49,11 @@ public final class MarketInterface {
     public Long created;
     public List<PredictionOutcome> outcomes;
     public Map<String, Object> info;
+    public final Object __raw;
 
     @SuppressWarnings("unchecked")
     public MarketInterface(Object raw) {
+        this.__raw = raw;
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.id = TypeHelper.safeString(data, "id");
         this.numericId = TypeHelper.safeFloat(data, "numericId");

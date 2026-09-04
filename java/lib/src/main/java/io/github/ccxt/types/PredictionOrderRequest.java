@@ -15,9 +15,11 @@ public final class PredictionOrderRequest {
     public Double amount;
     public Double price;
     public Map<String, Object> params;
+    public final Object __raw;
 
     @SuppressWarnings("unchecked")
     public PredictionOrderRequest(Object raw) {
+        this.__raw = raw;
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.outcome = TypeHelper.safeString(data, "outcome");
         this.type = TypeHelper.safeString(data, "type");

@@ -9,9 +9,11 @@ import java.util.NoSuchElementException;
 
 public final class OrderBooks {
     public Map<String, OrderBook> orderBooks;
+    public final Object __raw;
 
     @SuppressWarnings("unchecked")
     public OrderBooks(Object raw) {
+        this.__raw = raw;
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.orderBooks = new LinkedHashMap<>();
         for (Map.Entry<String, Object> entry : data.entrySet()) {

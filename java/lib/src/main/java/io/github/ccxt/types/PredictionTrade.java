@@ -28,9 +28,11 @@ public final class PredictionTrade {
     public String market;
     public Double realizedPnl;
     public Map<String, Object> info;
+    public final Object __raw;
 
     @SuppressWarnings("unchecked")
     public PredictionTrade(Object raw) {
+        this.__raw = raw;
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.amount = TypeHelper.safeFloat(data, "amount");
         this.price = TypeHelper.safeFloat(data, "price");

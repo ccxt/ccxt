@@ -24,8 +24,10 @@ public final class PredictionOutcome {
     public Double settleFraction; // 0..1 fractional settlement
     public Precision precision;   // outcome-level price/amount precision
     public Map<String, Object> info;
+    public final Object __raw;
 
     public PredictionOutcome(Object raw) {
+        this.__raw = raw;
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.outcome = TypeHelper.safeString(data, "outcome");
         this.outcomeId = TypeHelper.safeString(data, "outcomeId");

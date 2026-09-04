@@ -34,9 +34,11 @@ public final class PredictionTicker {
     public String eventId;
     public Double openInterest;
     public Map<String, Object> info;
+    public final Object __raw;
 
     @SuppressWarnings("unchecked")
     public PredictionTicker(Object raw) {
+        this.__raw = raw;
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.timestamp = TypeHelper.safeInteger(data, "timestamp");
         this.datetime = TypeHelper.safeString(data, "datetime");

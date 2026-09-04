@@ -8,9 +8,11 @@ import java.util.Map;
 public final class MinMax {
     public Double min;
     public Double max;
+    public final Object __raw;
 
     @SuppressWarnings("unchecked")
     public MinMax(Object raw) {
+        this.__raw = raw;
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.min = TypeHelper.safeFloat(data, "min");
         this.max = TypeHelper.safeFloat(data, "max");

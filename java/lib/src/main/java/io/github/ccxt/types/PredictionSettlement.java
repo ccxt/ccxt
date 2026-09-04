@@ -25,9 +25,11 @@ public final class PredictionSettlement {
     public Double payout;
     public Double pnl;
     public Map<String, Object> info;
+    public final Object __raw;
 
     @SuppressWarnings("unchecked")
     public PredictionSettlement(Object raw) {
+        this.__raw = raw;
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.id = TypeHelper.safeString(data, "id");
         this.timestamp = TypeHelper.safeInteger(data, "timestamp");

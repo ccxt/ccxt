@@ -25,7 +25,7 @@ public class TestWatchOrders extends BaseTest {
             Object success = true;
             try
             {
-                response = (exchange.watchOrders(symbol)).join();
+                response = detypeForComparison((exchange.watchOrders(symbol)).join());
                 if (Helpers.isTrue(Helpers.isEqual(response, null)))
                 {
                     throw new RuntimeException((String)Helpers.add(exchange.id, " watch returned undefined response")) ;

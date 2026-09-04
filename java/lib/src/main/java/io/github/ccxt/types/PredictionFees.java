@@ -10,8 +10,10 @@ import java.util.Map;
 public final class PredictionFees {
     public Double trading;    // per-trade taker/maker rate (fraction, e.g. 0.02 = 2%)
     public Double resolution; // fee taken from winnings at settlement (fraction)
+    public final Object __raw;
 
     public PredictionFees(Object raw) {
+        this.__raw = raw;
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.trading = TypeHelper.safeFloat(data, "trading");
         this.resolution = TypeHelper.safeFloat(data, "resolution");

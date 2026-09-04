@@ -10,8 +10,10 @@ public final class OHLCV {
     public Double low;
     public Double close;
     public Double volume;
+    public final Object __raw;
 
     public OHLCV(Object raw) {
+        this.__raw = raw;
         this.timestamp = TypeHelper.safeIntegerAt(raw, 0);
         this.open = TypeHelper.safeFloatAt(raw, 1);
         this.high = TypeHelper.safeFloatAt(raw, 2);

@@ -13,9 +13,11 @@ public final class FundingHistory {
     public String datetime;
     public Double amount;
     public Map<String, Object> info;
+    public final Object __raw;
 
     @SuppressWarnings("unchecked")
     public FundingHistory(Object raw) {
+        this.__raw = raw;
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.id = TypeHelper.safeString(data, "id");
         this.symbol = TypeHelper.safeString(data, "symbol");
