@@ -106,7 +106,14 @@ function tsReturnTypeToJava(methodName: string, tsReturnType: string): { javaTyp
 }
 
 // --- Allowed method filter ---
-const ALLOWED_PREFIXES = ['fetch', 'create', 'edit', 'cancel', 'close', 'setP', 'setM', 'setL', 'transfer', 'withdraw', 'watch', 'unWatch'];
+// 'addMargin' / 'reduceMargin' / 'borrow' / 'repay' cover the eight base margin
+// methods (addMargin, reduceMargin, borrow{Cross,Isolated,}Margin,
+// repay{Cross,Isolated,}Margin). They are annotated Promise<MarginModification> /
+// Promise<MarginLoan> in Exchange.ts and share setMargin's already-wrapped shape;
+// without these prefixes they were silently left as CompletableFuture<Object> on
+// the Core with no typed overload. The prefixes are deliberately narrow so the
+// sync helpers (addFetchCache, addKeyInArrayItems, reduceFeesByCurrency) stay out.
+const ALLOWED_PREFIXES = ['fetch', 'create', 'edit', 'cancel', 'close', 'setP', 'setM', 'setL', 'transfer', 'withdraw', 'watch', 'unWatch', 'addMargin', 'reduceMargin', 'borrow', 'repay'];
 const BLACKLIST = new Set([
     'fetch', 'fetchCurrenciesWs', 'fetchMarketsWs', 'setSandBoxMode', 'loadOrderBook',
     'loadMarketsHelper', 'createNetworksByIdObject', 'setMarketsFromExchange',
