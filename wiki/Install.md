@@ -210,7 +210,7 @@ tokio = { version = "1", features = ["full"] }
 
 `ccxt` carries the REST exchanges; `ccxt-pro` adds the WebSocket (`watch*`) ones and is only needed if you stream. Both are async and expect a Tokio runtime.
 
-```Rust
+```rust
 use ccxt::{Binance, Params};
 
 let mut exchange = Binance::new(None);
