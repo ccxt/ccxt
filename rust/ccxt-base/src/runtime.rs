@@ -718,10 +718,10 @@ pub use crate::precise::Precise;
 pub mod Math {
     use super::Value;
     use super::{as_f64, as_i64, both_ints};
-    // integer inputs must stay integers (same contract as add/sub/mul above):
+    // integer inputs to min/max/abs must stay integers (same contract as add/sub/mul above):
     // a Float result serializes as `10.0` in request JSON bodies, which servers
     // with strict integer fields reject (e.g. nado archive `limit: u32` -> HTTP 422),
-    // while every other language port keeps the value integral
+    // which matches how the other language ports treat these three helpers
     pub fn min(a: &Value, b: &Value) -> Value {
         if both_ints(a, b) { return Value::Int(as_i64(a).unwrap().min(as_i64(b).unwrap())); }
         match (as_f64(a), as_f64(b)) { (Some(x), Some(y)) => Value::Float(x.min(y)), _ => Value::Null }
@@ -731,7 +731,9 @@ pub mod Math {
         match (as_f64(a), as_f64(b)) { (Some(x), Some(y)) => Value::Float(x.max(y)), _ => Value::Null }
     }
     pub fn abs(a: &Value) -> Value {
-        if let Value::Int(n) = a { return Value::Int(n.abs()); }
+        // checked_abs so i64::MIN falls through to the float branch instead of
+        // panicking on overflow, keeping the module's lenient no-panic contract
+        if let Value::Int(n) = a { if let Some(v) = n.checked_abs() { return Value::Int(v); } }
         match as_f64(a) { Some(x) => Value::Float(x.abs()), None => Value::Null }
     }
     pub fn pow(a: &Value, b: &Value) -> Value {
@@ -1505,5 +1507,12 @@ mod math_tests {
         assert_eq!(Math::max(&Value::Int(1), &Value::Float(2.5)), Value::Float(2.5));
         assert_eq!(Math::abs(&Value::Float(-1.5)), Value::Float(1.5));
         assert_eq!(Math::min(&Value::Null, &Value::Int(1)), Value::Null);
+    }
+
+    #[test]
+    fn abs_does_not_panic_on_i64_min() {
+        // i64::MIN.abs() overflows; checked_abs must fall through to the float
+        // branch instead of panicking, keeping the module's no-panic contract
+        assert_eq!(Math::abs(&Value::Int(i64::MIN)), Value::Float((i64::MIN as f64).abs()));
     }
 }
