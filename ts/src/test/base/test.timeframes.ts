@@ -23,6 +23,16 @@ function testRoundTimeframe () {
     assert (exchange.roundTimeframe ('30m', testDate, ROUND_UP) === exchange.parse8601 ('2019-08-12 13:30:00'));
     assert (exchange.roundTimeframe ('1h', testDate, ROUND_UP) === exchange.parse8601 ('2019-08-12 14:00:00'));
     assert (exchange.roundTimeframe ('1d', testDate, ROUND_UP) === exchange.parse8601 ('2019-08-13 00:00:00'));
+    const calendarDate = exchange.parse8601 ('2026-09-02T00:00:00Z');
+    if (calendarDate === undefined) {
+        return;
+    }
+    assert (exchange.roundTimeframe ('1w', calendarDate, ROUND_DOWN) === exchange.parse8601 ('2026-08-31T00:00:00Z'));
+    assert (exchange.roundTimeframe ('1M', calendarDate, ROUND_DOWN) === exchange.parse8601 ('2026-09-01T00:00:00Z'));
+    assert (exchange.roundTimeframe ('1y', calendarDate, ROUND_DOWN) === exchange.parse8601 ('2026-01-01T00:00:00Z'));
+    assert (exchange.roundTimeframe ('1w', calendarDate, ROUND_UP) === exchange.parse8601 ('2026-09-07T00:00:00Z'));
+    assert (exchange.roundTimeframe ('1M', calendarDate, ROUND_UP) === exchange.parse8601 ('2026-10-01T00:00:00Z'));
+    assert (exchange.roundTimeframe ('1y', calendarDate, ROUND_UP) === exchange.parse8601 ('2027-01-01T00:00:00Z'));
 
     // todo:
     // $this->assertSame(null, Exchange::iso8601(null));

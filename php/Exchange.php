@@ -812,6 +812,26 @@ class BaseExchange {
     }
 
     public static function round_timeframe($timeframe, $timestamp, $direction = ROUND_DOWN) {
+        if (($timeframe === '1w') || ($timeframe === '1M') || ($timeframe === '1y')) {
+            $date = (new \DateTimeImmutable('@' . ($timestamp / 1000)))->setTimezone(new \DateTimeZone('UTC'));
+            if ($timeframe === '1w') {
+                $rounded = $date->modify('monday this week')->setTime(0, 0, 0);
+                if ($direction === ROUND_UP) {
+                    $rounded = $rounded->modify('+1 week');
+                }
+            } elseif ($timeframe === '1M') {
+                $rounded = $date->modify('first day of this month')->setTime(0, 0, 0);
+                if ($direction === ROUND_UP) {
+                    $rounded = $rounded->modify('first day of next month');
+                }
+            } else {
+                $rounded = $date->setDate((int) $date->format('Y'), 1, 1)->setTime(0, 0, 0);
+                if ($direction === ROUND_UP) {
+                    $rounded = $rounded->modify('+1 year');
+                }
+            }
+            return ((int) $rounded->format('U')) * 1000;
+        }
         $ms = static::parse_timeframe($timeframe) * 1000;
         // Get offset based on timeframe in milliseconds
         $offset = $timestamp % $ms;

@@ -115,6 +115,23 @@ func (this *BaseExchange) RoundTimeframe(timeframe any, timestamp any, direction
 	default:
 		return nil
 	}
+	frame := timeframe.(string)
+	if frame == "1w" || frame == "1M" || frame == "1y" {
+		date := time.UnixMilli(ts).UTC()
+		var rounded time.Time
+		if frame == "1w" {
+			daysSinceMonday := (int(date.Weekday()) + 6) % 7
+			rounded = time.Date(date.Year(), date.Month(), date.Day()-daysSinceMonday, 0, 0, 0, 0, time.UTC)
+			if roundDirection == ROUND_UP { rounded = rounded.AddDate(0, 0, 7) }
+		} else if frame == "1M" {
+			rounded = time.Date(date.Year(), date.Month(), 1, 0, 0, 0, 0, time.UTC)
+			if roundDirection == ROUND_UP { rounded = rounded.AddDate(0, 1, 0) }
+		} else {
+			rounded = time.Date(date.Year(), time.January, 1, 0, 0, 0, 0, time.UTC)
+			if roundDirection == ROUND_UP { rounded = rounded.AddDate(1, 0, 0) }
+		}
+		return rounded.UnixMilli()
+	}
 
 	// Calculate offset and round timestamp
 	offset := ts % ms

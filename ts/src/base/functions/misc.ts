@@ -36,6 +36,29 @@ const parseTimeframe = (timeframe: string | undefined): number => {
 };
 
 const roundTimeframe = (timeframe: string, timestamp: number, direction = ROUND_DOWN) => {
+    if ((timeframe === '1w') || (timeframe === '1M') || (timeframe === '1y')) {
+        const date = new Date (timestamp);
+        let rounded = timestamp;
+        if (timeframe === '1w') {
+            const day = date.getUTCDay ();
+            const daysSinceMonday = (day + 6) % 7;
+            rounded = Date.UTC (date.getUTCFullYear (), date.getUTCMonth (), date.getUTCDate () - daysSinceMonday);
+            if (direction === ROUND_UP) {
+                rounded += 7 * 24 * 60 * 60 * 1000;
+            }
+        } else if (timeframe === '1M') {
+            rounded = Date.UTC (date.getUTCFullYear (), date.getUTCMonth (), 1);
+            if (direction === ROUND_UP) {
+                rounded = Date.UTC (date.getUTCFullYear (), date.getUTCMonth () + 1, 1);
+            }
+        } else {
+            rounded = Date.UTC (date.getUTCFullYear (), 0, 1);
+            if (direction === ROUND_UP) {
+                rounded = Date.UTC (date.getUTCFullYear () + 1, 0, 1);
+            }
+        }
+        return rounded;
+    }
     const ms = parseTimeframe (timeframe) * 1000;
     // Get offset based on timeframe in milliseconds
     const offset = timestamp % ms;

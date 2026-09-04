@@ -4,6 +4,9 @@ import io.github.ccxt.Exchange;
 
 import java.util.List;
 import java.util.Map;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 
 public class Misc {
 
@@ -78,6 +81,23 @@ public class Misc {
             throw new IllegalArgumentException("timestamp must be numeric");
         }
         long ts = ((Number) timestamp).longValue();
+        String timeframeString = (String) timeframe;
+        if (timeframeString.equals("1w") || timeframeString.equals("1M") || timeframeString.equals("1y")) {
+            ZonedDateTime date = Instant.ofEpochMilli(ts).atZone(ZoneOffset.UTC);
+            ZonedDateTime rounded;
+            if (timeframeString.equals("1w")) {
+                int daysSinceMonday = (date.getDayOfWeek().getValue() + 6) % 7;
+                rounded = date.minusDays(daysSinceMonday).toLocalDate().atStartOfDay(ZoneOffset.UTC);
+                if (dir == ROUND_UP) rounded = rounded.plusDays(7);
+            } else if (timeframeString.equals("1M")) {
+                rounded = date.withDayOfMonth(1).toLocalDate().atStartOfDay(ZoneOffset.UTC);
+                if (dir == ROUND_UP) rounded = rounded.plusMonths(1);
+            } else {
+                rounded = date.withDayOfYear(1).toLocalDate().atStartOfDay(ZoneOffset.UTC);
+                if (dir == ROUND_UP) rounded = rounded.plusYears(1);
+            }
+            return rounded.toInstant().toEpochMilli();
+        }
 
         long offset = ts % ms;
 

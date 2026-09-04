@@ -7,6 +7,30 @@ public partial class BaseExchange
     public object roundTimeframe(object timeframe, object timestamp, object direction = null)
     {
         direction ??= ROUND_DOWN;
+        var timeframeString = (string)timeframe;
+        var timestampValue = (Int64)timestamp;
+        if ((timeframeString == "1w") || (timeframeString == "1M") || (timeframeString == "1y"))
+        {
+            var date = DateTimeOffset.FromUnixTimeMilliseconds(timestampValue).UtcDateTime;
+            DateTime rounded;
+            if (timeframeString == "1w")
+            {
+                var daysSinceMonday = ((int)date.DayOfWeek + 6) % 7;
+                rounded = date.Date.AddDays(-daysSinceMonday);
+                if ((int)direction == ROUND_UP) rounded = rounded.AddDays(7);
+            }
+            else if (timeframeString == "1M")
+            {
+                rounded = new DateTime(date.Year, date.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+                if ((int)direction == ROUND_UP) rounded = rounded.AddMonths(1);
+            }
+            else
+            {
+                rounded = new DateTime(date.Year, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+                if ((int)direction == ROUND_UP) rounded = rounded.AddYears(1);
+            }
+            return new DateTimeOffset(rounded).ToUnixTimeMilliseconds();
+        }
         var ms = parseTimeframe(timeframe) * 1000;
         var offset = (Int64)timestamp % ms;
         return (Int64)timestamp - offset + (((int)direction == ROUND_UP) ? ms : 0);

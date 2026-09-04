@@ -18,6 +18,7 @@
 use crate::exchange::Exchange;
 use crate::runtime::stringify_param;
 use crate::{ExchangeError, Result, Value};
+use chrono::{Datelike, TimeZone, Utc};
 use indexmap::IndexMap as HashMap;
 use std::sync::Arc;
 
@@ -2395,6 +2396,29 @@ impl Exchange {
         };
         if ms == 0 {
             return ts;
+        }
+        let timeframe = match &tf {
+            Value::Str(timeframe) => timeframe.as_str(),
+            _ => "",
+        };
+        if (timeframe == "1w") || (timeframe == "1M") || (timeframe == "1y") {
+            let date = match Utc.timestamp_millis_opt(t).single() {
+                Some(date) => date,
+                None => return ts,
+            };
+            let mut rounded = date.date_naive().and_hms_opt(0, 0, 0).unwrap().and_utc();
+            if timeframe == "1w" {
+                let days_since_monday = date.weekday().num_days_from_monday() as i64;
+                rounded = rounded - chrono::Duration::days(days_since_monday);
+                if matches!(&direction, Value::Int(d) if *d == crate::runtime::ROUND_UP) { rounded = rounded + chrono::Duration::days(7); }
+            } else if timeframe == "1M" {
+                rounded = Utc.with_ymd_and_hms(date.year(), date.month(), 1, 0, 0, 0).unwrap();
+                if matches!(&direction, Value::Int(d) if *d == crate::runtime::ROUND_UP) { rounded = rounded + chrono::Months::new(1); }
+            } else {
+                rounded = Utc.with_ymd_and_hms(date.year(), 1, 1, 0, 0, 0).unwrap();
+                if matches!(&direction, Value::Int(d) if *d == crate::runtime::ROUND_UP) { rounded = rounded + chrono::Months::new(12); }
+            }
+            return Value::Int(rounded.timestamp_millis());
         }
         let offset = t % ms;
         let is_up = matches!(&direction, Value::Int(d) if *d == crate::runtime::ROUND_UP);

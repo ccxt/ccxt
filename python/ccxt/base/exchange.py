@@ -1951,6 +1951,21 @@ class BaseExchange(object):
 
     @staticmethod
     def round_timeframe(timeframe, timestamp, direction=ROUND_DOWN):
+        if timeframe in ('1w', '1M', '1y'):
+            date = datetime.datetime.fromtimestamp(timestamp / 1000, datetime.timezone.utc)
+            if timeframe == '1w':
+                rounded = date - datetime.timedelta(days=date.weekday(), hours=date.hour, minutes=date.minute, seconds=date.second, microseconds=date.microsecond)
+                if direction == ROUND_UP:
+                    rounded += datetime.timedelta(days=7)
+            elif timeframe == '1M':
+                rounded = date.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+                if direction == ROUND_UP:
+                    rounded = (rounded + datetime.timedelta(days=32)).replace(day=1)
+            else:
+                rounded = date.replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
+                if direction == ROUND_UP:
+                    rounded = rounded.replace(year=rounded.year + 1)
+            return int(rounded.timestamp() * 1000)
         ms = Exchange.parse_timeframe(timeframe) * 1000
         # Get offset based on timeframe in milliseconds
         offset = timestamp % ms
