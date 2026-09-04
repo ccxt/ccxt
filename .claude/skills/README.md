@@ -1,6 +1,6 @@
 # CCXT Usage Skills
 
-This directory contains **seven language-specific skills** plus a **CLI skill** to help developers **use CCXT** in their own projects. These skills provide comprehensive guides for installing CCXT, connecting to exchanges, fetching market data, placing orders, handling authentication, managing errors, and using both REST and WebSocket APIs.
+This directory contains **seven language-specific skills** plus **CLI** and **MCP** skills to help developers **use CCXT** in their own projects. These skills provide comprehensive guides for installing CCXT, connecting to exchanges, fetching market data, placing orders, handling authentication, managing errors, and using both REST and WebSocket APIs.
 
 ## Available Skills
 
@@ -95,6 +95,18 @@ Command-line interface skill covering:
 
 **Invoke with:** `/ccxt-cli`
 
+### 9. ccxt-mcp
+MCP server skill covering:
+- Installing the official CCXT MCP server in Claude Desktop/Code, Cursor, VS Code and other MCP hosts
+- Configuring named accounts and API keys (kept local, never seen by the model)
+- Capability tiers and the trading safety rails
+- Sandbox/testnet trading
+- Driving the tools for market data, balances, orders and prediction markets
+
+This is documentation *about* the MCP server, not the server itself.
+
+**Invoke with:** `/ccxt-mcp`
+
 ## Common Features Across All Skills
 
 Each skill includes:
@@ -141,10 +153,11 @@ bash install-skills.sh --rust
 Copy individual skill directories to `~/.claude/skills/` or `~/.opencode/skills/`:
 
 ```bash
-cp -r .claude/skills/ccxt-typescript ~/.claude/skills/
-cp -r .claude/skills/ccxt-python ~/.claude/skills/
-cp -r .claude/skills/ccxt-rust ~/.claude/skills/
-# ... etc
+# Copy every ccxt-* skill into each assistant's skills directory
+for dir in ~/.claude/skills ~/.opencode/skills ~/skills ~/.gemini/skills; do
+    mkdir -p "$dir"
+    cp -r .claude/skills/ccxt-* "$dir/"
+done
 ```
 
 ## Usage
@@ -160,6 +173,7 @@ Once installed, you can invoke skills in Claude Code or OpenCode:
 /ccxt-java
 /ccxt-rust
 /ccxt-cli
+/ccxt-mcp
 ```
 
 Or simply ask questions:
