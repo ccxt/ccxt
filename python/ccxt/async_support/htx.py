@@ -3026,7 +3026,7 @@ class htx(Exchange, ImplicitAPI):
             'code': None,
         }
 
-    async def fetch_account_id_by_type(self, type: str, marginMode: Str = None, symbol: Str = None, params={}):
+    async def fetch_account_id_by_type(self, type: str, marginMode: Str = None, symbol: Str = None, params={}) -> Str:
         """
         fetch all the accounts by a type and marginModeassociated with a profile
 
@@ -3039,7 +3039,6 @@ class htx(Exchange, ImplicitAPI):
         :returns dict: a dictionary of `account structures <https://docs.ccxt.com/?id=account-structure>` indexed by the account type
         """
         accounts = await self.load_accounts()
-        # the id is a request field(string in the htx api), so a numeric override is stringified here
         accountId = self.safe_string_2(params, 'accountId', 'account-id')
         if accountId is not None:
             return accountId

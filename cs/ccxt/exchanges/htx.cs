@@ -4121,7 +4121,6 @@ public partial class htx : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object accounts = await this.loadAccounts();
-        // the id is a request field (string in the htx api), so a numeric override is stringified here
         object accountId = this.safeString2(parameters, "accountId", "account-id");
         if (isTrue(!isEqual(accountId, null)))
         {

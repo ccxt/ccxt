@@ -133,7 +133,6 @@ where = ["python"]
 
 [tool.setuptools.package-data]
 ccxt = [
-    "static_dependencies/mnemonic/wordlist/**/*",
     "static_dependencies/dydx_v4_client/**/*",
     "static_dependencies/lighter_client/*",
 ]

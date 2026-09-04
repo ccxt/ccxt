@@ -1960,7 +1960,7 @@ func (this *Kucoin) FetchBorrowRateHistories(options ...FetchBorrowRateHistories
  * @param {int} [params.until] the latest time in ms to fetch entries for
  * @returns {object[]} an array of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
  */
-func (this *Kucoin) FetchBorrowRateHistory(code string, options ...FetchBorrowRateHistoryOptions) (map[string]any, error) {
+func (this *Kucoin) FetchBorrowRateHistory(code string, options ...FetchBorrowRateHistoryOptions) ([]map[string]any, error) {
 
 	opts := FetchBorrowRateHistoryOptionsStruct{}
 
@@ -1975,9 +1975,9 @@ func (this *Kucoin) FetchBorrowRateHistory(code string, options ...FetchBorrowRa
 	var params *map[string]any = opts.Params
 	res := <-this.Core.FetchBorrowRateHistory(code, since, limit, params)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return nil, CreateReturnError(res)
 	}
-	return res.(map[string]any), nil
+	return NewMapArray(res), nil
 }
 
 /**

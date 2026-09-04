@@ -43,7 +43,7 @@ The structure of the library can be outlined as follows:
     +=============================================================+
 ```
 
-Full public and private HTTP REST APIs for all exchanges are implemented in JavaScript, Python, PHP, C#, Go and Java. WebSocket implementations are available in [CCXT Pro](https://ccxt.pro), with support for WebSocket streams.
+Full public and private HTTP REST APIs for all exchanges are implemented in JavaScript, Python, PHP, C#, Go, Java and Rust. WebSocket implementations are available in [CCXT Pro](https://ccxt.pro), with support for WebSocket streams.
 
 - [**Exchanges**](#exchanges)
 - [**Markets**](#markets)

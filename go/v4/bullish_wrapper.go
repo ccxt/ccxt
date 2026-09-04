@@ -870,7 +870,7 @@ func (this *Bullish) Transfer(code string, amount float64, fromAccount string, t
  * @param {string} params.tradingAccountId the trading account id
  * @returns {object[]} an array of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
  */
-func (this *Bullish) FetchBorrowRateHistory(code string, options ...FetchBorrowRateHistoryOptions) (map[string]any, error) {
+func (this *Bullish) FetchBorrowRateHistory(code string, options ...FetchBorrowRateHistoryOptions) ([]map[string]any, error) {
 
 	opts := FetchBorrowRateHistoryOptionsStruct{}
 
@@ -885,9 +885,9 @@ func (this *Bullish) FetchBorrowRateHistory(code string, options ...FetchBorrowR
 	var params *map[string]any = opts.Params
 	res := <-this.Core.FetchBorrowRateHistory(code, since, limit, params)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return nil, CreateReturnError(res)
 	}
-	return res.(map[string]any), nil
+	return NewMapArray(res), nil
 }
 
 /**

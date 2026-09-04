@@ -8905,7 +8905,7 @@ class kucoin(Exchange, ImplicitAPI):
         rows = self.safe_list(data, 'items', [])
         return self.parse_borrow_rate_histories(rows, codes, since, limit)
 
-    async def fetch_borrow_rate_history(self, code: str, since: Int = None, limit: Int = None, params={}):
+    async def fetch_borrow_rate_history(self, code: str, since: Int = None, limit: Int = None, params={}) -> list[dict]:
         """
         retrieves a history of a currencies borrow interest rate at specific time slots
 

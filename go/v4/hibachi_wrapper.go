@@ -820,7 +820,7 @@ func (this *Hibachi) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Tra
  * @param {int} [params.until] timestamp in ms of the latest settlement
  * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/#/?id=settlement-history-structure}
  */
-func (this *Hibachi) FetchMySettlementHistory(options ...FetchMySettlementHistoryOptions) (map[string]any, error) {
+func (this *Hibachi) FetchMySettlementHistory(options ...FetchMySettlementHistoryOptions) ([]map[string]any, error) {
 
 	opts := FetchMySettlementHistoryOptionsStruct{}
 
@@ -837,9 +837,9 @@ func (this *Hibachi) FetchMySettlementHistory(options ...FetchMySettlementHistor
 	var params *map[string]any = opts.Params
 	res := <-this.Core.FetchMySettlementHistory(symbol, since, limit, params)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return nil, CreateReturnError(res)
 	}
-	return res.(map[string]any), nil
+	return NewMapArray(res), nil
 }
 
 /**

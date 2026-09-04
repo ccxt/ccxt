@@ -1125,15 +1125,25 @@ class BaseExchange {
         if (!isset($timestamp)) {
             return null;
         }
-        if (!is_numeric($timestamp) || intval($timestamp) != $timestamp) {
+        if (is_float($timestamp)) {
+            // reject NaN / +-INF (and out-of-range magnitudes) before the lossy int cast
+            if (!is_finite($timestamp) || $timestamp < 0 || $timestamp > 8640000000000000) {
+                return null;
+            }
+            $timestamp = (int) floor($timestamp);
+        }
+        else if (is_string($timestamp)) {
+            // only plain-integer strings are accepted, e.g. '1755432123456' (not '123abc' or '')
+            if (!preg_match('/^[0-9]+$/', $timestamp)) {
+                return null;
+            }
+            $timestamp = (int) $timestamp;
+        }
+        if (!is_int($timestamp) || $timestamp < 0 || $timestamp > 8640000000000000) {
             return null;
         }
-        $timestamp = (int) $timestamp;
-        if ($timestamp < 0) {
-            return null;
-        }
-        $result = gmdate('c', (int) floor($timestamp / 1000));
-        $msec = (int) $timestamp % 1000;
+        $result = gmdate('c', intdiv($timestamp, 1000));
+        $msec = $timestamp % 1000;
         $result = str_replace('+00:00', sprintf('.%03dZ', $msec), $result);
         return $result;
     }

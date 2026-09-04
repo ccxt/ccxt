@@ -7034,7 +7034,7 @@ class okx(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_borrow_rate_histories(data, codes, since, limit)
 
-    def fetch_borrow_rate_history(self, code: str, since: Int = None, limit: Int = None, params={}):
+    def fetch_borrow_rate_history(self, code: str, since: Int = None, limit: Int = None, params={}) -> list[dict]:
         """
         retrieves a history of a currencies borrow interest rate at specific time slots
 

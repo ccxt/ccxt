@@ -4289,7 +4289,6 @@ func (this *HtxCore) fetchAccountIdByTypeBody(ch chan any, typeVar any, optional
 
 	accounts := (<-this.LoadAccounts())
 	PanicOnError(accounts)
-	// the id is a request field (string in the htx api), so a numeric override is stringified here
 	var accountId any = this.SafeString2(params, "accountId", "account-id")
 	if IsTrue(!IsEqual(accountId, nil)) {
 

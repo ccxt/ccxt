@@ -1479,7 +1479,7 @@ func (this *Gate) FetchSettlementHistory(options ...FetchSettlementHistoryOption
  * @param {object} [params] exchange specific params
  * @returns {object[]} a list of [settlement history objects]
  */
-func (this *Gate) FetchMySettlementHistory(options ...FetchMySettlementHistoryOptions) (map[string]any, error) {
+func (this *Gate) FetchMySettlementHistory(options ...FetchMySettlementHistoryOptions) ([]map[string]any, error) {
 
 	opts := FetchMySettlementHistoryOptionsStruct{}
 
@@ -1496,9 +1496,9 @@ func (this *Gate) FetchMySettlementHistory(options ...FetchMySettlementHistoryOp
 	var params *map[string]any = opts.Params
 	res := <-this.Core.FetchMySettlementHistory(symbol, since, limit, params)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return nil, CreateReturnError(res)
 	}
-	return res.(map[string]any), nil
+	return NewMapArray(res), nil
 }
 
 /**

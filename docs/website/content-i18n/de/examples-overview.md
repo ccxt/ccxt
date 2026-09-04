@@ -59,6 +59,24 @@ php -f path/to/example.php # substitute for actual filename here
 python path/to/example.py # substitute for actual filename here
 ```
 
+---
+
+### Rust
+
+[Rust-Beispiele](/docs/examples/rust/)
+
+Die Rust-Beispiele sind Cargo-Binaries, die in `examples/rust/Cargo.toml` deklariert sind — starten Sie eines über seinen `[[bin]]`-Namen:
+
+```shell
+cargo run --manifest-path examples/rust/Cargo.toml --bin binance_basics
+```
+
+Die WebSocket-Beispiele (`watch*`) nutzen die Crate `ccxt-pro`, die hinter dem Feature `ws` liegt:
+
+```shell
+cargo run --manifest-path examples/rust/Cargo.toml --features ws --bin watch_trades
+```
+
 -------------------------------------------------------------------------------
 
 ## CCXT Zitationen In Papers Und Thesen

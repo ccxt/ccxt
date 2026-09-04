@@ -3076,7 +3076,7 @@ class kraken(Exchange, ImplicitAPI):
         }
         return self.fetch_deposit_address(code, self.extend(request, params))
 
-    def fetch_deposit_methods(self, code: str, params={}):
+    def fetch_deposit_methods(self, code: str, params={}) -> list[dict]:
         """
         fetch deposit methods for a currency associated with self account
 
