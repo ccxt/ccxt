@@ -7621,7 +7621,7 @@ export default class bybit extends Exchange {
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @returns {object[]} an array of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
      */
-    async fetchBorrowRateHistory (code: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchBorrowRateHistory (code: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Dict[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -8312,7 +8312,7 @@ export default class bybit extends Exchange {
      * @param {string} [params.subType] market subType, ['linear', 'inverse']
      * @returns {object[]} a list of [settlement history objects]
      */
-    async fetchMySettlementHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMySettlementHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Dict[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
