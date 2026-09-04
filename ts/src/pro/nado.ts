@@ -803,9 +803,6 @@ export default class nado extends nadoRest {
         if ('trigger' in placeOrder) {
             throw new NotSupported (this.id + ' createOrderWs() does not support trigger orders, use createOrder() instead');
         }
-        if (requestIdString === undefined) {
-            throw new ArgumentsRequired (this.id + ' requires params.id');
-        }
         const response = await this.watchExecuteRequest (requestIdString, request);
         //
         //     {
@@ -856,9 +853,6 @@ export default class nado extends nadoRest {
             throw new ArgumentsRequired (this.id + ' ws execute requires params.id');
         }
         const request = await this.editOrderRequest (id, symbol, type, side, amount, price, params);
-        if (requestIdString === undefined) {
-            throw new ArgumentsRequired (this.id + ' requires params.id');
-        }
         const response = await this.watchExecuteRequest (requestIdString, request);
         //
         //     {
@@ -926,9 +920,6 @@ export default class nado extends nadoRest {
             throw new ArgumentsRequired (this.id + ' ws execute requires params.id');
         }
         const request = await this.cancelOrdersRequest (ids, symbol, params);
-        if (requestIdString === undefined) {
-            throw new ArgumentsRequired (this.id + ' requires params.id');
-        }
         const response = await this.watchExecuteRequest (requestIdString, request);
         //
         //     {
@@ -979,9 +970,6 @@ export default class nado extends nadoRest {
             throw new ArgumentsRequired (this.id + ' ws execute requires params.id');
         }
         const request = await this.cancelAllOrdersRequest (symbol, params);
-        if (requestIdString === undefined) {
-            throw new ArgumentsRequired (this.id + ' requires params.id');
-        }
         const response = await this.watchExecuteRequest (requestIdString, request);
         const data = this.safeDict (response, 'data', {});
         const cancelledOrders = this.safeList (data, 'cancelled_orders', []);

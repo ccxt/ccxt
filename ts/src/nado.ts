@@ -181,6 +181,7 @@ export default class nado extends Exchange {
                     '1002': RestrictedLocation,
                     '1003': RestrictedLocation,
                     '1004': OnMaintenance,
+                    '1005': BadRequest,
                     '2000': InvalidOrder,
                     '2001': InvalidOrder,
                     '2002': InvalidOrder,
@@ -304,6 +305,7 @@ export default class nado extends Exchange {
                     '2123': BadRequest,
                     '2124': InvalidOrder,
                     '2125': OperationRejected,
+                    '2126': OrderNotFound,
                     '3000': BadRequest,
                     '3001': BadRequest,
                     '3002': ArgumentsRequired,
@@ -344,7 +346,7 @@ export default class nado extends Exchange {
      * @param {float} [params.triggerPrice] *swap only* The price at which a trigger order is triggered at
      * @param {float} [params.stopLossPrice] *swap only* The price at which a stop loss order is triggered at
      * @param {float} [params.takeProfitPrice] *swap only* The price at which a take profit order is triggered at
-     * @param {string} [params.triggerDirection] trigger direction, above, below
+     * @param {string} [params.triggerDirection] the direction of the trigger price, 'ascending' or 'descending', also accepts the 'above'/'up' and 'below'/'down' aliases
      * @param {int} [params.id] client-provided request id, returned by the exchange in the response
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
@@ -439,13 +441,12 @@ export default class nado extends Exchange {
         const isStopOrder = triggerPrice !== undefined;
         const isTriggerOrder = isStopOrder || isStopLossOrder || isTakeProfitOrder;
         if (isStopOrder) {
-            const triggerDirection = this.safeStringLower (params, 'triggerDirection');
-            if (triggerDirection === undefined) {
-                throw new ArgumentsRequired (this.id + ' createOrder() requires triggerDirection for trigger order');
-            }
+            let triggerDirection: Str = undefined;
+            [ triggerDirection, params ] = this.handleTriggerDirectionAndParams (params);
+            const directionSuffix = (triggerDirection === 'ascending') ? 'above' : 'below';
             const triggerPriceX18 = this.convertToX18 (triggerPrice);
             const priceRequirement: Dict = {};
-            priceRequirement['oracle_price_' + triggerDirection] = triggerPriceX18;
+            priceRequirement['oracle_price_' + directionSuffix] = triggerPriceX18;
             const trigger = {
                 'price_trigger': {
                     'price_requirement': priceRequirement,
@@ -549,6 +550,10 @@ export default class nado extends Exchange {
         const market = this.market (symbol);
         if (type !== 'limit') {
             throw new InvalidOrder (this.id + ' editOrder() supports limit orders only');
+        }
+        const triggerPrice = this.safeStringN (params, [ 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice' ]);
+        if (triggerPrice !== undefined) {
+            throw new NotSupported (this.id + ' editOrder() does not support trigger orders, cancel the trigger order and create a new one instead');
         }
         if (amount === undefined) {
             throw new ArgumentsRequired (this.id + ' editOrder() requires an amount argument');
@@ -944,7 +949,7 @@ export default class nado extends Exchange {
      * @see https://docs.nado.xyz/developer-resources/api/trigger/queries/list-trigger-orders
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
-     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {int} [limit] the maximum number of order structures to retrieve, max 500
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
@@ -977,7 +982,7 @@ export default class nado extends Exchange {
             'product_ids': productIds,
         };
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = Math.min (limit, 500);
         }
         const contracts = await this.queryContracts ();
         const chainId = this.safeString (contracts, 'chain_id');
@@ -1043,7 +1048,7 @@ export default class nado extends Exchange {
         const sender = this.createSubaccount (this.walletAddress, subaccount);
         const trigger = this.safeBool2 (params, 'stop', 'trigger');
         if (trigger === true) {
-            return await this.fetchOrders (symbol, since, undefined, this.extend (params, {
+            return await this.fetchOrders (symbol, since, limit, this.extend (params, {
                 'status_types': [
                     'waiting_price', 'waiting_dependency',
                 ],
@@ -1120,7 +1125,7 @@ export default class nado extends Exchange {
         const sender = this.createSubaccount (this.walletAddress, subaccount);
         const trigger = this.safeBool2 (params, 'stop', 'trigger');
         if (trigger === true) {
-            return await this.fetchOrders (symbol, since, undefined, this.extend (params, {
+            return await this.fetchOrders (symbol, since, limit, this.extend (params, {
                 'status_types': [
                     'triggered', 'triggering', 'twap_executing', 'twap_completed',
                 ],
@@ -1175,17 +1180,17 @@ export default class nado extends Exchange {
     /**
      * @method
      * @name nado#fetchCanceledOrders
-     * @description fetches information on multiple canceled orders made by the user
+     * @description fetches information on multiple canceled trigger orders made by the user, the exchange keeps canceled-order history for trigger orders only
      * @see https://docs.nado.xyz/developer-resources/api/trigger/queries/list-trigger-orders
      * @param {string} symbol unified market symbol of the market the orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
-     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {int} [limit] the maximum number of order structures to retrieve, max 500
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        return await this.fetchOrders (symbol, since, undefined, this.extend (params, {
+        return await this.fetchOrders (symbol, since, limit, this.extend (params, {
+            'trigger': true,
             'status_types': [
                 'cancelled', 'internal_error',
             ],
@@ -1195,17 +1200,17 @@ export default class nado extends Exchange {
     /**
      * @method
      * @name nado#fetchCanceledAndClosedOrders
-     * @description fetches information on multiple canceled orders made by the user
+     * @description fetches information on multiple canceled and closed trigger orders made by the user, the exchange keeps canceled-order history for trigger orders only
      * @see https://docs.nado.xyz/developer-resources/api/trigger/queries/list-trigger-orders
      * @param {string} symbol unified market symbol of the market the orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
-     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {int} [limit] the maximum number of order structures to retrieve, max 500
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async fetchCanceledAndClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        return await this.fetchOrders (symbol, since, undefined, this.extend (params, {
+        return await this.fetchOrders (symbol, since, limit, this.extend (params, {
+            'trigger': true,
             'status_types': [
                 'cancelled', 'internal_error', 'triggered', 'triggering', 'twap_executing', 'twap_completed',
             ],
@@ -1816,12 +1821,13 @@ export default class nado extends Exchange {
     override async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const tickers = await this.fetchTickers ([ symbol ], params);
-        const ticker = this.safeDict (tickers, symbol);
+        const ticker = this.safeDict (tickers, symbol) as Ticker;
         if (ticker === undefined) {
             throw new BadSymbol (this.id + ' fetchTicker() ticker not found for ' + symbol);
         }
-        return this.safeTicker (ticker, market);
+        return ticker;
     }
 
     /**
@@ -2154,7 +2160,7 @@ export default class nado extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
-     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch, max 500
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
@@ -2171,7 +2177,7 @@ export default class nado extends Exchange {
             },
         };
         if (limit !== undefined) {
-            request['candlesticks']['limit'] = limit;
+            request['candlesticks']['limit'] = Math.min (limit, 500);
         }
         if (until !== undefined) {
             request['candlesticks']['max_time'] = this.parseToInt (until / 1000);
@@ -2913,7 +2919,12 @@ export default class nado extends Exchange {
 
     createOrderNonce (recvWindow: any) {
         const expires = this.sum (this.milliseconds (), recvWindow);
-        return Precise.stringMul (this.numberToString (expires), '1048576');
+        const highBits = Precise.stringMul (this.numberToString (expires), '1048576');
+        // the exchange defines the nonce to be the recv time moved left by 20 bits
+        // plus 20 random low bits, otherwise two orders created during the same
+        // millisecond would collide on the same nonce and get rejected
+        const entropy = this.randNumber (6);
+        return Precise.stringAdd (highBits, this.numberToString (entropy));
     }
 
     createOrderAppendix (isTriggerOrder: any, params = {}) {
