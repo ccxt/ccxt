@@ -522,9 +522,9 @@ func (this *Myriad) CancelOrder(id string, options ...CancelOrderOptions) (ccxt.
  * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da8281e7a14cd34e6a716761
  * @param {string} [outcome] unified outcome; when omitted cancels across all markets
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} the raw response with the count of cancelled orders
+ * @returns {object[]} a list with one [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure) whose `info` carries the cancelled count
  */
-func (this *Myriad) CancelAllOrders(options ...CancelAllOrdersOptions) (map[string]any, error) {
+func (this *Myriad) CancelAllOrders(options ...CancelAllOrdersOptions) ([]ccxt.PredictionOrder, error) {
 
 	opts := CancelAllOrdersOptionsStruct{}
 
@@ -537,9 +537,9 @@ func (this *Myriad) CancelAllOrders(options ...CancelAllOrdersOptions) (map[stri
 	var params *map[string]any = opts.Params
 	res := <-this.Core.CancelAllOrders(outcome, params)
 	if ccxt.IsError(res) {
-		return map[string]any{}, ccxt.CreateReturnError(res)
+		return nil, ccxt.CreateReturnError(res)
 	}
-	return res.(map[string]any), nil
+	return ccxt.NewPredictionOrderArray(res), nil
 }
 
 /**
