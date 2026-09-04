@@ -1819,7 +1819,7 @@ export default class gate extends Exchange {
         return result;
     }
 
-    async fetchOptionUnderlyings () {
+    async fetchOptionUnderlyings (): Promise<Str[]> {
         const underlyingsResponse = await this.publicOptionsGetUnderlyings ();
         //
         //    [

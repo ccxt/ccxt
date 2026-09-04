@@ -1565,7 +1565,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    async fetchMarketsByTypeAndSubType (type: Str, subType: Str, params = {}) {
+    async fetchMarketsByTypeAndSubType (type: Str, subType: Str, params = {}): Promise<Market[]> {
         const isSpot = (type === 'spot');
         const request: Dict = {};
         let response = undefined;
@@ -2636,7 +2636,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async fetchSpotOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchSpotOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3869,7 +3869,7 @@ export default class htx extends Exchange {
         return account;
     }
 
-    async fetchSpotOrdersByStates (states: any, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchSpotOrdersByStates (states: any, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         const method = this.safeString (this.options, 'fetchOrdersByStatesMethod', 'spot_private_get_v1_order_orders'); // spot_private_get_v1_order_history
         if (method === 'spot_private_get_v1_order_orders') {
             if (symbol === undefined) {
@@ -3953,7 +3953,7 @@ export default class htx extends Exchange {
         return await this.fetchSpotOrdersByStates ('filled', symbol, since, limit, params);
     }
 
-    async fetchContractOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchContractOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchContractOrders() requires a symbol argument');
         }
@@ -6432,7 +6432,7 @@ export default class htx extends Exchange {
         return this.safeValue (indexedAddresses, selectedNetworkCode);
     }
 
-    async fetchWithdrawAddresses (code: string, note: Str = undefined, networkCode: Str = undefined, params = {}) {
+    async fetchWithdrawAddresses (code: string, note: Str = undefined, networkCode: Str = undefined, params = {}): Promise<DepositAddress[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
