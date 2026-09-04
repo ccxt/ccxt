@@ -118,7 +118,7 @@ export default class krakenfutures extends Exchange {
                         'instruments': { 'cost': 1 } as Endpoint<Dict>,
                         'orderbook': { 'cost': 1 } as Endpoint<Dict>,
                         'tickers': { 'cost': 1 } as Endpoint<Dict>,
-                        'tickers/{symbol}': { 'cost': 1 } as Endpoint<Dict>,   
+                        'tickers/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
                         'history': { 'cost': 1 } as Endpoint<Dict>,
                         'historicalfundingrates': { 'cost': 1 } as Endpoint<Dict>,
                     },
@@ -224,7 +224,7 @@ export default class krakenfutures extends Exchange {
                     'notFound': BadRequest,
                     'Server Error': ExchangeError,
                     'unknownError': ExchangeError,
-                    'contractNotFound': BadSymbol,   
+                    'contractNotFound': BadSymbol,
                 },
                 'broad': {
                     'invalidArgument': BadRequest,
