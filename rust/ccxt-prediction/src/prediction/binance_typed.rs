@@ -257,6 +257,12 @@ impl Binance {
         Ok(vec_from_value(&v, Market::from_value))
     }
 
+    /// Typed wrapper around `fetchAccounts`.
+    pub async fn fetch_accounts(&mut self, params: impl Into<Params>) -> crate::Result<Vec<Account>> {
+        let v = crate::runtime::call_typed(self.core_mut().fetch_accounts(&[params.into().into_value()])).await?;
+        Ok(vec_from_value(&v, Account::from_value))
+    }
+
     /// Typed wrapper around `fetchDepositAddresses`.
     pub async fn fetch_deposit_addresses(&mut self, codes: Option<Vec<String>>, params: impl Into<Params>) -> crate::Result<Vec<DepositAddress>> {
         let v = crate::runtime::call_typed(self.core_mut().fetch_deposit_addresses(&[match codes { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(Value::Str).collect())), None => Value::Null }, params.into().into_value()])).await?;
@@ -279,6 +285,18 @@ impl Binance {
     pub async fn fetch_time(&mut self, params: impl Into<Params>) -> crate::Result<Option<i64>> {
         let v = crate::runtime::call_typed(self.core_mut().fetch_time(&[params.into().into_value()])).await?;
         Ok(match v { Value::Int(n) => Some(n), _ => None })
+    }
+
+    /// Typed wrapper around `fetchCrossBorrowRates`.
+    pub async fn fetch_cross_borrow_rates(&mut self, params: impl Into<Params>) -> crate::Result<CrossBorrowRates> {
+        let v = crate::runtime::call_typed(self.core_mut().fetch_cross_borrow_rates(&[params.into().into_value()])).await?;
+        Ok(dict_from_value(&v, BorrowRate::from_value))
+    }
+
+    /// Typed wrapper around `fetchIsolatedBorrowRates`.
+    pub async fn fetch_isolated_borrow_rates(&mut self, params: impl Into<Params>) -> crate::Result<IsolatedBorrowRates> {
+        let v = crate::runtime::call_typed(self.core_mut().fetch_isolated_borrow_rates(&[params.into().into_value()])).await?;
+        Ok(dict_from_value(&v, IsolatedBorrowRate::from_value))
     }
 
     /// Typed wrapper around `fetchFundingRates`.
@@ -327,6 +345,18 @@ impl Binance {
     pub async fn set_margin(&mut self, symbol: &str, amount: f64, params: impl Into<Params>) -> crate::Result<MarginModification> {
         let v = crate::runtime::call_typed(self.core_mut().set_margin(Value::Str(symbol.to_string()), Value::Float(amount), &[params.into().into_value()])).await?;
         Ok(MarginModification::from_value(v))
+    }
+
+    /// Typed wrapper around `fetchLongShortRatio`.
+    pub async fn fetch_long_short_ratio(&mut self, symbol: &str, timeframe: Option<&str>, params: impl Into<Params>) -> crate::Result<LongShortRatio> {
+        let v = crate::runtime::call_typed(self.core_mut().fetch_long_short_ratio(Value::Str(symbol.to_string()), &[timeframe.map(|s| Value::Str(s.to_string())).unwrap_or(Value::Null), params.into().into_value()])).await?;
+        Ok(LongShortRatio::from_value(v))
+    }
+
+    /// Typed wrapper around `fetchLongShortRatioHistory`.
+    pub async fn fetch_long_short_ratio_history(&mut self, symbol: Option<&str>, timeframe: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<Params>) -> crate::Result<Vec<LongShortRatio>> {
+        let v = crate::runtime::call_typed(self.core_mut().fetch_long_short_ratio_history(&[symbol.map(|s| Value::Str(s.to_string())).unwrap_or(Value::Null), timeframe.map(|s| Value::Str(s.to_string())).unwrap_or(Value::Null), since.map(Value::Int).unwrap_or(Value::Null), limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()])).await?;
+        Ok(vec_from_value(&v, LongShortRatio::from_value))
     }
 
     /// Typed wrapper around `fetchMarginAdjustmentHistory`.
@@ -432,9 +462,9 @@ impl Binance {
     }
 
     /// Typed wrapper around `fetchIsolatedBorrowRate`.
-    pub async fn fetch_isolated_borrow_rate(&mut self, symbol: &str, params: impl Into<Params>) -> crate::Result<BorrowRate> {
+    pub async fn fetch_isolated_borrow_rate(&mut self, symbol: &str, params: impl Into<Params>) -> crate::Result<IsolatedBorrowRate> {
         let v = crate::runtime::call_typed(self.core_mut().fetch_isolated_borrow_rate(Value::Str(symbol.to_string()), &[params.into().into_value()])).await?;
-        Ok(BorrowRate::from_value(v))
+        Ok(IsolatedBorrowRate::from_value(v))
     }
 
     /// Typed wrapper around `fetchSpotTickers`.
@@ -459,6 +489,48 @@ impl Binance {
     pub async fn create_twap_order(&mut self, symbol: &str, side: &str, amount: f64, duration: f64, params: impl Into<Params>) -> crate::Result<Order> {
         let v = crate::runtime::call_typed(self.core_mut().create_twap_order(Value::Str(symbol.to_string()), Value::Str(side.to_string()), Value::Float(amount), Value::Float(duration), &[params.into().into_value()])).await?;
         Ok(Order::from_value(v))
+    }
+
+    /// Typed wrapper around `createConvertTrade`.
+    pub async fn create_convert_trade(&mut self, id: &str, from_code: &str, to_code: &str, amount: Option<f64>, params: impl Into<Params>) -> crate::Result<Conversion> {
+        let v = crate::runtime::call_typed(self.core_mut().create_convert_trade(Value::Str(id.to_string()), Value::Str(from_code.to_string()), Value::Str(to_code.to_string()), &[amount.map(Value::Float).unwrap_or(Value::Null), params.into().into_value()])).await?;
+        Ok(Conversion::from_value(v))
+    }
+
+    /// Typed wrapper around `fetchConvertTrade`.
+    pub async fn fetch_convert_trade(&mut self, id: &str, code: Option<&str>, params: impl Into<Params>) -> crate::Result<Conversion> {
+        let v = crate::runtime::call_typed(self.core_mut().fetch_convert_trade(Value::Str(id.to_string()), &[code.map(|s| Value::Str(s.to_string())).unwrap_or(Value::Null), params.into().into_value()])).await?;
+        Ok(Conversion::from_value(v))
+    }
+
+    /// Typed wrapper around `fetchConvertTradeHistory`.
+    pub async fn fetch_convert_trade_history(&mut self, code: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<Params>) -> crate::Result<Vec<Conversion>> {
+        let v = crate::runtime::call_typed(self.core_mut().fetch_convert_trade_history(&[code.map(|s| Value::Str(s.to_string())).unwrap_or(Value::Null), since.map(Value::Int).unwrap_or(Value::Null), limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()])).await?;
+        Ok(vec_from_value(&v, Conversion::from_value))
+    }
+
+    /// Typed wrapper around `fetchPositionMode`.
+    pub async fn fetch_position_mode(&mut self, symbol: Option<&str>, params: impl Into<Params>) -> crate::Result<PositionModeInfo> {
+        let v = crate::runtime::call_typed(self.core_mut().fetch_position_mode(&[symbol.map(|s| Value::Str(s.to_string())).unwrap_or(Value::Null), params.into().into_value()])).await?;
+        Ok(PositionModeInfo::from_value(v))
+    }
+
+    /// Typed wrapper around `fetchADLRank`.
+    pub async fn fetch_adl_rank(&mut self, symbol: &str, params: impl Into<Params>) -> crate::Result<ADL> {
+        let v = crate::runtime::call_typed(self.core_mut().fetch_adl_rank(Value::Str(symbol.to_string()), &[params.into().into_value()])).await?;
+        Ok(ADL::from_value(v))
+    }
+
+    /// Typed wrapper around `fetchPositionsADLRank`.
+    pub async fn fetch_positions_adl_rank(&mut self, symbols: Option<Vec<String>>, params: impl Into<Params>) -> crate::Result<Vec<ADL>> {
+        let v = crate::runtime::call_typed(self.core_mut().fetch_positions_adl_rank(&[match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(Value::Str).collect())), None => Value::Null }, params.into().into_value()])).await?;
+        Ok(vec_from_value(&v, ADL::from_value))
+    }
+
+    /// Typed wrapper around `fetchPositionADLRank`.
+    pub async fn fetch_position_adl_rank(&mut self, symbol: &str, params: impl Into<Params>) -> crate::Result<ADL> {
+        let v = crate::runtime::call_typed(self.core_mut().fetch_position_adl_rank(Value::Str(symbol.to_string()), &[params.into().into_value()])).await?;
+        Ok(ADL::from_value(v))
     }
 
     /// Typed wrapper around `createSpotOrders`.
@@ -527,6 +599,24 @@ impl Binance {
         Ok(vec_from_value(&v, Greeks::from_value))
     }
 
+    /// Typed wrapper around `fetchOptionChain`.
+    pub async fn fetch_option_chain(&mut self, code: &str, params: impl Into<Params>) -> crate::Result<OptionChain> {
+        let v = crate::runtime::call_typed(self.core_mut().fetch_option_chain(Value::Str(code.to_string()), &[params.into().into_value()])).await?;
+        Ok(dict_from_value(&v, OptionContract::from_value))
+    }
+
+    /// Typed wrapper around `fetchOption`.
+    pub async fn fetch_option(&mut self, symbol: &str, params: impl Into<Params>) -> crate::Result<OptionContract> {
+        let v = crate::runtime::call_typed(self.core_mut().fetch_option(Value::Str(symbol.to_string()), &[params.into().into_value()])).await?;
+        Ok(OptionContract::from_value(v))
+    }
+
+    /// Typed wrapper around `fetchConvertQuote`.
+    pub async fn fetch_convert_quote(&mut self, from_code: &str, to_code: &str, amount: Option<f64>, params: impl Into<Params>) -> crate::Result<Conversion> {
+        let v = crate::runtime::call_typed(self.core_mut().fetch_convert_quote(Value::Str(from_code.to_string()), Value::Str(to_code.to_string()), &[amount.map(Value::Float).unwrap_or(Value::Null), params.into().into_value()])).await?;
+        Ok(Conversion::from_value(v))
+    }
+
     /// Typed wrapper around `fetchDepositsWithdrawals`.
     pub async fn fetch_deposits_withdrawals(&mut self, code: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<Params>) -> crate::Result<Vec<Transaction>> {
         let v = crate::runtime::call_typed(self.core_mut().fetch_deposits_withdrawals(&[code.map(|s| Value::Str(s.to_string())).unwrap_or(Value::Null), since.map(Value::Int).unwrap_or(Value::Null), limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()])).await?;
@@ -545,6 +635,18 @@ impl Binance {
         Ok(vec_from_value(&v, Transaction::from_value))
     }
 
+    /// Typed wrapper around `fetchFundingRateHistory`.
+    pub async fn fetch_funding_rate_history(&mut self, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<Params>) -> crate::Result<Vec<FundingRateHistory>> {
+        let v = crate::runtime::call_typed(self.core_mut().fetch_funding_rate_history(&[symbol.map(|s| Value::Str(s.to_string())).unwrap_or(Value::Null), since.map(Value::Int).unwrap_or(Value::Null), limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()])).await?;
+        Ok(vec_from_value(&v, FundingRateHistory::from_value))
+    }
+
+    /// Typed wrapper around `fetchFundingHistory`.
+    pub async fn fetch_funding_history(&mut self, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<Params>) -> crate::Result<Vec<FundingHistory>> {
+        let v = crate::runtime::call_typed(self.core_mut().fetch_funding_history(&[symbol.map(|s| Value::Str(s.to_string())).unwrap_or(Value::Null), since.map(Value::Int).unwrap_or(Value::Null), limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()])).await?;
+        Ok(vec_from_value(&v, FundingHistory::from_value))
+    }
+
     /// Typed wrapper around `fetchDepositAddress`.
     pub async fn fetch_deposit_address(&mut self, code: &str, params: impl Into<Params>) -> crate::Result<DepositAddress> {
         let v = crate::runtime::call_typed(self.core_mut().fetch_deposit_address(Value::Str(code.to_string()), &[params.into().into_value()])).await?;
@@ -561,6 +663,12 @@ impl Binance {
     pub async fn fetch_market_leverage_tiers(&mut self, symbol: &str, params: impl Into<Params>) -> crate::Result<Vec<LeverageTier>> {
         let v = crate::runtime::call_typed(self.core_mut().fetch_market_leverage_tiers(Value::Str(symbol.to_string()), &[params.into().into_value()])).await?;
         Ok(vec_from_value(&v, LeverageTier::from_value))
+    }
+
+    /// Typed wrapper around `fetchLastPrices`.
+    pub async fn fetch_last_prices(&mut self, symbols: Option<Vec<String>>, params: impl Into<Params>) -> crate::Result<LastPrices> {
+        let v = crate::runtime::call_typed(self.core_mut().fetch_last_prices(&[match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(Value::Str).collect())), None => Value::Null }, params.into().into_value()])).await?;
+        Ok(dict_from_value(&v, LastPrice::from_value))
     }
 
     /// Typed wrapper around `fetchTradingFees`.

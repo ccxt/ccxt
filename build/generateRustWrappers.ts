@@ -76,11 +76,25 @@ const KNOWN_STRUCT_TYPES = new Map<string, string>([
     ['Greeks', 'Greeks'],
     ['Fee', 'Fee'],
     ['CrossBorrowRate', 'BorrowRate'],
-    ['IsolatedBorrowRate', 'BorrowRate'],
+    // Isolated rates carry `symbol`/`base`/`baseRate`/`quote`/`quoteRate` —
+    // none of which `BorrowRate::from_value` reads, so mapping them onto the
+    // cross-margin struct silently decoded to all-`None`.
+    ['IsolatedBorrowRate', 'IsolatedBorrowRate'],
     ['BorrowRate', 'BorrowRate'],
     ['BorrowInterest', 'BorrowInterest'],
     ['Status', 'Status'],
     ['MarginModification', 'MarginModification'],
+    ['Conversion', 'Conversion'],
+    ['ADL', 'ADL'],
+    ['LongShortRatio', 'LongShortRatio'],
+    ['FundingRateHistory', 'FundingRateHistory'],
+    ['FundingHistory', 'FundingHistory'],
+    ['Account', 'Account'],
+    ['PositionModeInfo', 'PositionModeInfo'],
+    // TS `Option` (the options-contract snapshot) collides with Rust's
+    // `core::option::Option`, so the Rust struct is `OptionContract`.
+    ['Option', 'OptionContract'],
+    ['LastPrice', 'LastPrice'],
 ]);
 
 // Plural CCXT collection types — these are `pub type X = HashMap<String, T>;`
@@ -96,6 +110,10 @@ const KNOWN_MAP_TYPES = new Map<string, string>([
     ['Leverages', 'Leverage'],
     ['MarginModes', 'MarginMode'],
     ['TradingFees', 'TradingFee'],
+    ['CrossBorrowRates', 'BorrowRate'],
+    ['IsolatedBorrowRates', 'IsolatedBorrowRate'],
+    ['LastPrices', 'LastPrice'],
+    ['OptionChain', 'OptionContract'],
 ]);
 
 // Combined lookup for "is this a name we can produce a decoder for?".

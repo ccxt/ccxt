@@ -836,6 +836,298 @@ impl MarginModification {
     }
 }
 
+/// Unified currency-conversion record (`fetchConvertQuote`, `createConvertTrade`,
+/// `fetchConvertTrade`, and each row of `fetchConvertTradeHistory`). Mirrors the
+/// TS `Conversion` interface.
+#[derive(Debug, Clone, Default)]
+pub struct Conversion {
+    pub id:            Option<String>,
+    pub timestamp:     Option<i64>,
+    pub datetime:      Option<String>,
+    pub from_currency: Option<String>,
+    pub from_amount:   Option<f64>,
+    pub to_currency:   Option<String>,
+    pub to_amount:     Option<f64>,
+    pub price:         Option<f64>,
+    pub fee:           Option<f64>,
+    pub raw:           Value,
+}
+
+impl Conversion {
+    pub fn from_value(v: Value) -> Self {
+        use crate::value::{safe_string, safe_number, safe_integer};
+        let mut c = Conversion::default();
+        c.id            = safe_string(&v, "id",           None);
+        c.timestamp     = safe_integer(&v, "timestamp",   None);
+        c.datetime      = safe_string(&v, "datetime",     None);
+        c.from_currency = safe_string(&v, "fromCurrency", None);
+        c.from_amount   = safe_number(&v, "fromAmount",   None);
+        c.to_currency   = safe_string(&v, "toCurrency",   None);
+        c.to_amount     = safe_number(&v, "toAmount",     None);
+        c.price         = safe_number(&v, "price",        None);
+        c.fee           = safe_number(&v, "fee",          None);
+        c.raw = v;
+        c
+    }
+}
+
+/// Unified auto-deleveraging rank (`fetchADLRank`, `fetchPositionADLRank`,
+/// and each row of `fetchPositionsADLRank`). Mirrors the TS `ADL` interface.
+#[derive(Debug, Clone, Default)]
+pub struct ADL {
+    pub symbol:     Option<String>,
+    pub rank:       Option<i64>,
+    pub rating:     Option<String>,
+    pub percentage: Option<f64>,
+    pub timestamp:  Option<i64>,
+    pub datetime:   Option<String>,
+    pub raw:        Value,
+}
+
+impl ADL {
+    pub fn from_value(v: Value) -> Self {
+        use crate::value::{safe_string, safe_number, safe_integer};
+        let mut a = ADL::default();
+        a.symbol     = safe_string(&v, "symbol",     None);
+        a.rank       = safe_integer(&v, "rank",      None);
+        a.rating     = safe_string(&v, "rating",     None);
+        a.percentage = safe_number(&v, "percentage", None);
+        a.timestamp  = safe_integer(&v, "timestamp", None);
+        a.datetime   = safe_string(&v, "datetime",   None);
+        a.raw = v;
+        a
+    }
+}
+
+/// Unified long/short ratio (`fetchLongShortRatio`, and each row of
+/// `fetchLongShortRatioHistory`). Mirrors the TS `LongShortRatio` interface.
+#[derive(Debug, Clone, Default)]
+pub struct LongShortRatio {
+    pub symbol:           Option<String>,
+    pub timestamp:        Option<i64>,
+    pub datetime:         Option<String>,
+    pub timeframe:        Option<String>,
+    pub long_short_ratio: Option<f64>,
+    pub raw:              Value,
+}
+
+impl LongShortRatio {
+    pub fn from_value(v: Value) -> Self {
+        use crate::value::{safe_string, safe_number, safe_integer};
+        let mut r = LongShortRatio::default();
+        r.symbol           = safe_string(&v, "symbol",         None);
+        r.timestamp        = safe_integer(&v, "timestamp",     None);
+        r.datetime         = safe_string(&v, "datetime",       None);
+        r.timeframe        = safe_string(&v, "timeframe",      None);
+        r.long_short_ratio = safe_number(&v, "longShortRatio", None);
+        r.raw = v;
+        r
+    }
+}
+
+/// One historical funding-rate sample (each row of `fetchFundingRateHistory`).
+/// Mirrors the TS `FundingRateHistory` interface. Distinct from
+/// [`FundingRate`], which is the live snapshot with next/previous rates.
+#[derive(Debug, Clone, Default)]
+pub struct FundingRateHistory {
+    pub symbol:       Option<String>,
+    pub funding_rate: Option<f64>,
+    pub timestamp:    Option<i64>,
+    pub datetime:     Option<String>,
+    pub raw:          Value,
+}
+
+impl FundingRateHistory {
+    pub fn from_value(v: Value) -> Self {
+        use crate::value::{safe_string, safe_number, safe_integer};
+        let mut f = FundingRateHistory::default();
+        f.symbol       = safe_string(&v, "symbol",      None);
+        f.funding_rate = safe_number(&v, "fundingRate", None);
+        f.timestamp    = safe_integer(&v, "timestamp",  None);
+        f.datetime     = safe_string(&v, "datetime",    None);
+        f.raw = v;
+        f
+    }
+}
+
+/// One funding payment made or received (each row of `fetchFundingHistory`).
+/// Mirrors the TS `FundingHistory` interface.
+#[derive(Debug, Clone, Default)]
+pub struct FundingHistory {
+    pub id:        Option<String>,
+    pub symbol:    Option<String>,
+    pub code:      Option<String>,
+    pub timestamp: Option<i64>,
+    pub datetime:  Option<String>,
+    pub amount:    Option<f64>,
+    pub raw:       Value,
+}
+
+impl FundingHistory {
+    pub fn from_value(v: Value) -> Self {
+        use crate::value::{safe_string, safe_number, safe_integer};
+        let mut f = FundingHistory::default();
+        f.id        = safe_string(&v, "id",         None);
+        f.symbol    = safe_string(&v, "symbol",     None);
+        f.code      = safe_string(&v, "code",       None);
+        f.timestamp = safe_integer(&v, "timestamp", None);
+        f.datetime  = safe_string(&v, "datetime",   None);
+        f.amount    = safe_number(&v, "amount",     None);
+        f.raw = v;
+        f
+    }
+}
+
+/// One sub-account / wallet entry (each row of `fetchAccounts`). Mirrors the
+/// TS `Account` interface.
+#[derive(Debug, Clone, Default)]
+pub struct Account {
+    pub id:           Option<String>,
+    pub account_type: Option<String>,
+    pub code:         Option<String>,
+    pub raw:          Value,
+}
+
+impl Account {
+    pub fn from_value(v: Value) -> Self {
+        use crate::value::safe_string;
+        let mut a = Account::default();
+        a.id           = safe_string(&v, "id",   None);
+        a.account_type = safe_string(&v, "type", None);
+        a.code         = safe_string(&v, "code", None);
+        a.raw = v;
+        a
+    }
+}
+
+/// Position-mode flag (`fetchPositionMode`). Mirrors the TS `PositionModeInfo`
+/// interface: `hedged` is `true` for hedge (dual-side) mode, `false` for one-way.
+#[derive(Debug, Clone, Default)]
+pub struct PositionModeInfo {
+    pub hedged: Option<bool>,
+    pub raw:    Value,
+}
+
+impl PositionModeInfo {
+    pub fn from_value(v: Value) -> Self {
+        use crate::value::safe_bool;
+        let mut p = PositionModeInfo::default();
+        p.hedged = safe_bool(&v, "hedged", None);
+        p.raw = v;
+        p
+    }
+}
+
+/// Unified option-contract snapshot (`fetchOption`, and each value of
+/// `fetchOptionChain`). Named `OptionContract` because `Option` collides with
+/// `core::option::Option`. Mirrors the TS `Option` interface.
+#[derive(Debug, Clone, Default)]
+pub struct OptionContract {
+    pub currency:           Option<String>,
+    pub symbol:             Option<String>,
+    pub timestamp:          Option<i64>,
+    pub datetime:           Option<String>,
+    pub implied_volatility: Option<f64>,
+    pub open_interest:      Option<f64>,
+    pub bid_price:          Option<f64>,
+    pub ask_price:          Option<f64>,
+    pub mid_price:          Option<f64>,
+    pub mark_price:         Option<f64>,
+    pub last_price:         Option<f64>,
+    pub underlying_price:   Option<f64>,
+    pub change:             Option<f64>,
+    pub percentage:         Option<f64>,
+    pub base_volume:        Option<f64>,
+    pub quote_volume:       Option<f64>,
+    pub raw:                Value,
+}
+
+impl OptionContract {
+    pub fn from_value(v: Value) -> Self {
+        use crate::value::{safe_string, safe_number, safe_integer};
+        let mut o = OptionContract::default();
+        o.currency           = safe_string(&v, "currency",          None);
+        o.symbol             = safe_string(&v, "symbol",            None);
+        o.timestamp          = safe_integer(&v, "timestamp",        None);
+        o.datetime           = safe_string(&v, "datetime",          None);
+        o.implied_volatility = safe_number(&v, "impliedVolatility", None);
+        o.open_interest      = safe_number(&v, "openInterest",      None);
+        o.bid_price          = safe_number(&v, "bidPrice",          None);
+        o.ask_price          = safe_number(&v, "askPrice",          None);
+        o.mid_price          = safe_number(&v, "midPrice",          None);
+        o.mark_price         = safe_number(&v, "markPrice",         None);
+        o.last_price         = safe_number(&v, "lastPrice",         None);
+        o.underlying_price   = safe_number(&v, "underlyingPrice",   None);
+        o.change             = safe_number(&v, "change",            None);
+        o.percentage         = safe_number(&v, "percentage",        None);
+        o.base_volume        = safe_number(&v, "baseVolume",        None);
+        o.quote_volume       = safe_number(&v, "quoteVolume",       None);
+        o.raw = v;
+        o
+    }
+}
+
+/// Last traded price per symbol (each value of `fetchLastPrices`). Mirrors the
+/// TS `LastPrice` interface.
+#[derive(Debug, Clone, Default)]
+pub struct LastPrice {
+    pub symbol:    Option<String>,
+    pub timestamp: Option<i64>,
+    pub datetime:  Option<String>,
+    pub price:     Option<f64>,
+    pub side:      Option<String>,   // "buy" | "sell"
+    pub raw:       Value,
+}
+
+impl LastPrice {
+    pub fn from_value(v: Value) -> Self {
+        use crate::value::{safe_string, safe_number, safe_integer};
+        let mut p = LastPrice::default();
+        p.symbol    = safe_string(&v, "symbol",    None);
+        p.timestamp = safe_integer(&v, "timestamp", None);
+        p.datetime  = safe_string(&v, "datetime",  None);
+        p.price     = safe_number(&v, "price",     None);
+        p.side      = safe_string(&v, "side",      None);
+        p.raw = v;
+        p
+    }
+}
+
+/// Unified isolated-margin borrow rate — one entry per symbol with a rate for
+/// each leg (`fetchIsolatedBorrowRate`, and each value of
+/// `fetchIsolatedBorrowRates`). Mirrors the TS `IsolatedBorrowRate` interface.
+/// Distinct from [`BorrowRate`] (cross-margin, single `currency`/`rate`), whose
+/// decoder would leave every field of an isolated rate `None`.
+#[derive(Debug, Clone, Default)]
+pub struct IsolatedBorrowRate {
+    pub symbol:     Option<String>,
+    pub base:       Option<String>,
+    pub base_rate:  Option<f64>,
+    pub quote:      Option<String>,
+    pub quote_rate: Option<f64>,
+    pub period:     Option<i64>,
+    pub timestamp:  Option<i64>,
+    pub datetime:   Option<String>,
+    pub raw:        Value,
+}
+
+impl IsolatedBorrowRate {
+    pub fn from_value(v: Value) -> Self {
+        use crate::value::{safe_string, safe_number, safe_integer};
+        let mut r = IsolatedBorrowRate::default();
+        r.symbol     = safe_string(&v, "symbol",    None);
+        r.base       = safe_string(&v, "base",      None);
+        r.base_rate  = safe_number(&v, "baseRate",  None);
+        r.quote      = safe_string(&v, "quote",     None);
+        r.quote_rate = safe_number(&v, "quoteRate", None);
+        r.period     = safe_integer(&v, "period",   None);
+        r.timestamp  = safe_integer(&v, "timestamp", None);
+        r.datetime   = safe_string(&v, "datetime",  None);
+        r.raw = v;
+        r
+    }
+}
+
 // -----------------------------------------------------------------------------
 // Collection aliases (mirror the plural names used in Go's exchange_types.go)
 // -----------------------------------------------------------------------------
@@ -849,6 +1141,14 @@ pub type OpenInterests = HashMap<String, OpenInterest>;
 pub type Leverages     = HashMap<String, Leverage>;
 pub type MarginModes   = HashMap<String, MarginMode>;
 pub type TradingFees   = HashMap<String, TradingFee>;
+/// `fetchCrossBorrowRates` — currency code → [`BorrowRate`].
+pub type CrossBorrowRates    = HashMap<String, BorrowRate>;
+/// `fetchIsolatedBorrowRates` — symbol → [`IsolatedBorrowRate`].
+pub type IsolatedBorrowRates = HashMap<String, IsolatedBorrowRate>;
+/// `fetchLastPrices` — symbol → [`LastPrice`].
+pub type LastPrices          = HashMap<String, LastPrice>;
+/// `fetchOptionChain` — symbol → [`OptionContract`].
+pub type OptionChain         = HashMap<String, OptionContract>;
 
 /// Walk a `Value::Dict` of `<key> → Value` and decode each value with
 /// the supplied `from_value` constructor. Returns an empty map on a
@@ -874,7 +1174,7 @@ pub fn vec_from_value<T>(v: &Value, decode: fn(Value) -> T) -> Vec<T> {
 
 #[cfg(test)]
 mod from_value_tests {
-    use super::{Market, Order, OrderBook};
+    use super::{Market, Order, OrderBook, MarginModification, Conversion, IsolatedBorrowRate, BorrowRate, PositionModeInfo, LastPrice};
     use crate::Value;
     use crate::value::HashMap;
 
@@ -929,5 +1229,83 @@ mod from_value_tests {
         let o = Order::from_value(v);
         let fee = o.fee.expect("fee should be assigned");
         assert_eq!(fee.get("currency"), Some(&Value::Str("USDT".into())));
+    }
+
+    // The unified structs added for the typed-wrapper coverage push must
+    // actually read the camelCase keys the TS parsers emit — a decoder that
+    // reads the wrong key compiles green and silently yields all-`None`.
+    #[test]
+    fn margin_modification_reads_unified_keys() {
+        let v = dict(&[
+            ("symbol", Value::Str("BTC/USDT:USDT".into())),
+            ("type", Value::Str("add".into())),
+            ("marginMode", Value::Str("isolated".into())),
+            ("amount", Value::Float(0.001)),
+            ("code", Value::Str("USDT".into())),
+            ("status", Value::Str("ok".into())),
+            ("timestamp", Value::Int(1_700_000_000_000)),
+        ]);
+        let m = MarginModification::from_value(v);
+        assert_eq!(m.symbol.as_deref(), Some("BTC/USDT:USDT"));
+        assert_eq!(m.mod_type.as_deref(), Some("add"));
+        assert_eq!(m.margin_mode.as_deref(), Some("isolated"));
+        assert_eq!(m.amount, Some(0.001));
+        assert_eq!(m.code.as_deref(), Some("USDT"));
+        assert_eq!(m.status.as_deref(), Some("ok"));
+        assert_eq!(m.timestamp, Some(1_700_000_000_000));
+        assert_eq!(m.total, None);
+    }
+
+    #[test]
+    fn conversion_reads_unified_keys() {
+        let v = dict(&[
+            ("id", Value::Str("q1".into())),
+            ("fromCurrency", Value::Str("BTC".into())),
+            ("fromAmount", Value::Str("0.5".into())),
+            ("toCurrency", Value::Str("USDT".into())),
+            ("toAmount", Value::Float(20000.0)),
+            ("price", Value::Int(40000)),
+        ]);
+        let c = Conversion::from_value(v);
+        assert_eq!(c.id.as_deref(), Some("q1"));
+        assert_eq!(c.from_currency.as_deref(), Some("BTC"));
+        assert_eq!(c.from_amount, Some(0.5));
+        assert_eq!(c.to_currency.as_deref(), Some("USDT"));
+        assert_eq!(c.to_amount, Some(20000.0));
+        assert_eq!(c.price, Some(40000.0));
+        assert_eq!(c.fee, None);
+    }
+
+    #[test]
+    fn isolated_borrow_rate_is_not_the_cross_shape() {
+        let v = dict(&[
+            ("symbol", Value::Str("BTC/USDT".into())),
+            ("base", Value::Str("BTC".into())),
+            ("baseRate", Value::Float(0.0001)),
+            ("quote", Value::Str("USDT".into())),
+            ("quoteRate", Value::Float(0.0002)),
+        ]);
+        let r = IsolatedBorrowRate::from_value(v.clone());
+        assert_eq!(r.symbol.as_deref(), Some("BTC/USDT"));
+        assert_eq!(r.base_rate, Some(0.0001));
+        assert_eq!(r.quote_rate, Some(0.0002));
+        // The previous mapping (`IsolatedBorrowRate` → `BorrowRate`) lost every field.
+        let wrong = BorrowRate::from_value(v);
+        assert_eq!(wrong.currency, None);
+        assert_eq!(wrong.rate, None);
+    }
+
+    #[test]
+    fn position_mode_and_last_price_read_unified_keys() {
+        let p = PositionModeInfo::from_value(dict(&[("hedged", Value::Bool(true))]));
+        assert_eq!(p.hedged, Some(true));
+        let lp = LastPrice::from_value(dict(&[
+            ("symbol", Value::Str("ETH/USDT".into())),
+            ("price", Value::Str("3000.5".into())),
+            ("side", Value::Str("buy".into())),
+        ]));
+        assert_eq!(lp.symbol.as_deref(), Some("ETH/USDT"));
+        assert_eq!(lp.price, Some(3000.5));
+        assert_eq!(lp.side.as_deref(), Some("buy"));
     }
 }
