@@ -812,22 +812,34 @@ class BaseExchange {
     }
 
     public static function round_timeframe($timeframe, $timestamp, $direction = ROUND_DOWN) {
-        if (($timeframe === '1w') || ($timeframe === '1M') || ($timeframe === '1y')) {
+        $amount = (float) substr($timeframe, 0, -1);
+        $unit = substr($timeframe, -1);
+        $isIntegerAmount = $amount === floor($amount);
+        if ((($unit === 'w') || ($unit === 'M') || ($unit === 'y')) && ($amount >= 1) && $isIntegerAmount) {
+            $amount = (int) $amount;
             $date = (new \DateTimeImmutable('@' . ($timestamp / 1000)))->setTimezone(new \DateTimeZone('UTC'));
-            if ($timeframe === '1w') {
-                $rounded = $date->modify('monday this week')->setTime(0, 0, 0);
+            if ($unit === 'w') {
+                $monday = $date->modify('monday this week')->setTime(0, 0, 0);
+                $epochMonday = new \DateTimeImmutable('1970-01-05T00:00:00Z');
+                $weeksSinceEpochMonday = (int) (($monday->getTimestamp() - $epochMonday->getTimestamp()) / 604800);
+                $rounded = $epochMonday->modify('+' . ((int) (floor($weeksSinceEpochMonday / $amount) * $amount)) . ' weeks');
                 if ($direction === ROUND_UP) {
-                    $rounded = $rounded->modify('+1 week');
+                    $rounded = $rounded->modify('+' . $amount . ' weeks');
                 }
-            } elseif ($timeframe === '1M') {
-                $rounded = $date->modify('first day of this month')->setTime(0, 0, 0);
+            } elseif ($unit === 'M') {
+                $monthsSinceYearZero = ((int) $date->format('Y')) * 12 + ((int) $date->format('n')) - 1;
+                $roundedMonths = ((int) floor($monthsSinceYearZero / $amount)) * $amount;
+                $year = (int) floor($roundedMonths / 12);
+                $month = ($roundedMonths % 12) + 1;
+                $rounded = $date->setDate($year, $month, 1)->setTime(0, 0, 0);
                 if ($direction === ROUND_UP) {
-                    $rounded = $rounded->modify('first day of next month');
+                    $rounded = $rounded->modify('+' . $amount . ' months');
                 }
             } else {
-                $rounded = $date->setDate((int) $date->format('Y'), 1, 1)->setTime(0, 0, 0);
+                $year = ((int) floor(((int) $date->format('Y')) / $amount)) * $amount;
+                $rounded = $date->setDate($year, 1, 1)->setTime(0, 0, 0);
                 if ($direction === ROUND_UP) {
-                    $rounded = $rounded->modify('+1 year');
+                    $rounded = $rounded->modify('+' . $amount . ' years');
                 }
             }
             return ((int) $rounded->format('U')) * 1000;

@@ -116,19 +116,35 @@ func (this *BaseExchange) RoundTimeframe(timeframe any, timestamp any, direction
 		return nil
 	}
 	frame := timeframe.(string)
-	if frame == "1w" || frame == "1M" || frame == "1y" {
+	amount, err := strconv.Atoi(frame[:len(frame)-1])
+	unit := frame[len(frame)-1:]
+	if (unit == "w" || unit == "M" || unit == "y") && amount >= 1 && err == nil {
 		date := time.UnixMilli(ts).UTC()
 		var rounded time.Time
-		if frame == "1w" {
+		if unit == "w" {
 			daysSinceMonday := (int(date.Weekday()) + 6) % 7
-			rounded = time.Date(date.Year(), date.Month(), date.Day()-daysSinceMonday, 0, 0, 0, 0, time.UTC)
-			if roundDirection == ROUND_UP { rounded = rounded.AddDate(0, 0, 7) }
-		} else if frame == "1M" {
-			rounded = time.Date(date.Year(), date.Month(), 1, 0, 0, 0, 0, time.UTC)
-			if roundDirection == ROUND_UP { rounded = rounded.AddDate(0, 1, 0) }
+			monday := time.Date(date.Year(), date.Month(), date.Day()-daysSinceMonday, 0, 0, 0, 0, time.UTC)
+			epochMonday := time.Date(1970, time.January, 5, 0, 0, 0, 0, time.UTC)
+			weeksSinceEpochMonday := int(monday.Sub(epochMonday).Hours() / (24 * 7))
+			rounded = epochMonday.AddDate(0, 0, (weeksSinceEpochMonday/amount)*amount*7)
+			if roundDirection == ROUND_UP {
+				rounded = rounded.AddDate(0, 0, amount*7)
+			}
+		} else if unit == "M" {
+			monthsSinceYearZero := date.Year()*12 + int(date.Month()) - 1
+			roundedMonths := (monthsSinceYearZero / amount) * amount
+			year := roundedMonths / 12
+			month := time.Month(roundedMonths%12 + 1)
+			rounded = time.Date(year, month, 1, 0, 0, 0, 0, time.UTC)
+			if roundDirection == ROUND_UP {
+				rounded = rounded.AddDate(0, amount, 0)
+			}
 		} else {
-			rounded = time.Date(date.Year(), time.January, 1, 0, 0, 0, 0, time.UTC)
-			if roundDirection == ROUND_UP { rounded = rounded.AddDate(1, 0, 0) }
+			year := (date.Year() / amount) * amount
+			rounded = time.Date(year, time.January, 1, 0, 0, 0, 0, time.UTC)
+			if roundDirection == ROUND_UP {
+				rounded = rounded.AddDate(amount, 0, 0)
+			}
 		}
 		return rounded.UnixMilli()
 	}

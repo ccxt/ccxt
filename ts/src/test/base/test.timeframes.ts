@@ -33,6 +33,10 @@ function testRoundTimeframe () {
     assert (exchange.roundTimeframe ('1w', calendarDate, ROUND_UP) === exchange.parse8601 ('2026-09-07T00:00:00Z'));
     assert (exchange.roundTimeframe ('1M', calendarDate, ROUND_UP) === exchange.parse8601 ('2026-10-01T00:00:00Z'));
     assert (exchange.roundTimeframe ('1y', calendarDate, ROUND_UP) === exchange.parse8601 ('2027-01-01T00:00:00Z'));
+    assert (exchange.roundTimeframe ('2w', calendarDate, ROUND_DOWN) === exchange.parse8601 ('2026-08-31T00:00:00Z'));
+    assert (exchange.roundTimeframe ('3M', calendarDate, ROUND_DOWN) === exchange.parse8601 ('2026-07-01T00:00:00Z'));
+    assert (exchange.roundTimeframe ('2w', calendarDate, ROUND_UP) === exchange.parse8601 ('2026-09-14T00:00:00Z'));
+    assert (exchange.roundTimeframe ('3M', calendarDate, ROUND_UP) === exchange.parse8601 ('2026-10-01T00:00:00Z'));
 
     // todo:
     // $this->assertSame(null, Exchange::iso8601(null));

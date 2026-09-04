@@ -2383,6 +2383,12 @@ impl Exchange {
     /// timestamp to the timeframe boundary (down by default, up for
     /// `ROUND_UP`).
     pub fn round_timeframe(&self, tf: Value, ts: Value, direction: Value) -> Value {
+        let timeframe = match &tf {
+            Value::Str(timeframe) => timeframe.as_str(),
+            _ => "",
+        };
+        let unit = timeframe.chars().last().unwrap_or(' ');
+        let amount = timeframe[..timeframe.len().saturating_sub(1)].parse::<i64>().unwrap_or(0);
         let secs = match self.parse_timeframe(tf) {
             Value::Int(s) => s,
             Value::Float(s) => s as i64,
@@ -2397,26 +2403,30 @@ impl Exchange {
         if ms == 0 {
             return ts;
         }
-        let timeframe = match &tf {
-            Value::Str(timeframe) => timeframe.as_str(),
-            _ => "",
-        };
-        if (timeframe == "1w") || (timeframe == "1M") || (timeframe == "1y") {
+        if ((unit == 'w') || (unit == 'M') || (unit == 'y')) && (amount >= 1) {
             let date = match Utc.timestamp_millis_opt(t).single() {
                 Some(date) => date,
                 None => return ts,
             };
             let mut rounded = date.date_naive().and_hms_opt(0, 0, 0).unwrap().and_utc();
-            if timeframe == "1w" {
+            if unit == 'w' {
                 let days_since_monday = date.weekday().num_days_from_monday() as i64;
-                rounded = rounded - chrono::Duration::days(days_since_monday);
-                if matches!(&direction, Value::Int(d) if *d == crate::runtime::ROUND_UP) { rounded = rounded + chrono::Duration::days(7); }
-            } else if timeframe == "1M" {
-                rounded = Utc.with_ymd_and_hms(date.year(), date.month(), 1, 0, 0, 0).unwrap();
-                if matches!(&direction, Value::Int(d) if *d == crate::runtime::ROUND_UP) { rounded = rounded + chrono::Months::new(1); }
+                let monday = rounded - chrono::Duration::days(days_since_monday);
+                let epoch_monday = Utc.with_ymd_and_hms(1970, 1, 5, 0, 0, 0).unwrap();
+                let weeks_since_epoch_monday = (monday - epoch_monday).num_days() / 7;
+                rounded = epoch_monday + chrono::Duration::days((weeks_since_epoch_monday / amount) * amount * 7);
+                if matches!(&direction, Value::Int(d) if *d == crate::runtime::ROUND_UP) { rounded = rounded + chrono::Duration::days(amount * 7); }
+            } else if unit == 'M' {
+                let months_since_year_zero = date.year() * 12 + date.month0() as i32;
+                let rounded_months = (months_since_year_zero / amount as i32) * amount as i32;
+                let year = rounded_months / 12;
+                let month = (rounded_months % 12 + 1) as u32;
+                rounded = Utc.with_ymd_and_hms(year, month, 1, 0, 0, 0).unwrap();
+                if matches!(&direction, Value::Int(d) if *d == crate::runtime::ROUND_UP) { rounded = rounded + chrono::Months::new(amount as u32); }
             } else {
-                rounded = Utc.with_ymd_and_hms(date.year(), 1, 1, 0, 0, 0).unwrap();
-                if matches!(&direction, Value::Int(d) if *d == crate::runtime::ROUND_UP) { rounded = rounded + chrono::Months::new(12); }
+                let year = (date.year() / amount as i32) * amount as i32;
+                rounded = Utc.with_ymd_and_hms(year, 1, 1, 0, 0, 0).unwrap();
+                if matches!(&direction, Value::Int(d) if *d == crate::runtime::ROUND_UP) { rounded = rounded + chrono::Months::new((amount * 12) as u32); }
             }
             return Value::Int(rounded.timestamp_millis());
         }

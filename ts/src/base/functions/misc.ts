@@ -36,25 +36,37 @@ const parseTimeframe = (timeframe: string | undefined): number => {
 };
 
 const roundTimeframe = (timeframe: string, timestamp: number, direction = ROUND_DOWN) => {
-    if ((timeframe === '1w') || (timeframe === '1M') || (timeframe === '1y')) {
+    const amount = asFloat (timeframe.slice (0, -1));
+    const unit = timeframe.slice (-1);
+    if (((unit === 'w') || (unit === 'M') || (unit === 'y')) && (amount >= 1) && (Math.floor (amount) === amount)) {
         const date = new Date (timestamp);
         let rounded = timestamp;
-        if (timeframe === '1w') {
+        if (unit === 'w') {
             const day = date.getUTCDay ();
             const daysSinceMonday = (day + 6) % 7;
-            rounded = Date.UTC (date.getUTCFullYear (), date.getUTCMonth (), date.getUTCDate () - daysSinceMonday);
+            const week = 7 * 24 * 60 * 60 * 1000;
+            const monday = Date.UTC (date.getUTCFullYear (), date.getUTCMonth (), date.getUTCDate () - daysSinceMonday);
+            const epochMonday = Date.UTC (1970, 0, 5);
+            const weeksSinceEpochMonday = Math.floor ((monday - epochMonday) / week);
+            const roundedWeeks = Math.floor (weeksSinceEpochMonday / amount) * amount;
+            rounded = epochMonday + roundedWeeks * week;
             if (direction === ROUND_UP) {
-                rounded += 7 * 24 * 60 * 60 * 1000;
+                rounded += amount * week;
             }
-        } else if (timeframe === '1M') {
-            rounded = Date.UTC (date.getUTCFullYear (), date.getUTCMonth (), 1);
+        } else if (unit === 'M') {
+            const monthsSinceYearZero = date.getUTCFullYear () * 12 + date.getUTCMonth ();
+            const roundedMonths = Math.floor (monthsSinceYearZero / amount) * amount;
+            const year = Math.floor (roundedMonths / 12);
+            const month = roundedMonths % 12;
+            rounded = Date.UTC (year, month, 1);
             if (direction === ROUND_UP) {
-                rounded = Date.UTC (date.getUTCFullYear (), date.getUTCMonth () + 1, 1);
+                rounded = Date.UTC (year, month + amount, 1);
             }
         } else {
-            rounded = Date.UTC (date.getUTCFullYear (), 0, 1);
+            const year = Math.floor (date.getUTCFullYear () / amount) * amount;
+            rounded = Date.UTC (year, 0, 1);
             if (direction === ROUND_UP) {
-                rounded = Date.UTC (date.getUTCFullYear () + 1, 0, 1);
+                rounded = Date.UTC (year + amount, 0, 1);
             }
         }
         return rounded;

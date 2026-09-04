@@ -9,25 +9,35 @@ public partial class BaseExchange
         direction ??= ROUND_DOWN;
         var timeframeString = (string)timeframe;
         var timestampValue = (Int64)timestamp;
-        if ((timeframeString == "1w") || (timeframeString == "1M") || (timeframeString == "1y"))
+        var amount = Int32.Parse(timeframeString.Substring(0, timeframeString.Length - 1));
+        var unit = timeframeString.Substring(timeframeString.Length - 1);
+        if (((unit == "w") || (unit == "M") || (unit == "y")) && (amount >= 1))
         {
             var date = DateTimeOffset.FromUnixTimeMilliseconds(timestampValue).UtcDateTime;
             DateTime rounded;
-            if (timeframeString == "1w")
+            if (unit == "w")
             {
                 var daysSinceMonday = ((int)date.DayOfWeek + 6) % 7;
-                rounded = date.Date.AddDays(-daysSinceMonday);
-                if ((int)direction == ROUND_UP) rounded = rounded.AddDays(7);
+                var monday = date.Date.AddDays(-daysSinceMonday);
+                var epochMonday = new DateTime(1970, 1, 5, 0, 0, 0, DateTimeKind.Utc);
+                var weeksSinceEpochMonday = (Int64)(monday - epochMonday).TotalDays / 7;
+                rounded = epochMonday.AddDays((weeksSinceEpochMonday / amount) * amount * 7);
+                if ((int)direction == ROUND_UP) rounded = rounded.AddDays(amount * 7);
             }
-            else if (timeframeString == "1M")
+            else if (unit == "M")
             {
-                rounded = new DateTime(date.Year, date.Month, 1, 0, 0, 0, DateTimeKind.Utc);
-                if ((int)direction == ROUND_UP) rounded = rounded.AddMonths(1);
+                var monthsSinceYearZero = date.Year * 12 + date.Month - 1;
+                var roundedMonths = (monthsSinceYearZero / amount) * amount;
+                var year = roundedMonths / 12;
+                var month = roundedMonths % 12 + 1;
+                rounded = new DateTime(year, month, 1, 0, 0, 0, DateTimeKind.Utc);
+                if ((int)direction == ROUND_UP) rounded = rounded.AddMonths(amount);
             }
             else
             {
-                rounded = new DateTime(date.Year, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-                if ((int)direction == ROUND_UP) rounded = rounded.AddYears(1);
+                var year = (date.Year / amount) * amount;
+                rounded = new DateTime(year, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+                if ((int)direction == ROUND_UP) rounded = rounded.AddYears(amount);
             }
             return new DateTimeOffset(rounded).ToUnixTimeMilliseconds();
         }
