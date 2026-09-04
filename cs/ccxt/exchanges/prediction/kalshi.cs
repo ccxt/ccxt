@@ -2484,7 +2484,7 @@ public partial class kalshi : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public async virtual Task<object> cancelAllOrders(string outcome = null, object parameters = null)
+    public async virtual Task<List<ccxt.PredictionOrder>> CancelAllOrders(string outcome = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(!isEqual(outcome, null)))
@@ -2522,7 +2522,7 @@ public partial class kalshi : PredictionExchange
                 ((IList<object>)canceledOrders).Add(parsed);
             }
         }
-        return canceledOrders;
+        return ccxt.BaseExchange.ToPredictionOrderList(canceledOrders);
     }
 
     /**

@@ -151,6 +151,19 @@ public partial class BaseExchange
             // return ((IList<object>)a).ToList();
             return ((IList<object>)a);
         }
+
+        // a typed core hands back List<Dictionary<string, object>> / List<T>; List<T> is
+        // invariant so none of those IS an IList<object> - re-box through the non-generic
+        // IList before the dictionary branch, which would otherwise cast-throw on a list
+        if (a is System.Collections.IList && !(a is IDictionary<string, object>))
+        {
+            var boxedRows = new List<object>();
+            foreach (var row in (System.Collections.IList)a)
+            {
+                boxedRows.Add(row);
+            }
+            return boxedRows;
+        }
         // if (a.GetType() == typeof(List<string>))
         // {
         //     return (List<string>)a;

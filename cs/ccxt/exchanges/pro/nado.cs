@@ -916,7 +916,7 @@ public partial class nado : ccxt.nado
         {
             throw new ArgumentsRequired ((string)add(this.id, " ws execute requires params.id")) ;
         }
-        object request = await this.createOrderRequest(symbol, type, side, amount, price, parameters);
+        object request = ccxt.BaseExchange.FromDict(await this.CreateOrderRequest(symbol, type, side, amount, price, parameters));
         object placeOrder = this.safeDict(request, "place_order", new Dictionary<string, object>() {});
         if (isTrue(inOp(placeOrder, "trigger")))
         {
@@ -980,7 +980,7 @@ public partial class nado : ccxt.nado
         {
             throw new ArgumentsRequired ((string)add(this.id, " ws execute requires params.id")) ;
         }
-        object request = await this.editOrderRequest(id, symbol, type, side, amount, price, parameters);
+        object request = ccxt.BaseExchange.FromDict(await this.EditOrderRequest(id, symbol, type, side, amount, price, parameters));
         if (isTrue(isEqual(requestIdString, null)))
         {
             throw new ArgumentsRequired ((string)add(this.id, " requires params.id")) ;
@@ -1060,7 +1060,7 @@ public partial class nado : ccxt.nado
         {
             throw new ArgumentsRequired ((string)add(this.id, " ws execute requires params.id")) ;
         }
-        object request = await this.cancelOrdersRequest(ids, symbol, parameters);
+        object request = ccxt.BaseExchange.FromDict(await this.CancelOrdersRequest(ids, symbol, parameters));
         if (isTrue(isEqual(requestIdString, null)))
         {
             throw new ArgumentsRequired ((string)add(this.id, " requires params.id")) ;
@@ -1124,7 +1124,7 @@ public partial class nado : ccxt.nado
         {
             throw new ArgumentsRequired ((string)add(this.id, " ws execute requires params.id")) ;
         }
-        object request = await this.cancelAllOrdersRequest(symbol, parameters);
+        object request = ccxt.BaseExchange.FromDict(await this.CancelAllOrdersRequest(symbol, parameters));
         if (isTrue(isEqual(requestIdString, null)))
         {
             throw new ArgumentsRequired ((string)add(this.id, " requires params.id")) ;

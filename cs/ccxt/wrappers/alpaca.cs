@@ -6,9 +6,5 @@ namespace ccxt;
 
 public partial class alpaca
 {
-    public async Task<List<Transaction>> FetchTransactionsHelper(object type, object code, object since, object limit, object parameters)
-    {
-        var res = await this.fetchTransactionsHelper(type, code, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new Transaction(item)).ToList<Transaction>();
-    }
+
 }

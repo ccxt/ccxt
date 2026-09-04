@@ -6,9 +6,5 @@ namespace ccxt;
 
 public partial class poloniex
 {
-    public async Task<Dictionary<string, object>> FetchTransactionsHelper(string code = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchTransactionsHelper(code, since, limit, parameters);
-        return ((Dictionary<string, object>)res);
-    }
+
 }

@@ -6,36 +6,5 @@ namespace ccxt.prediction;
 public class  Limitless: limitless { public Limitless(object args = null) : base(args) { } }
 public partial class limitless
 {
-    /// <summary>
-    /// cancels all open orders for one market slug
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.limitless.exchange/api-reference/orders/cancel-all-orders"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>outcome</term>
-    /// <description>
-    /// string : outcome, e.g. "TRUMP_OUT:YES"
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.slug</term>
-    /// <description>
-    /// string : the market slug to cancel all orders for
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object[]</term> a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure).</returns>
-    public async Task<List<PredictionOrder>> CancelAllOrders(string outcome = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.cancelAllOrders(outcome, parameters);
-        return ((IList<object>)res).Select(item => new PredictionOrder(item)).ToList<PredictionOrder>();
-    }
+
 }

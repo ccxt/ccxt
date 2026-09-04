@@ -3152,7 +3152,7 @@ public partial class bydfi : Exchange
     public async override Task<List<ccxt.Transaction>> FetchDeposits(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return ccxt.BaseExchange.ToTransactionList(await this.fetchTransactionsHelper("deposit", code, since, limit, parameters));
+        return await this.FetchTransactionsHelper("deposit", code, since, limit, parameters);
     }
 
     /**
@@ -3169,10 +3169,10 @@ public partial class bydfi : Exchange
     public async override Task<List<ccxt.Transaction>> FetchWithdrawals(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return ccxt.BaseExchange.ToTransactionList(await this.fetchTransactionsHelper("withdrawal", code, since, limit, parameters));
+        return await this.FetchTransactionsHelper("withdrawal", code, since, limit, parameters);
     }
 
-    public async virtual Task<object> fetchTransactionsHelper(object type, object code, object since, object limit, object parameters)
+    public async virtual Task<List<ccxt.Transaction>> FetchTransactionsHelper(object type, object code, object since, object limit, object parameters)
     {
         object methodName = ((bool) isTrue((isEqual(type, "deposit")))) ? "fetchDeposits" : "fetchWithdrawals";
         if (isTrue(isEqual(code, null)))
@@ -3193,7 +3193,7 @@ public partial class bydfi : Exchange
                 { "paginationDirection", "backward" },
             });
             object paginatedResponse = await this.fetchPaginatedCallDynamic(methodName, getValue(currency, "code"), since, limit, parameters, maxLimit, true);
-            return this.sortBy(paginatedResponse, "timestamp");
+            return ccxt.BaseExchange.ToTransactionList(this.sortBy(paginatedResponse, "timestamp"));
         }
         object request = new Dictionary<string, object>() {
             { "asset", getValue(currency, "id") },
@@ -3272,7 +3272,7 @@ public partial class bydfi : Exchange
             { "type", type },
         };
         parameters = this.extend(parameters, transactionParams);
-        return this.parseTransactions(data, currency, since, limit, parameters);
+        return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(data, currency, since, limit, parameters));
     }
 
     public override object parseTransaction(object transaction, object currency = null)

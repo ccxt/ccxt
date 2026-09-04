@@ -558,9 +558,7 @@ const REVERSIBLE_FAMILIES: string[] = [
 // the prediction tier (PredictionExchange : BaseExchange) is a sibling hierarchy with its own
 // structures, so the same method name is typed differently there — no invariance conflict
 const PREDICTION_TYPED_CORES: Record<string, string> = {
-    // 'cancelAllOrders': '' below is an explicit opt-out, not an omission: omitting it would
-    // fall through to TYPED_CORES and pick up 'List<Order>'.
-    'cancelAllOrders': '',
+    'cancelAllOrders': 'List<PredictionOrder>',
     'cancelOrder': 'PredictionOrder',
     'cancelOrders': 'List<PredictionOrder>',
     'createMarketBuyOrderWithCost': 'PredictionOrder',
@@ -610,6 +608,28 @@ const PREDICTION_TYPED_CORES: Record<string, string> = {
     'watchTickers': 'PredictionTickers',
     'fetchTrades': 'List<PredictionTrade>',
     'fetchTradingFee': 'PredictionTradingFee',
+};
+
+// Per-venue typed cores: one method name can legitimately carry different shapes on
+// different classes (dydx fetchTransactionsHelper is a raw row list feeding filterBy, alpaca's
+// is a parsed Transaction[]). The table is consulted BEFORE the name-keyed tables, keyed by
+// the ts/src file id the core is declared in; derived venues (bequant : hitbtc) resolve
+// through their parent. An empty string opts a venue out of a name-keyed entry.
+const VENUE_TYPED_CORES: Record<string, Record<string, string>> = {
+    'alpaca': { 'fetchTransactionsHelper': 'List<Transaction>' },
+    'bydfi': { 'fetchTransactionsHelper': 'List<Transaction>' },
+    'hitbtc': { 'fetchTransactionsHelper': 'List<Transaction>' },
+    'dydx': { 'fetchTransactionsHelper': 'List<Dictionary<string, object>>' },
+    'poloniex': { 'fetchTransactionsHelper': 'Dictionary<string, object>' },
+    // sync homonyms: hashkey/kucoin/mexc/weex declare a SYNC createSpotOrderRequest and
+    // 29 venues a sync createOrderRequest — only these async declarations are typed
+    'htx': { 'createSpotOrderRequest': 'Dictionary<string, object>' },
+    'nado': {
+        'cancelAllOrdersRequest': 'Dictionary<string, object>',
+        'cancelOrdersRequest': 'Dictionary<string, object>',
+        'createOrderRequest': 'Dictionary<string, object>',
+        'editOrderRequest': 'Dictionary<string, object>',
+    },
 };
 
 // Generated C# core parameters that can be narrowed from `object` to `string`.
@@ -979,6 +999,11 @@ class NewTranspiler {
     // true while transpiling the prediction-market exchanges (ts/src/prediction/),
     // which live in the ccxt.prediction / ccxt.prediction.pro namespaces
     isPrediction = false;
+    // the ts/src id of the class currently being emitted ('' for the base tiers and the
+    // tests), so VENUE_TYPED_CORES can type one method name per class
+    currentVenue = '';
+    // derived venue -> parent venue (bequant -> hitbtc), read off the `class X : Y` line
+    venueParents: Record<string, string> = {};
     // set once PredictionExchange.cs has been emitted in this process. A full run reaches
     // transpilePredictionBaseMethods twice (recursive prediction pass, then the main pass)
     // with identical inputs, so the second call would only rewrite the same bytes.
@@ -1558,7 +1583,16 @@ class NewTranspiler {
     }
 
     // the typed C# return of a core method, or '' when the method keeps `Task<object>`
-    typedCoreType (methodName: string, isPredictionTier = false): string {
+    typedCoreType (methodName: string, isPredictionTier = false, venue: string = this.currentVenue): string {
+        // the per-venue axis wins: walk the venue and its parents (bequant -> hitbtc)
+        let v: string | undefined = venue;
+        while (v !== undefined && v !== '') {
+            const perVenue = VENUE_TYPED_CORES[v];
+            if (perVenue !== undefined && (methodName in perVenue)) {
+                return perVenue[methodName];
+            }
+            v = this.venueParents[v];
+        }
         const snapshot = SNAPSHOT_CORES[methodName];
         if (snapshot !== undefined) {
             return (isPredictionTier && snapshot.predictionType !== undefined) ? snapshot.predictionType : snapshot.type;
@@ -1755,9 +1789,17 @@ class NewTranspiler {
     // every method name that may carry a typed return: the two TYPED_CORES tables plus the
     // ws snapshot cores, whose type differs per tier but is never ''
     typedCoreNames (): string[] {
-        return Object.keys (TYPED_CORES)
+        const names = Object.keys (TYPED_CORES)
             .concat (Object.keys (PREDICTION_TYPED_CORES).filter ((n) => !(n in TYPED_CORES)))
             .concat (Object.keys (SNAPSHOT_CORES).filter ((n) => !(n in TYPED_CORES)));
+        for (const venue of Object.keys (VENUE_TYPED_CORES)) {
+            for (const name of Object.keys (VENUE_TYPED_CORES[venue])) {
+                if (!names.includes (name)) {
+                    names.push (name);
+                }
+            }
+        }
+        return names;
     }
 
     typeCores (content: string, predictionTier = this.isPrediction): string {
@@ -2315,14 +2357,14 @@ class NewTranspiler {
         const methodNameCapitalized = methodName.charAt(0).toUpperCase() + methodName.slice(1);
         // a typed core is emitted PascalCase (pascalizeTypedCores), so it already *is* the public
         // API — a wrapper here would be a duplicate declaration of the same name
-        if (isAsync && this.typedCoreType (methodName, this.isPrediction) !== '') {
+        if (isAsync && this.typedCoreType (methodName, this.isPrediction, exchangeName) !== '') {
             return '';
         }
         const returnType = this.convertJavascriptTypeToCsharpType(methodName, methodWrapper.returnType, true);
         const unwrappedType = this.unwrapTaskIfNeeded(returnType as string);
         // a typed core's wrapper is `return res;`, so the wrapper's own return type must be the
         // exact type the core emits — unqualified `OrderBook` binds to ccxt.pro.OrderBook here
-        const typedCore = this.typedCoreType (methodName, this.isPrediction);
+        const typedCore = this.typedCoreType (methodName, this.isPrediction, exchangeName);
         const wrapperReturnType = (typedCore !== '' && isAsync) ? `Task<${this.qualifyTypedCoreType (typedCore)}>` : returnType;
         const args: any[] = methodWrapper.parameters.map((param: any) => this.convertJavascriptParamToCsharpParam(param));
         const stringArgs = args.filter(arg => arg !== undefined).join(', ');
@@ -3011,7 +3053,16 @@ class NewTranspiler {
             // (client → WebSocketClient, orderbook casts, append/resolve, ...) apply here too
             content = this.regexAll (content, this.getWsRegexes());
         }
+        const classDecl = /public partial class (\w+) : ([\w.]+)/.exec (content);
+        if (classDecl) {
+            this.currentVenue = classDecl[1];
+            const parent = classDecl[2].split ('.').pop () as string;
+            if (parent !== 'Exchange' && parent !== 'PredictionExchange' && parent !== this.currentVenue) {
+                this.venueParents[this.currentVenue] = parent;
+            }
+        }
         content = this.pascalizeTypedCores (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCores (content))));
+        this.currentVenue = '';
         content = this.createGeneratedHeader().join('\n') + '\n' + content;
         return csharpImports + content;
     }

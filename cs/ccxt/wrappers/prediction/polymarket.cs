@@ -6,31 +6,5 @@ namespace ccxt.prediction;
 public class  Polymarket: polymarket { public Polymarket(object args = null) : base(args) { } }
 public partial class polymarket
 {
-    /// <summary>
-    /// cancels all open orders on the CLOB, optionally scoped to one outcome token
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.polymarket.com/api-reference/trade/cancel-all-orders"/>  <br/>
-    /// See <see href="https://docs.polymarket.com/api-reference/trade/cancel-market-orders"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>outcome</term>
-    /// <description>
-    /// string : unified outcome or outcome token id; when given only that outcome's orders are cancelled
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object[]</term> a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure).</returns>
-    public async Task<List<PredictionOrder>> CancelAllOrders(string outcome = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.cancelAllOrders(outcome, parameters);
-        return ((IList<object>)res).Select(item => new PredictionOrder(item)).ToList<PredictionOrder>();
-    }
+
 }

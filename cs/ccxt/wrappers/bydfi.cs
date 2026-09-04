@@ -16,9 +16,4 @@ public partial class bydfi
         var res = this.createEditOrderRequest(id, symbol, type, side, amount, price, parameters);
         return ((Dictionary<string, object>)res);
     }
-    public async Task<List<Transaction>> FetchTransactionsHelper(object type, object code, object since, object limit, object parameters)
-    {
-        var res = await this.fetchTransactionsHelper(type, code, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new Transaction(item)).ToList<Transaction>();
-    }
 }

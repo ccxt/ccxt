@@ -372,7 +372,7 @@ public partial class nado : Exchange
         this.checkRequiredCredentials();
         await this.loadMarkets();
         object market = this.market(symbol);
-        object request = await this.createOrderRequest(symbol, type, side, amount, price, parameters);
+        object request = ccxt.BaseExchange.FromDict(await this.CreateOrderRequest(symbol, type, side, amount, price, parameters));
         object placeOrder = this.safeDict(request, "place_order", new Dictionary<string, object>() {});
         bool isTriggerOrder = (inOp(placeOrder, "trigger"));
         object response = null;
@@ -410,7 +410,7 @@ public partial class nado : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the request payload for the place_order execute
      */
-    public async virtual Task<object> createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> CreateOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object market = this.market(symbol);
@@ -525,7 +525,7 @@ public partial class nado : Exchange
         object request = new Dictionary<string, object>() {
             { "place_order", placeOrder },
         };
-        return this.extend(request, parameters);
+        return ccxt.BaseExchange.ToDict(this.extend(request, parameters));
     }
 
     /**
@@ -557,7 +557,7 @@ public partial class nado : Exchange
         this.checkRequiredCredentials();
         await this.loadMarkets();
         object market = this.market(symbol);
-        object request = await this.editOrderRequest(id, symbol, type, side, amount, price, parameters);
+        object request = ccxt.BaseExchange.FromDict(await this.EditOrderRequest(id, symbol, type, side, amount, price, parameters));
         object response = await this.gatewayPrivatePostExecute(request);
         //
         //     {
@@ -588,7 +588,7 @@ public partial class nado : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the request payload for the cancel_and_place execute
      */
-    public async virtual Task<object> editOrderRequest(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> EditOrderRequest(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object market = this.market(symbol);
@@ -683,7 +683,7 @@ public partial class nado : Exchange
         object request = new Dictionary<string, object>() {
             { "cancel_and_place", cancelAndPlace },
         };
-        return this.extend(request, parameters);
+        return ccxt.BaseExchange.ToDict(this.extend(request, parameters));
     }
 
     /**
@@ -730,7 +730,7 @@ public partial class nado : Exchange
         }
         object trigger = this.safeBool2(parameters, "stop", "trigger");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
-        object request = await this.cancelAllOrdersRequest(symbol, parameters);
+        object request = ccxt.BaseExchange.FromDict(await this.CancelAllOrdersRequest(symbol, parameters));
         object response = null;
         if (isTrue(isEqual(trigger, true)))
         {
@@ -760,7 +760,7 @@ public partial class nado : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the request payload for the cancel_product_orders execute
      */
-    public async virtual Task<object> cancelAllOrdersRequest(object symbol = null, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> CancelAllOrdersRequest(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object productIds = new List<object>() {};
@@ -805,7 +805,7 @@ public partial class nado : Exchange
         object request = new Dictionary<string, object>() {
             { "cancel_product_orders", cancelProductOrders },
         };
-        return this.extend(request, parameters);
+        return ccxt.BaseExchange.ToDict(this.extend(request, parameters));
     }
 
     /**
@@ -834,7 +834,7 @@ public partial class nado : Exchange
         object market = this.market(symbol);
         object trigger = this.safeBool2(parameters, "stop", "trigger");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
-        object request = await this.cancelOrdersRequest(ids, symbol, parameters);
+        object request = ccxt.BaseExchange.FromDict(await this.CancelOrdersRequest(ids, symbol, parameters));
         object response = null;
         if (isTrue(isEqual(trigger, true)))
         {
@@ -865,7 +865,7 @@ public partial class nado : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the request payload for the cancel_orders execute
      */
-    public async virtual Task<object> cancelOrdersRequest(object ids, object symbol = null, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> CancelOrdersRequest(object ids, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object market = this.market(symbol);
@@ -921,7 +921,7 @@ public partial class nado : Exchange
         object request = new Dictionary<string, object>() {
             { "cancel_orders", cancelOrders },
         };
-        return this.extend(request, parameters);
+        return ccxt.BaseExchange.ToDict(this.extend(request, parameters));
     }
 
     /**

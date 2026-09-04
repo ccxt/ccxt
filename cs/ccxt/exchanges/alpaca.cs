@@ -2004,7 +2004,7 @@ public partial class alpaca : Exchange
         ((IDictionary<string,object>)this.options)["sandboxMode"] = enable;
     }
 
-    public async virtual Task<object> fetchTransactionsHelper(object type, object code, object since, object limit, object parameters)
+    public async virtual Task<List<ccxt.Transaction>> FetchTransactionsHelper(object type, object code, object since, object limit, object parameters)
     {
         if (isTrue(isEqual(this.markets, null)))
         {
@@ -2054,7 +2054,7 @@ public partial class alpaca : Exchange
                     ((IList<object>)filtered).Add(entry);
                 }
             }
-            return this.parseTransactions(filtered, currency, since, limit, parameters);
+            return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(filtered, currency, since, limit, parameters));
         }
         object response = await this.traderPrivateGetV2WalletsTransfers(parameters);
         //
@@ -2092,7 +2092,7 @@ public partial class alpaca : Exchange
                 ((IList<object>)results).Add(entry);
             }
         }
-        return this.parseTransactions(results, currency, since, limit, parameters);
+        return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(results, currency, since, limit, parameters));
     }
 
     /**
@@ -2109,7 +2109,7 @@ public partial class alpaca : Exchange
     public async override Task<List<ccxt.Transaction>> FetchDepositsWithdrawals(object code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return ccxt.BaseExchange.ToTransactionList(await this.fetchTransactionsHelper("BOTH", code, since, limit, parameters));
+        return await this.FetchTransactionsHelper("BOTH", code, since, limit, parameters);
     }
 
     /**
@@ -2126,7 +2126,7 @@ public partial class alpaca : Exchange
     public async override Task<List<ccxt.Transaction>> FetchDeposits(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return ccxt.BaseExchange.ToTransactionList(await this.fetchTransactionsHelper("INCOMING", code, since, limit, parameters));
+        return await this.FetchTransactionsHelper("INCOMING", code, since, limit, parameters);
     }
 
     /**
@@ -2143,7 +2143,7 @@ public partial class alpaca : Exchange
     public async override Task<List<ccxt.Transaction>> FetchWithdrawals(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return ccxt.BaseExchange.ToTransactionList(await this.fetchTransactionsHelper("OUTGOING", code, since, limit, parameters));
+        return await this.FetchTransactionsHelper("OUTGOING", code, since, limit, parameters);
     }
 
     public override object parseTransaction(object transaction, object currency = null)

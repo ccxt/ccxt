@@ -6,30 +6,5 @@ namespace ccxt.prediction;
 public class  Kalshi: kalshi { public Kalshi(object args = null) : base(args) { } }
 public partial class kalshi
 {
-    /// <summary>
-    /// cancels all open orders on kalshi, optionally scoped to one outcome ticker
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://trading-api.readme.io/reference/cancelorders"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>outcome</term>
-    /// <description>
-    /// string : unified outcome to scope the cancellation to
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object[]</term> a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure).</returns>
-    public async Task<List<PredictionOrder>> CancelAllOrders(string outcome = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.cancelAllOrders(outcome, parameters);
-        return ((IList<object>)res).Select(item => new PredictionOrder(item)).ToList<PredictionOrder>();
-    }
+
 }

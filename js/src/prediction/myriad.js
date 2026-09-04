@@ -1579,7 +1579,7 @@ export default class myriad extends Exchange {
      * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da8281e7a14cd34e6a716761
      * @param {string} [outcome] unified outcome; when omitted cancels across all markets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} the raw response with the count of cancelled orders
+     * @returns {object[]} a list with one [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure) whose `info` carries the cancelled count
      */
     async cancelAllOrders(outcome = undefined, params = {}) {
         if (this.privateKey === undefined) {
@@ -1609,13 +1609,16 @@ export default class myriad extends Exchange {
             'signature': signature,
             'network_id': this.parseToInt(networkId),
         };
-        return await this.myriadPublicPostOrdersCancelAll(request);
+        const response = await this.myriadPublicPostOrdersCancelAll(request);
         //
         //     {
         //         "cancelled_count": 2,
         //         "market_ids_affected": [ "2cfe87e8-12df-4671-b9a9-0758898fd54b" ]
         //     }
         //
+        // the endpoint returns a count, not the orders: hand back one canceled order
+        // structure carrying the raw response, like limitless does
+        return [this.safePredictionOrder({ 'info': response, 'status': 'canceled' })];
     }
     /**
      * @method

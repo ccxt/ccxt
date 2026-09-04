@@ -6,30 +6,5 @@ namespace ccxt.prediction;
 public class  Myriad: myriad { public Myriad(object args = null) : base(args) { } }
 public partial class myriad
 {
-    /// <summary>
-    /// cancels all open order book orders for the wallet, optionally scoped to one market (gasless)
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da8281e7a14cd34e6a716761"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>outcome</term>
-    /// <description>
-    /// string : unified outcome; when omitted cancels across all markets
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> the raw response with the count of cancelled orders.</returns>
-    public async Task<Dictionary<string, object>> CancelAllOrders(string outcome = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.cancelAllOrders(outcome, parameters);
-        return ((Dictionary<string, object>)res);
-    }
+
 }

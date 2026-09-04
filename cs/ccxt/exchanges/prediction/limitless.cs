@@ -2750,7 +2750,7 @@ public partial class limitless : PredictionExchange
      * @param {string} [params.slug] the market slug to cancel all orders for
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public async virtual Task<object> cancelAllOrders(string outcome = null, object parameters = null)
+    public async virtual Task<List<ccxt.PredictionOrder>> CancelAllOrders(string outcome = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(!isEqual(outcome, null)))
@@ -2780,9 +2780,7 @@ public partial class limitless : PredictionExchange
         //         "message": "Orders canceled successfully"
         //     }
         //
-        return new List<object> {this.safePredictionOrder(new Dictionary<string, object>() {
-    { "info", response },
-})};
+        return ccxt.BaseExchange.ToPredictionOrderList(new List<object> {this.safePredictionOrder(new Dictionary<string, object>() {     { "info", response }, })});
     }
 
     /**

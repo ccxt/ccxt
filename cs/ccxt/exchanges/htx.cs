@@ -6181,7 +6181,7 @@ public partial class htx : Exchange
      * @param {float} [params.cost] the quote quantity that can be used as an alternative for the amount for market buy orders
      * @returns {object} request to be sent to the exchange
      */
-    public async virtual Task<object> createSpotOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> CreateSpotOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(type, null)))
@@ -6313,7 +6313,7 @@ public partial class htx : Exchange
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
         }
         parameters = this.omit(parameters, new List<object>() {"triggerPrice", "stopPrice", "stop-price", "clientOrderId", "client-order-id", "operator", "timeInForce"});
-        return this.extend(request, parameters);
+        return ccxt.BaseExchange.ToDict(this.extend(request, parameters));
     }
 
     public virtual object createContractOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
@@ -6634,7 +6634,7 @@ public partial class htx : Exchange
             {
                 throw new NotSupported ((string)add(this.id, " createOrder() does not support trailing orders for spot markets")) ;
             }
-            object spotRequest = await this.createSpotOrderRequest(symbol, type, side, amount, price, parameters);
+            object spotRequest = ccxt.BaseExchange.FromDict(await this.CreateSpotOrderRequest(symbol, type, side, amount, price, parameters));
             response = await this.spotPrivatePostV1OrderOrdersPlace(spotRequest);
         } else
         {
@@ -6844,7 +6844,7 @@ public partial class htx : Exchange
             object orderRequest = null;
             if (isTrue(isEqual(getValue(market, "spot"), true)))
             {
-                orderRequest = await this.createSpotOrderRequest(marketId, type, side, amount, price, orderParams);
+                orderRequest = ccxt.BaseExchange.FromDict(await this.CreateSpotOrderRequest(marketId, type, side, amount, price, orderParams));
             } else
             {
                 orderRequest = this.createContractOrderRequest(marketId, type, side, amount, price, orderParams);

@@ -6,11 +6,6 @@ namespace ccxt;
 
 public partial class hitbtc
 {
-    public async Task<List<Transaction>> FetchTransactionsHelper(object types, object code, object since, object limit, object parameters)
-    {
-        var res = await this.fetchTransactionsHelper(types, code, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new Transaction(item)).ToList<Transaction>();
-    }
     public List<Dictionary<string, object>> CreateOrderRequest(Dictionary<string, object> market, string marketType, string type, string side, double amount, double? price = null, string marginMode = null, Dictionary<string, object> parameters = null)
     {
         var res = this.createOrderRequest(market, marketType, type, side, amount, price, marginMode, parameters);

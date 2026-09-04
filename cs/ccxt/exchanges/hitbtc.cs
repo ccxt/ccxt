@@ -1563,7 +1563,7 @@ public partial class hitbtc : Exchange
         }, market);
     }
 
-    public async virtual Task<object> fetchTransactionsHelper(object types, object code, object since, object limit, object parameters)
+    public async virtual Task<List<ccxt.Transaction>> FetchTransactionsHelper(object types, object code, object since, object limit, object parameters)
     {
         if (isTrue(isEqual(this.markets, null)))
         {
@@ -1611,7 +1611,7 @@ public partial class hitbtc : Exchange
         //       }
         //     ]
         //
-        return this.parseTransactions(response, currency, since, limit, parameters);
+        return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(response, currency, since, limit, parameters));
     }
 
     public virtual object parseTransactionStatus(object status)
@@ -1741,7 +1741,7 @@ public partial class hitbtc : Exchange
     public async override Task<List<ccxt.Transaction>> FetchDepositsWithdrawals(object code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return ccxt.BaseExchange.ToTransactionList(await this.fetchTransactionsHelper("DEPOSIT,WITHDRAW", code, since, limit, parameters));
+        return await this.FetchTransactionsHelper("DEPOSIT,WITHDRAW", code, since, limit, parameters);
     }
 
     /**
@@ -1758,7 +1758,7 @@ public partial class hitbtc : Exchange
     public async override Task<List<ccxt.Transaction>> FetchDeposits(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return ccxt.BaseExchange.ToTransactionList(await this.fetchTransactionsHelper("DEPOSIT", code, since, limit, parameters));
+        return await this.FetchTransactionsHelper("DEPOSIT", code, since, limit, parameters);
     }
 
     /**
@@ -1775,7 +1775,7 @@ public partial class hitbtc : Exchange
     public async override Task<List<ccxt.Transaction>> FetchWithdrawals(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return ccxt.BaseExchange.ToTransactionList(await this.fetchTransactionsHelper("WITHDRAW", code, since, limit, parameters));
+        return await this.FetchTransactionsHelper("WITHDRAW", code, since, limit, parameters);
     }
 
     /**

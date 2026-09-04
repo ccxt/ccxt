@@ -30,43 +30,6 @@ public partial class htx
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.cost</term>
-    /// <description>
-    /// float : the quote quantity that can be used as an alternative for the amount for market buy orders
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> request to be sent to the exchange.</returns>
-    public async Task<Dictionary<string, object>> CreateSpotOrderRequest(string symbol, string type, string side, double amount, double? price = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.createSpotOrderRequest(symbol, type, side, amount, price, parameters);
-        return ((Dictionary<string, object>)res);
-    }
-    /// <summary>
-    /// helper function to build request
-    /// </summary>
-    /// <remarks>
-    /// <list type="table">
-    /// <item>
-    /// <term>price</term>
-    /// <description>
-    /// float : the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.timeInForce</term>
-    /// <description>
-    /// string : supports 'IOC' and 'FOK'
-    /// </description>
-    /// </item>
-    /// <item>
     /// <term>params.trailingPercent</term>
     /// <description>
     /// float : *contract only* the percent to trail away from the current market price
