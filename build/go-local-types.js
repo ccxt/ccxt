@@ -119,6 +119,15 @@ export function ccxtGoTypeOfPrintedCall (goTranspiler, printedValue) {
     while (value.startsWith ('(') && goTranspiler.isWholePrintedCall (value, 0)) {
         value = value.substring (1, value.length - 1).trim ();
     }
+    // a numeric literal boxes into `any` with Go's default constant type: an
+    // integer literal as `int`, anything with a fraction or exponent as `float64`.
+    // Declaring that type explicitly holds the identical runtime value.
+    if (/^\d+$/.test (value)) {
+        return 'int';
+    }
+    if (/^\d+(\.\d+)?([eE][+-]?\d+)?$/.test (value)) {
+        return 'float64';
+    }
     const open = value.indexOf ('(');
     if (open <= 0 || !goTranspiler.isWholePrintedCall (value, open)) {
         return undefined;
