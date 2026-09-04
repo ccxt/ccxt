@@ -6,46 +6,46 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 func TestFeatures(exchange ccxt.ICoreExchange, skippedProperties any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		var marketTypes any = []any{"spot", "swap", "future", "option"}
-		var subTypes any = []any{"linear", "inverse"}
-		var features any = exchange.GetFeatures()
-		var keys any = ObjectKeys(features)
-		for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
-			AssertInArray(exchange, skippedProperties, "features", keys, i, marketTypes)
-			var marketType any = GetValue(keys, i)
-			var value any = GetValue(features, marketType)
-			// Assert (value !== undefined, 'exchange.features["' + marketType + '"] is undefined, that key should be either absent or have a value');
-			if IsTrue(IsEqual(value, nil)) {
-				continue
-			}
-			if IsTrue(IsEqual(marketType, "spot")) {
-				TestFeaturesInner(exchange, skippedProperties, value)
-			} else {
-				var subKeys any = ObjectKeys(value)
-				for j := 0; IsLessThan(j, GetArrayLength(subKeys)); j++ {
-					var subKey any = GetValue(subKeys, j)
-					AssertInArray(exchange, skippedProperties, "features", subKeys, j, subTypes)
-					var subValue any = GetValue(value, subKey)
-					// sometimes it might not be available for exchange, eg. future>inverse)
-					if IsTrue(!IsEqual(subValue, nil)) {
-						TestFeaturesInner(exchange, skippedProperties, subValue)
-					}
+	ch := make(chan any, 1)
+	go testFeaturesBody(ch, exchange, skippedProperties)
+	return ch
+}
+func testFeaturesBody(ch chan any, exchange ccxt.ICoreExchange, skippedProperties any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var marketTypes []any = []any{"spot", "swap", "future", "option"}
+	var subTypes []any = []any{"linear", "inverse"}
+	var features any = exchange.GetFeatures()
+	var keys []string = ObjectKeys(features)
+	for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
+		AssertInArray(exchange, skippedProperties, "features", keys, i, marketTypes)
+		var marketType any = GetValue(keys, i)
+		var value any = GetValue(features, marketType)
+		// Assert (value !== undefined, 'exchange.features["' + marketType + '"] is undefined, that key should be either absent or have a value');
+		if IsTrue(IsEqual(value, nil)) {
+			continue
+		}
+		if IsTrue(IsEqual(marketType, "spot")) {
+			TestFeaturesInner(exchange, skippedProperties, value)
+		} else {
+			var subKeys []string = ObjectKeys(value)
+			for j := 0; IsLessThan(j, GetArrayLength(subKeys)); j++ {
+				var subKey any = GetValue(subKeys, j)
+				AssertInArray(exchange, skippedProperties, "features", subKeys, j, subTypes)
+				var subValue any = GetValue(value, subKey)
+				// sometimes it might not be available for exchange, eg. future>inverse)
+				if IsTrue(!IsEqual(subValue, nil)) {
+					TestFeaturesInner(exchange, skippedProperties, subValue)
 				}
 			}
 		}
+	}
 
-		ch <- true
-		return nil
-
-	}()
-	return ch
+	ch <- true
+	return nil
 }
 func TestFeaturesInner(exchange ccxt.ICoreExchange, skippedProperties any, featureObj any) {
-	var format any = map[string]any{
+	var format map[string]any = map[string]any{
 		"sandbox": false,
 		"createOrder": map[string]any{
 			"marginMode":   false,
@@ -121,8 +121,8 @@ func TestFeaturesInner(exchange ccxt.ICoreExchange, skippedProperties any, featu
 			"limit": 0,
 		},
 	}
-	var featureKeys any = ObjectKeys(featureObj)
-	var allMethods any = ObjectKeys(exchange.GetHas())
+	var featureKeys []string = ObjectKeys(featureObj)
+	var allMethods []string = ObjectKeys(exchange.GetHas())
 	for i := 0; IsLessThan(i, GetArrayLength(featureKeys)); i++ {
 		AssertInArray(exchange, skippedProperties, "features", featureKeys, i, allMethods)
 		AssertStructure(exchange, skippedProperties, "features", featureObj, format, nil, true) // deep structure check

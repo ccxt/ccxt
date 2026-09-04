@@ -6,8 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bitstamp import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, TradingFees, DepositWithdrawFees, Transaction, FundingRateHistory, TransferEntry
-from typing import List
+from ccxt.base.types import Balances, Currencies, Currency, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, TradingFees, DepositWithdrawFees, Transaction, FundingRateHistory, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -27,7 +26,7 @@ from ccxt.base.precise import Precise
 
 class bitstamp(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(bitstamp, self).describe(), {
             'id': 'bitstamp',
             'name': 'Bitstamp',
@@ -614,7 +613,7 @@ class bitstamp(Exchange, ImplicitAPI):
             },
         })
 
-    async def fetch_markets(self, params={}) -> List[Market]:
+    async def fetch_markets(self, params={}) -> list[Market]:
         """
         retrieves data on all markets for bitstamp
 
@@ -692,7 +691,7 @@ class bitstamp(Exchange, ImplicitAPI):
                 elif payoffType == 'Inverse':
                     subType = 'inverse'
             isSpot = (type == 'spot')
-            settle = self.safe_currency_code(settleId) if settleId else None
+            settle = self.safe_currency_code(settleId) if (settleId is not None and settleId != '') else None
             result.append({
                 'id': self.safe_string(market, 'market_symbol'),
                 'symbol': symbol,
@@ -745,7 +744,7 @@ class bitstamp(Exchange, ImplicitAPI):
             })
         return result
 
-    def construct_currency_object(self, id: Any, code: Any, name: Any, precision: Any, minCost: Any, originalPayload: Any):
+    def construct_currency_object(self, id: object, code: object, name: object, precision: object, minCost: object, originalPayload: object):
         currencyType = 'crypto'
         description = self.describe()
         if self.is_fiat(code):
@@ -783,7 +782,7 @@ class bitstamp(Exchange, ImplicitAPI):
             'networks': {},
         }
 
-    async def fetch_markets_from_cache(self, params={}):
+    async def fetch_markets_from_cache(self, params={}) -> list[dict]:
         # self method is now redundant
         # currencies are now fetched before markets
         options = self.safe_value(self.options, 'fetchMarkets', {})
@@ -841,7 +840,7 @@ class bitstamp(Exchange, ImplicitAPI):
         #
         return self.parse_currencies(response)
 
-    def parse_currencies(self, rawCurrencies: Any) -> Currencies:
+    def parse_currencies(self, rawCurrencies: object) -> Currencies:
         # each market row yields two currencies so the accumulation happens
         # in a local dictionary here instead of a temp key inside self.options
         # because the shared scratch key raced between concurrent
@@ -1024,7 +1023,7 @@ class bitstamp(Exchange, ImplicitAPI):
         #
         return self.parse_tickers(response, symbols)
 
-    def get_currency_id_from_transaction(self, transaction: Any):
+    def get_currency_id_from_transaction(self, transaction: object):
         #
         #     {
         #         "fee": "0.00000000",
@@ -1058,7 +1057,7 @@ class bitstamp(Exchange, ImplicitAPI):
                     return id
         return None
 
-    def get_market_from_trade(self, trade: Any):
+    def get_market_from_trade(self, trade: object):
         trade = self.omit(trade, [
             'fee',
             'price',
@@ -1209,7 +1208,7 @@ class bitstamp(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -1249,7 +1248,7 @@ class bitstamp(Exchange, ImplicitAPI):
         #
         return self.parse_trades(response, market, since, limit)
 
-    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #
         #     {
         #         "high": "9064.77",
@@ -1269,7 +1268,7 @@ class bitstamp(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'volume'),
         ]
 
-    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -1322,7 +1321,7 @@ class bitstamp(Exchange, ImplicitAPI):
         ohlc = self.safe_list(data, 'ohlc', [])
         return self.parse_ohlcvs(ohlc, market, timeframe, since, limit)
 
-    def parse_balance(self, response: Any) -> Balances:
+    def parse_balance(self, response: object) -> Balances:
         finalResponse = response  # java req
         result = {
             'info': finalResponse,
@@ -1417,7 +1416,7 @@ class bitstamp(Exchange, ImplicitAPI):
             'tierBased': None,
         }
 
-    def parse_trading_fees(self, fees: Any):
+    def parse_trading_fees(self, fees: object):
         result = {'info': fees}
         for i in range(0, len(fees)):
             fee = self.parse_trading_fee(fees[i])
@@ -1480,7 +1479,7 @@ class bitstamp(Exchange, ImplicitAPI):
         #
         return self.parse_transaction_fees(response)
 
-    def parse_transaction_fees(self, response: Any, codes: Strings = None):
+    def parse_transaction_fees(self, response: object, codes: Strings = None):
         result = {}
         currencies = self.index_by(response, 'currency')
         ids = list(currencies.keys())
@@ -1524,7 +1523,7 @@ class bitstamp(Exchange, ImplicitAPI):
         responseByCurrencyId = self.group_by(response, 'currency')
         return self.parse_deposit_withdraw_fees(responseByCurrencyId, codes)
 
-    def parse_deposit_withdraw_fee(self, fee: Any, currency: Currency = None):
+    def parse_deposit_withdraw_fee(self, fee: object, currency: Currency = None):
         result = self.deposit_withdraw_fee(fee)
         code = self.safe_string(currency, 'code')
         for j in range(0, len(fee)):
@@ -1789,19 +1788,21 @@ class bitstamp(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         request = {}
-        method = 'privatePostUserTransactions'
         market = None
         if symbol is not None:
             market = self.market(symbol)
             request['pair'] = market['id']
-            method += 'Pair'
         if limit is not None:
             request['limit'] = limit
-        response = await getattr(self, method)(self.extend(request, params))
+        response = None
+        if symbol is not None:
+            response = await self.privatePostUserTransactionsPair(self.extend(request, params))
+        else:
+            response = await self.privatePostUserTransactions(self.extend(request, params))
         result = self.filter_by(response, 'type', '2')
         return self.parse_trades(result, market, since, limit)
 
-    async def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[FundingRateHistory]:
+    async def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[FundingRateHistory]:
         """
         fetches historical funding rate prices
 
@@ -1847,7 +1848,7 @@ class bitstamp(Exchange, ImplicitAPI):
         values = self.safe_value(response, 'funding_rate_history', [])
         return self.parse_funding_rate_histories(values, market, since, limit)
 
-    def parse_funding_rate_history(self, contract: Any, market: Market = None):
+    def parse_funding_rate_history(self, contract: object, market: Market = None):
         #
         #     {
         #         "funding_rate": "0.0024",
@@ -1863,7 +1864,7 @@ class bitstamp(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         }
 
-    async def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch history of deposits and withdrawals
 
@@ -1913,7 +1914,7 @@ class bitstamp(Exchange, ImplicitAPI):
         transactions = self.filter_by_array(response, 'type', ['0', '1'], False)
         return self.parse_transactions(transactions, currency, since, limit)
 
-    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch all withdrawals made from an account
 
@@ -2188,7 +2189,7 @@ class bitstamp(Exchange, ImplicitAPI):
             'average': None,
         }, market)
 
-    def parse_ledger_entry_type(self, type: Any):
+    def parse_ledger_entry_type(self, type: object):
         types = {
             '0': 'transaction',
             '1': 'transaction',
@@ -2284,7 +2285,7 @@ class bitstamp(Exchange, ImplicitAPI):
                 'fee': parsedTransaction['fee'],
             }, currency)
 
-    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LedgerEntry]:
+    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[LedgerEntry]:
         """
         fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
@@ -2334,7 +2335,7 @@ class bitstamp(Exchange, ImplicitAPI):
         #
         return self.parse_funding_rate(response, market)
 
-    def parse_funding_rate(self, fundingRate: Any, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, fundingRate: object, market: Market = None) -> FundingRate:
         #
         #     {
         #         "funding_rate": "0.0024",
@@ -2367,7 +2368,7 @@ class bitstamp(Exchange, ImplicitAPI):
             'interval': None,
         }
 
-    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -2404,7 +2405,7 @@ class bitstamp(Exchange, ImplicitAPI):
             'type': 'limit',
         })
 
-    def get_currency_name(self, code: Any):
+    def get_currency_name(self, code: object):
         """
  @ignore
         :param str code: Unified currency code
@@ -2412,7 +2413,7 @@ class bitstamp(Exchange, ImplicitAPI):
         """
         return code.lower()
 
-    def is_fiat(self, code: Any):
+    def is_fiat(self, code: object):
         return code == 'USD' or code == 'EUR' or code == 'GBP'
 
     async def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
@@ -2428,8 +2429,9 @@ class bitstamp(Exchange, ImplicitAPI):
         if self.is_fiat(code):
             raise NotSupported(self.id + ' fiat fetchDepositAddress() for ' + code + ' is not supported!')
         name = self.get_currency_name(code)
-        method = 'privatePost' + self.capitalize(name) + 'Address'
-        response = await getattr(self, method)(params)
+        # the per-currency implicit methods(privatePostBtcAddress etc.) all route
+        # through request(), called here directly to avoid dynamic dispatch
+        response = await self.request(name + '_address/', 'private', 'POST', params)
         address = self.safe_string(response, 'address')
         tag = self.safe_string_2(response, 'memo_id', 'destination_tag')
         self.check_address(address)
@@ -2465,10 +2467,9 @@ class bitstamp(Exchange, ImplicitAPI):
             'amount': amount,
         }
         currency = None
-        method = None
+        response = None
         if not self.is_fiat(code):
             name = self.get_currency_name(code)
-            method = 'privatePost' + self.capitalize(name) + 'Withdrawal'
             if code == 'XRP':
                 if tag is not None:
                     request['destination_tag'] = tag
@@ -2476,12 +2477,14 @@ class bitstamp(Exchange, ImplicitAPI):
                 if tag is not None:
                     request['memo_id'] = tag
             request['address'] = address
+            # the per-currency implicit methods(privatePostBtcWithdrawal etc.) all
+            # route through request(), called here directly to avoid dynamic dispatch
+            response = await self.request(name + '_withdrawal/', 'private', 'POST', self.extend(request, params))
         else:
-            method = 'privatePostWithdrawalOpen'
             currency = self.currency(code)
             request['iban'] = address
             request['account_currency'] = currency['id']
-        response = await getattr(self, method)(self.extend(request, params))
+            response = await self.privatePostWithdrawalOpen(self.extend(request, params))
         return self.parse_transaction(response, currency)
 
     async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
@@ -2523,7 +2526,7 @@ class bitstamp(Exchange, ImplicitAPI):
         transfer['toAccount'] = toAccount
         return transfer
 
-    def parse_transfer(self, transfer: Any, currency: Currency = None):
+    def parse_transfer(self, transfer: object, currency: Currency = None):
         #
         #    {status: 'ok'}
         #
@@ -2553,13 +2556,13 @@ class bitstamp(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
-    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         url = self.urls['api'][api] + '/'
         url += self.version + '/'
         url += self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
-            if query:
+            if len(query) > 0:
                 url += '?' + self.urlencode(query)
         else:
             self.check_required_credentials()
@@ -2575,7 +2578,7 @@ class bitstamp(Exchange, ImplicitAPI):
                 'X-Auth-Version': xAuthVersion,
             }
             if method == 'POST':
-                if query:
+                if len(query) > 0:
                     body = self.urlencode(query)
                     contentType = 'application/x-www-form-urlencoded'
                     headers['Content-Type'] = contentType
@@ -2587,13 +2590,13 @@ class bitstamp(Exchange, ImplicitAPI):
                     body = self.urlencode({'foo': 'bar'})
                     contentType = 'application/x-www-form-urlencoded'
                     headers['Content-Type'] = contentType
-            authBody = body if body else ''
+            authBody = body if (body is not None and body != '') else ''
             auth = xAuth + method + url.replace('https://', '') + contentType + xAuthNonce + xAuthTimestamp + xAuthVersion + authBody
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
             headers['X-Auth-Signature'] = signature
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:
             return None
         #

@@ -145,10 +145,10 @@ public partial class upbit : Exchange
     }
 
     /// <summary>Calls the publicGetTickerAll endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> publicGetTickerAll (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> publicGetTickerAll (object parameters = null)
     {
-        return await this.callAsync<Dictionary<string, object>> ("publicGetTickerAll",parameters);
+        return await this.callAsync<List<object>> ("publicGetTickerAll",parameters);
     }
 
     /// <summary>Calls the publicGetOrderbook endpoint.</summary>

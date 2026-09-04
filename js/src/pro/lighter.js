@@ -478,7 +478,7 @@ export default class lighter extends lighterRest {
         const priceString = this.safeString(trade, 'price');
         const amountString = this.safeString(trade, 'size');
         const isMakerAsk = this.safeBool(trade, 'is_maker_ask');
-        const side = isMakerAsk ? 'buy' : 'sell';
+        const side = (isMakerAsk === true) ? 'buy' : 'sell';
         return this.safeTrade({
             'info': trade,
             'id': tradeId,
@@ -647,17 +647,17 @@ export default class lighter extends lighterRest {
                 // Own trades should use the account's order side
                 side = 'buy';
                 order = this.safeString(trade, 'bid_id');
-                takerOrMaker = isMakerAsk ? 'taker' : 'maker';
+                takerOrMaker = (isMakerAsk === true) ? 'taker' : 'maker';
             }
             else if (askAccountId === accountIndex) {
                 side = 'sell';
                 order = this.safeString(trade, 'ask_id');
-                takerOrMaker = isMakerAsk ? 'maker' : 'taker';
+                takerOrMaker = (isMakerAsk === true) ? 'maker' : 'taker';
             }
         }
         // public trades use Lighter's taker-side convention
         if (side === undefined) {
-            side = isMakerAsk ? 'buy' : 'sell';
+            side = (isMakerAsk === true) ? 'buy' : 'sell';
         }
         let fee = undefined;
         if (takerOrMaker !== undefined) {
@@ -844,7 +844,7 @@ export default class lighter extends lighterRest {
         //
         const timestamp = this.safeInteger(liquidation, 'timestamp');
         const isMakerAsk = this.safeBool(liquidation, 'is_maker_ask');
-        const side = isMakerAsk ? 'buy' : 'sell';
+        const side = (isMakerAsk === true) ? 'buy' : 'sell';
         const contracts = this.safeString(liquidation, 'size');
         const contractSize = this.safeString(market, 'contractSize');
         const price = this.safeString(liquidation, 'price');

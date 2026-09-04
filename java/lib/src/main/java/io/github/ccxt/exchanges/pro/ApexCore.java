@@ -1175,7 +1175,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
                 throw new ExchangeError((String)feedback) ;
             }
             Object success = this.safeValue(message, "success");
-            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(success, null)) && !Helpers.isTrue(success)))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(success, null))) && Helpers.isTrue((!Helpers.isEqual(success, true)))))
             {
                 Object ret_msg = this.safeString(message, "ret_msg");
                 Object request = this.safeValue(message, "request", new java.util.HashMap<String, Object>() {{}});
@@ -1220,7 +1220,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
 
     public void handleMessage(Client client, Object message)
     {
-        if (Helpers.isTrue(this.handleErrorMessage(client, message)))
+        if (Helpers.isTrue(Helpers.isEqual(this.handleErrorMessage(client, message), true)))
         {
             return;
         }
@@ -1353,7 +1353,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
         Object success = this.safeValue(message, "success");
         Object code = this.safeInteger(message, "retCode");
         Object messageHash = "authenticated";
-        if (Helpers.isTrue(Helpers.isTrue(success) || Helpers.isTrue(Helpers.isEqual(code, 0))))
+        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(success, true))) || Helpers.isTrue((Helpers.isEqual(code, 0)))))
         {
             Object future = this.safeValue(client.futures, messageHash);
             ((io.github.ccxt.ws.Future)future).resolve(true);

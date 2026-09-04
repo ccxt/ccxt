@@ -6,20 +6,20 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 func TestSignIn(exchange ccxt.ICoreExchange, skippedProperties any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		var method any = "signIn"
-		if IsTrue(GetValue(exchange.GetHas(), method)) {
-
-			retRes58 := (<-exchange.SignIn())
-			PanicOnError(retRes58)
-		}
-
-		ch <- true
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go testSignInBody(ch, exchange, skippedProperties)
 	return ch
+}
+func testSignInBody(ch chan any, exchange ccxt.ICoreExchange, skippedProperties any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var method string = "signIn"
+	if IsTrue(IsTrue(!IsEqual(GetValue(exchange.GetHas(), method), nil)) && IsTrue(!IsEqual(GetValue(exchange.GetHas(), method), false))) {
+
+		retRes58 := (<-exchange.SignIn())
+		PanicOnError(retRes58)
+	}
+
+	ch <- true
+	return nil
 }

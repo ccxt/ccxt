@@ -548,7 +548,7 @@ public partial class BaseExchange
             currencies = await this.fetchCurrencies();
             this.options.TryAdd("cachedCurrencies", currencies);
         }
-        var markets = await this.fetchMarkets();
+        var markets = await this.FetchMarkets();
         this.options.TryRemove("cachedCurrencies", out _);
         return this.setMarkets(markets, currencies);
     }
@@ -572,14 +572,14 @@ public partial class BaseExchange
         return marketsLoading;
     }
 
-    public virtual async Task<object> fetchMarkets(object parameters = null)
+    public virtual async Task<List<MarketInterface>> FetchMarkets(object parameters = null)
     {
-        return this.toArray(this.markets);
+        return ToMarketInterfaceList(this.toArray(this.markets));
     }
 
-    public virtual async Task<object> fetchMarketsWs(object parameters = null)
+    public virtual async Task<List<MarketInterface>> FetchMarketsWs(object parameters = null)
     {
-        return this.toArray(this.markets);
+        return ToMarketInterfaceList(this.toArray(this.markets));
     }
 
     public virtual async Task<object> fetchCurrencies(object parameters = null)
@@ -855,7 +855,23 @@ public partial class BaseExchange
             return byteArray[firstInt..secondInt2];
         }
 
-        var parsedArray = ((IList<object>)array);
+        // a typed core hands back List<Dictionary<string, object>> / List<string> / List<T>;
+        // List<T> is invariant so none of those IS an IList<object> - re-box through the
+        // non-generic IList instead of throwing InvalidCastException
+        IList<object> parsedArray;
+        if (array is IList<object> objectList)
+        {
+            parsedArray = objectList;
+        }
+        else
+        {
+            var boxed = new List<object>();
+            foreach (var item in (System.Collections.IList)array)
+            {
+                boxed.Add(item);
+            }
+            parsedArray = boxed;
+        }
         var isArrayCache = array is ccxt.pro.ArrayCache;
         // var typedArray = (array is ArrayCache) ? (ArrayCache)array : (IList<object>array);
         if (second == null)

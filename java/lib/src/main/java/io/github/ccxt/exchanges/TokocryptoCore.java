@@ -684,6 +684,7 @@ public class TokocryptoCore extends TokocryptoApi
                     put( "3211", InvalidOrder.class );
                     put( "3207", InvalidOrder.class );
                     put( "3218", OrderNotFound.class );
+                    put( "1106", BadRequest.class );
                 }} );
                 put( "broad", new java.util.HashMap<String, Object>() {{
                     put( "has no operation privilege", PermissionDenied.class );
@@ -855,7 +856,7 @@ public class TokocryptoCore extends TokocryptoApi
             //         "timestamp":1659492212507
             //     }
             //
-            if (Helpers.isTrue(Helpers.GetValue(this.options, "adjustForTimeDifference")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(this.options, "adjustForTimeDifference"), true)))
             {
                 (this.loadTimeDifference()).join();
             }
@@ -887,8 +888,9 @@ public class TokocryptoCore extends TokocryptoApi
                         break;
                     }
                 }
-                Object isMarginTradingAllowed = this.safeBool(market, "isMarginTradingAllowed", false);
+                Object marginTradingEnable = this.safeString(market, "marginTradingEnable");
                 final Object finalBase = base;
+                final Object finalMarginTradingEnable = marginTradingEnable;
                 final Object finalActive = active;
                 Object entry = new java.util.HashMap<String, Object>() {{
                     put( "id", id );
@@ -902,10 +904,9 @@ public class TokocryptoCore extends TokocryptoApi
                     put( "settleId", settleId );
                     put( "type", "spot" );
                     put( "spot", true );
-                    put( "margin", isMarginTradingAllowed );
+                    put( "margin", (Helpers.isEqual(finalMarginTradingEnable, "1")) );
                     put( "swap", false );
                     put( "future", false );
-                    put( "delivery", false );
                     put( "option", false );
                     put( "active", finalActive );
                     put( "contract", false );
@@ -919,7 +920,7 @@ public class TokocryptoCore extends TokocryptoApi
                     put( "precision", new java.util.HashMap<String, Object>() {{
                         put( "amount", TokocryptoCore.this.parseNumber(TokocryptoCore.this.parsePrecision(TokocryptoCore.this.safeString(market, "quantityPrecision"))) );
                         put( "price", TokocryptoCore.this.parseNumber(TokocryptoCore.this.parsePrecision(TokocryptoCore.this.safeString(market, "pricePrecision"))) );
-                        put( "base", TokocryptoCore.this.parseNumber(TokocryptoCore.this.parsePrecision(TokocryptoCore.this.safeString(market, "baseAssetPrecision"))) );
+                        put( "base", TokocryptoCore.this.parseNumber(TokocryptoCore.this.parsePrecision(TokocryptoCore.this.safeString(market, "basePrecision"))) );
                         put( "quote", TokocryptoCore.this.parseNumber(TokocryptoCore.this.parsePrecision(TokocryptoCore.this.safeString(market, "quotePrecision"))) );
                     }} );
                     put( "limits", new java.util.HashMap<String, Object>() {{
@@ -992,7 +993,7 @@ public class TokocryptoCore extends TokocryptoApi
      * @see https://www.tokocrypto.com/apidocs/#order-book
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @param {string} symbol unified symbol of the market to fetch the order book for
-     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {int} [limit] the maximum amount of order book entries to return, symbol type 3 markets accept 5, 10, 20, 50, 100, 500 or 1000 only
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
@@ -1008,20 +1009,20 @@ public class TokocryptoCore extends TokocryptoApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            Object request = new java.util.HashMap<String, Object>() {{
+                put( "symbol", TokocryptoCore.this.getMarketIdByType(market) );
+            }};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
                 Helpers.addElementToObject(request, "limit", limit); // default 100, max 5000, see https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md#order-book
             }
             Object response = null;
-            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "quote"), "USDT")))
+            if (Helpers.isTrue(this.isNativeMarket(market)))
             {
-                Helpers.addElementToObject(request, "symbol", Helpers.add(this.safeString(market, "baseId", ""), this.safeString(market, "quoteId", "")));
-                response = (this.binanceGetDepth(this.extend(request, parameters))).join();
+                response = (this.publicGetOpenV1MarketDepth(this.extend(request, parameters))).join();
             } else
             {
-                Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
-                response = (this.publicGetOpenV1MarketDepth(this.extend(request, parameters))).join();
+                response = (this.binanceGetDepth(this.extend(request, parameters))).join();
             }
             //
             // future
@@ -1171,7 +1172,7 @@ public class TokocryptoCore extends TokocryptoApi
         Object takerOrMaker = null;
         if (Helpers.isTrue(!Helpers.isEqual(buyerMaker, null)))
         {
-            side = ((Helpers.isTrue(buyerMaker))) ? "sell" : "buy"; // this is reversed intentionally
+            side = ((Helpers.isTrue((Helpers.isEqual(buyerMaker, true))))) ? "sell" : "buy"; // this is reversed intentionally
             takerOrMaker = "taker";
         } else if (Helpers.isTrue(Helpers.inOp(trade, "side")))
         {
@@ -1180,7 +1181,7 @@ public class TokocryptoCore extends TokocryptoApi
         {
             if (Helpers.isTrue(Helpers.inOp(trade, "isBuyer")))
             {
-                side = ((Helpers.isTrue(Helpers.GetValue(trade, "isBuyer")))) ? "buy" : "sell"; // this is a true side
+                side = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(trade, "isBuyer"), true))))) ? "buy" : "sell"; // this is a true side
             }
         }
         Object fee = null;
@@ -1193,11 +1194,11 @@ public class TokocryptoCore extends TokocryptoApi
         }
         if (Helpers.isTrue(Helpers.inOp(trade, "isMaker")))
         {
-            takerOrMaker = ((Helpers.isTrue(Helpers.GetValue(trade, "isMaker")))) ? "maker" : "taker";
+            takerOrMaker = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(trade, "isMaker"), true))))) ? "maker" : "taker";
         }
         if (Helpers.isTrue(Helpers.inOp(trade, "maker")))
         {
-            takerOrMaker = ((Helpers.isTrue(Helpers.GetValue(trade, "maker")))) ? "maker" : "taker";
+            takerOrMaker = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(trade, "maker"), true))))) ? "maker" : "taker";
         }
         final Object finalId = id;
         final Object finalSide = side;
@@ -1245,33 +1246,38 @@ public class TokocryptoCore extends TokocryptoApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
-                put( "symbol", TokocryptoCore.this.getMarketIdByType(market) );
-            }};
-            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "quote"), "USDT")))
+            Object request = new java.util.HashMap<String, Object>() {{}};
+            // the venue routes market data by the symbol type reported by fetchMarkets,
+            // not by the quote currency: type 1 markets are served by the binance host
+            // with the underscore-less id, every other type by open/v1 with the raw id
+            Helpers.addElementToObject(request, "symbol", this.getMarketIdByType(market));
+            if (Helpers.isTrue(this.isNativeMarket(market)))
             {
                 if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
                 {
                     Helpers.addElementToObject(request, "limit", limit);
                 }
-                Object responseInner = this.publicGetOpenV1MarketTrades(this.extend(request, parameters));
+                // open/v1/market/trades answers an empty list for every market, the
+                // aggregate endpoint is the one that carries data for these markets
+                Object responseInner = (this.publicGetOpenV1MarketAggTrades(this.extend(request, parameters))).join();
                 //
                 //    {
                 //       "code": 0,
-                //       "msg": "success",
+                //       "msg": "Success",
                 //       "data": {
                 //           "list": [
                 //                {
-                //                    "id": 28457,
-                //                    "price": "4.00000100",
-                //                    "qty": "12.00000000",
-                //                    "time": 1499865549590,
-                //                    "isBuyerMaker": true,
-                //                    "isBestMatch": true
+                //                    "a": 14433,             // aggregate tradeId
+                //                    "p": "495.00",          // price
+                //                    "q": "42.00000000",     // quantity
+                //                    "f": 15578,             // first tradeId
+                //                    "l": 15578,             // last tradeId
+                //                    "T": 1787292236948,     // timestamp
+                //                    "m": false              // was the buyer the maker?
                 //                }
                 //            ]
                 //        },
-                //        "timestamp": 1571921637091
+                //        "timestamp": 1787318052414
                 //    }
                 //
                 Object data = this.safeDict(responseInner, "data", new java.util.HashMap<String, Object>() {{}});
@@ -1451,6 +1457,9 @@ public class TokocryptoCore extends TokocryptoApi
             {
                 (this.loadMarkets()).join();
             }
+            // the binance backed host is the only source of 24hr statistics, so the
+            // result omits the native markets instead of raising for them, unlike
+            // the single symbol fetchTicker
             Object response = (this.binanceGetTicker24hr(parameters)).join();
             if (!Helpers.isTrue(Helpers.isArray(response)))
             {
@@ -1464,13 +1473,40 @@ public class TokocryptoCore extends TokocryptoApi
 
     }
 
+    /**
+     * @ignore
+     * @method
+     * @name tokocrypto#isNativeMarket
+     * @description whether a market is served by the tokocrypto native endpoints instead of the binance backed host
+     * @param {object} market a unified market structure
+     * @returns {boolean} true when the symbol type of the market is known and is not 1
+     */
+    public Object isNativeMarket(Object market)
+    {
+        Object marketInfo = this.safeDict(market, "info", new java.util.HashMap<String, Object>() {{}});
+        Object symbolType = this.safeString(marketInfo, "type");
+        // a market with an unknown symbol type falls back to the binance backed
+        // host, the route that answers with data for every symbol type 1 market
+        // and errors out loudly for the others, whereas open/v1 would answer an
+        // empty list for them
+        return Helpers.isTrue((!Helpers.isEqual(symbolType, null))) && Helpers.isTrue((!Helpers.isEqual(symbolType, "1")));
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name tokocrypto#getMarketIdByType
+     * @description the market id spelling expected by the host that serves the market
+     * @param {object} market a unified market structure
+     * @returns {string} the raw market id for native markets, the id without the underscore separator otherwise
+     */
     public Object getMarketIdByType(Object market)
     {
-        if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "quote"), "USDT")))
+        if (Helpers.isTrue(this.isNativeMarket(market)))
         {
-            return Helpers.add(Helpers.GetValue(market, "baseId"), Helpers.GetValue(market, "quoteId"));
+            return this.safeString(market, "id");
         }
-        return Helpers.GetValue(market, "id");
+        return Helpers.add(this.safeString(market, "baseId", ""), this.safeString(market, "quoteId", ""));
     }
 
     /**
@@ -1493,8 +1529,12 @@ public class TokocryptoCore extends TokocryptoApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
+            if (Helpers.isTrue(this.isNativeMarket(market)))
+            {
+                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchTicker() does not support "), symbol), " yet, the venue serves 24hr ticker statistics only for its binance backed markets")) ;
+            }
             Object request = new java.util.HashMap<String, Object>() {{
-                put( "symbol", Helpers.add(TokocryptoCore.this.safeString(market, "baseId", ""), TokocryptoCore.this.safeString(market, "quoteId", "")) );
+                put( "symbol", TokocryptoCore.this.getMarketIdByType(market) );
             }};
             Object response = (this.binanceGetTicker24hr(this.extend(request, parameters))).join();
             if (Helpers.isTrue(Helpers.isArray(response)))
@@ -1631,12 +1671,12 @@ public class TokocryptoCore extends TokocryptoApi
                 Helpers.addElementToObject(request, "endTime", until);
             }
             Object response = null;
-            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "quote"), "USDT")))
-            {
-                response = (this.binanceGetKlines(this.extend(request, parameters))).join();
-            } else
+            if (Helpers.isTrue(this.isNativeMarket(market)))
             {
                 response = (this.publicGetOpenV1MarketKlines(this.extend(request, parameters))).join();
+            } else
+            {
+                response = (this.binanceGetKlines(this.extend(request, parameters))).join();
             }
             //
             // binanceGetKlines
@@ -1648,6 +1688,17 @@ public class TokocryptoCore extends TokocryptoApi
             //     ]
             //
             // publicGetOpenV1MarketKlines
+            //
+            //     {
+            //         "code": 0,
+            //         "msg": "Success",
+            //         "data": [
+            //             [1787817600000,"521.00","537.00","521.00","537.00","1188.29000000",1787821199999,"632572.93",9,"1027.29000000","548331.93","0"],
+            //         ],
+            //         "timestamp": 1787822924930
+            //     }
+            //
+            // publicGetOpenV1MarketKlines, legacy envelope
             //
             //     {
             //         "code": 0,
@@ -1666,8 +1717,15 @@ public class TokocryptoCore extends TokocryptoApi
                 data = response;
             } else
             {
-                Object responseData = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-                data = this.safeList(responseData, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                Object dataList = this.safeList(response, "data");
+                if (Helpers.isTrue(!Helpers.isEqual(dataList, null)))
+                {
+                    data = dataList;
+                } else
+                {
+                    Object dataDict = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+                    data = this.safeList(dataDict, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                }
             }
             return this.parseOHLCVs(data, market, timeframe, since, limit);
         });
@@ -1983,7 +2041,7 @@ public class TokocryptoCore extends TokocryptoApi
             Object clientOrderId = this.safeString2(parameters, "clientOrderId", "clientId");
             Object postOnly = this.safeBool(parameters, "postOnly", false);
             // only supported for spot/margin api
-            if (Helpers.isTrue(postOnly))
+            if (Helpers.isTrue(Helpers.isEqual(postOnly, true)))
             {
                 type = "LIMIT_MAKER";
             }
@@ -2107,7 +2165,7 @@ public class TokocryptoCore extends TokocryptoApi
             {
                 triggerPriceIsRequired = true;
                 quantityIsRequired = true;
-                if (Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(market, "linear")) || Helpers.isTrue(Helpers.GetValue(market, "inverse"))))
+                if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "linear"), true))) || Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "inverse"), true)))))
                 {
                     priceIsRequired = true;
                 }
@@ -2965,7 +3023,7 @@ public class TokocryptoCore extends TokocryptoApi
         Object userDataStream = Helpers.isTrue((Helpers.isEqual(path, "userDataStream"))) || Helpers.isTrue((Helpers.isEqual(path, "listenKey")));
         if (Helpers.isTrue(userDataStream))
         {
-            if (Helpers.isTrue(this.apiKey))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(this.apiKey, null))) && Helpers.isTrue((!Helpers.isEqual(this.apiKey, "")))))
             {
                 // v1 special case for userDataStream
                 headers = new java.util.HashMap<String, Object>() {{
@@ -3022,7 +3080,7 @@ public class TokocryptoCore extends TokocryptoApi
             }
         } else
         {
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(parameters))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(parameters)), 0)))
             {
                 url = Helpers.add(url, Helpers.add("?", this.urlencode(parameters)));
             }
@@ -3070,7 +3128,7 @@ public class TokocryptoCore extends TokocryptoApi
         // check success value for wapi endpoints
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
         Object success = this.safeBool(response, "success", true);
-        if (!Helpers.isTrue(success))
+        if (Helpers.isTrue(!Helpers.isEqual(success, true)))
         {
             Object messageInner = this.safeString(response, "msg");
             Object parsedMessage = null;
@@ -3109,7 +3167,7 @@ public class TokocryptoCore extends TokocryptoApi
             // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
             // despite that their message is very confusing, it is raised by Binance
             // on a temporary ban, the API key is valid, but disabled for a while
-            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(error, "-2015"))) && Helpers.isTrue(Helpers.GetValue(this.options, "hasAlreadyAuthenticatedSuccessfully"))))
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(error, "-2015"))) && Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(this.options, "hasAlreadyAuthenticatedSuccessfully"), true)))))
             {
                 throw new DDoSProtection((String)Helpers.add(Helpers.add(this.id, " "), body)) ;
             }
@@ -3121,7 +3179,7 @@ public class TokocryptoCore extends TokocryptoApi
             this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), error, feedback);
             throw new ExchangeError((String)feedback) ;
         }
-        if (!Helpers.isTrue(success))
+        if (Helpers.isTrue(!Helpers.isEqual(success, true)))
         {
             throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " "), body)) ;
         }

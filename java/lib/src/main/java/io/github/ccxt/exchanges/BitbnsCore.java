@@ -836,13 +836,11 @@ public class BitbnsCore extends BitbnsApi
                 put( "symbol", Helpers.GetValue(market, "uppercaseId") );
                 put( "quantity", BitbnsCore.this.amountToPrecision(symbol, amount) );
             }};
-            Object method = "v2PostOrders";
             if (Helpers.isTrue(Helpers.isEqual(type, "limit")))
             {
                 Helpers.addElementToObject(request, "rate", this.priceToPrecision(symbol, price));
             } else
             {
-                method = "v1PostPlaceMarketOrderQntySymbol";
                 Helpers.addElementToObject(request, "market", Helpers.GetValue(market, "quoteId"));
             }
             if (Helpers.isTrue(!Helpers.isEqual(triggerPrice, null)))
@@ -857,7 +855,14 @@ public class BitbnsCore extends BitbnsApi
             {
                 Helpers.addElementToObject(request, "trail_rate", this.priceToPrecision(symbol, trailRate));
             }
-            Object response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { this.extend(request, parameters) })).join();
+            Object response = null;
+            if (Helpers.isTrue(Helpers.isEqual(type, "limit")))
+            {
+                response = (this.v2PostOrders(this.extend(request, parameters))).join();
+            } else
+            {
+                response = (this.v1PostPlaceMarketOrderQntySymbol(this.extend(request, parameters))).join();
+            }
             //
             //     {
             //         "data":"Successfully placed bid to purchase currency",
@@ -908,7 +913,7 @@ public class BitbnsCore extends BitbnsApi
                 put( "symbol", Helpers.GetValue(market, "uppercaseId") );
             }};
             Object response = null;
-            Object tail = ((Helpers.isTrue(isTrigger))) ? "StopLossOrder" : "Order";
+            Object tail = ((Helpers.isTrue((Helpers.isEqual(isTrigger, true))))) ? "StopLossOrder" : "Order";
             Object quoteSide = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "quoteId"), "USDT"))))) ? "usdtcancel" : "cancel";
             quoteSide = Helpers.add(quoteSide, tail);
             Helpers.addElementToObject(request, "side", quoteSide);
@@ -950,7 +955,7 @@ public class BitbnsCore extends BitbnsApi
                 put( "entry_id", id );
             }};
             Object trigger = this.safeBool2(parameters, "trigger", "stop");
-            if (Helpers.isTrue(trigger))
+            if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
             {
                 throw new BadRequest((String)Helpers.add(this.id, " fetchOrder cannot fetch stop orders")) ;
             }
@@ -1021,11 +1026,12 @@ public class BitbnsCore extends BitbnsApi
             Object isTrigger = this.safeBool2(parameters, "trigger", "stop");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("trigger", "stop")));
             Object quoteSide = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "quoteId"), "USDT"))))) ? "usdtListOpen" : "listOpen";
+            final Object finalIsTrigger = isTrigger;
             final Object finalQuoteSide = quoteSide;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "uppercaseId") );
                 put( "page", 0 );
-                put( "side", ((Helpers.isTrue(isTrigger))) ? (Helpers.add(finalQuoteSide, "StopOrders")) : (Helpers.add(finalQuoteSide, "Orders")) );
+                put( "side", ((Helpers.isTrue((Helpers.isEqual(finalIsTrigger, true))))) ? (Helpers.add(finalQuoteSide, "StopOrders")) : (Helpers.add(finalQuoteSide, "Orders")) );
             }};
             Object response = (this.v2PostGetordersnew(this.extend(request, parameters))).join();
             //
@@ -1562,13 +1568,13 @@ public class BitbnsCore extends BitbnsApi
         Object nonce = String.valueOf(this.nonce());
         if (Helpers.isTrue(Helpers.isEqual(method, "GET")))
         {
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
             {
                 url = Helpers.add(url, Helpers.add("?", this.urlencode(query)));
             }
         } else if (Helpers.isTrue(Helpers.isEqual(method, "POST")))
         {
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
             {
                 body = this.json(query);
             } else

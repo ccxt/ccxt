@@ -570,7 +570,7 @@ class bullish extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
          */
-        if ($this->options['adjustForTimeDifference']) {
+        if ($this->options['adjustForTimeDifference'] === true) {
             Async\await($this->load_time_difference());
         }
         $response = Async\await($this->publicGetV1Markets($params));
@@ -1183,7 +1183,7 @@ class bullish extends Exchange {
             $fee = array( 'currency' => $code, 'cost' => $feeCost );
         }
         $takerOrMaker = null;
-        if ($isTaker) {
+        if ($isTaker === true) {
             $takerOrMaker = 'taker';
         } else {
             $takerOrMaker = 'maker';
@@ -1343,16 +1343,21 @@ class bullish extends Exchange {
     private function do_safe_deterministic_call(string $method, ?string $symbol = null, ?int $since = null, ?int $limit = null, ?string $timeframe = null, $params = array()) {
         $maxRetries = null;
         list($maxRetries, $params) = $this->handle_option_and_params($params, $method, 'maxRetries', 3);
+        if (($method !== 'fetchOHLCV') && ($method !== 'fetchFundingRateHistory') && ($method !== 'fetchTrades')) {
+            throw new NotSupported($this->id . ' safeDeterministicCall() does not support the ' . $method . ' method');
+        }
         $errors = 0;
         $params = $this->omit($params, 'until');
         // the exchange returns the most recent data, so we do not need to pass until into paginated calls
         // the correct util value will be calculated inside of the $method
         while ($errors <= $maxRetries) {
             try {
-                if ($timeframe && $method !== 'fetchFundingRateHistory') {
-                    return Async\await($this->$method($symbol, $timeframe, $since, $limit, $params));
+                if ($method === 'fetchOHLCV') {
+                    return Async\await($this->fetch_ohlcv($symbol, $timeframe, $since, $limit, $params));
+                } elseif ($method === 'fetchFundingRateHistory') {
+                    return Async\await($this->fetch_funding_rate_history($symbol, $since, $limit, $params));
                 } else {
-                    return Async\await($this->$method($symbol, $since, $limit, $params));
+                    return Async\await($this->fetch_trades($symbol, $since, $limit, $params));
                 }
             } catch (Exception $e) {
                 if ($e instanceof RateLimitExceeded) {
@@ -1477,7 +1482,7 @@ class bullish extends Exchange {
             return Async\await($this->fetch_paginated_call_dynamic('fetchFundingRateHistory', $symbol, $since, $limit, $params, $maxLimit));
         }
         $market = $this->market($symbol);
-        if (!$market['swap']) {
+        if ($market['swap'] !== true) {
             throw new BadRequest($this->id . ' fetchFundingRateHistory() supports swap markets only');
         }
         $request = array(
@@ -1543,7 +1548,7 @@ class bullish extends Exchange {
         Async\await(Promise\all(array( $this->load_markets(), $this->handle_token() )));
         $tradingAccountId = Async\await($this->load_account($params));
         $paginate = $this->safe_bool($params, 'paginate', false);
-        if ($paginate) {
+        if ($paginate === true) {
             $params = $this->handle_pagination_params('fetchOrders', $since, $params);
             return Async\await($this->fetch_paginated_call_dynamic('fetchOrders', $symbol, $since, $limit, $params, 100));
         }
@@ -1909,7 +1914,7 @@ class bullish extends Exchange {
             $request['type'] = strtoupper($type);
         }
         $postOnly = $this->safe_bool($params, 'postOnly', false);
-        if ($postOnly) {
+        if ($postOnly === true) {
             $params = $this->omit($params, 'postOnly');
             $request['type'] = 'POST_ONLY';
         }
@@ -2836,7 +2841,7 @@ class bullish extends Exchange {
         $transferOptions = $this->safe_dict($this->options, 'transfer', array());
         $fillResponseFromRequest = $this->safe_bool($transferOptions, 'fillResponseFromRequest', true);
         $transfer = $this->parse_transfer($response, $currency);
-        if ($fillResponseFromRequest) {
+        if ($fillResponseFromRequest === true) {
             $transfer['fromAccount'] = $fromAccount;
             $transfer['toAccount'] = $toAccount;
             $transfer['amount'] = $amount;
@@ -2896,7 +2901,7 @@ class bullish extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function fetch_borrow_rate_history(string $code, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_borrow_rate_history(string $code, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_borrow_rate_history(...))($code, $since, $limit, $params);
     }
 
@@ -3140,7 +3145,7 @@ class bullish extends Exchange {
         }
         if ($method === 'GET') {
             $query = $this->urlencode($request);
-            if (strlen($query)) {
+            if (strlen($query) > 0) {
                 $url .= '?' . $query;
             }
         }

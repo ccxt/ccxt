@@ -68,45 +68,45 @@ func (this *BittradeCore) RequestId() any {
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *BittradeCore) WatchTicker(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
-
-			retRes6312 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes6312)
-		}
-		var market any = this.Market(symbol)
-		symbol = ccxt.GetValue(market, "symbol")
-		// only supports a limit of 150 at this time
-		var messageHash any = ccxt.Add(ccxt.Add("market.", ccxt.GetValue(market, "id")), ".detail")
-		var api any = this.SafeString(this.Options, "api", "api")
-		var hostname any = map[string]any{
-			"hostname": this.Hostname,
-		}
-		var url any = this.ImplodeParams(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), api), "public"), hostname)
-		var requestId any = this.RequestId()
-		var request any = map[string]any{
-			"sub": messageHash,
-			"id":  requestId,
-		}
-		var subscription any = map[string]any{
-			"id":          requestId,
-			"messageHash": messageHash,
-			"symbol":      symbol,
-			"params":      params,
-		}
-
-		retRes8315 := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash, subscription))
-		ccxt.PanicOnError(retRes8315)
-		ch <- retRes8315
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchTickerBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *BittradeCore) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes6312 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes6312)
+	}
+	var market any = this.Market(symbol)
+	symbol = ccxt.GetValue(market, "symbol")
+	// only supports a limit of 150 at this time
+	var messageHash any = ccxt.Add(ccxt.Add("market.", ccxt.GetValue(market, "id")), ".detail")
+	var api any = this.SafeString(this.Options, "api", "api")
+	var hostname map[string]any = map[string]any{
+		"hostname": this.Hostname,
+	}
+	var url any = this.ImplodeParams(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), api), "public"), hostname)
+	var requestId any = this.RequestId()
+	var request map[string]any = map[string]any{
+		"sub": messageHash,
+		"id":  requestId,
+	}
+	var subscription map[string]any = map[string]any{
+		"id":          requestId,
+		"messageHash": messageHash,
+		"symbol":      symbol,
+		"params":      params,
+	}
+
+	retRes8315 := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash, subscription))
+	ccxt.PanicOnError(retRes8315)
+	ch <- retRes8315
+	return nil
 }
 func (this *BittradeCore) HandleTicker(client any, message any) any {
 	//
@@ -131,7 +131,7 @@ func (this *BittradeCore) HandleTicker(client any, message any) any {
 	if ccxt.IsTrue(ccxt.IsEqual(ch, nil)) {
 		return message
 	}
-	var parts any = ccxt.Split(ch, ".")
+	var parts []string = ccxt.Split(ch, ".")
 	var marketId any = this.SafeString(parts, 1)
 	var market any = this.SafeMarket(marketId)
 	var ticker any = this.ParseTicker(tick, market)
@@ -155,53 +155,53 @@ func (this *BittradeCore) HandleTicker(client any, message any) any {
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *BittradeCore) WatchTrades(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		since := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = since
-		limit := ccxt.GetArg(optionalArgs, 1, nil)
-		_ = limit
-		params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
-		_ = params
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
-
-			retRes13412 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes13412)
-		}
-		var market any = this.Market(symbol)
-		symbol = ccxt.GetValue(market, "symbol")
-		// only supports a limit of 150 at this time
-		var messageHash any = ccxt.Add(ccxt.Add("market.", ccxt.GetValue(market, "id")), ".trade.detail")
-		var api any = this.SafeString(this.Options, "api", "api")
-		var hostname any = map[string]any{
-			"hostname": this.Hostname,
-		}
-		var url any = this.ImplodeParams(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), api), "public"), hostname)
-		var requestId any = this.RequestId()
-		var request any = map[string]any{
-			"sub": messageHash,
-			"id":  requestId,
-		}
-		var subscription any = map[string]any{
-			"id":          requestId,
-			"messageHash": messageHash,
-			"symbol":      symbol,
-			"params":      params,
-		}
-
-		trades := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash, subscription))
-		ccxt.PanicOnError(trades)
-		if ccxt.IsTrue(this.NewUpdates) {
-			limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
-		}
-
-		ch <- this.FilterBySinceLimit(trades, since, limit, "timestamp", true)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchTradesBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *BittradeCore) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	since := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = since
+	limit := ccxt.GetArg(optionalArgs, 1, nil)
+	_ = limit
+	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
+	_ = params
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes13412 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes13412)
+	}
+	var market any = this.Market(symbol)
+	symbol = ccxt.GetValue(market, "symbol")
+	// only supports a limit of 150 at this time
+	var messageHash any = ccxt.Add(ccxt.Add("market.", ccxt.GetValue(market, "id")), ".trade.detail")
+	var api any = this.SafeString(this.Options, "api", "api")
+	var hostname map[string]any = map[string]any{
+		"hostname": this.Hostname,
+	}
+	var url any = this.ImplodeParams(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), api), "public"), hostname)
+	var requestId any = this.RequestId()
+	var request map[string]any = map[string]any{
+		"sub": messageHash,
+		"id":  requestId,
+	}
+	var subscription map[string]any = map[string]any{
+		"id":          requestId,
+		"messageHash": messageHash,
+		"symbol":      symbol,
+		"params":      params,
+	}
+
+	trades := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash, subscription))
+	ccxt.PanicOnError(trades)
+	if ccxt.IsTrue(this.NewUpdates) {
+		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
+	}
+
+	ch <- this.FilterBySinceLimit(trades, since, limit, "timestamp", true)
+	return nil
 }
 func (this *BittradeCore) HandleTrades(client any, message any) any {
 	//
@@ -230,7 +230,7 @@ func (this *BittradeCore) HandleTrades(client any, message any) any {
 	if ccxt.IsTrue(ccxt.IsEqual(ch, nil)) {
 		return message
 	}
-	var parts any = ccxt.Split(ch, ".")
+	var parts []string = ccxt.Split(ch, ".")
 	var marketId any = this.SafeString(parts, 1)
 	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
@@ -260,56 +260,56 @@ func (this *BittradeCore) HandleTrades(client any, message any) any {
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
 func (this *BittradeCore) WatchOHLCV(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		timeframe := ccxt.GetArg(optionalArgs, 0, "1m")
-		_ = timeframe
-		since := ccxt.GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := ccxt.GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
-
-			retRes21912 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes21912)
-		}
-		var market any = this.Market(symbol)
-		symbol = ccxt.GetValue(market, "symbol")
-		var interval any = this.SafeString(this.Timeframes, timeframe, timeframe)
-		var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("market.", ccxt.GetValue(market, "id")), ".kline."), interval)
-		var api any = this.SafeString(this.Options, "api", "api")
-		var hostname any = map[string]any{
-			"hostname": this.Hostname,
-		}
-		var url any = this.ImplodeParams(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), api), "public"), hostname)
-		var requestId any = this.RequestId()
-		var request any = map[string]any{
-			"sub": messageHash,
-			"id":  requestId,
-		}
-		var subscription any = map[string]any{
-			"id":          requestId,
-			"messageHash": messageHash,
-			"symbol":      symbol,
-			"timeframe":   timeframe,
-			"params":      params,
-		}
-
-		ohlcv := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash, subscription))
-		ccxt.PanicOnError(ohlcv)
-		if ccxt.IsTrue(this.NewUpdates) {
-			limit = ccxt.ToGetsLimit(ohlcv).GetLimit(symbol, limit)
-		}
-
-		ch <- this.FilterBySinceLimit(ohlcv, since, limit, 0, true)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *BittradeCore) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	timeframe := ccxt.GetArg(optionalArgs, 0, "1m")
+	_ = timeframe
+	since := ccxt.GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes21912 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes21912)
+	}
+	var market any = this.Market(symbol)
+	symbol = ccxt.GetValue(market, "symbol")
+	var interval any = this.SafeString(this.Timeframes, timeframe, timeframe)
+	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("market.", ccxt.GetValue(market, "id")), ".kline."), interval)
+	var api any = this.SafeString(this.Options, "api", "api")
+	var hostname map[string]any = map[string]any{
+		"hostname": this.Hostname,
+	}
+	var url any = this.ImplodeParams(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), api), "public"), hostname)
+	var requestId any = this.RequestId()
+	var request map[string]any = map[string]any{
+		"sub": messageHash,
+		"id":  requestId,
+	}
+	var subscription map[string]any = map[string]any{
+		"id":          requestId,
+		"messageHash": messageHash,
+		"symbol":      symbol,
+		"timeframe":   timeframe,
+		"params":      params,
+	}
+
+	ohlcv := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash, subscription))
+	ccxt.PanicOnError(ohlcv)
+	if ccxt.IsTrue(this.NewUpdates) {
+		limit = ccxt.ToGetsLimit(ohlcv).GetLimit(symbol, limit)
+	}
+
+	ch <- this.FilterBySinceLimit(ohlcv, since, limit, 0, true)
+	return nil
 }
 func (this *BittradeCore) HandleOHLCV(client any, message any) {
 	//
@@ -332,7 +332,7 @@ func (this *BittradeCore) HandleOHLCV(client any, message any) {
 	if ccxt.IsTrue(ccxt.IsEqual(ch, nil)) {
 		return
 	}
-	var parts any = ccxt.Split(ch, ".")
+	var parts []string = ccxt.Split(ch, ".")
 	var marketId any = this.SafeString(parts, 1)
 	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
@@ -361,54 +361,54 @@ func (this *BittradeCore) HandleOHLCV(client any, message any) {
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *BittradeCore) WatchOrderBook(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		limit := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = limit
-		params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(limit, nil))) && ccxt.IsTrue((!ccxt.IsEqual(limit, 150)))) {
-			panic(ccxt.ExchangeError(ccxt.Add(this.Id, " watchOrderBook accepts limit = 150 only")))
-		}
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
-
-			retRes30112 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes30112)
-		}
-		var market any = this.Market(symbol)
-		symbol = ccxt.GetValue(market, "symbol")
-		// only supports a limit of 150 at this time
-		limit = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(limit, nil))), 150, limit)
-		var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("market.", ccxt.GetValue(market, "id")), ".mbp."), ccxt.ToString(limit))
-		var api any = this.SafeString(this.Options, "api", "api")
-		var hostname any = map[string]any{
-			"hostname": this.Hostname,
-		}
-		var url any = this.ImplodeParams(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), api), "public"), hostname)
-		var requestId any = this.RequestId()
-		var request any = map[string]any{
-			"sub": messageHash,
-			"id":  requestId,
-		}
-		var subscription any = map[string]any{
-			"id":          requestId,
-			"messageHash": messageHash,
-			"symbol":      symbol,
-			"limit":       limit,
-			"params":      params,
-			"method":      this.HandleOrderBookSubscription,
-		}
-
-		orderbook := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash, subscription))
-		ccxt.PanicOnError(orderbook)
-
-		ch <- orderbook.(ccxt.OrderBookInterface).Limit()
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *BittradeCore) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	limit := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = limit
+	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(limit, nil))) && ccxt.IsTrue((!ccxt.IsEqual(limit, 150)))) {
+		panic(ccxt.ExchangeError(ccxt.Add(this.Id, " watchOrderBook accepts limit = 150 only")))
+	}
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes30112 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes30112)
+	}
+	var market any = this.Market(symbol)
+	symbol = ccxt.GetValue(market, "symbol")
+	// only supports a limit of 150 at this time
+	limit = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(limit, nil))), 150, limit)
+	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("market.", ccxt.GetValue(market, "id")), ".mbp."), ccxt.ToString(limit))
+	var api any = this.SafeString(this.Options, "api", "api")
+	var hostname map[string]any = map[string]any{
+		"hostname": this.Hostname,
+	}
+	var url any = this.ImplodeParams(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), api), "public"), hostname)
+	var requestId any = this.RequestId()
+	var request map[string]any = map[string]any{
+		"sub": messageHash,
+		"id":  requestId,
+	}
+	var subscription map[string]any = map[string]any{
+		"id":          requestId,
+		"messageHash": messageHash,
+		"symbol":      symbol,
+		"limit":       limit,
+		"params":      params,
+		"method":      this.HandleOrderBookSubscription,
+	}
+
+	orderbook := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash, subscription))
+	ccxt.PanicOnError(orderbook)
+
+	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
+	return nil
 }
 func (this *BittradeCore) HandleOrderBookSnapshot(client any, message any, subscription any) {
 	//
@@ -451,66 +451,72 @@ func (this *BittradeCore) HandleOrderBookSnapshot(client any, message any, subsc
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
 func (this *BittradeCore) WatchOrderBookSnapshot(client any, message any, subscription any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		var messageHash any = this.SafeString(subscription, "messageHash")
+	ch := make(chan any, 1)
+	go this.watchOrderBookSnapshotBody(ch, client, message, subscription)
+	return ch
+}
+func (this *BittradeCore) watchOrderBookSnapshotBody(ch chan any, client any, message any, subscription any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	chSent := false
+	_ = chSent
+	var messageHash any = this.SafeString(subscription, "messageHash")
 
-		{
-			func(this *BittradeCore) (ret_ any) {
-				defer func() {
-					if e := recover(); e != nil {
-						if e == "break" {
-							return
-						}
-						ret_ = func(this *BittradeCore) any {
-							// catch block:
-							ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
-							client.(ccxt.ClientInterface).Reject(e, messageHash)
-							return nil
-						}(this)
+	{
+		func(this *BittradeCore) (ret_ any) {
+			defer func() {
+				if e := recover(); e != nil {
+					if e == "break" {
+						return
 					}
-				}()
-				// try block:
-				var symbol any = this.SafeString(subscription, "symbol")
-				var limit any = this.SafeInteger(subscription, "limit")
-				var params any = this.SafeValue(subscription, "params")
-				var api any = this.SafeString(this.Options, "api", "api")
-				var hostname any = map[string]any{
-					"hostname": this.Hostname,
+					ret_ = func(this *BittradeCore) any {
+						// catch block:
+						ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+						client.(ccxt.ClientInterface).Reject(e, messageHash)
+						return nil
+					}(this)
 				}
-				var url any = this.ImplodeParams(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), api), "public"), hostname)
-				var requestId any = this.RequestId()
-				var request any = map[string]any{
-					"req": messageHash,
-					"id":  requestId,
-				}
-				// this is a temporary subscription by a specific requestId
-				// it has a very short lifetime until the snapshot is received over ws
-				var snapshotSubscription any = map[string]any{
-					"id":          requestId,
-					"messageHash": messageHash,
-					"symbol":      symbol,
-					"limit":       limit,
-					"params":      params,
-					"method":      this.HandleOrderBookSnapshot,
-				}
+			}()
+			// try block:
+			var symbol any = this.SafeString(subscription, "symbol")
+			var limit any = this.SafeInteger(subscription, "limit")
+			var params any = this.SafeValue(subscription, "params")
+			var api any = this.SafeString(this.Options, "api", "api")
+			var hostname map[string]any = map[string]any{
+				"hostname": this.Hostname,
+			}
+			var url any = this.ImplodeParams(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), api), "public"), hostname)
+			var requestId any = this.RequestId()
+			var request map[string]any = map[string]any{
+				"req": messageHash,
+				"id":  requestId,
+			}
+			// this is a temporary subscription by a specific requestId
+			// it has a very short lifetime until the snapshot is received over ws
+			var snapshotSubscription map[string]any = map[string]any{
+				"id":          requestId,
+				"messageHash": messageHash,
+				"symbol":      symbol,
+				"limit":       limit,
+				"params":      params,
+				"method":      this.HandleOrderBookSnapshot,
+			}
 
-				orderbook := (<-this.Watch(url, requestId, request, requestId, snapshotSubscription))
-				ccxt.PanicOnError(orderbook)
+			orderbook := (<-this.Watch(url, requestId, request, requestId, snapshotSubscription))
+			ccxt.PanicOnError(orderbook)
 
-				ch <- orderbook.(ccxt.OrderBookInterface).Limit()
-				return nil
+			ch <- orderbook.(ccxt.OrderBookInterface).Limit()
+			chSent = true
+			return nil
 
-			}(this)
-
+		}(this)
+		if chSent {
+			return nil
 		}
 
-		return nil
+	}
 
-	}()
-	return ch
+	return nil
 }
 func (this *BittradeCore) HandleDelta(bookside any, delta any) {
 	var price any = this.SafeFloat(delta, 0)
@@ -586,7 +592,7 @@ func (this *BittradeCore) HandleOrderBook(client any, message any) {
 	//
 	var messageHash any = this.SafeString(message, "ch")
 	var ch any = this.SafeValue(message, "ch")
-	var parts any = ccxt.Split(ch, ".")
+	var parts []string = ccxt.Split(ch, ".")
 	var marketId any = this.SafeString(parts, 1)
 	var symbol any = this.SafeSymbol(marketId)
 	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
@@ -623,7 +629,7 @@ func (this *BittradeCore) HandleSubscriptionStatus(client any, message any) any 
 	if ccxt.IsTrue(ccxt.IsEqual(id, nil)) {
 		return message
 	}
-	var subscriptionsById any = this.IndexBy(client.(ccxt.ClientInterface).GetSubscriptions(), "id")
+	var subscriptionsById map[string]any = this.IndexBy(client.(ccxt.ClientInterface).GetSubscriptions(), "id")
 	var subscription any = this.SafeValue(subscriptionsById, id)
 	if ccxt.IsTrue(!ccxt.IsEqual(subscription, nil)) {
 		var method any = this.SafeValue(subscription, "method")
@@ -672,11 +678,11 @@ func (this *BittradeCore) HandleSubject(client any, message any) {
 	//     }
 	//
 	var ch any = this.SafeValue(message, "ch")
-	var parts any = ccxt.Split(ch, ".")
+	var parts []string = ccxt.Split(ch, ".")
 	var typeVar any = this.SafeString(parts, 0)
 	if ccxt.IsTrue(ccxt.IsEqual(typeVar, "market")) {
 		var methodName any = this.SafeString(parts, 2)
-		var methods any = map[string]any{
+		var methods map[string]any = map[string]any{
 			"mbp":    this.HandleOrderBook,
 			"detail": this.HandleTicker,
 			"trade":  this.HandleTrades,
@@ -689,21 +695,22 @@ func (this *BittradeCore) HandleSubject(client any, message any) {
 	}
 }
 func (this *BittradeCore) Pong(client any, message any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		//
-		//     { ping: 1583491673714 }
-		//
-
-		retRes5918 := (<-client.(ccxt.ClientInterface).Send(map[string]any{
-			"pong": this.SafeInteger(message, "ping"),
-		}))
-		ccxt.PanicOnError(retRes5918)
-		return nil
-	}()
+	ch := make(chan any, 1)
+	go this.pongBody(ch, client, message)
 	return ch
+}
+func (this *BittradeCore) pongBody(ch chan any, client any, message any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	//
+	//     { ping: 1583491673714 }
+	//
+
+	retRes5918 := (<-client.(ccxt.ClientInterface).Send(map[string]any{
+		"pong": this.SafeInteger(message, "ping"),
+	}))
+	ccxt.PanicOnError(retRes5918)
+	return nil
 }
 func (this *BittradeCore) HandlePing(client any, message any) {
 	this.Spawn(this.Pong, client, message)
@@ -724,7 +731,7 @@ func (this *BittradeCore) HandleErrorMessage(client any, message any) any {
 		if ccxt.IsTrue(ccxt.IsEqual(id, nil)) {
 			return false
 		}
-		var subscriptionsById any = this.IndexBy(client.(ccxt.ClientInterface).GetSubscriptions(), "id")
+		var subscriptionsById map[string]any = this.IndexBy(client.(ccxt.ClientInterface).GetSubscriptions(), "id")
 		var subscription any = this.SafeValue(subscriptionsById, id)
 		if ccxt.IsTrue(!ccxt.IsEqual(subscription, nil)) {
 			var errorCode any = this.SafeString(message, "err-code")
@@ -760,7 +767,7 @@ func (this *BittradeCore) HandleErrorMessage(client any, message any) any {
 	return true
 }
 func (this *BittradeCore) HandleMessage(client any, message any) {
-	if ccxt.IsTrue(this.HandleErrorMessage(client, message)) {
+	if ccxt.IsTrue(ccxt.IsEqual(this.HandleErrorMessage(client, message), true)) {
 		//
 		//     {"id":1583414227,"status":"ok","subbed":"market.btcusdt.mbp.150","ts":1583414229143}
 		//

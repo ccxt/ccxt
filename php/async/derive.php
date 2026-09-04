@@ -1215,7 +1215,7 @@ class derive extends Exchange {
             'bytes32', 'uint256', 'uint256', 'address', 'bytes32', 'uint256', 'address', 'address',
         ), $order), 'keccak', 'binary');
         $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
-        $DOMAIN_SEPARATOR = ($sandboxMode) ? '9bcf4dc06df5d8bf23af818d5716491b995020f377d3b7b64c29ed14e3dd1105' : 'd96e5f90797da7ec8dc4e276260c7f3f87fedf68775fbe1ef116e996fc60441b';
+        $DOMAIN_SEPARATOR = ($sandboxMode === true) ? '9bcf4dc06df5d8bf23af818d5716491b995020f377d3b7b64c29ed14e3dd1105' : 'd96e5f90797da7ec8dc4e276260c7f3f87fedf68775fbe1ef116e996fc60441b';
         $binaryDomainSeparator = $this->base16_to_binary($DOMAIN_SEPARATOR);
         $prefix = $this->base16_to_binary('1901');
         return $this->hash($this->binary_concat($prefix, $binaryDomainSeparator, $accountHash), 'keccak', 'hex');
@@ -1292,12 +1292,13 @@ class derive extends Exchange {
         $postOnly = $this->safe_bool($params, 'postOnly');
         $orderType = strtolower($type);
         $orderSide = strtolower($side);
+        $orderSideIsBuy = ($orderSide === 'buy'); // extracted to a named local => the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
         $nonce = $this->milliseconds();
         // Order $signature expiry must be between 2592000 and 7776000 sec from now
         $signatureExpiry = $this->safe_integer($params, 'signature_expiry_sec', $this->seconds() + 7776000);
         $ACTION_TYPEHASH = $this->base16_to_binary('4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17');
         $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
-        $TRADE_MODULE_ADDRESS = ($sandboxMode) ? '0x87F2863866D85E3192a35A73b388BD625D83f2be' : '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b';
+        $TRADE_MODULE_ADDRESS = ($sandboxMode === true) ? '0x87F2863866D85E3192a35A73b388BD625D83f2be' : '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b';
         $priceString = $this->number_to_string($price);
         $maxFee = null;
         list($maxFee, $params) = $this->handle_option_and_params($params, 'createOrder', 'max_fee');
@@ -1315,7 +1316,7 @@ class derive extends Exchange {
             $this->convert_to_big_int(($this->parse_units(($this->amount_to_precision($symbol, $amountString))))),
             $this->convert_to_big_int(($this->parse_units($maxFeeString))),
             $subaccountId,
-            $orderSide === 'buy',
+            $orderSideIsBuy,
         )), 'keccak', 'binary');
         $deriveWalletAddress = null;
         list($deriveWalletAddress, $params) = $this->handle_derive_wallet_address('createOrder', $params);
@@ -1344,7 +1345,7 @@ class derive extends Exchange {
         );
         if ($reduceOnly !== null) {
             $request['reduce_only'] = $reduceOnly;
-            if ($reduceOnly && $postOnly) {
+            if ($reduceOnly && ($postOnly === true)) {
                 throw new InvalidOrder($this->id . ' cannot use reduce only with post only time in force');
             }
         }
@@ -1373,7 +1374,7 @@ class derive extends Exchange {
         }
         $request['signature'] = $signature;
         $params = $this->omit($params, array( 'reduceOnly', 'reduce_only', 'timeInForce', 'time_in_force', 'postOnly', 'test', 'clientOrderId', 'stopPrice', 'triggerPrice', 'trigger_price', 'stopLoss', 'takeProfit', 'trigger_price_type' ));
-        if ($test) {
+        if ($test === true) {
             $response = Async\await($this->privatePostOrderDebug($this->extend($request, $params)));
         } else {
             $response = Async\await($this->privatePostOrder($this->extend($request, $params)));
@@ -1486,12 +1487,13 @@ class derive extends Exchange {
         $postOnly = $this->safe_bool($params, 'postOnly');
         $orderType = strtolower($type);
         $orderSide = strtolower($side);
+        $orderSideIsBuy = ($orderSide === 'buy'); // extracted to a named local => the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
         $nonce = $this->milliseconds();
         $signatureExpiry = $this->safe_number($params, 'signature_expiry_sec', $this->seconds() + 7776000);
         // TODO => subaccount $id / trade module address
         $ACTION_TYPEHASH = $this->base16_to_binary('4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17');
         $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
-        $TRADE_MODULE_ADDRESS = ($sandboxMode) ? '0x87F2863866D85E3192a35A73b388BD625D83f2be' : '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b';
+        $TRADE_MODULE_ADDRESS = ($sandboxMode === true) ? '0x87F2863866D85E3192a35A73b388BD625D83f2be' : '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b';
         $priceString = $this->number_to_string($price);
         $maxFeeString = $this->safe_string($params, 'max_fee', '0');
         $amountString = $this->number_to_string($amount);
@@ -1504,7 +1506,7 @@ class derive extends Exchange {
             $this->convert_to_big_int(($this->parse_units(($this->amount_to_precision($symbol, $amountString))))),
             $this->convert_to_big_int(($this->parse_units($maxFeeString))),
             $subaccountId,
-            $orderSide === 'buy',
+            $orderSideIsBuy,
         )), 'keccak', 'binary');
         $deriveWalletAddress = null;
         list($deriveWalletAddress, $params) = $this->handle_derive_wallet_address('editOrder', $params);
@@ -1533,7 +1535,7 @@ class derive extends Exchange {
         );
         if ($reduceOnly !== null) {
             $request['reduce_only'] = $reduceOnly;
-            if ($reduceOnly && $postOnly) {
+            if ($reduceOnly && ($postOnly === true)) {
                 throw new InvalidOrder($this->id . ' cannot use reduce only with post only time in force');
             }
         }
@@ -1670,7 +1672,7 @@ class derive extends Exchange {
             $response = Async\await($this->privatePostCancelByLabel($this->extend($request, $params)));
         } else {
             $request['order_id'] = $id;
-            if ($isTrigger) {
+            if ($isTrigger === true) {
                 $response = Async\await($this->privatePostCancelTriggerOrder($this->extend($request, $params)));
             } else {
                 $response = Async\await($this->privatePostCancel($this->extend($request, $params)));
@@ -1821,7 +1823,7 @@ class derive extends Exchange {
         } else {
             $request['page_size'] = 500;
         }
-        if ($isTrigger) {
+        if ($isTrigger === true) {
             $request['status'] = 'untriggered';
         }
         $response = Async\await($this->privatePostGetOrders($this->extend($request, $params)));
@@ -2051,7 +2053,7 @@ class derive extends Exchange {
         $isBid = $this->safe_bool($order, 'is_bid');
         $side = $this->safe_string($order, 'direction');
         if ($side === null) {
-            if ($isBid) {
+            if ($isBid === true) {
                 $side = 'buy';
             } else {
                 $side = 'sell';
@@ -2397,9 +2399,9 @@ class derive extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastUpdateTimestamp' => null,
-            'initialMargin' => $this->safe_string($position, 'initial_margin'),
+            'initialMargin' => $this->safe_number($position, 'initial_margin'),
             'initialMarginPercentage' => null,
-            'maintenanceMargin' => $this->safe_string($position, 'maintenance_margin'),
+            'maintenanceMargin' => $this->safe_number($position, 'maintenance_margin'),
             'maintenanceMarginPercentage' => null,
             'entryPrice' => null,
             'notional' => $this->parse_number($notional),
@@ -2818,7 +2820,7 @@ class derive extends Exchange {
     }
 
     public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
-        if (!$response) {
+        if ($response === null) {
             return null; // fallback to default $error handler
         }
         $error = $this->safe_dict($response, 'error');

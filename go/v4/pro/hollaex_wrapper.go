@@ -39,15 +39,9 @@ func (this *Hollaex) WatchOrderBook(symbol string, options ...ccxt.WatchOrderBoo
 		opt(&opts)
 	}
 
-	var limit any = nil
-	if opts.Limit != nil {
-		limit = *opts.Limit
-	}
+	var limit = opts.Limit
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params = opts.Params
 	res := <-this.Core.WatchOrderBook(symbol, limit, params)
 	if ccxt.IsError(res) {
 		return ccxt.OrderBook{}, ccxt.CreateReturnError(res)
@@ -74,20 +68,11 @@ func (this *Hollaex) WatchTrades(symbol string, options ...ccxt.WatchTradesOptio
 		opt(&opts)
 	}
 
-	var since any = nil
-	if opts.Since != nil {
-		since = *opts.Since
-	}
+	var since = opts.Since
 
-	var limit any = nil
-	if opts.Limit != nil {
-		limit = *opts.Limit
-	}
+	var limit = opts.Limit
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params = opts.Params
 	res := <-this.Core.WatchTrades(symbol, since, limit, params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
@@ -114,25 +99,13 @@ func (this *Hollaex) WatchMyTrades(options ...ccxt.WatchMyTradesOptions) ([]ccxt
 		opt(&opts)
 	}
 
-	var symbol any = nil
-	if opts.Symbol != nil {
-		symbol = *opts.Symbol
-	}
+	var symbol = opts.Symbol
 
-	var since any = nil
-	if opts.Since != nil {
-		since = *opts.Since
-	}
+	var since = opts.Since
 
-	var limit any = nil
-	if opts.Limit != nil {
-		limit = *opts.Limit
-	}
+	var limit = opts.Limit
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params = opts.Params
 	res := <-this.Core.WatchMyTrades(symbol, since, limit, params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
@@ -159,25 +132,13 @@ func (this *Hollaex) WatchOrders(options ...ccxt.WatchOrdersOptions) ([]ccxt.Ord
 		opt(&opts)
 	}
 
-	var symbol any = nil
-	if opts.Symbol != nil {
-		symbol = *opts.Symbol
-	}
+	var symbol = opts.Symbol
 
-	var since any = nil
-	if opts.Since != nil {
-		since = *opts.Since
-	}
+	var since = opts.Since
 
-	var limit any = nil
-	if opts.Limit != nil {
-		limit = *opts.Limit
-	}
+	var limit = opts.Limit
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params = opts.Params
 	res := <-this.Core.WatchOrders(symbol, since, limit, params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
@@ -320,7 +281,7 @@ func (this *Hollaex) EditOrders(orders []ccxt.OrderRequest, options ...ccxt.Edit
 func (this *Hollaex) FetchAccounts(params ...any) ([]ccxt.Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
 }
-func (this *Hollaex) FetchAllGreeks(options ...ccxt.FetchAllGreeksOptions) ([]ccxt.Greeks, error) {
+func (this *Hollaex) FetchAllGreeks(options ...ccxt.FetchAllGreeksOptions) (ccxt.AllGreeks, error) {
 	return this.exchangeTyped.FetchAllGreeks(options...)
 }
 func (this *Hollaex) FetchBalance(params ...any) (ccxt.Balances, error) {
@@ -368,7 +329,7 @@ func (this *Hollaex) FetchDepositAddress(code string, options ...ccxt.FetchDepos
 func (this *Hollaex) FetchDepositAddresses(options ...ccxt.FetchDepositAddressesOptions) ([]ccxt.DepositAddress, error) {
 	return this.exchangeTyped.FetchDepositAddresses(options...)
 }
-func (this *Hollaex) FetchDepositAddressesByNetwork(code string, options ...ccxt.FetchDepositAddressesByNetworkOptions) ([]ccxt.DepositAddress, error) {
+func (this *Hollaex) FetchDepositAddressesByNetwork(code string, options ...ccxt.FetchDepositAddressesByNetworkOptions) (ccxt.DepositAddresses, error) {
 	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
 }
 func (this *Hollaex) FetchDeposits(options ...ccxt.FetchDepositsOptions) ([]ccxt.Transaction, error) {

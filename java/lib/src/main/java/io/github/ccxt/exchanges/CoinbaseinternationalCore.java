@@ -86,8 +86,8 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
                 put( "fetchMarginMode", false );
                 put( "fetchMarkets", true );
                 put( "fetchMarkOHLCV", false );
-                put( "fetchMyBuys", true );
-                put( "fetchMySells", true );
+                put( "fetchMyBuys", false );
+                put( "fetchMySells", false );
                 put( "fetchMyTrades", true );
                 put( "fetchOHLCV", true );
                 put( "fetchOpenInterestHistory", false );
@@ -411,7 +411,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
             {
                 Object account = Helpers.GetValue(accounts, i);
                 Object info = this.safeDict(account, "info", new java.util.HashMap<String, Object>() {{}});
-                if (Helpers.isTrue(this.safeBool(info, "is_default")))
+                if (Helpers.isTrue(Helpers.isEqual(this.safeBool(info, "is_default"), true)))
                 {
                     Object portfolioId = this.safeString(info, "portfolio_id");
                     Helpers.addElementToObject(this.options, "portfolio", portfolioId);
@@ -990,11 +990,14 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
                 parameters = ((java.util.List<Object>) networkIdparametersVariable).get(1);
                 Helpers.addElementToObject(request, "network_arn_id", networkId);
             }
-            if (Helpers.isTrue(Helpers.isEqual(method, null)))
+            Object response = null;
+            if (Helpers.isTrue(Helpers.isEqual(method, "v1PrivatePostTransfersCreateCounterpartyId")))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " method is required")) ;
+                response = (this.v1PrivatePostTransfersCreateCounterpartyId(this.extend(request, parameters))).join();
+            } else
+            {
+                response = (this.v1PrivatePostTransfersAddress(this.extend(request, parameters))).join();
             }
-            Object response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { this.extend(request, parameters) })).join();
             //
             // v1PrivatePostTransfersAddress
             //    {
@@ -1010,12 +1013,13 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
             //
             Object tag = this.safeString(response, "destination_tag");
             Object address = this.safeString2(response, "address", "counterparty_id");
+            final Object finalResponse = response;
             return new java.util.HashMap<String, Object>() {{
                 put( "currency", code );
                 put( "tag", tag );
                 put( "address", address );
                 put( "network", null );
-                put( "info", response );
+                put( "info", finalResponse );
             }};
         });
 
@@ -1206,7 +1210,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
             maxEntriesPerRequest = ((java.util.List<Object>) maxEntriesPerRequestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) maxEntriesPerRequestparametersVariable).get(1);
             Object pageKey = "ccxtPageKey";
-            if (Helpers.isTrue(paginate))
+            if (Helpers.isTrue(Helpers.isEqual(paginate, true)))
             {
                 return (this.fetchPaginatedCallIncremental("fetchDepositsWithdrawals", code, since, limit, parameters, pageKey, maxEntriesPerRequest)).join();
             }
@@ -2108,6 +2112,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
             }};
             Object response = (this.v1PrivatePostPortfoliosTransfer(this.extend(request, parameters))).join();
             Object success = this.safeBool(response, "success");
+            final Object finalSuccess = success;
             return new java.util.HashMap<String, Object>() {{
                 put( "info", response );
                 put( "id", null );
@@ -2117,7 +2122,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
                 put( "amount", amount );
                 put( "fromAccount", fromAccount );
                 put( "toAccount", toAccount );
-                put( "status", ((Helpers.isTrue(success))) ? "ok" : "failed" );
+                put( "status", ((Helpers.isTrue((Helpers.isEqual(finalSuccess, true))))) ? "ok" : "failed" );
             }};
         });
 
@@ -2317,6 +2322,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
     public Object parseOrderStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
+            put( "WORKING", "open" );
             put( "NEW", "open" );
             put( "PARTIAL_FILLED", "open" );
             put( "FILLED", "closed" );
@@ -2438,7 +2444,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
                 put( "portfolio", finalPortfolio );
             }};
             Object market = null;
-            if (Helpers.isTrue(symbol))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(symbol, null))) && Helpers.isTrue((!Helpers.isEqual(symbol, "")))))
             {
                 market = this.market(symbol);
                 Helpers.addElementToObject(request, "instrument", Helpers.GetValue(market, "id"));
@@ -2631,7 +2637,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
                 put( "result_offset", offSet );
             }};
             Object market = null;
-            if (Helpers.isTrue(symbol))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(symbol, null))) && Helpers.isTrue((!Helpers.isEqual(symbol, "")))))
             {
                 market = this.market(symbol);
                 Helpers.addElementToObject(request, "instrument", symbol);
@@ -2859,11 +2865,14 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
                 put( "network_arn_id", finalNetworkId );
                 put( "nonce", CoinbaseinternationalCore.this.nonce() );
             }};
-            if (Helpers.isTrue(Helpers.isEqual(method, null)))
+            Object response = null;
+            if (Helpers.isTrue(Helpers.isEqual(method, "v1PrivatePostTransfersWithdrawCounterparty")))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " method is required")) ;
+                response = (this.v1PrivatePostTransfersWithdrawCounterparty(this.extend(request, parameters))).join();
+            } else
+            {
+                response = (this.v1PrivatePostTransfersWithdraw(this.extend(request, parameters))).join();
             }
-            Object response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { this.extend(request, parameters) })).join();
             //
             //    {
             //        "idem":"8e471d77-4208-45a8-9e5b-f3bd8a2c1fc3"
@@ -2888,7 +2897,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
         Object savedPath = Helpers.add("/api", fullPath);
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(method, "GET")) || Helpers.isTrue(Helpers.isEqual(method, "DELETE"))))
         {
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
             {
                 fullPath = Helpers.add(fullPath, Helpers.add("?", this.urlencodeWithArrayRepeat(query)));
             }
@@ -2901,7 +2910,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
             Object payload = "";
             if (Helpers.isTrue(!Helpers.isEqual(method, "GET")))
             {
-                if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+                if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
                 {
                     body = this.json(query);
                     payload = body;

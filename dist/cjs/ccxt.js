@@ -40,6 +40,7 @@ var blofin = require('./src/blofin.js');
 var btcbox = require('./src/btcbox.js');
 var btcmarkets = require('./src/btcmarkets.js');
 var btcturk = require('./src/btcturk.js');
+var btse = require('./src/btse.js');
 var bullish = require('./src/bullish.js');
 var bybit = require('./src/bybit.js');
 var bybiteu = require('./src/bybiteu.js');
@@ -101,6 +102,7 @@ var paradex = require('./src/paradex.js');
 var paymium = require('./src/paymium.js');
 var phemex = require('./src/phemex.js');
 var poloniex = require('./src/poloniex.js');
+var revolutx = require('./src/revolutx.js');
 var tokocrypto = require('./src/tokocrypto.js');
 var toobit = require('./src/toobit.js');
 var upbit = require('./src/upbit.js');
@@ -197,7 +199,7 @@ var polymarket = require('./src/prediction/polymarket.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.5.73';
+const version = '4.5.77';
 const exchanges = {
     'alpaca': alpaca["default"],
     'apex': apex["default"],
@@ -230,6 +232,7 @@ const exchanges = {
     'btcbox': btcbox["default"],
     'btcmarkets': btcmarkets["default"],
     'btcturk': btcturk["default"],
+    'btse': btse["default"],
     'bullish': bullish["default"],
     'bybit': bybit["default"],
     'bybiteu': bybiteu["default"],
@@ -291,6 +294,7 @@ const exchanges = {
     'paymium': paymium["default"],
     'phemex': phemex["default"],
     'poloniex': poloniex["default"],
+    'revolutx': revolutx["default"],
     'tokocrypto': tokocrypto["default"],
     'toobit': toobit["default"],
     'upbit': upbit["default"],
@@ -478,6 +482,7 @@ exports.blofin = blofin["default"];
 exports.btcbox = btcbox["default"];
 exports.btcmarkets = btcmarkets["default"];
 exports.btcturk = btcturk["default"];
+exports.btse = btse["default"];
 exports.bullish = bullish["default"];
 exports.bybit = bybit["default"];
 exports.bybiteu = bybiteu["default"];
@@ -539,6 +544,7 @@ exports.paradex = paradex["default"];
 exports.paymium = paymium["default"];
 exports.phemex = phemex["default"];
 exports.poloniex = poloniex["default"];
+exports.revolutx = revolutx["default"];
 exports.tokocrypto = tokocrypto["default"];
 exports.toobit = toobit["default"];
 exports.upbit = upbit["default"];

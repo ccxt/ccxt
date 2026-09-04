@@ -35,7 +35,7 @@ class woofipro extends woofipro$1["default"] {
                 'swap': true,
                 'future': false,
                 'option': false,
-                'addMargin': false,
+                'addMargin': true,
                 'borrowCrossMargin': false,
                 'borrowIsolatedMargin': false,
                 'borrowMargin': false,
@@ -97,7 +97,8 @@ class woofipro extends woofipro$1["default"] {
                 'fetchLedger': true,
                 'fetchLeverage': true,
                 'fetchMarginAdjustmentHistory': false,
-                'fetchMarginMode': false,
+                'fetchMarginMode': true,
+                'fetchMarginModes': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
@@ -128,11 +129,12 @@ class woofipro extends woofipro$1["default"] {
                 'fetchTransfers': false,
                 'fetchVolatilityHistory': false,
                 'fetchWithdrawals': true,
-                'reduceMargin': false,
+                'reduceMargin': true,
                 'repayCrossMargin': false,
                 'repayIsolatedMargin': false,
                 'setLeverage': true,
                 'setMargin': false,
+                'setMarginMode': true,
                 'setPositionMode': false,
                 'transfer': false,
                 'withdraw': true, // exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs: https://kronosresearch.github.io/wootrade-documents/#token-withdraw
@@ -262,6 +264,7 @@ class woofipro extends woofipro$1["default"] {
                             'broker/user_info': { 'cost': 10 },
                             'orderbook/{symbol}': { 'cost': 1 },
                             'kline': { 'cost': 1 },
+                            'client/margin_modes': { 'cost': 1 },
                         },
                         'post': {
                             'orderly_key': { 'cost': 1 },
@@ -277,6 +280,8 @@ class woofipro extends woofipro$1["default"] {
                             'notification/inbox/mark_read': { 'cost': 60 },
                             'notification/inbox/mark_read_all': { 'cost': 60 },
                             'client/leverage': { 'cost': 120 },
+                            'client/margin_mode': { 'cost': 1 },
+                            'position_margin': { 'cost': 1 },
                             'client/maintenance_config': { 'cost': 60 },
                             'delegate_signer': { 'cost': 10 },
                             'delegate_orderly_key': { 'cost': 10 },
@@ -1806,7 +1811,7 @@ class woofipro extends woofipro$1["default"] {
                 request['order_type'] = 'IOC';
             }
         }
-        if (reduceOnly) {
+        if (reduceOnly === true) {
             request['reduce_only'] = reduceOnly;
         }
         if (price !== undefined) {
@@ -2098,7 +2103,7 @@ class woofipro extends woofipro$1["default"] {
     async cancelOrder(id, symbol = undefined, params = {}) {
         const trigger = this.safeBool2(params, 'stop', 'trigger', false);
         params = this.omit(params, ['stop', 'trigger']);
-        if (!trigger && (symbol === undefined)) {
+        if ((trigger !== true) && (symbol === undefined)) {
             throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
         }
         if (this.markets === undefined) {
@@ -2115,7 +2120,7 @@ class woofipro extends woofipro$1["default"] {
         const clientOrderIdExchangeSpecific = this.safeString(params, 'client_order_id', clientOrderIdUnified);
         const isByClientOrder = clientOrderIdExchangeSpecific !== undefined;
         let response = undefined;
-        if (trigger) {
+        if (trigger === true) {
             if (isByClientOrder) {
                 request['client_order_id'] = clientOrderIdExchangeSpecific;
                 params = this.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id']);
@@ -2159,7 +2164,7 @@ class woofipro extends woofipro$1["default"] {
         else {
             extendParams['id'] = id;
         }
-        if (trigger) {
+        if (trigger === true) {
             const parsedResponse = (response === undefined) ? {} : response;
             return this.extend(this.parseOrder(parsedResponse), extendParams);
         }
@@ -2186,7 +2191,7 @@ class woofipro extends woofipro$1["default"] {
         params = this.omit(params, ['clOrdIDs', 'clientOrderIds', 'client_order_ids']);
         const request = {};
         let response = undefined;
-        if (clientOrderIds) {
+        if (clientOrderIds !== undefined) {
             request['client_order_ids'] = clientOrderIds.join(',');
             response = await this.v1PrivateDeleteClientBatchOrder(this.extend(request, params));
         }
@@ -2230,7 +2235,7 @@ class woofipro extends woofipro$1["default"] {
             request['symbol'] = market['id'];
         }
         let response = undefined;
-        if (trigger) {
+        if (trigger === true) {
             response = await this.v1PrivateDeleteAlgoOrders(this.extend(request, params));
         }
         else {
@@ -2285,8 +2290,8 @@ class woofipro extends woofipro$1["default"] {
         const clientOrderId = this.safeStringN(params, ['clOrdID', 'clientOrderId', 'client_order_id']);
         params = this.omit(params, ['stop', 'trigger', 'clOrdID', 'clientOrderId', 'client_order_id']);
         let response = undefined;
-        if (trigger) {
-            if (clientOrderId) {
+        if (trigger === true) {
+            if (clientOrderId !== undefined && clientOrderId !== '') {
                 request['client_order_id'] = clientOrderId;
                 response = await this.v1PrivateGetAlgoClientOrderClientOrderId(this.extend(request, params));
             }
@@ -2296,7 +2301,7 @@ class woofipro extends woofipro$1["default"] {
             }
         }
         else {
-            if (clientOrderId) {
+            if ((clientOrderId !== undefined) && (clientOrderId !== '')) {
                 request['client_order_id'] = clientOrderId;
                 response = await this.v1PrivateGetClientOrderClientOrderId(this.extend(request, params));
             }
@@ -2359,7 +2364,7 @@ class woofipro extends woofipro$1["default"] {
         }
         let paginate = false;
         const isTrigger = this.safeBool2(params, 'stop', 'trigger', false);
-        const maxLimit = (isTrigger) ? 100 : 500;
+        const maxLimit = (isTrigger === true) ? 100 : 500;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchOrders', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallIncremental('fetchOrders', symbol, since, limit, params, 'page', maxLimit);
@@ -2380,12 +2385,12 @@ class woofipro extends woofipro$1["default"] {
         else {
             request['size'] = maxLimit;
         }
-        if (isTrigger) {
+        if (isTrigger === true) {
             request['algo_type'] = 'STOP';
         }
         [request, params] = this.handleUntilOption('end_t', request, params);
         let response = undefined;
-        if (isTrigger) {
+        if (isTrigger === true) {
             response = await this.v1PrivateGetAlgoOrders(this.extend(request, params));
         }
         else {
@@ -2964,6 +2969,189 @@ class woofipro extends woofipro$1["default"] {
         const data = this.safeDict(response, 'data', {});
         return this.parseTransaction(data, currency);
     }
+    parseMarginMode(marginMode, market = undefined) {
+        //
+        //     {
+        //         "symbol": "PERP_BTC_USDC",
+        //         "default_margin_mode": "CROSS"
+        //     }
+        //
+        const marketId = this.safeString(marginMode, 'symbol');
+        market = this.safeMarket(marketId, market);
+        return {
+            'info': marginMode,
+            'symbol': market['symbol'],
+            'marginMode': this.safeStringLower(marginMode, 'default_margin_mode'),
+        };
+    }
+    /**
+     * @method
+     * @name woofipro#fetchMarginModes
+     * @description fetches the set margin mode of every contract market
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-margin-modes
+     * @param {string[]} [symbols] a list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/?id=margin-mode-structure}
+     */
+    async fetchMarginModes(symbols = undefined, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        symbols = this.marketSymbols(symbols);
+        const response = await this.v1PrivateGetClientMarginModes(params);
+        //
+        // {
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //         "rows": [{
+        //             "symbol": "PERP_BTC_USDC",
+        //             "default_margin_mode": "CROSS"
+        //         }]
+        //     }
+        // }
+        //
+        const data = this.safeDict(response, 'data', {});
+        const rows = this.safeList(data, 'rows', []);
+        return this.parseMarginModes(rows, symbols, 'symbol');
+    }
+    /**
+     * @method
+     * @name woofipro#fetchMarginMode
+     * @description fetches the set margin mode of a contract market
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-margin-modes
+     * @param {string} symbol unified symbol of the market
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
+     */
+    async fetchMarginMode(symbol, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const market = this.market(symbol);
+        const marginModes = await this.fetchMarginModes([market['symbol']], params);
+        const marginMode = this.safeDict(marginModes, market['symbol']);
+        if (marginMode === undefined) {
+            throw new errors.BadSymbol(this.id + ' fetchMarginMode() did not return a margin mode for ' + market['symbol']);
+        }
+        return marginMode;
+    }
+    /**
+     * @method
+     * @name woofipro#setMarginMode
+     * @description set margin mode to 'cross' or 'isolated' for a market
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/update-margin-mode
+     * @param {string} marginMode 'cross' or 'isolated'
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} response from the exchange
+     */
+    async setMarginMode(marginMode, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' setMarginMode() requires a symbol argument');
+        }
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        marginMode = marginMode.toLowerCase();
+        if (marginMode !== 'cross' && marginMode !== 'isolated') {
+            throw new errors.BadRequest(this.id + ' setMarginMode() marginMode must be either cross or isolated');
+        }
+        const market = this.market(symbol);
+        const request = {
+            'symbol': market['id'],
+            'default_margin_mode': marginMode.toUpperCase(),
+        };
+        //
+        // {
+        //     "success": true,
+        //     "timestamp": 1702989203989
+        // }
+        //
+        return await this.v1PrivatePostClientMarginMode(this.extend(request, params));
+    }
+    parseMarginModification(data, market = undefined) {
+        //
+        //     {
+        //         "success": true,
+        //         "timestamp": 1702989203989
+        //     }
+        //
+        const timestamp = this.safeInteger(data, 'timestamp');
+        const success = this.safeBool(data, 'success', false);
+        return {
+            'info': data,
+            'symbol': this.safeString(market, 'symbol'),
+            'type': undefined,
+            'marginMode': 'isolated',
+            'amount': undefined,
+            'total': undefined,
+            'code': this.safeString(market, 'settle'),
+            'status': (success === true) ? 'ok' : 'failed',
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+        };
+    }
+    /**
+     * @method
+     * @ignore
+     * @name woofipro#modifyMarginHelper
+     * @description add or reduce isolated position margin
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/add-or-reduce-position-margin
+     * @param {string} symbol unified market symbol
+     * @param {float} amount amount of margin to add or reduce
+     * @param {string} type 'ADD' or 'REDUCE'
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
+     */
+    async modifyMarginHelper(symbol, amount, type, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const market = this.market(symbol);
+        const request = {
+            'symbol': market['id'],
+            'amount': this.numberToString(amount),
+            'type': type,
+        };
+        const response = await this.v1PrivatePostPositionMargin(this.extend(request, params));
+        //
+        // {
+        //     "success": true,
+        //     "timestamp": 1702989203989
+        // }
+        //
+        const modification = this.parseMarginModification(response, market);
+        modification['type'] = (type === 'ADD') ? 'add' : 'reduce';
+        modification['amount'] = this.parseNumber(this.numberToString(amount));
+        return modification;
+    }
+    /**
+     * @method
+     * @name woofipro#addMargin
+     * @description add margin to an isolated position
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/add-or-reduce-position-margin
+     * @param {string} symbol unified market symbol
+     * @param {float} amount amount of margin to add
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
+     */
+    async addMargin(symbol, amount, params = {}) {
+        return await this.modifyMarginHelper(symbol, amount, 'ADD', params);
+    }
+    /**
+     * @method
+     * @name woofipro#reduceMargin
+     * @description remove margin from an isolated position
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/add-or-reduce-position-margin
+     * @param {string} symbol unified market symbol
+     * @param {float} amount amount of margin to remove
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=reduce-margin-structure}
+     */
+    async reduceMargin(symbol, amount, params = {}) {
+        return await this.modifyMarginHelper(symbol, amount, 'REDUCE', params);
+    }
     parseLeverage(leverage, market = undefined) {
         const leverageValue = this.safeInteger(leverage, 'max_leverage');
         return {
@@ -3227,7 +3415,7 @@ class woofipro extends woofipro$1["default"] {
         params = this.keysort(params);
         if (access === 'public') {
             url += pathWithParams;
-            if (Object.keys(params).length) {
+            if (Object.keys(params).length > 0) {
                 url += '?' + this.urlencode(params);
             }
         }
@@ -3235,7 +3423,7 @@ class woofipro extends woofipro$1["default"] {
             this.checkRequiredCredentials();
             if ((method === 'POST' || method === 'PUT') && (path === 'algo/order' || path === 'order' || path === 'batch-order')) {
                 const isSandboxMode = this.safeBool(this.options, 'sandboxMode', false);
-                if (!isSandboxMode) {
+                if (isSandboxMode !== true) {
                     const brokerId = this.safeString(this.options, 'brokerId', 'CCXT');
                     if (path === 'batch-order') {
                         const ordersList = this.safeList(params, 'orders', []);
@@ -3268,7 +3456,7 @@ class woofipro extends woofipro$1["default"] {
                 headers['content-type'] = 'application/json';
             }
             else {
-                if (Object.keys(params).length) {
+                if (Object.keys(params).length > 0) {
                     url += '?' + this.urlencode(params);
                     auth += '?' + this.rawencode(params);
                 }
@@ -3288,7 +3476,7 @@ class woofipro extends woofipro$1["default"] {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-        if (!response) {
+        if (response === undefined) {
             return undefined; // fallback to default error handler
         }
         //
@@ -3297,7 +3485,7 @@ class woofipro extends woofipro$1["default"] {
         //
         const success = this.safeBool(response, 'success');
         const errorCode = this.safeString(response, 'code');
-        if (!success) {
+        if (success !== true) {
             const feedback = this.id + ' ' + this.json(response);
             this.throwBroadlyMatchedException(this.exceptions['broad'], body, feedback);
             this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);

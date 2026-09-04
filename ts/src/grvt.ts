@@ -555,11 +555,11 @@ export default class grvt extends Exchange {
 
     async initializeClient (params = {}) {
         const builderFee = this.safeBool (params, 'builderFee', this.safeBool (this.options, 'builderFee', true)); // we shouldn't omit here
-        if (!builderFee) {
+        if (builderFee !== true) {
             return false; // skip if builder fee is not enabled
         }
         const approvedBuilderFee = this.safeBool (this.options, 'approvedBuilderFee', false);
-        if (approvedBuilderFee) {
+        if (approvedBuilderFee === true) {
             return true; // skip if builder fee is already approved
         }
         const results = await Promise.all ([ this.privateTradingPostFullV1GetAuthorizedBuilders (), this.loadAccountInfos () ]);
@@ -608,7 +608,7 @@ export default class grvt extends Exchange {
                 //
                 const authResult = this.safeDict (authResponse, 'result');
                 const ack = this.safeBool (authResult, 'ack');
-                if (!ack) {
+                if (ack !== true) {
                     throw new ExchangeError ('Builder authorization failed, ' + this.json (authResponse));
                 }
                 this.options['approvedBuilderFee'] = true;
@@ -1093,8 +1093,10 @@ export default class grvt extends Exchange {
             side = isTakerBuyer ? 'buy' : 'sell';
             takerOrMaker = 'taker';
         } else {
-            takerOrMaker = this.safeBool (trade, 'is_taker') ? 'taker' : 'maker';
-            side = this.safeBool (trade, 'is_buyer') ? 'buy' : 'sell';
+            const isTaker = (this.safeBool (trade, 'is_taker') === true);
+            const isBuyer = (this.safeBool (trade, 'is_buyer') === true);
+            takerOrMaker = isTaker ? 'taker' : 'maker';
+            side = isBuyer ? 'buy' : 'sell';
         }
         let fee: Fee = undefined;
         const feeString = this.safeString (trade, 'fee');
@@ -1284,10 +1286,13 @@ export default class grvt extends Exchange {
         //
         const marketId = this.safeString (rawItem, 'instrument');
         const ts = this.safeIntegerProduct (rawItem, 'funding_time', 0.000001);
+        // the api documents funding_rate in percentage points, and a unified
+        // fundingRate is a fraction, with the Manual's examples reading 0.000072
+        const rate = this.safeString (rawItem, 'funding_rate');
         return {
             'info': rawItem,
             'symbol': this.safeSymbol (marketId, market),
-            'fundingRate': this.safeNumber (rawItem, 'funding_rate'),
+            'fundingRate': this.parseNumber (Precise.stringDiv (rate, '100')),
             'timestamp': ts,
             'datetime': this.iso8601 (ts),
         };
@@ -1425,7 +1430,7 @@ export default class grvt extends Exchange {
             request['start_time'] = this.numberToString (since * 1000000);
         }
         const useTransfersEndpoint = this.safeBool (this.options, 'useTransfersEndpointForDepositsWithdrawals', true);
-        if (useTransfersEndpoint) {
+        if (useTransfersEndpoint === true) {
             const transfers = await this.internalFetchTransfers (this.extend (request, params), currency, since, limit);
             const filteredResults = this.filterTransfersByType (transfers, 'deposit', true);
             const transactions = this.getListFromObjectValues (filteredResults[0], 'info');
@@ -1482,7 +1487,7 @@ export default class grvt extends Exchange {
             request['start_time'] = this.numberToString (since * 1000000);
         }
         const useTransfersEndpoint = this.safeBool (this.options, 'useTransfersEndpointForDepositsWithdrawals', true);
-        if (useTransfersEndpoint) {
+        if (useTransfersEndpoint === true) {
             const transfers = await this.internalFetchTransfers (this.extend (request, params), currency, since, limit);
             const filteredResults = this.filterTransfersByType (transfers, 'withdrawal', true);
             const transactions = this.getListFromObjectValues (filteredResults[0], 'info');
@@ -1800,7 +1805,7 @@ export default class grvt extends Exchange {
         } catch (error) {
             const msg = this.exceptionMessage (error);
             const isFromFundingAccount = fromAccount === 'funding';
-            if (isFromFundingAccount && msg.indexOf ('You are not authorized')) {
+            if (isFromFundingAccount && (msg.indexOf ('You are not authorized') >= 0)) {
                 throw new PermissionDenied (this.id + ' transfer() failed. Ensure you use funding api-keys when trying to transfer from Funding accounts: ' + msg);
             }
             throw error;
@@ -2102,7 +2107,7 @@ export default class grvt extends Exchange {
         }
         let eipType = 'EIP712_ORDER_TYPE';
         const builderFee = this.safeBool (params, 'builderFee', this.safeBool (this.options, 'builderFee', true));
-        if (builderFee) {
+        if (builderFee === true) {
             eipType = 'EIP712_ORDER_WITH_BUILDER_TYPE';
             orderRequest['builder'] = this.safeString (this.options, 'builder');
             orderRequest['builder_fee'] = this.safeString (this.options, 'builderRate');
@@ -2991,11 +2996,11 @@ export default class grvt extends Exchange {
             });
         }
         const isMarket = this.safeBool (order, 'is_market');
-        const orderType = isMarket ? 'market' : 'limit';
+        const orderType = (isMarket === true) ? 'market' : 'limit';
         const isPostOnly = this.safeBool (order, 'post_only');
         const isReduceOnly = this.safeBool (order, 'reduce_only');
         const timeInForceRaw = this.safeString (order, 'time_in_force');
-        const timeInForce = isPostOnly ? 'PO' : this.parseTimeInForce (timeInForceRaw);
+        const timeInForce = (isPostOnly === true) ? 'PO' : this.parseTimeInForce (timeInForceRaw);
         let size: Str = undefined;
         let side: Str = undefined;
         let price: Str = undefined;
@@ -3012,7 +3017,8 @@ export default class grvt extends Exchange {
             const marketId = this.safeString (firstLeg, 'instrument');
             market = this.safeMarket (marketId, market);
             size = this.safeString (firstLeg, 'size');
-            side = this.safeBool (firstLeg, 'is_buying_asset') ? 'buy' : 'sell';
+            const isBuyingAsset = (this.safeBool (firstLeg, 'is_buying_asset') === true);
+            side = isBuyingAsset ? 'buy' : 'sell';
             price = this.safeString (firstLeg, 'limit_price');
             filled = this.safeString (filledAmounts, primaryOrderIndex);
             avgPrice = this.safeString (avgPrices, primaryOrderIndex);
@@ -3274,7 +3280,7 @@ export default class grvt extends Exchange {
         let url = this.urls['api'][api] + path;
         let queryString = '';
         if (method === 'GET') {
-            if (Object.keys (query).length) {
+            if (Object.keys (query).length > 0) {
                 queryString = this.urlencode (query);
                 url += '?' + queryString;
             }
@@ -3295,7 +3301,7 @@ export default class grvt extends Exchange {
             }
         }
         const isPrivate = api.startsWith ('private');
-        if (isPrivate) {
+        if (isPrivate === true) {
             this.checkRequiredCredentials ();
             if (queryString !== '') {
                 path = path + '?' + queryString;
@@ -3303,7 +3309,7 @@ export default class grvt extends Exchange {
             headers = {
                 'Content-Type': 'application/json',
             };
-            if (path.endsWith ('auth/api_key/login') || path.endsWith ('auth/wallet/login')) {
+            if ((path.endsWith ('auth/api_key/login') === true) || (path.endsWith ('auth/wallet/login') === true)) {
                 headers['Cookie'] = 'rm=true;';
             } else {
                 const accountId = this.safeString (this.options, 'AuthAccountId');

@@ -39,7 +39,7 @@ public partial class testMainClass : BaseTest
             assert(inOp(exchange.options, "networksById"), "exchange.options[\"networksById\"] is not set");
             assert(exchange.isDictionary(getValue(exchange.options, "networksById")), "exchange.options[\"networksById\"] is not a dict");
             //
-            object networkCodes = new List<object>(((IDictionary<string,object>)getValue(exchange.options, "networks")).Keys);
+            List<object> networkCodes = new List<object>(((IDictionary<string,object>)getValue(exchange.options, "networks")).Keys);
             // 3) ensure that the same network-id is not assigned to multiple networkCodes
             object collectedNetworkIds = new List<object>() {};
             for (object i = 0; isLessThan(i, getArrayLength(networkCodes)); postFixIncrement(ref i))
@@ -56,7 +56,7 @@ public partial class testMainClass : BaseTest
             object collectedNetworkCodes = new List<object>() {};
             for (object i = 0; isLessThan(i, getArrayLength(networkCodes)); postFixIncrement(ref i))
             {
-                object networkCodeLower = ((string)(getValue(networkCodes, i))).ToLower();
+                string networkCodeLower = ((string)(getValue(networkCodes, i))).ToLower();
                 assert(!isTrue(exchange.inArray(networkCodeLower, collectedNetworkCodes)), add(add("exchange.options[\"networks\"] contains multiple networkCodes with the same networkCode \"", getValue(networkCodes, i)), "\" in different uppercase/lowercase format"));
                 ((IList<object>)collectedNetworkCodes).Add(networkCodeLower);
             }

@@ -1079,7 +1079,7 @@ export default class onetrading extends onetradingRest {
             if (subscription !== undefined) {
                 const ohlcvMarket = this.safeValue(subscription, marketId, {});
                 const marketSubscribed = this.safeBool(ohlcvMarket, timeframe, false);
-                if (!marketSubscribed) {
+                if (marketSubscribed !== true) {
                     type = 'UPDATE_SUBSCRIPTION';
                     client.subscriptions[subscriptionHash] = undefined;
                 }
@@ -1188,7 +1188,9 @@ export default class onetrading extends onetradingRest {
         client.resolve(stored, channel);
     }
     findTimeframe(timeframe, timeframes = undefined) {
-        timeframes = timeframes || this.timeframes;
+        if (timeframes === undefined) {
+            timeframes = this.timeframes;
+        }
         if (timeframes === undefined) {
             throw new ArgumentsRequired(this.id + ' findTimeframe() timeframes is required');
         }
@@ -1333,7 +1335,7 @@ export default class onetrading extends onetradingRest {
                 for (let i = 0; i < marketIds.length; i++) {
                     const marketId = marketIds[i];
                     const marketSubscribed = this.safeBool(subscription, marketId, false);
-                    if (!marketSubscribed) {
+                    if (marketSubscribed !== true) {
                         type = 'UPDATE_SUBSCRIPTION';
                         client.subscriptions[subscriptionHash] = undefined;
                     }

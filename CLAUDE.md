@@ -1,6 +1,6 @@
 # CCXT — Repository Guide for Contributors and AI Agents
 
-CCXT is a unified cryptocurrency trading library with one source of truth (TypeScript) **transpiled** to JavaScript, Python, PHP, C#, Go and Java. The most common contributor mistake — especially by AI agents — is editing a generated file or shipping code without tests in all languages.
+CCXT is a unified cryptocurrency trading library with one source of truth (TypeScript) **transpiled** to JavaScript, Python, PHP, C#, Go, Java and Rust. The most common contributor mistake — especially by AI agents — is editing a generated file or shipping code without tests in all languages.
 
 Authoritative rules: `CONTRIBUTING.md` (transpiler conventions), `wiki/Manual.md` (unified API spec), `wiki/Requirements.md` (new-exchange checklist).
 
@@ -29,11 +29,12 @@ The pro class imports the REST class as `<exchange>Rest` and extends it. `descri
 | PHP | `ccxt\<ex>` | `ccxt\async\<ex>` | ReactPHP promises | **async auto-generated from sync** |
 | C# | n/a | native `Task`/`async` | `System.Net.WebSockets` | PascalCase wrappers in `cs/ccxt/wrappers/` |
 | Go | `(value, error)` returns | none | `gorilla/websocket` | three files per exchange: `<ex>.go`, `<ex>_api.go`, `<ex>_wrapper.go` |
+| Rust | n/a | native `async` (tokio) | `tokio-tungstenite` | cargo workspace under `rust/`: `ccxt-base` (cores), `ccxt` / `ccxt-pro` / `ccxt-prediction` (typed wrappers) |
 
 ### Two transpilers
 
 1. **Regex** — `build/transpile.ts`, `build/transpileWS.ts` → Python and PHP. Brittle; depends on TS formatting.
-2. **AST** — `ast-transpiler` npm package, used by `build/csharpTranspiler.ts` and `build/goTranspiler.ts` → C# and Go. More forgiving.
+2. **AST** — `ast-transpiler` npm package, used by `build/csharpTranspiler.ts`, `build/goTranspiler.ts` and `build/rustTranspiler.ts` → C#, Go and Rust. More forgiving.
 
 Code in `ts/src/` must satisfy **both**.
 
@@ -65,6 +66,7 @@ These are overwritten by the build:
 - `cs/ccxt/exchanges/**`, `cs/ccxt/ws/**`, `cs/ccxt/api/**`, `cs/ccxt/wrappers/**`
 - `cs/ccxt/base/Exchange.BaseMethods.cs` (generated portion only)
 - `go/v4/*.go` and `go/v4/pro/*.go` (every per-exchange Go file)
+- `rust/**` — the whole generated tree is gitignored and rebuilt by `rust.yml` on every run (only `binance` is kept in git as the reference venue)
 - `ts/src/abstract/*.ts` (emitted from each exchange's `api` block)
 - `dist/**`, `build/ccxt.wiki`, `index.d.cts`
 - `README.md` exchange tables, `wiki/Exchange-Markets*.md`
@@ -290,6 +292,7 @@ npm run transpileCS       # TS → C# (AST)
 npm run transpileCSWs     # C# WebSocket
 npm run transpileGO       # TS → Go (AST)
 npm run transpileJava     # TS → Java (REST + WS + wrappers)
+npm run transpileRust     # TS → Rust (AST; REST + WS + typed wrappers)
 # scoped (single exchange):
 npm run transpileRest --python <ex> && npm run transpileWs --python <ex>
 npm run transpileRest -- --php <ex> && npm run transpileWs -- --php <ex>
@@ -298,6 +301,7 @@ npm run transpileCsSingle -- --ws <ex>     # WebSocket
 npm run transpileJavaSingle -- <ex>        # REST
 npm run transpileJavaSingle -- --ws <ex>   # WebSocket
 npm run go-build-single -- <ex1> <ex2> # Go scoped
+tsx build/granular-rust-build.ts <ex1> <ex2>  # Rust scoped (pulls in ancestors + prediction tier)
 ```
 
 ### 6.3 Compile each target
@@ -306,6 +310,7 @@ npm run go-build-single -- <ex1> <ex2> # Go scoped
 npm run buildCS              # dotnet build cs/ccxt.sln
 npm run buildGO              # go build -C go ./v4 && go build -C go ./v4/pro
 npm run buildJava            # cd java/ && ./gradlew build && cd ../
+npm run buildRust            # cargo build --manifest-path rust/Cargo.toml
 npm run check-python-syntax  # tox -e qa
 npm run check-php-syntax
 go -C go build ./tests/main.go   # Go test binary
@@ -323,16 +328,17 @@ npm run force-build     # rebuild everything (very slow — reserve for releases
 
 ```bash
 # Base tests (only when important_modified in CI):
-npm run test-base-rest-{js,py,php,cs,go}    # REST base tests
-npm run test-base-ws-{js,py,php,cs,go}      # WS base tests
+npm run test-base-rest-{js,py,php,cs,go,rust}    # REST base tests
+npm run test-base-ws-{js,py,php,cs,go,rust}      # WS base tests
 npm run test-types-go                        # Go type tests
 # ID tests:
-npm run id-tests-{js,py,php,cs,go,java}
+npm run id-tests-{js,py,php,cs,go,java,rust}
 # Request/response tests (full or scoped with -- <exchange>):
-npm run request-{js,py,php,cs,go,java}      # all exchanges
+npm run request-{js,py,php,cs,go,java,rust}      # all exchanges
 npm run request-py-sync -- <ex> && npm run request-py-async -- <ex>  # Python scoped
 npm run request-php-sync -- <ex> && npm run request-php-async -- <ex> # PHP scoped
-npm run response-{js,py,php,cs,go,java}     # same pattern
+npm run response-{js,py,php,cs,go,java,rust}     # same pattern
+npm run ws-tests-rust -- <ex>                # Rust WS static tests
 ```
 
 ### 6.4.2 Live tests
@@ -351,6 +357,7 @@ npm run live-tests -- --csharp && npm run live-tests-ws -- --csharp  # C# full
 - [ ] `npm run transpile` (Python + PHP)
 - [ ] `npm run transpileCS` + `npm run buildCS`
 - [ ] `npm run transpileGO` + `npm run buildGO`
+- [ ] `npm run transpileRust` + `npm run buildRust`
 - [ ] `npm run check-python-syntax` + `npm run check-php-syntax`
 - [ ] Offline tests touched: `request-tests`, `response-tests`, `id-tests`; `test-base-rest`/`-ws` if base changed
 - [ ] At least one live smoke test on the affected exchange
@@ -368,7 +375,7 @@ Seven parallel workflows (`.github/workflows/`), each on `ubuntu-latest` + Node 
 | C# | `cs.yml` | `pre-transpile-cs` | `transpileCS && transpileCSWs` | `buildCS` | `./run-tests-simul.sh --csharp` |
 | Go | `go-app.yml` | `export-exchanges && emitAPI` | `goTranspiler.ts && --ws` | `buildGO` + `go fmt` | `./run-tests-simul.sh --go` |
 | Java | `java.yml` | `pre-transpile-java` | `transpileJava` | `buildJava` | `./run-tests-simul.sh --java` |
-| Rust | `rust.yml` | — | early-stage, no transpile/test steps wired up yet | — | — |
+| Rust | `rust.yml` | `export-exchanges && emitAPI` | `rustTranspiler.ts` (+ `--ws`) & `emitRustTyped`; scoped PRs use `granular-rust-build.ts` | `buildRust` | `./run-tests-simul.sh --rust` |
 
 **Reproduce locally:** `npm run export-exchanges && npm run emitAPI` first → `npm run pre-transpile-<lang>` → transpile → build → `npm run request-<lang> && npm run response-<lang>` → `./run-tests-simul.sh --<lang> "<ex>" "<ex>"` for live.
 
@@ -571,6 +578,7 @@ php/                    GENERATED + hand-written Exchange.php top + errors
 php/async/, php/pro/    GENERATED + hand-written ReactPHP plumbing
 cs/ccxt/                GENERATED + hand-written base/ (except BaseMethods.cs)
 go/v4/                  GENERATED Go (every file is transpiled)
+rust/                   GENERATED Rust cargo workspace (gitignored except the binance reference venue)
 wiki/                   docs (Manual.md = authoritative API spec)
 examples/               per-language end-user examples
 .claude/skills/         per-language usage skills (/ccxt-python, /ccxt-typescript, …)

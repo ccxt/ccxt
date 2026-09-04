@@ -1066,7 +1066,7 @@ public class HibachiCore extends HibachiApi
             sideInternal = "BID";
         }
         Object priceInternal = "";
-        if (Helpers.isTrue(price))
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(price, null))) && Helpers.isTrue((!Helpers.isEqual(price, 0)))))
         {
             priceInternal = this.priceToPrecision(symbol, price);
         }
@@ -1095,7 +1095,7 @@ public class HibachiCore extends HibachiApi
         } else if (Helpers.isTrue(Helpers.isEqual(timeInForce, "ioc")))
         {
             Helpers.addElementToObject(request, "orderFlags", "IOC");
-        } else if (Helpers.isTrue(reduceOnly))
+        } else if (Helpers.isTrue(Helpers.isEqual(reduceOnly, true)))
         {
             Helpers.addElementToObject(request, "orderFlags", "REDUCE_ONLY");
         }

@@ -7,7 +7,7 @@ import { Precise } from './base/Precise.js';
 import Exchange from './abstract/paradex.js';
 import { ExchangeError, PermissionDenied, AuthenticationError, BadRequest, ArgumentsRequired, OperationRejected, InvalidOrder } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Str, Num, Dict, Int, Market, OrderType, OrderSide, Order, OrderBook, Strings, Ticker, Tickers, Trade, Balances, Currency, Transaction, OHLCV, Position, int, MarginMode, Leverage, Greeks, FundingRateHistory, FundingHistory, Liquidation, TradingFeeInterface, TradingFees, TransferEntry, OrderRequest, Bool, List, NullableDict, Status, Endpoint } from './base/types.js';
+import type { Str, Num, Dict, Int, Market, OrderType, OrderSide, Order, OrderBook, Strings, Ticker, Tickers, Trade, Balances, Currency, Transaction, OHLCV, Position, int, MarginMode, Leverage, Greeks, FundingRateHistory, FundingHistory, Liquidation, TradingFeeInterface, TradingFees, TransferEntry, OrderRequest, Bool, List, NullableDict, Status, Endpoint, AllGreeks } from './base/types.js';
 import { ecdsa } from './base/functions/crypto.js';
 //  ---------------------------------------------------------------------------
 
@@ -1216,7 +1216,7 @@ export default class paradex extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (!market['contract']) {
+        if (market['contract'] !== true) {
             throw new BadRequest (this.id + ' fetchOpenInterest() supports contract markets only');
         }
         const request: Dict = {
@@ -1500,11 +1500,12 @@ export default class paradex extends Exchange {
         const side = this.safeStringLower (order, 'side');
         const average = this.omitZero (this.safeString (order, 'avg_fill_price'));
         const remaining = this.omitZero (this.safeString (order, 'remaining_size'));
+        const triggerPrice = this.omitZero (this.safeString (order, 'trigger_price'));
         const lastUpdateTimestamp = this.safeInteger (order, 'last_updated_at');
-        const flags = this.safeList (order, 'flags', []);
+        const flags = this.safeList (order, 'flags');
         let reduceOnly: Bool = undefined;
-        if ('REDUCE_ONLY' in flags) {
-            reduceOnly = true;
+        if (flags !== undefined) {
+            reduceOnly = this.inArray ('REDUCE_ONLY', flags);
         }
         return this.safeOrder ({
             'id': orderId,
@@ -1521,7 +1522,7 @@ export default class paradex extends Exchange {
             'reduceOnly': reduceOnly,
             'side': side,
             'price': price,
-            'triggerPrice': this.safeString (order, 'trigger_price'),
+            'triggerPrice': triggerPrice,
             'takeProfitPrice': undefined,
             'stopLossPrice': undefined,
             'average': average,
@@ -1654,7 +1655,7 @@ export default class paradex extends Exchange {
             request['trigger_price'] = stopPrice;
         }
         request['size'] = sizeString;
-        if (reduceOnly) {
+        if (reduceOnly === true) {
             request['flags'] = [
                 'REDUCE_ONLY',
             ];
@@ -2450,15 +2451,16 @@ export default class paradex extends Exchange {
             quantity = Precise.stringMul ('-1', quantity);
         }
         const timestamp = this.safeInteger (position, 'time');
+        const liquidationPrice = this.parseNumber (this.omitZero (this.safeString (position, 'liquidation_price')));
         return this.safePosition ({
             'info': position,
             'id': this.safeString (position, 'id'),
             'symbol': symbol,
-            'entryPrice': this.safeString (position, 'average_entry_price'),
+            'entryPrice': this.safeNumber (position, 'average_entry_price'),
             'markPrice': undefined,
             'notional': undefined,
-            'collateral': this.safeString (position, 'cost'),
-            'unrealizedPnl': this.safeString (position, 'unrealized_pnl'),
+            'collateral': this.safeNumber (position, 'cost'),
+            'unrealizedPnl': this.safeNumber (position, 'unrealized_pnl'),
             'side': side,
             'contracts': this.parseNumber (quantity),
             'contractSize': undefined,
@@ -2470,7 +2472,7 @@ export default class paradex extends Exchange {
             'initialMargin': undefined,
             'initialMarginPercentage': undefined,
             'leverage': undefined,
-            'liquidationPrice': undefined,
+            'liquidationPrice': liquidationPrice,
             'marginRatio': undefined,
             'marginMode': undefined,
             'percentage': undefined,
@@ -3058,9 +3060,9 @@ export default class paradex extends Exchange {
      * @see https://docs.paradex.trade/api/prod/markets/get-markets-summary
      * @param {string[]} [symbols] unified symbols of the markets to fetch greeks for, all markets are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
+     * @returns {object} a dictionary of [greeks structures]{@link https://docs.ccxt.com/?id=greeks-structure} indexed by market symbol
      */
-    override async fetchAllGreeks (symbols: Strings = undefined, params = {}): Promise<Greeks[]> {
+    override async fetchAllGreeks (symbols: Strings = undefined, params = {}): Promise<AllGreeks> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3337,7 +3339,7 @@ export default class paradex extends Exchange {
         let url = this.implodeHostname (this.urls['api'][(version as string)]) + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
-            if (Object.keys (query).length) {
+            if (Object.keys (query).length > 0) {
                 url += '?' + this.urlencode (query);
             }
         } else if (api === 'private') {
@@ -3387,7 +3389,7 @@ export default class paradex extends Exchange {
     }
 
     override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
-        if (!response) {
+        if (response === undefined) {
             return undefined; // fallback to default error handler
         }
         //

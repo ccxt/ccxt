@@ -456,7 +456,7 @@ public partial class lighter : Exchange
         var libraryPathparametersVariable = this.handleOptionAndParams(parameters, "loadAccount", "libraryPath");
         libraryPath = ((IList<object>)libraryPathparametersVariable)[0];
         parameters = ((IList<object>)libraryPathparametersVariable)[1];
-        object lighterPrivateKeyIsSet = isTrue((!isEqual(privateKey, null))) && isTrue((!isEqual(privateKey, "")));
+        bool lighterPrivateKeyIsSet = isTrue((!isEqual(privateKey, null))) && isTrue((!isEqual(privateKey, "")));
         if (isTrue(isTrue(isTrue(isTrue(lighterPrivateKeyIsSet) && isTrue((!isEqual(libraryPath, null)))) && isTrue((!isEqual(apiKeyIndex, null)))) && isTrue((!isEqual(accountIndex, null)))))
         {
             // load lighter library, and create lighter client
@@ -464,7 +464,7 @@ public partial class lighter : Exchange
             ((IDictionary<string,object>)getValue(getValue(getValue(this.options, "auths"), accountIndex), apiKeyIndex))["signer"] = signer;
             return signer;
         }
-        object privateKeyIsSet = isTrue((!isEqual(this.privateKey, null))) && isTrue((!isEqual(this.privateKey, "")));
+        bool privateKeyIsSet = isTrue((!isEqual(this.privateKey, null))) && isTrue((!isEqual(this.privateKey, "")));
         if (isTrue(isTrue(isTrue(privateKeyIsSet) && isTrue((!isEqual(apiKeyIndex, null)))) && isTrue((!isEqual(accountIndex, null)))))
         {
             if (isTrue(isGreaterThan(((string)this.privateKey).Length, 66)))
@@ -635,7 +635,7 @@ public partial class lighter : Exchange
         return new List<object> {this.parseToInt(accountIndex), parameters};
     }
 
-    public async override Task<object> createSubAccount(object name, object parameters = null)
+    public async override Task<Dictionary<string, object>> CreateSubAccount(object name, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object apiKeyIndex = null;
@@ -646,7 +646,7 @@ public partial class lighter : Exchange
         var accountIndexparametersVariable = await this.handleAccountIndex(parameters, "createSubAccount", "accountIndex", "account_index");
         accountIndex = ((IList<object>)accountIndexparametersVariable)[0];
         parameters = ((IList<object>)accountIndexparametersVariable)[1];
-        object nonce = await this.fetchNonce(accountIndex, apiKeyIndex, parameters);
+        object nonce = ccxt.BaseExchange.FromInt64(await this.FetchNonce(accountIndex, apiKeyIndex, parameters));
         object signRaw = new Dictionary<string, object>() {
             { "nonce", nonce },
             { "api_key_index", apiKeyIndex },
@@ -662,7 +662,7 @@ public partial class lighter : Exchange
             { "tx_type", txType },
             { "tx_info", txInfo },
         };
-        return await this.publicPostSendTx(request);
+        return ccxt.BaseExchange.ToDict(await this.publicPostSendTx(request));
     }
 
     public virtual object createAuth(object parameters = null)
@@ -760,12 +760,12 @@ public partial class lighter : Exchange
     public async virtual Task<object> handleBuilderFeeApproval(object accountIndex, object apiKeyIndex)
     {
         object buildFee = this.safeBool(this.options, "builderFee", true);
-        if (!isTrue(buildFee))
+        if (isTrue(!isEqual(buildFee, true)))
         {
             return false;
         }
         object approvedBuilderFee = this.safeBool(this.options, "approvedBuilderFee", false);
-        if (isTrue(approvedBuilderFee))
+        if (isTrue(isEqual(approvedBuilderFee, true)))
         {
             return true;
         }
@@ -789,9 +789,7 @@ public partial class lighter : Exchange
         object strAccountIndex = this.numberToString(accountIndex);
         object strApiKeyIndex = this.numberToString(apiKeyIndex);
         object signer = await this.loadAccount(getValue(this.options, "chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters);
-        object nonce = await this.fetchNonce(accountIndex, apiKeyIndex, this.extend(parameters, new Dictionary<string, object>() {
-            { "skipNonce", false },
-        }));
+        object nonce = ccxt.BaseExchange.FromInt64(await this.FetchNonce(accountIndex, apiKeyIndex, this.extend(parameters, new Dictionary<string, object>() { { "skipNonce", false }, })));
         object expiry = add(this.milliseconds(), multiply(365, 864000));
         object signRaw = new Dictionary<string, object>() {
             { "integrator_account_index", builder },
@@ -832,9 +830,7 @@ public partial class lighter : Exchange
         var privateKeypublicKeyVariable = this.lighterGenerateApiKey(signerNotLoad);
         var privateKey = ((IList<object>) privateKeypublicKeyVariable)[0];
         var publicKey = ((IList<object>) privateKeypublicKeyVariable)[1];
-        object nonce = await this.fetchNonce(accountIndex, apiKeyIndex, this.extend(parameters, new Dictionary<string, object>() {
-            { "skipNonce", false },
-        }));
+        object nonce = ccxt.BaseExchange.FromInt64(await this.FetchNonce(accountIndex, apiKeyIndex, this.extend(parameters, new Dictionary<string, object>() { { "skipNonce", false }, })));
         object signRaw = new Dictionary<string, object>() {
             { "pubkey", this.encode(publicKey) },
             { "nonce", nonce },
@@ -899,9 +895,9 @@ public partial class lighter : Exchange
             throw new ArgumentsRequired ((string)add(this.id, " createOrder() requires a price argument")) ;
         }
         object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only", false); // default false
-        object orderType = ((string)type).ToUpper();
+        string orderType = ((string)type).ToUpper();
         object market = this.market(symbol);
-        object orderSide = ((string)((string)side)).ToUpper();
+        string orderSide = ((string)((string)side)).ToUpper();
         object request = new Dictionary<string, object>() {
             { "market_index", this.parseToInt(getValue(market, "id")) },
         };
@@ -932,10 +928,10 @@ public partial class lighter : Exchange
         object takeProfitPrice = this.safeValue(parameters, "takeProfitPrice");
         object stopLoss = this.safeValue(parameters, "stopLoss");
         object takeProfit = this.safeValue(parameters, "takeProfit");
-        object hasStopLoss = (!isEqual(stopLoss, null));
-        object hasTakeProfit = (!isEqual(takeProfit, null));
-        object isConditional = (isTrue(stopLossPrice) || isTrue(takeProfitPrice));
-        object isMarketOrder = (isEqual(orderType, "MARKET"));
+        bool hasStopLoss = (!isEqual(stopLoss, null));
+        bool hasTakeProfit = (!isEqual(takeProfit, null));
+        bool isConditional = (isTrue((!isEqual(stopLossPrice, null))) || isTrue((!isEqual(takeProfitPrice, null))));
+        bool isMarketOrder = (isEqual(orderType, "MARKET"));
         object timeInForce = this.safeStringLower(parameters, "timeInForce", "gtt");
         object postOnly = this.isPostOnly(isMarketOrder, null, parameters);
         parameters = this.omit(parameters, new List<object>() {"stopLoss", "takeProfit", "timeInForce"});
@@ -1015,7 +1011,7 @@ public partial class lighter : Exchange
         ((IDictionary<string,object>)request)["order_expiry"] = orderExpiry;
         ((IDictionary<string,object>)request)["order_type"] = orderTypeNum;
         ((IDictionary<string,object>)request)["time_in_force"] = timeInForceNum;
-        ((IDictionary<string,object>)request)["reduce_only"] = ((bool) isTrue((reduceOnly))) ? 1 : 0;
+        ((IDictionary<string,object>)request)["reduce_only"] = ((bool) isTrue((isEqual(reduceOnly, true)))) ? 1 : 0;
         ((IDictionary<string,object>)request)["client_order_index"] = clientOrderId;
         ((IDictionary<string,object>)request)["base_amount"] = this.parseToInt(Precise.stringMul(amountStr, amountScale));
         ((IDictionary<string,object>)request)["avg_execution_price"] = this.parseToInt(Precise.stringMul(priceStr, priceScale));
@@ -1032,7 +1028,7 @@ public partial class lighter : Exchange
         {
             // group order
             ((IDictionary<string,object>)getValue(orders, 0))["client_order_index"] = 0; // client order index should be 0
-            object triggerOrderSide = "";
+            string triggerOrderSide = "";
             if (isTrue(isEqual(side, "BUY")))
             {
                 triggerOrderSide = "sell";
@@ -1069,7 +1065,7 @@ public partial class lighter : Exchange
         return orders;
     }
 
-    public async virtual Task<object> fetchNonce(object accountIndex, object apiKeyIndex, object parameters = null)
+    public async virtual Task<Int64> FetchNonce(object accountIndex, object apiKeyIndex, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isTrue((isEqual(accountIndex, null))) || isTrue((isEqual(apiKeyIndex, null)))))
@@ -1078,12 +1074,12 @@ public partial class lighter : Exchange
         }
         if (isTrue(inOp(parameters, "nonce")))
         {
-            return this.safeInteger(parameters, "nonce");
+            return ccxt.BaseExchange.ToInt64Value(this.safeInteger(parameters, "nonce"));
         }
         object nonceInOptions = this.safeInteger(this.options, "nonce");
         if (isTrue(!isEqual(nonceInOptions, null)))
         {
-            return nonceInOptions;
+            return ccxt.BaseExchange.ToInt64Value(nonceInOptions);
         }
         // avoid skipNonce for l1 operations
         object skipNonce = true;
@@ -1092,13 +1088,13 @@ public partial class lighter : Exchange
         parameters = ((IList<object>)skipNonceparametersVariable)[1];
         if (isTrue(skipNonce))
         {
-            return this.milliseconds();
+            return ccxt.BaseExchange.ToInt64Value(this.milliseconds());
         }
         object response = await this.publicGetNextNonce(new Dictionary<string, object>() {
             { "account_index", accountIndex },
             { "api_key_index", apiKeyIndex },
         });
-        return this.safeInteger(response, "nonce");
+        return ccxt.BaseExchange.ToInt64Value(this.safeInteger(response, "nonce"));
     }
 
     public async virtual Task<object> signAndCreateOrder(object method, object symbol, object type, object side, object amount, object price = null, object parameters = null)
@@ -1119,7 +1115,7 @@ public partial class lighter : Exchange
         groupingType = ((IList<object>)groupingTypeparametersVariable)[0];
         parameters = ((IList<object>)groupingTypeparametersVariable)[1]; // default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
         object orderRequests = this.createOrderRequest(symbol, type, side, amount, price, parameters);
-        object totalOrderRequests = getArrayLength(orderRequests);
+        int totalOrderRequests = getArrayLength(orderRequests);
         object apiKeyIndex = null;
         object order = null;
         if (isTrue(isGreaterThan(totalOrderRequests, 0)))
@@ -1133,7 +1129,7 @@ public partial class lighter : Exchange
         // the nonce could be updated
         if (isTrue(isEqual(this.safeInteger(order, "nonce"), null)))
         {
-            ((IDictionary<string,object>)order)["nonce"] = await this.fetchNonce(accountIndex, apiKeyIndex);
+            ((IDictionary<string,object>)order)["nonce"] = ccxt.BaseExchange.FromInt64(await this.FetchNonce(accountIndex, apiKeyIndex));
         }
         object txType = null;
         object txInfo = null;
@@ -1184,7 +1180,7 @@ public partial class lighter : Exchange
      * @param {int} [params.orderExpiry] orderExpiry
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         var txTypetxInfoordermarketVariable = await this.signAndCreateOrder("createOrder", symbol, type, side, amount, price, parameters);
@@ -1205,7 +1201,7 @@ public partial class lighter : Exchange
         //     "predicted_execution_time_ms": 1766088500120
         // }
         //
-        return this.parseOrder(this.deepExtend(response, order), market);
+        return ccxt.BaseExchange.ToOrder(this.parseOrder(this.deepExtend(response, order), market));
     }
 
     /**
@@ -1223,7 +1219,7 @@ public partial class lighter : Exchange
      * @param {string} [params.apiKeyIndex] api key index
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
+    public async override Task<ccxt.Order> EditOrder(string id, string symbol, string type, string side, double? amount = null, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1258,7 +1254,7 @@ public partial class lighter : Exchange
         {
             amountStr = this.amountToPrecision(symbol, amount);
         }
-        object nonce = await this.fetchNonce(accountIndex, apiKeyIndex, parameters);
+        object nonce = ccxt.BaseExchange.FromInt64(await this.FetchNonce(accountIndex, apiKeyIndex, parameters));
         object signRaw = new Dictionary<string, object>() {
             { "market_index", this.parseToInt(getValue(market, "id")) },
             { "index", this.parseToInt(id) },
@@ -1283,7 +1279,7 @@ public partial class lighter : Exchange
             { "tx_info", txInfo },
         };
         object response = await this.publicPostSendTx(request);
-        return this.parseOrder(response, market);
+        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
     }
 
     /**
@@ -1294,7 +1290,7 @@ public partial class lighter : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    public async override Task<object> fetchStatus(object parameters = null)
+    public async override Task<ccxt.Status> FetchStatus(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.rootGet(parameters);
@@ -1306,13 +1302,7 @@ public partial class lighter : Exchange
         //     }
         //
         object status = this.safeString(response, "status");
-        return new Dictionary<string, object>() {
-            { "status", ((bool) isTrue((isEqual(status, "200")))) ? "ok" : "error" },
-            { "updated", null },
-            { "eta", null },
-            { "url", null },
-            { "info", response },
-        };
+        return ccxt.BaseExchange.ToStatus(new Dictionary<string, object>() {             { "status", ((bool) isTrue((isEqual(status, "200")))) ? "ok" : "error" },             { "updated", null },             { "eta", null },             { "url", null },             { "info", response },         });
     }
 
     /**
@@ -1323,7 +1313,7 @@ public partial class lighter : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    public async override Task<object> fetchTime(object parameters = null)
+    public async override Task<Int64> FetchTime(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.rootGet(parameters);
@@ -1334,7 +1324,7 @@ public partial class lighter : Exchange
         //         "timestamp": "1717777777"
         //     }
         //
-        return this.safeTimestamp(response, "timestamp");
+        return ccxt.BaseExchange.ToInt64Value(this.safeTimestamp(response, "timestamp"));
     }
 
     /**
@@ -1345,7 +1335,7 @@ public partial class lighter : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public async override Task<object> fetchMarkets(object parameters = null)
+    public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetOrderBookDetails(parameters);
@@ -1444,7 +1434,7 @@ public partial class lighter : Exchange
             {
                 baseId = getValue(((string)baseId).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>(), 0);
             }
-            object quoteId = "USDC";
+            string quoteId = "USDC";
             object settleId = ((bool) isTrue((isEqual(type, "swap")))) ? "USDC" : null;
             object bs = this.safeCurrencyCode(baseId);
             object quote = this.safeCurrencyCode(quoteId);
@@ -1511,7 +1501,7 @@ public partial class lighter : Exchange
                 { "info", market },
             });
         }
-        return result;
+        return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
 
     /**
@@ -1557,7 +1547,7 @@ public partial class lighter : Exchange
         object id = this.safeString(rawCurrency, "asset_id");
         object code = this.safeCurrencyCode(this.safeString(rawCurrency, "symbol"));
         object decimals = this.safeString(rawCurrency, "decimals");
-        object isUSDC = (isEqual(code, "USDC"));
+        bool isUSDC = (isEqual(code, "USDC"));
         object depositMin = null;
         object withdrawMin = null;
         if (isTrue(isUSDC))
@@ -1600,7 +1590,7 @@ public partial class lighter : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -1651,7 +1641,7 @@ public partial class lighter : Exchange
         //     }
         //
         object result = this.parseOrderBook(response, getValue(market, "symbol"), null, "bids", "asks", "price", "remaining_base_amount");
-        return result;
+        return ccxt.BaseExchange.ToOrderBook(result);
     }
 
     public override object parseTicker(object ticker, object market = null)
@@ -1762,7 +1752,7 @@ public partial class lighter : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> fetchTicker(object symbol, object parameters = null)
+    public async override Task<ccxt.Ticker> FetchTicker(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -1826,7 +1816,7 @@ public partial class lighter : Exchange
         object swapTickers = this.safeList(response, "order_book_details", new List<object>() {});
         object tickers = this.arrayConcat(spotTickers, swapTickers);
         object first = this.safeDict(tickers, 0, new Dictionary<string, object>() {});
-        return this.parseTicker(first, market);
+        return ccxt.BaseExchange.ToTicker(this.parseTicker(first, market));
     }
 
     /**
@@ -1838,7 +1828,7 @@ public partial class lighter : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> FetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1850,7 +1840,7 @@ public partial class lighter : Exchange
         object spotTickers = this.safeList(response, "spot_order_book_details", new List<object>() {});
         object swapTickers = this.safeList(response, "order_book_details", new List<object>() {});
         object tickers = this.arrayConcat(spotTickers, swapTickers);
-        return this.parseTickers(tickers, symbols);
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, symbols));
     }
 
     public override object parseOHLCV(object ohlcv, object market = null)
@@ -1887,9 +1877,10 @@ public partial class lighter : Exchange
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        timeframe ??= "1h";
+        object timeframeVar = timeframe;
+        timeframeVar ??= "1h";
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -1902,7 +1893,7 @@ public partial class lighter : Exchange
         object market = this.market(symbol);
         object until = this.safeInteger(parameters, "until");
         parameters = this.omit(parameters, new List<object>() {"until"});
-        object now = this.milliseconds();
+        Int64 now = this.milliseconds();
         object startTs = null;
         object endTs = null;
         if (isTrue(!isEqual(since, null)))
@@ -1913,7 +1904,7 @@ public partial class lighter : Exchange
                 endTs = until;
             } else if (isTrue(!isEqual(limit, null)))
             {
-                object duration = this.parseTimeframe(timeframe);
+                object duration = this.parseTimeframe(timeframeVar);
                 endTs = this.sum(since, multiply(multiply(duration, limit), 1000));
             } else
             {
@@ -1925,16 +1916,16 @@ public partial class lighter : Exchange
             object defaultLimit = 100;
             if (isTrue(!isEqual(limit, null)))
             {
-                startTs = subtract(endTs, multiply(multiply(this.parseTimeframe(timeframe), 1000), limit));
+                startTs = subtract(endTs, multiply(multiply(this.parseTimeframe(timeframeVar), 1000), limit));
             } else
             {
-                startTs = subtract(endTs, multiply(multiply(this.parseTimeframe(timeframe), 1000), defaultLimit));
+                startTs = subtract(endTs, multiply(multiply(this.parseTimeframe(timeframeVar), 1000), defaultLimit));
             }
         }
         object request = new Dictionary<string, object>() {
             { "market_id", getValue(market, "id") },
             { "count_back", 0 },
-            { "resolution", this.safeString(this.timeframes, timeframe, timeframe) },
+            { "resolution", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
             { "start_timestamp", startTs },
             { "end_timestamp", endTs },
         };
@@ -1962,7 +1953,7 @@ public partial class lighter : Exchange
         // }
         //
         object ohlcvs = this.safeList(response, "c", new List<object>() {});
-        return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
+        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(ohlcvs, market, timeframeVar, since, limit));
     }
 
     public override object parseFundingRate(object contract, object market = null)
@@ -2007,7 +1998,7 @@ public partial class lighter : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public async override Task<object> fetchFundingRates(object symbols = null, object parameters = null)
+    public async override Task<ccxt.FundingRates> FetchFundingRates(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2038,7 +2029,7 @@ public partial class lighter : Exchange
                 ((IList<object>)result).Add(getValue(data, i));
             }
         }
-        return this.parseFundingRates(result, symbols);
+        return ccxt.BaseExchange.ToFundingRates(this.parseFundingRates(result, symbols));
     }
 
     /**
@@ -2052,7 +2043,7 @@ public partial class lighter : Exchange
      * @param {string} [params.type] 'spot', 'swap', default is 'swap'
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public async override Task<object> fetchBalance(object parameters = null)
+    public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2149,7 +2140,7 @@ public partial class lighter : Exchange
                 ((IDictionary<string,object>)result)["USDC"] = perpBalance;
             }
         }
-        return this.safeBalance(result);
+        return ccxt.BaseExchange.ToBalances(this.safeBalance(result));
     }
 
     /**
@@ -2163,11 +2154,11 @@ public partial class lighter : Exchange
      * @param {string} [params.value] fetch balance value, account index or l1 address
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public async override Task<object> fetchPosition(object symbol, object parameters = null)
+    public async override Task<ccxt.Position> FetchPosition(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object positions = await this.fetchPositions(new List<object>() {symbol}, parameters);
-        return this.safeDict(positions, 0, new Dictionary<string, object>() {});
+        object positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositions(new List<object>() {symbol}, parameters));
+        return ccxt.BaseExchange.ToPosition(this.safeDict(positions, 0, new Dictionary<string, object>() {}));
     }
 
     /**
@@ -2181,7 +2172,7 @@ public partial class lighter : Exchange
      * @param {string} [params.value] fetch balance value, account index or l1 address
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public async override Task<object> fetchPositions(object symbols = null, object parameters = null)
+    public async override Task<List<ccxt.Position>> FetchPositions(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2257,7 +2248,7 @@ public partial class lighter : Exchange
                 ((IList<object>)allPositions).Add(getValue(positions, j));
             }
         }
-        return this.parsePositions(allPositions, symbols);
+        return ccxt.BaseExchange.ToPositionList(this.parsePositions(allPositions, symbols));
     }
 
     public override object parsePosition(object position, object market = null)
@@ -2342,7 +2333,7 @@ public partial class lighter : Exchange
      * @param {string} [params.value] fetch balance value, account index or l1 address
      * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=accounts-structure} indexed by the account type
      */
-    public async override Task<object> fetchAccounts(object parameters = null)
+    public async override Task<List<ccxt.Account>> FetchAccounts(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2390,7 +2381,7 @@ public partial class lighter : Exchange
         //     }
         //
         object accounts = this.safeList(response, "accounts", new List<object>() {});
-        return this.parseAccounts(accounts, parameters);
+        return ccxt.BaseExchange.ToAccountList(this.parseAccounts(accounts, parameters));
     }
 
     public override object parseAccount(object account)
@@ -2441,7 +2432,7 @@ public partial class lighter : Exchange
      * @param {string} [params.accountIndex] account index
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> FetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -2512,7 +2503,7 @@ public partial class lighter : Exchange
         //     }
         //
         object data = this.safeList(response, "orders", new List<object>() {});
-        return this.parseOrders(data, market, since, limit);
+        return ccxt.BaseExchange.ToOrderList(this.parseOrders(data, market, since, limit));
     }
 
     /**
@@ -2527,7 +2518,7 @@ public partial class lighter : Exchange
      * @param {string} [params.accountIndex] account index
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> FetchClosedOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -2603,7 +2594,7 @@ public partial class lighter : Exchange
         //     }
         //
         object data = this.safeList(response, "orders", new List<object>() {});
-        return this.parseOrders(data, market, since, limit);
+        return ccxt.BaseExchange.ToOrderList(this.parseOrders(data, market, since, limit));
     }
 
     public override object parseOrder(object order, object market = null)
@@ -2826,8 +2817,9 @@ public partial class lighter : Exchange
      * @param {string} [params.memo] hex encoding memo
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public async override Task<object> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
+    public async override Task<ccxt.TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
     {
+        object amountVar = amount;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
@@ -2851,10 +2843,10 @@ public partial class lighter : Exchange
         object currency = this.currency(code);
         if (isTrue(isEqual(getValue(currency, "code"), "USDC")))
         {
-            amount = this.parseToInt(Precise.stringMul(this.pow("10", "6"), this.currencyToPrecision(code, amount)));
+            amountVar = this.parseToInt(Precise.stringMul(this.pow("10", "6"), this.currencyToPrecision(code, amountVar)));
         } else if (isTrue(isEqual(getValue(currency, "code"), "ETH")))
         {
-            amount = this.parseToInt(Precise.stringMul(this.pow("10", "8"), this.currencyToPrecision(code, amount)));
+            amountVar = this.parseToInt(Precise.stringMul(this.pow("10", "8"), this.currencyToPrecision(code, amountVar)));
         } else
         {
             throw new ExchangeError ((string)add(this.id, " transfer() only supports USDC and ETH transfers")) ;
@@ -2863,13 +2855,13 @@ public partial class lighter : Exchange
         object toRouteType = ((bool) isTrue((isEqual(toAccount, "perp")))) ? 0 : 1;
         object memo = this.safeString(parameters, "memo", "0x000000000000000000000000000000");
         parameters = this.omit(parameters, new List<object>() {"memo"});
-        object nonce = await this.fetchNonce(accountIndex, apiKeyIndex, parameters);
+        object nonce = ccxt.BaseExchange.FromInt64(await this.FetchNonce(accountIndex, apiKeyIndex, parameters));
         object signRaw = new Dictionary<string, object>() {
             { "to_account_index", toAccountIndex },
             { "asset_index", this.parseToInt(getValue(currency, "id")) },
             { "from_route_type", fromRouteType },
             { "to_route_type", toRouteType },
-            { "amount", amount },
+            { "amount", amountVar },
             { "usdc_fee", 0 },
             { "memo", memo },
             { "nonce", nonce },
@@ -2884,7 +2876,7 @@ public partial class lighter : Exchange
             { "tx_info", txInfo },
         };
         object response = await this.publicPostSendTx(request);
-        return this.parseTransfer(response);
+        return ccxt.BaseExchange.ToTransferEntry(this.parseTransfer(response));
     }
 
     /**
@@ -2900,7 +2892,7 @@ public partial class lighter : Exchange
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public async override Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.TransferEntry>> FetchTransfers(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2913,7 +2905,7 @@ public partial class lighter : Exchange
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
-            return await this.fetchPaginatedCallCursor("fetchTransfers", code, since, limit, parameters, "cursor", "cursor", null, 50);
+            return ccxt.BaseExchange.ToTransferEntryList(await this.fetchPaginatedCallCursor("fetchTransfers", code, since, limit, parameters, "cursor", "cursor", null, 50));
         }
         object accountIndex = null;
         var accountIndexparametersVariable = await this.handleAccountIndex(parameters, "fetchTransfers", "accountIndex", "account_index");
@@ -2965,7 +2957,7 @@ public partial class lighter : Exchange
         {
             ((IDictionary<string,object>)getValue(rows, 0))["cursor"] = cursor;
         }
-        return this.parseTransfers(rows, currency, since, limit, parameters);
+        return ccxt.BaseExchange.ToTransferEntryList(this.parseTransfers(rows, currency, since, limit, parameters));
     }
 
     public override object parseTransfer(object transfer, object currency = null)
@@ -3019,7 +3011,7 @@ public partial class lighter : Exchange
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Transaction>> FetchDeposits(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -3032,7 +3024,7 @@ public partial class lighter : Exchange
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
-            return await this.fetchPaginatedCallCursor("fetchDeposits", code, since, limit, parameters, "cursor", "cursor", null, 50);
+            return ccxt.BaseExchange.ToTransactionList(await this.fetchPaginatedCallCursor("fetchDeposits", code, since, limit, parameters, "cursor", "cursor", null, 50));
         }
         object address = null;
         var addressparametersVariable = this.handleOptionAndParams2(parameters, "fetchDeposits", "address", "l1_address");
@@ -3087,7 +3079,7 @@ public partial class lighter : Exchange
         {
             ((IDictionary<string,object>)getValue(data, 0))["cursor"] = cursor;
         }
-        return this.parseTransactions(data, currency, since, limit);
+        return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(data, currency, since, limit));
     }
 
     /**
@@ -3103,7 +3095,7 @@ public partial class lighter : Exchange
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Transaction>> FetchWithdrawals(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object paginate = false;
@@ -3112,7 +3104,7 @@ public partial class lighter : Exchange
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
-            return await this.fetchPaginatedCallCursor("fetchWithdrawals", code, since, limit, parameters, "cursor", "cursor", null, 50);
+            return ccxt.BaseExchange.ToTransactionList(await this.fetchPaginatedCallCursor("fetchWithdrawals", code, since, limit, parameters, "cursor", "cursor", null, 50));
         }
         object accountIndex = null;
         var accountIndexparametersVariable = await this.handleAccountIndex(parameters, "fetchWithdrawals", "accountIndex", "account_index");
@@ -3163,7 +3155,7 @@ public partial class lighter : Exchange
         {
             ((IDictionary<string,object>)getValue(data, 0))["cursor"] = cursor;
         }
-        return this.parseTransactions(data, currency, since, limit);
+        return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(data, currency, since, limit));
     }
 
     public override object parseTransaction(object transaction, object currency = null)
@@ -3248,8 +3240,9 @@ public partial class lighter : Exchange
      * @param {int} [params.routeType] wallet type, 0: perp, 1: spot, default is 0
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
+    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
     {
+        object amountVar = amount;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
@@ -3269,21 +3262,21 @@ public partial class lighter : Exchange
         object currency = this.currency(code);
         if (isTrue(isEqual(getValue(currency, "code"), "USDC")))
         {
-            amount = this.parseToInt(Precise.stringMul(this.pow("10", "6"), this.currencyToPrecision(code, amount)));
+            amountVar = this.parseToInt(Precise.stringMul(this.pow("10", "6"), this.currencyToPrecision(code, amountVar)));
         } else if (isTrue(isEqual(getValue(currency, "code"), "ETH")))
         {
-            amount = this.parseToInt(Precise.stringMul(this.pow("10", "8"), this.currencyToPrecision(code, amount)));
+            amountVar = this.parseToInt(Precise.stringMul(this.pow("10", "8"), this.currencyToPrecision(code, amountVar)));
         } else
         {
             throw new ExchangeError ((string)add(this.id, " withdraw() only supports USDC and ETH transfers")) ;
         }
         object routeType = this.safeInteger(parameters, "routeType", 0); // 0: perp, 1: spot
         parameters = this.omit(parameters, "routeType");
-        object nonce = await this.fetchNonce(accountIndex, apiKeyIndex, parameters);
+        object nonce = ccxt.BaseExchange.FromInt64(await this.FetchNonce(accountIndex, apiKeyIndex, parameters));
         object signRaw = new Dictionary<string, object>() {
             { "asset_index", this.parseToInt(getValue(currency, "id")) },
             { "route_type", routeType },
-            { "amount", amount },
+            { "amount", amountVar },
             { "nonce", nonce },
             { "api_key_index", apiKeyIndex },
             { "account_index", accountIndex },
@@ -3296,7 +3289,7 @@ public partial class lighter : Exchange
             { "tx_info", txInfo },
         };
         object response = await this.publicPostSendTx(request);
-        return this.parseTransaction(response);
+        return ccxt.BaseExchange.ToTransaction(this.parseTransaction(response));
     }
 
     /**
@@ -3313,7 +3306,7 @@ public partial class lighter : Exchange
      * @param {int} [params.until] timestamp in ms of the latest trade to fetch
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> FetchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -3326,7 +3319,7 @@ public partial class lighter : Exchange
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
-            return await this.fetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, parameters, "next_cursor", "cursor", null, 50);
+            return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, parameters, "next_cursor", "cursor", null, 50));
         }
         object accountIndex = null;
         var accountIndexparametersVariable = await this.handleAccountIndex(parameters, "fetchMyTrades", "accountIndex", "account_index");
@@ -3405,7 +3398,7 @@ public partial class lighter : Exchange
         {
             ((IDictionary<string,object>)getValue(data, 0))["next_cursor"] = nextCursor;
         }
-        return this.parseTrades(data, market, since, limit, parameters);
+        return ccxt.BaseExchange.ToTradeList(this.parseTrades(data, market, since, limit, parameters));
     }
 
     public override object parseTrade(object trade, object market = null)
@@ -3492,7 +3485,7 @@ public partial class lighter : Exchange
      * @param {string} [params.marginMode] margin mode, 'cross' or 'isolated'
      * @returns {object} response from the exchange
      */
-    public async override Task<object> setLeverage(object leverage, object symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetLeverage(object leverage, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -3507,7 +3500,7 @@ public partial class lighter : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " setLeverage() requires an marginMode parameter")) ;
         }
-        return await this.modifyLeverageAndMarginMode(leverage, marginMode, symbol, parameters);
+        return ccxt.BaseExchange.ToDict(await this.modifyLeverageAndMarginMode(leverage, marginMode, symbol, parameters));
     }
 
     /**
@@ -3522,7 +3515,7 @@ public partial class lighter : Exchange
      * @param {int} [params.leverage] required leverage
      * @returns {object} response from the exchange
      */
-    public async override Task<object> setMarginMode(object marginMode, object symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetMarginMode(string marginMode, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(marginMode, null)))
@@ -3537,7 +3530,7 @@ public partial class lighter : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " setMarginMode() requires an leverage parameter")) ;
         }
-        return await this.modifyLeverageAndMarginMode(leverage, marginMode, symbol, parameters);
+        return ccxt.BaseExchange.ToDict(await this.modifyLeverageAndMarginMode(leverage, marginMode, symbol, parameters));
     }
 
     public async virtual Task<object> modifyLeverageAndMarginMode(object leverage, object marginMode, object symbol = null, object parameters = null)
@@ -3567,7 +3560,7 @@ public partial class lighter : Exchange
         object strApiKeyIndex = ((string)this.numberToString(apiKeyIndex));
         object signer = await this.loadAccount(getValue(this.options, "chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters);
         object market = this.market(symbol);
-        object nonce = await this.fetchNonce(accountIndex, apiKeyIndex, parameters);
+        object nonce = ccxt.BaseExchange.FromInt64(await this.FetchNonce(accountIndex, apiKeyIndex, parameters));
         object signRaw = new Dictionary<string, object>() {
             { "market_index", this.parseToInt(getValue(market, "id")) },
             { "initial_margin_fraction", this.parseToInt(divide(10000, leverage)) },
@@ -3611,7 +3604,7 @@ public partial class lighter : Exchange
         object strAccountIndex = ((string)this.numberToString(accountIndex));
         object strApiKeyIndex = ((string)this.numberToString(apiKeyIndex));
         object signer = await this.loadAccount(getValue(this.options, "chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters);
-        object nonce = await this.fetchNonce(accountIndex, apiKeyIndex, parameters);
+        object nonce = ccxt.BaseExchange.FromInt64(await this.FetchNonce(accountIndex, apiKeyIndex, parameters));
         object signRaw = new Dictionary<string, object>() {
             { "market_index", this.parseToInt(getValue(market, "id")) },
             { "nonce", nonce },
@@ -3645,7 +3638,7 @@ public partial class lighter : Exchange
      * @param {string} [params.apiKeyIndex] api key index
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> CancelOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         var txTypetxInfomarketVariable = await this.signAndCancelOrder("cancelOrder", id, symbol, parameters);
@@ -3657,7 +3650,7 @@ public partial class lighter : Exchange
             { "tx_info", txInfo },
         };
         object response = await this.publicPostSendTx(request);
-        return this.parseOrder(response, market);
+        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
     }
 
     public async virtual Task<object> signAndCancelAllOrders(object method, object symbol = null, object parameters = null)
@@ -3678,7 +3671,7 @@ public partial class lighter : Exchange
         object strAccountIndex = ((string)this.numberToString(accountIndex));
         object strApiKeyIndex = ((string)this.numberToString(apiKeyIndex));
         object signer = await this.loadAccount(getValue(this.options, "chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters);
-        object nonce = await this.fetchNonce(accountIndex, apiKeyIndex, parameters);
+        object nonce = ccxt.BaseExchange.FromInt64(await this.FetchNonce(accountIndex, apiKeyIndex, parameters));
         object signRaw = new Dictionary<string, object>() {
             { "time_in_force", 0 },
             { "time", 0 },
@@ -3702,7 +3695,7 @@ public partial class lighter : Exchange
      * @param {string} [params.apiKeyIndex] api key index
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> CancelAllOrders(string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         var txTypetxInfoVariable = await this.signAndCancelAllOrders("cancelAllOrdersWs", symbol, parameters);
@@ -3713,7 +3706,7 @@ public partial class lighter : Exchange
             { "tx_info", txInfo },
         };
         object response = await this.publicPostSendTx(request);
-        return this.parseOrders(new List<object>() {response});
+        return ccxt.BaseExchange.ToOrderList(this.parseOrders(new List<object>() {response}));
     }
 
     /**
@@ -3724,7 +3717,7 @@ public partial class lighter : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the api result
      */
-    public async override Task<object> cancelAllOrdersAfter(object timeout, object parameters = null)
+    public async override Task<Dictionary<string, object>> CancelAllOrdersAfter(object timeout, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -3746,7 +3739,7 @@ public partial class lighter : Exchange
         object strAccountIndex = ((string)this.numberToString(accountIndex));
         object strApiKeyIndex = ((string)this.numberToString(apiKeyIndex));
         object signer = await this.loadAccount(getValue(this.options, "chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters);
-        object nonce = await this.fetchNonce(accountIndex, apiKeyIndex, parameters);
+        object nonce = ccxt.BaseExchange.FromInt64(await this.FetchNonce(accountIndex, apiKeyIndex, parameters));
         object signRaw = new Dictionary<string, object>() {
             { "time_in_force", 1 },
             { "time", add(this.milliseconds(), timeout) },
@@ -3762,7 +3755,7 @@ public partial class lighter : Exchange
             { "tx_info", txInfo },
         };
         object response = await this.publicPostSendTx(request);
-        return response;
+        return ccxt.BaseExchange.ToDict(response);
     }
 
     /**
@@ -3774,13 +3767,13 @@ public partial class lighter : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
      */
-    public async override Task<object> addMargin(object symbol, object amount, object parameters = null)
+    public async override Task<object> addMargin(string symbol, object amount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object request = new Dictionary<string, object>() {
             { "direction", 1 },
         };
-        return await this.setMargin(symbol, amount, this.extend(request, parameters));
+        return ccxt.BaseExchange.FromMarginModification(await this.SetMargin(symbol, amount, this.extend(request, parameters)));
     }
 
     /**
@@ -3792,13 +3785,13 @@ public partial class lighter : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=reduce-margin-structure}
      */
-    public async override Task<object> reduceMargin(object symbol, object amount, object parameters = null)
+    public async override Task<object> reduceMargin(string symbol, object amount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object request = new Dictionary<string, object>() {
             { "direction", 0 },
         };
-        return await this.setMargin(symbol, amount, this.extend(request, parameters));
+        return ccxt.BaseExchange.FromMarginModification(await this.SetMargin(symbol, amount, this.extend(request, parameters)));
     }
 
     /**
@@ -3812,7 +3805,7 @@ public partial class lighter : Exchange
      * @param {string} [params.apiKeyIndex] api key index
      * @returns {object} A [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
      */
-    public async override Task<object> setMargin(object symbol, object amount, object parameters = null)
+    public async override Task<ccxt.MarginModification> SetMargin(object symbol, object amount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -3844,7 +3837,7 @@ public partial class lighter : Exchange
         object strApiKeyIndex = ((string)this.numberToString(apiKeyIndex));
         object signer = await this.loadAccount(getValue(this.options, "chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters);
         object market = this.market(symbol);
-        object nonce = await this.fetchNonce(accountIndex, apiKeyIndex, parameters);
+        object nonce = ccxt.BaseExchange.FromInt64(await this.FetchNonce(accountIndex, apiKeyIndex, parameters));
         object signRaw = new Dictionary<string, object>() {
             { "market_index", this.parseToInt(getValue(market, "id")) },
             { "usdc_amount", this.parseToInt(Precise.stringMul(this.pow("10", "6"), this.currencyToPrecision("USDC", amount))) },
@@ -3861,7 +3854,7 @@ public partial class lighter : Exchange
             { "tx_info", txInfo },
         };
         object response = await this.publicPostSendTx(request);
-        return this.parseMarginModification(response, market);
+        return ccxt.BaseExchange.ToMarginModification(this.parseMarginModification(response, market));
     }
 
     public override object parseMarginModification(object data, object market = null)
@@ -3900,7 +3893,7 @@ public partial class lighter : Exchange
                 { "Authorization", this.createAuth(parameters) },
             };
         }
-        if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys))))
+        if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys)), 0)))
         {
             if (isTrue(isEqual(method, "POST")))
             {
@@ -3923,7 +3916,7 @@ public partial class lighter : Exchange
 
     public override object handleErrors(object httpCode, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)
     {
-        if (!isTrue(response))
+        if (isTrue(isTrue((isEqual(response, null))) || isTrue((isEqual(response, null)))))
         {
             return null;  // fallback to default error handler
         }

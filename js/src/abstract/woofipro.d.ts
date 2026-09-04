@@ -81,6 +81,7 @@ interface Exchange {
     v1PrivateGetBrokerUserInfo(params?: {}): Promise<Dict>;
     v1PrivateGetOrderbookSymbol(params?: {}): Promise<Dict>;
     v1PrivateGetKline(params?: {}): Promise<Dict>;
+    v1PrivateGetClientMarginModes(params?: {}): Promise<Dict>;
     v1PrivatePostOrderlyKey(params?: {}): Promise<Dict>;
     v1PrivatePostClientSetOrderlyKeyIpRestriction(params?: {}): Promise<Dict>;
     v1PrivatePostClientResetOrderlyKeyIpRestriction(params?: {}): Promise<Dict>;
@@ -94,6 +95,8 @@ interface Exchange {
     v1PrivatePostNotificationInboxMarkRead(params?: {}): Promise<Dict>;
     v1PrivatePostNotificationInboxMarkReadAll(params?: {}): Promise<Dict>;
     v1PrivatePostClientLeverage(params?: {}): Promise<Dict>;
+    v1PrivatePostClientMarginMode(params?: {}): Promise<Dict>;
+    v1PrivatePostPositionMargin(params?: {}): Promise<Dict>;
     v1PrivatePostClientMaintenanceConfig(params?: {}): Promise<Dict>;
     v1PrivatePostDelegateSigner(params?: {}): Promise<Dict>;
     v1PrivatePostDelegateOrderlyKey(params?: {}): Promise<Dict>;

@@ -77,8 +77,8 @@ class coinbaseinternational extends Exchange {
                 'fetchMarginMode' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
-                'fetchMyBuys' => true,
-                'fetchMySells' => true,
+                'fetchMyBuys' => false,
+                'fetchMySells' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenInterestHistory' => false,
@@ -340,7 +340,7 @@ class coinbaseinternational extends Exchange {
         for ($i = 0; $i < count($accounts); $i++) {
             $account = $accounts[$i];
             $info = $this->safe_dict($account, 'info', array());
-            if ($this->safe_bool($info, 'is_default')) {
+            if ($this->safe_bool($info, 'is_default') === true) {
                 $portfolioId = $this->safe_string($info, 'portfolio_id');
                 $this->options['portfolio'] = $portfolioId;
                 return array( $portfolioId, $params );
@@ -804,10 +804,12 @@ class coinbaseinternational extends Exchange {
             list($networkId, $params) = $this->handle_network_id_and_params($code, 'createDepositAddress', $params);
             $request['network_arn_id'] = $networkId;
         }
-        if ($method === null) {
-            throw new ArgumentsRequired($this->id . ' $method is required');
+        $response = null;
+        if ($method === 'v1PrivatePostTransfersCreateCounterpartyId') {
+            $response = $this->v1PrivatePostTransfersCreateCounterpartyId($this->extend($request, $params));
+        } else {
+            $response = $this->v1PrivatePostTransfersAddress($this->extend($request, $params));
         }
-        $response = $this->$method($this->extend($request, $params));
         //
         // v1PrivatePostTransfersAddress
         //    {
@@ -977,7 +979,7 @@ class coinbaseinternational extends Exchange {
         $maxEntriesPerRequest = 100;
         list($maxEntriesPerRequest, $params) = $this->handle_option_and_params($params, 'fetchDepositsWithdrawals', 'maxEntriesPerRequest', $maxEntriesPerRequest);
         $pageKey = 'ccxtPageKey';
-        if ($paginate) {
+        if ($paginate === true) {
             return $this->fetch_paginated_call_incremental('fetchDepositsWithdrawals', $code, $since, $limit, $params, $pageKey, $maxEntriesPerRequest);
         }
         $page = $this->safe_integer($params, $pageKey, 1) - 1;
@@ -1753,7 +1755,7 @@ class coinbaseinternational extends Exchange {
             'amount' => $amount,
             'fromAccount' => $fromAccount,
             'toAccount' => $toAccount,
-            'status' => $success ? 'ok' : 'failed',
+            'status' => ($success === true) ? 'ok' : 'failed',
         );
     }
 
@@ -1919,6 +1921,9 @@ class coinbaseinternational extends Exchange {
 
     public function parse_order_status(?string $status) {
         $statuses = array(
+            // order_status carries WORKING and DONE; the other keys are event_type
+            // values, which the same payload reports in its own field
+            'WORKING' => 'open',
             'NEW' => 'open',
             'PARTIAL_FILLED' => 'open',
             'FILLED' => 'closed',
@@ -2013,7 +2018,7 @@ class coinbaseinternational extends Exchange {
             'portfolio' => $portfolio,
         );
         $market = null;
-        if ($symbol) {
+        if (($symbol !== null) && ($symbol !== '')) {
             $market = $this->market($symbol);
             $request['instrument'] = $market['id'];
         }
@@ -2156,7 +2161,7 @@ class coinbaseinternational extends Exchange {
             'result_offset' => $offSet,
         );
         $market = null;
-        if ($symbol) {
+        if (($symbol !== null) && ($symbol !== '')) {
             $market = $this->market($symbol);
             $request['instrument'] = $symbol;
         }
@@ -2340,10 +2345,12 @@ class coinbaseinternational extends Exchange {
             'network_arn_id' => $networkId,
             'nonce' => $this->nonce(),
         );
-        if ($method === null) {
-            throw new ArgumentsRequired($this->id . ' $method is required');
+        $response = null;
+        if ($method === 'v1PrivatePostTransfersWithdrawCounterparty') {
+            $response = $this->v1PrivatePostTransfersWithdrawCounterparty($this->extend($request, $params));
+        } else {
+            $response = $this->v1PrivatePostTransfersWithdraw($this->extend($request, $params));
         }
-        $response = $this->$method($this->extend($request, $params));
         //
         //    {
         //        "idem":"8e471d77-4208-45a8-9e5b-f3bd8a2c1fc3"
@@ -2359,7 +2366,7 @@ class coinbaseinternational extends Exchange {
         $query = $this->omit($params, $this->extract_params($path));
         $savedPath = '/api' . $fullPath;
         if ($method === 'GET' || $method === 'DELETE') {
-            if ($query) {
+            if (count($query) > 0) {
                 $fullPath .= '?' . $this->urlencode_with_array_repeat($query);
             }
         }
@@ -2369,7 +2376,7 @@ class coinbaseinternational extends Exchange {
             $nonce = (string) $this->nonce();
             $payload = '';
             if ($method !== 'GET') {
-                if ($query) {
+                if (count($query) > 0) {
                     $body = $this->json($query);
                     $payload = $body;
                 }

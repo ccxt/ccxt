@@ -529,7 +529,7 @@ export default class zaif extends Exchange {
         const numTrades = trades.length;
         if (numTrades === 1) {
             const firstTrade = this.safeDict(trades, 0, {});
-            if (!Object.keys(firstTrade).length) {
+            if (Object.keys(firstTrade).length === 0) {
                 trades = [];
             }
         }
@@ -868,7 +868,7 @@ export default class zaif extends Exchange {
             throw new ExchangeError(feedback); // unknown message
         }
         const success = this.safeBool(response, 'success', true);
-        if (!success) {
+        if (success !== true) {
             throw new ExchangeError(feedback);
         }
         return undefined;

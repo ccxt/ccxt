@@ -6,7 +6,7 @@ import Exchange from './abstract/gemini.js';
 import { ExchangeError, ArgumentsRequired, BadRequest, OrderNotFound, InvalidOrder, InvalidNonce, InsufficientFunds, AuthenticationError, PermissionDenied, NotSupported, OnMaintenance, RateLimitExceeded, ExchangeNotAvailable } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type{ Balances, Currencies, Currency, CurrencyInterface, Dict, Int, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress, Bool, Fee, NullableDict, Endpoint } from './base/types.js';
+import type{ Balances, Currencies, Currency, CurrencyInterface, Dict, Int, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress, Bool, Fee, NullableDict, Endpoint, DepositAddresses } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -455,7 +455,9 @@ export default class gemini extends Exchange {
     override parseCurrency (rawCurrency: Dict): CurrencyInterface {
         const id = this.safeString (rawCurrency, 0);
         const code = this.safeCurrencyCode (id);
-        const type = this.safeString (rawCurrency, 7) ? 'fiat' : 'crypto';
+        const fiatFlag = this.safeString (rawCurrency, 7);
+        const isFiat = (fiatFlag !== undefined) && (fiatFlag !== '');
+        const type = isFiat ? 'fiat' : 'crypto';
         const precision = this.parseNumber (this.parsePrecision (this.safeString (rawCurrency, 5)));
         const networks: Dict = {};
         const networkId = this.safeString (rawCurrency, 9);
@@ -1434,10 +1436,10 @@ export default class gemini extends Exchange {
         const remaining = this.safeString (order, 'remaining_amount');
         const filled = this.safeString (order, 'executed_amount');
         let status = 'closed';
-        if (order['is_live']) {
+        if (order['is_live'] === true) {
             status = 'open';
         }
-        if (order['is_cancelled']) {
+        if (order['is_cancelled'] === true) {
             status = 'canceled';
         }
         const price = this.safeString (order, 'price');
@@ -1649,7 +1651,7 @@ export default class gemini extends Exchange {
             }
             const postOnly = this.safeBool (params, 'postOnly', false);
             params = this.omit (params, 'postOnly');
-            if (postOnly) {
+            if (postOnly === true) {
                 request['options'] = [ 'maker-or-cancel' ];
             }
             // allowing override for auction-only and indication-of-interest order options
@@ -1950,11 +1952,10 @@ export default class gemini extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const groupedByNetwork = await this.fetchDepositAddressesByNetwork (code, params);
+        const indexedByNetwork = await this.fetchDepositAddressesByNetwork (code, params);
         let networkCode: Str = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
-        const networkGroup = this.indexBy (this.safeValue (groupedByNetwork, networkCode), 'currency');
-        return this.safeValue (networkGroup, code) as DepositAddress;
+        return this.safeValue (indexedByNetwork, networkCode) as DepositAddress;
     }
 
     /**
@@ -1967,7 +1968,7 @@ export default class gemini extends Exchange {
      * @param {string} [params.network]  *required* The chain of currency
      * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
      */
-    override async fetchDepositAddressesByNetwork (code: string, params = {}): Promise<DepositAddress[]> {
+    override async fetchDepositAddressesByNetwork (code: string, params = {}): Promise<DepositAddresses> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1984,7 +1985,9 @@ export default class gemini extends Exchange {
         };
         const response = await this.privatePostV1AddressesNetwork (this.extend (request, params));
         const results = this.parseDepositAddresses (response, [ code ], false, { 'network': networkCode, 'currency': code });
-        return this.groupBy (results, 'network') as DepositAddress[];
+        // one address structure per network, like every other venue (the endpoint is scoped to a
+        // single network, so the last address the venue lists for it wins — same as before)
+        return this.indexBy (results, 'network') as DepositAddresses;
     }
 
     override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
@@ -2012,7 +2015,7 @@ export default class gemini extends Exchange {
                 'X-GEMINI-SIGNATURE': signature,
             };
         } else {
-            if (Object.keys (query).length) {
+            if (Object.keys (query).length > 0) {
                 url += '?' + this.urlencode (query);
             }
         }

@@ -652,8 +652,8 @@ func (this *GrvtCore) EipDefinitions() any {
 	}
 }
 func (this *GrvtCore) UsesPrivateKey() any {
-	var privateKeyDefined any = IsTrue(!IsEqual(this.PrivateKey, nil)) && IsTrue(!IsEqual(this.PrivateKey, ""))
-	var apiKeyDefined any = IsTrue(!IsEqual(this.ApiKey, nil)) && IsTrue(!IsEqual(this.ApiKey, ""))
+	var privateKeyDefined bool = IsTrue(!IsEqual(this.PrivateKey, nil)) && IsTrue(!IsEqual(this.PrivateKey, ""))
+	var apiKeyDefined bool = IsTrue(!IsEqual(this.ApiKey, nil)) && IsTrue(!IsEqual(this.ApiKey, ""))
 	if IsTrue(IsTrue(privateKeyDefined) && IsTrue(apiKeyDefined)) {
 		panic(ExchangeError("You should provide either \"privateKey\" or \"apikey & secret\""))
 	}
@@ -669,212 +669,212 @@ func (this *GrvtCore) UsesPrivateKey() any {
  * @returns response from exchange
  */
 func (this *GrvtCore) SignIn(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		// if (this.usesPrivateKey ()) {
-		//     await this.signInWithPrivateKey (params);
-		//     await this.initializeClient (params);
-		// } else {
-		//     await this.signInWithApiKey (params);
-		// }
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsTrue(IsEqual(this.PrivateKey, nil)) || IsTrue(IsEqual(this.PrivateKey, ""))) {
-			panic(PermissionDenied("Private key is required for this operation. If you used joined GRVT through email registration instead of Web3 wallet, then read: https://github.com/ccxt/ccxt/wiki/FAQ#how-to-use-the-grvt-exchange-in-ccxt"))
-		}
-
-		retRes5018 := (<-this.SignInWithPrivateKey(params))
-		PanicOnError(retRes5018)
-
-		retRes5028 := (<-this.InitializeClient(params))
-		PanicOnError(retRes5028)
-
-		retRes5038 := (<-this.LoadAccountInfos())
-		PanicOnError(retRes5038)
-
-		ch <- true
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.signInBody(ch, optionalArgs...)
 	return ch
+}
+func (this *GrvtCore) signInBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	// if (this.usesPrivateKey ()) {
+	//     await this.signInWithPrivateKey (params);
+	//     await this.initializeClient (params);
+	// } else {
+	//     await this.signInWithApiKey (params);
+	// }
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsTrue(IsEqual(this.PrivateKey, nil)) || IsTrue(IsEqual(this.PrivateKey, ""))) {
+		panic(PermissionDenied("Private key is required for this operation. If you used joined GRVT through email registration instead of Web3 wallet, then read: https://github.com/ccxt/ccxt/wiki/FAQ#how-to-use-the-grvt-exchange-in-ccxt"))
+	}
+
+	retRes5018 := (<-this.SignInWithPrivateKey(params))
+	PanicOnError(retRes5018)
+
+	retRes5028 := (<-this.InitializeClient(params))
+	PanicOnError(retRes5028)
+
+	retRes5038 := (<-this.LoadAccountInfos())
+	PanicOnError(retRes5038)
+
+	ch <- true
+	return nil
 }
 func (this *GrvtCore) SignInWithApiKey(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		var now any = this.Milliseconds()
-		// expires in 24 hours as CS suggested
-		var expires any = this.SafeInteger(this.Options, "signInExpiration", 0)
-		// if previous sign-in not expired (give 10 seconds margin)
-		if IsTrue(IsTrue(!IsEqual(expires, nil)) && IsTrue(IsGreaterThan(expires, Add(now, 10000)))) {
-
-			ch <- map[string]any{}
-			return nil
-		}
-		var request any = map[string]any{
-			"api_key": this.ApiKey,
-		}
-
-		response := (<-this.PrivateEdgePostAuthApiKeyLogin(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//    {
-		//        "location": "",
-		//        "status": "success"
-		//    }
-		//
-		AddElementToObject(this.Options, "signInExpiration", Add(now, 86400000)) // 24 hours
-
-		ch <- response
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.signInWithApiKeyBody(ch, optionalArgs...)
 	return ch
+}
+func (this *GrvtCore) signInWithApiKeyBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	var now int64 = this.Milliseconds()
+	// expires in 24 hours as CS suggested
+	var expires any = this.SafeInteger(this.Options, "signInExpiration", 0)
+	// if previous sign-in not expired (give 10 seconds margin)
+	if IsTrue(IsTrue(!IsEqual(expires, nil)) && IsTrue(IsGreaterThan(expires, Add(now, 10000)))) {
+
+		ch <- map[string]any{}
+		return nil
+	}
+	var request map[string]any = map[string]any{
+		"api_key": this.ApiKey,
+	}
+
+	response := (<-this.PrivateEdgePostAuthApiKeyLogin(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//    {
+	//        "location": "",
+	//        "status": "success"
+	//    }
+	//
+	AddElementToObject(this.Options, "signInExpiration", Add(now, 86400000)) // 24 hours
+
+	ch <- response
+	return nil
 }
 func (this *GrvtCore) SignInWithPrivateKey(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		this.CheckRequiredCredentials()
-		var now any = this.Milliseconds()
-		// expires in 24 hours as CS suggested
-		var expires any = this.SafeInteger(this.Options, "signInExpiration", 0)
-		// if previous sign-in not expired (give 10 seconds margin)
-		if IsTrue(IsTrue(!IsEqual(expires, nil)) && IsTrue(IsGreaterThan(expires, Add(now, 10000)))) {
-
-			ch <- map[string]any{}
-			return nil
-		}
-		var walletAddress any = this.EthGetAddressFromPrivateKey(this.PrivateKey)
-		var request any = map[string]any{
-			"address":   walletAddress,
-			"signature": this.DefaultSignature(),
-		}
-		request = this.CreateSignedRequest(request, "EIP712_WALLETLOGIN_TYPE")
-
-		response := (<-this.PrivateEdgePostAuthWalletLogin(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//    {
-		//        "location": "",
-		//        "status": "success"
-		//    }
-		//
-		AddElementToObject(this.Options, "signInExpiration", Add(now, 86400000)) // 24 hours
-
-		ch <- response
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.signInWithPrivateKeyBody(ch, optionalArgs...)
 	return ch
 }
-func (this *GrvtCore) InitializeClient(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		var builderFee any = this.SafeBool(params, "builderFee", this.SafeBool(this.Options, "builderFee", true)) // we shouldn't omit here
-		if !IsTrue(builderFee) {
+func (this *GrvtCore) signInWithPrivateKeyBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	this.CheckRequiredCredentials()
+	var now int64 = this.Milliseconds()
+	// expires in 24 hours as CS suggested
+	var expires any = this.SafeInteger(this.Options, "signInExpiration", 0)
+	// if previous sign-in not expired (give 10 seconds margin)
+	if IsTrue(IsTrue(!IsEqual(expires, nil)) && IsTrue(IsGreaterThan(expires, Add(now, 10000)))) {
 
-			ch <- false // skip if builder fee is not enabled
-			return nil
-		}
-		var approvedBuilderFee any = this.SafeBool(this.Options, "approvedBuilderFee", false)
-		if IsTrue(approvedBuilderFee) {
-
-			ch <- true // skip if builder fee is already approved
-			return nil
-		}
-
-		results := (<-promiseAll([]any{this.PrivateTradingPostFullV1GetAuthorizedBuilders(), this.LoadAccountInfos()}))
-		PanicOnError(results)
-		//
-		// {
-		//     "results": [{
-		//         "builder_account_id": "GRVT_MAIN_ACCOUNT_ID_HERE",
-		//         "max_futures_fee_rate": 0.001,
-		//         "max_spot_fee_rate": 0.0001
-		//     }]
-		// }
-		//
-		var currentBuilders any = GetValue(results, 0)
-		var approvedBuilder any = this.SafeList(currentBuilders, "results", []any{})
-		var length any = GetArrayLength(approvedBuilder)
-		var found any = false
-		for i := 0; IsLessThan(i, length); i++ {
-			var builderInfo any = this.SafeDict(approvedBuilder, i, map[string]any{})
-			var builderAccountId any = this.SafeString(builderInfo, "builder_account_id")
-			if IsTrue(IsEqual(builderAccountId, this.SafeString(this.Options, "builder"))) {
-				found = true
-				break
-			}
-		}
-		if IsTrue(found) {
-			AddElementToObject(this.Options, "approvedBuilderFee", true)
-		} else {
-
-			{
-				func(this *GrvtCore) (ret_ any) {
-					defer func() {
-						if e := recover(); e != nil {
-							if e == "break" {
-								return
-							}
-							ret_ = func(this *GrvtCore) any {
-								// catch block:
-								AddElementToObject(this.Options, "builderFee", false) // disable builder fee if an error occurs
-								return nil
-							}(this)
-						}
-					}()
-					// try block:
-					var defaultFromAccountId any = this.SafeString(this.Options, "userMainAccountId") // this.ethGetAddressFromPrivateKey (this.secret); // this.safeString (this.options, 'userMainAccountId');
-					var request any = map[string]any{
-						"main_account_id":      defaultFromAccountId,
-						"builder_account_id":   this.SafeString(this.Options, "builder"),
-						"max_futures_fee_rate": this.SafeString(this.Options, "builderRate"),
-						"max_spot_fee_rate":    this.SafeString(this.Options, "builderRate"),
-						"signature":            this.DefaultSignature(),
-					}
-					request = this.CreateSignedRequest(request, "EIP712_BUILDER_APPROVAL_TYPE")
-
-					authResponse := (<-this.PrivateTradingPostFullV1AuthorizeBuilder(this.Extend(request, params)))
-					PanicOnError(authResponse)
-					//
-					// {
-					//     "result": {
-					//         "ack": "true",
-					//         "tx_id":"0"
-					//     }
-					// }
-					//
-					var authResult any = this.SafeDict(authResponse, "result")
-					var ack any = this.SafeBool(authResult, "ack")
-					if !IsTrue(ack) {
-						panic(ExchangeError(Add("Builder authorization failed, ", this.Json(authResponse))))
-					}
-					AddElementToObject(this.Options, "approvedBuilderFee", true)
-					return nil
-				}(this)
-
-			}
-		}
-
-		ch <- nil // just c#
+		ch <- map[string]any{}
 		return nil
+	}
+	var walletAddress any = this.EthGetAddressFromPrivateKey(this.PrivateKey)
+	var request any = map[string]any{
+		"address":   walletAddress,
+		"signature": this.DefaultSignature(),
+	}
+	request = this.CreateSignedRequest(request, "EIP712_WALLETLOGIN_TYPE")
 
-	}()
+	response := (<-this.PrivateEdgePostAuthWalletLogin(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//    {
+	//        "location": "",
+	//        "status": "success"
+	//    }
+	//
+	AddElementToObject(this.Options, "signInExpiration", Add(now, 86400000)) // 24 hours
+
+	ch <- response
+	return nil
+}
+func (this *GrvtCore) InitializeClient(optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.initializeClientBody(ch, optionalArgs...)
 	return ch
+}
+func (this *GrvtCore) initializeClientBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	var builderFee any = this.SafeBool(params, "builderFee", this.SafeBool(this.Options, "builderFee", true)) // we shouldn't omit here
+	if IsTrue(!IsEqual(builderFee, true)) {
+
+		ch <- false // skip if builder fee is not enabled
+		return nil
+	}
+	var approvedBuilderFee any = this.SafeBool(this.Options, "approvedBuilderFee", false)
+	if IsTrue(IsEqual(approvedBuilderFee, true)) {
+
+		ch <- true // skip if builder fee is already approved
+		return nil
+	}
+
+	results := (<-promiseAll([]any{this.PrivateTradingPostFullV1GetAuthorizedBuilders(), this.LoadAccountInfos()}))
+	PanicOnError(results)
+	//
+	// {
+	//     "results": [{
+	//         "builder_account_id": "GRVT_MAIN_ACCOUNT_ID_HERE",
+	//         "max_futures_fee_rate": 0.001,
+	//         "max_spot_fee_rate": 0.0001
+	//     }]
+	// }
+	//
+	var currentBuilders any = GetValue(results, 0)
+	var approvedBuilder any = this.SafeList(currentBuilders, "results", []any{})
+	var length int = GetArrayLength(approvedBuilder)
+	var found bool = false
+	for i := 0; IsLessThan(i, length); i++ {
+		var builderInfo any = this.SafeDict(approvedBuilder, i, map[string]any{})
+		var builderAccountId any = this.SafeString(builderInfo, "builder_account_id")
+		if IsTrue(IsEqual(builderAccountId, this.SafeString(this.Options, "builder"))) {
+			found = true
+			break
+		}
+	}
+	if IsTrue(found) {
+		AddElementToObject(this.Options, "approvedBuilderFee", true)
+	} else {
+
+		{
+			func(this *GrvtCore) (ret_ any) {
+				defer func() {
+					if e := recover(); e != nil {
+						if e == "break" {
+							return
+						}
+						ret_ = func(this *GrvtCore) any {
+							// catch block:
+							AddElementToObject(this.Options, "builderFee", false) // disable builder fee if an error occurs
+							return nil
+						}(this)
+					}
+				}()
+				// try block:
+				var defaultFromAccountId any = this.SafeString(this.Options, "userMainAccountId") // this.ethGetAddressFromPrivateKey (this.secret); // this.safeString (this.options, 'userMainAccountId');
+				var request any = map[string]any{
+					"main_account_id":      defaultFromAccountId,
+					"builder_account_id":   this.SafeString(this.Options, "builder"),
+					"max_futures_fee_rate": this.SafeString(this.Options, "builderRate"),
+					"max_spot_fee_rate":    this.SafeString(this.Options, "builderRate"),
+					"signature":            this.DefaultSignature(),
+				}
+				request = this.CreateSignedRequest(request, "EIP712_BUILDER_APPROVAL_TYPE")
+
+				authResponse := (<-this.PrivateTradingPostFullV1AuthorizeBuilder(this.Extend(request, params)))
+				PanicOnError(authResponse)
+				//
+				// {
+				//     "result": {
+				//         "ack": "true",
+				//         "tx_id":"0"
+				//     }
+				// }
+				//
+				var authResult any = this.SafeDict(authResponse, "result")
+				var ack any = this.SafeBool(authResult, "ack")
+				if IsTrue(!IsEqual(ack, true)) {
+					panic(ExchangeError(Add("Builder authorization failed, ", this.Json(authResponse))))
+				}
+				AddElementToObject(this.Options, "approvedBuilderFee", true)
+				return nil
+			}(this)
+
+		}
+	}
+
+	ch <- nil // just c#
+	return nil
 }
 
 /**
@@ -886,54 +886,54 @@ func (this *GrvtCore) InitializeClient(optionalArgs ...any) <-chan any {
  * @returns {object[]} an array of objects representing market data
  */
 func (this *GrvtCore) FetchMarkets(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		var marketsPromise any = this.PublicMarketPostFullV1AllInstruments(params)
-		//
-		//    {
-		//        "result": [
-		//            {
-		//                "instrument": "AAVE_USDT_Perp",
-		//                "instrument_hash": "0x032201",
-		//                "base": "AAVE",
-		//                "quote": "USDT",
-		//                "kind": "PERPETUAL",
-		//                "venues": [
-		//                    "ORDERBOOK",
-		//                    "RFQ"
-		//                ],
-		//                "settlement_period": "PERPETUAL",
-		//                "base_decimals": "9",
-		//                "quote_decimals": "6",
-		//                "tick_size": "0.01",
-		//                "min_size": "0.1",
-		//                "create_time": "1764303867576216941",
-		//                "max_position_size": "3000.0",
-		//                "funding_interval_hours": "8",
-		//                "adjusted_funding_rate_cap": "0.75",
-		//                "adjusted_funding_rate_floor": "-0.75"
-		//            },
-		//            ...
-		//
-		var promises any = []any{marketsPromise}
-		if IsTrue(!IsTrue(this.IsEmptyString(this.ApiKey)) || !IsTrue(this.IsEmptyString(this.PrivateKey))) {
-			AppendToArray(&promises, this.SignIn())
-		}
-
-		results := (<-promiseAll(promises))
-		PanicOnError(results)
-		var response any = GetValue(results, 0)
-		var result any = this.SafeList(response, "result", []any{})
-
-		ch <- this.ParseMarkets(result)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchMarketsBody(ch, optionalArgs...)
 	return ch
+}
+func (this *GrvtCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	var marketsPromise any = this.PublicMarketPostFullV1AllInstruments(params)
+	//
+	//    {
+	//        "result": [
+	//            {
+	//                "instrument": "AAVE_USDT_Perp",
+	//                "instrument_hash": "0x032201",
+	//                "base": "AAVE",
+	//                "quote": "USDT",
+	//                "kind": "PERPETUAL",
+	//                "venues": [
+	//                    "ORDERBOOK",
+	//                    "RFQ"
+	//                ],
+	//                "settlement_period": "PERPETUAL",
+	//                "base_decimals": "9",
+	//                "quote_decimals": "6",
+	//                "tick_size": "0.01",
+	//                "min_size": "0.1",
+	//                "create_time": "1764303867576216941",
+	//                "max_position_size": "3000.0",
+	//                "funding_interval_hours": "8",
+	//                "adjusted_funding_rate_cap": "0.75",
+	//                "adjusted_funding_rate_floor": "-0.75"
+	//            },
+	//            ...
+	//
+	var promises any = []any{marketsPromise}
+	if IsTrue(!IsTrue(this.IsEmptyString(this.ApiKey)) || !IsTrue(this.IsEmptyString(this.PrivateKey))) {
+		AppendToArray(&promises, this.SignIn())
+	}
+
+	results := (<-promiseAll(promises))
+	PanicOnError(results)
+	var response any = GetValue(results, 0)
+	var result any = this.SafeList(response, "result", []any{})
+
+	ch <- this.ParseMarkets(result)
+	return nil
 }
 func (this *GrvtCore) ParseMarket(market any) any {
 	//
@@ -973,10 +973,10 @@ func (this *GrvtCore) ParseMarket(market any) any {
 	if IsTrue(IsEqual(typeRaw, "PERPETUAL")) {
 		typeVar = "swap"
 	}
-	var isSpot any = (IsEqual(typeVar, "spot"))
-	var isSwap any = (IsEqual(typeVar, "swap"))
-	var isFuture any = (IsEqual(typeVar, "future"))
-	var isContract any = IsTrue(isSwap) || IsTrue(isFuture)
+	var isSpot bool = (IsEqual(typeVar, "spot"))
+	var isSwap bool = (IsEqual(typeVar, "swap"))
+	var isFuture bool = (IsEqual(typeVar, "future"))
+	var isContract bool = IsTrue(isSwap) || IsTrue(isFuture)
 	return map[string]any{
 		"id":             marketId,
 		"symbol":         symbol,
@@ -1039,36 +1039,36 @@ func (this *GrvtCore) ParseMarket(market any) any {
  * @returns {object} an associative dictionary of currencies
  */
 func (this *GrvtCore) FetchCurrencies(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		var request any = map[string]any{
-			"": "",
-		} // workaround for php [] empty arr
-
-		response := (<-this.PublicMarketPostFullV1Currency(request))
-		PanicOnError(response)
-		//
-		//    {
-		//        "result": [
-		//            {
-		//                "id": "4",
-		//                "symbol": "ETH",
-		//                "balance_decimals": "9",
-		//                "quantity_multiplier": "1000000000"
-		//            },
-		//            ..
-		//
-		var responseResult any = this.SafeList(response, "result", []any{})
-
-		ch <- this.ParseCurrencies(responseResult)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchCurrenciesBody(ch, optionalArgs...)
 	return ch
+}
+func (this *GrvtCore) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	var request map[string]any = map[string]any{
+		"": "",
+	} // workaround for php [] empty arr
+
+	response := (<-this.PublicMarketPostFullV1Currency(request))
+	PanicOnError(response)
+	//
+	//    {
+	//        "result": [
+	//            {
+	//                "id": "4",
+	//                "symbol": "ETH",
+	//                "balance_decimals": "9",
+	//                "quantity_multiplier": "1000000000"
+	//            },
+	//            ..
+	//
+	var responseResult any = this.SafeList(response, "result", []any{})
+
+	ch <- this.ParseCurrencies(responseResult)
+	return nil
 }
 func (this *GrvtCore) ParseCurrency(rawCurrency any) any {
 	//
@@ -1121,63 +1121,63 @@ func (this *GrvtCore) ParseCurrency(rawCurrency any) any {
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *GrvtCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes84012 := (<-this.LoadMarkets())
-			PanicOnError(retRes84012)
-		}
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"instrument": this.MarketId(symbol),
-		}
-
-		response := (<-this.PublicMarketPostFullV1Ticker(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//    {
-		//        "result": {
-		//            "event_time": "1764774730025055205",
-		//            "instrument": "BTC_USDT_Perp",
-		//            "mark_price": "92697.300078773",
-		//            "index_price": "92727.818122278",
-		//            "last_price": "92683.0",
-		//            "last_size": "0.001",
-		//            "mid_price": "92682.95",
-		//            "best_bid_price": "92682.9",
-		//            "best_bid_size": "5.332",
-		//            "best_ask_price": "92683.0",
-		//            "best_ask_size": "0.009",
-		//            "funding_rate_8h_curr": "0.0037",
-		//            "funding_rate_8h_avg": "0.0037",
-		//            "interest_rate": "0.0",
-		//            "forward_price": "0.0",
-		//            "buy_volume_24h_b": "2893.898",
-		//            "sell_volume_24h_b": "2907.847",
-		//            "buy_volume_24h_q": "266955739.1606",
-		//            "sell_volume_24h_q": "268170211.7109",
-		//            "high_price": "93908.3",
-		//            "low_price": "89900.1",
-		//            "open_price": "90129.2",
-		//            "open_interest": "1523.218935908",
-		//            "long_short_ratio": "1.472543",
-		//            "funding_rate": "0.0037",
-		//            "next_funding_time": "1764777600000000000"
-		//        }
-		//    }
-		//
-		var result any = this.SafeDict(response, "result", map[string]any{})
-
-		ch <- this.ParseTicker(result, market)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchTickerBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *GrvtCore) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes84012 := (<-this.LoadMarkets())
+		PanicOnError(retRes84012)
+	}
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"instrument": this.MarketId(symbol),
+	}
+
+	response := (<-this.PublicMarketPostFullV1Ticker(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//    {
+	//        "result": {
+	//            "event_time": "1764774730025055205",
+	//            "instrument": "BTC_USDT_Perp",
+	//            "mark_price": "92697.300078773",
+	//            "index_price": "92727.818122278",
+	//            "last_price": "92683.0",
+	//            "last_size": "0.001",
+	//            "mid_price": "92682.95",
+	//            "best_bid_price": "92682.9",
+	//            "best_bid_size": "5.332",
+	//            "best_ask_price": "92683.0",
+	//            "best_ask_size": "0.009",
+	//            "funding_rate_8h_curr": "0.0037",
+	//            "funding_rate_8h_avg": "0.0037",
+	//            "interest_rate": "0.0",
+	//            "forward_price": "0.0",
+	//            "buy_volume_24h_b": "2893.898",
+	//            "sell_volume_24h_b": "2907.847",
+	//            "buy_volume_24h_q": "266955739.1606",
+	//            "sell_volume_24h_q": "268170211.7109",
+	//            "high_price": "93908.3",
+	//            "low_price": "89900.1",
+	//            "open_price": "90129.2",
+	//            "open_interest": "1523.218935908",
+	//            "long_short_ratio": "1.472543",
+	//            "funding_rate": "0.0037",
+	//            "next_funding_time": "1764777600000000000"
+	//        }
+	//    }
+	//
+	var result any = this.SafeDict(response, "result", map[string]any{})
+
+	ch <- this.ParseTicker(result, market)
+	return nil
 }
 func (this *GrvtCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	//
@@ -1251,56 +1251,56 @@ func (this *GrvtCore) ParseTicker(ticker any, optionalArgs ...any) any {
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *GrvtCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		limit := GetArg(optionalArgs, 0, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes95412 := (<-this.LoadMarkets())
-			PanicOnError(retRes95412)
-		}
-		var request any = map[string]any{
-			"instrument": this.MarketId(symbol),
-		}
-		if IsTrue(IsEqual(limit, nil)) {
-			limit = 100
-		}
-		if IsTrue(IsLessThanOrEqual(limit, 500)) {
-			AddElementToObject(request, "depth", this.FindNearestCeiling([]any{10, 50, 100, 500}, limit))
-		}
-
-		response := (<-this.PublicMarketPostFullV1Book(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//    {
-		//        "result": {
-		//            "event_time": "1764777396650000000",
-		//            "instrument": "BTC_USDT_Perp",
-		//            "bids": [
-		//                { "price": "92336.0", "size": "0.005", "num_orders": "1" },
-		//                ...
-		//            ],
-		//            "asks": [
-		//                { "price": "92336.1", "size": "5.711", "num_orders": "37" },
-		//                ...
-		//            ]
-		//        }
-		//    }
-		//
-		var result any = this.SafeDict(response, "result", map[string]any{})
-		var timestamp any = this.Parse8601(this.SafeString(result, "event_time"))
-		var marketId any = this.SafeString(result, "instrument")
-
-		ch <- this.ParseOrderBook(result, this.SafeSymbol(marketId), timestamp, "bids", "asks", "price", "size")
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *GrvtCore) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	limit := GetArg(optionalArgs, 0, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes95412 := (<-this.LoadMarkets())
+		PanicOnError(retRes95412)
+	}
+	var request map[string]any = map[string]any{
+		"instrument": this.MarketId(symbol),
+	}
+	if IsTrue(IsEqual(limit, nil)) {
+		limit = 100
+	}
+	if IsTrue(IsLessThanOrEqual(limit, 500)) {
+		AddElementToObject(request, "depth", this.FindNearestCeiling([]any{10, 50, 100, 500}, limit))
+	}
+
+	response := (<-this.PublicMarketPostFullV1Book(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//    {
+	//        "result": {
+	//            "event_time": "1764777396650000000",
+	//            "instrument": "BTC_USDT_Perp",
+	//            "bids": [
+	//                { "price": "92336.0", "size": "0.005", "num_orders": "1" },
+	//                ...
+	//            ],
+	//            "asks": [
+	//                { "price": "92336.1", "size": "5.711", "num_orders": "37" },
+	//                ...
+	//            ]
+	//        }
+	//    }
+	//
+	var result any = this.SafeDict(response, "result", map[string]any{})
+	var timestamp any = this.Parse8601(this.SafeString(result, "event_time"))
+	var marketId any = this.SafeString(result, "instrument")
+
+	ch <- this.ParseOrderBook(result, this.SafeSymbol(marketId), timestamp, "bids", "asks", "price", "size")
+	return nil
 }
 
 /**
@@ -1316,64 +1316,64 @@ func (this *GrvtCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *GrvtCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		since := GetArg(optionalArgs, 0, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 1, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 2, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes100212 := (<-this.LoadMarkets())
-			PanicOnError(retRes100212)
-		}
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"instrument": GetValue(market, "id"),
-		}
-		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "limit", mathMin(limit, 1000))
-		}
-		requestparamsVariable := this.HandleUntilOptionString("end_time", request, params, 1000000)
-		request = GetValue(requestparamsVariable, 0)
-		params = GetValue(requestparamsVariable, 1)
-		if IsTrue(!IsEqual(since, nil)) {
-			AddElementToObject(request, "start_time", this.NumberToString(Multiply(since, 1000000)))
-		}
-
-		response := (<-this.PublicMarketPostFullV1TradeHistory(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//    {
-		//        "next": "eyJ0cmFkZUlkIjo2NDc5MTAyMywidHJhZGVJbmRleCI6MX0",
-		//        "result": [
-		//            {
-		//                "event_time": "1764779531332118705",
-		//                "instrument": "ETH_USDT_Perp",
-		//                "is_taker_buyer": false,
-		//                "size": "23.73",
-		//                "price": "3089.88",
-		//                "mark_price": "3089.360002315",
-		//                "index_price": "3090.443723246",
-		//                "interest_rate": "0.0",
-		//                "forward_price": "0.0",
-		//                "trade_id": "64796657-1",
-		//                "venue": "ORDERBOOK",
-		//                "is_rpi": false
-		//            },
-		//            ...
-		//
-		var result any = this.SafeList(response, "result", []any{})
-
-		ch <- this.ParseTrades(result, market, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *GrvtCore) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	since := GetArg(optionalArgs, 0, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 1, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 2, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes100212 := (<-this.LoadMarkets())
+		PanicOnError(retRes100212)
+	}
+	var market any = this.Market(symbol)
+	var request any = map[string]any{
+		"instrument": GetValue(market, "id"),
+	}
+	if IsTrue(!IsEqual(limit, nil)) {
+		AddElementToObject(request, "limit", mathMin(limit, 1000))
+	}
+	requestparamsVariable := this.HandleUntilOptionString("end_time", request, params, 1000000)
+	request = GetValue(requestparamsVariable, 0)
+	params = GetValue(requestparamsVariable, 1)
+	if IsTrue(!IsEqual(since, nil)) {
+		AddElementToObject(request, "start_time", this.NumberToString(Multiply(since, 1000000)))
+	}
+
+	response := (<-this.PublicMarketPostFullV1TradeHistory(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//    {
+	//        "next": "eyJ0cmFkZUlkIjo2NDc5MTAyMywidHJhZGVJbmRleCI6MX0",
+	//        "result": [
+	//            {
+	//                "event_time": "1764779531332118705",
+	//                "instrument": "ETH_USDT_Perp",
+	//                "is_taker_buyer": false,
+	//                "size": "23.73",
+	//                "price": "3089.88",
+	//                "mark_price": "3089.360002315",
+	//                "index_price": "3090.443723246",
+	//                "interest_rate": "0.0",
+	//                "forward_price": "0.0",
+	//                "trade_id": "64796657-1",
+	//                "venue": "ORDERBOOK",
+	//                "is_rpi": false
+	//            },
+	//            ...
+	//
+	var result any = this.SafeList(response, "result", []any{})
+
+	ch <- this.ParseTrades(result, market, since, limit)
+	return nil
 }
 func (this *GrvtCore) ParseTrade(trade any, optionalArgs ...any) any {
 	//
@@ -1432,8 +1432,10 @@ func (this *GrvtCore) ParseTrade(trade any, optionalArgs ...any) any {
 		side = Ternary(IsTrue(isTakerBuyer), "buy", "sell")
 		takerOrMaker = "taker"
 	} else {
-		takerOrMaker = Ternary(IsTrue(this.SafeBool(trade, "is_taker")), "taker", "maker")
-		side = Ternary(IsTrue(this.SafeBool(trade, "is_buyer")), "buy", "sell")
+		var isTaker bool = (IsEqual(this.SafeBool(trade, "is_taker"), true))
+		var isBuyer bool = (IsEqual(this.SafeBool(trade, "is_buyer"), true))
+		takerOrMaker = Ternary(IsTrue(isTaker), "taker", "maker")
+		side = Ternary(IsTrue(isBuyer), "buy", "sell")
 	}
 	var fee any = nil
 	var feeString any = this.SafeString(trade, "fee")
@@ -1475,85 +1477,85 @@ func (this *GrvtCore) ParseTrade(trade any, optionalArgs ...any) any {
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
 func (this *GrvtCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		timeframe := GetArg(optionalArgs, 0, "1m")
-		_ = timeframe
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		var maxLimit any = 1000
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes114012 := (<-this.LoadMarkets())
-			PanicOnError(retRes114012)
-		}
-		var paginate any = false
-		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCV", "paginate", false)
-		paginate = GetValue(paginateparamsVariable, 0)
-		params = GetValue(paginateparamsVariable, 1)
-		if IsTrue(paginate) {
-
-			retRes114519 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, maxLimit))
-			PanicOnError(retRes114519)
-			ch <- retRes114519
-			return nil
-		}
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"instrument": GetValue(market, "id"),
-			"interval":   this.SafeString(this.Timeframes, timeframe, timeframe),
-		}
-		var priceTypeMap any = map[string]any{
-			"last":  "TRADE",
-			"mark":  "MARK",
-			"index": "INDEX",
-		}
-		var selectedPriceType any = this.SafeString(params, "priceType", "last")
-		AddElementToObject(request, "type", this.SafeString(priceTypeMap, selectedPriceType))
-		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "limit", mathMin(limit, 1000))
-		}
-		requestparamsVariable := this.HandleUntilOptionString("end_time", request, params, 1000000)
-		request = GetValue(requestparamsVariable, 0)
-		params = GetValue(requestparamsVariable, 1)
-		if IsTrue(!IsEqual(since, nil)) {
-			AddElementToObject(request, "start_time", this.NumberToString(Multiply(since, 1000000)))
-		}
-
-		response := (<-this.PublicMarketPostFullV1Kline(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//    {
-		//        "result": [
-		//            {
-		//                "open_time": "1767288240000000000",
-		//                "close_time": "1767288300000000000",
-		//                "open": "88178.8",
-		//                "close": "88176.7",
-		//                "high": "88192.7",
-		//                "low": "88176.6",
-		//                "volume_b": "15.32",
-		//                "volume_q": "1350962.4782",
-		//                "trades": 38,
-		//                "instrument": "BTC_USDT_Perp"
-		//            },
-		//        ],
-		//        "next": "eyJvcGVuVGltZSI6MTc2NzI1ODMwMDAwMDAwMDAwMH0"
-		//    }
-		//
-		var candles any = this.SafeList(response, "result", []any{})
-
-		ch <- this.ParseOHLCVs(candles, market, timeframe, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *GrvtCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	timeframe := GetArg(optionalArgs, 0, "1m")
+	_ = timeframe
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	var maxLimit any = 1000
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes114212 := (<-this.LoadMarkets())
+		PanicOnError(retRes114212)
+	}
+	var paginate any = false
+	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCV", "paginate", false)
+	paginate = GetValue(paginateparamsVariable, 0)
+	params = GetValue(paginateparamsVariable, 1)
+	if IsTrue(paginate) {
+
+		retRes114719 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, maxLimit))
+		PanicOnError(retRes114719)
+		ch <- retRes114719
+		return nil
+	}
+	var market any = this.Market(symbol)
+	var request any = map[string]any{
+		"instrument": GetValue(market, "id"),
+		"interval":   this.SafeString(this.Timeframes, timeframe, timeframe),
+	}
+	var priceTypeMap map[string]any = map[string]any{
+		"last":  "TRADE",
+		"mark":  "MARK",
+		"index": "INDEX",
+	}
+	var selectedPriceType any = this.SafeString(params, "priceType", "last")
+	AddElementToObject(request, "type", this.SafeString(priceTypeMap, selectedPriceType))
+	if IsTrue(!IsEqual(limit, nil)) {
+		AddElementToObject(request, "limit", mathMin(limit, 1000))
+	}
+	requestparamsVariable := this.HandleUntilOptionString("end_time", request, params, 1000000)
+	request = GetValue(requestparamsVariable, 0)
+	params = GetValue(requestparamsVariable, 1)
+	if IsTrue(!IsEqual(since, nil)) {
+		AddElementToObject(request, "start_time", this.NumberToString(Multiply(since, 1000000)))
+	}
+
+	response := (<-this.PublicMarketPostFullV1Kline(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//    {
+	//        "result": [
+	//            {
+	//                "open_time": "1767288240000000000",
+	//                "close_time": "1767288300000000000",
+	//                "open": "88178.8",
+	//                "close": "88176.7",
+	//                "high": "88192.7",
+	//                "low": "88176.6",
+	//                "volume_b": "15.32",
+	//                "volume_q": "1350962.4782",
+	//                "trades": 38,
+	//                "instrument": "BTC_USDT_Perp"
+	//            },
+	//        ],
+	//        "next": "eyJvcGVuVGltZSI6MTc2NzI1ODMwMDAwMDAwMDAwMH0"
+	//    }
+	//
+	var candles any = this.SafeList(response, "result", []any{})
+
+	ch <- this.ParseOHLCVs(candles, market, timeframe, since, limit)
+	return nil
 }
 func (this *GrvtCore) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	//
@@ -1589,76 +1591,76 @@ func (this *GrvtCore) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
  * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
 func (this *GrvtCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(symbol, nil)) {
-			panic(ArgumentsRequired(Add(this.Id, " fetchFundingRateHistory() requires a symbol argument")))
-		}
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes123412 := (<-this.LoadMarkets())
-			PanicOnError(retRes123412)
-		}
-		var paginate any = false
-		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
-		paginate = GetValue(paginateparamsVariable, 0)
-		params = GetValue(paginateparamsVariable, 1)
-		if IsTrue(paginate) {
-
-			retRes123919 := (<-this.FetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params))
-			PanicOnError(retRes123919)
-			ch <- retRes123919
-			return nil
-		}
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"instrument": GetValue(market, "id"),
-		}
-		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "limit", mathMin(limit, 1000))
-		}
-		requestparamsVariable := this.HandleUntilOptionString("end_time", request, params, 1000000)
-		request = GetValue(requestparamsVariable, 0)
-		params = GetValue(requestparamsVariable, 1)
-		if IsTrue(!IsEqual(since, nil)) {
-			AddElementToObject(request, "start_time", this.NumberToString(Multiply(since, 1000000)))
-		}
-
-		response := (<-this.PublicMarketPostFullV1Funding(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//    {
-		//        "result": [
-		//            {
-		//                "instrument": "BTC_USDT_Perp",
-		//                "funding_rate": "-0.0034",
-		//                "funding_time": "1760494260000000000",
-		//                "mark_price": "112721.159060304",
-		//                "funding_rate_8_h_avg": "-0.0038",
-		//                "funding_interval_hours": "0"
-		//            },
-		//            ...
-		//        ],
-		//        "next": "eyJmdW5kaW5nVGltZSI6MTc2MDQ5NDI2MDAwMDAwMDAwMH0"
-		//    }
-		//
-		var result any = this.SafeList(response, "result", []any{})
-
-		ch <- this.ParseFundingRateHistories(result, market)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchFundingRateHistoryBody(ch, optionalArgs...)
 	return ch
+}
+func (this *GrvtCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(symbol, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " fetchFundingRateHistory() requires a symbol argument")))
+	}
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes123612 := (<-this.LoadMarkets())
+		PanicOnError(retRes123612)
+	}
+	var paginate any = false
+	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
+	paginate = GetValue(paginateparamsVariable, 0)
+	params = GetValue(paginateparamsVariable, 1)
+	if IsTrue(paginate) {
+
+		retRes124119 := (<-this.FetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params))
+		PanicOnError(retRes124119)
+		ch <- retRes124119
+		return nil
+	}
+	var market any = this.Market(symbol)
+	var request any = map[string]any{
+		"instrument": GetValue(market, "id"),
+	}
+	if IsTrue(!IsEqual(limit, nil)) {
+		AddElementToObject(request, "limit", mathMin(limit, 1000))
+	}
+	requestparamsVariable := this.HandleUntilOptionString("end_time", request, params, 1000000)
+	request = GetValue(requestparamsVariable, 0)
+	params = GetValue(requestparamsVariable, 1)
+	if IsTrue(!IsEqual(since, nil)) {
+		AddElementToObject(request, "start_time", this.NumberToString(Multiply(since, 1000000)))
+	}
+
+	response := (<-this.PublicMarketPostFullV1Funding(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//    {
+	//        "result": [
+	//            {
+	//                "instrument": "BTC_USDT_Perp",
+	//                "funding_rate": "-0.0034",
+	//                "funding_time": "1760494260000000000",
+	//                "mark_price": "112721.159060304",
+	//                "funding_rate_8_h_avg": "-0.0038",
+	//                "funding_interval_hours": "0"
+	//            },
+	//            ...
+	//        ],
+	//        "next": "eyJmdW5kaW5nVGltZSI6MTc2MDQ5NDI2MDAwMDAwMDAwMH0"
+	//    }
+	//
+	var result any = this.SafeList(response, "result", []any{})
+
+	ch <- this.ParseFundingRateHistories(result, market)
+	return nil
 }
 func (this *GrvtCore) ParseFundingRateHistory(rawItem any, optionalArgs ...any) any {
 	//
@@ -1675,10 +1677,13 @@ func (this *GrvtCore) ParseFundingRateHistory(rawItem any, optionalArgs ...any) 
 	_ = market
 	var marketId any = this.SafeString(rawItem, "instrument")
 	var ts any = this.SafeIntegerProduct(rawItem, "funding_time", 0.000001)
+	// the api documents funding_rate in percentage points, and a unified
+	// fundingRate is a fraction, with the Manual's examples reading 0.000072
+	var rate any = this.SafeString(rawItem, "funding_rate")
 	return map[string]any{
 		"info":        rawItem,
 		"symbol":      this.SafeSymbol(marketId, market),
-		"fundingRate": this.SafeNumber(rawItem, "funding_rate"),
+		"fundingRate": this.ParseNumber(Precise.StringDiv(rate, "100")),
 		"timestamp":   ts,
 		"datetime":    this.Iso8601(ts),
 	}
@@ -1703,56 +1708,56 @@ func (this *GrvtCore) GetSubAccountId(params any) any {
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *GrvtCore) FetchBalance(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		retRes13138 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes13138)
-		var request any = map[string]any{
-			"sub_account_id": this.GetSubAccountId(params),
-		}
-
-		response := (<-this.PrivateTradingPostFullV1AccountSummary(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//    {
-		//        "result": {
-		//            "event_time": "1764863116142428457",
-		//            "sub_account_id": "2147050003876484",
-		//            "margin_type": "SIMPLE_CROSS_MARGIN",
-		//            "settle_currency": "USDT",
-		//            "unrealized_pnl": "0.0",
-		//            "total_equity": "15.0",
-		//            "initial_margin": "0.0",
-		//            "maintenance_margin": "0.0",
-		//            "available_balance": "15.0",
-		//            "spot_balances": [
-		//                {
-		//                    "currency": "USDT",
-		//                    "balance": "15.0",
-		//                    "index_price": "1.000289735"
-		//                }
-		//            ],
-		//            "positions": [],
-		//            "settle_index_price": "1.000289735",
-		//            "derisk_margin": "0.0",
-		//            "derisk_to_maintenance_margin_ratio": "1.0",
-		//            "total_cross_equity": "15.0",
-		//            "cross_unrealized_pnl": "0.0"
-		//        }
-		//    }
-		//
-		var result any = this.SafeDict(response, "result", map[string]any{})
-
-		ch <- this.ParseBalance(result)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchBalanceBody(ch, optionalArgs...)
 	return ch
+}
+func (this *GrvtCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	retRes13188 := (<-this.LoadMarketsAndSignIn())
+	PanicOnError(retRes13188)
+	var request map[string]any = map[string]any{
+		"sub_account_id": this.GetSubAccountId(params),
+	}
+
+	response := (<-this.PrivateTradingPostFullV1AccountSummary(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//    {
+	//        "result": {
+	//            "event_time": "1764863116142428457",
+	//            "sub_account_id": "2147050003876484",
+	//            "margin_type": "SIMPLE_CROSS_MARGIN",
+	//            "settle_currency": "USDT",
+	//            "unrealized_pnl": "0.0",
+	//            "total_equity": "15.0",
+	//            "initial_margin": "0.0",
+	//            "maintenance_margin": "0.0",
+	//            "available_balance": "15.0",
+	//            "spot_balances": [
+	//                {
+	//                    "currency": "USDT",
+	//                    "balance": "15.0",
+	//                    "index_price": "1.000289735"
+	//                }
+	//            ],
+	//            "positions": [],
+	//            "settle_index_price": "1.000289735",
+	//            "derisk_margin": "0.0",
+	//            "derisk_to_maintenance_margin_ratio": "1.0",
+	//            "total_cross_equity": "15.0",
+	//            "cross_unrealized_pnl": "0.0"
+	//        }
+	//    }
+	//
+	var result any = this.SafeDict(response, "result", map[string]any{})
+
+	ch <- this.ParseBalance(result)
+	return nil
 }
 func (this *GrvtCore) ParseBalance(response any) any {
 	//
@@ -1782,7 +1787,7 @@ func (this *GrvtCore) ParseBalance(response any) any {
 	//        }
 	//
 	var timestamp any = this.SafeIntegerProduct(response, "event_time", 0.000001)
-	var result any = map[string]any{
+	var result map[string]any = map[string]any{
 		"info":      response,
 		"timestamp": timestamp,
 		"datetime":  this.Iso8601(timestamp),
@@ -1816,73 +1821,73 @@ func (this *GrvtCore) ParseBalance(response any) any {
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *GrvtCore) FetchDeposits(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		code := GetArg(optionalArgs, 0, nil)
-		_ = code
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-
-		retRes14128 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes14128)
-		var request any = map[string]any{}
-		var currency any = nil
-		if IsTrue(!IsEqual(code, nil)) {
-			currency = this.Currency(code)
-			AddElementToObject(request, "currency", []any{GetValue(currency, "code")})
-		}
-		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "limit", mathMin(limit, 1000))
-		}
-		requestparamsVariable := this.HandleUntilOptionString("end_time", request, params, 1000000)
-		request = GetValue(requestparamsVariable, 0)
-		params = GetValue(requestparamsVariable, 1)
-		if IsTrue(!IsEqual(since, nil)) {
-			AddElementToObject(request, "start_time", this.NumberToString(Multiply(since, 1000000)))
-		}
-		var useTransfersEndpoint any = this.SafeBool(this.Options, "useTransfersEndpointForDepositsWithdrawals", true)
-		if IsTrue(useTransfersEndpoint) {
-
-			transfers := (<-this.InternalFetchTransfers(this.Extend(request, params), currency, since, limit))
-			PanicOnError(transfers)
-			var filteredResults any = this.FilterTransfersByType(transfers, "deposit", true)
-			var transactions any = this.GetListFromObjectValues(GetValue(filteredResults, 0), "info")
-
-			ch <- this.ParseTransactions(transactions, currency, since, limit)
-			return nil
-		} else {
-
-			response := (<-this.PrivateTradingPostFullV1DepositHistory(this.Extend(request, params)))
-			PanicOnError(response)
-			//
-			// {
-			//     "result": [{
-			//         "l_1_hash": "0x10000101000203040506",
-			//         "l_2_hash": "0x10000101000203040506",
-			//         "to_account_id": "0xc73c0c2538fd9b833d20933ccc88fdaa74fcb0d0",
-			//         "currency": "USDT",
-			//         "num_tokens": "1500.0",
-			//         "initiated_time": "1697788800000000000",
-			//         "confirmed_time": "1697788800000000000",
-			//         "from_address": "0xc73c0c2538fd9b833d20933ccc88fdaa74fcb0d0"
-			//     }],
-			//     "next": "Qw0918="
-			// }
-			//
-			var result any = this.SafeList(response, "result", []any{})
-
-			ch <- this.ParseTransactions(result, currency, since, limit)
-			return nil
-		}
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchDepositsBody(ch, optionalArgs...)
 	return ch
+}
+func (this *GrvtCore) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	code := GetArg(optionalArgs, 0, nil)
+	_ = code
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+
+	retRes14178 := (<-this.LoadMarketsAndSignIn())
+	PanicOnError(retRes14178)
+	var request any = map[string]any{}
+	var currency any = nil
+	if IsTrue(!IsEqual(code, nil)) {
+		currency = this.Currency(code)
+		AddElementToObject(request, "currency", []any{GetValue(currency, "code")})
+	}
+	if IsTrue(!IsEqual(limit, nil)) {
+		AddElementToObject(request, "limit", mathMin(limit, 1000))
+	}
+	requestparamsVariable := this.HandleUntilOptionString("end_time", request, params, 1000000)
+	request = GetValue(requestparamsVariable, 0)
+	params = GetValue(requestparamsVariable, 1)
+	if IsTrue(!IsEqual(since, nil)) {
+		AddElementToObject(request, "start_time", this.NumberToString(Multiply(since, 1000000)))
+	}
+	var useTransfersEndpoint any = this.SafeBool(this.Options, "useTransfersEndpointForDepositsWithdrawals", true)
+	if IsTrue(IsEqual(useTransfersEndpoint, true)) {
+
+		transfers := (<-this.InternalFetchTransfers(this.Extend(request, params), currency, since, limit))
+		PanicOnError(transfers)
+		var filteredResults any = this.FilterTransfersByType(transfers, "deposit", true)
+		var transactions any = this.GetListFromObjectValues(GetValue(filteredResults, 0), "info")
+
+		ch <- this.ParseTransactions(transactions, currency, since, limit)
+		return nil
+	} else {
+
+		response := (<-this.PrivateTradingPostFullV1DepositHistory(this.Extend(request, params)))
+		PanicOnError(response)
+		//
+		// {
+		//     "result": [{
+		//         "l_1_hash": "0x10000101000203040506",
+		//         "l_2_hash": "0x10000101000203040506",
+		//         "to_account_id": "0xc73c0c2538fd9b833d20933ccc88fdaa74fcb0d0",
+		//         "currency": "USDT",
+		//         "num_tokens": "1500.0",
+		//         "initiated_time": "1697788800000000000",
+		//         "confirmed_time": "1697788800000000000",
+		//         "from_address": "0xc73c0c2538fd9b833d20933ccc88fdaa74fcb0d0"
+		//     }],
+		//     "next": "Qw0918="
+		// }
+		//
+		var result any = this.SafeList(response, "result", []any{})
+
+		ch <- this.ParseTransactions(result, currency, since, limit)
+		return nil
+	}
 }
 
 /**
@@ -1898,136 +1903,136 @@ func (this *GrvtCore) FetchDeposits(optionalArgs ...any) <-chan any {
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *GrvtCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		code := GetArg(optionalArgs, 0, nil)
-		_ = code
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-
-		retRes14678 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes14678)
-		var request any = map[string]any{}
-		var currency any = nil
-		if IsTrue(IsEqual(code, nil)) {
-			AddElementToObject(request, "currency", nil)
-		} else {
-			currency = this.Currency(code)
-			AddElementToObject(request, "currency", []any{GetValue(currency, "code")})
-		}
-		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "limit", mathMin(limit, 1000))
-		}
-		requestparamsVariable := this.HandleUntilOptionString("end_time", request, params, 1000000)
-		request = GetValue(requestparamsVariable, 0)
-		params = GetValue(requestparamsVariable, 1)
-		if IsTrue(!IsEqual(since, nil)) {
-			AddElementToObject(request, "start_time", this.NumberToString(Multiply(since, 1000000)))
-		}
-		var useTransfersEndpoint any = this.SafeBool(this.Options, "useTransfersEndpointForDepositsWithdrawals", true)
-		if IsTrue(useTransfersEndpoint) {
-
-			transfers := (<-this.InternalFetchTransfers(this.Extend(request, params), currency, since, limit))
-			PanicOnError(transfers)
-			var filteredResults any = this.FilterTransfersByType(transfers, "withdrawal", true)
-			var transactions any = this.GetListFromObjectValues(GetValue(filteredResults, 0), "info")
-
-			ch <- this.ParseTransactions(transactions, currency, since, limit)
-			return nil
-		} else {
-
-			response := (<-this.PrivateTradingPostFullV1WithdrawalHistory(this.Extend(request, params)))
-			PanicOnError(response)
-			//
-			// {
-			//     "result": [{
-			//         "tx_id": "1028403",
-			//         "from_account_id": "0xc73c0c2538fd9b833d20933ccc88fdaa74fcb0d0",
-			//         "to_eth_address": "0xc73c0c2538fd9b833d20933ccc88fdaa74fcb0d0",
-			//         "currency": "USDT",
-			//         "num_tokens": "1500.0",
-			//         "signature": {
-			//             "signer": "0xc73c0c2538fd9b833d20933ccc88fdaa74fcb0d0",
-			//             "r": "0xb788d96fee91c7cdc35918e0441b756d4000ec1d07d900c73347d9abbc20acc8",
-			//             "s": "0x3d786193125f7c29c958647da64d0e2875ece2c3f845a591bdd7dae8c475e26d",
-			//             "v": 28,
-			//             "expiration": "1697788800000000000",
-			//             "nonce": 1234567890,
-			//             "chain_id": "325"
-			//         },
-			//         "event_time": "1697788800000000000",
-			//         "l_1_hash": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
-			//         "l_2_hash": "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890"
-			//     }],
-			//     "next": "Qw0918="
-			// }
-			//
-			var result any = this.SafeList(response, "result", []any{})
-
-			ch <- this.ParseTransactions(result, currency, since, limit)
-			return nil
-		}
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchWithdrawalsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *GrvtCore) InternalFetchTransfers(req any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		currency := GetArg(optionalArgs, 0, nil)
-		_ = currency
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
+func (this *GrvtCore) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	code := GetArg(optionalArgs, 0, nil)
+	_ = code
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
 
-		response := (<-this.PrivateTradingPostFullV1TransferHistory(req))
+	retRes14728 := (<-this.LoadMarketsAndSignIn())
+	PanicOnError(retRes14728)
+	var request any = map[string]any{}
+	var currency any = nil
+	if IsTrue(IsEqual(code, nil)) {
+		AddElementToObject(request, "currency", nil)
+	} else {
+		currency = this.Currency(code)
+		AddElementToObject(request, "currency", []any{GetValue(currency, "code")})
+	}
+	if IsTrue(!IsEqual(limit, nil)) {
+		AddElementToObject(request, "limit", mathMin(limit, 1000))
+	}
+	requestparamsVariable := this.HandleUntilOptionString("end_time", request, params, 1000000)
+	request = GetValue(requestparamsVariable, 0)
+	params = GetValue(requestparamsVariable, 1)
+	if IsTrue(!IsEqual(since, nil)) {
+		AddElementToObject(request, "start_time", this.NumberToString(Multiply(since, 1000000)))
+	}
+	var useTransfersEndpoint any = this.SafeBool(this.Options, "useTransfersEndpointForDepositsWithdrawals", true)
+	if IsTrue(IsEqual(useTransfersEndpoint, true)) {
+
+		transfers := (<-this.InternalFetchTransfers(this.Extend(request, params), currency, since, limit))
+		PanicOnError(transfers)
+		var filteredResults any = this.FilterTransfersByType(transfers, "withdrawal", true)
+		var transactions any = this.GetListFromObjectValues(GetValue(filteredResults, 0), "info")
+
+		ch <- this.ParseTransactions(transactions, currency, since, limit)
+		return nil
+	} else {
+
+		response := (<-this.PrivateTradingPostFullV1WithdrawalHistory(this.Extend(request, params)))
 		PanicOnError(response)
 		//
-		//    {
-		//        "result": [
-		//            {
-		//                "tx_id": "65119836",
-		//                "from_account_id": "0xc451b0191351ce308fdfd779d73814c910fc5ecb",
-		//                "from_sub_account_id": "0",
-		//                "to_account_id": "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
-		//                "to_sub_account_id": "0",
-		//                "currency": "USDT",
-		//                "num_tokens": "4.998",
-		//                "signature": {
-		//                    "signer": "0xf4fdbaf9655bfd607098f4f887aaca58c9667203",
-		//                    "r": "0x5f780b99e5e8516f85e66af49b469eeeeeee724290d7f49f1e84b25ad038fa81",
-		//                    "s": "0x66c76fdb37a25db8c6b368625d96ee91ab1ffca1786d84dc806b08d1460e97bc",
-		//                    "v": "27",
-		//                    "expiration": "1767455807929000000",
-		//                    "nonce": "45905",
-		//                    "chain_id": "0"
-		//                },
-		//                "event_time": "1764863808817370541",
-		//                "transfer_type": "NON_NATIVE_BRIDGE_DEPOSIT",
-		//                "transfer_metadata": "{\\"provider\\":\\"rhino\\",\\"direction\\":\\"deposit\\",\\"chainid\\":\\"8453\\",\\"endpoint\\":\\"0x01b89ac919ead1bd513b548962075137c683b9ab\\",\\"provider_tx_id\\":\\"0x1dff8c839f8e21b5af7e121a1ae926017e734aafe8c4ae9942756b3091793b4f\\",\\"provider_ref_id\\":\\"6931aefa5f1ab6fcf0d2f856\\"}"
-		//            },
-		//            ...
-		//        ],
-		//        "next": ""
-		//    }
+		// {
+		//     "result": [{
+		//         "tx_id": "1028403",
+		//         "from_account_id": "0xc73c0c2538fd9b833d20933ccc88fdaa74fcb0d0",
+		//         "to_eth_address": "0xc73c0c2538fd9b833d20933ccc88fdaa74fcb0d0",
+		//         "currency": "USDT",
+		//         "num_tokens": "1500.0",
+		//         "signature": {
+		//             "signer": "0xc73c0c2538fd9b833d20933ccc88fdaa74fcb0d0",
+		//             "r": "0xb788d96fee91c7cdc35918e0441b756d4000ec1d07d900c73347d9abbc20acc8",
+		//             "s": "0x3d786193125f7c29c958647da64d0e2875ece2c3f845a591bdd7dae8c475e26d",
+		//             "v": 28,
+		//             "expiration": "1697788800000000000",
+		//             "nonce": 1234567890,
+		//             "chain_id": "325"
+		//         },
+		//         "event_time": "1697788800000000000",
+		//         "l_1_hash": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+		//         "l_2_hash": "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890"
+		//     }],
+		//     "next": "Qw0918="
+		// }
 		//
-		var rows any = this.SafeList(response, "result", []any{})
-		var transfers any = this.ParseTransfers(rows, currency, since, limit)
+		var result any = this.SafeList(response, "result", []any{})
 
-		ch <- transfers
+		ch <- this.ParseTransactions(result, currency, since, limit)
 		return nil
-
-	}()
+	}
+}
+func (this *GrvtCore) InternalFetchTransfers(req any, optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.internalFetchTransfersBody(ch, req, optionalArgs...)
 	return ch
+}
+func (this *GrvtCore) internalFetchTransfersBody(ch chan any, req any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	currency := GetArg(optionalArgs, 0, nil)
+	_ = currency
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+
+	response := (<-this.PrivateTradingPostFullV1TransferHistory(req))
+	PanicOnError(response)
+	//
+	//    {
+	//        "result": [
+	//            {
+	//                "tx_id": "65119836",
+	//                "from_account_id": "0xc451b0191351ce308fdfd779d73814c910fc5ecb",
+	//                "from_sub_account_id": "0",
+	//                "to_account_id": "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
+	//                "to_sub_account_id": "0",
+	//                "currency": "USDT",
+	//                "num_tokens": "4.998",
+	//                "signature": {
+	//                    "signer": "0xf4fdbaf9655bfd607098f4f887aaca58c9667203",
+	//                    "r": "0x5f780b99e5e8516f85e66af49b469eeeeeee724290d7f49f1e84b25ad038fa81",
+	//                    "s": "0x66c76fdb37a25db8c6b368625d96ee91ab1ffca1786d84dc806b08d1460e97bc",
+	//                    "v": "27",
+	//                    "expiration": "1767455807929000000",
+	//                    "nonce": "45905",
+	//                    "chain_id": "0"
+	//                },
+	//                "event_time": "1764863808817370541",
+	//                "transfer_type": "NON_NATIVE_BRIDGE_DEPOSIT",
+	//                "transfer_metadata": "{\\"provider\\":\\"rhino\\",\\"direction\\":\\"deposit\\",\\"chainid\\":\\"8453\\",\\"endpoint\\":\\"0x01b89ac919ead1bd513b548962075137c683b9ab\\",\\"provider_tx_id\\":\\"0x1dff8c839f8e21b5af7e121a1ae926017e734aafe8c4ae9942756b3091793b4f\\",\\"provider_ref_id\\":\\"6931aefa5f1ab6fcf0d2f856\\"}"
+	//            },
+	//            ...
+	//        ],
+	//        "next": ""
+	//    }
+	//
+	var rows any = this.SafeList(response, "result", []any{})
+	var transfers any = this.ParseTransfers(rows, currency, since, limit)
+
+	ch <- transfers
+	return nil
 }
 func (this *GrvtCore) ParseTransaction(transaction any, optionalArgs ...any) any {
 	//
@@ -2158,88 +2163,88 @@ func (this *GrvtCore) ParseTransaction(transaction any, optionalArgs ...any) any
  * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *GrvtCore) FetchTransfers(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		code := GetArg(optionalArgs, 0, nil)
-		_ = code
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(code, nil)) {
-			panic(ArgumentsRequired(Add(this.Id, " fetchTransfers() requires a code argument")))
-		}
-
-		retRes16868 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes16868)
-		var request any = map[string]any{}
-		var currency any = this.Currency(code)
-		var maxLimit any = 1000
-		var paginate any = false
-		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchTransfers", "paginate", false)
-		paginate = GetValue(paginateparamsVariable, 0)
-		params = GetValue(paginateparamsVariable, 1)
-		if IsTrue(paginate) {
-
-			retRes169319 := (<-this.FetchPaginatedCallDynamic("fetchTransfers", nil, since, limit, params, maxLimit))
-			PanicOnError(retRes169319)
-			ch <- retRes169319
-			return nil
-		}
-		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "limit", mathMin(limit, 1000))
-		}
-		requestparamsVariable := this.HandleUntilOptionString("end_time", request, params, 1000000)
-		request = GetValue(requestparamsVariable, 0)
-		params = GetValue(requestparamsVariable, 1)
-		if IsTrue(!IsEqual(since, nil)) {
-			AddElementToObject(request, "start_time", this.NumberToString(Multiply(since, 1000000)))
-		}
-
-		response := (<-this.PrivateTradingPostFullV1TransferHistory(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//    {
-		//        "result": [
-		//            {
-		//                "tx_id": "65119836",
-		//                "from_account_id": "0xc451b0191351ce308fdfd779d73814c910fc5ecb",
-		//                "from_sub_account_id": "0",
-		//                "to_account_id": "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
-		//                "to_sub_account_id": "0",
-		//                "currency": "USDT",
-		//                "num_tokens": "4.998",
-		//                "signature": {
-		//                    "signer": "0xf4fdbaf9655bfd607098f4f887aaca58c9667203",
-		//                    "r": "0x5f780b99e5e8516f85e66af49b469eeeeeee724290d7f49f1e84b25ad038fa81",
-		//                    "s": "0x66c76fdb37a25db8c6b368625d96ee91ab1ffca1786d84dc806b08d1460e97bc",
-		//                    "v": "27",
-		//                    "expiration": "1767455807929000000",
-		//                    "nonce": "45905",
-		//                    "chain_id": "0"
-		//                },
-		//                "event_time": "1764863808817370541",
-		//                "transfer_type": "NON_NATIVE_BRIDGE_DEPOSIT",
-		//                "transfer_metadata": "{\\"provider\\":\\"rhino\\",\\"direction\\":\\"deposit\\",\\"chainid\\":\\"8453\\",\\"endpoint\\":\\"0x01b89ac919ead1bd513b548962075137c683b9ab\\",\\"provider_tx_id\\":\\"0x1dff8c839f8e21b5af7e121a1ae926017e734aafe8c4ae9942756b3091793b4f\\",\\"provider_ref_id\\":\\"6931aefa5f1ab6fcf0d2f856\\"}"
-		//            },
-		//            ...
-		//        ],
-		//        "next": ""
-		//    }
-		//
-		var rows any = this.SafeList(response, "result", []any{})
-		var transfers any = this.ParseTransfers(rows, currency, since, limit)
-		var filteredResults any = this.FilterTransfersByType(transfers, "internal", false)
-
-		ch <- GetValue(filteredResults, 1)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchTransfersBody(ch, optionalArgs...)
 	return ch
+}
+func (this *GrvtCore) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	code := GetArg(optionalArgs, 0, nil)
+	_ = code
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(code, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " fetchTransfers() requires a code argument")))
+	}
+
+	retRes16918 := (<-this.LoadMarketsAndSignIn())
+	PanicOnError(retRes16918)
+	var request any = map[string]any{}
+	var currency any = this.Currency(code)
+	var maxLimit any = 1000
+	var paginate any = false
+	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchTransfers", "paginate", false)
+	paginate = GetValue(paginateparamsVariable, 0)
+	params = GetValue(paginateparamsVariable, 1)
+	if IsTrue(paginate) {
+
+		retRes169819 := (<-this.FetchPaginatedCallDynamic("fetchTransfers", nil, since, limit, params, maxLimit))
+		PanicOnError(retRes169819)
+		ch <- retRes169819
+		return nil
+	}
+	if IsTrue(!IsEqual(limit, nil)) {
+		AddElementToObject(request, "limit", mathMin(limit, 1000))
+	}
+	requestparamsVariable := this.HandleUntilOptionString("end_time", request, params, 1000000)
+	request = GetValue(requestparamsVariable, 0)
+	params = GetValue(requestparamsVariable, 1)
+	if IsTrue(!IsEqual(since, nil)) {
+		AddElementToObject(request, "start_time", this.NumberToString(Multiply(since, 1000000)))
+	}
+
+	response := (<-this.PrivateTradingPostFullV1TransferHistory(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//    {
+	//        "result": [
+	//            {
+	//                "tx_id": "65119836",
+	//                "from_account_id": "0xc451b0191351ce308fdfd779d73814c910fc5ecb",
+	//                "from_sub_account_id": "0",
+	//                "to_account_id": "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
+	//                "to_sub_account_id": "0",
+	//                "currency": "USDT",
+	//                "num_tokens": "4.998",
+	//                "signature": {
+	//                    "signer": "0xf4fdbaf9655bfd607098f4f887aaca58c9667203",
+	//                    "r": "0x5f780b99e5e8516f85e66af49b469eeeeeee724290d7f49f1e84b25ad038fa81",
+	//                    "s": "0x66c76fdb37a25db8c6b368625d96ee91ab1ffca1786d84dc806b08d1460e97bc",
+	//                    "v": "27",
+	//                    "expiration": "1767455807929000000",
+	//                    "nonce": "45905",
+	//                    "chain_id": "0"
+	//                },
+	//                "event_time": "1764863808817370541",
+	//                "transfer_type": "NON_NATIVE_BRIDGE_DEPOSIT",
+	//                "transfer_metadata": "{\\"provider\\":\\"rhino\\",\\"direction\\":\\"deposit\\",\\"chainid\\":\\"8453\\",\\"endpoint\\":\\"0x01b89ac919ead1bd513b548962075137c683b9ab\\",\\"provider_tx_id\\":\\"0x1dff8c839f8e21b5af7e121a1ae926017e734aafe8c4ae9942756b3091793b4f\\",\\"provider_ref_id\\":\\"6931aefa5f1ab6fcf0d2f856\\"}"
+	//            },
+	//            ...
+	//        ],
+	//        "next": ""
+	//    }
+	//
+	var rows any = this.SafeList(response, "result", []any{})
+	var transfers any = this.ParseTransfers(rows, currency, since, limit)
+	var filteredResults any = this.FilterTransfersByType(transfers, "internal", false)
+
+	ch <- GetValue(filteredResults, 1)
+	return nil
 }
 func (this *GrvtCore) FilterTransfersByType(transfers any, transferType any, optionalArgs ...any) any {
 	onlyMainAccount := GetArg(optionalArgs, 0, true)
@@ -2275,88 +2280,88 @@ func (this *GrvtCore) FilterTransfersByType(transfers any, transferType any, opt
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *GrvtCore) Transfer(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		retRes17708 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes17708)
-		var currency any = this.Currency(code)
-		var defaultFromAccountId any = this.SafeString(this.Options, "userMainAccountId")
-		if IsTrue(IsTrue(this.InArray(fromAccount, []any{"trading", "funding"})) && IsTrue(this.InArray(toAccount, []any{"trading", "funding"}))) {
-			var tradingAccountId any = nil
-			tradingAccountIdparamsVariable := this.HandleOptionAndParams(params, "transfer", "tradingAccountId")
-			tradingAccountId = GetValue(tradingAccountIdparamsVariable, 0)
-			params = GetValue(tradingAccountIdparamsVariable, 1)
-			var fundingAccountId any = nil
-			fundingAccountIdparamsVariable := this.HandleOptionAndParams(params, "transfer", "fundingAccountId")
-			fundingAccountId = GetValue(fundingAccountIdparamsVariable, 0)
-			params = GetValue(fundingAccountIdparamsVariable, 1)
-			if IsTrue(IsTrue(IsEqual(tradingAccountId, nil)) || IsTrue(IsEqual(fundingAccountId, nil))) {
-				panic(ArgumentsRequired(Add(this.Id, " transfer(): you should set (in the options or params) \"tradingAccountId\" and \"fundingAccountId\" (you can use \"0\" as a main funding account id)")))
-			}
-			fromAccount = Ternary(IsTrue((IsEqual(fromAccount, "trading"))), tradingAccountId, fundingAccountId)
-			toAccount = Ternary(IsTrue((IsEqual(toAccount, "trading"))), tradingAccountId, fundingAccountId)
-		}
-		var request any = map[string]any{
-			"from_account_id":     this.SafeString(params, "from_account_id", defaultFromAccountId),
-			"from_sub_account_id": this.SafeString(params, "from_sub_account_id", fromAccount),
-			"to_account_id":       this.SafeString(params, "to_account_id", defaultFromAccountId),
-			"to_sub_account_id":   this.SafeString(params, "to_sub_account_id", toAccount),
-			"currency":            GetValue(currency, "id"),
-			"num_tokens":          this.CurrencyToPrecision(code, amount),
-			"signature":           this.DefaultSignature(),
-			"transfer_type":       "STANDARD",
-			"transfer_metadata":   nil,
-		}
-		request = this.CreateSignedRequest(request, "EIP712_TRANSFER_TYPE", currency)
-		var response any = nil
-
-		{
-			func(this *GrvtCore) (ret_ any) {
-				defer func() {
-					if error := recover(); error != nil {
-						if error == "break" {
-							return
-						}
-						ret_ = func(this *GrvtCore) any {
-							// catch block:
-							var msg any = this.ExceptionMessage(error)
-							var isFromFundingAccount any = IsEqual(fromAccount, "funding")
-							if IsTrue(IsTrue(isFromFundingAccount) && IsTrue(GetIndexOf(msg, "You are not authorized"))) {
-								panic(PermissionDenied(Add(Add(this.Id, " transfer() failed. Ensure you use funding api-keys when trying to transfer from Funding accounts: "), msg)))
-							}
-							panic(error)
-
-						}(this)
-					}
-				}()
-				// try block:
-
-				response = (<-this.PrivateTradingPostFullV1Transfer(this.Extend(request, params)))
-				PanicOnError(response)
-				return nil
-			}(this)
-
-		}
-		//
-		// {
-		//     "result": {
-		//         "ack": "true",
-		//         "tx_id": "1028403"
-		//     }
-		// }
-		//
-		var result any = this.SafeDict(response, "result", map[string]any{})
-
-		ch <- this.ParseTransfer(result, currency)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
+}
+func (this *GrvtCore) transferBody(ch chan any, code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	retRes17758 := (<-this.LoadMarketsAndSignIn())
+	PanicOnError(retRes17758)
+	var currency any = this.Currency(code)
+	var defaultFromAccountId any = this.SafeString(this.Options, "userMainAccountId")
+	if IsTrue(IsTrue(this.InArray(fromAccount, []any{"trading", "funding"})) && IsTrue(this.InArray(toAccount, []any{"trading", "funding"}))) {
+		var tradingAccountId any = nil
+		tradingAccountIdparamsVariable := this.HandleOptionAndParams(params, "transfer", "tradingAccountId")
+		tradingAccountId = GetValue(tradingAccountIdparamsVariable, 0)
+		params = GetValue(tradingAccountIdparamsVariable, 1)
+		var fundingAccountId any = nil
+		fundingAccountIdparamsVariable := this.HandleOptionAndParams(params, "transfer", "fundingAccountId")
+		fundingAccountId = GetValue(fundingAccountIdparamsVariable, 0)
+		params = GetValue(fundingAccountIdparamsVariable, 1)
+		if IsTrue(IsTrue(IsEqual(tradingAccountId, nil)) || IsTrue(IsEqual(fundingAccountId, nil))) {
+			panic(ArgumentsRequired(Add(this.Id, " transfer(): you should set (in the options or params) \"tradingAccountId\" and \"fundingAccountId\" (you can use \"0\" as a main funding account id)")))
+		}
+		fromAccount = Ternary(IsTrue((IsEqual(fromAccount, "trading"))), tradingAccountId, fundingAccountId)
+		toAccount = Ternary(IsTrue((IsEqual(toAccount, "trading"))), tradingAccountId, fundingAccountId)
+	}
+	var request any = map[string]any{
+		"from_account_id":     this.SafeString(params, "from_account_id", defaultFromAccountId),
+		"from_sub_account_id": this.SafeString(params, "from_sub_account_id", fromAccount),
+		"to_account_id":       this.SafeString(params, "to_account_id", defaultFromAccountId),
+		"to_sub_account_id":   this.SafeString(params, "to_sub_account_id", toAccount),
+		"currency":            GetValue(currency, "id"),
+		"num_tokens":          this.CurrencyToPrecision(code, amount),
+		"signature":           this.DefaultSignature(),
+		"transfer_type":       "STANDARD",
+		"transfer_metadata":   nil,
+	}
+	request = this.CreateSignedRequest(request, "EIP712_TRANSFER_TYPE", currency)
+	var response any = nil
+
+	{
+		func(this *GrvtCore) (ret_ any) {
+			defer func() {
+				if error := recover(); error != nil {
+					if error == "break" {
+						return
+					}
+					ret_ = func(this *GrvtCore) any {
+						// catch block:
+						var msg any = this.ExceptionMessage(error)
+						var isFromFundingAccount bool = IsEqual(fromAccount, "funding")
+						if IsTrue(IsTrue(isFromFundingAccount) && IsTrue((IsGreaterThanOrEqual(GetIndexOf(msg, "You are not authorized"), 0)))) {
+							panic(PermissionDenied(Add(Add(this.Id, " transfer() failed. Ensure you use funding api-keys when trying to transfer from Funding accounts: "), msg)))
+						}
+						panic(error)
+
+					}(this)
+				}
+			}()
+			// try block:
+
+			response = (<-this.PrivateTradingPostFullV1Transfer(this.Extend(request, params)))
+			PanicOnError(response)
+			return nil
+		}(this)
+
+	}
+	//
+	// {
+	//     "result": {
+	//         "ack": "true",
+	//         "tx_id": "1028403"
+	//     }
+	// }
+	//
+	var result any = this.SafeDict(response, "result", map[string]any{})
+
+	ch <- this.ParseTransfer(result, currency)
+	return nil
 }
 func (this *GrvtCore) ParseTransfer(transfer any, optionalArgs ...any) any {
 	//
@@ -2409,74 +2414,74 @@ func (this *GrvtCore) ParseTransfer(transfer any, optionalArgs ...any) any {
 	}
 }
 func (this *GrvtCore) LoadAccountInfos() <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		if IsTrue(!IsEqual(this.SafeString(this.Options, "userMainAccountId"), nil)) {
-
-			ch <- false
-			return nil
-		}
-		var promises any = []any{}
-		AppendToArray(&promises, this.PrivateTradingPostFullV1AggregatedAccountSummary())
-		//
-		//     {
-		//         "result": {
-		//             "main_account_id": "0xc73c0c2538fd9b833d20933ccc88fdaa74fcb0d0",
-		//             "total_equity": "3945034.23",
-		//             "spot_balances": [{
-		//                 "currency": "USDT",
-		//                 "balance": "123456.78",
-		//                 "index_price": "1.0000102"
-		//             }],
-		//             "vault_investments": [{
-		//                 "vault_id": 123456789,
-		//                 "num_lp_tokens": 1000000,
-		//                 "share_price": 1000000,
-		//                 "usd_notional_invested": 1000000
-		//             }],
-		//             "total_sub_account_balance": "3945034.23",
-		//             "total_sub_account_equity": "3945034.23",
-		//             "total_vault_investments_balance": "3945034.23",
-		//             "total_sub_account_available_balance": "3945034.23",
-		//             "total_usd_notional_invested": "3945034.23"
-		//         }
-		//     }
-		//
-		var accountIsUndefined any = IsEqual(this.SafeString(this.Options, "accountId"), nil)
-		if IsTrue(accountIsUndefined) {
-			AppendToArray(&promises, this.PrivateTradingPostFullV1GetSubAccounts())
-		}
-		//
-		//     {
-		//         "sub_account_ids": ["4724219064482495","2095919380","1170592370"]
-		//     }
-		//
-
-		responses := (<-promiseAll(promises))
-		PanicOnError(responses)
-		var result1 any = this.SafeDict(GetValue(responses, 0), "result", map[string]any{})
-		var mainAccountId any = this.SafeString(result1, "main_account_id")
-		AddElementToObject(this.Options, "userMainAccountId", mainAccountId)
-		if IsTrue(accountIsUndefined) {
-			var subAccountIds any = this.SafeList(GetValue(responses, 1), "sub_account_ids", []any{})
-			var length any = GetArrayLength(subAccountIds)
-			if IsTrue(IsLessThan(length, 1)) {
-				panic(ArgumentsRequired(Add(this.Id, " loadAccountInfos(): no sub accounts found, you might need to create an api-key in GRVT website")))
-			}
-			if IsTrue(IsGreaterThan(length, 1)) {
-				panic(ArgumentsRequired(Add(Add(this.Id, " loadAccountInfos(): multiple sub accounts found, please set the exchange.options[\"accountId\"] to your preferred sub_account_id from this list: "), this.Json(subAccountIds))))
-			}
-			var subAccountId any = this.SafeString(subAccountIds, 0)
-			AddElementToObject(this.Options, "accountId", subAccountId)
-		}
-
-		ch <- true
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.loadAccountInfosBody(ch)
 	return ch
+}
+func (this *GrvtCore) loadAccountInfosBody(ch chan any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	if IsTrue(!IsEqual(this.SafeString(this.Options, "userMainAccountId"), nil)) {
+
+		ch <- false
+		return nil
+	}
+	var promises any = []any{}
+	AppendToArray(&promises, this.PrivateTradingPostFullV1AggregatedAccountSummary())
+	//
+	//     {
+	//         "result": {
+	//             "main_account_id": "0xc73c0c2538fd9b833d20933ccc88fdaa74fcb0d0",
+	//             "total_equity": "3945034.23",
+	//             "spot_balances": [{
+	//                 "currency": "USDT",
+	//                 "balance": "123456.78",
+	//                 "index_price": "1.0000102"
+	//             }],
+	//             "vault_investments": [{
+	//                 "vault_id": 123456789,
+	//                 "num_lp_tokens": 1000000,
+	//                 "share_price": 1000000,
+	//                 "usd_notional_invested": 1000000
+	//             }],
+	//             "total_sub_account_balance": "3945034.23",
+	//             "total_sub_account_equity": "3945034.23",
+	//             "total_vault_investments_balance": "3945034.23",
+	//             "total_sub_account_available_balance": "3945034.23",
+	//             "total_usd_notional_invested": "3945034.23"
+	//         }
+	//     }
+	//
+	var accountIsUndefined bool = IsEqual(this.SafeString(this.Options, "accountId"), nil)
+	if IsTrue(accountIsUndefined) {
+		AppendToArray(&promises, this.PrivateTradingPostFullV1GetSubAccounts())
+	}
+	//
+	//     {
+	//         "sub_account_ids": ["4724219064482495","2095919380","1170592370"]
+	//     }
+	//
+
+	responses := (<-promiseAll(promises))
+	PanicOnError(responses)
+	var result1 any = this.SafeDict(GetValue(responses, 0), "result", map[string]any{})
+	var mainAccountId any = this.SafeString(result1, "main_account_id")
+	AddElementToObject(this.Options, "userMainAccountId", mainAccountId)
+	if IsTrue(accountIsUndefined) {
+		var subAccountIds any = this.SafeList(GetValue(responses, 1), "sub_account_ids", []any{})
+		var length int = GetArrayLength(subAccountIds)
+		if IsTrue(IsLessThan(length, 1)) {
+			panic(ArgumentsRequired(Add(this.Id, " loadAccountInfos(): no sub accounts found, you might need to create an api-key in GRVT website")))
+		}
+		if IsTrue(IsGreaterThan(length, 1)) {
+			panic(ArgumentsRequired(Add(Add(this.Id, " loadAccountInfos(): multiple sub accounts found, please set the exchange.options[\"accountId\"] to your preferred sub_account_id from this list: "), this.Json(subAccountIds))))
+		}
+		var subAccountId any = this.SafeString(subAccountIds, 0)
+		AddElementToObject(this.Options, "accountId", subAccountId)
+	}
+
+	ch <- true
+	return nil
 }
 
 /**
@@ -2493,53 +2498,53 @@ func (this *GrvtCore) LoadAccountInfos() <-chan any {
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *GrvtCore) Withdraw(code any, amount any, address any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		tag := GetArg(optionalArgs, 0, nil)
-		_ = tag
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		this.CheckAddress(address)
-
-		retRes19418 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes19418)
-		var defaultFromAccountId any = this.SafeString(this.Options, "userMainAccountId")
-		var currency any = this.Currency(code)
-		var request any = map[string]any{
-			"to_eth_address":  address,
-			"from_account_id": defaultFromAccountId,
-			"currency":        GetValue(currency, "id"),
-			"num_tokens":      this.CurrencyToPrecision(code, amount),
-			"signature":       this.DefaultSignature(),
-		}
-		networkCodequeryVariable := this.HandleNetworkCodeAndParams(params)
-		networkCode := GetValue(networkCodequeryVariable, 0)
-		query := GetValue(networkCodequeryVariable, 1)
-		var networkId any = this.NetworkCodeToId(networkCode, code)
-		if IsTrue(IsEqual(networkId, nil)) {
-			panic(BadRequest(Add(this.Id, " withdraw() requires a network parameter")))
-		}
-		AddElementToObject(GetValue(request, "signature"), "chain_id", networkId)
-		request = this.CreateSignedRequest(request, "EIP712_WITHDRAWAL_TYPE", currency)
-
-		response := (<-this.PrivateTradingPostFullV1Withdrawal(this.Extend(request, query)))
-		PanicOnError(response)
-		//
-		// {
-		//     "result": {
-		//         "ack": "true"
-		//     }
-		// }
-		//
-		var result any = this.SafeDict(response, "result", map[string]any{})
-
-		ch <- this.ParseTransaction(result, currency)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
+}
+func (this *GrvtCore) withdrawBody(ch chan any, code any, amount any, address any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	tag := GetArg(optionalArgs, 0, nil)
+	_ = tag
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	this.CheckAddress(address)
+
+	retRes19468 := (<-this.LoadMarketsAndSignIn())
+	PanicOnError(retRes19468)
+	var defaultFromAccountId any = this.SafeString(this.Options, "userMainAccountId")
+	var currency any = this.Currency(code)
+	var request any = map[string]any{
+		"to_eth_address":  address,
+		"from_account_id": defaultFromAccountId,
+		"currency":        GetValue(currency, "id"),
+		"num_tokens":      this.CurrencyToPrecision(code, amount),
+		"signature":       this.DefaultSignature(),
+	}
+	networkCodequeryVariable := this.HandleNetworkCodeAndParams(params)
+	networkCode := GetValue(networkCodequeryVariable, 0)
+	query := GetValue(networkCodequeryVariable, 1)
+	var networkId any = this.NetworkCodeToId(networkCode, code)
+	if IsTrue(IsEqual(networkId, nil)) {
+		panic(BadRequest(Add(this.Id, " withdraw() requires a network parameter")))
+	}
+	AddElementToObject(GetValue(request, "signature"), "chain_id", networkId)
+	request = this.CreateSignedRequest(request, "EIP712_WITHDRAWAL_TYPE", currency)
+
+	response := (<-this.PrivateTradingPostFullV1Withdrawal(this.Extend(request, query)))
+	PanicOnError(response)
+	//
+	// {
+	//     "result": {
+	//         "ack": "true"
+	//     }
+	// }
+	//
+	var result any = this.SafeDict(response, "result", map[string]any{})
+
+	ch <- this.ParseTransaction(result, currency)
+	return nil
 }
 
 /**
@@ -2563,217 +2568,217 @@ func (this *GrvtCore) Withdraw(code any, amount any, address any, optionalArgs .
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *GrvtCore) CreateOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		price := GetArg(optionalArgs, 0, nil)
-		_ = price
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-
-		retRes19918 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes19918)
-		var market any = this.Market(symbol)
-		var orderLeg any = map[string]any{
-			"instrument": GetValue(market, "id"),
-			"size":       this.AmountToPrecision(symbol, amount),
-		}
-		if IsTrue(!IsEqual(price, nil)) {
-			AddElementToObject(orderLeg, "limit_price", this.PriceToPrecision(symbol, price))
-		} else {
-			AddElementToObject(orderLeg, "limit_price", nil)
-		}
-		if IsTrue(IsEqual(side, "sell")) {
-			AddElementToObject(orderLeg, "is_buying_asset", false)
-		} else if IsTrue(IsEqual(side, "buy")) {
-			AddElementToObject(orderLeg, "is_buying_asset", true)
-		} else {
-			panic(InvalidOrder(Add(this.Id, " createOrder(): order side must be either \"buy\" or \"sell\"")))
-		}
-		var clientOrderId any = this.SafeString(params, "clientOrderId")
-		if IsTrue(IsEqual(clientOrderId, nil)) {
-			clientOrderId = Add(Add(ToString(this.Nonce()), "000"), ToString(this.RequestId()))
-		}
-		params = this.Omit(params, []any{"clientOrderId"})
-		var isMarketOrder any = (IsEqual(typeVar, "market"))
-		var subAccountId any = this.GetSubAccountId(params)
-		var isReduceOnly any = this.SafeBool(params, "reduceOnly", false)
-		var orderRequest any = map[string]any{
-			"sub_account_id": subAccountId,
-			"time_in_force":  nil,
-			"legs":           []any{orderLeg},
-			"signature":      this.DefaultSignature(),
-			"metadata": map[string]any{
-				"client_order_id": clientOrderId,
-			},
-			"is_market":   isMarketOrder,
-			"post_only":   false,
-			"reduce_only": isReduceOnly,
-		}
-		var timeInForce any = this.SafeStringUpper(params, "timeInForce", "GOOD_TILL_TIME")
-		var postOnly any = this.IsPostOnly(isMarketOrder, nil, params)
-		if IsTrue(postOnly) {
-			AddElementToObject(orderRequest, "post_only", true)
-		}
-		if IsTrue(IsEqual(timeInForce, nil)) {
-			timeInForce = "GOOD_TILL_TIME"
-		} else {
-			var tifMap any = map[string]any{
-				"GTC": "GOOD_TILL_TIME",
-				"FOK": "FILL_OR_KILL",
-				"IOC": "IMMEDIATE_OR_CANCEL",
-			}
-			timeInForce = this.SafeString(tifMap, timeInForce, timeInForce)
-		}
-		AddElementToObject(orderRequest, "time_in_force", timeInForce)
-		if !IsTrue(isMarketOrder) {
-			if IsTrue(postOnly) {
-				timeInForce = "POST_ONLY"
-			} else if IsTrue(IsEqual(timeInForce, "ioc")) {
-				timeInForce = "IMMEDIATE_OR_CANCEL"
-			}
-		}
-		params = this.Omit(params, []any{"reduceOnly", "postOnly", "timeInForce"})
-		// Trigger & SL & TP
-		var triggerPrice any = nil
-		var stopLossPrice any = nil
-		var takeProfitPrice any = nil
-		triggerPricestopLossPricetakeProfitPriceparamsVariable := this.HandleTriggerPricesAndParams(symbol, params)
-		triggerPrice = GetValue(triggerPricestopLossPricetakeProfitPriceparamsVariable, 0)
-		stopLossPrice = GetValue(triggerPricestopLossPricetakeProfitPriceparamsVariable, 1)
-		takeProfitPrice = GetValue(triggerPricestopLossPricetakeProfitPriceparamsVariable, 2)
-		params = GetValue(triggerPricestopLossPricetakeProfitPriceparamsVariable, 3)
-		if IsTrue(IsTrue(IsTrue(!IsEqual(triggerPrice, nil)) || IsTrue(!IsEqual(stopLossPrice, nil))) || IsTrue(!IsEqual(takeProfitPrice, nil))) {
-			// trigger price
-			var selectedPrice any = nil
-			if IsTrue(!IsEqual(triggerPrice, nil)) {
-				selectedPrice = triggerPrice
-			} else if IsTrue(!IsEqual(stopLossPrice, nil)) {
-				selectedPrice = stopLossPrice
-			} else if IsTrue(!IsEqual(takeProfitPrice, nil)) {
-				selectedPrice = takeProfitPrice
-			}
-			// trigger type
-			var selectedType any = nil
-			var isBuy any = (IsEqual(side, "buy"))
-			if IsTrue(!IsEqual(stopLossPrice, nil)) {
-				selectedType = Ternary(IsTrue(isBuy), "STOP_LOSS", "TAKE_PROFIT")
-			} else if IsTrue(!IsEqual(takeProfitPrice, nil)) {
-				selectedType = Ternary(IsTrue(isBuy), "TAKE_PROFIT", "STOP_LOSS")
-			} else {
-				var triggerDirection any = this.SafeString(params, "triggerDirection")
-				if IsTrue(IsEqual(triggerDirection, nil)) {
-					panic(ArgumentsRequired(Add(this.Id, " createOrder() requires a triggerDirection parameter when triggerPrice is specified, must be \"ascending\" or \"descending\"")))
-				}
-				if IsTrue(!IsEqual(triggerDirection, nil)) {
-					if IsTrue(IsEqual(triggerDirection, "ascending")) {
-						selectedType = Ternary(IsTrue(isBuy), "STOP_LOSS", "TAKE_PROFIT")
-					} else if IsTrue(IsEqual(triggerDirection, "descending")) {
-						selectedType = Ternary(IsTrue(isBuy), "TAKE_PROFIT", "STOP_LOSS")
-					}
-				}
-			}
-			// trigger by
-			var triggerPriceType any = this.SafeStringUpper(params, "triggerPriceType", "LAST")
-			AddElementToObject(GetValue(orderRequest, "metadata"), "trigger", map[string]any{
-				"trigger_type": selectedType,
-				"tpsl": map[string]any{
-					"trigger_by":     triggerPriceType,
-					"trigger_price":  selectedPrice,
-					"close_position": this.SafeBool(params, "closePosition", false),
-				},
-			})
-			params = this.Omit(params, []any{"triggerDirection", "triggerPriceType", "closePosition"})
-		}
-		var eipType any = "EIP712_ORDER_TYPE"
-		var builderFee any = this.SafeBool(params, "builderFee", this.SafeBool(this.Options, "builderFee", true))
-		if IsTrue(builderFee) {
-			eipType = "EIP712_ORDER_WITH_BUILDER_TYPE"
-			AddElementToObject(orderRequest, "builder", this.SafeString(this.Options, "builder"))
-			AddElementToObject(orderRequest, "builder_fee", this.SafeString(this.Options, "builderRate"))
-		}
-		params = this.Omit(params, []any{"builderFee"})
-		var signedOrderRequest any = this.CreateSignedRequest(orderRequest, eipType)
-		var request any = map[string]any{
-			"order": signedOrderRequest,
-		}
-
-		response := (<-this.PrivateTradingPostFullV1CreateOrder(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//    {
-		//        "result": {
-		//            "order_id": "0x00",
-		//            "sub_account_id": "2147050003876484",
-		//            "is_market": false,
-		//            "time_in_force": "GOOD_TILL_TIME",
-		//            "post_only": false,
-		//            "reduce_only": false,
-		//            "legs": [
-		//                {
-		//                    "instrument": "BTC_USDT_Perp",
-		//                    "size": "0.001",
-		//                    "limit_price": "50000.0",
-		//                    "is_buying_asset": true
-		//                }
-		//            ],
-		//            "signature": {
-		//                "signer": "0xbf465e6083a43b170791ea29393f60...",
-		//                "r": "0x161826bc2fc43e07b4c1e4aeb01b3e58901f936af10b399e...",
-		//                "s": "0x1b6d09609430ef73cb53dd87dbe73939824409296b3673719...",
-		//                "v": 27,
-		//                "expiration": "1766076771082000000",
-		//                "nonce": 1766076671,
-		//                "chain_id": "0"
-		//            },
-		//            "metadata": {
-		//                "client_order_id": "1766076671",
-		//                "create_time": "1766076671243762741",
-		//                "trigger": {
-		//                    "trigger_type": "UNSPECIFIED",
-		//                    "tpsl": {
-		//                        "trigger_by": "UNSPECIFIED",
-		//                        "trigger_price": "0.0",
-		//                        "close_position": false
-		//                    }
-		//                },
-		//                "broker": "UNSPECIFIED",
-		//                "is_position_transfer": false,
-		//                "allow_crossing": false
-		//            },
-		//            "state": {
-		//                "status": "PENDING",
-		//                "reject_reason": "UNSPECIFIED",
-		//                "book_size": [
-		//                    "0.001"
-		//                ],
-		//                "traded_size": [
-		//                    "0.0"
-		//                ],
-		//                "update_time": "1766076671243762741",
-		//                "avg_fill_price": [
-		//                    "0.0"
-		//                ]
-		//            },
-		//            "builder": "0x00",
-		//            "builder_fee": "0.0"
-		//        }
-		//    }
-		//
-		var data any = this.SafeDict(response, "result", map[string]any{})
-
-		ch <- this.ParseOrder(data, market)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
+}
+func (this *GrvtCore) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	price := GetArg(optionalArgs, 0, nil)
+	_ = price
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+
+	retRes19968 := (<-this.LoadMarketsAndSignIn())
+	PanicOnError(retRes19968)
+	var market any = this.Market(symbol)
+	var orderLeg map[string]any = map[string]any{
+		"instrument": GetValue(market, "id"),
+		"size":       this.AmountToPrecision(symbol, amount),
+	}
+	if IsTrue(!IsEqual(price, nil)) {
+		AddElementToObject(orderLeg, "limit_price", this.PriceToPrecision(symbol, price))
+	} else {
+		AddElementToObject(orderLeg, "limit_price", nil)
+	}
+	if IsTrue(IsEqual(side, "sell")) {
+		AddElementToObject(orderLeg, "is_buying_asset", false)
+	} else if IsTrue(IsEqual(side, "buy")) {
+		AddElementToObject(orderLeg, "is_buying_asset", true)
+	} else {
+		panic(InvalidOrder(Add(this.Id, " createOrder(): order side must be either \"buy\" or \"sell\"")))
+	}
+	var clientOrderId any = this.SafeString(params, "clientOrderId")
+	if IsTrue(IsEqual(clientOrderId, nil)) {
+		clientOrderId = Add(Add(ToString(this.Nonce()), "000"), ToString(this.RequestId()))
+	}
+	params = this.Omit(params, []any{"clientOrderId"})
+	var isMarketOrder bool = (IsEqual(typeVar, "market"))
+	var subAccountId any = this.GetSubAccountId(params)
+	var isReduceOnly any = this.SafeBool(params, "reduceOnly", false)
+	var orderRequest map[string]any = map[string]any{
+		"sub_account_id": subAccountId,
+		"time_in_force":  nil,
+		"legs":           []any{orderLeg},
+		"signature":      this.DefaultSignature(),
+		"metadata": map[string]any{
+			"client_order_id": clientOrderId,
+		},
+		"is_market":   isMarketOrder,
+		"post_only":   false,
+		"reduce_only": isReduceOnly,
+	}
+	var timeInForce any = this.SafeStringUpper(params, "timeInForce", "GOOD_TILL_TIME")
+	var postOnly any = this.IsPostOnly(isMarketOrder, nil, params)
+	if IsTrue(postOnly) {
+		AddElementToObject(orderRequest, "post_only", true)
+	}
+	if IsTrue(IsEqual(timeInForce, nil)) {
+		timeInForce = "GOOD_TILL_TIME"
+	} else {
+		var tifMap map[string]any = map[string]any{
+			"GTC": "GOOD_TILL_TIME",
+			"FOK": "FILL_OR_KILL",
+			"IOC": "IMMEDIATE_OR_CANCEL",
+		}
+		timeInForce = this.SafeString(tifMap, timeInForce, timeInForce)
+	}
+	AddElementToObject(orderRequest, "time_in_force", timeInForce)
+	if !IsTrue(isMarketOrder) {
+		if IsTrue(postOnly) {
+			timeInForce = "POST_ONLY"
+		} else if IsTrue(IsEqual(timeInForce, "ioc")) {
+			timeInForce = "IMMEDIATE_OR_CANCEL"
+		}
+	}
+	params = this.Omit(params, []any{"reduceOnly", "postOnly", "timeInForce"})
+	// Trigger & SL & TP
+	var triggerPrice any = nil
+	var stopLossPrice any = nil
+	var takeProfitPrice any = nil
+	triggerPricestopLossPricetakeProfitPriceparamsVariable := this.HandleTriggerPricesAndParams(symbol, params)
+	triggerPrice = GetValue(triggerPricestopLossPricetakeProfitPriceparamsVariable, 0)
+	stopLossPrice = GetValue(triggerPricestopLossPricetakeProfitPriceparamsVariable, 1)
+	takeProfitPrice = GetValue(triggerPricestopLossPricetakeProfitPriceparamsVariable, 2)
+	params = GetValue(triggerPricestopLossPricetakeProfitPriceparamsVariable, 3)
+	if IsTrue(IsTrue(IsTrue(!IsEqual(triggerPrice, nil)) || IsTrue(!IsEqual(stopLossPrice, nil))) || IsTrue(!IsEqual(takeProfitPrice, nil))) {
+		// trigger price
+		var selectedPrice any = nil
+		if IsTrue(!IsEqual(triggerPrice, nil)) {
+			selectedPrice = triggerPrice
+		} else if IsTrue(!IsEqual(stopLossPrice, nil)) {
+			selectedPrice = stopLossPrice
+		} else if IsTrue(!IsEqual(takeProfitPrice, nil)) {
+			selectedPrice = takeProfitPrice
+		}
+		// trigger type
+		var selectedType any = nil
+		var isBuy bool = (IsEqual(side, "buy"))
+		if IsTrue(!IsEqual(stopLossPrice, nil)) {
+			selectedType = Ternary(IsTrue(isBuy), "STOP_LOSS", "TAKE_PROFIT")
+		} else if IsTrue(!IsEqual(takeProfitPrice, nil)) {
+			selectedType = Ternary(IsTrue(isBuy), "TAKE_PROFIT", "STOP_LOSS")
+		} else {
+			var triggerDirection any = this.SafeString(params, "triggerDirection")
+			if IsTrue(IsEqual(triggerDirection, nil)) {
+				panic(ArgumentsRequired(Add(this.Id, " createOrder() requires a triggerDirection parameter when triggerPrice is specified, must be \"ascending\" or \"descending\"")))
+			}
+			if IsTrue(!IsEqual(triggerDirection, nil)) {
+				if IsTrue(IsEqual(triggerDirection, "ascending")) {
+					selectedType = Ternary(IsTrue(isBuy), "STOP_LOSS", "TAKE_PROFIT")
+				} else if IsTrue(IsEqual(triggerDirection, "descending")) {
+					selectedType = Ternary(IsTrue(isBuy), "TAKE_PROFIT", "STOP_LOSS")
+				}
+			}
+		}
+		// trigger by
+		var triggerPriceType any = this.SafeStringUpper(params, "triggerPriceType", "LAST")
+		AddElementToObject(GetValue(orderRequest, "metadata"), "trigger", map[string]any{
+			"trigger_type": selectedType,
+			"tpsl": map[string]any{
+				"trigger_by":     triggerPriceType,
+				"trigger_price":  selectedPrice,
+				"close_position": this.SafeBool(params, "closePosition", false),
+			},
+		})
+		params = this.Omit(params, []any{"triggerDirection", "triggerPriceType", "closePosition"})
+	}
+	var eipType string = "EIP712_ORDER_TYPE"
+	var builderFee any = this.SafeBool(params, "builderFee", this.SafeBool(this.Options, "builderFee", true))
+	if IsTrue(IsEqual(builderFee, true)) {
+		eipType = "EIP712_ORDER_WITH_BUILDER_TYPE"
+		AddElementToObject(orderRequest, "builder", this.SafeString(this.Options, "builder"))
+		AddElementToObject(orderRequest, "builder_fee", this.SafeString(this.Options, "builderRate"))
+	}
+	params = this.Omit(params, []any{"builderFee"})
+	var signedOrderRequest any = this.CreateSignedRequest(orderRequest, eipType)
+	var request map[string]any = map[string]any{
+		"order": signedOrderRequest,
+	}
+
+	response := (<-this.PrivateTradingPostFullV1CreateOrder(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//    {
+	//        "result": {
+	//            "order_id": "0x00",
+	//            "sub_account_id": "2147050003876484",
+	//            "is_market": false,
+	//            "time_in_force": "GOOD_TILL_TIME",
+	//            "post_only": false,
+	//            "reduce_only": false,
+	//            "legs": [
+	//                {
+	//                    "instrument": "BTC_USDT_Perp",
+	//                    "size": "0.001",
+	//                    "limit_price": "50000.0",
+	//                    "is_buying_asset": true
+	//                }
+	//            ],
+	//            "signature": {
+	//                "signer": "0xbf465e6083a43b170791ea29393f60...",
+	//                "r": "0x161826bc2fc43e07b4c1e4aeb01b3e58901f936af10b399e...",
+	//                "s": "0x1b6d09609430ef73cb53dd87dbe73939824409296b3673719...",
+	//                "v": 27,
+	//                "expiration": "1766076771082000000",
+	//                "nonce": 1766076671,
+	//                "chain_id": "0"
+	//            },
+	//            "metadata": {
+	//                "client_order_id": "1766076671",
+	//                "create_time": "1766076671243762741",
+	//                "trigger": {
+	//                    "trigger_type": "UNSPECIFIED",
+	//                    "tpsl": {
+	//                        "trigger_by": "UNSPECIFIED",
+	//                        "trigger_price": "0.0",
+	//                        "close_position": false
+	//                    }
+	//                },
+	//                "broker": "UNSPECIFIED",
+	//                "is_position_transfer": false,
+	//                "allow_crossing": false
+	//            },
+	//            "state": {
+	//                "status": "PENDING",
+	//                "reject_reason": "UNSPECIFIED",
+	//                "book_size": [
+	//                    "0.001"
+	//                ],
+	//                "traded_size": [
+	//                    "0.0"
+	//                ],
+	//                "update_time": "1766076671243762741",
+	//                "avg_fill_price": [
+	//                    "0.0"
+	//                ]
+	//            },
+	//            "builder": "0x00",
+	//            "builder_fee": "0.0"
+	//        }
+	//    }
+	//
+	var data any = this.SafeDict(response, "result", map[string]any{})
+
+	ch <- this.ParseOrder(data, market)
+	return nil
 }
 func (this *GrvtCore) ConvertToBigIntCustom(x any) any {
 	return ParseInt(x)
 }
 func (this *GrvtCore) EipMessageForOrder(order any, structureType any) any {
-	var priceMultiplier any = "1000000000"
+	var priceMultiplier string = "1000000000"
 	var orderLegs any = this.SafeList(order, "legs", []any{})
 	var legs any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(orderLegs)); i++ {
@@ -2781,15 +2786,15 @@ func (this *GrvtCore) EipMessageForOrder(order any, structureType any) any {
 		var market any = this.Market(GetValue(leg, "instrument"))
 		var bigInt10 any = this.ConvertToBigIntCustom("10")
 		var precisionValue any = this.PrecisionFromString(this.SafeString(GetValue(market, "precision"), "base"))
-		var precisionValueStr any = ToString(precisionValue)
-		var sizeMultiplier any = MathPow(bigInt10, this.ConvertToBigIntCustom(precisionValueStr))
+		var precisionValueStr string = ToString(precisionValue)
+		var sizeMultiplier float64 = MathPow(bigInt10, this.ConvertToBigIntCustom(precisionValueStr))
 		var size any = GetValue(leg, "size")
-		var sizeParts any = Split(size, ".")
+		var sizeParts []string = Split(size, ".")
 		var sizeDec any = this.SafeString(sizeParts, 1, "")
 		var sizeDecLength any = Add(GetLength(sizeDec), 0) // php tr
-		var sizeDecLengthStr any = ToString(sizeDecLength)
+		var sizeDecLengthStr string = ToString(sizeDecLength)
 		var sizeInteger any = Divide(Multiply(this.ConvertToBigIntCustom(Replace(size, ".", "")), sizeMultiplier), (MathPow(bigInt10, this.ConvertToBigIntCustom(sizeDecLengthStr))))
-		var legOrder any = map[string]any{
+		var legOrder map[string]any = map[string]any{
 			"assetID":          GetValue(GetValue(market, "info"), "instrument_hash"),
 			"contractSize":     this.ParseToInt(sizeInteger),
 			"isBuyingContract": GetValue(leg, "is_buying_asset"),
@@ -2797,10 +2802,10 @@ func (this *GrvtCore) EipMessageForOrder(order any, structureType any) any {
 		var limitPrice any = this.SafeString(leg, "limit_price")
 		if IsTrue(!IsEqual(this.OmitZero(limitPrice), nil)) {
 			var price any = GetValue(leg, "limit_price")
-			var limitParts any = Split(price, ".")
+			var limitParts []string = Split(price, ".")
 			var limitDec any = this.SafeString(limitParts, 1, "")
 			var limitDecLength any = Add(GetLength(limitDec), 0) // php tr
-			var limitDecLengthStr any = ToString(limitDecLength)
+			var limitDecLengthStr string = ToString(limitDecLength)
 			var powerNum any = Ternary(IsTrue((IsEqual(limitDecLengthStr, "0"))), 0, this.ConvertToBigIntCustom(limitDecLengthStr))
 			var priceInteger any = (Divide(Multiply(this.ConvertToBigIntCustom(Replace(price, ".", "")), this.ConvertToBigIntCustom(priceMultiplier)), (MathPow(bigInt10, powerNum))))
 			AddElementToObject(legOrder, "limitPrice", this.ParseToInt(priceInteger))
@@ -2809,7 +2814,7 @@ func (this *GrvtCore) EipMessageForOrder(order any, structureType any) any {
 		}
 		AppendToArray(&legs, legOrder)
 	}
-	var returnValue any = map[string]any{
+	var returnValue map[string]any = map[string]any{
 		"subAccountID": GetValue(order, "sub_account_id"),
 		"isMarket":     GetValue(order, "is_market"),
 		"timeInForce":  this.TimeInForceToInt(GetValue(order, "time_in_force")),
@@ -2840,95 +2845,95 @@ func (this *GrvtCore) EipMessageForOrder(order any, structureType any) any {
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *GrvtCore) FetchMyTrades(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-
-		retRes22518 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes22518)
-		var paginate any = false
-		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
-		paginate = GetValue(paginateparamsVariable, 0)
-		params = GetValue(paginateparamsVariable, 1)
-		if IsTrue(paginate) {
-
-			retRes225519 := (<-this.FetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params))
-			PanicOnError(retRes225519)
-			ch <- retRes225519
-			return nil
-		}
-		var request any = map[string]any{
-			"sub_account_id": this.GetSubAccountId(params),
-		}
-		var market any = nil
-		if IsTrue(!IsEqual(symbol, nil)) {
-			market = this.Market(symbol)
-			AddElementToObject(request, "base", []any{})
-			retRes226412 := GetValue(request, "base")
-			AppendToArray(&retRes226412, GetValue(market, "baseId"))
-			AddElementToObject(request, "quote", []any{})
-			retRes226612 := GetValue(request, "quote")
-			AppendToArray(&retRes226612, GetValue(market, "quoteId"))
-		}
-		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "limit", mathMin(limit, 1000))
-		}
-		requestparamsVariable := this.HandleUntilOptionString("end_time", request, params, 1000000)
-		request = GetValue(requestparamsVariable, 0)
-		params = GetValue(requestparamsVariable, 1)
-		if IsTrue(!IsEqual(since, nil)) {
-			AddElementToObject(request, "start_time", this.NumberToString(Multiply(since, 1000000)))
-		}
-
-		response := (<-this.PrivateTradingPostFullV1FillHistory(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//    {
-		//        "result": [
-		//            {
-		//                "event_time": "1764945709702747558",
-		//                "sub_account_id": "2147050003876484",
-		//                "instrument": "BTC_USDT_Perp",
-		//                "is_buyer": true,
-		//                "is_taker": false,
-		//                "size": "0.001",
-		//                "price": "90000.0",
-		//                "mark_price": "90050.164063298",
-		//                "index_price": "90089.803654938",
-		//                "interest_rate": "0.0",
-		//                "forward_price": "0.0",
-		//                "realized_pnl": "0.0",
-		//                "fee": "-0.00009",
-		//                "fee_rate": "0.0",
-		//                "trade_id": "65424692-2",
-		//                "order_id": "0x01010105034cddc7000000006621285c",
-		//                "venue": "ORDERBOOK",
-		//                "client_order_id": "1375879248",
-		//                "signer": "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
-		//                "broker": "UNSPECIFIED",
-		//                "is_rpi": false
-		//            },
-		//            ...
-		//        ],
-		//        "next": ""
-		//    }
-		//
-		var result any = this.SafeList(response, "result", []any{})
-
-		ch <- this.ParseTrades(result, nil, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchMyTradesBody(ch, optionalArgs...)
 	return ch
+}
+func (this *GrvtCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+
+	retRes22568 := (<-this.LoadMarketsAndSignIn())
+	PanicOnError(retRes22568)
+	var paginate any = false
+	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
+	paginate = GetValue(paginateparamsVariable, 0)
+	params = GetValue(paginateparamsVariable, 1)
+	if IsTrue(paginate) {
+
+		retRes226019 := (<-this.FetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params))
+		PanicOnError(retRes226019)
+		ch <- retRes226019
+		return nil
+	}
+	var request any = map[string]any{
+		"sub_account_id": this.GetSubAccountId(params),
+	}
+	var market any = nil
+	if IsTrue(!IsEqual(symbol, nil)) {
+		market = this.Market(symbol)
+		AddElementToObject(request, "base", []any{})
+		retRes226912 := GetValue(request, "base")
+		AppendToArray(&retRes226912, GetValue(market, "baseId"))
+		AddElementToObject(request, "quote", []any{})
+		retRes227112 := GetValue(request, "quote")
+		AppendToArray(&retRes227112, GetValue(market, "quoteId"))
+	}
+	if IsTrue(!IsEqual(limit, nil)) {
+		AddElementToObject(request, "limit", mathMin(limit, 1000))
+	}
+	requestparamsVariable := this.HandleUntilOptionString("end_time", request, params, 1000000)
+	request = GetValue(requestparamsVariable, 0)
+	params = GetValue(requestparamsVariable, 1)
+	if IsTrue(!IsEqual(since, nil)) {
+		AddElementToObject(request, "start_time", this.NumberToString(Multiply(since, 1000000)))
+	}
+
+	response := (<-this.PrivateTradingPostFullV1FillHistory(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//    {
+	//        "result": [
+	//            {
+	//                "event_time": "1764945709702747558",
+	//                "sub_account_id": "2147050003876484",
+	//                "instrument": "BTC_USDT_Perp",
+	//                "is_buyer": true,
+	//                "is_taker": false,
+	//                "size": "0.001",
+	//                "price": "90000.0",
+	//                "mark_price": "90050.164063298",
+	//                "index_price": "90089.803654938",
+	//                "interest_rate": "0.0",
+	//                "forward_price": "0.0",
+	//                "realized_pnl": "0.0",
+	//                "fee": "-0.00009",
+	//                "fee_rate": "0.0",
+	//                "trade_id": "65424692-2",
+	//                "order_id": "0x01010105034cddc7000000006621285c",
+	//                "venue": "ORDERBOOK",
+	//                "client_order_id": "1375879248",
+	//                "signer": "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
+	//                "broker": "UNSPECIFIED",
+	//                "is_rpi": false
+	//            },
+	//            ...
+	//        ],
+	//        "next": ""
+	//    }
+	//
+	var result any = this.SafeList(response, "result", []any{})
+
+	ch <- this.ParseTrades(result, nil, since, limit)
+	return nil
 }
 
 /**
@@ -2941,71 +2946,71 @@ func (this *GrvtCore) FetchMyTrades(optionalArgs ...any) <-chan any {
  * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *GrvtCore) FetchPositions(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbols := GetArg(optionalArgs, 0, nil)
-		_ = symbols
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-
-		retRes23218 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes23218)
-		var request any = map[string]any{
-			"sub_account_id": this.GetSubAccountId(params),
-		}
-		if IsTrue(!IsEqual(symbols, nil)) {
-			symbols = this.MarketSymbols(symbols)
-			AddElementToObject(request, "base", []any{})
-			AddElementToObject(request, "quote", []any{})
-			for i := 0; IsLessThan(i, GetArrayLength(symbols)); i++ {
-				var symbol any = GetValue(symbols, i)
-				var market any = this.Market(symbol)
-				if IsTrue(!IsEqual(GetValue(market, "contract"), true)) {
-					panic(BadRequest(Add(this.Id, " fetchPositions() supports contract markets only")))
-				}
-				retRes233516 := GetValue(request, "base")
-				AppendToArray(&retRes233516, GetValue(market, "baseId"))
-				retRes233616 := GetValue(request, "quote")
-				AppendToArray(&retRes233616, GetValue(market, "quoteId"))
-			}
-		}
-
-		response := (<-this.PrivateTradingPostFullV1Positions(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//    {
-		//        "result": [
-		//            {
-		//                "event_time": "1765258069092857642",
-		//                "sub_account_id": "2147050003876484",
-		//                "instrument": "BTC_USDT_Perp",
-		//                "size": "0.001",
-		//                "notional": "89.8169",
-		//                "entry_price": "90000.0",
-		//                "exit_price": "0.0",
-		//                "mark_price": "89816.900008979",
-		//                "unrealized_pnl": "-0.183099",
-		//                "realized_pnl": "0.0",
-		//                "total_pnl": "-0.183099",
-		//                "roi": "-0.2034",
-		//                "quote_index_price": "1.00017885",
-		//                "est_liquidation_price": "77951.450008979",
-		//                "leverage": "28.0",
-		//                "cumulative_fee": "-0.00009",
-		//                "cumulative_realized_funding_payment": "0.033862"
-		//            }
-		//        ]
-		//    }
-		//
-		var result any = this.SafeList(response, "result", []any{})
-
-		ch <- this.ParsePositions(result, symbols)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchPositionsBody(ch, optionalArgs...)
 	return ch
+}
+func (this *GrvtCore) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbols := GetArg(optionalArgs, 0, nil)
+	_ = symbols
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+
+	retRes23268 := (<-this.LoadMarketsAndSignIn())
+	PanicOnError(retRes23268)
+	var request map[string]any = map[string]any{
+		"sub_account_id": this.GetSubAccountId(params),
+	}
+	if IsTrue(!IsEqual(symbols, nil)) {
+		symbols = this.MarketSymbols(symbols)
+		AddElementToObject(request, "base", []any{})
+		AddElementToObject(request, "quote", []any{})
+		for i := 0; IsLessThan(i, GetArrayLength(symbols)); i++ {
+			var symbol any = GetValue(symbols, i)
+			var market any = this.Market(symbol)
+			if IsTrue(!IsEqual(GetValue(market, "contract"), true)) {
+				panic(BadRequest(Add(this.Id, " fetchPositions() supports contract markets only")))
+			}
+			retRes234016 := GetValue(request, "base")
+			AppendToArray(&retRes234016, GetValue(market, "baseId"))
+			retRes234116 := GetValue(request, "quote")
+			AppendToArray(&retRes234116, GetValue(market, "quoteId"))
+		}
+	}
+
+	response := (<-this.PrivateTradingPostFullV1Positions(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//    {
+	//        "result": [
+	//            {
+	//                "event_time": "1765258069092857642",
+	//                "sub_account_id": "2147050003876484",
+	//                "instrument": "BTC_USDT_Perp",
+	//                "size": "0.001",
+	//                "notional": "89.8169",
+	//                "entry_price": "90000.0",
+	//                "exit_price": "0.0",
+	//                "mark_price": "89816.900008979",
+	//                "unrealized_pnl": "-0.183099",
+	//                "realized_pnl": "0.0",
+	//                "total_pnl": "-0.183099",
+	//                "roi": "-0.2034",
+	//                "quote_index_price": "1.00017885",
+	//                "est_liquidation_price": "77951.450008979",
+	//                "leverage": "28.0",
+	//                "cumulative_fee": "-0.00009",
+	//                "cumulative_realized_funding_payment": "0.033862"
+	//            }
+	//        ]
+	//    }
+	//
+	var result any = this.SafeList(response, "result", []any{})
+
+	ch <- this.ParsePositions(result, symbols)
+	return nil
 }
 func (this *GrvtCore) ParsePosition(position any, optionalArgs ...any) any {
 	//
@@ -3034,7 +3039,7 @@ func (this *GrvtCore) ParsePosition(position any, optionalArgs ...any) any {
 	var marketId any = this.SafeString(position, "instrument")
 	var timestamp any = this.SafeIntegerProduct(position, "event_time", 0.000001)
 	var sizeRaw any = this.SafeString(position, "size")
-	var isLong any = (Precise.StringGe(sizeRaw, "0"))
+	var isLong bool = (Precise.StringGe(sizeRaw, "0"))
 	var side any = Ternary(IsTrue(isLong), "long", "short")
 	return this.SafePosition(map[string]any{
 		"info":                        position,
@@ -3077,41 +3082,41 @@ func (this *GrvtCore) ParsePosition(position any, optionalArgs ...any) any {
  * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
 func (this *GrvtCore) FetchLeverages(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbols := GetArg(optionalArgs, 0, nil)
-		_ = symbols
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-
-		retRes24378 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes24378)
-		var request any = map[string]any{
-			"sub_account_id": this.GetSubAccountId(params),
-		}
-
-		response := (<-this.PrivateTradingPostFullV1GetAllInitialLeverage(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//    {
-		//        "results": [
-		//            {
-		//                "instrument": "AAVE_USDT_Perp",
-		//                "leverage": "10.0",
-		//                "min_leverage": "1.0",
-		//                "max_leverage": "50.0",
-		//                "margin_type": "CROSS"
-		//            },
-		//
-		var results any = this.SafeList(response, "results", []any{})
-
-		ch <- this.ParseLeverages(results, symbols)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchLeveragesBody(ch, optionalArgs...)
 	return ch
+}
+func (this *GrvtCore) fetchLeveragesBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbols := GetArg(optionalArgs, 0, nil)
+	_ = symbols
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+
+	retRes24428 := (<-this.LoadMarketsAndSignIn())
+	PanicOnError(retRes24428)
+	var request map[string]any = map[string]any{
+		"sub_account_id": this.GetSubAccountId(params),
+	}
+
+	response := (<-this.PrivateTradingPostFullV1GetAllInitialLeverage(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//    {
+	//        "results": [
+	//            {
+	//                "instrument": "AAVE_USDT_Perp",
+	//                "leverage": "10.0",
+	//                "min_leverage": "1.0",
+	//                "max_leverage": "50.0",
+	//                "margin_type": "CROSS"
+	//            },
+	//
+	var results any = this.SafeList(response, "results", []any{})
+
+	ch <- this.ParseLeverages(results, symbols)
+	return nil
 }
 
 /**
@@ -3125,40 +3130,40 @@ func (this *GrvtCore) FetchLeverages(optionalArgs ...any) <-chan any {
  * @returns {object} response from the exchange
  */
 func (this *GrvtCore) SetLeverage(leverage any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(symbol, nil)) {
-			panic(ArgumentsRequired(Add(this.Id, " setLeverage() requires a symbol argument")))
-		}
-
-		retRes24718 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes24718)
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"sub_account_id": this.GetSubAccountId(params),
-			"instrument":     GetValue(market, "id"),
-			"leverage":       this.NumberToString(leverage),
-		}
-
-		response := (<-this.PrivateTradingPostFullV1SetInitialLeverage(this.Extend(request, params)))
-		PanicOnError(response)
-
-		//
-		//    {
-		//        "success": true
-		//    }
-		//
-		ch <- this.ParseLeverage(response, market)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.setLeverageBody(ch, leverage, optionalArgs...)
 	return ch
+}
+func (this *GrvtCore) setLeverageBody(ch chan any, leverage any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(symbol, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " setLeverage() requires a symbol argument")))
+	}
+
+	retRes24768 := (<-this.LoadMarketsAndSignIn())
+	PanicOnError(retRes24768)
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"sub_account_id": this.GetSubAccountId(params),
+		"instrument":     GetValue(market, "id"),
+		"leverage":       this.NumberToString(leverage),
+	}
+
+	response := (<-this.PrivateTradingPostFullV1SetInitialLeverage(this.Extend(request, params)))
+	PanicOnError(response)
+
+	//
+	//    {
+	//        "success": true
+	//    }
+	//
+	ch <- this.ParseLeverage(response, market)
+	return nil
 }
 func (this *GrvtCore) ParseLeverage(leverage any, optionalArgs ...any) any {
 	//
@@ -3202,41 +3207,41 @@ func (this *GrvtCore) ParseLeverage(leverage any, optionalArgs ...any) any {
  * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/?id=margin-mode-structure}
  */
 func (this *GrvtCore) FetchMarginModes(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbols := GetArg(optionalArgs, 0, nil)
-		_ = symbols
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-
-		retRes25278 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes25278)
-		var request any = map[string]any{
-			"sub_account_id": this.GetSubAccountId(params),
-		}
-
-		response := (<-this.PrivateTradingPostFullV1GetAllInitialLeverage(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//    {
-		//        "results": [
-		//            {
-		//                "instrument": "AAVE_USDT_Perp",
-		//                "leverage": "10.0",
-		//                "min_leverage": "1.0",
-		//                "max_leverage": "50.0",
-		//                "margin_type": "CROSS"
-		//            },
-		//
-		var results any = this.SafeList(response, "results", []any{})
-
-		ch <- this.ParseLeverages(results, symbols)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchMarginModesBody(ch, optionalArgs...)
 	return ch
+}
+func (this *GrvtCore) fetchMarginModesBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbols := GetArg(optionalArgs, 0, nil)
+	_ = symbols
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+
+	retRes25328 := (<-this.LoadMarketsAndSignIn())
+	PanicOnError(retRes25328)
+	var request map[string]any = map[string]any{
+		"sub_account_id": this.GetSubAccountId(params),
+	}
+
+	response := (<-this.PrivateTradingPostFullV1GetAllInitialLeverage(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//    {
+	//        "results": [
+	//            {
+	//                "instrument": "AAVE_USDT_Perp",
+	//                "leverage": "10.0",
+	//                "min_leverage": "1.0",
+	//                "max_leverage": "50.0",
+	//                "margin_type": "CROSS"
+	//            },
+	//
+	var results any = this.SafeList(response, "results", []any{})
+
+	ch <- this.ParseLeverages(results, symbols)
+	return nil
 }
 func (this *GrvtCore) ParseMarginMode(marginMode any, optionalArgs ...any) any {
 	//
@@ -3274,80 +3279,80 @@ func (this *GrvtCore) ParseMarginMode(marginMode any, optionalArgs ...any) any {
  * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
  */
 func (this *GrvtCore) FetchFundingHistory(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-
-		retRes25818 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes25818)
-		var paginate any = false
-		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingHistory", "paginate")
-		paginate = GetValue(paginateparamsVariable, 0)
-		params = GetValue(paginateparamsVariable, 1)
-		if IsTrue(paginate) {
-
-			retRes258519 := (<-this.FetchPaginatedCallDynamic("fetchFundingHistory", symbol, since, limit, params, 1000))
-			PanicOnError(retRes258519)
-			ch <- retRes258519
-			return nil
-		}
-		var request any = map[string]any{
-			"sub_account_id": this.GetSubAccountId(params),
-		}
-		var market any = nil
-		if IsTrue(!IsEqual(symbol, nil)) {
-			market = this.Market(symbol)
-			AddElementToObject(request, "base", []any{})
-			retRes259412 := GetValue(request, "base")
-			AppendToArray(&retRes259412, GetValue(market, "baseId"))
-			AddElementToObject(request, "quote", []any{})
-			retRes259612 := GetValue(request, "quote")
-			AppendToArray(&retRes259612, GetValue(market, "quoteId"))
-		}
-		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "limit", mathMin(limit, 1000))
-		}
-		requestparamsVariable := this.HandleUntilOptionString("end_time", request, params, 1000000)
-		request = GetValue(requestparamsVariable, 0)
-		params = GetValue(requestparamsVariable, 1)
-		if IsTrue(!IsEqual(since, nil)) {
-			AddElementToObject(request, "start_time", this.NumberToString(Multiply(since, 1000000)))
-		}
-
-		response := (<-this.PrivateTradingPostFullV1FundingPaymentHistory(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//    {
-		//        "result": [
-		//            {
-		//                "event_time": "1765267200004987902",
-		//                "sub_account_id": "2147050003876484",
-		//                "instrument": "BTC_USDT_Perp",
-		//                "currency": "USDT",
-		//                "amount": "-0.004522",
-		//                "tx_id": "66625184"
-		//            },
-		//            ..
-		//        ],
-		//        "next": ""
-		//    }
-		//
-		var result any = this.SafeList(response, "result", []any{})
-
-		ch <- this.ParseIncomes(result, market, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchFundingHistoryBody(ch, optionalArgs...)
 	return ch
+}
+func (this *GrvtCore) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+
+	retRes25868 := (<-this.LoadMarketsAndSignIn())
+	PanicOnError(retRes25868)
+	var paginate any = false
+	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingHistory", "paginate")
+	paginate = GetValue(paginateparamsVariable, 0)
+	params = GetValue(paginateparamsVariable, 1)
+	if IsTrue(paginate) {
+
+		retRes259019 := (<-this.FetchPaginatedCallDynamic("fetchFundingHistory", symbol, since, limit, params, 1000))
+		PanicOnError(retRes259019)
+		ch <- retRes259019
+		return nil
+	}
+	var request any = map[string]any{
+		"sub_account_id": this.GetSubAccountId(params),
+	}
+	var market any = nil
+	if IsTrue(!IsEqual(symbol, nil)) {
+		market = this.Market(symbol)
+		AddElementToObject(request, "base", []any{})
+		retRes259912 := GetValue(request, "base")
+		AppendToArray(&retRes259912, GetValue(market, "baseId"))
+		AddElementToObject(request, "quote", []any{})
+		retRes260112 := GetValue(request, "quote")
+		AppendToArray(&retRes260112, GetValue(market, "quoteId"))
+	}
+	if IsTrue(!IsEqual(limit, nil)) {
+		AddElementToObject(request, "limit", mathMin(limit, 1000))
+	}
+	requestparamsVariable := this.HandleUntilOptionString("end_time", request, params, 1000000)
+	request = GetValue(requestparamsVariable, 0)
+	params = GetValue(requestparamsVariable, 1)
+	if IsTrue(!IsEqual(since, nil)) {
+		AddElementToObject(request, "start_time", this.NumberToString(Multiply(since, 1000000)))
+	}
+
+	response := (<-this.PrivateTradingPostFullV1FundingPaymentHistory(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//    {
+	//        "result": [
+	//            {
+	//                "event_time": "1765267200004987902",
+	//                "sub_account_id": "2147050003876484",
+	//                "instrument": "BTC_USDT_Perp",
+	//                "currency": "USDT",
+	//                "amount": "-0.004522",
+	//                "tx_id": "66625184"
+	//            },
+	//            ..
+	//        ],
+	//        "next": ""
+	//    }
+	//
+	var result any = this.SafeList(response, "result", []any{})
+
+	ch <- this.ParseIncomes(result, market, since, limit)
+	return nil
 }
 func (this *GrvtCore) ParseIncome(income any, optionalArgs ...any) any {
 	//
@@ -3389,116 +3394,116 @@ func (this *GrvtCore) ParseIncome(income any, optionalArgs ...any) any {
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *GrvtCore) FetchOrders(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-
-		retRes26648 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes26648)
-		var subAccountId any = this.GetSubAccountId(params)
-		var request any = map[string]any{
-			"sub_account_id": subAccountId,
-		}
-		var market any = nil
-		if IsTrue(!IsEqual(symbol, nil)) {
-			market = this.Market(symbol)
-			AddElementToObject(request, "base", []any{})
-			retRes267312 := GetValue(request, "base")
-			AppendToArray(&retRes267312, GetValue(market, "baseId"))
-			AddElementToObject(request, "quote", []any{})
-			retRes267512 := GetValue(request, "quote")
-			AppendToArray(&retRes267512, GetValue(market, "quoteId"))
-		}
-		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "limit", mathMin(limit, 1000))
-		}
-		requestparamsVariable := this.HandleUntilOptionString("end_time", request, params, 1000000)
-		request = GetValue(requestparamsVariable, 0)
-		params = GetValue(requestparamsVariable, 1)
-		if IsTrue(!IsEqual(since, nil)) {
-			AddElementToObject(request, "start_time", this.NumberToString(Multiply(since, 1000000)))
-		}
-
-		response := (<-this.PrivateTradingPostFullV1OrderHistory(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//    {
-		//        "result": [
-		//            {
-		//                "order_id": "0x01010105034cddc7000000006621285c",
-		//                "sub_account_id": "2147050003876484",
-		//                "is_market": false,
-		//                "time_in_force": "GOOD_TILL_TIME",
-		//                "post_only": false,
-		//                "reduce_only": false,
-		//                "legs": [
-		//                    {
-		//                        "instrument": "BTC_USDT_Perp",
-		//                        "size": "0.001",
-		//                        "limit_price": "90000.0",
-		//                        "is_buying_asset": true
-		//                    }
-		//                ],
-		//                "signature": {
-		//                    "signer": "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
-		//                    "r": "0x2d567b0a04525baf0bbd792db3bb3a28c1bcc5e95936f6dc2515a28ad8529313",
-		//                    "s": "0x0bc2468d96c819c8de005aa7bebfb58eecb34dd7a1bae1e81e74c7b8bc4cddc7",
-		//                    "v": "27",
-		//                    "expiration": "1767455222801000000",
-		//                    "nonce": "1375879248",
-		//                    "chain_id": "0"
-		//                },
-		//                "metadata": {
-		//                    "client_order_id": "1375879248",
-		//                    "create_time": "1764863234474424590",
-		//                    "trigger": {
-		//                        "trigger_type": "UNSPECIFIED",
-		//                        "tpsl": {
-		//                            "trigger_by": "UNSPECIFIED",
-		//                            "trigger_price": "0.0",
-		//                            "close_position": false
-		//                        }
-		//                    },
-		//                    "broker": "UNSPECIFIED",
-		//                    "is_position_transfer": false,
-		//                    "allow_crossing": false
-		//                },
-		//                "state": {
-		//                    "status": "FILLED",
-		//                    "reject_reason": "UNSPECIFIED",
-		//                    "book_size": [
-		//                        "0.0"
-		//                    ],
-		//                    "traded_size": [
-		//                        "0.001"
-		//                    ],
-		//                    "update_time": "1764945709704912003",
-		//                    "avg_fill_price": [
-		//                        "90000.0"
-		//                    ]
-		//                }
-		//            },
-		//            ...
-		//        ],
-		//        "next": ""
-		//    }
-		//
-		var result any = this.SafeList(response, "result", []any{})
-
-		ch <- this.ParseOrders(result, market, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOrdersBody(ch, optionalArgs...)
 	return ch
+}
+func (this *GrvtCore) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+
+	retRes26698 := (<-this.LoadMarketsAndSignIn())
+	PanicOnError(retRes26698)
+	var subAccountId any = this.GetSubAccountId(params)
+	var request any = map[string]any{
+		"sub_account_id": subAccountId,
+	}
+	var market any = nil
+	if IsTrue(!IsEqual(symbol, nil)) {
+		market = this.Market(symbol)
+		AddElementToObject(request, "base", []any{})
+		retRes267812 := GetValue(request, "base")
+		AppendToArray(&retRes267812, GetValue(market, "baseId"))
+		AddElementToObject(request, "quote", []any{})
+		retRes268012 := GetValue(request, "quote")
+		AppendToArray(&retRes268012, GetValue(market, "quoteId"))
+	}
+	if IsTrue(!IsEqual(limit, nil)) {
+		AddElementToObject(request, "limit", mathMin(limit, 1000))
+	}
+	requestparamsVariable := this.HandleUntilOptionString("end_time", request, params, 1000000)
+	request = GetValue(requestparamsVariable, 0)
+	params = GetValue(requestparamsVariable, 1)
+	if IsTrue(!IsEqual(since, nil)) {
+		AddElementToObject(request, "start_time", this.NumberToString(Multiply(since, 1000000)))
+	}
+
+	response := (<-this.PrivateTradingPostFullV1OrderHistory(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//    {
+	//        "result": [
+	//            {
+	//                "order_id": "0x01010105034cddc7000000006621285c",
+	//                "sub_account_id": "2147050003876484",
+	//                "is_market": false,
+	//                "time_in_force": "GOOD_TILL_TIME",
+	//                "post_only": false,
+	//                "reduce_only": false,
+	//                "legs": [
+	//                    {
+	//                        "instrument": "BTC_USDT_Perp",
+	//                        "size": "0.001",
+	//                        "limit_price": "90000.0",
+	//                        "is_buying_asset": true
+	//                    }
+	//                ],
+	//                "signature": {
+	//                    "signer": "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
+	//                    "r": "0x2d567b0a04525baf0bbd792db3bb3a28c1bcc5e95936f6dc2515a28ad8529313",
+	//                    "s": "0x0bc2468d96c819c8de005aa7bebfb58eecb34dd7a1bae1e81e74c7b8bc4cddc7",
+	//                    "v": "27",
+	//                    "expiration": "1767455222801000000",
+	//                    "nonce": "1375879248",
+	//                    "chain_id": "0"
+	//                },
+	//                "metadata": {
+	//                    "client_order_id": "1375879248",
+	//                    "create_time": "1764863234474424590",
+	//                    "trigger": {
+	//                        "trigger_type": "UNSPECIFIED",
+	//                        "tpsl": {
+	//                            "trigger_by": "UNSPECIFIED",
+	//                            "trigger_price": "0.0",
+	//                            "close_position": false
+	//                        }
+	//                    },
+	//                    "broker": "UNSPECIFIED",
+	//                    "is_position_transfer": false,
+	//                    "allow_crossing": false
+	//                },
+	//                "state": {
+	//                    "status": "FILLED",
+	//                    "reject_reason": "UNSPECIFIED",
+	//                    "book_size": [
+	//                        "0.0"
+	//                    ],
+	//                    "traded_size": [
+	//                        "0.001"
+	//                    ],
+	//                    "update_time": "1764945709704912003",
+	//                    "avg_fill_price": [
+	//                        "90000.0"
+	//                    ]
+	//                }
+	//            },
+	//            ...
+	//        ],
+	//        "next": ""
+	//    }
+	//
+	var result any = this.SafeList(response, "result", []any{})
+
+	ch <- this.ParseOrders(result, market, since, limit)
+	return nil
 }
 
 /**
@@ -3513,94 +3518,94 @@ func (this *GrvtCore) FetchOrders(optionalArgs ...any) <-chan any {
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *GrvtCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-
-		retRes27638 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes27638)
-		var request any = map[string]any{
-			"sub_account_id": this.GetSubAccountId(params),
-		}
-
-		response := (<-this.PrivateTradingPostFullV1OpenOrders(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//    {
-		//        "result": [
-		//            {
-		//                "order_id": "0x0101010503e693410000000069530a7d",
-		//                "sub_account_id": "2147050003876484",
-		//                "is_market": false,
-		//                "time_in_force": "GOOD_TILL_TIME",
-		//                "post_only": false,
-		//                "reduce_only": false,
-		//                "legs": [
-		//                    {
-		//                        "instrument": "BTC_USDT_Perp",
-		//                        "size": "0.002",
-		//                        "limit_price": "88123.0",
-		//                        "is_buying_asset": true
-		//                    }
-		//                ],
-		//                "signature": {
-		//                    "signer": "0x0982ebb82523fd20d1347d59f5a989ed84caa4b5",
-		//                    "r": "0x22b13e5bc7c8d6793db9d0adf6a51340437292baf83aa4f89a01a3c0c1fef4a8",
-		//                    "s": "0x46ecd483126c388cc933022979a9636670f64af3773d04a84ecbeac423e69341",
-		//                    "v": "28",
-		//                    "expiration": "1767871961406000000",
-		//                    "nonce": "588129369",
-		//                    "chain_id": "0"
-		//                },
-		//                "metadata": {
-		//                    "client_order_id": "588129369",
-		//                    "create_time": "1765279966899943792",
-		//                    "trigger": {
-		//                        "trigger_type": "UNSPECIFIED",
-		//                        "tpsl": {
-		//                            "trigger_by": "UNSPECIFIED",
-		//                            "trigger_price": "0.0",
-		//                            "close_position": false
-		//                        }
-		//                    },
-		//                    "broker": "UNSPECIFIED",
-		//                    "is_position_transfer": false,
-		//                    "allow_crossing": false
-		//                },
-		//                "state": {
-		//                    "status": "OPEN",
-		//                    "reject_reason": "UNSPECIFIED",
-		//                    "book_size": [
-		//                        "0.002"
-		//                    ],
-		//                    "traded_size": [
-		//                        "0.0"
-		//                    ],
-		//                    "update_time": "1765279966899943792",
-		//                    "avg_fill_price": [
-		//                        "0.0"
-		//                    ]
-		//                }
-		//            }
-		//        ]
-		//    }
-		//
-		var result any = this.SafeList(response, "result", []any{})
-
-		ch <- this.ParseOrders(result, nil, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOpenOrdersBody(ch, optionalArgs...)
 	return ch
+}
+func (this *GrvtCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+
+	retRes27688 := (<-this.LoadMarketsAndSignIn())
+	PanicOnError(retRes27688)
+	var request map[string]any = map[string]any{
+		"sub_account_id": this.GetSubAccountId(params),
+	}
+
+	response := (<-this.PrivateTradingPostFullV1OpenOrders(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//    {
+	//        "result": [
+	//            {
+	//                "order_id": "0x0101010503e693410000000069530a7d",
+	//                "sub_account_id": "2147050003876484",
+	//                "is_market": false,
+	//                "time_in_force": "GOOD_TILL_TIME",
+	//                "post_only": false,
+	//                "reduce_only": false,
+	//                "legs": [
+	//                    {
+	//                        "instrument": "BTC_USDT_Perp",
+	//                        "size": "0.002",
+	//                        "limit_price": "88123.0",
+	//                        "is_buying_asset": true
+	//                    }
+	//                ],
+	//                "signature": {
+	//                    "signer": "0x0982ebb82523fd20d1347d59f5a989ed84caa4b5",
+	//                    "r": "0x22b13e5bc7c8d6793db9d0adf6a51340437292baf83aa4f89a01a3c0c1fef4a8",
+	//                    "s": "0x46ecd483126c388cc933022979a9636670f64af3773d04a84ecbeac423e69341",
+	//                    "v": "28",
+	//                    "expiration": "1767871961406000000",
+	//                    "nonce": "588129369",
+	//                    "chain_id": "0"
+	//                },
+	//                "metadata": {
+	//                    "client_order_id": "588129369",
+	//                    "create_time": "1765279966899943792",
+	//                    "trigger": {
+	//                        "trigger_type": "UNSPECIFIED",
+	//                        "tpsl": {
+	//                            "trigger_by": "UNSPECIFIED",
+	//                            "trigger_price": "0.0",
+	//                            "close_position": false
+	//                        }
+	//                    },
+	//                    "broker": "UNSPECIFIED",
+	//                    "is_position_transfer": false,
+	//                    "allow_crossing": false
+	//                },
+	//                "state": {
+	//                    "status": "OPEN",
+	//                    "reject_reason": "UNSPECIFIED",
+	//                    "book_size": [
+	//                        "0.002"
+	//                    ],
+	//                    "traded_size": [
+	//                        "0.0"
+	//                    ],
+	//                    "update_time": "1765279966899943792",
+	//                    "avg_fill_price": [
+	//                        "0.0"
+	//                    ]
+	//                }
+	//            }
+	//        ]
+	//    }
+	//
+	var result any = this.SafeList(response, "result", []any{})
+
+	ch <- this.ParseOrders(result, nil, since, limit)
+	return nil
 }
 
 /**
@@ -3615,96 +3620,96 @@ func (this *GrvtCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *GrvtCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-
-		retRes28448 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes28448)
-		var subAccountId any = this.GetSubAccountId(params)
-		var request any = map[string]any{
-			"sub_account_id": subAccountId,
-		}
-		var clientOrderId any = this.SafeString2(params, "clientOrderId", "client_order_id")
-		if IsTrue(!IsEqual(clientOrderId, nil)) {
-			params = this.Omit(params, "clientOrderId", "client_order_id")
-			AddElementToObject(request, "client_order_id", clientOrderId)
-		} else {
-			AddElementToObject(request, "order_id", id)
-		}
-
-		response := (<-this.PrivateTradingPostFullV1Order(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//    {
-		//        "result": {
-		//            "order_id": "0x01010105034cddc7000000006621285c",
-		//            "sub_account_id": "2147050003876484",
-		//            "is_market": false,
-		//            "time_in_force": "GOOD_TILL_TIME",
-		//            "post_only": false,
-		//            "reduce_only": false,
-		//            "legs": [
-		//                {
-		//                    "instrument": "BTC_USDT_Perp",
-		//                    "size": "0.001",
-		//                    "limit_price": "90000.0",
-		//                    "is_buying_asset": true
-		//                }
-		//            ],
-		//            "signature": {
-		//                "signer": "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
-		//                "r": "0x2d567b0a04525baf0bbd792db3bb3a28c1bcc5e95936f6dc2515a28ad8529313",
-		//                "s": "0x0bc2468d96c819c8de005aa7bebfb58eecb34dd7a1bae1e81e74c7b8bc4cddc7",
-		//                "v": "27",
-		//                "expiration": "1767455222801000000",
-		//                "nonce": "1375879248",
-		//                "chain_id": "0"
-		//            },
-		//            "metadata": {
-		//                "client_order_id": "1375879248",
-		//                "create_time": "1764863234474424590",
-		//                "trigger": {
-		//                    "trigger_type": "UNSPECIFIED",
-		//                    "tpsl": {
-		//                        "trigger_by": "UNSPECIFIED",
-		//                        "trigger_price": "0.0",
-		//                        "close_position": false
-		//                    }
-		//                },
-		//                "broker": "UNSPECIFIED",
-		//                "is_position_transfer": false,
-		//                "allow_crossing": false
-		//            },
-		//            "state": {
-		//                "status": "FILLED",
-		//                "reject_reason": "UNSPECIFIED",
-		//                "book_size": [
-		//                    "0.0"
-		//                ],
-		//                "traded_size": [
-		//                    "0.001"
-		//                ],
-		//                "update_time": "1764945709704912003",
-		//                "avg_fill_price": [
-		//                    "90000.0"
-		//                ]
-		//            }
-		//        }
-		//    }
-		//
-		var result any = this.SafeDict(response, "result", map[string]any{})
-
-		ch <- this.ParseOrder(result)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOrderBody(ch, id, optionalArgs...)
 	return ch
+}
+func (this *GrvtCore) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+
+	retRes28498 := (<-this.LoadMarketsAndSignIn())
+	PanicOnError(retRes28498)
+	var subAccountId any = this.GetSubAccountId(params)
+	var request map[string]any = map[string]any{
+		"sub_account_id": subAccountId,
+	}
+	var clientOrderId any = this.SafeString2(params, "clientOrderId", "client_order_id")
+	if IsTrue(!IsEqual(clientOrderId, nil)) {
+		params = this.Omit(params, "clientOrderId", "client_order_id")
+		AddElementToObject(request, "client_order_id", clientOrderId)
+	} else {
+		AddElementToObject(request, "order_id", id)
+	}
+
+	response := (<-this.PrivateTradingPostFullV1Order(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//    {
+	//        "result": {
+	//            "order_id": "0x01010105034cddc7000000006621285c",
+	//            "sub_account_id": "2147050003876484",
+	//            "is_market": false,
+	//            "time_in_force": "GOOD_TILL_TIME",
+	//            "post_only": false,
+	//            "reduce_only": false,
+	//            "legs": [
+	//                {
+	//                    "instrument": "BTC_USDT_Perp",
+	//                    "size": "0.001",
+	//                    "limit_price": "90000.0",
+	//                    "is_buying_asset": true
+	//                }
+	//            ],
+	//            "signature": {
+	//                "signer": "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
+	//                "r": "0x2d567b0a04525baf0bbd792db3bb3a28c1bcc5e95936f6dc2515a28ad8529313",
+	//                "s": "0x0bc2468d96c819c8de005aa7bebfb58eecb34dd7a1bae1e81e74c7b8bc4cddc7",
+	//                "v": "27",
+	//                "expiration": "1767455222801000000",
+	//                "nonce": "1375879248",
+	//                "chain_id": "0"
+	//            },
+	//            "metadata": {
+	//                "client_order_id": "1375879248",
+	//                "create_time": "1764863234474424590",
+	//                "trigger": {
+	//                    "trigger_type": "UNSPECIFIED",
+	//                    "tpsl": {
+	//                        "trigger_by": "UNSPECIFIED",
+	//                        "trigger_price": "0.0",
+	//                        "close_position": false
+	//                    }
+	//                },
+	//                "broker": "UNSPECIFIED",
+	//                "is_position_transfer": false,
+	//                "allow_crossing": false
+	//            },
+	//            "state": {
+	//                "status": "FILLED",
+	//                "reject_reason": "UNSPECIFIED",
+	//                "book_size": [
+	//                    "0.0"
+	//                ],
+	//                "traded_size": [
+	//                    "0.001"
+	//                ],
+	//                "update_time": "1764945709704912003",
+	//                "avg_fill_price": [
+	//                    "90000.0"
+	//                ]
+	//            }
+	//        }
+	//    }
+	//
+	var result any = this.SafeDict(response, "result", map[string]any{})
+
+	ch <- this.ParseOrder(result)
+	return nil
 }
 func (this *GrvtCore) ParseOrder(order any, optionalArgs ...any) any {
 	//
@@ -3782,11 +3787,11 @@ func (this *GrvtCore) ParseOrder(order any, optionalArgs ...any) any {
 		})
 	}
 	var isMarket any = this.SafeBool(order, "is_market")
-	var orderType any = Ternary(IsTrue(isMarket), "market", "limit")
+	var orderType any = Ternary(IsTrue((IsEqual(isMarket, true))), "market", "limit")
 	var isPostOnly any = this.SafeBool(order, "post_only")
 	var isReduceOnly any = this.SafeBool(order, "reduce_only")
 	var timeInForceRaw any = this.SafeString(order, "time_in_force")
-	var timeInForce any = Ternary(IsTrue(isPostOnly), "PO", this.ParseTimeInForce(timeInForceRaw))
+	var timeInForce any = Ternary(IsTrue((IsEqual(isPostOnly, true))), "PO", this.ParseTimeInForce(timeInForceRaw))
 	var size any = nil
 	var side any = nil
 	var price any = nil
@@ -3803,14 +3808,15 @@ func (this *GrvtCore) ParseOrder(order any, optionalArgs ...any) any {
 		var marketId any = this.SafeString(firstLeg, "instrument")
 		market = this.SafeMarket(marketId, market)
 		size = this.SafeString(firstLeg, "size")
-		side = Ternary(IsTrue(this.SafeBool(firstLeg, "is_buying_asset")), "buy", "sell")
+		var isBuyingAsset bool = (IsEqual(this.SafeBool(firstLeg, "is_buying_asset"), true))
+		side = Ternary(IsTrue(isBuyingAsset), "buy", "sell")
 		price = this.SafeString(firstLeg, "limit_price")
 		filled = this.SafeString(filledAmounts, primaryOrderIndex)
 		avgPrice = this.SafeString(avgPrices, primaryOrderIndex)
 	}
 	var timestamp any = this.SafeIntegerProduct(metadata, "create_time", 0.000001)
 	// const triggerDetails = this.safeDict (metadata, 'trigger', {});
-	var legsLength any = GetArrayLength(legs)
+	var legsLength int = GetArrayLength(legs)
 	return this.SafeOrder(map[string]any{
 		"isMultiLeg":          (IsGreaterThan(legsLength, 1)),
 		"id":                  this.SafeString(order, "order_id"),
@@ -3839,7 +3845,7 @@ func (this *GrvtCore) ParseOrder(order any, optionalArgs ...any) any {
 	}, market)
 }
 func (this *GrvtCore) ParseTimeInForce(typeVar any) any {
-	var types any = map[string]any{
+	var types map[string]any = map[string]any{
 		"GOOD_TILL_TIME":           "GTC",
 		"IMMEDIATE_OR_CANCEL":      "IOC",
 		"FILL_OR_KILL":             "FOK",
@@ -3849,7 +3855,7 @@ func (this *GrvtCore) ParseTimeInForce(typeVar any) any {
 	return this.SafeStringUpper(types, typeVar, typeVar)
 }
 func (this *GrvtCore) TimeInForceToInt(timeInForce any) any {
-	var timeInForces any = map[string]any{
+	var timeInForces map[string]any = map[string]any{
 		"GOOD_TILL_TIME":           1,
 		"ALL_OR_NONE":              2,
 		"IMMEDIATE_OR_CANCEL":      3,
@@ -3859,7 +3865,7 @@ func (this *GrvtCore) TimeInForceToInt(timeInForce any) any {
 	return this.SafeInteger(timeInForces, timeInForce, 0)
 }
 func (this *GrvtCore) ParseOrderStatus(status any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"PENDING":   "pending",
 		"OPEN":      "open",
 		"FILLED":    "closed",
@@ -3879,46 +3885,46 @@ func (this *GrvtCore) ParseOrderStatus(status any) any {
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *GrvtCore) CancelAllOrders(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-
-		retRes30948 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes30948)
-		var request any = map[string]any{
-			"sub_account_id": this.GetSubAccountId(params),
-		}
-		if IsTrue(!IsEqual(symbol, nil)) {
-			var market any = this.Market(symbol)
-			AddElementToObject(request, "base", []any{})
-			retRes310112 := GetValue(request, "base")
-			AppendToArray(&retRes310112, GetValue(market, "baseId"))
-			AddElementToObject(request, "quote", []any{})
-			retRes310312 := GetValue(request, "quote")
-			AppendToArray(&retRes310312, GetValue(market, "quoteId"))
-		}
-
-		response := (<-this.PrivateTradingPostFullV1CancelAllOrders(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//    {
-		//        "result": {
-		//            "ack": true
-		//        }
-		//    }
-		//
-		var result any = this.SafeDict(response, "result", map[string]any{})
-
-		ch <- this.ParseOrders([]any{result})
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.cancelAllOrdersBody(ch, optionalArgs...)
 	return ch
+}
+func (this *GrvtCore) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+
+	retRes31008 := (<-this.LoadMarketsAndSignIn())
+	PanicOnError(retRes31008)
+	var request map[string]any = map[string]any{
+		"sub_account_id": this.GetSubAccountId(params),
+	}
+	if IsTrue(!IsEqual(symbol, nil)) {
+		var market any = this.Market(symbol)
+		AddElementToObject(request, "base", []any{})
+		retRes310712 := GetValue(request, "base")
+		AppendToArray(&retRes310712, GetValue(market, "baseId"))
+		AddElementToObject(request, "quote", []any{})
+		retRes310912 := GetValue(request, "quote")
+		AppendToArray(&retRes310912, GetValue(market, "quoteId"))
+	}
+
+	response := (<-this.PrivateTradingPostFullV1CancelAllOrders(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//    {
+	//        "result": {
+	//            "ack": true
+	//        }
+	//    }
+	//
+	var result any = this.SafeDict(response, "result", map[string]any{})
+
+	ch <- this.ParseOrders([]any{result})
+	return nil
 }
 
 /**
@@ -3933,45 +3939,45 @@ func (this *GrvtCore) CancelAllOrders(optionalArgs ...any) <-chan any {
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *GrvtCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-
-		retRes31298 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes31298)
-		var subAccoubntId any = this.GetSubAccountId(params)
-		var request any = map[string]any{
-			"sub_account_id": subAccoubntId,
-		}
-		var clientOrderId any = this.SafeString2(params, "clientOrderId", "client_order_id")
-		if IsTrue(!IsEqual(clientOrderId, nil)) {
-			params = this.Omit(params, "clientOrderId")
-			AddElementToObject(request, "client_order_id", clientOrderId)
-		} else {
-			AddElementToObject(request, "order_id", id)
-		}
-
-		response := (<-this.PrivateTradingPostFullV1CancelOrder(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//    {
-		//        "result": {
-		//            "ack": true
-		//        }
-		//    }
-		//
-		var result any = this.SafeDict(response, "result", map[string]any{})
-
-		ch <- this.ParseOrder(result)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
+}
+func (this *GrvtCore) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+
+	retRes31358 := (<-this.LoadMarketsAndSignIn())
+	PanicOnError(retRes31358)
+	var subAccoubntId any = this.GetSubAccountId(params)
+	var request map[string]any = map[string]any{
+		"sub_account_id": subAccoubntId,
+	}
+	var clientOrderId any = this.SafeString2(params, "clientOrderId", "client_order_id")
+	if IsTrue(!IsEqual(clientOrderId, nil)) {
+		params = this.Omit(params, "clientOrderId")
+		AddElementToObject(request, "client_order_id", clientOrderId)
+	} else {
+		AddElementToObject(request, "order_id", id)
+	}
+
+	response := (<-this.PrivateTradingPostFullV1CancelOrder(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//    {
+	//        "result": {
+	//            "ack": true
+	//        }
+	//    }
+	//
+	var result any = this.SafeDict(response, "result", map[string]any{})
+
+	ch <- this.ParseOrder(result)
+	return nil
 }
 func (this *GrvtCore) EipDomainData() any {
 	//     GrvtEnv.DEV.value: 327,
@@ -4105,7 +4111,7 @@ func (this *GrvtCore) Sign(path any, optionalArgs ...any) any {
 	var url any = Add(GetValue(GetValue(this.Urls, "api"), api), path)
 	var queryString any = ""
 	if IsTrue(IsEqual(method, "GET")) {
-		if IsTrue(GetArrayLength(ObjectKeys(query))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 			queryString = this.Urlencode(query)
 			url = Add(url, Add("?", queryString))
 		}
@@ -4117,16 +4123,16 @@ func (this *GrvtCore) Sign(path any, optionalArgs ...any) any {
 		}
 		// an empty params dict must serialize as an empty json object, not an empty json array,
 		// php json_encode would produce [] here which the venue rejects with the same 1003 error
-		var paramsKeys any = ObjectKeys(params)
-		var paramsKeysLength any = GetArrayLength(paramsKeys)
+		var paramsKeys []string = ObjectKeys(params)
+		var paramsKeysLength int = GetArrayLength(paramsKeys)
 		if IsTrue(IsEqual(paramsKeysLength, 0)) {
 			body = "{}"
 		} else {
 			body = this.Json(params)
 		}
 	}
-	var isPrivate any = StartsWith(api, "private")
-	if IsTrue(isPrivate) {
+	var isPrivate bool = StartsWith(api, "private")
+	if IsTrue(IsEqual(isPrivate, true)) {
 		this.CheckRequiredCredentials()
 		if IsTrue(!IsEqual(queryString, "")) {
 			path = Add(Add(path, "?"), queryString)
@@ -4134,7 +4140,7 @@ func (this *GrvtCore) Sign(path any, optionalArgs ...any) any {
 		headers = map[string]any{
 			"Content-Type": "application/json",
 		}
-		if IsTrue(IsTrue(EndsWith(path, "auth/api_key/login")) || IsTrue(EndsWith(path, "auth/wallet/login"))) {
+		if IsTrue(IsTrue((IsEqual(EndsWith(path, "auth/api_key/login"), true))) || IsTrue((IsEqual(EndsWith(path, "auth/wallet/login"), true)))) {
 			AddElementToObject(headers, "Cookie", "rm=true;")
 		} else {
 			var accountId any = this.SafeString(this.Options, "AuthAccountId")

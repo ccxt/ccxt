@@ -33,6 +33,7 @@ add margin
 * [poloniex](/exchanges/poloniex.md#addmargin)
 * [weex](/exchanges/weex.md#addmargin)
 * [woo](/exchanges/woo.md#addmargin)
+* [woofipro](/exchanges/woofipro.md#addmargin)
 * [xt](/exchanges/xt.md#addmargin)
 * [zebpay](/exchanges/zebpay.md#addmargin)
 
@@ -164,6 +165,7 @@ cancel all open orders in a market
 * [bittrade](/exchanges/bittrade.md#cancelallorders)
 * [bitvavo](/exchanges/bitvavo.md#cancelallorders)
 * [blockchaincom](/exchanges/blockchaincom.md#cancelallorders)
+* [btse](/exchanges/btse.md#cancelallorders)
 * [bullish](/exchanges/bullish.md#cancelallorders)
 * [bybit](/exchanges/bybit.md#cancelallorders)
 * [bydfi](/exchanges/bydfi.md#cancelallorders)
@@ -201,6 +203,7 @@ cancel all open orders in a market
 * [paradex](/exchanges/paradex.md#cancelallorders)
 * [phemex](/exchanges/phemex.md#cancelallorders)
 * [poloniex](/exchanges/poloniex.md#cancelallorders)
+* [revolutx](/exchanges/revolutx.md#cancelallorders)
 * [toobit](/exchanges/toobit.md#cancelallorders)
 * [weex](/exchanges/weex.md#cancelallorders)
 * [whitebit](/exchanges/whitebit.md#cancelallorders)
@@ -225,11 +228,13 @@ dead man's switch, cancel all orders after the given timeout
 | timeout | <code>number</code> | Yes | time in milliseconds, 0 represents cancel the timer |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.type | <code>string</code> | No | spot or swap market |
+| params.subType | <code>string</code> | No | 'linear' or 'inverse' (default is 'linear'), 'inverse' is not supported |
 
 ##### Supported exchanges
 * [bingx](/exchanges/bingx.md#cancelallordersafter)
 * [bitmex](/exchanges/bitmex.md#cancelallordersafter)
 * [bitvavo](/exchanges/bitvavo.md#cancelallordersafter)
+* [btse](/exchanges/btse.md#cancelallordersafter)
 * [bybit](/exchanges/bybit.md#cancelallordersafter)
 * [extended](/exchanges/extended.md#cancelallordersafter)
 * [htx](/exchanges/htx.md#cancelallordersafter)
@@ -377,6 +382,7 @@ cancels an open order
 * [btcbox](/exchanges/btcbox.md#cancelorder)
 * [btcmarkets](/exchanges/btcmarkets.md#cancelorder)
 * [btcturk](/exchanges/btcturk.md#cancelorder)
+* [btse](/exchanges/btse.md#cancelorder)
 * [bullish](/exchanges/bullish.md#cancelorder)
 * [bybit](/exchanges/bybit.md#cancelorder)
 * [cex](/exchanges/cex.md#cancelorder)
@@ -430,6 +436,7 @@ cancels an open order
 * [paradex](/exchanges/paradex.md#cancelorder)
 * [paymium](/exchanges/paymium.md#cancelorder)
 * [phemex](/exchanges/phemex.md#cancelorder)
+* [revolutx](/exchanges/revolutx.md#cancelorder)
 * [tokocrypto](/exchanges/tokocrypto.md#cancelorder)
 * [toobit](/exchanges/toobit.md#cancelorder)
 * [upbit](/exchanges/upbit.md#cancelorder)
@@ -498,6 +505,7 @@ cancel multiple orders
 * [bingx](/exchanges/bingx.md#cancelorders)
 * [bitfinex](/exchanges/bitfinex.md#cancelorders)
 * [bitget](/exchanges/bitget.md#cancelorders)
+* [bithumb](/exchanges/bithumb.md#cancelorders)
 * [bitmex](/exchanges/bitmex.md#cancelorders)
 * [bitopro](/exchanges/bitopro.md#cancelorders)
 * [bitso](/exchanges/bitso.md#cancelorders)
@@ -707,13 +715,14 @@ closes open positions for a market
 | symbol | <code>string</code> | Yes | Unified CCXT market symbol |
 | side | <code>string</code> | No | not used by bingx |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.positionId | <code>string</code>, <code>undefined</code> | No | the id of the position you would like to close |
+| params.positionId | <code>string</code>, <code>undefined</code> | No | the id of the position you would like to close, only supported for linear swap |
 
 ##### Supported exchanges
 * [bingx](/exchanges/bingx.md#closeposition)
 * [bitget](/exchanges/bitget.md#closeposition)
 * [bitmex](/exchanges/bitmex.md#closeposition)
 * [blofin](/exchanges/blofin.md#closeposition)
+* [btse](/exchanges/btse.md#closeposition)
 * [coinbase](/exchanges/coinbase.md#closeposition)
 * [coinex](/exchanges/coinex.md#closeposition)
 * [deepcoin](/exchanges/deepcoin.md#closeposition)
@@ -771,7 +780,7 @@ creates a sub-account under the main account
 <a name="createContractOrder" id="createcontractorder"></a>
 
 ## createContractOrder
-helper method for creating contract orders
+create a trade order on contract market
 
 **Kind**: instance   
 **Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
@@ -779,35 +788,37 @@ helper method for creating contract orders
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | Unified CCXT market symbol |
-| type | <code>string</code> | Yes | 'limit' or 'market' |
+| symbol | <code>string</code> | Yes | unified symbol of the market to create an order in |
+| type | <code>string</code> | Yes | 'market', 'limit', 'OCO', 'PEG', 'TWAP' or 'TRAILING' |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
-| amount | <code>float</code> | Yes | the amount of currency to trade |
-| price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
+| amount | <code>float</code> | Yes | how much of you want to trade in units of the base currency |
+| price | <code>float</code> | No | the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.takeProfit | <code>object</code> | No | *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered and the triggerPriceType |
-| params.stopLoss | <code>object</code> | No | *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered and the triggerPriceType |
-| params.triggerPrice | <code>float</code> | No | The price a trigger order is triggered at |
-| params.stopLossPrice | <code>float</code> | No | price to trigger stop-loss orders |
-| params.takeProfitPrice | <code>float</code> | No | price to trigger take-profit orders |
-| params.reduceOnly | <code>bool</code> | No | A mark to reduce the position size only. Set to false by default. Need to set the position size when reduceOnly is true. |
-| params.timeInForce | <code>string</code> | No | GTC, GTT, IOC, or FOK, default is GTC, limit orders only |
-| params.postOnly | <code>bool</code> | No | Post only flag, invalid when timeInForce is IOC or FOK |
-| params.cost | <code>float</code> | No | the cost of the order in units of USDT |
-| params.marginMode | <code>string</code> | No | 'cross' or 'isolated', default is 'isolated' |
-| params.hedged | <code>bool</code> | No | *swap and future only* true for hedged mode, false for one way mode, default is false ----------------- Exchange Specific Parameters ----------------- |
-| params.leverage | <code>float</code> | No | Leverage size of the order (mandatory param in request, default is 1) |
-| params.clientOid | <code>string</code> | No | client order id, defaults to uuid if not passed |
-| params.remark | <code>string</code> | No | remark for the order, length cannot exceed 100 utf8 characters |
-| params.stop | <code>string</code> | No | 'up' or 'down', the direction the triggerPrice is triggered from, requires triggerPrice. down: Triggers when the price reaches or goes below the triggerPrice. up: Triggers when the price reaches or goes above the triggerPrice. |
-| params.triggerPriceType | <code>string</code> | No | "last", "mark", "index" - defaults to "mark" |
-| params.stopPriceType | <code>string</code> | No | exchange-specific alternative for triggerPriceType: TP, IP or MP |
-| params.closeOrder | <code>bool</code> | No | set to true to close position |
-| params.test | <code>bool</code> | No | set to true to use the test order endpoint (does not submit order, use to validate params) |
-| params.forceHold | <code>bool</code> | No | A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to false by default.\ |
-| params.positionSide | <code>string</code> | No | *swap and future only* hedged two-way position side, LONG or SHORT |
+| params.clientOrderId | <code>string</code> | No | a unique id for the order |
+| params.postOnly | <code>bool</code> | No | if true, the order will only be posted to the order book and not executed immediately, default is false |
+| params.reduceOnly | <code>bool</code> | No | if true, the order will only reduce a current position, not increase it, default is false |
+| params.timeInForce | <code>string</code> | No | 'GTC', 'IOC', 'FOK', 'PO', 'HALFSEC', 'HALFMIN', 'FIVEMIN', 'HOUR', 'TWELVEHOUR', 'DAY', 'WEEK' or 'MONTH' |
+| params.hedged | <code>bool</code> | No | true for hedged mode, false for one way mode, default is false |
+| params.marginMode | <code>string</code> | No | 'cross' or 'isolated', default is 'cross' - the exchange does not have cross/isolated margin modes but instead has 'ONE_WAY', 'HEDGE' and 'ISOLATED' position modes, so this param will be converted to the appropriate position mode |
+| params.positionMode | <code>string</code> | No | 'ONE_WAY', 'HEDGE' or 'ISOLATED' - if not provided, it will be derived from the marginMode and hedged params |
+| params.triggerPrice | <code>float</code> | No | the price that a trigger order is triggered at, same as takeProfitPrice |
+| params.stopLossPrice | <code>float</code> | No | the price that a stop loss order is triggered at |
+| params.takeProfitPrice | <code>float</code> | No | the price that a take profit order is triggered at |
+| params.triggerPriceType | <code>string</code> | No | 'last', 'mark' or 'index', default is 'mark' |
+| params.trailingAmount | <code>float</code> | No | the quote amount to trail away from the current market price |
+| params.trailingPercent | <code>float</code> | No | the percent to trail away from the current market price |
+| params.takeProfit | <code>object</code> | No | *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered |
+| params.takeProfit.triggerPrice | <code>float</code> | No | take profit trigger price |
+| params.takeProfit.priceType | <code>string</code> | No | 'last', 'mark' or 'index', default is 'mark' |
+| params.stopLoss | <code>object</code> | No | *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered |
+| params.stopLoss.triggerPrice | <code>float</code> | No | stop loss trigger price |
+| params.stopLoss.priceType | <code>string</code> | No | 'last', 'mark' or 'index', default is 'mark' |
+| params.deviation | <code>float</code> | No | *PEG orders only* the offset applied to the pegged reference price |
+| params.stealth | <code>float</code> | No | *PEG orders only* the portion of the order size displayed on the book |
+| params.stopPrice | <code>float</code> | No | *NB - It is NOT the stopLossPrice!!! OCO orders only* the limit price of the stop loss leg |
 
 ##### Supported exchanges
+* [btse](/exchanges/btse.md#createcontractorder)
 * [kucoin](/exchanges/kucoin.md#createcontractorder)
 * [weex](/exchanges/weex.md#createcontractorder)
 
@@ -877,6 +888,7 @@ create a currency deposit address
 
 ##### Supported exchanges
 * [bitfinex](/exchanges/bitfinex.md#createdepositaddress)
+* [bithumb](/exchanges/bithumb.md#createdepositaddress)
 * [coinbase](/exchanges/coinbase.md#createdepositaddress)
 * [coinbaseexchange](/exchanges/coinbaseexchange.md#createdepositaddress)
 * [coinbaseinternational](/exchanges/coinbaseinternational.md#createdepositaddress)
@@ -957,6 +969,7 @@ create a market buy order by providing the symbol and cost
 * [binance](/exchanges/binance.md#createmarketbuyorderwithcost)
 * [bingx](/exchanges/bingx.md#createmarketbuyorderwithcost)
 * [bitget](/exchanges/bitget.md#createmarketbuyorderwithcost)
+* [bithumb](/exchanges/bithumb.md#createmarketbuyorderwithcost)
 * [bitrue](/exchanges/bitrue.md#createmarketbuyorderwithcost)
 * [bittrade](/exchanges/bittrade.md#createmarketbuyorderwithcost)
 * [bybit](/exchanges/bybit.md#createmarketbuyorderwithcost)
@@ -1080,6 +1093,7 @@ create a trade order
 * [btcbox](/exchanges/btcbox.md#createorder)
 * [btcmarkets](/exchanges/btcmarkets.md#createorder)
 * [btcturk](/exchanges/btcturk.md#createorder)
+* [btse](/exchanges/btse.md#createorder)
 * [bullish](/exchanges/bullish.md#createorder)
 * [bybit](/exchanges/bybit.md#createorder)
 * [bydfi](/exchanges/bydfi.md#createorder)
@@ -1135,6 +1149,7 @@ create a trade order
 * [paymium](/exchanges/paymium.md#createorder)
 * [phemex](/exchanges/phemex.md#createorder)
 * [poloniex](/exchanges/poloniex.md#createorder)
+* [revolutx](/exchanges/revolutx.md#createorder)
 * [tokocrypto](/exchanges/tokocrypto.md#createorder)
 * [toobit](/exchanges/toobit.md#createorder)
 * [upbit](/exchanges/upbit.md#createorder)
@@ -1204,6 +1219,7 @@ create a list of trade orders
 * [bingx](/exchanges/bingx.md#createorders)
 * [bitfinex](/exchanges/bitfinex.md#createorders)
 * [bitget](/exchanges/bitget.md#createorders)
+* [bithumb](/exchanges/bithumb.md#createorders)
 * [blofin](/exchanges/blofin.md#createorders)
 * [bybit](/exchanges/bybit.md#createorders)
 * [bydfi](/exchanges/bydfi.md#createorders)
@@ -1278,18 +1294,27 @@ create a trade order on spot market
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified symbol of the market to create an order in |
-| type | <code>string</code> | Yes | 'market' or 'limit' or 'LIMIT_MAKER' |
+| type | <code>string</code> | Yes | 'market', 'limit', 'OCO', 'PEG', 'TWAP' or 'TRAILING' |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | how much of you want to trade in units of the base currency |
 | price | <code>float</code> | No | the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.cost | <code>float</code> | No | *market buy only* the quote quantity that can be used as an alternative for the amount |
-| params.test | <code>bool</code> | No | whether to use the test endpoint or not, default is false |
-| params.postOnly | <code>bool</code> | No | if true, the order will only be posted to the order book and not executed immediately |
-| params.timeInForce | <code>string</code> | No | 'GTC', 'IOC', or 'PO' |
 | params.clientOrderId | <code>string</code> | No | a unique id for the order |
+| params.postOnly | <code>bool</code> | No | if true, the order will only be posted to the order book and not executed immediately, default is false |
+| params.timeInForce | <code>string</code> | No | 'GTC', 'IOC' or 'FOK' |
+| params.cost | <code>float</code> | No | *market buy and trailing buy orders only* the quote quantity that can be used as an alternative for the amount |
+| params.triggerPrice | <code>float</code> | No | the price that a trigger order is triggered at, same as takeProfitPrice |
+| params.stopLossPrice | <code>float</code> | No | the price that a stop loss order is triggered at |
+| params.takeProfitPrice | <code>float</code> | No | the price that a take profit order is triggered at |
+| params.triggerPriceType | <code>string</code> | No | 'last', 'mark' or 'index', default is 'last' |
+| params.trailingAmount | <code>float</code> | No | the quote amount to trail away from the current market price |
+| params.trailingPercent | <code>float</code> | No | the percent to trail away from the current market price |
+| params.deviation | <code>float</code> | No | *PEG orders only* how much should the order price deviate from the pegged price, in percent from -10 to 10 |
+| params.stealth | <code>float</code> | No | *PEG orders only* how many percent of the order is to be displayed on the orderbook, from 1 to 100 |
+| params.stopPrice | <code>float</code> | No | *NB - It is NOT stopLossPrice or triggerPrice!!! OCO orders only* the limit price of the stop loss leg |
 
 ##### Supported exchanges
+* [btse](/exchanges/btse.md#createspotorder)
 * [hashkey](/exchanges/hashkey.md#createspotorder)
 * [kucoin](/exchanges/kucoin.md#createspotorder)
 * [weex](/exchanges/weex.md#createspotorder)
@@ -1431,15 +1456,15 @@ create a trade order that is executed as a TWAP order over a specified duration.
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified symbol of the market to create an order in |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
-| amount | <code>float</code> | Yes | how much of currency you want to trade in units of base currency |
+| amount | <code>float</code> | Yes | how much of currency you want to trade in units of base currency, only required for sale |
 | duration | <code>int</code> | Yes | the duration of the TWAP order in milliseconds |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.randomize | <code>bool</code> | No | whether to randomize the time intervals of the TWAP order slices (default is false, meaning equal intervals) |
-| params.reduceOnly | <code>bool</code> | No | true or false whether the order is reduce-only |
-| params.expiresAfter | <code>int</code> | No | time in ms after which the twap order expires |
-| params.vaultAddress | <code>string</code> | No | the vault address for order |
+| params.frequency | <code>string</code> | Yes | required order interval in seconds, 15, 20, 30, 60 or 120 |
+| params.price | <code>string</code> | No | order price, required for purchase |
+| params.generation | <code>int</code> | No | *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2 |
 
 ##### Supported exchanges
+* [bithumb](/exchanges/bithumb.md#createtwaporder)
 * [hyperliquid](/exchanges/hyperliquid.md#createtwaporder)
 
 ---
@@ -1584,6 +1609,7 @@ edit a trade order
 * [bitget](/exchanges/bitget.md#editorder)
 * [bitstamp](/exchanges/bitstamp.md#editorder)
 * [bitvavo](/exchanges/bitvavo.md#editorder)
+* [btse](/exchanges/btse.md#editorder)
 * [bullish](/exchanges/bullish.md#editorder)
 * [bybit](/exchanges/bybit.md#editorder)
 * [bydfi](/exchanges/bydfi.md#editorder)
@@ -1613,6 +1639,7 @@ edit a trade order
 * [paradex](/exchanges/paradex.md#editorder)
 * [phemex](/exchanges/phemex.md#editorder)
 * [poloniex](/exchanges/poloniex.md#editorder)
+* [revolutx](/exchanges/revolutx.md#editorder)
 * [upbit](/exchanges/upbit.md#editorder)
 * [whitebit](/exchanges/whitebit.md#editorder)
 * [woo](/exchanges/woo.md#editorder)
@@ -1838,7 +1865,7 @@ fetch all the accounts associated with a profile
 fetches all option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [greeks structure](https://docs.ccxt.com/?id=greeks-structure)
+**Returns**: <code>object</code> - a dictionary of [greeks structures](https://docs.ccxt.com/?id=greeks-structure) indexed by market symbol
 
 
 | Param | Type | Required | Description |
@@ -1895,6 +1922,7 @@ query for balance and get the amount of funds available for trading or funds loc
 * [btcbox](/exchanges/btcbox.md#fetchbalance)
 * [btcmarkets](/exchanges/btcmarkets.md#fetchbalance)
 * [btcturk](/exchanges/btcturk.md#fetchbalance)
+* [btse](/exchanges/btse.md#fetchbalance)
 * [bullish](/exchanges/bullish.md#fetchbalance)
 * [bybit](/exchanges/bybit.md#fetchbalance)
 * [bydfi](/exchanges/bydfi.md#fetchbalance)
@@ -1950,6 +1978,7 @@ query for balance and get the amount of funds available for trading or funds loc
 * [paymium](/exchanges/paymium.md#fetchbalance)
 * [phemex](/exchanges/phemex.md#fetchbalance)
 * [poloniex](/exchanges/poloniex.md#fetchbalance)
+* [revolutx](/exchanges/revolutx.md#fetchbalance)
 * [tokocrypto](/exchanges/tokocrypto.md#fetchbalance)
 * [toobit](/exchanges/toobit.md#fetchbalance)
 * [upbit](/exchanges/upbit.md#fetchbalance)
@@ -2157,6 +2186,7 @@ fetches information on multiple canceled orders made by the user
 * [binance](/exchanges/binance.md#fetchcanceledorders)
 * [bingx](/exchanges/bingx.md#fetchcanceledorders)
 * [bitget](/exchanges/bitget.md#fetchcanceledorders)
+* [bithumb](/exchanges/bithumb.md#fetchcanceledorders)
 * [bitteam](/exchanges/bitteam.md#fetchcanceledorders)
 * [blockchaincom](/exchanges/blockchaincom.md#fetchcanceledorders)
 * [bullish](/exchanges/bullish.md#fetchcanceledorders)
@@ -2227,6 +2257,7 @@ fetches information on multiple closed orders made by the user
 * [bitfinex](/exchanges/bitfinex.md#fetchclosedorders)
 * [bitflyer](/exchanges/bitflyer.md#fetchclosedorders)
 * [bitget](/exchanges/bitget.md#fetchclosedorders)
+* [bithumb](/exchanges/bithumb.md#fetchclosedorders)
 * [bitmex](/exchanges/bitmex.md#fetchclosedorders)
 * [bitopro](/exchanges/bitopro.md#fetchclosedorders)
 * [bitrue](/exchanges/bitrue.md#fetchclosedorders)
@@ -2272,6 +2303,7 @@ fetches information on multiple closed orders made by the user
 * [pacifica](/exchanges/pacifica.md#fetchclosedorders)
 * [phemex](/exchanges/phemex.md#fetchclosedorders)
 * [poloniex](/exchanges/poloniex.md#fetchclosedorders)
+* [revolutx](/exchanges/revolutx.md#fetchclosedorders)
 * [tokocrypto](/exchanges/tokocrypto.md#fetchclosedorders)
 * [toobit](/exchanges/toobit.md#fetchclosedorders)
 * [upbit](/exchanges/upbit.md#fetchclosedorders)
@@ -2647,6 +2679,7 @@ fetches all available currencies on an exchange
 * [onetrading](/exchanges/onetrading.md#fetchcurrencies)
 * [phemex](/exchanges/phemex.md#fetchcurrencies)
 * [poloniex](/exchanges/poloniex.md#fetchcurrencies)
+* [revolutx](/exchanges/revolutx.md#fetchcurrencies)
 * [toobit](/exchanges/toobit.md#fetchcurrencies)
 * [weex](/exchanges/weex.md#fetchcurrencies)
 * [whitebit](/exchanges/whitebit.md#fetchcurrencies)
@@ -2687,10 +2720,13 @@ fetch information on a deposit
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | id | <code>string</code> | Yes | deposit id |
-| code | <code>string</code> | Yes | bitso does not support filtering by currency code and will ignore this argument |
+| code | <code>string</code> | Yes | unified currency code |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.txid | <code>string</code> | No | the transaction id for the deposit |
+| params.generation | <code>int</code> | No | *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2 |
 
 ##### Supported exchanges
+* [bithumb](/exchanges/bithumb.md#fetchdeposit)
 * [bitso](/exchanges/bitso.md#fetchdeposit)
 * [blockchaincom](/exchanges/blockchaincom.md#fetchdeposit)
 * [coinbase](/exchanges/coinbase.md#fetchdeposit)
@@ -2725,6 +2761,7 @@ fetch the deposit address for a currency associated with this account
 * [bitbns](/exchanges/bitbns.md#fetchdepositaddress)
 * [bitfinex](/exchanges/bitfinex.md#fetchdepositaddress)
 * [bitget](/exchanges/bitget.md#fetchdepositaddress)
+* [bithumb](/exchanges/bithumb.md#fetchdepositaddress)
 * [bitmex](/exchanges/bitmex.md#fetchdepositaddress)
 * [bitso](/exchanges/bitso.md#fetchdepositaddress)
 * [bitstamp](/exchanges/bitstamp.md#fetchdepositaddress)
@@ -2781,9 +2818,10 @@ fetch deposit addresses for multiple currencies (when available)
 | --- | --- | --- | --- |
 | codes | <code>Array&lt;string&gt;</code> | No | list of unified currency codes, default is undefined (all currencies) |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.accountId | <code>string</code> | No | account ID to fetch deposit addresses for |
+| params.generation | <code>int</code> | No | *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2 |
 
 ##### Supported exchanges
+* [bithumb](/exchanges/bithumb.md#fetchdepositaddresses)
 * [coinbase](/exchanges/coinbase.md#fetchdepositaddresses)
 * [coinone](/exchanges/coinone.md#fetchdepositaddresses)
 * [deepcoin](/exchanges/deepcoin.md#fetchdepositaddresses)
@@ -2966,6 +3004,7 @@ fetch all deposits made to an account
 * [bitbns](/exchanges/bitbns.md#fetchdeposits)
 * [bitflyer](/exchanges/bitflyer.md#fetchdeposits)
 * [bitget](/exchanges/bitget.md#fetchdeposits)
+* [bithumb](/exchanges/bithumb.md#fetchdeposits)
 * [bitopro](/exchanges/bitopro.md#fetchdeposits)
 * [bitrue](/exchanges/bitrue.md#fetchdeposits)
 * [bitso](/exchanges/bitso.md#fetchdeposits)
@@ -2974,6 +3013,7 @@ fetch all deposits made to an account
 * [blockchaincom](/exchanges/blockchaincom.md#fetchdeposits)
 * [blofin](/exchanges/blofin.md#fetchdeposits)
 * [btcmarkets](/exchanges/btcmarkets.md#fetchdeposits)
+* [btse](/exchanges/btse.md#fetchdeposits)
 * [bybit](/exchanges/bybit.md#fetchdeposits)
 * [bydfi](/exchanges/bydfi.md#fetchdeposits)
 * [coinbase](/exchanges/coinbase.md#fetchdeposits)
@@ -3043,6 +3083,7 @@ fetch history of deposits and withdrawals
 * [bitstamp](/exchanges/bitstamp.md#fetchdepositswithdrawals)
 * [bitteam](/exchanges/bitteam.md#fetchdepositswithdrawals)
 * [btcmarkets](/exchanges/btcmarkets.md#fetchdepositswithdrawals)
+* [btse](/exchanges/btse.md#fetchdepositswithdrawals)
 * [bullish](/exchanges/bullish.md#fetchdepositswithdrawals)
 * [cex](/exchanges/cex.md#fetchdepositswithdrawals)
 * [coinbase](/exchanges/coinbase.md#fetchdepositswithdrawals)
@@ -3226,6 +3267,7 @@ fetch the current funding rate
 * [bitget](/exchanges/bitget.md#fetchfundingrate)
 * [bitstamp](/exchanges/bitstamp.md#fetchfundingrate)
 * [blofin](/exchanges/blofin.md#fetchfundingrate)
+* [btse](/exchanges/btse.md#fetchfundingrate)
 * [bydfi](/exchanges/bydfi.md#fetchfundingrate)
 * [coinex](/exchanges/coinex.md#fetchfundingrate)
 * [cryptocom](/exchanges/cryptocom.md#fetchfundingrate)
@@ -3283,6 +3325,7 @@ fetches historical funding rate prices
 * [bitmex](/exchanges/bitmex.md#fetchfundingratehistory)
 * [bitstamp](/exchanges/bitstamp.md#fetchfundingratehistory)
 * [blofin](/exchanges/blofin.md#fetchfundingratehistory)
+* [btse](/exchanges/btse.md#fetchfundingratehistory)
 * [bullish](/exchanges/bullish.md#fetchfundingratehistory)
 * [bybit](/exchanges/bybit.md#fetchfundingratehistory)
 * [bydfi](/exchanges/bydfi.md#fetchfundingratehistory)
@@ -3340,6 +3383,7 @@ fetch the current funding rate for multiple symbols
 * [bitfinex](/exchanges/bitfinex.md#fetchfundingrates)
 * [bitget](/exchanges/bitget.md#fetchfundingrates)
 * [bitmex](/exchanges/bitmex.md#fetchfundingrates)
+* [btse](/exchanges/btse.md#fetchfundingrates)
 * [bybit](/exchanges/bybit.md#fetchfundingrates)
 * [coinex](/exchanges/coinex.md#fetchfundingrates)
 * [deepcoin](/exchanges/deepcoin.md#fetchfundingrates)
@@ -3522,6 +3566,7 @@ fetch the history of changes, actions done by the user or operations that altere
 * [bitstamp](/exchanges/bitstamp.md#fetchledger)
 * [bitvavo](/exchanges/bitvavo.md#fetchledger)
 * [blofin](/exchanges/blofin.md#fetchledger)
+* [btse](/exchanges/btse.md#fetchledger)
 * [bybit](/exchanges/bybit.md#fetchledger)
 * [cex](/exchanges/cex.md#fetchledger)
 * [coinbase](/exchanges/coinbase.md#fetchledger)
@@ -3592,6 +3637,7 @@ fetch the set leverage for a market
 * [bingx](/exchanges/bingx.md#fetchleverage)
 * [bitget](/exchanges/bitget.md#fetchleverage)
 * [blofin](/exchanges/blofin.md#fetchleverage)
+* [btse](/exchanges/btse.md#fetchleverage)
 * [bybit](/exchanges/bybit.md#fetchleverage)
 * [bydfi](/exchanges/bydfi.md#fetchleverage)
 * [coinex](/exchanges/coinex.md#fetchleverage)
@@ -3635,6 +3681,7 @@ retrieve information on the maximum leverage, and maintenance margin for trades 
 
 ##### Supported exchanges
 * [binance](/exchanges/binance.md#fetchleveragetiers)
+* [btse](/exchanges/btse.md#fetchleveragetiers)
 * [bybit](/exchanges/bybit.md#fetchleveragetiers)
 * [coinex](/exchanges/coinex.md#fetchleveragetiers)
 * [digifinex](/exchanges/digifinex.md#fetchleveragetiers)
@@ -3775,6 +3822,7 @@ fetches the margin mode of a specific symbol
 * [bingx](/exchanges/bingx.md#fetchmarginmode)
 * [bitget](/exchanges/bitget.md#fetchmarginmode)
 * [blofin](/exchanges/blofin.md#fetchmarginmode)
+* [btse](/exchanges/btse.md#fetchmarginmode)
 * [bybit](/exchanges/bybit.md#fetchmarginmode)
 * [bydfi](/exchanges/bydfi.md#fetchmarginmode)
 * [delta](/exchanges/delta.md#fetchmarginmode)
@@ -3782,6 +3830,7 @@ fetches the margin mode of a specific symbol
 * [pacifica](/exchanges/pacifica.md#fetchmarginmode)
 * [paradex](/exchanges/paradex.md#fetchmarginmode)
 * [weex](/exchanges/weex.md#fetchmarginmode)
+* [woofipro](/exchanges/woofipro.md#fetchmarginmode)
 
 ---
 
@@ -3805,6 +3854,7 @@ fetches margin mode of the user
 * [grvt](/exchanges/grvt.md#fetchmarginmodes)
 * [hitbtc](/exchanges/hitbtc.md#fetchmarginmodes)
 * [weex](/exchanges/weex.md#fetchmarginmodes)
+* [woofipro](/exchanges/woofipro.md#fetchmarginmodes)
 
 ---
 
@@ -3891,12 +3941,13 @@ retrieve information on the maximum leverage, for different trade sizes for a si
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol |
+| symbol | <code>string</code> | Yes | unified market symbol, inverse (Coin-M) markets are not supported |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
 * [bingx](/exchanges/bingx.md#fetchmarketleveragetiers)
 * [bitget](/exchanges/bitget.md#fetchmarketleveragetiers)
+* [btse](/exchanges/btse.md#fetchmarketleveragetiers)
 * [bybit](/exchanges/bybit.md#fetchmarketleveragetiers)
 * [digifinex](/exchanges/digifinex.md#fetchmarketleveragetiers)
 * [gate](/exchanges/gate.md#fetchmarketleveragetiers)
@@ -3946,6 +3997,7 @@ retrieves data on all markets for alpaca
 * [btcbox](/exchanges/btcbox.md#fetchmarkets)
 * [btcmarkets](/exchanges/btcmarkets.md#fetchmarkets)
 * [btcturk](/exchanges/btcturk.md#fetchmarkets)
+* [btse](/exchanges/btse.md#fetchmarkets)
 * [bullish](/exchanges/bullish.md#fetchmarkets)
 * [bybit](/exchanges/bybit.md#fetchmarkets)
 * [bydfi](/exchanges/bydfi.md#fetchmarkets)
@@ -3998,6 +4050,7 @@ retrieves data on all markets for alpaca
 * [paradex](/exchanges/paradex.md#fetchmarkets)
 * [phemex](/exchanges/phemex.md#fetchmarkets)
 * [poloniex](/exchanges/poloniex.md#fetchmarkets)
+* [revolutx](/exchanges/revolutx.md#fetchmarkets)
 * [tokocrypto](/exchanges/tokocrypto.md#fetchmarkets)
 * [toobit](/exchanges/toobit.md#fetchmarkets)
 * [upbit](/exchanges/upbit.md#fetchmarkets)
@@ -4199,6 +4252,7 @@ fetch all trades made by the user
 * [blofin](/exchanges/blofin.md#fetchmytrades)
 * [btcmarkets](/exchanges/btcmarkets.md#fetchmytrades)
 * [btcturk](/exchanges/btcturk.md#fetchmytrades)
+* [btse](/exchanges/btse.md#fetchmytrades)
 * [bullish](/exchanges/bullish.md#fetchmytrades)
 * [bybit](/exchanges/bybit.md#fetchmytrades)
 * [bydfi](/exchanges/bydfi.md#fetchmytrades)
@@ -4249,6 +4303,7 @@ fetch all trades made by the user
 * [paradex](/exchanges/paradex.md#fetchmytrades)
 * [phemex](/exchanges/phemex.md#fetchmytrades)
 * [poloniex](/exchanges/poloniex.md#fetchmytrades)
+* [revolutx](/exchanges/revolutx.md#fetchmytrades)
 * [tokocrypto](/exchanges/tokocrypto.md#fetchmytrades)
 * [toobit](/exchanges/toobit.md#fetchmytrades)
 * [weex](/exchanges/weex.md#fetchmytrades)
@@ -4326,6 +4381,9 @@ fetches historical candlestick data containing the open, high, low, and close pr
 | since | <code>int</code> | No | timestamp in ms of the earliest candle to fetch |
 | limit | <code>int</code> | No | the maximum amount of candles to fetch |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | timestamp in ms of the latest candle to fetch |
+| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
+| params.paginationCalls | <code>int</code> | No | the maximum number of requests while following next_page_token, default 10 — when the cap is reached the result is silently truncated to the pages already fetched, so raise it for long ranges, 10 requests cover roughly 30 days of 1h candles |
 | params.loc | <code>string</code> | No | crypto location, default: us |
 | params.method | <code>string</code> | No | method, default: marketPublicGetV1beta3CryptoLocBars |
 
@@ -4352,6 +4410,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 * [blofin](/exchanges/blofin.md#fetchohlcv)
 * [btcmarkets](/exchanges/btcmarkets.md#fetchohlcv)
 * [btcturk](/exchanges/btcturk.md#fetchohlcv)
+* [btse](/exchanges/btse.md#fetchohlcv)
 * [bullish](/exchanges/bullish.md#fetchohlcv)
 * [bybit](/exchanges/bybit.md#fetchohlcv)
 * [bydfi](/exchanges/bydfi.md#fetchohlcv)
@@ -4398,6 +4457,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 * [paradex](/exchanges/paradex.md#fetchohlcv)
 * [phemex](/exchanges/phemex.md#fetchohlcv)
 * [poloniex](/exchanges/poloniex.md#fetchohlcv)
+* [revolutx](/exchanges/revolutx.md#fetchohlcv)
 * [tokocrypto](/exchanges/tokocrypto.md#fetchohlcv)
 * [toobit](/exchanges/toobit.md#fetchohlcv)
 * [upbit](/exchanges/upbit.md#fetchohlcv)
@@ -4457,6 +4517,7 @@ retrieves the open interest of a contract trading pair
 * [bingx](/exchanges/bingx.md#fetchopeninterest)
 * [bitfinex](/exchanges/bitfinex.md#fetchopeninterest)
 * [bitget](/exchanges/bitget.md#fetchopeninterest)
+* [btse](/exchanges/btse.md#fetchopeninterest)
 * [bullish](/exchanges/bullish.md#fetchopeninterest)
 * [bybit](/exchanges/bybit.md#fetchopeninterest)
 * [delta](/exchanges/delta.md#fetchopeninterest)
@@ -4525,6 +4586,7 @@ Retrieves the open interest for a list of symbols
 ##### Supported exchanges
 * [bitfinex](/exchanges/bitfinex.md#fetchopeninterests)
 * [bitmex](/exchanges/bitmex.md#fetchopeninterests)
+* [btse](/exchanges/btse.md#fetchopeninterests)
 * [hitbtc](/exchanges/hitbtc.md#fetchopeninterests)
 * [htx](/exchanges/htx.md#fetchopeninterests)
 * [hyperliquid](/exchanges/hyperliquid.md#fetchopeninterests)
@@ -4556,6 +4618,7 @@ fetch an open order by the id
 * [backpack](/exchanges/backpack.md#fetchopenorder)
 * [binance](/exchanges/binance.md#fetchopenorder)
 * [bitfinex](/exchanges/bitfinex.md#fetchopenorder)
+* [btse](/exchanges/btse.md#fetchopenorder)
 * [bybit](/exchanges/bybit.md#fetchopenorder)
 * [bydfi](/exchanges/bydfi.md#fetchopenorder)
 * [cex](/exchanges/cex.md#fetchopenorder)
@@ -4610,6 +4673,7 @@ fetch all unfilled currently open orders
 * [btcbox](/exchanges/btcbox.md#fetchopenorders)
 * [btcmarkets](/exchanges/btcmarkets.md#fetchopenorders)
 * [btcturk](/exchanges/btcturk.md#fetchopenorders)
+* [btse](/exchanges/btse.md#fetchopenorders)
 * [bullish](/exchanges/bullish.md#fetchopenorders)
 * [bybit](/exchanges/bybit.md#fetchopenorders)
 * [bydfi](/exchanges/bydfi.md#fetchopenorders)
@@ -4663,6 +4727,7 @@ fetch all unfilled currently open orders
 * [paradex](/exchanges/paradex.md#fetchopenorders)
 * [phemex](/exchanges/phemex.md#fetchopenorders)
 * [poloniex](/exchanges/poloniex.md#fetchopenorders)
+* [revolutx](/exchanges/revolutx.md#fetchopenorders)
 * [tokocrypto](/exchanges/tokocrypto.md#fetchopenorders)
 * [toobit](/exchanges/toobit.md#fetchopenorders)
 * [upbit](/exchanges/upbit.md#fetchopenorders)
@@ -4850,6 +4915,7 @@ fetches information on an order made by the user
 * [paradex](/exchanges/paradex.md#fetchorder)
 * [phemex](/exchanges/phemex.md#fetchorder)
 * [poloniex](/exchanges/poloniex.md#fetchorder)
+* [revolutx](/exchanges/revolutx.md#fetchorder)
 * [tokocrypto](/exchanges/tokocrypto.md#fetchorder)
 * [toobit](/exchanges/toobit.md#fetchorder)
 * [upbit](/exchanges/upbit.md#fetchorder)
@@ -4906,6 +4972,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 * [btcbox](/exchanges/btcbox.md#fetchorderbook)
 * [btcmarkets](/exchanges/btcmarkets.md#fetchorderbook)
 * [btcturk](/exchanges/btcturk.md#fetchorderbook)
+* [btse](/exchanges/btse.md#fetchorderbook)
 * [bullish](/exchanges/bullish.md#fetchorderbook)
 * [bybit](/exchanges/bybit.md#fetchorderbook)
 * [bydfi](/exchanges/bydfi.md#fetchorderbook)
@@ -4958,6 +5025,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 * [paymium](/exchanges/paymium.md#fetchorderbook)
 * [phemex](/exchanges/phemex.md#fetchorderbook)
 * [poloniex](/exchanges/poloniex.md#fetchorderbook)
+* [revolutx](/exchanges/revolutx.md#fetchorderbook)
 * [tokocrypto](/exchanges/tokocrypto.md#fetchorderbook)
 * [toobit](/exchanges/toobit.md#fetchorderbook)
 * [upbit](/exchanges/upbit.md#fetchorderbook)
@@ -5057,6 +5125,7 @@ fetch all the trades made from a single order
 * [bitfinex](/exchanges/bitfinex.md#fetchordertrades)
 * [bitso](/exchanges/bitso.md#fetchordertrades)
 * [bittrade](/exchanges/bittrade.md#fetchordertrades)
+* [btse](/exchanges/btse.md#fetchordertrades)
 * [bullish](/exchanges/bullish.md#fetchordertrades)
 * [bybit](/exchanges/bybit.md#fetchordertrades)
 * [coinbaseexchange](/exchanges/coinbaseexchange.md#fetchordertrades)
@@ -5133,6 +5202,7 @@ fetches information on multiple orders made by the user
 * [binance](/exchanges/binance.md#fetchorders)
 * [bingx](/exchanges/bingx.md#fetchorders)
 * [bitflyer](/exchanges/bitflyer.md#fetchorders)
+* [bithumb](/exchanges/bithumb.md#fetchorders)
 * [bitmex](/exchanges/bitmex.md#fetchorders)
 * [bitopro](/exchanges/bitopro.md#fetchorders)
 * [bitteam](/exchanges/bitteam.md#fetchorders)
@@ -5143,7 +5213,6 @@ fetches information on multiple orders made by the user
 * [btcmarkets](/exchanges/btcmarkets.md#fetchorders)
 * [btcturk](/exchanges/btcturk.md#fetchorders)
 * [bullish](/exchanges/bullish.md#fetchorders)
-* [bybit](/exchanges/bybit.md#fetchorders)
 * [cex](/exchanges/cex.md#fetchorders)
 * [coinbase](/exchanges/coinbase.md#fetchorders)
 * [coinbaseexchange](/exchanges/coinbaseexchange.md#fetchorders)
@@ -5173,6 +5242,7 @@ fetches information on multiple orders made by the user
 * [pacifica](/exchanges/pacifica.md#fetchorders)
 * [paradex](/exchanges/paradex.md#fetchorders)
 * [phemex](/exchanges/phemex.md#fetchorders)
+* [revolutx](/exchanges/revolutx.md#fetchorders)
 * [tokocrypto](/exchanges/tokocrypto.md#fetchorders)
 * [toobit](/exchanges/toobit.md#fetchorders)
 * [weex](/exchanges/weex.md#fetchorders)
@@ -5368,27 +5438,6 @@ fetch data on an open position
 
 ---
 
-<a name="fetchPositionADLRank" id="fetchpositionadlrank"></a>
-
-## fetchPositionADLRank
-fetches the auto deleveraging rank and risk percentage for a list of symbols
-
-**Kind**: instance   
-**Returns**: <code>object</code> - an array of [auto de leverage structures](https://docs.ccxt.com/?id=auto-de-leverage-structure)
-
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code> | No | list of unified market symbols |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.code | <code>string</code> | No | the currency code to fetch ranks for, USD, BTC or USDT, USDT is the default |
-| params.method | <code>string</code> | No | *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetGAccountsAccountPositions' default is 'privateGetGAccountsAccountPositions' |
-
-##### Supported exchanges
-* [phemex](/exchanges/phemex.md#fetchpositionadlrank)
-
----
-
 <a name="fetchPositionHistory" id="fetchpositionhistory"></a>
 
 ## fetchPositionHistory
@@ -5434,6 +5483,7 @@ fetchs the position mode, hedged or one way, hedged for aster is set identically
 * [binance](/exchanges/binance.md#fetchpositionmode)
 * [bingx](/exchanges/bingx.md#fetchpositionmode)
 * [blofin](/exchanges/blofin.md#fetchpositionmode)
+* [btse](/exchanges/btse.md#fetchpositionmode)
 * [bydfi](/exchanges/bydfi.md#fetchpositionmode)
 * [kucoin](/exchanges/kucoin.md#fetchpositionmode)
 * [mexc](/exchanges/mexc.md#fetchpositionmode)
@@ -5487,6 +5537,7 @@ fetch all open positions
 * [bitget](/exchanges/bitget.md#fetchpositions)
 * [bitmex](/exchanges/bitmex.md#fetchpositions)
 * [blofin](/exchanges/blofin.md#fetchpositions)
+* [btse](/exchanges/btse.md#fetchpositions)
 * [bullish](/exchanges/bullish.md#fetchpositions)
 * [bybit](/exchanges/bybit.md#fetchpositions)
 * [bydfi](/exchanges/bydfi.md#fetchpositions)
@@ -5554,6 +5605,7 @@ fetches the auto deleveraging rank and risk percentage for a list of symbols tha
 * [delta](/exchanges/delta.md#fetchpositionsadlrank)
 * [htx](/exchanges/htx.md#fetchpositionsadlrank)
 * [kucoin](/exchanges/kucoin.md#fetchpositionsadlrank)
+* [phemex](/exchanges/phemex.md#fetchpositionsadlrank)
 * [woo](/exchanges/woo.md#fetchpositionsadlrank)
 
 ---
@@ -5571,9 +5623,9 @@ fetch all open positions for specific symbol
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified market symbol |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.contractType | <code>string</code> | No | FUTURE or DELIVERY, default is FUTURE |
 
 ##### Supported exchanges
+* [btse](/exchanges/btse.md#fetchpositionsforsymbol)
 * [bydfi](/exchanges/bydfi.md#fetchpositionsforsymbol)
 * [deepcoin](/exchanges/deepcoin.md#fetchpositionsforsymbol)
 * [hashkey](/exchanges/hashkey.md#fetchpositionsforsymbol)
@@ -5865,6 +5917,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 * [btcbox](/exchanges/btcbox.md#fetchticker)
 * [btcmarkets](/exchanges/btcmarkets.md#fetchticker)
 * [btcturk](/exchanges/btcturk.md#fetchticker)
+* [btse](/exchanges/btse.md#fetchticker)
 * [bullish](/exchanges/bullish.md#fetchticker)
 * [bybit](/exchanges/bybit.md#fetchticker)
 * [bydfi](/exchanges/bydfi.md#fetchticker)
@@ -5913,6 +5966,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 * [paymium](/exchanges/paymium.md#fetchticker)
 * [phemex](/exchanges/phemex.md#fetchticker)
 * [poloniex](/exchanges/poloniex.md#fetchticker)
+* [revolutx](/exchanges/revolutx.md#fetchticker)
 * [tokocrypto](/exchanges/tokocrypto.md#fetchticker)
 * [upbit](/exchanges/upbit.md#fetchticker)
 * [whitebit](/exchanges/whitebit.md#fetchticker)
@@ -5957,7 +6011,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbols of the markets to fetch tickers for |
+| symbols | <code>Array&lt;string&gt;</code> | No | unified symbols of the markets to fetch tickers for, defaults to all markets |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.loc | <code>string</code> | No | crypto location, default: us |
 
@@ -5984,6 +6038,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 * [blofin](/exchanges/blofin.md#fetchtickers)
 * [btcbox](/exchanges/btcbox.md#fetchtickers)
 * [btcturk](/exchanges/btcturk.md#fetchtickers)
+* [btse](/exchanges/btse.md#fetchtickers)
 * [bybit](/exchanges/bybit.md#fetchtickers)
 * [bydfi](/exchanges/bydfi.md#fetchtickers)
 * [cex](/exchanges/cex.md#fetchtickers)
@@ -6029,6 +6084,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 * [paradex](/exchanges/paradex.md#fetchtickers)
 * [phemex](/exchanges/phemex.md#fetchtickers)
 * [poloniex](/exchanges/poloniex.md#fetchtickers)
+* [revolutx](/exchanges/revolutx.md#fetchtickers)
 * [tokocrypto](/exchanges/tokocrypto.md#fetchtickers)
 * [toobit](/exchanges/toobit.md#fetchtickers)
 * [upbit](/exchanges/upbit.md#fetchtickers)
@@ -6066,6 +6122,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 * [bittrade](/exchanges/bittrade.md#fetchtime)
 * [bitvavo](/exchanges/bitvavo.md#fetchtime)
 * [btcmarkets](/exchanges/btcmarkets.md#fetchtime)
+* [btse](/exchanges/btse.md#fetchtime)
 * [bullish](/exchanges/bullish.md#fetchtime)
 * [bybit](/exchanges/bybit.md#fetchtime)
 * [cex](/exchanges/cex.md#fetchtime)
@@ -6153,6 +6210,7 @@ get the list of most recent trades for a particular symbol
 * [btcbox](/exchanges/btcbox.md#fetchtrades)
 * [btcmarkets](/exchanges/btcmarkets.md#fetchtrades)
 * [btcturk](/exchanges/btcturk.md#fetchtrades)
+* [btse](/exchanges/btse.md#fetchtrades)
 * [bullish](/exchanges/bullish.md#fetchtrades)
 * [bybit](/exchanges/bybit.md#fetchtrades)
 * [bydfi](/exchanges/bydfi.md#fetchtrades)
@@ -6204,6 +6262,7 @@ get the list of most recent trades for a particular symbol
 * [paymium](/exchanges/paymium.md#fetchtrades)
 * [phemex](/exchanges/phemex.md#fetchtrades)
 * [poloniex](/exchanges/poloniex.md#fetchtrades)
+* [revolutx](/exchanges/revolutx.md#fetchtrades)
 * [tokocrypto](/exchanges/tokocrypto.md#fetchtrades)
 * [toobit](/exchanges/toobit.md#fetchtrades)
 * [upbit](/exchanges/upbit.md#fetchtrades)
@@ -6262,6 +6321,7 @@ fetch the trading fees for a market
 * [bitget](/exchanges/bitget.md#fetchtradingfee)
 * [bitstamp](/exchanges/bitstamp.md#fetchtradingfee)
 * [bitvavo](/exchanges/bitvavo.md#fetchtradingfee)
+* [btse](/exchanges/btse.md#fetchtradingfee)
 * [bybit](/exchanges/bybit.md#fetchtradingfee)
 * [coinex](/exchanges/coinex.md#fetchtradingfee)
 * [coinmate](/exchanges/coinmate.md#fetchtradingfee)
@@ -6316,6 +6376,7 @@ fetch the trading fees for multiple markets
 * [bitstamp](/exchanges/bitstamp.md#fetchtradingfees)
 * [bitvavo](/exchanges/bitvavo.md#fetchtradingfees)
 * [blockchaincom](/exchanges/blockchaincom.md#fetchtradingfees)
+* [btse](/exchanges/btse.md#fetchtradingfees)
 * [bybit](/exchanges/bybit.md#fetchtradingfees)
 * [cex](/exchanges/cex.md#fetchtradingfees)
 * [coinbase](/exchanges/coinbase.md#fetchtradingfees)
@@ -6651,15 +6712,37 @@ fetch data on a currency withdrawal via the withdrawal id
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | id | <code>string</code> | Yes | withdrawal id |
-| code | <code>string</code> | Yes | unified currency code of the currency withdrawn, default is undefined |
+| code | <code>string</code> | No | the currency code |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.txid | <code>string</code> | No | the transaction id for the withdrawal |
+| params.generation | <code>int</code> | No | *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2 |
 
 ##### Supported exchanges
+* [bithumb](/exchanges/bithumb.md#fetchwithdrawal)
 * [bitopro](/exchanges/bitopro.md#fetchwithdrawal)
 * [blockchaincom](/exchanges/blockchaincom.md#fetchwithdrawal)
 * [hollaex](/exchanges/hollaex.md#fetchwithdrawal)
 * [okx](/exchanges/okx.md#fetchwithdrawal)
 * [upbit](/exchanges/upbit.md#fetchwithdrawal)
+
+---
+
+<a name="fetchWithdrawalWhitelist" id="fetchwithdrawalwhitelist"></a>
+
+## fetchWithdrawalWhitelist
+fetch a list of allowed withdrawal addresses
+
+**Kind**: instance   
+**Returns**: <code>Array&lt;object&gt;</code> - a list response from the exchange
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.generation | <code>int</code> | No | *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2 |
+
+##### Supported exchanges
+* [bithumb](/exchanges/bithumb.md#fetchwithdrawalwhitelist)
 
 ---
 
@@ -6688,6 +6771,7 @@ fetch all withdrawals made from an account
 * [bitbns](/exchanges/bitbns.md#fetchwithdrawals)
 * [bitflyer](/exchanges/bitflyer.md#fetchwithdrawals)
 * [bitget](/exchanges/bitget.md#fetchwithdrawals)
+* [bithumb](/exchanges/bithumb.md#fetchwithdrawals)
 * [bitopro](/exchanges/bitopro.md#fetchwithdrawals)
 * [bitrue](/exchanges/bitrue.md#fetchwithdrawals)
 * [bitstamp](/exchanges/bitstamp.md#fetchwithdrawals)
@@ -6696,6 +6780,7 @@ fetch all withdrawals made from an account
 * [blockchaincom](/exchanges/blockchaincom.md#fetchwithdrawals)
 * [blofin](/exchanges/blofin.md#fetchwithdrawals)
 * [btcmarkets](/exchanges/btcmarkets.md#fetchwithdrawals)
+* [btse](/exchanges/btse.md#fetchwithdrawals)
 * [bybit](/exchanges/bybit.md#fetchwithdrawals)
 * [bydfi](/exchanges/bydfi.md#fetchwithdrawals)
 * [coinbase](/exchanges/coinbase.md#fetchwithdrawals)
@@ -6931,6 +7016,7 @@ remove margin from a position
 * [poloniex](/exchanges/poloniex.md#reducemargin)
 * [weex](/exchanges/weex.md#reducemargin)
 * [woo](/exchanges/woo.md#reducemargin)
+* [woofipro](/exchanges/woofipro.md#reducemargin)
 * [xt](/exchanges/xt.md#reducemargin)
 * [zebpay](/exchanges/zebpay.md#reducemargin)
 
@@ -7095,6 +7181,7 @@ set the level of leverage for a market
 * [bitmex](/exchanges/bitmex.md#setleverage)
 * [bitrue](/exchanges/bitrue.md#setleverage)
 * [blofin](/exchanges/blofin.md#setleverage)
+* [btse](/exchanges/btse.md#setleverage)
 * [bybit](/exchanges/bybit.md#setleverage)
 * [bydfi](/exchanges/bydfi.md#setleverage)
 * [coinex](/exchanges/coinex.md#setleverage)
@@ -7176,6 +7263,7 @@ set margin mode to 'cross' or 'isolated'
 * [bitget](/exchanges/bitget.md#setmarginmode)
 * [bitmex](/exchanges/bitmex.md#setmarginmode)
 * [blofin](/exchanges/blofin.md#setmarginmode)
+* [btse](/exchanges/btse.md#setmarginmode)
 * [bybit](/exchanges/bybit.md#setmarginmode)
 * [bydfi](/exchanges/bydfi.md#setmarginmode)
 * [coinex](/exchanges/coinex.md#setmarginmode)
@@ -7192,6 +7280,7 @@ set margin mode to 'cross' or 'isolated'
 * [phemex](/exchanges/phemex.md#setmarginmode)
 * [toobit](/exchanges/toobit.md#setmarginmode)
 * [weex](/exchanges/weex.md#setmarginmode)
+* [woofipro](/exchanges/woofipro.md#setmarginmode)
 * [xt](/exchanges/xt.md#setmarginmode)
 
 ---
@@ -7217,6 +7306,7 @@ set hedged to true or false for a market
 * [bingx](/exchanges/bingx.md#setpositionmode)
 * [bitget](/exchanges/bitget.md#setpositionmode)
 * [blofin](/exchanges/blofin.md#setpositionmode)
+* [btse](/exchanges/btse.md#setpositionmode)
 * [bybit](/exchanges/bybit.md#setpositionmode)
 * [bydfi](/exchanges/bydfi.md#setpositionmode)
 * [gate](/exchanges/gate.md#setpositionmode)

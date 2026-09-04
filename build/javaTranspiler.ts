@@ -2101,9 +2101,13 @@ class NewTranspiler {
         content = content.replace(/Object\s+future\s*=\s*Helpers\.GetValue\(client\.futures,\s*(\w+)\)/gm,
             'io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)Helpers.GetValue(client.futures, $1)');
 
-        // ── Pattern 3: (String) cast on messageHash for client.future() / reusableFuture() ──
-        // client.future(messageHash) where messageHash is Object
-        content = content.replace(/client\.(future|reusableFuture)\(messageHash\)/gm, 'client.$1((String)messageHash)');
+        // ── Pattern 3: (String) cast on the hash argument of client.future() / reusableFuture() ──
+        // client.future(hash) where the hash local is Object-typed. any
+        // identifier is accepted, not just `messageHash`, so a renamed hash
+        // local cannot silently fall out of the cast
+        content = content.replace(/client\.(future|reusableFuture)\((\w+)\)/gm, 'client.$1((String)$2)');
+        // idempotence guard: never cast an already-cast argument
+        content = content.replace(/client\.(future|reusableFuture)\(\(String\)\(String\)/gm, 'client.$1((String)');
 
         // ── Pattern 2: future.join() → future.getFuture().join() ──
         // Only for local `future` variables (not this.xxx)
@@ -3504,6 +3508,8 @@ class NewTranspiler {
         // runMain started transpileWS with ~84 test files still in flight — three root sets
         // then alternated against the worker sticky-Program LRU (MAX_CACHED_BATCHES = 3)
         await this.transpileBaseTestsToJava(force);
+        const baseTestsOnly = process.argv.includes('--baseTests')
+        if (baseTestsOnly) return;
         await this.transpileExchangeTests(force);
         await this.transpileWsExchangeTests(force);
     }
@@ -3516,7 +3522,7 @@ async function runMain() {
     const cliExchanges = process.argv.slice(2).filter(x => !x.startsWith('--'))
     const allArePredictionOnly = cliExchanges.length > 0 && cliExchanges.every(x => (exchanges.prediction || []).includes(x) && !exchangeIds.includes(x))
     const prediction = process.argv.includes('--prediction') || allArePredictionOnly
-    const baseOnly = process.argv.includes('--baseTests')
+    const baseTestsOnly = process.argv.includes('--baseTests')
     const test = process.argv.includes('--test') || process.argv.includes('--tests')
     const examples = process.argv.includes('--examples');
     const force = process.argv.includes('--force')
@@ -3532,16 +3538,16 @@ async function runMain() {
         transpiler.transpileBaseMethods('./ts/src/base/Exchange.ts');
         transpiler.transpilePredictionBaseMethods();
     } else if (restAndWs) {
-        await transpiler.transpileEverything(force, baseOnly, examples)
+        await transpiler.transpileEverything(force, false, examples)
         await transpiler.transpileWS(force)
     } else if (prediction) {
         await transpiler.transpilePrediction(force)
     } else if (ws) {
         await transpiler.transpileWS(force)
-    } else if (test) {
+    } else if (test || baseTestsOnly) {
         await transpiler.transpileTests()
     } else {
-        await transpiler.transpileEverything(force, baseOnly, examples)
+        await transpiler.transpileEverything(force, false, examples)
     }
 }
 

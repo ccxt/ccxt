@@ -6,94 +6,95 @@ import ccxt "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 func TestFetchHistoryBase() <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		exchange := ccxt.NewExchange().(*ccxt.Exchange)
-		exchange.DerivedExchange = exchange
-		exchange.InitParent(map[string]any{
-			"id":                    "sampleexchange",
-			"fetchHistoryCacheSize": 2,
-		}, map[string]any{}, exchange)
-		assert(ccxt.IsEqual(ExchangeProp(exchange, "fetchHistoryCacheSize"), 2), "fetchHistoryCacheSize should be 2")
-		var trueAssertion any = ccxt.IsEqual(exchange.ParseNumber(nil), nil)
-
-		{
-			func() (ret_ any) {
-				defer func() {
-					if error := recover(); error != nil {
-						if error == "break" {
-							return
-						}
-						ret_ = func() any {
-							// catch block:
-							Assert(trueAssertion) // just skip
-							return nil
-						}()
-					}
-				}()
-				// try block:
-
-				retRes168 := (<-exchange.Fetch2("sample1"))
-				ccxt.PanicOnError(retRes168)
-				return nil
-			}()
-
-		}
-		assert(ccxt.IsEqual(ccxt.GetArrayLength((exchange.GetFetchCache())), 1), "fetchHistoryCache should be an array with 1 element")
-
-		{
-			func() (ret_ any) {
-				defer func() {
-					if error := recover(); error != nil {
-						if error == "break" {
-							return
-						}
-						ret_ = func() any {
-							// catch block:
-							Assert(trueAssertion) // just skip
-							return nil
-						}()
-					}
-				}()
-				// try block:
-
-				retRes228 := (<-exchange.Fetch2("sample2"))
-				ccxt.PanicOnError(retRes228)
-				return nil
-			}()
-
-		}
-		assert(ccxt.IsEqual(ccxt.GetArrayLength((exchange.GetFetchCache())), 2), "fetchHistoryCache should be an array with 2 elements")
-
-		{
-			func() (ret_ any) {
-				defer func() {
-					if error := recover(); error != nil {
-						if error == "break" {
-							return
-						}
-						ret_ = func() any {
-							// catch block:
-							Assert(trueAssertion) // just skip
-							return nil
-						}()
-					}
-				}()
-				// try block:
-
-				retRes288 := (<-exchange.Fetch2("sample3"))
-				ccxt.PanicOnError(retRes288)
-				return nil
-			}()
-
-		}
-		assert(ccxt.IsEqual(ccxt.GetArrayLength((exchange.GetFetchCache())), 2), "fetchHistoryCache should be an array with 2 elements")
-		assert(ccxt.IsLessThan(ccxt.Add(1, 1), 3), "sample assertion")
-		return nil
-	}()
+	ch := make(chan any, 1)
+	go testFetchHistoryBaseBody(ch)
 	return ch
+}
+func testFetchHistoryBaseBody(ch chan any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	exchange := ccxt.NewExchange().(*ccxt.Exchange)
+	exchange.DerivedExchange = exchange
+	exchange.InitParent(map[string]any{
+		"id":                    "sampleexchange",
+		"fetchHistoryCacheSize": 2,
+	}, map[string]any{}, exchange)
+	assert(ccxt.IsEqual(ExchangeProp(exchange, "fetchHistoryCacheSize"), 2), "fetchHistoryCacheSize should be 2")
+	var trueAssertion bool = ccxt.IsEqual(exchange.ParseNumber(nil), nil)
+
+	{
+		func() (ret_ any) {
+			defer func() {
+				if error := recover(); error != nil {
+					if error == "break" {
+						return
+					}
+					ret_ = func() any {
+						// catch block:
+						Assert(trueAssertion) // just skip
+						return nil
+					}()
+				}
+			}()
+			// try block:
+
+			retRes168 := (<-exchange.Fetch2("sample1"))
+			ccxt.PanicOnError(retRes168)
+			return nil
+		}()
+
+	}
+	assert(ccxt.IsEqual(ccxt.GetArrayLength((exchange.GetFetchCache())), 1), "fetchHistoryCache should be an array with 1 element")
+
+	{
+		func() (ret_ any) {
+			defer func() {
+				if error := recover(); error != nil {
+					if error == "break" {
+						return
+					}
+					ret_ = func() any {
+						// catch block:
+						Assert(trueAssertion) // just skip
+						return nil
+					}()
+				}
+			}()
+			// try block:
+
+			retRes228 := (<-exchange.Fetch2("sample2"))
+			ccxt.PanicOnError(retRes228)
+			return nil
+		}()
+
+	}
+	assert(ccxt.IsEqual(ccxt.GetArrayLength((exchange.GetFetchCache())), 2), "fetchHistoryCache should be an array with 2 elements")
+
+	{
+		func() (ret_ any) {
+			defer func() {
+				if error := recover(); error != nil {
+					if error == "break" {
+						return
+					}
+					ret_ = func() any {
+						// catch block:
+						Assert(trueAssertion) // just skip
+						return nil
+					}()
+				}
+			}()
+			// try block:
+
+			retRes288 := (<-exchange.Fetch2("sample3"))
+			ccxt.PanicOnError(retRes288)
+			return nil
+		}()
+
+	}
+	assert(ccxt.IsEqual(ccxt.GetArrayLength((exchange.GetFetchCache())), 2), "fetchHistoryCache should be an array with 2 elements")
+	assert(ccxt.IsLessThan(ccxt.Add(1, 1), 3), "sample assertion")
+	return nil
 }
 
 //	async function testFetchHistoryDerived () {
@@ -138,14 +139,15 @@ func TestFetchHistoryBase() <-chan any {
 //	    assert (1 + 1 < 3, 'sample assertion');
 //	}
 func TestFetchHistory() <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-
-		retRes604 := (<-TestFetchHistoryBase())
-		ccxt.PanicOnError(retRes604)
-		return nil
-	}()
+	ch := make(chan any, 1)
+	go testFetchHistoryBody(ch)
 	return ch
+}
+func testFetchHistoryBody(ch chan any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+
+	retRes604 := (<-TestFetchHistoryBase())
+	ccxt.PanicOnError(retRes604)
+	return nil
 }

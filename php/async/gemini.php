@@ -463,7 +463,9 @@ class gemini extends Exchange {
     public function parse_currency(array $rawCurrency): array {
         $id = $this->safe_string($rawCurrency, 0);
         $code = $this->safe_currency_code($id);
-        $type = $this->safe_string($rawCurrency, 7) ? 'fiat' : 'crypto';
+        $fiatFlag = $this->safe_string($rawCurrency, 7);
+        $isFiat = ($fiatFlag !== null) && ($fiatFlag !== '');
+        $type = $isFiat ? 'fiat' : 'crypto';
         $precision = $this->parse_number($this->parse_precision($this->safe_string($rawCurrency, 5)));
         $networks = array();
         $networkId = $this->safe_string($rawCurrency, 9);
@@ -1494,10 +1496,10 @@ class gemini extends Exchange {
         $remaining = $this->safe_string($order, 'remaining_amount');
         $filled = $this->safe_string($order, 'executed_amount');
         $status = 'closed';
-        if ($order['is_live']) {
+        if ($order['is_live'] === true) {
             $status = 'open';
         }
-        if ($order['is_cancelled']) {
+        if ($order['is_cancelled'] === true) {
             $status = 'canceled';
         }
         $price = $this->safe_string($order, 'price');
@@ -1721,7 +1723,7 @@ class gemini extends Exchange {
             }
             $postOnly = $this->safe_bool($params, 'postOnly', false);
             $params = $this->omit($params, 'postOnly');
-            if ($postOnly) {
+            if ($postOnly === true) {
                 $request['options'] = array( 'maker-or-cancel' );
             }
             // allowing override for auction-only and indication-of-interest order $options
@@ -2042,11 +2044,10 @@ class gemini extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $groupedByNetwork = Async\await($this->fetch_deposit_addresses_by_network($code, $params));
+        $indexedByNetwork = Async\await($this->fetch_deposit_addresses_by_network($code, $params));
         $networkCode = null;
         list($networkCode, $params) = $this->handle_network_code_and_params($params);
-        $networkGroup = $this->index_by($this->safe_value($groupedByNetwork, $networkCode), 'currency');
-        return $this->safe_value($networkGroup, $code);
+        return $this->safe_value($indexedByNetwork, $networkCode);
     }
 
     public function fetch_deposit_addresses_by_network(string $code, $params = array()): PromiseInterface {
@@ -2080,7 +2081,9 @@ class gemini extends Exchange {
         );
         $response = Async\await($this->privatePostV1AddressesNetwork($this->extend($request, $params)));
         $results = $this->parse_deposit_addresses($response, array( $code ), false, array( 'network' => $networkCode, 'currency' => $code ));
-        return $this->group_by($results, 'network');
+        // one address structure per network, like every other venue (the endpoint is scoped to a
+        // single network, so the last address the venue lists for it wins — same)
+        return $this->index_by($results, 'network');
     }
 
     public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
@@ -2108,7 +2111,7 @@ class gemini extends Exchange {
                 'X-GEMINI-SIGNATURE' => $signature,
             );
         } else {
-            if ($query) {
+            if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
         }

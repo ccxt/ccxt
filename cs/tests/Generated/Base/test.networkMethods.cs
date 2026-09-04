@@ -127,7 +127,7 @@ public partial class BaseTest
                 {
                     object randomCurrencyCode = getValue(allCurrencyCodes, j);
                     object result = exchange.networkIdToCode(randomNetworkCode, randomCurrencyCode);
-                    object keys = new List<object>(((IDictionary<string,object>)defaultNetworkCodeReplacements).Keys);
+                    List<object> keys = new List<object>(((IDictionary<string,object>)defaultNetworkCodeReplacements).Keys);
                     for (object k = 0; isLessThan(k, getArrayLength(keys)); postFixIncrement(ref k))
                     {
                         object chainBaseCoin = getValue(keys, k);

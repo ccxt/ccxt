@@ -329,7 +329,13 @@ class krakenfutures extends krakenfutures$1["default"] {
             this.positions = new Cache.ArrayCacheBySymbolBySide();
         }
         const cache = this.positions;
-        const rawPositions = this.safeValue(message, 'positions', []);
+        const rawPositions = this.safeList(message, 'positions');
+        if (rawPositions === undefined) {
+            // an open_positions frame without the positions key is malformed;
+            // do not resolve with a fabricated empty list (the caller cannot
+            // distinguish it from a genuinely flat account)
+            return;
+        }
         const newPositions = [];
         for (let i = 0; i < rawPositions.length; i++) {
             const rawPosition = rawPositions[i];
@@ -792,13 +798,26 @@ class krakenfutures extends krakenfutures$1["default"] {
         }
         else {
             const isCancel = this.safeValue(message, 'is_cancel');
-            if (isCancel) {
+            if (isCancel === true) {
+                // Kraken documents is_cancel as "fully filled, cancelled, or
+                // rejected". Derive unified status from `reason` instead of
+                // mapping every removal to canceled. Preserve reason on info
+                // so consumers can tell a user cancel from liquidation, etc.
+                const reason = this.safeString(message, 'reason');
+                let status = 'canceled';
+                if (reason === 'full_fill') {
+                    status = 'closed';
+                }
                 // get order without symbol
                 for (let i = 0; i < orders.length; i++) {
                     const currentOrder = orders[i];
                     if (currentOrder['id'] === message['order_id']) {
+                        const info = this.extend(this.safeDict(currentOrder, 'info', {}), {
+                            'reason': reason,
+                        });
                         orders[i] = this.extend(currentOrder, {
-                            'status': 'canceled',
+                            'status': status,
+                            'info': info,
                         });
                         client.resolve(orders, 'orders');
                         client.resolve(orders, 'orders:' + currentOrder['symbol']);
@@ -1517,7 +1536,7 @@ class krakenfutures extends krakenfutures$1["default"] {
             'symbol': this.safeString(market, 'symbol'),
             'order': this.safeString(trade, 'order_id'),
             'type': this.safeString(trade, 'type'),
-            'side': isBuy ? 'buy' : 'sell',
+            'side': (isBuy === true) ? 'buy' : 'sell',
             'takerOrMaker': this.safeString(trade, 'fill_type'),
             'price': this.safeString(trade, 'price'),
             'amount': this.safeString(trade, 'qty'),

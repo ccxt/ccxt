@@ -13,7 +13,7 @@ public partial class bybiteu : bybit
         var restInstance = new ccxt.bybiteu();
         object restDescribe = restInstance.describe();
         object parentWsDescribe = base.describeData();
-        object extended = this.deepExtend(restDescribe, parentWsDescribe);
+        Dictionary<string, object> extended = this.deepExtend(restDescribe, parentWsDescribe);
         return this.deepExtend(extended, new Dictionary<string, object>() {
             { "id", "bybiteu" },
             { "name", "Bybit EU" },

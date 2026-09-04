@@ -654,27 +654,27 @@ func (this *DeriveCore) SetSandboxMode(enable any) {
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
 func (this *DeriveCore) FetchTime(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		response := (<-this.PublicPostGetTime(params))
-		PanicOnError(response)
-
-		//
-		// {
-		//     "result": 1735846536758,
-		//     "id": "f1c03d21-f886-4c5a-9a9d-33dd06f180f0"
-		// }
-		//
-		ch <- this.SafeInteger(response, "result")
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchTimeBody(ch, optionalArgs...)
 	return ch
+}
+func (this *DeriveCore) fetchTimeBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	response := (<-this.PublicPostGetTime(params))
+	PanicOnError(response)
+
+	//
+	// {
+	//     "result": 1735846536758,
+	//     "id": "f1c03d21-f886-4c5a-9a9d-33dd06f180f0"
+	// }
+	//
+	ch <- this.SafeInteger(response, "result")
+	return nil
 }
 
 /**
@@ -686,70 +686,70 @@ func (this *DeriveCore) FetchTime(optionalArgs ...any) <-chan any {
  * @returns {object} an associative dictionary of currencies
  */
 func (this *DeriveCore) FetchCurrencies(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		tokenResponse := (<-this.PublicGetGetAllCurrencies(params))
-		PanicOnError(tokenResponse)
-		//
-		//    {
-		//        "result": [
-		//            {
-		//                "currency": "SEI",
-		//                "instrument_types": [
-		//                    "perp"
-		//                ],
-		//                "protocol_asset_addresses": {
-		//                    "perp": "0x7225889B75fd34C68eA3098dAE04D50553C09840",
-		//                    "option": null,
-		//                    "spot": null,
-		//                    "underlying_erc20": null
-		//                },
-		//                "managers": [
-		//                    {
-		//                        "address": "0x28c9ddF9A3B29c2E6a561c1BC520954e5A33de5D",
-		//                        "margin_type": "SM",
-		//                        "currency": null
-		//                    }
-		//                ],
-		//                "srm_im_discount": "0",
-		//                "srm_mm_discount": "0",
-		//                "pm2_collateral_discounts": [],
-		//                "borrow_apy": "0",
-		//                "supply_apy": "0",
-		//                "total_borrow": "0",
-		//                "total_supply": "0",
-		//                "asset_cap_and_supply_per_manager": {
-		//                    "perp": {
-		//                        "SM": [
-		//                            {
-		//                                "current_open_interest": "0",
-		//                                "interest_cap": "2000000",
-		//                                "manager_currency": null
-		//                            }
-		//                        ]
-		//                    },
-		//                    "option": {},
-		//                    "erc20": {}
-		//                },
-		//                "market_type": "SRM_PERP_ONLY",
-		//                "spot_price": "0.2193542905042081",
-		//                "spot_price_24h": "0.238381655533635830"
-		//            },
-		//     "id": "7e07fe1d-0ab4-4d2b-9e22-b65ce9e232dc"
-		// }
-		//
-		var currencies any = this.SafeList(tokenResponse, "result", []any{})
-
-		ch <- this.ParseCurrencies(currencies)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchCurrenciesBody(ch, optionalArgs...)
 	return ch
+}
+func (this *DeriveCore) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	tokenResponse := (<-this.PublicGetGetAllCurrencies(params))
+	PanicOnError(tokenResponse)
+	//
+	//    {
+	//        "result": [
+	//            {
+	//                "currency": "SEI",
+	//                "instrument_types": [
+	//                    "perp"
+	//                ],
+	//                "protocol_asset_addresses": {
+	//                    "perp": "0x7225889B75fd34C68eA3098dAE04D50553C09840",
+	//                    "option": null,
+	//                    "spot": null,
+	//                    "underlying_erc20": null
+	//                },
+	//                "managers": [
+	//                    {
+	//                        "address": "0x28c9ddF9A3B29c2E6a561c1BC520954e5A33de5D",
+	//                        "margin_type": "SM",
+	//                        "currency": null
+	//                    }
+	//                ],
+	//                "srm_im_discount": "0",
+	//                "srm_mm_discount": "0",
+	//                "pm2_collateral_discounts": [],
+	//                "borrow_apy": "0",
+	//                "supply_apy": "0",
+	//                "total_borrow": "0",
+	//                "total_supply": "0",
+	//                "asset_cap_and_supply_per_manager": {
+	//                    "perp": {
+	//                        "SM": [
+	//                            {
+	//                                "current_open_interest": "0",
+	//                                "interest_cap": "2000000",
+	//                                "manager_currency": null
+	//                            }
+	//                        ]
+	//                    },
+	//                    "option": {},
+	//                    "erc20": {}
+	//                },
+	//                "market_type": "SRM_PERP_ONLY",
+	//                "spot_price": "0.2193542905042081",
+	//                "spot_price_24h": "0.238381655533635830"
+	//            },
+	//     "id": "7e07fe1d-0ab4-4d2b-9e22-b65ce9e232dc"
+	// }
+	//
+	var currencies any = this.SafeList(tokenResponse, "result", []any{})
+
+	ch <- this.ParseCurrencies(currencies)
+	return nil
 }
 func (this *DeriveCore) ParseCurrency(rawCurrency any) any {
 	var currencyId any = this.SafeString(rawCurrency, "currency")
@@ -787,149 +787,149 @@ func (this *DeriveCore) ParseCurrency(rawCurrency any) any {
  * @returns {object[]} an array of objects representing market data
  */
 func (this *DeriveCore) FetchMarkets(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		var spotMarketsPromise any = this.FetchSpotMarkets(params)
-		var swapMarketsPromise any = this.FetchSwapMarkets(params)
-		var optionMarketsPromise any = this.FetchOptionMarkets(params)
-		spotMarketsswapMarketsoptionMarketsVariable := (<-promiseAll([]any{spotMarketsPromise, swapMarketsPromise, optionMarketsPromise}))
-		spotMarkets := GetValue(spotMarketsswapMarketsoptionMarketsVariable, 0)
-		swapMarkets := GetValue(spotMarketsswapMarketsoptionMarketsVariable, 1)
-		optionMarkets := GetValue(spotMarketsswapMarketsoptionMarketsVariable, 2)
-		//
-		// {
-		//     "result": {
-		//         "instruments": [
-		//             {
-		//                 "instrument_type": "perp",
-		//                 "instrument_name": "BTC-PERP",
-		//                 "scheduled_activation": 1701840228,
-		//                 "scheduled_deactivation": 9223372036854776000,
-		//                 "is_active": true,
-		//                 "tick_size": "0.1",
-		//                 "minimum_amount": "0.01",
-		//                 "maximum_amount": "10000",
-		//                 "amount_step": "0.001",
-		//                 "mark_price_fee_rate_cap": "0",
-		//                 "maker_fee_rate": "0.00005",
-		//                 "taker_fee_rate": "0.0003",
-		//                 "base_fee": "0.1",
-		//                 "base_currency": "BTC",
-		//                 "quote_currency": "USD",
-		//                 "option_details": null,
-		//                 "perp_details": {
-		//                     "index": "BTC-USD",
-		//                     "max_rate_per_hour": "0.004",
-		//                     "min_rate_per_hour": "-0.004",
-		//                     "static_interest_rate": "0.0000125",
-		//                     "aggregate_funding": "10538.574363381759146829",
-		//                     "funding_rate": "0.0000125"
-		//                 },
-		//                 "erc20_details": null,
-		//                 "base_asset_address": "0xDBa83C0C654DB1cd914FA2710bA743e925B53086",
-		//                 "base_asset_sub_id": "0",
-		//                 "pro_rata_fraction": "0",
-		//                 "fifo_min_allocation": "0",
-		//                 "pro_rata_amount_step": "0.1"
-		//             }
-		//         ],
-		//         "pagination": {
-		//             "num_pages": 1,
-		//             "count": 1
-		//         }
-		//     },
-		//     "id": "a06bc0b2-8e78-4536-a21f-f785f225b5a5"
-		// }
-		//
-		var result any = this.ArrayConcat(spotMarkets, swapMarkets)
-		result = this.ArrayConcat(result, optionMarkets)
-
-		ch <- result
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchMarketsBody(ch, optionalArgs...)
 	return ch
+}
+func (this *DeriveCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	var spotMarketsPromise any = this.FetchSpotMarkets(params)
+	var swapMarketsPromise any = this.FetchSwapMarkets(params)
+	var optionMarketsPromise any = this.FetchOptionMarkets(params)
+	spotMarketsswapMarketsoptionMarketsVariable := (<-promiseAll([]any{spotMarketsPromise, swapMarketsPromise, optionMarketsPromise}))
+	spotMarkets := GetValue(spotMarketsswapMarketsoptionMarketsVariable, 0)
+	swapMarkets := GetValue(spotMarketsswapMarketsoptionMarketsVariable, 1)
+	optionMarkets := GetValue(spotMarketsswapMarketsoptionMarketsVariable, 2)
+	//
+	// {
+	//     "result": {
+	//         "instruments": [
+	//             {
+	//                 "instrument_type": "perp",
+	//                 "instrument_name": "BTC-PERP",
+	//                 "scheduled_activation": 1701840228,
+	//                 "scheduled_deactivation": 9223372036854776000,
+	//                 "is_active": true,
+	//                 "tick_size": "0.1",
+	//                 "minimum_amount": "0.01",
+	//                 "maximum_amount": "10000",
+	//                 "amount_step": "0.001",
+	//                 "mark_price_fee_rate_cap": "0",
+	//                 "maker_fee_rate": "0.00005",
+	//                 "taker_fee_rate": "0.0003",
+	//                 "base_fee": "0.1",
+	//                 "base_currency": "BTC",
+	//                 "quote_currency": "USD",
+	//                 "option_details": null,
+	//                 "perp_details": {
+	//                     "index": "BTC-USD",
+	//                     "max_rate_per_hour": "0.004",
+	//                     "min_rate_per_hour": "-0.004",
+	//                     "static_interest_rate": "0.0000125",
+	//                     "aggregate_funding": "10538.574363381759146829",
+	//                     "funding_rate": "0.0000125"
+	//                 },
+	//                 "erc20_details": null,
+	//                 "base_asset_address": "0xDBa83C0C654DB1cd914FA2710bA743e925B53086",
+	//                 "base_asset_sub_id": "0",
+	//                 "pro_rata_fraction": "0",
+	//                 "fifo_min_allocation": "0",
+	//                 "pro_rata_amount_step": "0.1"
+	//             }
+	//         ],
+	//         "pagination": {
+	//             "num_pages": 1,
+	//             "count": 1
+	//         }
+	//     },
+	//     "id": "a06bc0b2-8e78-4536-a21f-f785f225b5a5"
+	// }
+	//
+	var result any = this.ArrayConcat(spotMarkets, swapMarkets)
+	result = this.ArrayConcat(result, optionMarkets)
+
+	ch <- result
+	return nil
 }
 func (this *DeriveCore) FetchSpotMarkets(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		var request any = map[string]any{
-			"expired":         false,
-			"instrument_type": "erc20",
-		}
-
-		response := (<-this.PublicPostGetAllInstruments(this.Extend(request, params)))
-		PanicOnError(response)
-		var result any = this.SafeDict(response, "result", map[string]any{})
-		var data any = this.SafeList(result, "instruments", []any{})
-
-		ch <- this.ParseMarkets(data)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchSpotMarketsBody(ch, optionalArgs...)
 	return ch
+}
+func (this *DeriveCore) fetchSpotMarketsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	var request map[string]any = map[string]any{
+		"expired":         false,
+		"instrument_type": "erc20",
+	}
+
+	response := (<-this.PublicPostGetAllInstruments(this.Extend(request, params)))
+	PanicOnError(response)
+	var result any = this.SafeDict(response, "result", map[string]any{})
+	var data any = this.SafeList(result, "instruments", []any{})
+
+	ch <- this.ParseMarkets(data)
+	return nil
 }
 func (this *DeriveCore) FetchSwapMarkets(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		var request any = map[string]any{
-			"expired":         false,
-			"instrument_type": "perp",
-		}
-
-		response := (<-this.PublicPostGetAllInstruments(this.Extend(request, params)))
-		PanicOnError(response)
-		var result any = this.SafeDict(response, "result", map[string]any{})
-		var data any = this.SafeList(result, "instruments", []any{})
-
-		ch <- this.ParseMarkets(data)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchSwapMarketsBody(ch, optionalArgs...)
 	return ch
 }
+func (this *DeriveCore) fetchSwapMarketsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	var request map[string]any = map[string]any{
+		"expired":         false,
+		"instrument_type": "perp",
+	}
+
+	response := (<-this.PublicPostGetAllInstruments(this.Extend(request, params)))
+	PanicOnError(response)
+	var result any = this.SafeDict(response, "result", map[string]any{})
+	var data any = this.SafeList(result, "instruments", []any{})
+
+	ch <- this.ParseMarkets(data)
+	return nil
+}
 func (this *DeriveCore) FetchOptionMarkets(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		var request any = map[string]any{
-			"expired":         false,
-			"instrument_type": "option",
-		}
-
-		response := (<-this.PublicPostGetAllInstruments(this.Extend(request, params)))
-		PanicOnError(response)
-		var result any = this.SafeDict(response, "result", map[string]any{})
-		var data any = this.SafeList(result, "instruments", []any{})
-
-		ch <- this.ParseMarkets(data)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOptionMarketsBody(ch, optionalArgs...)
 	return ch
+}
+func (this *DeriveCore) fetchOptionMarketsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	var request map[string]any = map[string]any{
+		"expired":         false,
+		"instrument_type": "option",
+	}
+
+	response := (<-this.PublicPostGetAllInstruments(this.Extend(request, params)))
+	PanicOnError(response)
+	var result any = this.SafeDict(response, "result", map[string]any{})
+	var data any = this.SafeList(result, "instruments", []any{})
+
+	ch <- this.ParseMarkets(data)
+	return nil
 }
 func (this *DeriveCore) ParseMarket(market any) any {
 	var typeVar any = this.SafeString(market, "instrument_type")
 	var marketType any = nil
-	var spot any = false
-	var margin any = true
-	var swap any = false
-	var option any = false
+	var spot bool = false
+	var margin bool = true
+	var swap bool = false
+	var option bool = false
 	var linear any = nil
 	var inverse any = nil
 	var baseId any = this.SafeString(market, "base_currency")
@@ -976,7 +976,7 @@ func (this *DeriveCore) ParseMarket(market any) any {
 		inverse = false
 	}
 	var contractSize any = Ternary(IsTrue((spot)), nil, 1)
-	var isContract any = (IsTrue(swap) || IsTrue(option))
+	var isContract bool = (IsTrue(swap) || IsTrue(option))
 	return this.SafeMarketStructure(map[string]any{
 		"id":             marketId,
 		"symbol":         symbol,
@@ -1040,91 +1040,91 @@ func (this *DeriveCore) ParseMarket(market any) any {
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *DeriveCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes75112 := (<-this.LoadMarkets())
-			PanicOnError(retRes75112)
-		}
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"instrument_name": GetValue(market, "id"),
-		}
-
-		response := (<-this.PublicPostGetTicker(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		// spot
-		//
-		// {
-		//     "result": {
-		//         "instrument_type": "perp",
-		//         "instrument_name": "BTC-PERP",
-		//         "scheduled_activation": 1701840228,
-		//         "scheduled_deactivation": 9223372036854776000,
-		//         "is_active": true,
-		//         "tick_size": "0.1",
-		//         "minimum_amount": "0.01",
-		//         "maximum_amount": "10000",
-		//         "amount_step": "0.001",
-		//         "mark_price_fee_rate_cap": "0",
-		//         "maker_fee_rate": "0.00005",
-		//         "taker_fee_rate": "0.0003",
-		//         "base_fee": "0.1",
-		//         "base_currency": "BTC",
-		//         "quote_currency": "USD",
-		//         "option_details": null,
-		//         "perp_details": {
-		//             "index": "BTC-USD",
-		//             "max_rate_per_hour": "0.004",
-		//             "min_rate_per_hour": "-0.004",
-		//             "static_interest_rate": "0.0000125",
-		//             "aggregate_funding": "10512.580833189805742522",
-		//             "funding_rate": "-0.000022223906766867"
-		//         },
-		//         "erc20_details": null,
-		//         "base_asset_address": "0xDBa83C0C654DB1cd914FA2710bA743e925B53086",
-		//         "base_asset_sub_id": "0",
-		//         "pro_rata_fraction": "0",
-		//         "fifo_min_allocation": "0",
-		//         "pro_rata_amount_step": "0.1",
-		//         "best_ask_amount": "0.012",
-		//         "best_ask_price": "99567.9",
-		//         "best_bid_amount": "0.129",
-		//         "best_bid_price": "99554.5",
-		//         "five_percent_bid_depth": "11.208",
-		//         "five_percent_ask_depth": "11.42",
-		//         "option_pricing": null,
-		//         "index_price": "99577.2",
-		//         "mark_price": "99543.642926357933902181684970855712890625",
-		//         "stats": {
-		//             "contract_volume": "464.712",
-		//             "num_trades": "10681",
-		//             "open_interest": "72.804739389481989861",
-		//             "high": "99519.1",
-		//             "low": "97254.1",
-		//             "percent_change": "0.0128",
-		//             "usd_change": "1258.1"
-		//         },
-		//         "timestamp": 1736140984000,
-		//         "min_price": "97591.2",
-		//         "max_price": "101535.1"
-		//     },
-		//     "id": "bbd7c271-c2be-48f7-b93a-26cf6d4cb79f"
-		// }
-		//
-		var data any = this.SafeDict(response, "result", map[string]any{})
-
-		ch <- this.ParseTicker(data, market)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchTickerBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *DeriveCore) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes75112 := (<-this.LoadMarkets())
+		PanicOnError(retRes75112)
+	}
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"instrument_name": GetValue(market, "id"),
+	}
+
+	response := (<-this.PublicPostGetTicker(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	// spot
+	//
+	// {
+	//     "result": {
+	//         "instrument_type": "perp",
+	//         "instrument_name": "BTC-PERP",
+	//         "scheduled_activation": 1701840228,
+	//         "scheduled_deactivation": 9223372036854776000,
+	//         "is_active": true,
+	//         "tick_size": "0.1",
+	//         "minimum_amount": "0.01",
+	//         "maximum_amount": "10000",
+	//         "amount_step": "0.001",
+	//         "mark_price_fee_rate_cap": "0",
+	//         "maker_fee_rate": "0.00005",
+	//         "taker_fee_rate": "0.0003",
+	//         "base_fee": "0.1",
+	//         "base_currency": "BTC",
+	//         "quote_currency": "USD",
+	//         "option_details": null,
+	//         "perp_details": {
+	//             "index": "BTC-USD",
+	//             "max_rate_per_hour": "0.004",
+	//             "min_rate_per_hour": "-0.004",
+	//             "static_interest_rate": "0.0000125",
+	//             "aggregate_funding": "10512.580833189805742522",
+	//             "funding_rate": "-0.000022223906766867"
+	//         },
+	//         "erc20_details": null,
+	//         "base_asset_address": "0xDBa83C0C654DB1cd914FA2710bA743e925B53086",
+	//         "base_asset_sub_id": "0",
+	//         "pro_rata_fraction": "0",
+	//         "fifo_min_allocation": "0",
+	//         "pro_rata_amount_step": "0.1",
+	//         "best_ask_amount": "0.012",
+	//         "best_ask_price": "99567.9",
+	//         "best_bid_amount": "0.129",
+	//         "best_bid_price": "99554.5",
+	//         "five_percent_bid_depth": "11.208",
+	//         "five_percent_ask_depth": "11.42",
+	//         "option_pricing": null,
+	//         "index_price": "99577.2",
+	//         "mark_price": "99543.642926357933902181684970855712890625",
+	//         "stats": {
+	//             "contract_volume": "464.712",
+	//             "num_trades": "10681",
+	//             "open_interest": "72.804739389481989861",
+	//             "high": "99519.1",
+	//             "low": "97254.1",
+	//             "percent_change": "0.0128",
+	//             "usd_change": "1258.1"
+	//         },
+	//         "timestamp": 1736140984000,
+	//         "min_price": "97591.2",
+	//         "max_price": "101535.1"
+	//     },
+	//     "id": "bbd7c271-c2be-48f7-b93a-26cf6d4cb79f"
+	// }
+	//
+	var data any = this.SafeDict(response, "result", map[string]any{})
+
+	ch <- this.ParseTicker(data, market)
+	return nil
 }
 func (this *DeriveCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	//
@@ -1228,84 +1228,84 @@ func (this *DeriveCore) ParseTicker(ticker any, optionalArgs ...any) any {
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *DeriveCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		since := GetArg(optionalArgs, 0, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 1, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 2, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes92312 := (<-this.LoadMarkets())
-			PanicOnError(retRes92312)
-		}
-		var request any = map[string]any{}
-		var market any = nil
-		if IsTrue(!IsEqual(symbol, nil)) {
-			market = this.Market(symbol)
-			AddElementToObject(request, "instrument_name", GetValue(market, "id"))
-		}
-		if IsTrue(!IsEqual(limit, nil)) {
-			if IsTrue(IsGreaterThan(limit, 1000)) {
-				limit = 1000
-			}
-			AddElementToObject(request, "page_size", limit) // default 100, max 1000
-		}
-		if IsTrue(!IsEqual(since, nil)) {
-			AddElementToObject(request, "from_timestamp", since)
-		}
-		var until any = this.SafeInteger(params, "until")
-		params = this.Omit(params, []any{"until"})
-		if IsTrue(!IsEqual(until, nil)) {
-			AddElementToObject(request, "to_timestamp", until)
-		}
-
-		response := (<-this.PublicPostGetTradeHistory(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		// {
-		//     "result": {
-		//         "trades": [
-		//             {
-		//                 "trade_id": "9dbc88b0-f0c4-4439-9cc1-4e6409d4eafb",
-		//                 "instrument_name": "BTC-PERP",
-		//                 "timestamp": 1736153910930,
-		//                 "trade_price": "98995.3",
-		//                 "trade_amount": "0.033",
-		//                 "mark_price": "98990.875914388161618263",
-		//                 "index_price": "99038.050611100001501184",
-		//                 "direction": "sell",
-		//                 "quote_id": null,
-		//                 "wallet": "0x88B6BB87fbFac92a34F8155aaA35c87B5b166fA9",
-		//                 "subaccount_id": 8250,
-		//                 "tx_status": "settled",
-		//                 "tx_hash": "0x020bd735b312f867f17f8cc254946d87cfe9f2c8ff3605035d8129082eb73723",
-		//                 "trade_fee": "0.980476701049890015",
-		//                 "liquidity_role": "taker",
-		//                 "realized_pnl": "-2.92952402688793509",
-		//                 "realized_pnl_excl_fees": "-1.949047325838045075"
-		//             }
-		//         ],
-		//         "pagination": {
-		//             "num_pages": 598196,
-		//             "count": 598196
-		//         }
-		//     },
-		//     "id": "b8539544-6975-4497-8163-5e51a38e4aa7"
-		// }
-		//
-		var result any = this.SafeDict(response, "result", map[string]any{})
-		var data any = this.SafeList(result, "trades", []any{})
-
-		ch <- this.ParseTrades(data, market, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *DeriveCore) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	since := GetArg(optionalArgs, 0, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 1, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 2, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes92312 := (<-this.LoadMarkets())
+		PanicOnError(retRes92312)
+	}
+	var request map[string]any = map[string]any{}
+	var market any = nil
+	if IsTrue(!IsEqual(symbol, nil)) {
+		market = this.Market(symbol)
+		AddElementToObject(request, "instrument_name", GetValue(market, "id"))
+	}
+	if IsTrue(!IsEqual(limit, nil)) {
+		if IsTrue(IsGreaterThan(limit, 1000)) {
+			limit = 1000
+		}
+		AddElementToObject(request, "page_size", limit) // default 100, max 1000
+	}
+	if IsTrue(!IsEqual(since, nil)) {
+		AddElementToObject(request, "from_timestamp", since)
+	}
+	var until any = this.SafeInteger(params, "until")
+	params = this.Omit(params, []any{"until"})
+	if IsTrue(!IsEqual(until, nil)) {
+		AddElementToObject(request, "to_timestamp", until)
+	}
+
+	response := (<-this.PublicPostGetTradeHistory(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	// {
+	//     "result": {
+	//         "trades": [
+	//             {
+	//                 "trade_id": "9dbc88b0-f0c4-4439-9cc1-4e6409d4eafb",
+	//                 "instrument_name": "BTC-PERP",
+	//                 "timestamp": 1736153910930,
+	//                 "trade_price": "98995.3",
+	//                 "trade_amount": "0.033",
+	//                 "mark_price": "98990.875914388161618263",
+	//                 "index_price": "99038.050611100001501184",
+	//                 "direction": "sell",
+	//                 "quote_id": null,
+	//                 "wallet": "0x88B6BB87fbFac92a34F8155aaA35c87B5b166fA9",
+	//                 "subaccount_id": 8250,
+	//                 "tx_status": "settled",
+	//                 "tx_hash": "0x020bd735b312f867f17f8cc254946d87cfe9f2c8ff3605035d8129082eb73723",
+	//                 "trade_fee": "0.980476701049890015",
+	//                 "liquidity_role": "taker",
+	//                 "realized_pnl": "-2.92952402688793509",
+	//                 "realized_pnl_excl_fees": "-1.949047325838045075"
+	//             }
+	//         ],
+	//         "pagination": {
+	//             "num_pages": 598196,
+	//             "count": 598196
+	//         }
+	//     },
+	//     "id": "b8539544-6975-4497-8163-5e51a38e4aa7"
+	// }
+	//
+	var result any = this.SafeDict(response, "result", map[string]any{})
+	var data any = this.SafeList(result, "trades", []any{})
+
+	ch <- this.ParseTrades(data, market, since, limit)
+	return nil
 }
 func (this *DeriveCore) ParseTrades(trades any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
@@ -1320,13 +1320,13 @@ func (this *DeriveCore) ParseTrades(trades any, optionalArgs ...any) any {
 	var result any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(tradesArray)); i++ {
 		var rawTrade any = GetValue(tradesArray, i)
-		var isFetchTrades any = !IsTrue((InOp(rawTrade, "order_id")))
+		var isFetchTrades bool = !IsTrue((InOp(rawTrade, "order_id")))
 		var liquidityRole any = this.SafeString(rawTrade, "liquidity_role")
 		if IsTrue(IsTrue(isFetchTrades) && IsTrue((IsEqual(liquidityRole, "maker")))) {
 			continue
 		}
 		var parsed any = this.ParseTrade(rawTrade, market)
-		var trade any = this.Extend(parsed, params)
+		var trade map[string]any = this.Extend(parsed, params)
 		AppendToArray(&result, trade)
 	}
 	result = this.SortBy2(result, "timestamp", "id")
@@ -1369,7 +1369,7 @@ func (this *DeriveCore) ParseTrade(trade any, optionalArgs ...any) any {
 	var marketId any = this.SafeString(trade, "instrument_name")
 	var symbol any = this.SafeSymbol(marketId, market)
 	var timestamp any = this.SafeInteger(trade, "timestamp")
-	var fee any = map[string]any{
+	var fee map[string]any = map[string]any{
 		"currency": "USDC",
 		"cost":     this.SafeString(trade, "trade_fee"),
 	}
@@ -1402,72 +1402,72 @@ func (this *DeriveCore) ParseTrade(trade any, optionalArgs ...any) any {
  * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
 func (this *DeriveCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes107112 := (<-this.LoadMarkets())
-			PanicOnError(retRes107112)
-		}
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"instrument_name": GetValue(market, "id"),
-		}
-		if IsTrue(!IsEqual(since, nil)) {
-			AddElementToObject(request, "start_timestamp", since)
-		}
-		var until any = this.SafeInteger(params, "until")
-		params = this.Omit(params, []any{"until"})
-		if IsTrue(!IsEqual(until, nil)) {
-			AddElementToObject(request, "to_timestamp", until)
-		}
-
-		response := (<-this.PublicPostGetFundingRateHistory(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		// {
-		//     "result": {
-		//         "funding_rate_history": [
-		//             {
-		//                 "timestamp": 1736215200000,
-		//                 "funding_rate": "-0.000020014"
-		//             }
-		//         ]
-		//     },
-		//     "id": "3200ab8d-0080-42f0-8517-c13e3d9201d8"
-		// }
-		//
-		var result any = this.SafeDict(response, "result", map[string]any{})
-		var data any = this.SafeList(result, "funding_rate_history", []any{})
-		var rates any = []any{}
-		for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
-			var entry any = GetValue(data, i)
-			var timestamp any = this.SafeInteger(entry, "timestamp")
-			AppendToArray(&rates, map[string]any{
-				"info":        entry,
-				"symbol":      GetValue(market, "symbol"),
-				"fundingRate": this.SafeNumber(entry, "funding_rate"),
-				"timestamp":   timestamp,
-				"datetime":    this.Iso8601(timestamp),
-			})
-		}
-		var sorted any = this.SortBy(rates, "timestamp")
-
-		ch <- this.FilterBySymbolSinceLimit(sorted, GetValue(market, "symbol"), since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchFundingRateHistoryBody(ch, optionalArgs...)
 	return ch
+}
+func (this *DeriveCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes107112 := (<-this.LoadMarkets())
+		PanicOnError(retRes107112)
+	}
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"instrument_name": GetValue(market, "id"),
+	}
+	if IsTrue(!IsEqual(since, nil)) {
+		AddElementToObject(request, "start_timestamp", since)
+	}
+	var until any = this.SafeInteger(params, "until")
+	params = this.Omit(params, []any{"until"})
+	if IsTrue(!IsEqual(until, nil)) {
+		AddElementToObject(request, "to_timestamp", until)
+	}
+
+	response := (<-this.PublicPostGetFundingRateHistory(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	// {
+	//     "result": {
+	//         "funding_rate_history": [
+	//             {
+	//                 "timestamp": 1736215200000,
+	//                 "funding_rate": "-0.000020014"
+	//             }
+	//         ]
+	//     },
+	//     "id": "3200ab8d-0080-42f0-8517-c13e3d9201d8"
+	// }
+	//
+	var result any = this.SafeDict(response, "result", map[string]any{})
+	var data any = this.SafeList(result, "funding_rate_history", []any{})
+	var rates any = []any{}
+	for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
+		var entry any = GetValue(data, i)
+		var timestamp any = this.SafeInteger(entry, "timestamp")
+		AppendToArray(&rates, map[string]any{
+			"info":        entry,
+			"symbol":      GetValue(market, "symbol"),
+			"fundingRate": this.SafeNumber(entry, "funding_rate"),
+			"timestamp":   timestamp,
+			"datetime":    this.Iso8601(timestamp),
+		})
+	}
+	var sorted any = this.SortBy(rates, "timestamp")
+
+	ch <- this.FilterBySymbolSinceLimit(sorted, GetValue(market, "symbol"), since, limit)
+	return nil
 }
 
 /**
@@ -1480,36 +1480,36 @@ func (this *DeriveCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any 
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
 func (this *DeriveCore) FetchFundingRate(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		response := (<-this.FetchFundingRateHistory(symbol, nil, 1, params))
-		PanicOnError(response)
-		//
-		// [
-		//     {
-		//         "info": {
-		//             "timestamp": 1736157600000,
-		//             "funding_rate": "-0.000008872"
-		//         },
-		//         "symbol": "BTC/USD:USDC",
-		//         "fundingRate": -0.000008872,
-		//         "timestamp": 1736157600000,
-		//         "datetime": "2025-01-06T10:00:00.000Z"
-		//     }
-		// ]
-		//
-		var data any = this.SafeDict(response, 0)
-
-		ch <- this.ParseFundingRate(data)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchFundingRateBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *DeriveCore) fetchFundingRateBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	response := (<-this.FetchFundingRateHistory(symbol, nil, 1, params))
+	PanicOnError(response)
+	//
+	// [
+	//     {
+	//         "info": {
+	//             "timestamp": 1736157600000,
+	//             "funding_rate": "-0.000008872"
+	//         },
+	//         "symbol": "BTC/USD:USDC",
+	//         "fundingRate": -0.000008872,
+	//         "timestamp": 1736157600000,
+	//         "datetime": "2025-01-06T10:00:00.000Z"
+	//     }
+	// ]
+	//
+	var data any = this.SafeDict(response, 0)
+
+	ch <- this.ParseFundingRate(data)
+	return nil
 }
 func (this *DeriveCore) ParseFundingRate(contract any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
@@ -1540,7 +1540,7 @@ func (this *DeriveCore) ParseFundingRate(contract any, optionalArgs ...any) any 
 func (this *DeriveCore) HashOrderMessage(order any) any {
 	var accountHash any = this.Hash(this.EthAbiEncode([]any{"bytes32", "uint256", "uint256", "address", "bytes32", "uint256", "address", "address"}, order), keccak, "binary")
 	var sandboxMode any = this.SafeBool(this.Options, "sandboxMode", false)
-	var DOMAIN_SEPARATOR any = Ternary(IsTrue((sandboxMode)), "9bcf4dc06df5d8bf23af818d5716491b995020f377d3b7b64c29ed14e3dd1105", "d96e5f90797da7ec8dc4e276260c7f3f87fedf68775fbe1ef116e996fc60441b")
+	var DOMAIN_SEPARATOR any = Ternary(IsTrue((IsEqual(sandboxMode, true))), "9bcf4dc06df5d8bf23af818d5716491b995020f377d3b7b64c29ed14e3dd1105", "d96e5f90797da7ec8dc4e276260c7f3f87fedf68775fbe1ef116e996fc60441b")
 	var binaryDomainSeparator any = this.Base16ToBinary(DOMAIN_SEPARATOR)
 	var prefix any = this.Base16ToBinary("1901")
 	return this.Hash(this.BinaryConcat(prefix, binaryDomainSeparator, accountHash), keccak, "hex")
@@ -1595,189 +1595,190 @@ func (this *DeriveCore) ParseUnits(num any, optionalArgs ...any) any {
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *DeriveCore) CreateOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		price := GetArg(optionalArgs, 0, nil)
-		_ = price
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes123512 := (<-this.LoadMarkets())
-			PanicOnError(retRes123512)
-		}
-		var market any = this.Market(symbol)
-		if IsTrue(IsEqual(price, nil)) {
-			panic(ArgumentsRequired(Add(this.Id, " createOrder() requires a price argument")))
-		}
-		var subaccountId any = nil
-		subaccountIdparamsVariable := this.HandleDeriveSubaccountId("createOrder", params)
-		subaccountId = GetValue(subaccountIdparamsVariable, 0)
-		params = GetValue(subaccountIdparamsVariable, 1)
-		var test any = this.SafeBool(params, "test", false)
-		var reduceOnly any = this.SafeBool2(params, "reduceOnly", "reduce_only")
-		var timeInForce any = this.SafeStringLower2(params, "timeInForce", "time_in_force")
-		var postOnly any = this.SafeBool(params, "postOnly")
-		var orderType any = ToLower(typeVar)
-		var orderSide any = ToLower(side)
-		var nonce any = this.Milliseconds()
-		// Order signature expiry must be between 2592000 and 7776000 sec from now
-		var signatureExpiry any = this.SafeInteger(params, "signature_expiry_sec", Add(this.Seconds(), 7776000))
-		var ACTION_TYPEHASH any = this.Base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17")
-		var sandboxMode any = this.SafeBool(this.Options, "sandboxMode", false)
-		var TRADE_MODULE_ADDRESS any = Ternary(IsTrue((sandboxMode)), "0x87F2863866D85E3192a35A73b388BD625D83f2be", "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b")
-		var priceString any = this.NumberToString(price)
-		var maxFee any = nil
-		maxFeeparamsVariable := this.HandleOptionAndParams(params, "createOrder", "max_fee")
-		maxFee = GetValue(maxFeeparamsVariable, 0)
-		params = GetValue(maxFeeparamsVariable, 1)
-		if IsTrue(IsEqual(maxFee, nil)) {
-			panic(ArgumentsRequired(Add(this.Id, " createOrder() requires a max_fee argument in params")))
-		}
-		var maxFeeString any = this.NumberToString(maxFee)
-		var amountString any = this.NumberToString(amount)
-		var tradeModuleDataHash any = this.Hash(this.EthAbiEncode([]any{"address", "uint", "int", "int", "uint", "uint", "bool"}, []any{GetValue(GetValue(market, "info"), "base_asset_address"), this.ParseToNumeric(GetValue(GetValue(market, "info"), "base_asset_sub_id")), this.ConvertToBigInt(this.ParseUnits(priceString)), this.ConvertToBigInt(this.ParseUnits(this.AmountToPrecision(symbol, amountString))), this.ConvertToBigInt(this.ParseUnits(maxFeeString)), subaccountId, IsEqual(orderSide, "buy")}), keccak, "binary")
-		var deriveWalletAddress any = nil
-		deriveWalletAddressparamsVariable := this.HandleDeriveWalletAddress("createOrder", params)
-		deriveWalletAddress = GetValue(deriveWalletAddressparamsVariable, 0)
-		params = GetValue(deriveWalletAddressparamsVariable, 1)
-		var signature any = this.SignOrder([]any{ACTION_TYPEHASH, subaccountId, nonce, TRADE_MODULE_ADDRESS, tradeModuleDataHash, signatureExpiry, deriveWalletAddress, this.WalletAddress}, this.PrivateKey)
-		var request any = map[string]any{
-			"instrument_name":      GetValue(market, "id"),
-			"direction":            orderSide,
-			"order_type":           orderType,
-			"nonce":                nonce,
-			"amount":               amountString,
-			"limit_price":          priceString,
-			"max_fee":              maxFeeString,
-			"subaccount_id":        subaccountId,
-			"signature_expiry_sec": signatureExpiry,
-			"referral_code":        this.SafeString(this.Options, "id", "0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749"),
-			"signer":               this.WalletAddress,
-		}
-		if IsTrue(!IsEqual(reduceOnly, nil)) {
-			AddElementToObject(request, "reduce_only", reduceOnly)
-			if IsTrue(IsTrue(reduceOnly) && IsTrue(postOnly)) {
-				panic(InvalidOrder(Add(this.Id, " cannot use reduce only with post only time in force")))
-			}
-		}
-		if IsTrue(!IsEqual(postOnly, nil)) {
-			AddElementToObject(request, "time_in_force", "post_only")
-		} else if IsTrue(!IsEqual(timeInForce, nil)) {
-			AddElementToObject(request, "time_in_force", timeInForce)
-		}
-		var stopLoss any = this.SafeValue(params, "stopLoss")
-		var takeProfit any = this.SafeValue(params, "takeProfit")
-		var triggerPriceType any = this.SafeString(params, "trigger_price_type", "mark")
-		if IsTrue(!IsEqual(stopLoss, nil)) {
-			var stopLossPrice any = this.SafeString(stopLoss, "triggerPrice", stopLoss)
-			AddElementToObject(request, "trigger_price", stopLossPrice)
-			AddElementToObject(request, "trigger_type", "stoploss")
-			AddElementToObject(request, "trigger_price_type", triggerPriceType)
-		} else if IsTrue(!IsEqual(takeProfit, nil)) {
-			var takeProfitPrice any = this.SafeString(takeProfit, "triggerPrice", takeProfit)
-			AddElementToObject(request, "trigger_price", takeProfitPrice)
-			AddElementToObject(request, "trigger_type", "takeprofit")
-			AddElementToObject(request, "trigger_price_type", triggerPriceType)
-		}
-		var clientOrderId any = this.SafeString(params, "clientOrderId")
-		if IsTrue(!IsEqual(clientOrderId, nil)) {
-			AddElementToObject(request, "label", clientOrderId)
-		}
-		AddElementToObject(request, "signature", signature)
-		params = this.Omit(params, []any{"reduceOnly", "reduce_only", "timeInForce", "time_in_force", "postOnly", "test", "clientOrderId", "stopPrice", "triggerPrice", "trigger_price", "stopLoss", "takeProfit", "trigger_price_type"})
-		var response any = nil
-		if IsTrue(test) {
-
-			response = (<-this.PrivatePostOrderDebug(this.Extend(request, params)))
-			PanicOnError(response)
-		} else {
-
-			response = (<-this.PrivatePostOrder(this.Extend(request, params)))
-			PanicOnError(response)
-		}
-		//
-		// {
-		//     "result": {
-		//         "raw_data": {
-		//             "subaccount_id": 130837,
-		//             "nonce": 1736923517552,
-		//             "module": "0x87F2863866D85E3192a35A73b388BD625D83f2be",
-		//             "expiry": 86400,
-		//             "owner": "0x108b9aF9279a525b8A8AeAbE7AC2bA925Bc50075",
-		//             "signer": "0x108b9aF9279a525b8A8AeAbE7AC2bA925Bc50075",
-		//             "signature": "0xaa4f42b2f3da33c668fa703ea872d4c3a6b55aca66025b5119e3bebb6679fe2e2794638db51dcace21fc39a498047835994f07eb59f311bb956ce057e66793d1c",
-		//             "data": {
-		//                 "asset": "0xAFB6Bb95cd70D5367e2C39e9dbEb422B9815339D",
-		//                 "sub_id": 0,
-		//                 "limit_price": "10000",
-		//                 "desired_amount": "0.001",
-		//                 "worst_fee": "0",
-		//                 "recipient_id": 130837,
-		//                 "is_bid": true,
-		//                 "trade_id": ""
-		//             }
-		//         },
-		//         "encoded_data": "0x000000000000000000000000afb6bb95cd70d5367e2c39e9dbeb422b9815339d000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000021e19e0c9bab240000000000000000000000000000000000000000000000000000000038d7ea4c680000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001ff150000000000000000000000000000000000000000000000000000000000000001",
-		//         "encoded_data_hashed": "0xe88fb416bc54dba2d288988f1a82fee40fd792ed555b3471b5f6b4b810d279b4",
-		//         "action_hash": "0x273a0befb3751fa991edc7ed73582456c3b50ae964d458c8f472e932fb6a0069",
-		//         "typed_data_hash": "0x123e2d2f3d5b2473b4e260f51c6459d6bf904e5db8f042a3ea63be8d55329ce9"
-		//     },
-		//     "id": "f851c8c4-dddf-4b77-93cf-aeddd0966f29"
-		// }
-		// {
-		//     "result": {
-		//         "order": {
-		//             "subaccount_id": 130837,
-		//             "order_id": "96349ebb-7d46-43ae-81c7-7ab390444293",
-		//             "instrument_name": "BTC-PERP",
-		//             "direction": "buy",
-		//             "label": "",
-		//             "quote_id": null,
-		//             "creation_timestamp": 1737467576257,
-		//             "last_update_timestamp": 1737467576257,
-		//             "limit_price": "10000",
-		//             "amount": "0.01",
-		//             "filled_amount": "0",
-		//             "average_price": "0",
-		//             "order_fee": "0",
-		//             "order_type": "limit",
-		//             "time_in_force": "gtc",
-		//             "order_status": "open",
-		//             "max_fee": "210",
-		//             "signature_expiry_sec": 1737468175989,
-		//             "nonce": 1737467575989,
-		//             "signer": "0x30CB7B06AdD6749BbE146A6827502B8f2a79269A",
-		//             "signature": "0xd1ca49df1fa06bd805bb59b132ff6c0de29bf973a3e01705abe0a01cc956e4945ed9eb99ab68f3df4c037908113cac5a5bfc3a954a0b7103cdab285962fa6a51c",
-		//             "cancel_reason": "",
-		//             "mmp": false,
-		//             "is_transfer": false,
-		//             "replaced_order_id": null,
-		//             "trigger_type": null,
-		//             "trigger_price_type": null,
-		//             "trigger_price": null,
-		//             "trigger_reject_message": null
-		//         },
-		//         "trades": []
-		//     },
-		//     "id": "397087fa-0125-42af-bfc3-f66166f9fb55"
-		// }
-		//
-		var result any = this.SafeDict(response, "result")
-		var rawOrder any = this.SafeDict(result, "raw_data")
-		if IsTrue(IsEqual(rawOrder, nil)) {
-			rawOrder = this.SafeDict(result, "order", map[string]any{})
-		}
-		var order any = this.ParseOrder(rawOrder, market)
-		AddElementToObject(order, "type", typeVar)
-
-		ch <- order
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
+}
+func (this *DeriveCore) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	price := GetArg(optionalArgs, 0, nil)
+	_ = price
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes123512 := (<-this.LoadMarkets())
+		PanicOnError(retRes123512)
+	}
+	var market any = this.Market(symbol)
+	if IsTrue(IsEqual(price, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " createOrder() requires a price argument")))
+	}
+	var subaccountId any = nil
+	subaccountIdparamsVariable := this.HandleDeriveSubaccountId("createOrder", params)
+	subaccountId = GetValue(subaccountIdparamsVariable, 0)
+	params = GetValue(subaccountIdparamsVariable, 1)
+	var test any = this.SafeBool(params, "test", false)
+	var reduceOnly any = this.SafeBool2(params, "reduceOnly", "reduce_only")
+	var timeInForce any = this.SafeStringLower2(params, "timeInForce", "time_in_force")
+	var postOnly any = this.SafeBool(params, "postOnly")
+	var orderType string = ToLower(typeVar)
+	var orderSide string = ToLower(side)
+	var orderSideIsBuy bool = (IsEqual(orderSide, "buy")) // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
+	var nonce int64 = this.Milliseconds()
+	// Order signature expiry must be between 2592000 and 7776000 sec from now
+	var signatureExpiry any = this.SafeInteger(params, "signature_expiry_sec", Add(this.Seconds(), 7776000))
+	var ACTION_TYPEHASH any = this.Base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17")
+	var sandboxMode any = this.SafeBool(this.Options, "sandboxMode", false)
+	var TRADE_MODULE_ADDRESS any = Ternary(IsTrue((IsEqual(sandboxMode, true))), "0x87F2863866D85E3192a35A73b388BD625D83f2be", "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b")
+	var priceString any = this.NumberToString(price)
+	var maxFee any = nil
+	maxFeeparamsVariable := this.HandleOptionAndParams(params, "createOrder", "max_fee")
+	maxFee = GetValue(maxFeeparamsVariable, 0)
+	params = GetValue(maxFeeparamsVariable, 1)
+	if IsTrue(IsEqual(maxFee, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " createOrder() requires a max_fee argument in params")))
+	}
+	var maxFeeString any = this.NumberToString(maxFee)
+	var amountString any = this.NumberToString(amount)
+	var tradeModuleDataHash any = this.Hash(this.EthAbiEncode([]any{"address", "uint", "int", "int", "uint", "uint", "bool"}, []any{GetValue(GetValue(market, "info"), "base_asset_address"), this.ParseToNumeric(GetValue(GetValue(market, "info"), "base_asset_sub_id")), this.ConvertToBigInt(this.ParseUnits(priceString)), this.ConvertToBigInt(this.ParseUnits(this.AmountToPrecision(symbol, amountString))), this.ConvertToBigInt(this.ParseUnits(maxFeeString)), subaccountId, orderSideIsBuy}), keccak, "binary")
+	var deriveWalletAddress any = nil
+	deriveWalletAddressparamsVariable := this.HandleDeriveWalletAddress("createOrder", params)
+	deriveWalletAddress = GetValue(deriveWalletAddressparamsVariable, 0)
+	params = GetValue(deriveWalletAddressparamsVariable, 1)
+	var signature any = this.SignOrder([]any{ACTION_TYPEHASH, subaccountId, nonce, TRADE_MODULE_ADDRESS, tradeModuleDataHash, signatureExpiry, deriveWalletAddress, this.WalletAddress}, this.PrivateKey)
+	var request map[string]any = map[string]any{
+		"instrument_name":      GetValue(market, "id"),
+		"direction":            orderSide,
+		"order_type":           orderType,
+		"nonce":                nonce,
+		"amount":               amountString,
+		"limit_price":          priceString,
+		"max_fee":              maxFeeString,
+		"subaccount_id":        subaccountId,
+		"signature_expiry_sec": signatureExpiry,
+		"referral_code":        this.SafeString(this.Options, "id", "0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749"),
+		"signer":               this.WalletAddress,
+	}
+	if IsTrue(!IsEqual(reduceOnly, nil)) {
+		AddElementToObject(request, "reduce_only", reduceOnly)
+		if IsTrue(IsTrue(reduceOnly) && IsTrue((IsEqual(postOnly, true)))) {
+			panic(InvalidOrder(Add(this.Id, " cannot use reduce only with post only time in force")))
+		}
+	}
+	if IsTrue(!IsEqual(postOnly, nil)) {
+		AddElementToObject(request, "time_in_force", "post_only")
+	} else if IsTrue(!IsEqual(timeInForce, nil)) {
+		AddElementToObject(request, "time_in_force", timeInForce)
+	}
+	var stopLoss any = this.SafeValue(params, "stopLoss")
+	var takeProfit any = this.SafeValue(params, "takeProfit")
+	var triggerPriceType any = this.SafeString(params, "trigger_price_type", "mark")
+	if IsTrue(!IsEqual(stopLoss, nil)) {
+		var stopLossPrice any = this.SafeString(stopLoss, "triggerPrice", stopLoss)
+		AddElementToObject(request, "trigger_price", stopLossPrice)
+		AddElementToObject(request, "trigger_type", "stoploss")
+		AddElementToObject(request, "trigger_price_type", triggerPriceType)
+	} else if IsTrue(!IsEqual(takeProfit, nil)) {
+		var takeProfitPrice any = this.SafeString(takeProfit, "triggerPrice", takeProfit)
+		AddElementToObject(request, "trigger_price", takeProfitPrice)
+		AddElementToObject(request, "trigger_type", "takeprofit")
+		AddElementToObject(request, "trigger_price_type", triggerPriceType)
+	}
+	var clientOrderId any = this.SafeString(params, "clientOrderId")
+	if IsTrue(!IsEqual(clientOrderId, nil)) {
+		AddElementToObject(request, "label", clientOrderId)
+	}
+	AddElementToObject(request, "signature", signature)
+	params = this.Omit(params, []any{"reduceOnly", "reduce_only", "timeInForce", "time_in_force", "postOnly", "test", "clientOrderId", "stopPrice", "triggerPrice", "trigger_price", "stopLoss", "takeProfit", "trigger_price_type"})
+	var response any = nil
+	if IsTrue(IsEqual(test, true)) {
+
+		response = (<-this.PrivatePostOrderDebug(this.Extend(request, params)))
+		PanicOnError(response)
+	} else {
+
+		response = (<-this.PrivatePostOrder(this.Extend(request, params)))
+		PanicOnError(response)
+	}
+	//
+	// {
+	//     "result": {
+	//         "raw_data": {
+	//             "subaccount_id": 130837,
+	//             "nonce": 1736923517552,
+	//             "module": "0x87F2863866D85E3192a35A73b388BD625D83f2be",
+	//             "expiry": 86400,
+	//             "owner": "0x108b9aF9279a525b8A8AeAbE7AC2bA925Bc50075",
+	//             "signer": "0x108b9aF9279a525b8A8AeAbE7AC2bA925Bc50075",
+	//             "signature": "0xaa4f42b2f3da33c668fa703ea872d4c3a6b55aca66025b5119e3bebb6679fe2e2794638db51dcace21fc39a498047835994f07eb59f311bb956ce057e66793d1c",
+	//             "data": {
+	//                 "asset": "0xAFB6Bb95cd70D5367e2C39e9dbEb422B9815339D",
+	//                 "sub_id": 0,
+	//                 "limit_price": "10000",
+	//                 "desired_amount": "0.001",
+	//                 "worst_fee": "0",
+	//                 "recipient_id": 130837,
+	//                 "is_bid": true,
+	//                 "trade_id": ""
+	//             }
+	//         },
+	//         "encoded_data": "0x000000000000000000000000afb6bb95cd70d5367e2c39e9dbeb422b9815339d000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000021e19e0c9bab240000000000000000000000000000000000000000000000000000000038d7ea4c680000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001ff150000000000000000000000000000000000000000000000000000000000000001",
+	//         "encoded_data_hashed": "0xe88fb416bc54dba2d288988f1a82fee40fd792ed555b3471b5f6b4b810d279b4",
+	//         "action_hash": "0x273a0befb3751fa991edc7ed73582456c3b50ae964d458c8f472e932fb6a0069",
+	//         "typed_data_hash": "0x123e2d2f3d5b2473b4e260f51c6459d6bf904e5db8f042a3ea63be8d55329ce9"
+	//     },
+	//     "id": "f851c8c4-dddf-4b77-93cf-aeddd0966f29"
+	// }
+	// {
+	//     "result": {
+	//         "order": {
+	//             "subaccount_id": 130837,
+	//             "order_id": "96349ebb-7d46-43ae-81c7-7ab390444293",
+	//             "instrument_name": "BTC-PERP",
+	//             "direction": "buy",
+	//             "label": "",
+	//             "quote_id": null,
+	//             "creation_timestamp": 1737467576257,
+	//             "last_update_timestamp": 1737467576257,
+	//             "limit_price": "10000",
+	//             "amount": "0.01",
+	//             "filled_amount": "0",
+	//             "average_price": "0",
+	//             "order_fee": "0",
+	//             "order_type": "limit",
+	//             "time_in_force": "gtc",
+	//             "order_status": "open",
+	//             "max_fee": "210",
+	//             "signature_expiry_sec": 1737468175989,
+	//             "nonce": 1737467575989,
+	//             "signer": "0x30CB7B06AdD6749BbE146A6827502B8f2a79269A",
+	//             "signature": "0xd1ca49df1fa06bd805bb59b132ff6c0de29bf973a3e01705abe0a01cc956e4945ed9eb99ab68f3df4c037908113cac5a5bfc3a954a0b7103cdab285962fa6a51c",
+	//             "cancel_reason": "",
+	//             "mmp": false,
+	//             "is_transfer": false,
+	//             "replaced_order_id": null,
+	//             "trigger_type": null,
+	//             "trigger_price_type": null,
+	//             "trigger_price": null,
+	//             "trigger_reject_message": null
+	//         },
+	//         "trades": []
+	//     },
+	//     "id": "397087fa-0125-42af-bfc3-f66166f9fb55"
+	// }
+	//
+	var result any = this.SafeDict(response, "result")
+	var rawOrder any = this.SafeDict(result, "raw_data")
+	if IsTrue(IsEqual(rawOrder, nil)) {
+		rawOrder = this.SafeDict(result, "order", map[string]any{})
+	}
+	var order any = this.ParseOrder(rawOrder, market)
+	AddElementToObject(order, "type", typeVar)
+
+	ch <- order
+	return nil
 }
 
 /**
@@ -1796,162 +1797,163 @@ func (this *DeriveCore) CreateOrder(symbol any, typeVar any, side any, amount an
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *DeriveCore) EditOrder(id any, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		amount := GetArg(optionalArgs, 0, nil)
-		_ = amount
-		price := GetArg(optionalArgs, 1, nil)
-		_ = price
-		params := GetArg(optionalArgs, 2, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes143012 := (<-this.LoadMarkets())
-			PanicOnError(retRes143012)
-		}
-		var market any = this.Market(symbol)
-		var subaccountId any = nil
-		subaccountIdparamsVariable := this.HandleDeriveSubaccountId("editOrder", params)
-		subaccountId = GetValue(subaccountIdparamsVariable, 0)
-		params = GetValue(subaccountIdparamsVariable, 1)
-		var reduceOnly any = this.SafeBool2(params, "reduceOnly", "reduce_only")
-		var timeInForce any = this.SafeStringLower2(params, "timeInForce", "time_in_force")
-		var postOnly any = this.SafeBool(params, "postOnly")
-		var orderType any = ToLower(typeVar)
-		var orderSide any = ToLower(side)
-		var nonce any = this.Milliseconds()
-		var signatureExpiry any = this.SafeNumber(params, "signature_expiry_sec", Add(this.Seconds(), 7776000))
-		// TODO: subaccount id / trade module address
-		var ACTION_TYPEHASH any = this.Base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17")
-		var sandboxMode any = this.SafeBool(this.Options, "sandboxMode", false)
-		var TRADE_MODULE_ADDRESS any = Ternary(IsTrue((sandboxMode)), "0x87F2863866D85E3192a35A73b388BD625D83f2be", "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b")
-		var priceString any = this.NumberToString(price)
-		var maxFeeString any = this.SafeString(params, "max_fee", "0")
-		var amountString any = this.NumberToString(amount)
-		var tradeModuleDataHash any = this.Hash(this.EthAbiEncode([]any{"address", "uint", "int", "int", "uint", "uint", "bool"}, []any{GetValue(GetValue(market, "info"), "base_asset_address"), this.ParseToNumeric(GetValue(GetValue(market, "info"), "base_asset_sub_id")), this.ConvertToBigInt(this.ParseUnits(priceString)), this.ConvertToBigInt(this.ParseUnits(this.AmountToPrecision(symbol, amountString))), this.ConvertToBigInt(this.ParseUnits(maxFeeString)), subaccountId, IsEqual(orderSide, "buy")}), keccak, "binary")
-		var deriveWalletAddress any = nil
-		deriveWalletAddressparamsVariable := this.HandleDeriveWalletAddress("editOrder", params)
-		deriveWalletAddress = GetValue(deriveWalletAddressparamsVariable, 0)
-		params = GetValue(deriveWalletAddressparamsVariable, 1)
-		var signature any = this.SignOrder([]any{ACTION_TYPEHASH, subaccountId, nonce, TRADE_MODULE_ADDRESS, tradeModuleDataHash, signatureExpiry, deriveWalletAddress, this.WalletAddress}, this.PrivateKey)
-		var request any = map[string]any{
-			"instrument_name":      GetValue(market, "id"),
-			"order_id_to_cancel":   id,
-			"direction":            orderSide,
-			"order_type":           orderType,
-			"nonce":                nonce,
-			"amount":               amountString,
-			"limit_price":          priceString,
-			"max_fee":              maxFeeString,
-			"subaccount_id":        subaccountId,
-			"signature_expiry_sec": signatureExpiry,
-			"signer":               this.WalletAddress,
-		}
-		if IsTrue(!IsEqual(reduceOnly, nil)) {
-			AddElementToObject(request, "reduce_only", reduceOnly)
-			if IsTrue(IsTrue(reduceOnly) && IsTrue(postOnly)) {
-				panic(InvalidOrder(Add(this.Id, " cannot use reduce only with post only time in force")))
-			}
-		}
-		if IsTrue(!IsEqual(postOnly, nil)) {
-			AddElementToObject(request, "time_in_force", "post_only")
-		} else if IsTrue(!IsEqual(timeInForce, nil)) {
-			AddElementToObject(request, "time_in_force", timeInForce)
-		}
-		var clientOrderId any = this.SafeString(params, "clientOrderId")
-		if IsTrue(!IsEqual(clientOrderId, nil)) {
-			AddElementToObject(request, "label", clientOrderId)
-		}
-		AddElementToObject(request, "signature", signature)
-		params = this.Omit(params, []any{"reduceOnly", "reduce_only", "timeInForce", "time_in_force", "postOnly", "clientOrderId"})
-
-		response := (<-this.PrivatePostReplace(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//   {
-		//     "result":
-		//       {
-		//         "cancelled_order":
-		//           {
-		//             "subaccount_id": 130837,
-		//             "order_id": "c2337704-f1af-437d-91c8-dddb9d6bac59",
-		//             "instrument_name": "BTC-PERP",
-		//             "direction": "buy",
-		//             "label": "test1234",
-		//             "quote_id": null,
-		//             "creation_timestamp": 1737539743959,
-		//             "last_update_timestamp": 1737539764234,
-		//             "limit_price": "10000",
-		//             "amount": "0.01",
-		//             "filled_amount": "0",
-		//             "average_price": "0",
-		//             "order_fee": "0",
-		//             "order_type": "limit",
-		//             "time_in_force": "post_only",
-		//             "order_status": "cancelled",
-		//             "max_fee": "211",
-		//             "signature_expiry_sec": 1737540343631,
-		//             "nonce": 1737539743631,
-		//             "signer": "0x30CB7B06AdD6749BbE146A6827502B8f2a79269A",
-		//             "signature": "0xdb669e18f407a3efa816b79c0dd3bac1c651d4dbf3caad4db67678ce9b81c76378d787a08143a30707eb0827ce4626640767c9f174358df1b90611bd6d1391711b",
-		//             "cancel_reason": "user_request",
-		//             "mmp": false,
-		//             "is_transfer": false,
-		//             "replaced_order_id": null,
-		//             "trigger_type": null,
-		//             "trigger_price_type": null,
-		//             "trigger_price": null,
-		//             "trigger_reject_message": null,
-		//           },
-		//         "order":
-		//           {
-		//             "subaccount_id": 130837,
-		//             "order_id": "97af0902-813f-4892-a54b-797e5689db05",
-		//             "instrument_name": "BTC-PERP",
-		//             "direction": "buy",
-		//             "label": "test1234",
-		//             "quote_id": null,
-		//             "creation_timestamp": 1737539764154,
-		//             "last_update_timestamp": 1737539764154,
-		//             "limit_price": "10000",
-		//             "amount": "0.01",
-		//             "filled_amount": "0",
-		//             "average_price": "0",
-		//             "order_fee": "0",
-		//             "order_type": "limit",
-		//             "time_in_force": "post_only",
-		//             "order_status": "open",
-		//             "max_fee": "211",
-		//             "signature_expiry_sec": 1737540363890,
-		//             "nonce": 1737539763890,
-		//             "signer": "0x30CB7B06AdD6749BbE146A6827502B8f2a79269A",
-		//             "signature": "0xef2c459ab4797cbbd7d97b47678ff172542af009bac912bf53e7879cf92eb1aa6b1a6cf40bf0928684f5394942fb424cc2db71eac0eaf7226a72480034332f291c",
-		//             "cancel_reason": "",
-		//             "mmp": false,
-		//             "is_transfer": false,
-		//             "replaced_order_id": "c2337704-f1af-437d-91c8-dddb9d6bac59",
-		//             "trigger_type": null,
-		//             "trigger_price_type": null,
-		//             "trigger_price": null,
-		//             "trigger_reject_message": null,
-		//           },
-		//         "trades": [],
-		//         "create_order_error": null,
-		//       },
-		//     "id": "fb19e991-15f6-4c80-a20c-917e762a1a38",
-		//   }
-		//
-		var result any = this.SafeDict(response, "result")
-		var rawOrder any = this.SafeDict(result, "order", map[string]any{})
-		var order any = this.ParseOrder(rawOrder, market)
-
-		ch <- order
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
+}
+func (this *DeriveCore) editOrderBody(ch chan any, id any, symbol any, typeVar any, side any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	amount := GetArg(optionalArgs, 0, nil)
+	_ = amount
+	price := GetArg(optionalArgs, 1, nil)
+	_ = price
+	params := GetArg(optionalArgs, 2, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes143112 := (<-this.LoadMarkets())
+		PanicOnError(retRes143112)
+	}
+	var market any = this.Market(symbol)
+	var subaccountId any = nil
+	subaccountIdparamsVariable := this.HandleDeriveSubaccountId("editOrder", params)
+	subaccountId = GetValue(subaccountIdparamsVariable, 0)
+	params = GetValue(subaccountIdparamsVariable, 1)
+	var reduceOnly any = this.SafeBool2(params, "reduceOnly", "reduce_only")
+	var timeInForce any = this.SafeStringLower2(params, "timeInForce", "time_in_force")
+	var postOnly any = this.SafeBool(params, "postOnly")
+	var orderType string = ToLower(typeVar)
+	var orderSide string = ToLower(side)
+	var orderSideIsBuy bool = (IsEqual(orderSide, "buy")) // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
+	var nonce int64 = this.Milliseconds()
+	var signatureExpiry any = this.SafeNumber(params, "signature_expiry_sec", Add(this.Seconds(), 7776000))
+	// TODO: subaccount id / trade module address
+	var ACTION_TYPEHASH any = this.Base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17")
+	var sandboxMode any = this.SafeBool(this.Options, "sandboxMode", false)
+	var TRADE_MODULE_ADDRESS any = Ternary(IsTrue((IsEqual(sandboxMode, true))), "0x87F2863866D85E3192a35A73b388BD625D83f2be", "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b")
+	var priceString any = this.NumberToString(price)
+	var maxFeeString any = this.SafeString(params, "max_fee", "0")
+	var amountString any = this.NumberToString(amount)
+	var tradeModuleDataHash any = this.Hash(this.EthAbiEncode([]any{"address", "uint", "int", "int", "uint", "uint", "bool"}, []any{GetValue(GetValue(market, "info"), "base_asset_address"), this.ParseToNumeric(GetValue(GetValue(market, "info"), "base_asset_sub_id")), this.ConvertToBigInt(this.ParseUnits(priceString)), this.ConvertToBigInt(this.ParseUnits(this.AmountToPrecision(symbol, amountString))), this.ConvertToBigInt(this.ParseUnits(maxFeeString)), subaccountId, orderSideIsBuy}), keccak, "binary")
+	var deriveWalletAddress any = nil
+	deriveWalletAddressparamsVariable := this.HandleDeriveWalletAddress("editOrder", params)
+	deriveWalletAddress = GetValue(deriveWalletAddressparamsVariable, 0)
+	params = GetValue(deriveWalletAddressparamsVariable, 1)
+	var signature any = this.SignOrder([]any{ACTION_TYPEHASH, subaccountId, nonce, TRADE_MODULE_ADDRESS, tradeModuleDataHash, signatureExpiry, deriveWalletAddress, this.WalletAddress}, this.PrivateKey)
+	var request map[string]any = map[string]any{
+		"instrument_name":      GetValue(market, "id"),
+		"order_id_to_cancel":   id,
+		"direction":            orderSide,
+		"order_type":           orderType,
+		"nonce":                nonce,
+		"amount":               amountString,
+		"limit_price":          priceString,
+		"max_fee":              maxFeeString,
+		"subaccount_id":        subaccountId,
+		"signature_expiry_sec": signatureExpiry,
+		"signer":               this.WalletAddress,
+	}
+	if IsTrue(!IsEqual(reduceOnly, nil)) {
+		AddElementToObject(request, "reduce_only", reduceOnly)
+		if IsTrue(IsTrue(reduceOnly) && IsTrue((IsEqual(postOnly, true)))) {
+			panic(InvalidOrder(Add(this.Id, " cannot use reduce only with post only time in force")))
+		}
+	}
+	if IsTrue(!IsEqual(postOnly, nil)) {
+		AddElementToObject(request, "time_in_force", "post_only")
+	} else if IsTrue(!IsEqual(timeInForce, nil)) {
+		AddElementToObject(request, "time_in_force", timeInForce)
+	}
+	var clientOrderId any = this.SafeString(params, "clientOrderId")
+	if IsTrue(!IsEqual(clientOrderId, nil)) {
+		AddElementToObject(request, "label", clientOrderId)
+	}
+	AddElementToObject(request, "signature", signature)
+	params = this.Omit(params, []any{"reduceOnly", "reduce_only", "timeInForce", "time_in_force", "postOnly", "clientOrderId"})
+
+	response := (<-this.PrivatePostReplace(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//   {
+	//     "result":
+	//       {
+	//         "cancelled_order":
+	//           {
+	//             "subaccount_id": 130837,
+	//             "order_id": "c2337704-f1af-437d-91c8-dddb9d6bac59",
+	//             "instrument_name": "BTC-PERP",
+	//             "direction": "buy",
+	//             "label": "test1234",
+	//             "quote_id": null,
+	//             "creation_timestamp": 1737539743959,
+	//             "last_update_timestamp": 1737539764234,
+	//             "limit_price": "10000",
+	//             "amount": "0.01",
+	//             "filled_amount": "0",
+	//             "average_price": "0",
+	//             "order_fee": "0",
+	//             "order_type": "limit",
+	//             "time_in_force": "post_only",
+	//             "order_status": "cancelled",
+	//             "max_fee": "211",
+	//             "signature_expiry_sec": 1737540343631,
+	//             "nonce": 1737539743631,
+	//             "signer": "0x30CB7B06AdD6749BbE146A6827502B8f2a79269A",
+	//             "signature": "0xdb669e18f407a3efa816b79c0dd3bac1c651d4dbf3caad4db67678ce9b81c76378d787a08143a30707eb0827ce4626640767c9f174358df1b90611bd6d1391711b",
+	//             "cancel_reason": "user_request",
+	//             "mmp": false,
+	//             "is_transfer": false,
+	//             "replaced_order_id": null,
+	//             "trigger_type": null,
+	//             "trigger_price_type": null,
+	//             "trigger_price": null,
+	//             "trigger_reject_message": null,
+	//           },
+	//         "order":
+	//           {
+	//             "subaccount_id": 130837,
+	//             "order_id": "97af0902-813f-4892-a54b-797e5689db05",
+	//             "instrument_name": "BTC-PERP",
+	//             "direction": "buy",
+	//             "label": "test1234",
+	//             "quote_id": null,
+	//             "creation_timestamp": 1737539764154,
+	//             "last_update_timestamp": 1737539764154,
+	//             "limit_price": "10000",
+	//             "amount": "0.01",
+	//             "filled_amount": "0",
+	//             "average_price": "0",
+	//             "order_fee": "0",
+	//             "order_type": "limit",
+	//             "time_in_force": "post_only",
+	//             "order_status": "open",
+	//             "max_fee": "211",
+	//             "signature_expiry_sec": 1737540363890,
+	//             "nonce": 1737539763890,
+	//             "signer": "0x30CB7B06AdD6749BbE146A6827502B8f2a79269A",
+	//             "signature": "0xef2c459ab4797cbbd7d97b47678ff172542af009bac912bf53e7879cf92eb1aa6b1a6cf40bf0928684f5394942fb424cc2db71eac0eaf7226a72480034332f291c",
+	//             "cancel_reason": "",
+	//             "mmp": false,
+	//             "is_transfer": false,
+	//             "replaced_order_id": "c2337704-f1af-437d-91c8-dddb9d6bac59",
+	//             "trigger_type": null,
+	//             "trigger_price_type": null,
+	//             "trigger_price": null,
+	//             "trigger_reject_message": null,
+	//           },
+	//         "trades": [],
+	//         "create_order_error": null,
+	//       },
+	//     "id": "fb19e991-15f6-4c80-a20c-917e762a1a38",
+	//   }
+	//
+	var result any = this.SafeDict(response, "result")
+	var rawOrder any = this.SafeDict(result, "order", map[string]any{})
+	var order any = this.ParseOrder(rawOrder, market)
+
+	ch <- order
+	return nil
 }
 
 /**
@@ -1967,111 +1969,111 @@ func (this *DeriveCore) EditOrder(id any, symbol any, typeVar any, side any, opt
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *DeriveCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(symbol, nil)) {
-			panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument")))
-		}
-		if IsTrue(IsEqual(this.Markets, nil)) {
+	ch := make(chan any, 1)
+	go this.cancelOrderBody(ch, id, optionalArgs...)
+	return ch
+}
+func (this *DeriveCore) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(symbol, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument")))
+	}
+	if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes160012 := (<-this.LoadMarkets())
-			PanicOnError(retRes160012)
-		}
-		var market any = this.Market(symbol)
-		var isTrigger any = this.SafeBool2(params, "trigger", "stop", false)
-		var subaccountId any = nil
-		subaccountIdparamsVariable := this.HandleDeriveSubaccountId("cancelOrder", params)
-		subaccountId = GetValue(subaccountIdparamsVariable, 0)
-		params = GetValue(subaccountIdparamsVariable, 1)
-		params = this.Omit(params, []any{"trigger", "stop"})
-		var request any = map[string]any{
-			"instrument_name": GetValue(market, "id"),
-			"subaccount_id":   subaccountId,
-		}
-		var clientOrderIdUnified any = this.SafeString(params, "clientOrderId")
-		var clientOrderIdExchangeSpecific any = this.SafeString(params, "label", clientOrderIdUnified)
-		var isByClientOrder any = !IsEqual(clientOrderIdExchangeSpecific, nil)
-		var response any = nil
-		if IsTrue(isByClientOrder) {
-			AddElementToObject(request, "label", clientOrderIdExchangeSpecific)
-			params = this.Omit(params, []any{"clientOrderId", "label"})
+		retRes160212 := (<-this.LoadMarkets())
+		PanicOnError(retRes160212)
+	}
+	var market any = this.Market(symbol)
+	var isTrigger any = this.SafeBool2(params, "trigger", "stop", false)
+	var subaccountId any = nil
+	subaccountIdparamsVariable := this.HandleDeriveSubaccountId("cancelOrder", params)
+	subaccountId = GetValue(subaccountIdparamsVariable, 0)
+	params = GetValue(subaccountIdparamsVariable, 1)
+	params = this.Omit(params, []any{"trigger", "stop"})
+	var request map[string]any = map[string]any{
+		"instrument_name": GetValue(market, "id"),
+		"subaccount_id":   subaccountId,
+	}
+	var clientOrderIdUnified any = this.SafeString(params, "clientOrderId")
+	var clientOrderIdExchangeSpecific any = this.SafeString(params, "label", clientOrderIdUnified)
+	var isByClientOrder any = !IsEqual(clientOrderIdExchangeSpecific, nil)
+	var response any = nil
+	if IsTrue(isByClientOrder) {
+		AddElementToObject(request, "label", clientOrderIdExchangeSpecific)
+		params = this.Omit(params, []any{"clientOrderId", "label"})
 
-			response = (<-this.PrivatePostCancelByLabel(this.Extend(request, params)))
+		response = (<-this.PrivatePostCancelByLabel(this.Extend(request, params)))
+		PanicOnError(response)
+	} else {
+		AddElementToObject(request, "order_id", id)
+		if IsTrue(IsEqual(isTrigger, true)) {
+
+			response = (<-this.PrivatePostCancelTriggerOrder(this.Extend(request, params)))
 			PanicOnError(response)
 		} else {
-			AddElementToObject(request, "order_id", id)
-			if IsTrue(isTrigger) {
 
-				response = (<-this.PrivatePostCancelTriggerOrder(this.Extend(request, params)))
-				PanicOnError(response)
-			} else {
-
-				response = (<-this.PrivatePostCancel(this.Extend(request, params)))
-				PanicOnError(response)
-			}
+			response = (<-this.PrivatePostCancel(this.Extend(request, params)))
+			PanicOnError(response)
 		}
-		//
-		// {
-		//     "result": {
-		//         "subaccount_id": 130837,
-		//         "order_id": "de4f30b6-0dcb-4df6-9222-c1a27f1ad80d",
-		//         "instrument_name": "BTC-PERP",
-		//         "direction": "buy",
-		//         "label": "test1234",
-		//         "quote_id": null,
-		//         "creation_timestamp": 1737540100989,
-		//         "last_update_timestamp": 1737540574696,
-		//         "limit_price": "10000",
-		//         "amount": "0.01",
-		//         "filled_amount": "0",
-		//         "average_price": "0",
-		//         "order_fee": "0",
-		//         "order_type": "limit",
-		//         "time_in_force": "post_only",
-		//         "order_status": "cancelled",
-		//         "max_fee": "211",
-		//         "signature_expiry_sec": 1737540700726,
-		//         "nonce": 1737540100726,
-		//         "signer": "0x30CB7B06AdD6749BbE146A6827502B8f2a79269A",
-		//         "signature": "0x9cd1a6e32a0699929e4e090c08c548366b1353701ec56e02d5cdf37fc89bd19b7b29e00e57e8383bb6336d73019027a7e2a4364f40859e7a949115024c7f199a1b",
-		//         "cancel_reason": "user_request",
-		//         "mmp": false,
-		//         "is_transfer": false,
-		//         "replaced_order_id": "4ccc89ba-3c3d-4047-8900-0aa5fb4ef706",
-		//         "trigger_type": null,
-		//         "trigger_price_type": null,
-		//         "trigger_price": null,
-		//         "trigger_reject_message": null
-		//     },
-		//     "id": "cef61e2a-cb13-4779-8e6b-535361981fad"
-		// }
-		//
-		// {
-		//     "result": {
-		//         "cancelled_orders": 1
-		//     },
-		//     "id": "674e075e-1e8a-4a47-99ff-75efbdd2370f"
-		// }
-		//
-		var extendParams any = map[string]any{
-			"symbol": symbol,
-		}
-		var order any = this.SafeDict(response, "result", map[string]any{})
-		if IsTrue(isByClientOrder) {
-			AddElementToObject(extendParams, "client_order_id", clientOrderIdExchangeSpecific)
-		}
+	}
+	//
+	// {
+	//     "result": {
+	//         "subaccount_id": 130837,
+	//         "order_id": "de4f30b6-0dcb-4df6-9222-c1a27f1ad80d",
+	//         "instrument_name": "BTC-PERP",
+	//         "direction": "buy",
+	//         "label": "test1234",
+	//         "quote_id": null,
+	//         "creation_timestamp": 1737540100989,
+	//         "last_update_timestamp": 1737540574696,
+	//         "limit_price": "10000",
+	//         "amount": "0.01",
+	//         "filled_amount": "0",
+	//         "average_price": "0",
+	//         "order_fee": "0",
+	//         "order_type": "limit",
+	//         "time_in_force": "post_only",
+	//         "order_status": "cancelled",
+	//         "max_fee": "211",
+	//         "signature_expiry_sec": 1737540700726,
+	//         "nonce": 1737540100726,
+	//         "signer": "0x30CB7B06AdD6749BbE146A6827502B8f2a79269A",
+	//         "signature": "0x9cd1a6e32a0699929e4e090c08c548366b1353701ec56e02d5cdf37fc89bd19b7b29e00e57e8383bb6336d73019027a7e2a4364f40859e7a949115024c7f199a1b",
+	//         "cancel_reason": "user_request",
+	//         "mmp": false,
+	//         "is_transfer": false,
+	//         "replaced_order_id": "4ccc89ba-3c3d-4047-8900-0aa5fb4ef706",
+	//         "trigger_type": null,
+	//         "trigger_price_type": null,
+	//         "trigger_price": null,
+	//         "trigger_reject_message": null
+	//     },
+	//     "id": "cef61e2a-cb13-4779-8e6b-535361981fad"
+	// }
+	//
+	// {
+	//     "result": {
+	//         "cancelled_orders": 1
+	//     },
+	//     "id": "674e075e-1e8a-4a47-99ff-75efbdd2370f"
+	// }
+	//
+	var extendParams map[string]any = map[string]any{
+		"symbol": symbol,
+	}
+	var order any = this.SafeDict(response, "result", map[string]any{})
+	if IsTrue(isByClientOrder) {
+		AddElementToObject(extendParams, "client_order_id", clientOrderIdExchangeSpecific)
+	}
 
-		ch <- this.Extend(this.ParseOrder(order, market), extendParams)
-		return nil
-
-	}()
-	return ch
+	ch <- this.Extend(this.ParseOrder(order, market), extendParams)
+	return nil
 }
 
 /**
@@ -2086,62 +2088,62 @@ func (this *DeriveCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *DeriveCore) CancelAllOrders(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes169112 := (<-this.LoadMarkets())
-			PanicOnError(retRes169112)
-		}
-		var market any = nil
-		if IsTrue(!IsEqual(symbol, nil)) {
-			market = this.Market(symbol)
-		}
-		var subaccountId any = nil
-		subaccountIdparamsVariable := this.HandleDeriveSubaccountId("cancelAllOrders", params)
-		subaccountId = GetValue(subaccountIdparamsVariable, 0)
-		params = GetValue(subaccountIdparamsVariable, 1)
-		var request any = map[string]any{
-			"subaccount_id": subaccountId,
-		}
-		var response any = nil
-		if IsTrue(!IsEqual(market, nil)) {
-			AddElementToObject(request, "instrument_name", GetValue(market, "id"))
-
-			response = (<-this.PrivatePostCancelByInstrument(this.Extend(request, params)))
-			PanicOnError(response)
-		} else {
-
-			response = (<-this.PrivatePostCancelAll(this.Extend(request, params)))
-			PanicOnError(response)
-		}
-
-		//
-		// {
-		//     "result": {
-		//         "cancelled_orders": 0
-		//     },
-		//     "id": "9d633799-2098-4559-b547-605bb6f4d8f5"
-		// }
-		//
-		// {
-		//     "id": "45548646-c74f-4ca2-9de4-551e6de49afa",
-		//     "result": "ok"
-		// }
-		//
-		ch <- []any{this.SafeOrder(map[string]any{
-			"info": response,
-		})}
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.cancelAllOrdersBody(ch, optionalArgs...)
 	return ch
+}
+func (this *DeriveCore) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes169312 := (<-this.LoadMarkets())
+		PanicOnError(retRes169312)
+	}
+	var market any = nil
+	if IsTrue(!IsEqual(symbol, nil)) {
+		market = this.Market(symbol)
+	}
+	var subaccountId any = nil
+	subaccountIdparamsVariable := this.HandleDeriveSubaccountId("cancelAllOrders", params)
+	subaccountId = GetValue(subaccountIdparamsVariable, 0)
+	params = GetValue(subaccountIdparamsVariable, 1)
+	var request map[string]any = map[string]any{
+		"subaccount_id": subaccountId,
+	}
+	var response any = nil
+	if IsTrue(!IsEqual(market, nil)) {
+		AddElementToObject(request, "instrument_name", GetValue(market, "id"))
+
+		response = (<-this.PrivatePostCancelByInstrument(this.Extend(request, params)))
+		PanicOnError(response)
+	} else {
+
+		response = (<-this.PrivatePostCancelAll(this.Extend(request, params)))
+		PanicOnError(response)
+	}
+
+	//
+	// {
+	//     "result": {
+	//         "cancelled_orders": 0
+	//     },
+	//     "id": "9d633799-2098-4559-b547-605bb6f4d8f5"
+	// }
+	//
+	// {
+	//     "id": "45548646-c74f-4ca2-9de4-551e6de49afa",
+	//     "result": "ok"
+	// }
+	//
+	ch <- []any{this.SafeOrder(map[string]any{
+		"info": response,
+	})}
+	return nil
 }
 
 /**
@@ -2159,122 +2161,122 @@ func (this *DeriveCore) CancelAllOrders(optionalArgs ...any) <-chan any {
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *DeriveCore) FetchOrders(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
+	ch := make(chan any, 1)
+	go this.fetchOrdersBody(ch, optionalArgs...)
+	return ch
+}
+func (this *DeriveCore) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes174112 := (<-this.LoadMarkets())
-			PanicOnError(retRes174112)
-		}
-		var paginate any = false
-		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOrders", "paginate")
-		paginate = GetValue(paginateparamsVariable, 0)
-		params = GetValue(paginateparamsVariable, 1)
-		if IsTrue(paginate) {
+		retRes174312 := (<-this.LoadMarkets())
+		PanicOnError(retRes174312)
+	}
+	var paginate any = false
+	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOrders", "paginate")
+	paginate = GetValue(paginateparamsVariable, 0)
+	params = GetValue(paginateparamsVariable, 1)
+	if IsTrue(paginate) {
 
-			retRes174619 := (<-this.FetchPaginatedCallIncremental("fetchOrders", symbol, since, limit, params, "page", 500))
-			PanicOnError(retRes174619)
-			ch <- retRes174619
+		retRes174819 := (<-this.FetchPaginatedCallIncremental("fetchOrders", symbol, since, limit, params, "page", 500))
+		PanicOnError(retRes174819)
+		ch <- retRes174819
+		return nil
+	}
+	var isTrigger any = this.SafeBool2(params, "trigger", "stop", false)
+	params = this.Omit(params, []any{"trigger", "stop"})
+	var subaccountId any = nil
+	subaccountIdparamsVariable := this.HandleDeriveSubaccountId("fetchOrders", params)
+	subaccountId = GetValue(subaccountIdparamsVariable, 0)
+	params = GetValue(subaccountIdparamsVariable, 1)
+	var request map[string]any = map[string]any{
+		"subaccount_id": subaccountId,
+	}
+	var market any = nil
+	if IsTrue(!IsEqual(symbol, nil)) {
+		market = this.Market(symbol)
+		AddElementToObject(request, "instrument_name", GetValue(market, "id"))
+	}
+	if IsTrue(!IsEqual(limit, nil)) {
+		AddElementToObject(request, "page_size", limit)
+	} else {
+		AddElementToObject(request, "page_size", 500)
+	}
+	if IsTrue(IsEqual(isTrigger, true)) {
+		AddElementToObject(request, "status", "untriggered")
+	}
+
+	response := (<-this.PrivatePostGetOrders(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	// {
+	//     "result": {
+	//         "subaccount_id": 130837,
+	//         "orders": [
+	//             {
+	//                 "subaccount_id": 130837,
+	//                 "order_id": "63a80cb8-387b-472b-a838-71cd9513c365",
+	//                 "instrument_name": "BTC-PERP",
+	//                 "direction": "buy",
+	//                 "label": "test1234",
+	//                 "quote_id": null,
+	//                 "creation_timestamp": 1737551053207,
+	//                 "last_update_timestamp": 1737551053207,
+	//                 "limit_price": "10000",
+	//                 "amount": "0.01",
+	//                 "filled_amount": "0",
+	//                 "average_price": "0",
+	//                 "order_fee": "0",
+	//                 "order_type": "limit",
+	//                 "time_in_force": "post_only",
+	//                 "order_status": "open",
+	//                 "max_fee": "211",
+	//                 "signature_expiry_sec": 1737551652765,
+	//                 "nonce": 1737551052765,
+	//                 "signer": "0x30CB7B06AdD6749BbE146A6827502B8f2a79269A",
+	//                 "signature": "0x35535ccb1bcad509ecc435c79e966174db6403fc9aeee1e237d08a941014c57b59279dfe4be39e081f9921a53eaad59cb2a151d9f52f2d05fc47e6280254952e1c",
+	//                 "cancel_reason": "",
+	//                 "mmp": false,
+	//                 "is_transfer": false,
+	//                 "replaced_order_id": null,
+	//                 "trigger_type": null,
+	//                 "trigger_price_type": null,
+	//                 "trigger_price": null,
+	//                 "trigger_reject_message": null
+	//             }
+	//         ],
+	//         "pagination": {
+	//             "num_pages": 1,
+	//             "count": 1
+	//         }
+	//     },
+	//     "id": "e5a88d4f-7ac7-40cd-aec9-e0e8152b8b92"
+	// }
+	//
+	var data any = this.SafeValue(response, "result")
+	var page any = this.SafeInteger(params, "page")
+	if IsTrue(!IsEqual(page, nil)) {
+		var pagination any = this.SafeDict(data, "pagination")
+		var currentPage any = this.SafeInteger(pagination, "num_pages", 0)
+		if IsTrue(IsGreaterThan(page, currentPage)) {
+
+			ch <- []any{}
 			return nil
 		}
-		var isTrigger any = this.SafeBool2(params, "trigger", "stop", false)
-		params = this.Omit(params, []any{"trigger", "stop"})
-		var subaccountId any = nil
-		subaccountIdparamsVariable := this.HandleDeriveSubaccountId("fetchOrders", params)
-		subaccountId = GetValue(subaccountIdparamsVariable, 0)
-		params = GetValue(subaccountIdparamsVariable, 1)
-		var request any = map[string]any{
-			"subaccount_id": subaccountId,
-		}
-		var market any = nil
-		if IsTrue(!IsEqual(symbol, nil)) {
-			market = this.Market(symbol)
-			AddElementToObject(request, "instrument_name", GetValue(market, "id"))
-		}
-		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "page_size", limit)
-		} else {
-			AddElementToObject(request, "page_size", 500)
-		}
-		if IsTrue(isTrigger) {
-			AddElementToObject(request, "status", "untriggered")
-		}
+	}
+	var orders any = this.SafeList(data, "orders", []any{})
 
-		response := (<-this.PrivatePostGetOrders(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		// {
-		//     "result": {
-		//         "subaccount_id": 130837,
-		//         "orders": [
-		//             {
-		//                 "subaccount_id": 130837,
-		//                 "order_id": "63a80cb8-387b-472b-a838-71cd9513c365",
-		//                 "instrument_name": "BTC-PERP",
-		//                 "direction": "buy",
-		//                 "label": "test1234",
-		//                 "quote_id": null,
-		//                 "creation_timestamp": 1737551053207,
-		//                 "last_update_timestamp": 1737551053207,
-		//                 "limit_price": "10000",
-		//                 "amount": "0.01",
-		//                 "filled_amount": "0",
-		//                 "average_price": "0",
-		//                 "order_fee": "0",
-		//                 "order_type": "limit",
-		//                 "time_in_force": "post_only",
-		//                 "order_status": "open",
-		//                 "max_fee": "211",
-		//                 "signature_expiry_sec": 1737551652765,
-		//                 "nonce": 1737551052765,
-		//                 "signer": "0x30CB7B06AdD6749BbE146A6827502B8f2a79269A",
-		//                 "signature": "0x35535ccb1bcad509ecc435c79e966174db6403fc9aeee1e237d08a941014c57b59279dfe4be39e081f9921a53eaad59cb2a151d9f52f2d05fc47e6280254952e1c",
-		//                 "cancel_reason": "",
-		//                 "mmp": false,
-		//                 "is_transfer": false,
-		//                 "replaced_order_id": null,
-		//                 "trigger_type": null,
-		//                 "trigger_price_type": null,
-		//                 "trigger_price": null,
-		//                 "trigger_reject_message": null
-		//             }
-		//         ],
-		//         "pagination": {
-		//             "num_pages": 1,
-		//             "count": 1
-		//         }
-		//     },
-		//     "id": "e5a88d4f-7ac7-40cd-aec9-e0e8152b8b92"
-		// }
-		//
-		var data any = this.SafeValue(response, "result")
-		var page any = this.SafeInteger(params, "page")
-		if IsTrue(!IsEqual(page, nil)) {
-			var pagination any = this.SafeDict(data, "pagination")
-			var currentPage any = this.SafeInteger(pagination, "num_pages", 0)
-			if IsTrue(IsGreaterThan(page, currentPage)) {
-
-				ch <- []any{}
-				return nil
-			}
-		}
-		var orders any = this.SafeList(data, "orders", []any{})
-
-		ch <- this.ParseOrders(orders, market, since, limit)
-		return nil
-
-	}()
-	return ch
+	ch <- this.ParseOrders(orders, market, since, limit)
+	return nil
 }
 
 /**
@@ -2290,34 +2292,34 @@ func (this *DeriveCore) FetchOrders(optionalArgs ...any) <-chan any {
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *DeriveCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes184112 := (<-this.LoadMarkets())
-			PanicOnError(retRes184112)
-		}
-		var extendedParams any = this.Extend(params, map[string]any{
-			"status": "open",
-		})
-
-		retRes184415 := (<-this.FetchOrders(symbol, since, limit, extendedParams))
-		PanicOnError(retRes184415)
-		ch <- retRes184415
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOpenOrdersBody(ch, optionalArgs...)
 	return ch
+}
+func (this *DeriveCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes184312 := (<-this.LoadMarkets())
+		PanicOnError(retRes184312)
+	}
+	var extendedParams map[string]any = this.Extend(params, map[string]any{
+		"status": "open",
+	})
+
+	retRes184615 := (<-this.FetchOrders(symbol, since, limit, extendedParams))
+	PanicOnError(retRes184615)
+	ch <- retRes184615
+	return nil
 }
 
 /**
@@ -2333,34 +2335,34 @@ func (this *DeriveCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *DeriveCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes186112 := (<-this.LoadMarkets())
-			PanicOnError(retRes186112)
-		}
-		var extendedParams any = this.Extend(params, map[string]any{
-			"status": "filled",
-		})
-
-		retRes186415 := (<-this.FetchOrders(symbol, since, limit, extendedParams))
-		PanicOnError(retRes186415)
-		ch <- retRes186415
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchClosedOrdersBody(ch, optionalArgs...)
 	return ch
+}
+func (this *DeriveCore) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes186312 := (<-this.LoadMarkets())
+		PanicOnError(retRes186312)
+	}
+	var extendedParams map[string]any = this.Extend(params, map[string]any{
+		"status": "filled",
+	})
+
+	retRes186615 := (<-this.FetchOrders(symbol, since, limit, extendedParams))
+	PanicOnError(retRes186615)
+	ch <- retRes186615
+	return nil
 }
 
 /**
@@ -2376,37 +2378,37 @@ func (this *DeriveCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *DeriveCore) FetchCanceledOrders(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes188112 := (<-this.LoadMarkets())
-			PanicOnError(retRes188112)
-		}
-		var extendedParams any = this.Extend(params, map[string]any{
-			"status": "cancelled",
-		})
-
-		retRes188415 := (<-this.FetchOrders(symbol, since, limit, extendedParams))
-		PanicOnError(retRes188415)
-		ch <- retRes188415
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchCanceledOrdersBody(ch, optionalArgs...)
 	return ch
 }
+func (this *DeriveCore) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes188312 := (<-this.LoadMarkets())
+		PanicOnError(retRes188312)
+	}
+	var extendedParams map[string]any = this.Extend(params, map[string]any{
+		"status": "cancelled",
+	})
+
+	retRes188615 := (<-this.FetchOrders(symbol, since, limit, extendedParams))
+	PanicOnError(retRes188615)
+	ch <- retRes188615
+	return nil
+}
 func (this *DeriveCore) ParseTimeInForce(timeInForce any) any {
-	var timeInForces any = map[string]any{
+	var timeInForces map[string]any = map[string]any{
 		"ioc":       "IOC",
 		"fok":       "FOK",
 		"gtc":       "GTC",
@@ -2416,7 +2418,7 @@ func (this *DeriveCore) ParseTimeInForce(timeInForce any) any {
 }
 func (this *DeriveCore) ParseOrderStatus(status any) any {
 	if IsTrue(!IsEqual(status, nil)) {
-		var statuses any = map[string]any{
+		var statuses map[string]any = map[string]any{
 			"open":        "open",
 			"untriggered": "open",
 			"filled":      "closed",
@@ -2501,7 +2503,7 @@ func (this *DeriveCore) ParseOrder(rawOrder any, optionalArgs ...any) any {
 	var isBid any = this.SafeBool(order, "is_bid")
 	var side any = this.SafeString(order, "direction")
 	if IsTrue(IsEqual(side, nil)) {
-		if IsTrue(isBid) {
+		if IsTrue(IsEqual(isBid, true)) {
 			side = "buy"
 		} else {
 			side = "sell"
@@ -2568,89 +2570,89 @@ func (this *DeriveCore) ParseOrder(rawOrder any, optionalArgs ...any) any {
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *DeriveCore) FetchOrderTrades(id any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes205112 := (<-this.LoadMarkets())
-			PanicOnError(retRes205112)
-		}
-		var subaccountId any = nil
-		subaccountIdparamsVariable := this.HandleDeriveSubaccountId("fetchOrderTrades", params)
-		subaccountId = GetValue(subaccountIdparamsVariable, 0)
-		params = GetValue(subaccountIdparamsVariable, 1)
-		var request any = map[string]any{
-			"order_id":      id,
-			"subaccount_id": subaccountId,
-		}
-		var market any = nil
-		if IsTrue(!IsEqual(symbol, nil)) {
-			market = this.Market(symbol)
-			AddElementToObject(request, "instrument_name", GetValue(market, "id"))
-		}
-		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "page_size", limit)
-		}
-		if IsTrue(!IsEqual(since, nil)) {
-			AddElementToObject(request, "from_timestamp", since)
-		}
-
-		response := (<-this.PrivatePostGetTradeHistory(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		// {
-		//     "result": {
-		//         "subaccount_id": 130837,
-		//         "trades": [
-		//             {
-		//                 "subaccount_id": 130837,
-		//                 "order_id": "30c48194-8d48-43ac-ad00-0d5ba29eddc9",
-		//                 "instrument_name": "BTC-PERP",
-		//                 "direction": "sell",
-		//                 "label": "test1234",
-		//                 "quote_id": null,
-		//                 "trade_id": "f8a30740-488c-4c2d-905d-e17057bafde1",
-		//                 "timestamp": 1738065303708,
-		//                 "mark_price": "102740.137375457314192317",
-		//                 "index_price": "102741.553409299981533184",
-		//                 "trade_price": "102700.6",
-		//                 "trade_amount": "0.01",
-		//                 "liquidity_role": "taker",
-		//                 "realized_pnl": "0",
-		//                 "realized_pnl_excl_fees": "0",
-		//                 "is_transfer": false,
-		//                 "tx_status": "settled",
-		//                 "trade_fee": "1.127415534092999815",
-		//                 "tx_hash": "0xc55df1f07330faf86579bd8a6385391fbe9e73089301149d8550e9d29c9ead74",
-		//                 "transaction_id": "e18b9426-3fa5-41bb-99d3-8b54fb4d51bb"
-		//             }
-		//         ],
-		//         "pagination": {
-		//             "num_pages": 1,
-		//             "count": 1
-		//         }
-		//     },
-		//     "id": "a16f798c-a121-44e2-b77e-c38a063f8a99"
-		// }
-		//
-		var result any = this.SafeDict(response, "result", map[string]any{})
-		var trades any = this.SafeList(result, "trades", []any{})
-
-		ch <- this.ParseTrades(trades, market, since, limit, params)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOrderTradesBody(ch, id, optionalArgs...)
 	return ch
+}
+func (this *DeriveCore) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes205312 := (<-this.LoadMarkets())
+		PanicOnError(retRes205312)
+	}
+	var subaccountId any = nil
+	subaccountIdparamsVariable := this.HandleDeriveSubaccountId("fetchOrderTrades", params)
+	subaccountId = GetValue(subaccountIdparamsVariable, 0)
+	params = GetValue(subaccountIdparamsVariable, 1)
+	var request map[string]any = map[string]any{
+		"order_id":      id,
+		"subaccount_id": subaccountId,
+	}
+	var market any = nil
+	if IsTrue(!IsEqual(symbol, nil)) {
+		market = this.Market(symbol)
+		AddElementToObject(request, "instrument_name", GetValue(market, "id"))
+	}
+	if IsTrue(!IsEqual(limit, nil)) {
+		AddElementToObject(request, "page_size", limit)
+	}
+	if IsTrue(!IsEqual(since, nil)) {
+		AddElementToObject(request, "from_timestamp", since)
+	}
+
+	response := (<-this.PrivatePostGetTradeHistory(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	// {
+	//     "result": {
+	//         "subaccount_id": 130837,
+	//         "trades": [
+	//             {
+	//                 "subaccount_id": 130837,
+	//                 "order_id": "30c48194-8d48-43ac-ad00-0d5ba29eddc9",
+	//                 "instrument_name": "BTC-PERP",
+	//                 "direction": "sell",
+	//                 "label": "test1234",
+	//                 "quote_id": null,
+	//                 "trade_id": "f8a30740-488c-4c2d-905d-e17057bafde1",
+	//                 "timestamp": 1738065303708,
+	//                 "mark_price": "102740.137375457314192317",
+	//                 "index_price": "102741.553409299981533184",
+	//                 "trade_price": "102700.6",
+	//                 "trade_amount": "0.01",
+	//                 "liquidity_role": "taker",
+	//                 "realized_pnl": "0",
+	//                 "realized_pnl_excl_fees": "0",
+	//                 "is_transfer": false,
+	//                 "tx_status": "settled",
+	//                 "trade_fee": "1.127415534092999815",
+	//                 "tx_hash": "0xc55df1f07330faf86579bd8a6385391fbe9e73089301149d8550e9d29c9ead74",
+	//                 "transaction_id": "e18b9426-3fa5-41bb-99d3-8b54fb4d51bb"
+	//             }
+	//         ],
+	//         "pagination": {
+	//             "num_pages": 1,
+	//             "count": 1
+	//         }
+	//     },
+	//     "id": "a16f798c-a121-44e2-b77e-c38a063f8a99"
+	// }
+	//
+	var result any = this.SafeDict(response, "result", map[string]any{})
+	var trades any = this.SafeList(result, "trades", []any{})
+
+	ch <- this.ParseTrades(trades, market, since, limit, params)
+	return nil
 }
 
 /**
@@ -2667,109 +2669,109 @@ func (this *DeriveCore) FetchOrderTrades(id any, optionalArgs ...any) <-chan any
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *DeriveCore) FetchMyTrades(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
+	ch := make(chan any, 1)
+	go this.fetchMyTradesBody(ch, optionalArgs...)
+	return ch
+}
+func (this *DeriveCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes212712 := (<-this.LoadMarkets())
-			PanicOnError(retRes212712)
-		}
-		var paginate any = false
-		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
-		paginate = GetValue(paginateparamsVariable, 0)
-		params = GetValue(paginateparamsVariable, 1)
-		if IsTrue(paginate) {
+		retRes212912 := (<-this.LoadMarkets())
+		PanicOnError(retRes212912)
+	}
+	var paginate any = false
+	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
+	paginate = GetValue(paginateparamsVariable, 0)
+	params = GetValue(paginateparamsVariable, 1)
+	if IsTrue(paginate) {
 
-			retRes213219 := (<-this.FetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, params, "page", 500))
-			PanicOnError(retRes213219)
-			ch <- retRes213219
+		retRes213419 := (<-this.FetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, params, "page", 500))
+		PanicOnError(retRes213419)
+		ch <- retRes213419
+		return nil
+	}
+	var subaccountId any = nil
+	subaccountIdparamsVariable := this.HandleDeriveSubaccountId("fetchMyTrades", params)
+	subaccountId = GetValue(subaccountIdparamsVariable, 0)
+	params = GetValue(subaccountIdparamsVariable, 1)
+	var request map[string]any = map[string]any{
+		"subaccount_id": subaccountId,
+	}
+	var market any = nil
+	if IsTrue(!IsEqual(symbol, nil)) {
+		market = this.Market(symbol)
+		AddElementToObject(request, "instrument_name", GetValue(market, "id"))
+	}
+	if IsTrue(!IsEqual(limit, nil)) {
+		AddElementToObject(request, "page_size", limit)
+	}
+	if IsTrue(!IsEqual(since, nil)) {
+		AddElementToObject(request, "from_timestamp", since)
+	}
+
+	response := (<-this.PrivatePostGetTradeHistory(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	// {
+	//     "result": {
+	//         "subaccount_id": 130837,
+	//         "trades": [
+	//             {
+	//                 "subaccount_id": 130837,
+	//                 "order_id": "30c48194-8d48-43ac-ad00-0d5ba29eddc9",
+	//                 "instrument_name": "BTC-PERP",
+	//                 "direction": "sell",
+	//                 "label": "test1234",
+	//                 "quote_id": null,
+	//                 "trade_id": "f8a30740-488c-4c2d-905d-e17057bafde1",
+	//                 "timestamp": 1738065303708,
+	//                 "mark_price": "102740.137375457314192317",
+	//                 "index_price": "102741.553409299981533184",
+	//                 "trade_price": "102700.6",
+	//                 "trade_amount": "0.01",
+	//                 "liquidity_role": "taker",
+	//                 "realized_pnl": "0",
+	//                 "realized_pnl_excl_fees": "0",
+	//                 "is_transfer": false,
+	//                 "tx_status": "settled",
+	//                 "trade_fee": "1.127415534092999815",
+	//                 "tx_hash": "0xc55df1f07330faf86579bd8a6385391fbe9e73089301149d8550e9d29c9ead74",
+	//                 "transaction_id": "e18b9426-3fa5-41bb-99d3-8b54fb4d51bb"
+	//             }
+	//         ],
+	//         "pagination": {
+	//             "num_pages": 1,
+	//             "count": 1
+	//         }
+	//     },
+	//     "id": "a16f798c-a121-44e2-b77e-c38a063f8a99"
+	// }
+	//
+	var result any = this.SafeDict(response, "result", map[string]any{})
+	var page any = this.SafeInteger(params, "page")
+	if IsTrue(!IsEqual(page, nil)) {
+		var pagination any = this.SafeDict(result, "pagination")
+		var currentPage any = this.SafeInteger(pagination, "num_pages", 0)
+		if IsTrue(IsGreaterThan(page, currentPage)) {
+
+			ch <- []any{}
 			return nil
 		}
-		var subaccountId any = nil
-		subaccountIdparamsVariable := this.HandleDeriveSubaccountId("fetchMyTrades", params)
-		subaccountId = GetValue(subaccountIdparamsVariable, 0)
-		params = GetValue(subaccountIdparamsVariable, 1)
-		var request any = map[string]any{
-			"subaccount_id": subaccountId,
-		}
-		var market any = nil
-		if IsTrue(!IsEqual(symbol, nil)) {
-			market = this.Market(symbol)
-			AddElementToObject(request, "instrument_name", GetValue(market, "id"))
-		}
-		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "page_size", limit)
-		}
-		if IsTrue(!IsEqual(since, nil)) {
-			AddElementToObject(request, "from_timestamp", since)
-		}
+	}
+	var trades any = this.SafeList(result, "trades", []any{})
 
-		response := (<-this.PrivatePostGetTradeHistory(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		// {
-		//     "result": {
-		//         "subaccount_id": 130837,
-		//         "trades": [
-		//             {
-		//                 "subaccount_id": 130837,
-		//                 "order_id": "30c48194-8d48-43ac-ad00-0d5ba29eddc9",
-		//                 "instrument_name": "BTC-PERP",
-		//                 "direction": "sell",
-		//                 "label": "test1234",
-		//                 "quote_id": null,
-		//                 "trade_id": "f8a30740-488c-4c2d-905d-e17057bafde1",
-		//                 "timestamp": 1738065303708,
-		//                 "mark_price": "102740.137375457314192317",
-		//                 "index_price": "102741.553409299981533184",
-		//                 "trade_price": "102700.6",
-		//                 "trade_amount": "0.01",
-		//                 "liquidity_role": "taker",
-		//                 "realized_pnl": "0",
-		//                 "realized_pnl_excl_fees": "0",
-		//                 "is_transfer": false,
-		//                 "tx_status": "settled",
-		//                 "trade_fee": "1.127415534092999815",
-		//                 "tx_hash": "0xc55df1f07330faf86579bd8a6385391fbe9e73089301149d8550e9d29c9ead74",
-		//                 "transaction_id": "e18b9426-3fa5-41bb-99d3-8b54fb4d51bb"
-		//             }
-		//         ],
-		//         "pagination": {
-		//             "num_pages": 1,
-		//             "count": 1
-		//         }
-		//     },
-		//     "id": "a16f798c-a121-44e2-b77e-c38a063f8a99"
-		// }
-		//
-		var result any = this.SafeDict(response, "result", map[string]any{})
-		var page any = this.SafeInteger(params, "page")
-		if IsTrue(!IsEqual(page, nil)) {
-			var pagination any = this.SafeDict(result, "pagination")
-			var currentPage any = this.SafeInteger(pagination, "num_pages", 0)
-			if IsTrue(IsGreaterThan(page, currentPage)) {
-
-				ch <- []any{}
-				return nil
-			}
-		}
-		var trades any = this.SafeList(result, "trades", []any{})
-
-		ch <- this.ParseTrades(trades, market, since, limit, params)
-		return nil
-
-	}()
-	return ch
+	ch <- this.ParseTrades(trades, market, since, limit, params)
+	return nil
 }
 
 /**
@@ -2783,76 +2785,76 @@ func (this *DeriveCore) FetchMyTrades(optionalArgs ...any) <-chan any {
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *DeriveCore) FetchPositions(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbols := GetArg(optionalArgs, 0, nil)
-		_ = symbols
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes221212 := (<-this.LoadMarkets())
-			PanicOnError(retRes221212)
-		}
-		var subaccountId any = nil
-		subaccountIdparamsVariable := this.HandleDeriveSubaccountId("fetchPositions", params)
-		subaccountId = GetValue(subaccountIdparamsVariable, 0)
-		params = GetValue(subaccountIdparamsVariable, 1)
-		var request any = map[string]any{
-			"subaccount_id": subaccountId,
-		}
-		params = this.Omit(params, []any{"subaccount_id"})
-
-		response := (<-this.PrivatePostGetPositions(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		// {
-		//     "result": {
-		//         "subaccount_id": 130837,
-		//         "positions": [
-		//             {
-		//                 "instrument_type": "perp",
-		//                 "instrument_name": "BTC-PERP",
-		//                 "amount": "-0.02",
-		//                 "average_price": "102632.9105389869500088",
-		//                 "realized_pnl": "0",
-		//                 "unrealized_pnl": "-2.6455959784245548835819950103759765625",
-		//                 "total_fees": "2.255789220260999824",
-		//                 "average_price_excl_fees": "102745.7",
-		//                 "realized_pnl_excl_fees": "0",
-		//                 "unrealized_pnl_excl_fees": "-0.3898067581635550595819950103759765625",
-		//                 "net_settlements": "-4.032902047219498639",
-		//                 "cumulative_funding": "-0.004677736347850093",
-		//                 "pending_funding": "0",
-		//                 "mark_price": "102765.190337908177752979099750518798828125",
-		//                 "index_price": "102767.657193800017641472",
-		//                 "delta": "1",
-		//                 "gamma": "0",
-		//                 "vega": "0",
-		//                 "theta": "0",
-		//                 "mark_value": "1.38730606879471451975405216217041015625",
-		//                 "maintenance_margin": "-101.37788426911356509663164615631103515625",
-		//                 "initial_margin": "-132.2074413704858670826070010662078857421875",
-		//                 "open_orders_margin": "264.116085900726830004714429378509521484375",
-		//                 "leverage": "8.6954476205089299495699106539379941746377322586618",
-		//                 "liquidation_price": "109125.705451984322280623018741607666015625",
-		//                 "creation_timestamp": 1738065303840
-		//             }
-		//         ]
-		//     },
-		//     "id": "167350f1-d9fc-41d4-9797-1c78f83fda8e"
-		// }
-		//
-		var result any = this.SafeDict(response, "result", map[string]any{})
-		var positions any = this.SafeList(result, "positions", []any{})
-
-		ch <- this.ParsePositions(positions, symbols)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchPositionsBody(ch, optionalArgs...)
 	return ch
+}
+func (this *DeriveCore) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbols := GetArg(optionalArgs, 0, nil)
+	_ = symbols
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes221412 := (<-this.LoadMarkets())
+		PanicOnError(retRes221412)
+	}
+	var subaccountId any = nil
+	subaccountIdparamsVariable := this.HandleDeriveSubaccountId("fetchPositions", params)
+	subaccountId = GetValue(subaccountIdparamsVariable, 0)
+	params = GetValue(subaccountIdparamsVariable, 1)
+	var request map[string]any = map[string]any{
+		"subaccount_id": subaccountId,
+	}
+	params = this.Omit(params, []any{"subaccount_id"})
+
+	response := (<-this.PrivatePostGetPositions(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	// {
+	//     "result": {
+	//         "subaccount_id": 130837,
+	//         "positions": [
+	//             {
+	//                 "instrument_type": "perp",
+	//                 "instrument_name": "BTC-PERP",
+	//                 "amount": "-0.02",
+	//                 "average_price": "102632.9105389869500088",
+	//                 "realized_pnl": "0",
+	//                 "unrealized_pnl": "-2.6455959784245548835819950103759765625",
+	//                 "total_fees": "2.255789220260999824",
+	//                 "average_price_excl_fees": "102745.7",
+	//                 "realized_pnl_excl_fees": "0",
+	//                 "unrealized_pnl_excl_fees": "-0.3898067581635550595819950103759765625",
+	//                 "net_settlements": "-4.032902047219498639",
+	//                 "cumulative_funding": "-0.004677736347850093",
+	//                 "pending_funding": "0",
+	//                 "mark_price": "102765.190337908177752979099750518798828125",
+	//                 "index_price": "102767.657193800017641472",
+	//                 "delta": "1",
+	//                 "gamma": "0",
+	//                 "vega": "0",
+	//                 "theta": "0",
+	//                 "mark_value": "1.38730606879471451975405216217041015625",
+	//                 "maintenance_margin": "-101.37788426911356509663164615631103515625",
+	//                 "initial_margin": "-132.2074413704858670826070010662078857421875",
+	//                 "open_orders_margin": "264.116085900726830004714429378509521484375",
+	//                 "leverage": "8.6954476205089299495699106539379941746377322586618",
+	//                 "liquidation_price": "109125.705451984322280623018741607666015625",
+	//                 "creation_timestamp": 1738065303840
+	//             }
+	//         ]
+	//     },
+	//     "id": "167350f1-d9fc-41d4-9797-1c78f83fda8e"
+	// }
+	//
+	var result any = this.SafeDict(response, "result", map[string]any{})
+	var positions any = this.SafeList(result, "positions", []any{})
+
+	ch <- this.ParsePositions(positions, symbols)
+	return nil
 }
 func (this *DeriveCore) ParsePosition(position any, optionalArgs ...any) any {
 	//
@@ -2909,9 +2911,9 @@ func (this *DeriveCore) ParsePosition(position any, optionalArgs ...any) any {
 		"timestamp":                   timestamp,
 		"datetime":                    this.Iso8601(timestamp),
 		"lastUpdateTimestamp":         nil,
-		"initialMargin":               this.SafeString(position, "initial_margin"),
+		"initialMargin":               this.SafeNumber(position, "initial_margin"),
 		"initialMarginPercentage":     nil,
-		"maintenanceMargin":           this.SafeString(position, "maintenance_margin"),
+		"maintenanceMargin":           this.SafeNumber(position, "maintenance_margin"),
 		"maintenanceMarginPercentage": nil,
 		"entryPrice":                  nil,
 		"notional":                    this.ParseNumber(notional),
@@ -2946,104 +2948,104 @@ func (this *DeriveCore) ParsePosition(position any, optionalArgs ...any) any {
  * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
  */
 func (this *DeriveCore) FetchFundingHistory(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
+	ch := make(chan any, 1)
+	go this.fetchFundingHistoryBody(ch, optionalArgs...)
+	return ch
+}
+func (this *DeriveCore) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes235512 := (<-this.LoadMarkets())
-			PanicOnError(retRes235512)
-		}
-		var paginate any = false
-		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingHistory", "paginate")
-		paginate = GetValue(paginateparamsVariable, 0)
-		params = GetValue(paginateparamsVariable, 1)
-		if IsTrue(paginate) {
+		retRes235712 := (<-this.LoadMarkets())
+		PanicOnError(retRes235712)
+	}
+	var paginate any = false
+	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingHistory", "paginate")
+	paginate = GetValue(paginateparamsVariable, 0)
+	params = GetValue(paginateparamsVariable, 1)
+	if IsTrue(paginate) {
 
-			retRes236019 := (<-this.FetchPaginatedCallIncremental("fetchFundingHistory", symbol, since, limit, params, "page", 500))
-			PanicOnError(retRes236019)
-			ch <- retRes236019
+		retRes236219 := (<-this.FetchPaginatedCallIncremental("fetchFundingHistory", symbol, since, limit, params, "page", 500))
+		PanicOnError(retRes236219)
+		ch <- retRes236219
+		return nil
+	}
+	var subaccountId any = nil
+	subaccountIdparamsVariable := this.HandleDeriveSubaccountId("fetchFundingHistory", params)
+	subaccountId = GetValue(subaccountIdparamsVariable, 0)
+	params = GetValue(subaccountIdparamsVariable, 1)
+	var request map[string]any = map[string]any{
+		"subaccount_id": subaccountId,
+	}
+	var market any = nil
+	if IsTrue(!IsEqual(symbol, nil)) {
+		market = this.Market(symbol)
+		AddElementToObject(request, "instrument_name", GetValue(market, "id"))
+	}
+	if IsTrue(!IsEqual(since, nil)) {
+		AddElementToObject(request, "start_timestamp", since)
+	}
+	if IsTrue(!IsEqual(limit, nil)) {
+		AddElementToObject(request, "page_size", limit)
+	}
+
+	response := (<-this.PrivatePostGetFundingHistory(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	// {
+	//     "result": {
+	//         "events": [
+	//             {
+	//                 "instrument_name": "BTC-PERP",
+	//                 "timestamp": 1738066618272,
+	//                 "funding": "-0.004677736347850093",
+	//                 "pnl": "-0.944081615774632967"
+	//             },
+	//             {
+	//                 "instrument_name": "BTC-PERP",
+	//                 "timestamp": 1738066617964,
+	//                 "funding": "0",
+	//                 "pnl": "-0.437556413479249408"
+	//             },
+	//             {
+	//                 "instrument_name": "BTC-PERP",
+	//                 "timestamp": 1738065307565,
+	//                 "funding": "0",
+	//                 "pnl": "-0.39547479770461644"
+	//             }
+	//         ],
+	//         "pagination": {
+	//             "num_pages": 1,
+	//             "count": 3
+	//         }
+	//     },
+	//     "id": "524b817f-2108-467f-8795-511066f4acec"
+	// }
+	//
+	var result any = this.SafeDict(response, "result", map[string]any{})
+	var page any = this.SafeInteger(params, "page")
+	if IsTrue(!IsEqual(page, nil)) {
+		var pagination any = this.SafeDict(result, "pagination")
+		var currentPage any = this.SafeInteger(pagination, "num_pages", 0)
+		if IsTrue(IsGreaterThan(page, currentPage)) {
+
+			ch <- []any{}
 			return nil
 		}
-		var subaccountId any = nil
-		subaccountIdparamsVariable := this.HandleDeriveSubaccountId("fetchFundingHistory", params)
-		subaccountId = GetValue(subaccountIdparamsVariable, 0)
-		params = GetValue(subaccountIdparamsVariable, 1)
-		var request any = map[string]any{
-			"subaccount_id": subaccountId,
-		}
-		var market any = nil
-		if IsTrue(!IsEqual(symbol, nil)) {
-			market = this.Market(symbol)
-			AddElementToObject(request, "instrument_name", GetValue(market, "id"))
-		}
-		if IsTrue(!IsEqual(since, nil)) {
-			AddElementToObject(request, "start_timestamp", since)
-		}
-		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "page_size", limit)
-		}
+	}
+	var events any = this.SafeList(result, "events", []any{})
 
-		response := (<-this.PrivatePostGetFundingHistory(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		// {
-		//     "result": {
-		//         "events": [
-		//             {
-		//                 "instrument_name": "BTC-PERP",
-		//                 "timestamp": 1738066618272,
-		//                 "funding": "-0.004677736347850093",
-		//                 "pnl": "-0.944081615774632967"
-		//             },
-		//             {
-		//                 "instrument_name": "BTC-PERP",
-		//                 "timestamp": 1738066617964,
-		//                 "funding": "0",
-		//                 "pnl": "-0.437556413479249408"
-		//             },
-		//             {
-		//                 "instrument_name": "BTC-PERP",
-		//                 "timestamp": 1738065307565,
-		//                 "funding": "0",
-		//                 "pnl": "-0.39547479770461644"
-		//             }
-		//         ],
-		//         "pagination": {
-		//             "num_pages": 1,
-		//             "count": 3
-		//         }
-		//     },
-		//     "id": "524b817f-2108-467f-8795-511066f4acec"
-		// }
-		//
-		var result any = this.SafeDict(response, "result", map[string]any{})
-		var page any = this.SafeInteger(params, "page")
-		if IsTrue(!IsEqual(page, nil)) {
-			var pagination any = this.SafeDict(result, "pagination")
-			var currentPage any = this.SafeInteger(pagination, "num_pages", 0)
-			if IsTrue(IsGreaterThan(page, currentPage)) {
-
-				ch <- []any{}
-				return nil
-			}
-		}
-		var events any = this.SafeList(result, "events", []any{})
-
-		ch <- this.ParseIncomes(events, market, since, limit)
-		return nil
-
-	}()
-	return ch
+	ch <- this.ParseIncomes(events, market, since, limit)
+	return nil
 }
 func (this *DeriveCore) ParseIncome(income any, optionalArgs ...any) any {
 	//
@@ -3082,85 +3084,85 @@ func (this *DeriveCore) ParseIncome(income any, optionalArgs ...any) any {
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *DeriveCore) FetchBalance(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes245912 := (<-this.LoadMarkets())
-			PanicOnError(retRes245912)
-		}
-		var deriveWalletAddress any = nil
-		deriveWalletAddressparamsVariable := this.HandleDeriveWalletAddress("fetchBalance", params)
-		deriveWalletAddress = GetValue(deriveWalletAddressparamsVariable, 0)
-		params = GetValue(deriveWalletAddressparamsVariable, 1)
-		var request any = map[string]any{
-			"wallet": deriveWalletAddress,
-		}
-
-		response := (<-this.PrivatePostGetAllPortfolios(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		// {
-		//     "result": [{
-		//             "subaccount_id": 130837,
-		//             "label": "",
-		//             "currency": "all",
-		//             "margin_type": "SM",
-		//             "is_under_liquidation": false,
-		//             "positions_value": "0",
-		//             "collaterals_value": "318.0760325000001103035174310207366943359375",
-		//             "subaccount_value": "318.0760325000001103035174310207366943359375",
-		//             "positions_maintenance_margin": "0",
-		//             "positions_initial_margin": "0",
-		//             "collaterals_maintenance_margin": "238.557024375000082727638073265552520751953125",
-		//             "collaterals_initial_margin": "190.845619500000083235136116854846477508544921875",
-		//             "maintenance_margin": "238.557024375000082727638073265552520751953125",
-		//             "initial_margin": "190.845619500000083235136116854846477508544921875",
-		//             "open_orders_margin": "0",
-		//             "projected_margin_change": "0",
-		//             "open_orders": [],
-		//             "positions": [],
-		//             "collaterals": [
-		//                 {
-		//                     "asset_type": "erc20",
-		//                     "asset_name": "ETH",
-		//                     "currency": "ETH",
-		//                     "amount": "0.1",
-		//                     "mark_price": "3180.760325000000438272",
-		//                     "mark_value": "318.0760325000001103035174310207366943359375",
-		//                     "cumulative_interest": "0",
-		//                     "pending_interest": "0",
-		//                     "initial_margin": "190.845619500000083235136116854846477508544921875",
-		//                     "maintenance_margin": "238.557024375000082727638073265552520751953125",
-		//                     "realized_pnl": "0",
-		//                     "average_price": "3184.891931",
-		//                     "unrealized_pnl": "-0.413161",
-		//                     "total_fees": "0",
-		//                     "average_price_excl_fees": "3184.891931",
-		//                     "realized_pnl_excl_fees": "0",
-		//                     "unrealized_pnl_excl_fees": "-0.413161",
-		//                     "open_orders_margin": "0",
-		//                     "creation_timestamp": 1736860533493
-		//                 }
-		//             ]
-		//     }],
-		//     "id": "27b9a64e-3379-4ce6-a126-9fb941c4a970"
-		// }
-		//
-		var result any = this.SafeList(response, "result")
-
-		ch <- this.ParseBalance(result)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchBalanceBody(ch, optionalArgs...)
 	return ch
 }
+func (this *DeriveCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes246112 := (<-this.LoadMarkets())
+		PanicOnError(retRes246112)
+	}
+	var deriveWalletAddress any = nil
+	deriveWalletAddressparamsVariable := this.HandleDeriveWalletAddress("fetchBalance", params)
+	deriveWalletAddress = GetValue(deriveWalletAddressparamsVariable, 0)
+	params = GetValue(deriveWalletAddressparamsVariable, 1)
+	var request map[string]any = map[string]any{
+		"wallet": deriveWalletAddress,
+	}
+
+	response := (<-this.PrivatePostGetAllPortfolios(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	// {
+	//     "result": [{
+	//             "subaccount_id": 130837,
+	//             "label": "",
+	//             "currency": "all",
+	//             "margin_type": "SM",
+	//             "is_under_liquidation": false,
+	//             "positions_value": "0",
+	//             "collaterals_value": "318.0760325000001103035174310207366943359375",
+	//             "subaccount_value": "318.0760325000001103035174310207366943359375",
+	//             "positions_maintenance_margin": "0",
+	//             "positions_initial_margin": "0",
+	//             "collaterals_maintenance_margin": "238.557024375000082727638073265552520751953125",
+	//             "collaterals_initial_margin": "190.845619500000083235136116854846477508544921875",
+	//             "maintenance_margin": "238.557024375000082727638073265552520751953125",
+	//             "initial_margin": "190.845619500000083235136116854846477508544921875",
+	//             "open_orders_margin": "0",
+	//             "projected_margin_change": "0",
+	//             "open_orders": [],
+	//             "positions": [],
+	//             "collaterals": [
+	//                 {
+	//                     "asset_type": "erc20",
+	//                     "asset_name": "ETH",
+	//                     "currency": "ETH",
+	//                     "amount": "0.1",
+	//                     "mark_price": "3180.760325000000438272",
+	//                     "mark_value": "318.0760325000001103035174310207366943359375",
+	//                     "cumulative_interest": "0",
+	//                     "pending_interest": "0",
+	//                     "initial_margin": "190.845619500000083235136116854846477508544921875",
+	//                     "maintenance_margin": "238.557024375000082727638073265552520751953125",
+	//                     "realized_pnl": "0",
+	//                     "average_price": "3184.891931",
+	//                     "unrealized_pnl": "-0.413161",
+	//                     "total_fees": "0",
+	//                     "average_price_excl_fees": "3184.891931",
+	//                     "realized_pnl_excl_fees": "0",
+	//                     "unrealized_pnl_excl_fees": "-0.413161",
+	//                     "open_orders_margin": "0",
+	//                     "creation_timestamp": 1736860533493
+	//                 }
+	//             ]
+	//     }],
+	//     "id": "27b9a64e-3379-4ce6-a126-9fb941c4a970"
+	// }
+	//
+	var result any = this.SafeList(response, "result")
+
+	ch <- this.ParseBalance(result)
+	return nil
+}
 func (this *DeriveCore) ParseBalance(response any) any {
-	var result any = map[string]any{
+	var result map[string]any = map[string]any{
 		"info": response,
 	}
 	for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
@@ -3198,63 +3200,63 @@ func (this *DeriveCore) ParseBalance(response any) any {
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *DeriveCore) FetchDeposits(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		code := GetArg(optionalArgs, 0, nil)
-		_ = code
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes255912 := (<-this.LoadMarkets())
-			PanicOnError(retRes255912)
-		}
-		var subaccountId any = nil
-		subaccountIdparamsVariable := this.HandleDeriveSubaccountId("fetchDeposits", params)
-		subaccountId = GetValue(subaccountIdparamsVariable, 0)
-		params = GetValue(subaccountIdparamsVariable, 1)
-		var request any = map[string]any{
-			"subaccount_id": subaccountId,
-		}
-		if IsTrue(!IsEqual(since, nil)) {
-			AddElementToObject(request, "start_timestamp", since)
-		}
-
-		response := (<-this.PrivatePostGetDepositHistory(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		// {
-		//     "result": {
-		//         "events": [
-		//             {
-		//                 "timestamp": 1736860533599,
-		//                 "transaction_id": "f2069395-ec00-49f5-925a-87202a5d240f",
-		//                 "asset": "ETH",
-		//                 "amount": "0.1",
-		//                 "tx_status": "settled",
-		//                 "tx_hash": "0xeda21a315c59302a19c42049b4cef05a10b685302b6cc3edbaf49102d91166d4",
-		//                 "error_log": {}
-		//             }
-		//         ]
-		//     },
-		//     "id": "ceebc730-22ab-40cd-9941-33ceb2a74389"
-		// }
-		//
-		var currency any = this.SafeCurrency(code)
-		var result any = this.SafeDict(response, "result", map[string]any{})
-		var events any = this.SafeList(result, "events", []any{})
-
-		ch <- this.ParseTransactions(events, currency, since, limit, params)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchDepositsBody(ch, optionalArgs...)
 	return ch
+}
+func (this *DeriveCore) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	code := GetArg(optionalArgs, 0, nil)
+	_ = code
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes256112 := (<-this.LoadMarkets())
+		PanicOnError(retRes256112)
+	}
+	var subaccountId any = nil
+	subaccountIdparamsVariable := this.HandleDeriveSubaccountId("fetchDeposits", params)
+	subaccountId = GetValue(subaccountIdparamsVariable, 0)
+	params = GetValue(subaccountIdparamsVariable, 1)
+	var request map[string]any = map[string]any{
+		"subaccount_id": subaccountId,
+	}
+	if IsTrue(!IsEqual(since, nil)) {
+		AddElementToObject(request, "start_timestamp", since)
+	}
+
+	response := (<-this.PrivatePostGetDepositHistory(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	// {
+	//     "result": {
+	//         "events": [
+	//             {
+	//                 "timestamp": 1736860533599,
+	//                 "transaction_id": "f2069395-ec00-49f5-925a-87202a5d240f",
+	//                 "asset": "ETH",
+	//                 "amount": "0.1",
+	//                 "tx_status": "settled",
+	//                 "tx_hash": "0xeda21a315c59302a19c42049b4cef05a10b685302b6cc3edbaf49102d91166d4",
+	//                 "error_log": {}
+	//             }
+	//         ]
+	//     },
+	//     "id": "ceebc730-22ab-40cd-9941-33ceb2a74389"
+	// }
+	//
+	var currency any = this.SafeCurrency(code)
+	var result any = this.SafeDict(response, "result", map[string]any{})
+	var events any = this.SafeList(result, "events", []any{})
+
+	ch <- this.ParseTransactions(events, currency, since, limit, params)
+	return nil
 }
 
 /**
@@ -3270,63 +3272,63 @@ func (this *DeriveCore) FetchDeposits(optionalArgs ...any) <-chan any {
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *DeriveCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		code := GetArg(optionalArgs, 0, nil)
-		_ = code
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes260812 := (<-this.LoadMarkets())
-			PanicOnError(retRes260812)
-		}
-		var subaccountId any = nil
-		subaccountIdparamsVariable := this.HandleDeriveSubaccountId("fetchWithdrawals", params)
-		subaccountId = GetValue(subaccountIdparamsVariable, 0)
-		params = GetValue(subaccountIdparamsVariable, 1)
-		var request any = map[string]any{
-			"subaccount_id": subaccountId,
-		}
-		if IsTrue(!IsEqual(since, nil)) {
-			AddElementToObject(request, "start_timestamp", since)
-		}
-
-		response := (<-this.PrivatePostGetWithdrawalHistory(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		// {
-		//     "result": {
-		//         "events": [
-		//             {
-		//                 "timestamp": 1736860533599,
-		//                 "transaction_id": "f2069395-ec00-49f5-925a-87202a5d240f",
-		//                 "asset": "ETH",
-		//                 "amount": "0.1",
-		//                 "tx_status": "settled",
-		//                 "tx_hash": "0xeda21a315c59302a19c42049b4cef05a10b685302b6cc3edbaf49102d91166d4",
-		//                 "error_log": {}
-		//             }
-		//         ]
-		//     },
-		//     "id": "ceebc730-22ab-40cd-9941-33ceb2a74389"
-		// }
-		//
-		var currency any = this.SafeCurrency(code)
-		var result any = this.SafeDict(response, "result", map[string]any{})
-		var events any = this.SafeList(result, "events", []any{})
-
-		ch <- this.ParseTransactions(events, currency, since, limit, params)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchWithdrawalsBody(ch, optionalArgs...)
 	return ch
+}
+func (this *DeriveCore) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	code := GetArg(optionalArgs, 0, nil)
+	_ = code
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes261012 := (<-this.LoadMarkets())
+		PanicOnError(retRes261012)
+	}
+	var subaccountId any = nil
+	subaccountIdparamsVariable := this.HandleDeriveSubaccountId("fetchWithdrawals", params)
+	subaccountId = GetValue(subaccountIdparamsVariable, 0)
+	params = GetValue(subaccountIdparamsVariable, 1)
+	var request map[string]any = map[string]any{
+		"subaccount_id": subaccountId,
+	}
+	if IsTrue(!IsEqual(since, nil)) {
+		AddElementToObject(request, "start_timestamp", since)
+	}
+
+	response := (<-this.PrivatePostGetWithdrawalHistory(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	// {
+	//     "result": {
+	//         "events": [
+	//             {
+	//                 "timestamp": 1736860533599,
+	//                 "transaction_id": "f2069395-ec00-49f5-925a-87202a5d240f",
+	//                 "asset": "ETH",
+	//                 "amount": "0.1",
+	//                 "tx_status": "settled",
+	//                 "tx_hash": "0xeda21a315c59302a19c42049b4cef05a10b685302b6cc3edbaf49102d91166d4",
+	//                 "error_log": {}
+	//             }
+	//         ]
+	//     },
+	//     "id": "ceebc730-22ab-40cd-9941-33ceb2a74389"
+	// }
+	//
+	var currency any = this.SafeCurrency(code)
+	var result any = this.SafeDict(response, "result", map[string]any{})
+	var events any = this.SafeList(result, "events", []any{})
+
+	ch <- this.ParseTransactions(events, currency, since, limit, params)
+	return nil
 }
 func (this *DeriveCore) ParseTransaction(transaction any, optionalArgs ...any) any {
 	//
@@ -3372,7 +3374,7 @@ func (this *DeriveCore) ParseTransaction(transaction any, optionalArgs ...any) a
 	}
 }
 func (this *DeriveCore) ParseTransactionStatus(status any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"settled":  "ok",
 		"reverted": "failed",
 	}
@@ -3409,7 +3411,7 @@ func (this *DeriveCore) HandleDeriveWalletAddress(methodName any, params any) an
 	panic(ArgumentsRequired(Add(Add(Add(this.Id, " "), methodName), "() requires a deriveWalletAddress parameter inside 'params' or exchange.options['deriveWalletAddress'] = ADDRESS, the address can find in HOME => Developers tab.")))
 }
 func (this *DeriveCore) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
-	if !IsTrue(response) {
+	if IsTrue(IsEqual(response, nil)) {
 		return nil // fallback to default error handler
 	}
 	var error any = this.SafeDict(response, "error")
@@ -3439,7 +3441,7 @@ func (this *DeriveCore) Sign(path any, optionalArgs ...any) any {
 			"Content-Type": "application/json",
 		}
 		if IsTrue(IsEqual(api, "private")) {
-			var now any = ToString(this.Milliseconds())
+			var now string = ToString(this.Milliseconds())
 			var signature any = this.SignMessage(now, this.PrivateKey)
 			AddElementToObject(headers, "X-LyraWallet", this.SafeString(this.Options, "deriveWalletAddress"))
 			AddElementToObject(headers, "X-LyraTimestamp", now)

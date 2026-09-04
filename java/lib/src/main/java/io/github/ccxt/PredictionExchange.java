@@ -92,7 +92,7 @@ public Object describe()
 
     public Object isPrediction()
     {
-        return Helpers.isEqual(this.safeBool(this.has, "prediction", false), true);
+        return this.safeBool(this.has, "prediction", false);
     }
 
     public Object parseSearchQueries(Object... optionalArgs)
@@ -481,7 +481,7 @@ public Object describe()
             // markets), so prefer fetchEvents (params) directly when you need a specific scope
             Object reload = Helpers.getArg(optionalArgs, 0, false);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(!Helpers.isTrue(reload) && Helpers.isTrue(this.events)))
+            if (Helpers.isTrue(!Helpers.isTrue(reload) && Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(this.events, null)) && Helpers.isTrue(!Helpers.isEqual(this.events, null))))))
             {
                 return this.events;
             }
@@ -897,7 +897,7 @@ public Object describe()
                 Object missingLength = Helpers.getArrayLength(missing);
                 Object wasWarm = Helpers.isTrue((!Helpers.isEqual(this.outcomes, null))) && !Helpers.isTrue(this.isEmpty(this.outcomes));
                 Object loadAll = this.safeBool(this.options, "loadAllOutcomes", false);
-                if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isGreaterThan(missingLength, 0))) && Helpers.isTrue(loadAll)) && !Helpers.isTrue(wasWarm)) && !Helpers.isTrue(reload)))
+                if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isGreaterThan(missingLength, 0))) && Helpers.isTrue((Helpers.isEqual(loadAll, true)))) && !Helpers.isTrue(wasWarm)) && !Helpers.isTrue(reload)))
                 {
                     (this.loadOutcomes()).join();
                     Object stillMissing = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -986,7 +986,7 @@ public Object describe()
                     }
                 }
                 Object loadAll = this.safeBool(this.options, "loadAllOutcomes", false);
-                if (Helpers.isTrue(Helpers.isTrue(loadAll) && !Helpers.isTrue(wasWarm)))
+                if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(loadAll, true))) && !Helpers.isTrue(wasWarm)))
                 {
                     // a miss on a cold cache: bulk-load once so later lookups are 0-network hits.
                     // a miss on an already-warm cache is authoritative — the outcome genuinely isn't
@@ -1839,7 +1839,7 @@ public Object describe()
             {
                 timeInForce = "IOC";
             }
-            if (Helpers.isTrue(postOnly))
+            if (Helpers.isTrue(Helpers.isEqual(postOnly, true)))
             {
                 timeInForce = "PO";
             }
@@ -2404,7 +2404,7 @@ public Object describe()
             while (Helpers.isLessThan((Helpers.subtract(this.milliseconds(), start)), timeout))
             {
                 Object receipt = (this.ethRpc(rpcUrl, "eth_getTransactionReceipt", new java.util.ArrayList<Object>(java.util.Arrays.asList(txHash)))).join();
-                if (Helpers.isTrue(receipt))
+                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(receipt, null))) && Helpers.isTrue((!Helpers.isEqual(receipt, null)))))
                 {
                     return receipt;
                 }
@@ -2481,7 +2481,7 @@ public java.util.concurrent.CompletableFuture<Object> editOrder(Object id, Objec
             * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
             */
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(this.has, "createMarketOrderWithCost")) || Helpers.isTrue((Helpers.isTrue(Helpers.GetValue(this.has, "createMarketBuyOrderWithCost")) && Helpers.isTrue(Helpers.GetValue(this.has, "createMarketSellOrderWithCost"))))))
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createMarketOrderWithCost"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createMarketOrderWithCost"), false)))) || Helpers.isTrue((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createMarketBuyOrderWithCost"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createMarketBuyOrderWithCost"), false)))) && Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createMarketSellOrderWithCost"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createMarketSellOrderWithCost"), false))))))))
             {
                 return (this.createOrder(symbol, "market", side, cost, 1, parameters)).join();
             }

@@ -825,7 +825,41 @@ public class LatokenCore extends LatokenApi
             //         "totalBid":"112216.9029791"
             //     }
             //
-            return this.parseOrderBook(response, symbol, null, "bid", "ask", "price", "quantity");
+            // latoken's rest book is an absolute snapshot - price, quantity, cost,
+            // accumulated - with no signed fields, unlike their websocket stream
+            // which carries signed quantityChange deltas. during venue incidents a
+            // signed internal aggregate leaks into the rest quantity and a deleted
+            // level shows up with a zero or negative quantity for long stretches,
+            // observed live on 2026-08-17 with bestAskQuantity -0.1791852 served
+            // for over half an hour - such a level is a deleted level their
+            // aggregation failed to drop, so it is removed here
+            Object rawAsks = this.safeList(response, "ask", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object rawBids = this.safeList(response, "bid", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object asks = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object bids = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawAsks)); i++)
+            {
+                Object askEntry = Helpers.GetValue(rawAsks, i);
+                Object askQuantity = this.safeString(askEntry, "quantity");
+                if (Helpers.isTrue(Precise.stringGt(askQuantity, "0")))
+                {
+                    ((java.util.List<Object>)asks).add(askEntry);
+                }
+            }
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawBids)); i++)
+            {
+                Object bidEntry = Helpers.GetValue(rawBids, i);
+                Object bidQuantity = this.safeString(bidEntry, "quantity");
+                if (Helpers.isTrue(Precise.stringGt(bidQuantity, "0")))
+                {
+                    ((java.util.List<Object>)bids).add(bidEntry);
+                }
+            }
+            Object filtered = new java.util.HashMap<String, Object>() {{
+                put( "ask", asks );
+                put( "bid", bids );
+            }};
+            return this.parseOrderBook(filtered, symbol, null, "bid", "ask", "price", "quantity");
         });
 
     }
@@ -1022,7 +1056,7 @@ public class LatokenCore extends LatokenApi
         Object side = this.safeString(trade, "direction");
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
-            side = ((Helpers.isTrue(makerBuyer))) ? "sell" : "buy";
+            side = ((Helpers.isTrue((Helpers.isEqual(makerBuyer, true))))) ? "sell" : "buy";
         } else
         {
             if (Helpers.isTrue(Helpers.isEqual(side, "TRADE_DIRECTION_BUY")))
@@ -1034,7 +1068,8 @@ public class LatokenCore extends LatokenApi
             }
         }
         Object isBuy = (Helpers.isEqual(side, "buy"));
-        Object takerOrMaker = ((Helpers.isTrue((Helpers.isTrue(makerBuyer) && Helpers.isTrue(isBuy))))) ? "maker" : "taker";
+        Object isMaker = Helpers.isTrue((Helpers.isEqual(makerBuyer, true))) && Helpers.isTrue(isBuy);
+        Object takerOrMaker = ((Helpers.isTrue(isMaker))) ? "maker" : "taker";
         Object baseId = this.safeString(trade, "baseCurrency");
         Object quoteId = this.safeString(trade, "quoteCurrency");
         Object base = this.safeCurrencyCode(baseId);
@@ -1476,7 +1511,7 @@ public class LatokenCore extends LatokenApi
                 put( "currency", Helpers.GetValue(market, "baseId") );
                 put( "quote", Helpers.GetValue(market, "quoteId") );
             }};
-            if (Helpers.isTrue(isTrigger))
+            if (Helpers.isTrue(Helpers.isEqual(isTrigger, true)))
             {
                 response = (this.privateGetAuthStopOrderPairCurrencyQuoteActive(this.extend(request, parameters))).join();
             } else
@@ -1552,7 +1587,7 @@ public class LatokenCore extends LatokenApi
                 market = this.market(symbol);
                 Helpers.addElementToObject(request, "currency", Helpers.GetValue(market, "baseId"));
                 Helpers.addElementToObject(request, "quote", Helpers.GetValue(market, "quoteId"));
-                if (Helpers.isTrue(isTrigger))
+                if (Helpers.isTrue(Helpers.isEqual(isTrigger, true)))
                 {
                     response = (this.privateGetAuthStopOrderPairCurrencyQuote(this.extend(request, parameters))).join();
                 } else
@@ -1561,7 +1596,7 @@ public class LatokenCore extends LatokenApi
                 }
             } else
             {
-                if (Helpers.isTrue(isTrigger))
+                if (Helpers.isTrue(Helpers.isEqual(isTrigger, true)))
                 {
                     response = (this.privateGetAuthStopOrder(this.extend(request, parameters))).join();
                 } else
@@ -1625,7 +1660,7 @@ public class LatokenCore extends LatokenApi
             Object isTrigger = this.safeValue2(parameters, "trigger", "stop");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "trigger")));
             Object response = null;
-            if (Helpers.isTrue(isTrigger))
+            if (Helpers.isTrue(Helpers.isEqual(isTrigger, true)))
             {
                 response = (this.privateGetAuthStopOrderGetOrderId(this.extend(request, parameters))).join();
             } else
@@ -1766,7 +1801,7 @@ public class LatokenCore extends LatokenApi
             Object isTrigger = this.safeValue2(parameters, "trigger", "stop");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "trigger")));
             Object response = null;
-            if (Helpers.isTrue(isTrigger))
+            if (Helpers.isTrue(Helpers.isEqual(isTrigger, true)))
             {
                 response = (this.privatePostAuthStopOrderCancel(this.extend(request, parameters))).join();
             } else
@@ -1819,7 +1854,7 @@ public class LatokenCore extends LatokenApi
                 market = this.market(symbol);
                 Helpers.addElementToObject(request, "currency", Helpers.GetValue(market, "baseId"));
                 Helpers.addElementToObject(request, "quote", Helpers.GetValue(market, "quoteId"));
-                if (Helpers.isTrue(isTrigger))
+                if (Helpers.isTrue(Helpers.isEqual(isTrigger, true)))
                 {
                     response = (this.privatePostAuthStopOrderCancelAllCurrencyQuote(this.extend(request, parameters))).join();
                 } else
@@ -1828,7 +1863,7 @@ public class LatokenCore extends LatokenApi
                 }
             } else
             {
-                if (Helpers.isTrue(isTrigger))
+                if (Helpers.isTrue(Helpers.isEqual(isTrigger, true)))
                 {
                     response = (this.privatePostAuthStopOrderCancelAll(this.extend(request, parameters))).join();
                 } else
@@ -2201,7 +2236,7 @@ public class LatokenCore extends LatokenApi
         Object urlencodedQuery = this.urlencode(query);
         if (Helpers.isTrue(Helpers.isEqual(method, "GET")))
         {
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
             {
                 requestString = Helpers.add(requestString, Helpers.add("?", urlencodedQuery));
             }
@@ -2236,7 +2271,7 @@ public class LatokenCore extends LatokenApi
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
     {
-        if (!Helpers.isTrue(response))
+        if (Helpers.isTrue(Helpers.isEqual(response, null)))
         {
             return null;
         }

@@ -1076,15 +1076,15 @@ export default class luno extends Exchange {
             } else if ((type === 'BID') || (type === 'BUY')) {
                 side = 'buy';
             }
-            if (side === 'sell' && trade['is_buy']) {
+            if ((side === 'sell') && (trade['is_buy'] === true)) {
                 takerOrMaker = 'maker';
-            } else if (side === 'buy' && !trade['is_buy']) {
+            } else if ((side === 'buy') && (trade['is_buy'] !== true)) {
                 takerOrMaker = 'maker';
             } else {
                 takerOrMaker = 'taker';
             }
         } else {
-            side = trade['is_buy'] ? 'buy' : 'sell';
+            side = (trade['is_buy'] === true) ? 'buy' : 'sell';
         }
         const feeBaseString = this.safeString (trade, 'fee_base');
         const feeCounterString = this.safeString (trade, 'fee_counter');
@@ -1712,7 +1712,7 @@ export default class luno extends Exchange {
     override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let url = this.urls['api'][api] + '/' + this.version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
-        if (Object.keys (query).length) {
+        if (Object.keys (query).length > 0) {
             url += '?' + this.urlencode (query);
         }
         if ((api === 'private') || (api === 'exchangePrivate')) {

@@ -1078,14 +1078,15 @@ class mexc extends mexc$1["default"] {
             //
             const keys = Object.keys(response);
             const length = keys.length;
-            status = length ? this.json(response) : 'ok';
+            status = (length > 0) ? this.json(response) : 'ok';
         }
         else if (marketType === 'swap') {
             response = await this.contractPublicGetPing(query);
             //
             //     {"success":true,"code":"0","data":"1648124374985"}
             //
-            status = this.safeValue(response, 'success') ? 'ok' : this.json(response);
+            const success = (this.safeBool(response, 'success') === true);
+            status = success ? 'ok' : this.json(response);
             updated = this.safeInteger(response, 'data');
         }
         return {
@@ -1240,7 +1241,7 @@ class mexc extends mexc$1["default"] {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets(params = {}) {
-        if (this.options['adjustForTimeDifference']) {
+        if (this.options['adjustForTimeDifference'] === true) {
             await this.loadTimeDifference();
         }
         const spotMarketPromise = this.fetchSpotMarkets(params);
@@ -1313,7 +1314,7 @@ class mexc extends mexc$1["default"] {
             const status = this.safeString(market, 'status');
             const isSpotTradingAllowed = this.safeValue(market, 'isSpotTradingAllowed');
             let active = false;
-            if ((status === '1') && (isSpotTradingAllowed)) {
+            if ((status === '1') && (isSpotTradingAllowed === true)) {
                 active = true;
             }
             const isMarginTradingAllowed = this.safeValue(market, 'isMarginTradingAllowed');
@@ -1522,7 +1523,7 @@ class mexc extends mexc$1["default"] {
             request['limit'] = limit;
         }
         let orderbook = undefined;
-        if (market['spot']) {
+        if (market['spot'] === true) {
             const response = await this.spotPublicGetDepth(this.extend(request, params));
             //
             //     {
@@ -1541,7 +1542,7 @@ class mexc extends mexc$1["default"] {
             orderbook = this.parseOrderBook(response, symbol, spotTimestamp);
             orderbook['nonce'] = this.safeInteger(response, 'lastUpdateId');
         }
-        else if (market['swap']) {
+        else if (market['swap'] === true) {
             const response = await this.contractPublicGetDepthSymbol(this.extend(request, params));
             //
             //     {
@@ -1604,7 +1605,7 @@ class mexc extends mexc$1["default"] {
             request['limit'] = limit;
         }
         let trades = [];
-        if (market['spot']) {
+        if (market['spot'] === true) {
             const until = this.safeInteger2(params, 'endTime', 'until');
             if (since !== undefined) {
                 request['startTime'] = since;
@@ -1664,7 +1665,7 @@ class mexc extends mexc$1["default"] {
             //     ]
             //
         }
-        else if (market['swap']) {
+        else if (market['swap'] === true) {
             const response = await this.contractPublicGetDealsSymbol(this.extend(request, params));
             //
             //     {
@@ -1786,7 +1787,8 @@ class mexc extends mexc$1["default"] {
                     'cost': this.safeString(trade, 'fee'),
                     'currency': this.safeCurrencyCode(this.safeString(trade, 'feeCurrency')),
                 };
-                takerOrMaker = this.safeValue(trade, 'taker') ? 'taker' : 'maker';
+                const isTaker = (this.safeBool(trade, 'taker') === true);
+                takerOrMaker = isTaker ? 'taker' : 'maker';
             }
             else {
                 timestamp = this.safeInteger2(trade, 'time', 'T');
@@ -1796,13 +1798,13 @@ class mexc extends mexc$1["default"] {
                 const isMaker = this.safeValue(trade, 'isMaker');
                 const buyerMaker = this.safeValue2(trade, 'isBuyerMaker', 'm');
                 if (isMaker !== undefined) {
-                    takerOrMaker = isMaker ? 'maker' : 'taker';
+                    takerOrMaker = (isMaker === true) ? 'maker' : 'taker';
                 }
                 if (isBuyer !== undefined) {
-                    side = isBuyer ? 'buy' : 'sell';
+                    side = (isBuyer === true) ? 'buy' : 'sell';
                 }
                 if (buyerMaker !== undefined) {
-                    side = buyerMaker ? 'sell' : 'buy';
+                    side = (buyerMaker === true) ? 'sell' : 'buy';
                     takerOrMaker = 'taker';
                 }
                 const feeAsset = this.safeString(trade, 'commissionAsset');
@@ -1855,7 +1857,7 @@ class mexc extends mexc$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const maxLimit = (market['spot']) ? 500 : 2000; // docs say 1000 for spot, but in practice it's 500
+        const maxLimit = (market['spot'] === true) ? 500 : 2000; // docs say 1000 for spot, but in practice it's 500
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
@@ -1874,10 +1876,10 @@ class mexc extends mexc$1["default"] {
         let start = since;
         if ((until !== undefined) && (since === undefined)) {
             params = this.omit(params, ['until']);
-            const usedLimit = limit ? limit : maxLimit;
+            const usedLimit = (limit !== undefined && limit !== null && limit !== 0) ? limit : maxLimit;
             start = until - (usedLimit * duration);
         }
-        if (market['spot']) {
+        if (market['spot'] === true) {
             if (start !== undefined) {
                 request['startTime'] = start;
                 if (until === undefined) {
@@ -1910,7 +1912,7 @@ class mexc extends mexc$1["default"] {
             //
             candles = this.toArray(response);
         }
-        else if (market['swap']) {
+        else if (market['swap'] === true) {
             if (since !== undefined) {
                 request['start'] = this.parseToInt(since / 1000);
             }
@@ -2152,7 +2154,7 @@ class mexc extends mexc$1["default"] {
         let prevClose = undefined;
         const isSwap = this.safeValue(market, 'swap');
         // if swap
-        if (isSwap || ('timestamp' in ticker)) {
+        if ((isSwap === true) || ('timestamp' in ticker)) {
             //
             //     {
             //         "symbol": "ETH_USDT",
@@ -2311,7 +2313,7 @@ class mexc extends mexc$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (!market['spot']) {
+        if (market['spot'] !== true) {
             throw new errors.NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
         const req = {
@@ -2334,7 +2336,7 @@ class mexc extends mexc$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (!market['spot']) {
+        if (market['spot'] !== true) {
             throw new errors.NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
         const req = {
@@ -2375,7 +2377,7 @@ class mexc extends mexc$1["default"] {
         }
         const market = this.market(symbol);
         const [marginMode, query] = this.handleMarginModeAndParams('createOrder', params);
-        if (market['spot']) {
+        if (market['spot'] === true) {
             return await this.createSpotOrder(market, type, side, amount, price, marginMode, query);
         }
         else {
@@ -2428,7 +2430,7 @@ class mexc extends mexc$1["default"] {
         }
         let postOnly = undefined;
         [postOnly, params] = this.handlePostOnly(type === 'market', type === 'LIMIT_MAKER', params);
-        if (postOnly) {
+        if (postOnly === true) {
             request['type'] = 'LIMIT_MAKER';
         }
         const tif = this.safeString(params, 'timeInForce');
@@ -2467,7 +2469,7 @@ class mexc extends mexc$1["default"] {
         params = this.omit(params, 'test');
         const request = this.createSpotOrderRequest(market, type, side, amount, price, marginMode, params);
         let response;
-        if (test) {
+        if (test === true) {
             response = await this.spotPrivatePostOrderTest(request);
         }
         else {
@@ -2554,7 +2556,7 @@ class mexc extends mexc$1["default"] {
         }
         let postOnly = undefined;
         [postOnly, params] = this.handlePostOnly(type === 'market', type === 2, params);
-        if (postOnly) {
+        if (postOnly === true) {
             type = 2;
         }
         else if (type === 'limit') {
@@ -2609,8 +2611,8 @@ class mexc extends mexc$1["default"] {
         const reduceOnly = this.safeBool(params, 'reduceOnly', false);
         const hedged = this.safeBool(params, 'hedged', false);
         let sideInteger = undefined;
-        if (hedged) {
-            if (reduceOnly) {
+        if (hedged === true) {
+            if (reduceOnly === true) {
                 params = this.omit(params, 'reduceOnly'); // hedged mode does not accept this parameter
                 sideInteger = (side === 'buy') ? 4 : 2; // close short, close long
             }
@@ -2620,7 +2622,7 @@ class mexc extends mexc$1["default"] {
             request['positionMode'] = 1;
         }
         else {
-            if (reduceOnly) {
+            if (reduceOnly === true) {
                 sideInteger = (side === 'buy') ? 2 : 4;
                 params = this.omit(params, 'reduceOnly');
             }
@@ -2636,7 +2638,7 @@ class mexc extends mexc$1["default"] {
         const triggerPrice = this.safeNumber2(params, 'triggerPrice', 'stopPrice');
         params = this.omit(params, ['clientOrderId', 'externalOid', 'postOnly', 'stopPrice', 'triggerPrice', 'hedged']);
         let response;
-        if (triggerPrice) {
+        if ((triggerPrice !== undefined) && (triggerPrice !== 0)) {
             request['triggerPrice'] = this.priceToPrecision(symbol, triggerPrice);
             request['triggerType'] = this.safeInteger(params, 'triggerType', 1);
             request['executeCycle'] = this.safeInteger(params, 'executeCycle', 1);
@@ -2678,7 +2680,7 @@ class mexc extends mexc$1["default"] {
             const rawOrder = orders[i];
             const marketId = this.safeString(rawOrder, 'symbol');
             const market = this.market(marketId);
-            if (!market['spot']) {
+            if (market['spot'] !== true) {
                 throw new errors.NotSupported(this.id + ' createOrders() is only supported for spot markets');
             }
             if (symbol === undefined) {
@@ -2749,7 +2751,7 @@ class mexc extends mexc$1["default"] {
             'symbol': market['id'],
         };
         let data = {};
-        if (market['spot']) {
+        if (market['spot'] === true) {
             const clientOrderId = this.safeString(params, 'clientOrderId');
             if (clientOrderId !== undefined) {
                 params = this.omit(params, 'clientOrderId');
@@ -2813,7 +2815,7 @@ class mexc extends mexc$1["default"] {
             //     }
             //
         }
-        else if (market['swap']) {
+        else if (market['swap'] === true) {
             request['order_id'] = id;
             const response = await this.contractPrivateGetOrderGetOrderId(this.extend(request, params));
             //
@@ -3832,7 +3834,11 @@ class mexc extends mexc$1["default"] {
             //         ]
             //     }
             //
-            return this.safeValue(response, 'data');
+            // wrap the swap asset list so this helper always returns an account
+            // dict with a `balances` array — fetchAccounts reads response['balances']
+            return {
+                'balances': this.safeValue(response, 'data', []),
+            };
         }
         return undefined;
     }
@@ -3881,7 +3887,7 @@ class mexc extends mexc$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (!market['spot']) {
+        if (market['spot'] !== true) {
             throw new errors.BadRequest(this.id + ' fetchTradingFee() supports spot markets only');
         }
         const request = {
@@ -3980,26 +3986,22 @@ class mexc extends mexc$1["default"] {
         else {
             wallet = this.safeValue(response, 'balances', []);
         }
-        const result = { 'info': response };
+        let result = { 'info': response };
         if (marketType === 'margin') {
             for (let i = 0; i < wallet.length; i++) {
                 const entry = wallet[i];
-                const marketId = this.safeString(entry, 'symbol');
-                const symbol = this.safeSymbol(marketId);
                 const base = this.safeValue(entry, 'baseAsset', {});
                 const quote = this.safeValue(entry, 'quoteAsset', {});
                 const baseCode = this.safeCurrencyCode(this.safeString(base, 'asset'));
                 const quoteCode = this.safeCurrencyCode(this.safeString(quote, 'asset'));
-                const subResult = {};
                 if (baseCode !== undefined) {
-                    subResult[baseCode] = this.parseBalanceHelper(base);
+                    result = this.mergeBalanceAccount(result, baseCode, this.parseBalanceHelper(base));
                 }
                 if (quoteCode !== undefined) {
-                    subResult[quoteCode] = this.parseBalanceHelper(quote);
+                    result = this.mergeBalanceAccount(result, quoteCode, this.parseBalanceHelper(quote));
                 }
-                result[symbol] = this.safeBalance(subResult);
             }
-            return result;
+            return this.safeBalance(result);
         }
         else if (marketType === 'swap') {
             for (let i = 0; i < wallet.length; i++) {
@@ -4062,7 +4064,7 @@ class mexc extends mexc$1["default"] {
         const isMargin = this.safeBool(params, 'margin', false);
         params = this.omit(params, ['margin', 'marginMode']);
         let response;
-        if ((marginMode !== undefined) || (isMargin) || (marketType === 'margin')) {
+        if ((marginMode !== undefined) || (isMargin === true) || (marketType === 'margin')) {
             let parsedSymbols = undefined;
             const symbol = this.safeString(params, 'symbol');
             if (symbol === undefined) {
@@ -5783,7 +5785,7 @@ class mexc extends mexc$1["default"] {
         const currency = this.currency(code);
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
         const internal = this.safeBool(params, 'internal', false);
-        if (internal) {
+        if (internal === true) {
             params = this.omit(params, 'internal');
             const requestForInternal = {
                 'asset': currency['id'],
@@ -6252,7 +6254,7 @@ class mexc extends mexc$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['spot']) {
+        if (market['spot'] === true) {
             throw new errors.BadSymbol(this.id + ' setMarginMode() supports contract markets only');
         }
         const marginModeLower = marginMode.toLowerCase();
@@ -6311,7 +6313,7 @@ class mexc extends mexc$1["default"] {
                 }
             }
             let paramsEncoded = '';
-            if (Object.keys(urlParams).length) {
+            if (Object.keys(urlParams).length > 0) {
                 paramsEncoded = this.urlencode(urlParams);
                 url += '?' + paramsEncoded;
             }
@@ -6333,7 +6335,7 @@ class mexc extends mexc$1["default"] {
             url = this.urls['api'][section][access] + '/' + this.implodeParams(path, params);
             params = this.omit(params, this.extractParams(path));
             if (access === 'public') {
-                if (Object.keys(params).length) {
+                if (Object.keys(params).length > 0) {
                     url += '?' + this.urlencode(params);
                 }
             }
@@ -6353,7 +6355,7 @@ class mexc extends mexc$1["default"] {
                 }
                 else {
                     params = this.keysort(params);
-                    if (Object.keys(params).length) {
+                    if (Object.keys(params).length > 0) {
                         auth += this.urlencode(params);
                         url += '?' + auth;
                     }

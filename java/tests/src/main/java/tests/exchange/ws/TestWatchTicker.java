@@ -19,10 +19,13 @@ public class TestWatchTicker extends BaseTest {
         Object method = "watchTicker";
         Object now = exchange.milliseconds();
         Object ends = Helpers.add(now, 15000);
-        while (Helpers.isLessThan(now, ends))
+        Object maxIdleTime = 5000;
+        Object idle = false;
+        while (Helpers.isTrue((Helpers.isLessThan(now, ends))) && !Helpers.isTrue(idle))
         {
             Object response = null;
             Object success = true;
+            Object startTime = exchange.milliseconds();
             try
             {
                 response = (exchange.watchTicker(symbol)).join();
@@ -32,15 +35,17 @@ public class TestWatchTicker extends BaseTest {
                 {
                     throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                 }
-                now = exchange.milliseconds();
-                // continue;
                 success = false;
             }
-            if (Helpers.isTrue(Helpers.isEqual(success, true)))
+            now = exchange.milliseconds();
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(success, true))) && Helpers.isTrue((!Helpers.isEqual(response, null)))))
             {
                 Assert(exchange.isDictionary(response), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " "), symbol), " must return a dictionary. "), exchange.json(response)));
-                now = exchange.milliseconds();
                 TestTicker.testTicker(exchange, skippedProperties, method, response, symbol);
+                if (Helpers.isTrue(Helpers.isGreaterThan((Helpers.subtract(now, startTime)), maxIdleTime)))
+                {
+                    idle = true;
+                }
             }
         }
         return true;

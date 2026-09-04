@@ -96,7 +96,7 @@ public class TestSharedMethods extends BaseTest {
                 Assert(!Helpers.isEqual(value, null), Helpers.add(Helpers.add(String.valueOf(i), " index is expected to have a value"), logText));
                 // because of other langs, this is needed for arrays
                 Object typeAssertion = AssertType(exchange, new java.util.HashMap<String, Object>() {{}}, entry, i, format);
-                Assert(typeAssertion, Helpers.add(Helpers.add(String.valueOf(i), " index does not have an expected type "), logText));
+                Assert(Helpers.isEqual(typeAssertion, true), Helpers.add(Helpers.add(String.valueOf(i), " index does not have an expected type "), logText));
             }
         } else
         {
@@ -125,7 +125,7 @@ public class TestSharedMethods extends BaseTest {
                 if (Helpers.isTrue(!Helpers.isEqual(key, "info")))
                 {
                     Object typeAssertion = AssertType(exchange, new java.util.HashMap<String, Object>() {{}}, entry, key, format);
-                    Assert(typeAssertion, Helpers.add(Helpers.add(Helpers.add("\"", stringValue(key)), "\" key is neither undefined, neither of expected type"), logText));
+                    Assert(Helpers.isEqual(typeAssertion, true), Helpers.add(Helpers.add(Helpers.add("\"", stringValue(key)), "\" key is neither undefined, neither of expected type"), logText));
                     if (Helpers.isTrue(deep))
                     {
                         if (Helpers.isTrue(Helpers.isTrue(exchange.isDictionary(value)) || Helpers.isTrue(Helpers.isArray(value))))
@@ -499,7 +499,7 @@ public class TestSharedMethods extends BaseTest {
         Object bestBid = null;
         Object bestAsk = null;
         Object usedMethod = null;
-        if (Helpers.isTrue(Helpers.GetValue(exchange.has, "fetchOrderBook")))
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "fetchOrderBook"), null))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "fetchOrderBook"), false)))))
         {
             usedMethod = "fetchOrderBook";
             Object orderbook = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchOrderBook", new Object[]{symbol})).join();
@@ -509,20 +509,20 @@ public class TestSharedMethods extends BaseTest {
             Object bestAskArray = exchange.safeList(asks, 0);
             bestBid = exchange.safeNumber(bestBidArray, 0);
             bestAsk = exchange.safeNumber(bestAskArray, 0);
-        } else if (Helpers.isTrue(Helpers.GetValue(exchange.has, "fetchBidsAsks")))
+        } else if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "fetchBidsAsks"), null))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "fetchBidsAsks"), false)))))
         {
             usedMethod = "fetchBidsAsks";
             Object tickers = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchBidsAsks", new Object[]{new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))})).join();
             Object ticker = exchange.safeDict(tickers, symbol);
             bestBid = exchange.safeNumber(ticker, "bid");
             bestAsk = exchange.safeNumber(ticker, "ask");
-        } else if (Helpers.isTrue(Helpers.GetValue(exchange.has, "fetchTicker")))
+        } else if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "fetchTicker"), null))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "fetchTicker"), false)))))
         {
             usedMethod = "fetchTicker";
             Object ticker = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchTicker", new Object[]{symbol})).join();
             bestBid = exchange.safeNumber(ticker, "bid");
             bestAsk = exchange.safeNumber(ticker, "ask");
-        } else if (Helpers.isTrue(Helpers.GetValue(exchange.has, "fetchTickers")))
+        } else if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "fetchTickers"), null))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "fetchTickers"), false)))))
         {
             usedMethod = "fetchTickers";
             Object tickers = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchTickers", new Object[]{new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))})).join();
@@ -550,7 +550,7 @@ public class TestSharedMethods extends BaseTest {
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(methods_singular)); i++)
         {
             Object singularFetchName = Helpers.GetValue(methods_singular, i);
-            if (Helpers.isTrue(Helpers.GetValue(exchange.has, singularFetchName)))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, singularFetchName), null))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, singularFetchName), false)))))
             {
                 Object currentOrder = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, singularFetchName, new Object[] { originalId, symbol })).join();
                 // if there is an id inside the order, it means the order was fetched successfully
@@ -569,7 +569,7 @@ public class TestSharedMethods extends BaseTest {
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(methods_plural)); i++)
             {
                 Object pluralFetchName = Helpers.GetValue(methods_plural, i);
-                if (Helpers.isTrue(Helpers.GetValue(exchange.has, pluralFetchName)))
+                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, pluralFetchName), null))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, pluralFetchName), false)))))
                 {
                     Object orders = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, pluralFetchName, new Object[] { symbol, sinceTime })).join();
                     Object found = false;

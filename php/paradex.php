@@ -1207,7 +1207,7 @@ class paradex extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if (!$market['contract']) {
+        if ($market['contract'] !== true) {
             throw new BadRequest($this->id . ' fetchOpenInterest() supports contract markets only');
         }
         $request = array(
@@ -1491,11 +1491,12 @@ class paradex extends Exchange {
         $side = $this->safe_string_lower($order, 'side');
         $average = $this->omit_zero($this->safe_string($order, 'avg_fill_price'));
         $remaining = $this->omit_zero($this->safe_string($order, 'remaining_size'));
+        $triggerPrice = $this->omit_zero($this->safe_string($order, 'trigger_price'));
         $lastUpdateTimestamp = $this->safe_integer($order, 'last_updated_at');
-        $flags = $this->safe_list($order, 'flags', array());
+        $flags = $this->safe_list($order, 'flags');
         $reduceOnly = null;
-        if (is_array($flags) && array_key_exists('REDUCE_ONLY' ?? '', $flags)) {
-            $reduceOnly = true;
+        if ($flags !== null) {
+            $reduceOnly = $this->in_array('REDUCE_ONLY', $flags);
         }
         return $this->safe_order(array(
             'id' => $orderId,
@@ -1512,7 +1513,7 @@ class paradex extends Exchange {
             'reduceOnly' => $reduceOnly,
             'side' => $side,
             'price' => $price,
-            'triggerPrice' => $this->safe_string($order, 'trigger_price'),
+            'triggerPrice' => $triggerPrice,
             'takeProfitPrice' => null,
             'stopLossPrice' => null,
             'average' => $average,
@@ -1645,7 +1646,7 @@ class paradex extends Exchange {
             $request['trigger_price'] = $stopPrice;
         }
         $request['size'] = $sizeString;
-        if ($reduceOnly) {
+        if ($reduceOnly === true) {
             $request['flags'] = array(
                 'REDUCE_ONLY',
             );
@@ -2439,15 +2440,16 @@ class paradex extends Exchange {
             $quantity = Precise::string_mul('-1', $quantity);
         }
         $timestamp = $this->safe_integer($position, 'time');
+        $liquidationPrice = $this->parse_number($this->omit_zero($this->safe_string($position, 'liquidation_price')));
         return $this->safe_position(array(
             'info' => $position,
             'id' => $this->safe_string($position, 'id'),
             'symbol' => $symbol,
-            'entryPrice' => $this->safe_string($position, 'average_entry_price'),
+            'entryPrice' => $this->safe_number($position, 'average_entry_price'),
             'markPrice' => null,
             'notional' => null,
-            'collateral' => $this->safe_string($position, 'cost'),
-            'unrealizedPnl' => $this->safe_string($position, 'unrealized_pnl'),
+            'collateral' => $this->safe_number($position, 'cost'),
+            'unrealizedPnl' => $this->safe_number($position, 'unrealized_pnl'),
             'side' => $side,
             'contracts' => $this->parse_number($quantity),
             'contractSize' => null,
@@ -2459,7 +2461,7 @@ class paradex extends Exchange {
             'initialMargin' => null,
             'initialMarginPercentage' => null,
             'leverage' => null,
-            'liquidationPrice' => null,
+            'liquidationPrice' => $liquidationPrice,
             'marginRatio' => null,
             'marginMode' => null,
             'percentage' => null,
@@ -3048,7 +3050,7 @@ class paradex extends Exchange {
          *
          * @param {string[]} [$symbols] unified $symbols of the markets to fetch greeks for, all markets are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/?id=greeks-structure greeks structure~
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=greeks-structure greeks structures~ indexed by market symbol
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -3326,7 +3328,7 @@ class paradex extends Exchange {
         $url = $this->implode_hostname($this->urls['api'][$version]) . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {
-            if ($query) {
+            if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
         } elseif ($api === 'private') {
@@ -3367,7 +3369,7 @@ class paradex extends Exchange {
             //     $body = $this->json($query);
             //     $headers['Content-Type'] = 'application/json';
             // } else {
-            //     if ($query) {
+            //     if (count($query)) {
             //         $url .= '?' . $this->urlencode($query);
             //     }
             // }
@@ -3376,7 +3378,7 @@ class paradex extends Exchange {
     }
 
     public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
-        if (!$response) {
+        if ($response === null) {
             return null; // fallback to default error handler
         }
         //

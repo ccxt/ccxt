@@ -9,6 +9,7 @@ import (
 	"reflect"
 	"runtime"
 	"strings"
+	"sync"
 
 	ccxt "github.com/ccxt/ccxt/go/v4"
 	ccxtPrediction "github.com/ccxt/ccxt/go/v4/prediction"
@@ -113,6 +114,25 @@ func WsClientHasPendingFutures(exchange ccxt.ICoreExchange, url any) bool {
 	client.FuturesMu.Lock()
 	defer client.FuturesMu.Unlock()
 	return len(client.Futures) > 0
+}
+
+var wsCompletedClientsMu sync.Mutex
+var wsCompletedClients = map[any]bool{}
+
+func MarkWsTestCompleted(exchange ccxt.ICoreExchange, url any) {
+	// the watch side of a static ws test flags completion here so the frame
+	// injector's rejection loop knows it can stop
+	client := exchange.(wsClientProvider).Client(url)
+	wsCompletedClientsMu.Lock()
+	defer wsCompletedClientsMu.Unlock()
+	wsCompletedClients[client] = true
+}
+
+func IsWsTestCompleted(exchange ccxt.ICoreExchange, url any) bool {
+	client := exchange.(wsClientProvider).Client(url)
+	wsCompletedClientsMu.Lock()
+	defer wsCompletedClientsMu.Unlock()
+	return wsCompletedClients[client]
 }
 
 func RejectPendingWsFutures(exchange ccxt.ICoreExchange, url any) {

@@ -372,7 +372,7 @@ func (this *OnetradingCore) Describe() any {
 					"marginMode":     false,
 					"limit":          100,
 					"daysBack":       100000,
-					"untilDays":      100000,
+					"untilDays":      30,
 					"symbolRequired": false,
 				},
 				"fetchOrder": map[string]any{
@@ -384,6 +384,7 @@ func (this *OnetradingCore) Describe() any {
 				"fetchOpenOrders": map[string]any{
 					"marginMode":     false,
 					"limit":          100,
+					"untilDays":      30,
 					"trigger":        false,
 					"trailing":       false,
 					"symbolRequired": false,
@@ -394,7 +395,7 @@ func (this *OnetradingCore) Describe() any {
 					"limit":            100,
 					"daysBack":         100000,
 					"daysBackCanceled": Divide(1, 12),
-					"untilDays":        100000,
+					"untilDays":        30,
 					"trigger":          false,
 					"trailing":         false,
 					"symbolRequired":   false,
@@ -424,27 +425,27 @@ func (this *OnetradingCore) Describe() any {
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
 func (this *OnetradingCore) FetchTime(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		response := (<-this.PublicGetTime(params))
-		PanicOnError(response)
-
-		//
-		//     {
-		//         "iso": "2020-07-10T05:17:26.716Z",
-		//         "epoch_millis": 1594358246716,
-		//     }
-		//
-		ch <- this.SafeInteger(response, "epoch_millis")
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchTimeBody(ch, optionalArgs...)
 	return ch
+}
+func (this *OnetradingCore) fetchTimeBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	response := (<-this.PublicGetTime(params))
+	PanicOnError(response)
+
+	//
+	//     {
+	//         "iso": "2020-07-10T05:17:26.716Z",
+	//         "epoch_millis": 1594358246716,
+	//     }
+	//
+	ch <- this.SafeInteger(response, "epoch_millis")
+	return nil
 }
 
 /**
@@ -456,32 +457,32 @@ func (this *OnetradingCore) FetchTime(optionalArgs ...any) <-chan any {
  * @returns {object} an associative dictionary of currencies
  */
 func (this *OnetradingCore) FetchCurrencies(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		response := (<-this.PublicGetCurrencies(params))
-		PanicOnError(response)
-
-		//
-		//     [
-		//         {
-		//             "code": "USDT",
-		//             "precision": 6,
-		//             "unified_cryptoasset_id": 825,
-		//             "name": "Tether USDt",
-		//             "collateral_percentage": 0
-		//         },
-		//     ]
-		//
-		ch <- this.ParseCurrencies(response)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchCurrenciesBody(ch, optionalArgs...)
 	return ch
+}
+func (this *OnetradingCore) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	response := (<-this.PublicGetCurrencies(params))
+	PanicOnError(response)
+
+	//
+	//     [
+	//         {
+	//             "code": "USDT",
+	//             "precision": 6,
+	//             "unified_cryptoasset_id": 825,
+	//             "name": "Tether USDt",
+	//             "collateral_percentage": 0
+	//         },
+	//     ]
+	//
+	ch <- this.ParseCurrencies(response)
+	return nil
 }
 func (this *OnetradingCore) ParseCurrency(rawCurrency any) any {
 	var id any = this.SafeString(rawCurrency, "code")
@@ -519,33 +520,33 @@ func (this *OnetradingCore) ParseCurrency(rawCurrency any) any {
  * @returns {object[]} an array of objects representing market data
  */
 func (this *OnetradingCore) FetchMarkets(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		response := (<-this.PublicGetInstruments(params))
-		PanicOnError(response)
-
-		//
-		//     [
-		//         {
-		//             "state": "ACTIVE",
-		//             "base": { code: "ETH", precision: 8 },
-		//             "quote": { code: "CHF", precision: 2 },
-		//             "amount_precision": 4,
-		//             "market_precision": 2,
-		//             "min_size": "10.0"
-		//         }
-		//     ]
-		//
-		ch <- this.ParseMarkets(response)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchMarketsBody(ch, optionalArgs...)
 	return ch
+}
+func (this *OnetradingCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	response := (<-this.PublicGetInstruments(params))
+	PanicOnError(response)
+
+	//
+	//     [
+	//         {
+	//             "state": "ACTIVE",
+	//             "base": { code: "ETH", precision: 8 },
+	//             "quote": { code: "CHF", precision: 2 },
+	//             "amount_precision": 4,
+	//             "market_precision": 2,
+	//             "min_size": "10.0"
+	//         }
+	//     ]
+	//
+	ch <- this.ParseMarkets(response)
+	return nil
 }
 func (this *OnetradingCore) ParseMarket(market any) any {
 	//
@@ -597,7 +598,7 @@ func (this *OnetradingCore) ParseMarket(market any) any {
 	var quote any = this.SafeCurrencyCode(quoteId)
 	var state any = this.SafeString(market, "state")
 	var typeVar any = this.SafeString(market, "type")
-	var isPerp any = IsEqual(typeVar, "PERP")
+	var isPerp bool = IsEqual(typeVar, "PERP")
 	var symbol any = Add(Add(base, "/"), quote)
 	if IsTrue(isPerp) {
 		symbol = Add(Add(symbol, ":"), quote)
@@ -664,207 +665,207 @@ func (this *OnetradingCore) ParseMarket(market any) any {
  * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
 func (this *OnetradingCore) FetchTradingFees(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		var method any = this.SafeString(params, "method")
-		params = this.Omit(params, "method")
-		if IsTrue(IsEqual(method, nil)) {
-			var options any = this.SafeValue(this.Options, "fetchTradingFees", map[string]any{})
-			method = this.SafeString(options, "method", "fetchPrivateTradingFees")
-		}
-		if IsTrue(IsEqual(method, "fetchPrivateTradingFees")) {
-
-			retRes61419 := (<-this.FetchPrivateTradingFees(params))
-			PanicOnError(retRes61419)
-			ch <- retRes61419
-			return nil
-		} else if IsTrue(IsEqual(method, "fetchPublicTradingFees")) {
-
-			retRes61619 := (<-this.FetchPublicTradingFees(params))
-			PanicOnError(retRes61619)
-			ch <- retRes61619
-			return nil
-		} else {
-			panic(NotSupported(Add(Add(Add(this.Id, " fetchTradingFees() does not support "), method), ", fetchPrivateTradingFees and fetchPublicTradingFees are supported")))
-		}
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchTradingFeesBody(ch, optionalArgs...)
 	return ch
+}
+func (this *OnetradingCore) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	var method any = this.SafeString(params, "method")
+	params = this.Omit(params, "method")
+	if IsTrue(IsEqual(method, nil)) {
+		var options any = this.SafeValue(this.Options, "fetchTradingFees", map[string]any{})
+		method = this.SafeString(options, "method", "fetchPrivateTradingFees")
+	}
+	if IsTrue(IsEqual(method, "fetchPrivateTradingFees")) {
+
+		retRes61519 := (<-this.FetchPrivateTradingFees(params))
+		PanicOnError(retRes61519)
+		ch <- retRes61519
+		return nil
+	} else if IsTrue(IsEqual(method, "fetchPublicTradingFees")) {
+
+		retRes61719 := (<-this.FetchPublicTradingFees(params))
+		PanicOnError(retRes61719)
+		ch <- retRes61719
+		return nil
+	} else {
+		panic(NotSupported(Add(Add(Add(this.Id, " fetchTradingFees() does not support "), method), ", fetchPrivateTradingFees and fetchPublicTradingFees are supported")))
+	}
 }
 func (this *OnetradingCore) FetchPublicTradingFees(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes62412 := (<-this.LoadMarkets())
-			PanicOnError(retRes62412)
-		}
-
-		response := (<-this.PublicGetFees(params))
-		PanicOnError(response)
-		//
-		// [
-		//     {
-		//         'fee_group_id': 'SPOT',
-		//         'display_text': 'The fee plan for spot trading.',
-		//         'volume_currency': 'EUR',
-		//         'fee_tiers': [
-		//             {
-		//                 'volume': '0',
-		//                 'fee_group_id': 'SPOT',
-		//                 'maker_fee': '0.1000',
-		//                 'taker_fee': '0.2000',
-		//             },
-		//             {
-		//                 'volume': '10000',
-		//                 'fee_group_id': 'SPOT',
-		//                 'maker_fee': '0.0400',
-		//                 'taker_fee': '0.0800',
-		//             },
-		//         ],
-		//     },
-		//     {
-		//         'fee_group_id': 'FUTURES',
-		//         'display_text': 'The fee plan for futures trading.',
-		//         'volume_currency': 'EUR',
-		//         'fee_tiers': [
-		//             {
-		//                 'volume': '0',
-		//                 'fee_group_id': 'FUTURES',
-		//                 'maker_fee': '0.1000',
-		//                 'taker_fee': '0.2000',
-		//             },
-		//             {
-		//                 'volume': '10000',
-		//                 'fee_group_id': 'FUTURES',
-		//                 'maker_fee': '0.0400',
-		//                 'taker_fee': '0.0800',
-		//             },
-		//         ],
-		//     },
-		// ];
-		//
-		var spotFees any = this.SafeDict(response, 0, map[string]any{})
-		var futuresFees any = this.SafeDict(response, 1, map[string]any{})
-		var spotFeeTiers any = this.SafeList(spotFees, "fee_tiers", []any{})
-		var futuresFeeTiers any = this.SafeList(futuresFees, "fee_tiers", []any{})
-		var spotTiers any = this.ParseFeeTiers(spotFeeTiers)
-		var futuresTiers any = this.ParseFeeTiers(futuresFeeTiers)
-		var firstSpotTier any = this.SafeDict(spotTiers, 0, map[string]any{})
-		var firstFuturesTier any = this.SafeDict(futuresTiers, 0, map[string]any{})
-		var result any = map[string]any{}
-		var symbols any = this.Symbols
-		for i := 0; IsLessThan(i, GetArrayLength(symbols)); i++ {
-			var symbol any = GetValue(symbols, i)
-			var market any = this.Market(symbol)
-			var tierObject any = Ternary(IsTrue((GetValue(market, "spot"))), firstSpotTier, firstFuturesTier)
-			AddElementToObject(result, symbol, map[string]any{
-				"info":       spotFees,
-				"symbol":     symbol,
-				"maker":      this.SafeNumber(tierObject, "maker_fee"),
-				"taker":      this.SafeNumber(tierObject, "taker_fee"),
-				"percentage": true,
-				"tierBased":  true,
-				"tiers":      spotTiers,
-			})
-		}
-
-		ch <- result
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchPublicTradingFeesBody(ch, optionalArgs...)
 	return ch
 }
+func (this *OnetradingCore) fetchPublicTradingFeesBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes62512 := (<-this.LoadMarkets())
+		PanicOnError(retRes62512)
+	}
+
+	response := (<-this.PublicGetFees(params))
+	PanicOnError(response)
+	//
+	// [
+	//     {
+	//         'fee_group_id': 'SPOT',
+	//         'display_text': 'The fee plan for spot trading.',
+	//         'volume_currency': 'EUR',
+	//         'fee_tiers': [
+	//             {
+	//                 'volume': '0',
+	//                 'fee_group_id': 'SPOT',
+	//                 'maker_fee': '0.1000',
+	//                 'taker_fee': '0.2000',
+	//             },
+	//             {
+	//                 'volume': '10000',
+	//                 'fee_group_id': 'SPOT',
+	//                 'maker_fee': '0.0400',
+	//                 'taker_fee': '0.0800',
+	//             },
+	//         ],
+	//     },
+	//     {
+	//         'fee_group_id': 'FUTURES',
+	//         'display_text': 'The fee plan for futures trading.',
+	//         'volume_currency': 'EUR',
+	//         'fee_tiers': [
+	//             {
+	//                 'volume': '0',
+	//                 'fee_group_id': 'FUTURES',
+	//                 'maker_fee': '0.1000',
+	//                 'taker_fee': '0.2000',
+	//             },
+	//             {
+	//                 'volume': '10000',
+	//                 'fee_group_id': 'FUTURES',
+	//                 'maker_fee': '0.0400',
+	//                 'taker_fee': '0.0800',
+	//             },
+	//         ],
+	//     },
+	// ];
+	//
+	var spotFees any = this.SafeDict(response, 0, map[string]any{})
+	var futuresFees any = this.SafeDict(response, 1, map[string]any{})
+	var spotFeeTiers any = this.SafeList(spotFees, "fee_tiers", []any{})
+	var futuresFeeTiers any = this.SafeList(futuresFees, "fee_tiers", []any{})
+	var spotTiers any = this.ParseFeeTiers(spotFeeTiers)
+	var futuresTiers any = this.ParseFeeTiers(futuresFeeTiers)
+	var firstSpotTier any = this.SafeDict(spotTiers, 0, map[string]any{})
+	var firstFuturesTier any = this.SafeDict(futuresTiers, 0, map[string]any{})
+	var result map[string]any = map[string]any{}
+	var symbols any = this.Symbols
+	for i := 0; IsLessThan(i, GetArrayLength(symbols)); i++ {
+		var symbol any = GetValue(symbols, i)
+		var market any = this.Market(symbol)
+		var tierObject any = Ternary(IsTrue((IsEqual(GetValue(market, "spot"), true))), firstSpotTier, firstFuturesTier)
+		AddElementToObject(result, symbol, map[string]any{
+			"info":       spotFees,
+			"symbol":     symbol,
+			"maker":      this.SafeNumber(tierObject, "maker_fee"),
+			"taker":      this.SafeNumber(tierObject, "taker_fee"),
+			"percentage": true,
+			"tierBased":  true,
+			"tiers":      spotTiers,
+		})
+	}
+
+	ch <- result
+	return nil
+}
 func (this *OnetradingCore) FetchPrivateTradingFees(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes69812 := (<-this.LoadMarkets())
-			PanicOnError(retRes69812)
-		}
-
-		response := (<-this.PrivateGetAccountFees(params))
-		PanicOnError(response)
-		//
-		// {
-		//    "account_id":"b7f4e27e-b34a-493a-b0d4-4bd341a3f2e0",
-		//    "running_volumes":[
-		//       {
-		//          "fee_group_id":"SPOT",
-		//          "volume":"0",
-		//          "currency":"EUR"
-		//       },
-		//       {
-		//          "fee_group_id":"FUTURES",
-		//          "volume":"0",
-		//          "currency":"EUR"
-		//       }
-		//    ],
-		//    "active_fee_tiers":[
-		//       {
-		//          "fee_group_id":"SPOT",
-		//          "volume":"0",
-		//          "maker_fee":"0.1000",
-		//          "taker_fee":"0.2000"
-		//       },
-		//       {
-		//          "fee_group_id":"FUTURES",
-		//          "volume":"0",
-		//          "maker_fee":"0.1000",
-		//          "taker_fee":"0.2000"
-		//       }
-		//    ]
-		// }
-		//
-		var activeFeeTier any = this.SafeList(response, "active_fee_tiers")
-		var spotFees any = this.SafeDict(activeFeeTier, 0, map[string]any{})
-		var futuresFees any = this.SafeDict(activeFeeTier, 1, map[string]any{})
-		var spotMakerFee any = this.SafeString(spotFees, "maker_fee")
-		var spotTakerFee any = this.SafeString(spotFees, "taker_fee")
-		spotMakerFee = Precise.StringDiv(spotMakerFee, "100")
-		spotTakerFee = Precise.StringDiv(spotTakerFee, "100")
-		// const feeTiers = this.safeValue (response, 'fee_tiers');
-		var futuresMakerFee any = this.SafeString(futuresFees, "maker_fee")
-		var futuresTakerFee any = this.SafeString(futuresFees, "taker_fee")
-		futuresMakerFee = Precise.StringDiv(futuresMakerFee, "100")
-		futuresTakerFee = Precise.StringDiv(futuresTakerFee, "100")
-		var result any = map[string]any{}
-		// const tiers = this.parseFeeTiers (feeTiers);
-		var symbols any = this.Symbols
-		for i := 0; IsLessThan(i, GetArrayLength(symbols)); i++ {
-			var symbol any = GetValue(symbols, i)
-			var market any = this.Market(symbol)
-			var makerFee any = Ternary(IsTrue((GetValue(market, "spot"))), spotMakerFee, futuresMakerFee)
-			var takerFee any = Ternary(IsTrue((GetValue(market, "spot"))), spotTakerFee, futuresTakerFee)
-			AddElementToObject(result, symbol, map[string]any{
-				"info":       response,
-				"symbol":     symbol,
-				"maker":      this.ParseNumber(makerFee),
-				"taker":      this.ParseNumber(takerFee),
-				"percentage": true,
-				"tierBased":  true,
-				"tiers":      nil,
-			})
-		}
-
-		ch <- result
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchPrivateTradingFeesBody(ch, optionalArgs...)
 	return ch
+}
+func (this *OnetradingCore) fetchPrivateTradingFeesBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes69912 := (<-this.LoadMarkets())
+		PanicOnError(retRes69912)
+	}
+
+	response := (<-this.PrivateGetAccountFees(params))
+	PanicOnError(response)
+	//
+	// {
+	//    "account_id":"b7f4e27e-b34a-493a-b0d4-4bd341a3f2e0",
+	//    "running_volumes":[
+	//       {
+	//          "fee_group_id":"SPOT",
+	//          "volume":"0",
+	//          "currency":"EUR"
+	//       },
+	//       {
+	//          "fee_group_id":"FUTURES",
+	//          "volume":"0",
+	//          "currency":"EUR"
+	//       }
+	//    ],
+	//    "active_fee_tiers":[
+	//       {
+	//          "fee_group_id":"SPOT",
+	//          "volume":"0",
+	//          "maker_fee":"0.1000",
+	//          "taker_fee":"0.2000"
+	//       },
+	//       {
+	//          "fee_group_id":"FUTURES",
+	//          "volume":"0",
+	//          "maker_fee":"0.1000",
+	//          "taker_fee":"0.2000"
+	//       }
+	//    ]
+	// }
+	//
+	var activeFeeTier any = this.SafeList(response, "active_fee_tiers")
+	var spotFees any = this.SafeDict(activeFeeTier, 0, map[string]any{})
+	var futuresFees any = this.SafeDict(activeFeeTier, 1, map[string]any{})
+	var spotMakerFee any = this.SafeString(spotFees, "maker_fee")
+	var spotTakerFee any = this.SafeString(spotFees, "taker_fee")
+	spotMakerFee = Precise.StringDiv(spotMakerFee, "100")
+	spotTakerFee = Precise.StringDiv(spotTakerFee, "100")
+	// const feeTiers = this.safeValue (response, 'fee_tiers');
+	var futuresMakerFee any = this.SafeString(futuresFees, "maker_fee")
+	var futuresTakerFee any = this.SafeString(futuresFees, "taker_fee")
+	futuresMakerFee = Precise.StringDiv(futuresMakerFee, "100")
+	futuresTakerFee = Precise.StringDiv(futuresTakerFee, "100")
+	var result map[string]any = map[string]any{}
+	// const tiers = this.parseFeeTiers (feeTiers);
+	var symbols any = this.Symbols
+	for i := 0; IsLessThan(i, GetArrayLength(symbols)); i++ {
+		var symbol any = GetValue(symbols, i)
+		var market any = this.Market(symbol)
+		var makerFee any = Ternary(IsTrue((IsEqual(GetValue(market, "spot"), true))), spotMakerFee, futuresMakerFee)
+		var takerFee any = Ternary(IsTrue((IsEqual(GetValue(market, "spot"), true))), spotTakerFee, futuresTakerFee)
+		AddElementToObject(result, symbol, map[string]any{
+			"info":       response,
+			"symbol":     symbol,
+			"maker":      this.ParseNumber(makerFee),
+			"taker":      this.ParseNumber(takerFee),
+			"percentage": true,
+			"tierBased":  true,
+			"tiers":      nil,
+		})
+	}
+
+	ch <- result
+	return nil
 }
 func (this *OnetradingCore) ParseFeeTiers(feeTiers any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
@@ -951,48 +952,48 @@ func (this *OnetradingCore) ParseTicker(ticker any, optionalArgs ...any) any {
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *OnetradingCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes84812 := (<-this.LoadMarkets())
-			PanicOnError(retRes84812)
-		}
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"instrument_code": GetValue(market, "id"),
-		}
-
-		response := (<-this.PublicGetMarketTickerInstrumentCode(this.Extend(request, params)))
-		PanicOnError(response)
-
-		//
-		//     {
-		//         "instrument_code":"BTC_EUR",
-		//         "sequence":602562,
-		//         "time":"2020-07-10T06:27:34.951Z",
-		//         "state":"ACTIVE",
-		//         "is_frozen":0,
-		//         "quote_volume":"1695555.1783768",
-		//         "base_volume":"205.67436",
-		//         "last_price":"8143.91",
-		//         "best_bid":"8143.71",
-		//         "best_ask":"8156.9",
-		//         "price_change":"-147.47",
-		//         "price_change_percentage":"-1.78",
-		//         "high":"8337.45",
-		//         "low":"8110.0"
-		//     }
-		//
-		ch <- this.ParseTicker(response, market)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchTickerBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *OnetradingCore) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes84912 := (<-this.LoadMarkets())
+		PanicOnError(retRes84912)
+	}
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"instrument_code": GetValue(market, "id"),
+	}
+
+	response := (<-this.PublicGetMarketTickerInstrumentCode(this.Extend(request, params)))
+	PanicOnError(response)
+
+	//
+	//     {
+	//         "instrument_code":"BTC_EUR",
+	//         "sequence":602562,
+	//         "time":"2020-07-10T06:27:34.951Z",
+	//         "state":"ACTIVE",
+	//         "is_frozen":0,
+	//         "quote_volume":"1695555.1783768",
+	//         "base_volume":"205.67436",
+	//         "last_price":"8143.91",
+	//         "best_bid":"8143.71",
+	//         "best_ask":"8156.9",
+	//         "price_change":"-147.47",
+	//         "price_change_percentage":"-1.78",
+	//         "high":"8337.45",
+	//         "low":"8110.0"
+	//     }
+	//
+	ch <- this.ParseTicker(response, market)
+	return nil
 }
 
 /**
@@ -1005,58 +1006,58 @@ func (this *OnetradingCore) FetchTicker(symbol any, optionalArgs ...any) <-chan 
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *OnetradingCore) FetchTickers(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbols := GetArg(optionalArgs, 0, nil)
-		_ = symbols
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes88712 := (<-this.LoadMarkets())
-			PanicOnError(retRes88712)
-		}
-		symbols = this.MarketSymbols(symbols)
-
-		response := (<-this.PublicGetMarketTicker(params))
-		PanicOnError(response)
-		//
-		//     [
-		//         {
-		//             "instrument_code":"BTC_EUR",
-		//             "sequence":602562,
-		//             "time":"2020-07-10T06:27:34.951Z",
-		//             "state":"ACTIVE",
-		//             "is_frozen":0,
-		//             "quote_volume":"1695555.1783768",
-		//             "base_volume":"205.67436",
-		//             "last_price":"8143.91",
-		//             "best_bid":"8143.71",
-		//             "best_ask":"8156.9",
-		//             "price_change":"-147.47",
-		//             "price_change_percentage":"-1.78",
-		//             "high":"8337.45",
-		//             "low":"8110.0"
-		//         }
-		//     ]
-		//
-		var result any = map[string]any{}
-		var rawTickers any = this.ToArray(response)
-		for i := 0; IsLessThan(i, GetArrayLength(rawTickers)); i++ {
-			var ticker any = this.ParseTicker(GetValue(rawTickers, i))
-			var symbol any = GetValue(ticker, "symbol")
-			if IsTrue(!IsEqual(symbol, nil)) {
-				AddElementToObject(result, symbol, ticker)
-			}
-		}
-
-		ch <- this.FilterByArrayTickers(result, "symbol", symbols)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchTickersBody(ch, optionalArgs...)
 	return ch
+}
+func (this *OnetradingCore) fetchTickersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbols := GetArg(optionalArgs, 0, nil)
+	_ = symbols
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes88812 := (<-this.LoadMarkets())
+		PanicOnError(retRes88812)
+	}
+	symbols = this.MarketSymbols(symbols)
+
+	response := (<-this.PublicGetMarketTicker(params))
+	PanicOnError(response)
+	//
+	//     [
+	//         {
+	//             "instrument_code":"BTC_EUR",
+	//             "sequence":602562,
+	//             "time":"2020-07-10T06:27:34.951Z",
+	//             "state":"ACTIVE",
+	//             "is_frozen":0,
+	//             "quote_volume":"1695555.1783768",
+	//             "base_volume":"205.67436",
+	//             "last_price":"8143.91",
+	//             "best_bid":"8143.71",
+	//             "best_ask":"8156.9",
+	//             "price_change":"-147.47",
+	//             "price_change_percentage":"-1.78",
+	//             "high":"8337.45",
+	//             "low":"8110.0"
+	//         }
+	//     ]
+	//
+	var result map[string]any = map[string]any{}
+	var rawTickers any = this.ToArray(response)
+	for i := 0; IsLessThan(i, GetArrayLength(rawTickers)); i++ {
+		var ticker any = this.ParseTicker(GetValue(rawTickers, i))
+		var symbol any = GetValue(ticker, "symbol")
+		if IsTrue(!IsEqual(symbol, nil)) {
+			AddElementToObject(result, symbol, ticker)
+		}
+	}
+
+	ch <- this.FilterByArrayTickers(result, "symbol", symbols)
+	return nil
 }
 
 /**
@@ -1070,91 +1071,91 @@ func (this *OnetradingCore) FetchTickers(optionalArgs ...any) <-chan any {
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *OnetradingCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		limit := GetArg(optionalArgs, 0, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes93512 := (<-this.LoadMarkets())
-			PanicOnError(retRes93512)
-		}
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"instrument_code": GetValue(market, "id"),
-		}
-		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "depth", limit)
-		}
-
-		response := (<-this.PublicGetOrderBookInstrumentCode(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		// level 1
-		//
-		//     {
-		//         "instrument_code":"BTC_EUR",
-		//         "time":"2020-07-10T07:39:06.343Z",
-		//         "asks":{
-		//             "value":{
-		//                 "price":"8145.29",
-		//                 "amount":"0.96538",
-		//                 "number_of_orders":1
-		//             }
-		//         },
-		//         "bids":{
-		//             "value":{
-		//                 "price":"8134.0",
-		//                 "amount":"1.5978",
-		//                 "number_of_orders":5
-		//             }
-		//         }
-		//     }
-		//
-		// level 2
-		//
-		//     {
-		//         "instrument_code":"BTC_EUR","time":"2020-07-10T07:36:43.538Z",
-		//         "asks":[
-		//             {"price":"8146.59","amount":"0.89691","number_of_orders":1},
-		//             {"price":"8146.89","amount":"1.92062","number_of_orders":1},
-		//             {"price":"8169.5","amount":"0.0663","number_of_orders":1},
-		//         ],
-		//         "bids":[
-		//             {"price":"8143.49","amount":"0.01329","number_of_orders":1},
-		//             {"price":"8137.01","amount":"5.34748","number_of_orders":1},
-		//             {"price":"8137.0","amount":"2.0","number_of_orders":1},
-		//         ]
-		//     }
-		//
-		// level 3
-		//
-		//     {
-		//         "instrument_code":"BTC_EUR",
-		//         "time":"2020-07-10T07:32:31.525Z",
-		//         "bids":[
-		//             {"price":"8146.79","amount":"0.01537","order_id":"5d717da1-a8f4-422d-afcc-03cb6ab66825"},
-		//             {"price":"8139.32","amount":"3.66009","order_id":"d0715c68-f28d-4cf1-a450-d56cf650e11c"},
-		//             {"price":"8137.51","amount":"2.61049","order_id":"085fd6f4-e835-4ca5-9449-a8f165772e60"},
-		//         ],
-		//         "asks":[
-		//             {"price":"8153.49","amount":"0.93384","order_id":"755d3aa3-42b5-46fa-903d-98f42e9ae6c4"},
-		//             {"price":"8153.79","amount":"1.80456","order_id":"62034cf3-b70d-45ff-b285-ba6307941e7c"},
-		//             {"price":"8167.9","amount":"0.0018","order_id":"036354e0-71cd-492f-94f2-01f7d4b66422"},
-		//         ]
-		//     }
-		//
-		var timestamp any = this.Parse8601(this.SafeString(response, "time"))
-
-		ch <- this.ParseOrderBook(response, GetValue(market, "symbol"), timestamp, "bids", "asks", "price", "amount")
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *OnetradingCore) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	limit := GetArg(optionalArgs, 0, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes93612 := (<-this.LoadMarkets())
+		PanicOnError(retRes93612)
+	}
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"instrument_code": GetValue(market, "id"),
+	}
+	if IsTrue(!IsEqual(limit, nil)) {
+		AddElementToObject(request, "depth", limit)
+	}
+
+	response := (<-this.PublicGetOrderBookInstrumentCode(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	// level 1
+	//
+	//     {
+	//         "instrument_code":"BTC_EUR",
+	//         "time":"2020-07-10T07:39:06.343Z",
+	//         "asks":{
+	//             "value":{
+	//                 "price":"8145.29",
+	//                 "amount":"0.96538",
+	//                 "number_of_orders":1
+	//             }
+	//         },
+	//         "bids":{
+	//             "value":{
+	//                 "price":"8134.0",
+	//                 "amount":"1.5978",
+	//                 "number_of_orders":5
+	//             }
+	//         }
+	//     }
+	//
+	// level 2
+	//
+	//     {
+	//         "instrument_code":"BTC_EUR","time":"2020-07-10T07:36:43.538Z",
+	//         "asks":[
+	//             {"price":"8146.59","amount":"0.89691","number_of_orders":1},
+	//             {"price":"8146.89","amount":"1.92062","number_of_orders":1},
+	//             {"price":"8169.5","amount":"0.0663","number_of_orders":1},
+	//         ],
+	//         "bids":[
+	//             {"price":"8143.49","amount":"0.01329","number_of_orders":1},
+	//             {"price":"8137.01","amount":"5.34748","number_of_orders":1},
+	//             {"price":"8137.0","amount":"2.0","number_of_orders":1},
+	//         ]
+	//     }
+	//
+	// level 3
+	//
+	//     {
+	//         "instrument_code":"BTC_EUR",
+	//         "time":"2020-07-10T07:32:31.525Z",
+	//         "bids":[
+	//             {"price":"8146.79","amount":"0.01537","order_id":"5d717da1-a8f4-422d-afcc-03cb6ab66825"},
+	//             {"price":"8139.32","amount":"3.66009","order_id":"d0715c68-f28d-4cf1-a450-d56cf650e11c"},
+	//             {"price":"8137.51","amount":"2.61049","order_id":"085fd6f4-e835-4ca5-9449-a8f165772e60"},
+	//         ],
+	//         "asks":[
+	//             {"price":"8153.49","amount":"0.93384","order_id":"755d3aa3-42b5-46fa-903d-98f42e9ae6c4"},
+	//             {"price":"8153.79","amount":"1.80456","order_id":"62034cf3-b70d-45ff-b285-ba6307941e7c"},
+	//             {"price":"8167.9","amount":"0.0018","order_id":"036354e0-71cd-492f-94f2-01f7d4b66422"},
+	//         ]
+	//     }
+	//
+	var timestamp any = this.Parse8601(this.SafeString(response, "time"))
+
+	ch <- this.ParseOrderBook(response, GetValue(market, "symbol"), timestamp, "bids", "asks", "price", "amount")
+	return nil
 }
 func (this *OnetradingCore) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	//
@@ -1176,7 +1177,7 @@ func (this *OnetradingCore) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	var granularity any = this.SafeValue(ohlcv, "granularity")
 	var unit any = this.SafeString(granularity, "unit")
 	var period any = this.SafeString(granularity, "period")
-	var units any = map[string]any{
+	var units map[string]any = map[string]any{
 		"MINUTES": "m",
 		"HOURS":   "h",
 		"DAYS":    "d",
@@ -1213,66 +1214,66 @@ func (this *OnetradingCore) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
 func (this *OnetradingCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		timeframe := GetArg(optionalArgs, 0, "1m")
-		_ = timeframe
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes107312 := (<-this.LoadMarkets())
-			PanicOnError(retRes107312)
-		}
-		var market any = this.Market(symbol)
-		var periodUnit any = this.SafeString(this.Timeframes, timeframe)
-		if IsTrue(IsEqual(periodUnit, nil)) {
-			panic(ExchangeError(Add(this.Id, " fetchOHLCV() missing periodUnit")))
-		}
-		periodunitVariable := Split(periodUnit, "/")
-		period := GetValue(periodunitVariable, 0)
-		unit := GetValue(periodunitVariable, 1)
-		var durationInSeconds any = this.ParseTimeframe(timeframe)
-		var duration any = Multiply(durationInSeconds, 1000)
-		if IsTrue(IsEqual(limit, nil)) {
-			limit = 1500
-		}
-		var request any = map[string]any{
-			"instrument_code": GetValue(market, "id"),
-			"period":          period,
-			"unit":            unit,
-		}
-		if IsTrue(IsEqual(since, nil)) {
-			var now any = this.Milliseconds()
-			AddElementToObject(request, "to", this.Iso8601(now))
-			AddElementToObject(request, "from", this.Iso8601(Subtract(now, Multiply(limit, duration))))
-		} else {
-			AddElementToObject(request, "from", this.Iso8601(since))
-			AddElementToObject(request, "to", this.Iso8601(this.Sum(since, Multiply(limit, duration))))
-		}
-
-		response := (<-this.PublicGetCandlesticksInstrumentCode(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     [
-		//         {"instrument_code":"BTC_EUR","granularity":{"unit":"HOURS","period":1},"high":"9252.65","low":"9115.27","open":"9250.0","close":"9132.35","total_amount":"33.85924","volume":"311958.9635744","time":"2020-05-08T22:59:59.999Z","last_sequence":461123},
-		//         {"instrument_code":"BTC_EUR","granularity":{"unit":"HOURS","period":1},"high":"9162.49","low":"9040.0","open":"9132.53","close":"9083.69","total_amount":"26.19685","volume":"238553.7812365","time":"2020-05-08T23:59:59.999Z","last_sequence":461376},
-		//         {"instrument_code":"BTC_EUR","granularity":{"unit":"HOURS","period":1},"high":"9135.7","low":"9002.59","open":"9055.45","close":"9133.98","total_amount":"26.21919","volume":"238278.8724959","time":"2020-05-09T00:59:59.999Z","last_sequence":461521},
-		//     ]
-		//
-		var ohlcv any = this.SafeList(response, "candlesticks")
-
-		ch <- this.ParseOHLCVs(ohlcv, market, timeframe, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *OnetradingCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	timeframe := GetArg(optionalArgs, 0, "1m")
+	_ = timeframe
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes107412 := (<-this.LoadMarkets())
+		PanicOnError(retRes107412)
+	}
+	var market any = this.Market(symbol)
+	var periodUnit any = this.SafeString(this.Timeframes, timeframe)
+	if IsTrue(IsEqual(periodUnit, nil)) {
+		panic(ExchangeError(Add(this.Id, " fetchOHLCV() missing periodUnit")))
+	}
+	periodunitVariable := Split(periodUnit, "/")
+	period := GetValue(periodunitVariable, 0)
+	unit := GetValue(periodunitVariable, 1)
+	var durationInSeconds any = this.ParseTimeframe(timeframe)
+	var duration any = Multiply(durationInSeconds, 1000)
+	if IsTrue(IsEqual(limit, nil)) {
+		limit = 1500
+	}
+	var request map[string]any = map[string]any{
+		"instrument_code": GetValue(market, "id"),
+		"period":          period,
+		"unit":            unit,
+	}
+	if IsTrue(IsEqual(since, nil)) {
+		var now int64 = this.Milliseconds()
+		AddElementToObject(request, "to", this.Iso8601(now))
+		AddElementToObject(request, "from", this.Iso8601(Subtract(now, Multiply(limit, duration))))
+	} else {
+		AddElementToObject(request, "from", this.Iso8601(since))
+		AddElementToObject(request, "to", this.Iso8601(this.Sum(since, Multiply(limit, duration))))
+	}
+
+	response := (<-this.PublicGetCandlesticksInstrumentCode(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     [
+	//         {"instrument_code":"BTC_EUR","granularity":{"unit":"HOURS","period":1},"high":"9252.65","low":"9115.27","open":"9250.0","close":"9132.35","total_amount":"33.85924","volume":"311958.9635744","time":"2020-05-08T22:59:59.999Z","last_sequence":461123},
+	//         {"instrument_code":"BTC_EUR","granularity":{"unit":"HOURS","period":1},"high":"9162.49","low":"9040.0","open":"9132.53","close":"9083.69","total_amount":"26.19685","volume":"238553.7812365","time":"2020-05-08T23:59:59.999Z","last_sequence":461376},
+	//         {"instrument_code":"BTC_EUR","granularity":{"unit":"HOURS","period":1},"high":"9135.7","low":"9002.59","open":"9055.45","close":"9133.98","total_amount":"26.21919","volume":"238278.8724959","time":"2020-05-09T00:59:59.999Z","last_sequence":461521},
+	//     ]
+	//
+	var ohlcv any = this.SafeList(response, "candlesticks")
+
+	ch <- this.ParseOHLCVs(ohlcv, market, timeframe, since, limit)
+	return nil
 }
 func (this *OnetradingCore) ParseTrade(trade any, optionalArgs ...any) any {
 	//
@@ -1359,7 +1360,7 @@ func (this *OnetradingCore) ParseTrade(trade any, optionalArgs ...any) any {
 }
 func (this *OnetradingCore) ParseBalance(response any) any {
 	var balances any = this.SafeValue(response, "balances", []any{})
-	var result any = map[string]any{
+	var result map[string]any = map[string]any{
 		"info": response,
 	}
 	for i := 0; IsLessThan(i, GetArrayLength(balances)); i++ {
@@ -1385,55 +1386,56 @@ func (this *OnetradingCore) ParseBalance(response any) any {
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *OnetradingCore) FetchBalance(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes122212 := (<-this.LoadMarkets())
-			PanicOnError(retRes122212)
-		}
-
-		response := (<-this.PrivateGetAccountBalances(params))
-		PanicOnError(response)
-
-		//
-		//     {
-		//         "account_id":"4b95934f-55f1-460c-a525-bd5afc0cf071",
-		//         "balances":[
-		//             {
-		//                 "account_id":"4b95934f-55f1-460c-a525-bd5afc0cf071",
-		//                 "currency_code":"BTC",
-		//                 "change":"10.0",
-		//                 "available":"10.0",
-		//                 "locked":"0.0",
-		//                 "sequence":142135994,
-		//                 "time":"2020-07-01T10:57:32.959Z"
-		//             }
-		//         ]
-		//     }
-		//
-		ch <- this.ParseBalance(response)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchBalanceBody(ch, optionalArgs...)
 	return ch
 }
+func (this *OnetradingCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes122312 := (<-this.LoadMarkets())
+		PanicOnError(retRes122312)
+	}
+
+	response := (<-this.PrivateGetAccountBalances(params))
+	PanicOnError(response)
+
+	//
+	//     {
+	//         "account_id":"4b95934f-55f1-460c-a525-bd5afc0cf071",
+	//         "balances":[
+	//             {
+	//                 "account_id":"4b95934f-55f1-460c-a525-bd5afc0cf071",
+	//                 "currency_code":"BTC",
+	//                 "change":"10.0",
+	//                 "available":"10.0",
+	//                 "locked":"0.0",
+	//                 "sequence":142135994,
+	//                 "time":"2020-07-01T10:57:32.959Z"
+	//             }
+	//         ]
+	//     }
+	//
+	ch <- this.ParseBalance(response)
+	return nil
+}
 func (this *OnetradingCore) ParseOrderStatus(status any) any {
-	var statuses any = map[string]any{
-		"FILLED":          "open",
-		"FILLED_FULLY":    "closed",
-		"FILLED_CLOSED":   "canceled",
-		"FILLED_REJECTED": "rejected",
-		"OPEN":            "open",
-		"REJECTED":        "rejected",
-		"CLOSED":          "canceled",
-		"FAILED":          "failed",
-		"STOP_TRIGGERED":  "triggered",
-		"DONE":            "closed",
+	var statuses map[string]any = map[string]any{
+		"OPEN":                          "open",
+		"BOOKED":                        "open",
+		"FILL":                          "open",
+		"MOVED":                         "open",
+		"FILLED_FULLY":                  "closed",
+		"FILLED_CLOSED":                 "canceled",
+		"FILLED_REJECTED":               "rejected",
+		"CANCELLED":                     "canceled",
+		"INSUFFICIENT_FUNDS":            "rejected",
+		"INSUFFICIENT_LIQUIDITY":        "rejected",
+		"RISK_FAILED_OVER_MAX_POSITION": "rejected",
 	}
 	return this.SafeString(statuses, status, status)
 }
@@ -1510,8 +1512,7 @@ func (this *OnetradingCore) ParseOrder(order any, optionalArgs ...any) any {
 	var id any = this.SafeString(rawOrder, "order_id")
 	var clientOrderId any = this.SafeString(rawOrder, "client_id")
 	var timestamp any = this.Parse8601(this.SafeString(rawOrder, "time"))
-	var rawStatus any = this.ParseOrderStatus(this.SafeString(rawOrder, "status"))
-	var status any = this.ParseOrderStatus(rawStatus)
+	var status any = this.ParseOrderStatus(this.SafeString(rawOrder, "status"))
 	var marketId any = this.SafeString(rawOrder, "instrument_code")
 	var symbol any = this.SafeSymbol(marketId, market, "_")
 	var price any = this.SafeString(rawOrder, "price")
@@ -1530,7 +1531,7 @@ func (this *OnetradingCore) ParseOrder(order any, optionalArgs ...any) any {
 		"datetime":           this.Iso8601(timestamp),
 		"lastTradeTimestamp": nil,
 		"symbol":             symbol,
-		"type":               this.ParseOrderType(typeVar),
+		"type":               typeVar,
 		"timeInForce":        timeInForce,
 		"postOnly":           postOnly,
 		"side":               side,
@@ -1545,18 +1546,13 @@ func (this *OnetradingCore) ParseOrder(order any, optionalArgs ...any) any {
 		"trades":             rawTrades,
 	}, market)
 }
-func (this *OnetradingCore) ParseOrderType(typeVar any) any {
-	var types any = map[string]any{
-		"booked": "limit",
-	}
-	return this.SafeString(types, typeVar, typeVar)
-}
 func (this *OnetradingCore) ParseTimeInForce(timeInForce any) any {
-	var timeInForces any = map[string]any{
+	var timeInForces map[string]any = map[string]any{
 		"GOOD_TILL_CANCELLED":    "GTC",
 		"GOOD_TILL_TIME":         "GTT",
 		"IMMEDIATE_OR_CANCELLED": "IOC",
 		"FILL_OR_KILL":           "FOK",
+		"POST_ONLY":              "PO",
 	}
 	return this.SafeString(timeInForces, timeInForce, timeInForce)
 }
@@ -1576,80 +1572,80 @@ func (this *OnetradingCore) ParseTimeInForce(timeInForce any) any {
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *OnetradingCore) CreateOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		price := GetArg(optionalArgs, 0, nil)
-		_ = price
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes140112 := (<-this.LoadMarkets())
-			PanicOnError(retRes140112)
-		}
-		var market any = this.Market(symbol)
-		var uppercaseType any = ToUpper(typeVar)
-		if IsTrue(IsEqual(side, nil)) {
-			panic(ArgumentsRequired(Add(this.Id, " createOrder() requires a side argument")))
-		}
-		var request any = map[string]any{
-			"instrument_code": GetValue(market, "id"),
-			"type":            uppercaseType,
-			"side":            ToUpper(side),
-			"amount":          this.AmountToPrecision(symbol, amount),
-		}
-		var priceIsRequired any = false
-		if IsTrue(IsTrue(IsEqual(uppercaseType, "LIMIT")) || IsTrue(IsEqual(uppercaseType, "STOP"))) {
-			priceIsRequired = true
-		}
-		var triggerPrice any = this.SafeNumberN(params, []any{"triggerPrice", "trigger_price", "stopPrice"})
-		if IsTrue(!IsEqual(triggerPrice, nil)) {
-			if IsTrue(IsEqual(uppercaseType, "MARKET")) {
-				panic(BadRequest(Add(this.Id, " createOrder() cannot place stop market orders, only stop limit")))
-			}
-			AddElementToObject(request, "trigger_price", this.PriceToPrecision(symbol, triggerPrice))
-			AddElementToObject(request, "type", "STOP")
-			params = this.Omit(params, []any{"triggerPrice", "trigger_price", "stopPrice"})
-		} else if IsTrue(IsEqual(uppercaseType, "STOP")) {
-			panic(ArgumentsRequired(Add(Add(Add(this.Id, " createOrder() requires a triggerPrice param for "), typeVar), " orders")))
-		}
-		if IsTrue(priceIsRequired) {
-			AddElementToObject(request, "price", this.PriceToPrecision(symbol, price))
-		}
-		var clientOrderId any = this.SafeString2(params, "clientOrderId", "client_id")
-		if IsTrue(!IsEqual(clientOrderId, nil)) {
-			AddElementToObject(request, "client_id", clientOrderId)
-			params = this.Omit(params, []any{"clientOrderId", "client_id"})
-		}
-		var timeInForce any = this.SafeString2(params, "timeInForce", "time_in_force", "GOOD_TILL_CANCELLED")
-		params = this.Omit(params, "timeInForce")
-		AddElementToObject(request, "time_in_force", timeInForce)
-
-		response := (<-this.PrivatePostAccountOrders(this.Extend(request, params)))
-		PanicOnError(response)
-
-		//
-		//     {
-		//         "order_id": "d5492c24-2995-4c18-993a-5b8bf8fffc0d",
-		//         "client_id": "d75fb03b-b599-49e9-b926-3f0b6d103206",
-		//         "account_id": "a4c699f6-338d-4a26-941f-8f9853bfc4b9",
-		//         "instrument_code": "BTC_EUR",
-		//         "time": "2019-08-01T08:00:44.026Z",
-		//         "side": "BUY",
-		//         "price": "5000",
-		//         "amount": "1",
-		//         "filled_amount": "0.5",
-		//         "type": "LIMIT",
-		//         "time_in_force": "GOOD_TILL_CANCELLED"
-		//     }
-		//
-		ch <- this.ParseOrder(response, market)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
+}
+func (this *OnetradingCore) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	price := GetArg(optionalArgs, 0, nil)
+	_ = price
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes139612 := (<-this.LoadMarkets())
+		PanicOnError(retRes139612)
+	}
+	var market any = this.Market(symbol)
+	var uppercaseType string = ToUpper(typeVar)
+	if IsTrue(IsEqual(side, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " createOrder() requires a side argument")))
+	}
+	var request map[string]any = map[string]any{
+		"instrument_code": GetValue(market, "id"),
+		"type":            uppercaseType,
+		"side":            ToUpper(side),
+		"amount":          this.AmountToPrecision(symbol, amount),
+	}
+	var priceIsRequired bool = false
+	if IsTrue(IsTrue(IsEqual(uppercaseType, "LIMIT")) || IsTrue(IsEqual(uppercaseType, "STOP"))) {
+		priceIsRequired = true
+	}
+	var triggerPrice any = this.SafeNumberN(params, []any{"triggerPrice", "trigger_price", "stopPrice"})
+	if IsTrue(!IsEqual(triggerPrice, nil)) {
+		if IsTrue(IsEqual(uppercaseType, "MARKET")) {
+			panic(BadRequest(Add(this.Id, " createOrder() cannot place stop market orders, only stop limit")))
+		}
+		AddElementToObject(request, "trigger_price", this.PriceToPrecision(symbol, triggerPrice))
+		AddElementToObject(request, "type", "STOP")
+		params = this.Omit(params, []any{"triggerPrice", "trigger_price", "stopPrice"})
+	} else if IsTrue(IsEqual(uppercaseType, "STOP")) {
+		panic(ArgumentsRequired(Add(Add(Add(this.Id, " createOrder() requires a triggerPrice param for "), typeVar), " orders")))
+	}
+	if IsTrue(priceIsRequired) {
+		AddElementToObject(request, "price", this.PriceToPrecision(symbol, price))
+	}
+	var clientOrderId any = this.SafeString2(params, "clientOrderId", "client_id")
+	if IsTrue(!IsEqual(clientOrderId, nil)) {
+		AddElementToObject(request, "client_id", clientOrderId)
+		params = this.Omit(params, []any{"clientOrderId", "client_id"})
+	}
+	var timeInForce any = this.SafeString2(params, "timeInForce", "time_in_force", "GOOD_TILL_CANCELLED")
+	params = this.Omit(params, "timeInForce")
+	AddElementToObject(request, "time_in_force", timeInForce)
+
+	response := (<-this.PrivatePostAccountOrders(this.Extend(request, params)))
+	PanicOnError(response)
+
+	//
+	//     {
+	//         "order_id": "d5492c24-2995-4c18-993a-5b8bf8fffc0d",
+	//         "client_id": "d75fb03b-b599-49e9-b926-3f0b6d103206",
+	//         "account_id": "a4c699f6-338d-4a26-941f-8f9853bfc4b9",
+	//         "instrument_code": "BTC_EUR",
+	//         "time": "2019-08-01T08:00:44.026Z",
+	//         "side": "BUY",
+	//         "price": "5000",
+	//         "amount": "1",
+	//         "filled_amount": "0.5",
+	//         "type": "LIMIT",
+	//         "time_in_force": "GOOD_TILL_CANCELLED"
+	//     }
+	//
+	ch <- this.ParseOrder(response, market)
+	return nil
 }
 
 /**
@@ -1664,48 +1660,48 @@ func (this *OnetradingCore) CreateOrder(symbol any, typeVar any, side any, amoun
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *OnetradingCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes147812 := (<-this.LoadMarkets())
-			PanicOnError(retRes147812)
-		}
-		var clientOrderId any = this.SafeString2(params, "clientOrderId", "client_id")
-		params = this.Omit(params, []any{"clientOrderId", "client_id"})
-		var method any = "privateDeleteAccountOrdersOrderId"
-		var request any = map[string]any{}
-		if IsTrue(!IsEqual(clientOrderId, nil)) {
-			method = "privateDeleteAccountOrdersClientClientId"
-			AddElementToObject(request, "client_id", clientOrderId)
-		} else {
-			AddElementToObject(request, "order_id", id)
-		}
-		var response any = nil
-		if IsTrue(IsEqual(method, "privateDeleteAccountOrdersOrderId")) {
-
-			response = (<-this.PrivateDeleteAccountOrdersOrderId(this.Extend(request, params)))
-			PanicOnError(response)
-		} else {
-
-			response = (<-this.PrivateDeleteAccountOrdersClientClientId(this.Extend(request, params)))
-			PanicOnError(response)
-		}
-
-		//
-		// responds with an empty body
-		//
-		ch <- this.ParseOrder(response)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
+}
+func (this *OnetradingCore) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes147312 := (<-this.LoadMarkets())
+		PanicOnError(retRes147312)
+	}
+	var clientOrderId any = this.SafeString2(params, "clientOrderId", "client_id")
+	params = this.Omit(params, []any{"clientOrderId", "client_id"})
+	var method string = "privateDeleteAccountOrdersOrderId"
+	var request map[string]any = map[string]any{}
+	if IsTrue(!IsEqual(clientOrderId, nil)) {
+		method = "privateDeleteAccountOrdersClientClientId"
+		AddElementToObject(request, "client_id", clientOrderId)
+	} else {
+		AddElementToObject(request, "order_id", id)
+	}
+	var response any = nil
+	if IsTrue(IsEqual(method, "privateDeleteAccountOrdersOrderId")) {
+
+		response = (<-this.PrivateDeleteAccountOrdersOrderId(this.Extend(request, params)))
+		PanicOnError(response)
+	} else {
+
+		response = (<-this.PrivateDeleteAccountOrdersClientClientId(this.Extend(request, params)))
+		PanicOnError(response)
+	}
+
+	//
+	// responds with an empty body
+	//
+	ch <- this.ParseOrder(response)
+	return nil
 }
 
 /**
@@ -1718,40 +1714,40 @@ func (this *OnetradingCore) CancelOrder(id any, optionalArgs ...any) <-chan any 
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *OnetradingCore) CancelAllOrders(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes151312 := (<-this.LoadMarkets())
-			PanicOnError(retRes151312)
-		}
-		var request any = map[string]any{}
-		if IsTrue(!IsEqual(symbol, nil)) {
-			var market any = this.Market(symbol)
-			AddElementToObject(request, "instrument_code", GetValue(market, "id"))
-		}
-
-		response := (<-this.PrivateDeleteAccountOrders(this.Extend(request, params)))
-		PanicOnError(response)
-
-		//
-		//     [
-		//         "a10e9bd1-8f72-4cfe-9f1b-7f1c8a9bd8ee"
-		//     ]
-		//
-		ch <- []any{this.SafeOrder(map[string]any{
-			"info": response,
-		})}
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.cancelAllOrdersBody(ch, optionalArgs...)
 	return ch
+}
+func (this *OnetradingCore) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes150812 := (<-this.LoadMarkets())
+		PanicOnError(retRes150812)
+	}
+	var request map[string]any = map[string]any{}
+	if IsTrue(!IsEqual(symbol, nil)) {
+		var market any = this.Market(symbol)
+		AddElementToObject(request, "instrument_code", GetValue(market, "id"))
+	}
+
+	response := (<-this.PrivateDeleteAccountOrders(this.Extend(request, params)))
+	PanicOnError(response)
+
+	//
+	//     [
+	//         "a10e9bd1-8f72-4cfe-9f1b-7f1c8a9bd8ee"
+	//     ]
+	//
+	ch <- []any{this.SafeOrder(map[string]any{
+		"info": response,
+	})}
+	return nil
 }
 
 /**
@@ -1765,39 +1761,39 @@ func (this *OnetradingCore) CancelAllOrders(optionalArgs ...any) <-chan any {
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *OnetradingCore) CancelOrders(ids any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes154112 := (<-this.LoadMarkets())
-			PanicOnError(retRes154112)
-		}
-		var request any = map[string]any{
-			"ids": Join(ids, ","),
-		}
-
-		response := (<-this.PrivateDeleteAccountOrders(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     [
-		//         "a10e9bd1-8f72-4cfe-9f1b-7f1c8a9bd8ee"
-		//     ]
-		//
-		var order any = this.SafeOrder(map[string]any{
-			"info": response,
-		})
-
-		ch <- []any{order}
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.cancelOrdersBody(ch, ids, optionalArgs...)
 	return ch
+}
+func (this *OnetradingCore) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes153612 := (<-this.LoadMarkets())
+		PanicOnError(retRes153612)
+	}
+	var request map[string]any = map[string]any{
+		"ids": Join(ids, ","),
+	}
+
+	response := (<-this.PrivateDeleteAccountOrders(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     [
+	//         "a10e9bd1-8f72-4cfe-9f1b-7f1c8a9bd8ee"
+	//     ]
+	//
+	var order any = this.SafeOrder(map[string]any{
+		"info": response,
+	})
+
+	ch <- []any{order}
+	return nil
 }
 
 /**
@@ -1811,72 +1807,72 @@ func (this *OnetradingCore) CancelOrders(ids any, optionalArgs ...any) <-chan an
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *OnetradingCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes156812 := (<-this.LoadMarkets())
-			PanicOnError(retRes156812)
-		}
-		var request any = map[string]any{
-			"order_id": id,
-		}
-
-		response := (<-this.PrivateGetAccountOrdersOrderId(this.Extend(request, params)))
-		PanicOnError(response)
-
-		//
-		//     {
-		//         "order": {
-		//             "order_id": "36bb2437-7402-4794-bf26-4bdf03526439",
-		//             "account_id": "a4c699f6-338d-4a26-941f-8f9853bfc4b9",
-		//             "time_last_updated": "2019-09-27T15:05:35.096Z",
-		//             "sequence": 48782,
-		//             "price": "7349.2",
-		//             "filled_amount": "100.0",
-		//             "status": "FILLED_FULLY",
-		//             "amount": "100.0",
-		//             "instrument_code": "BTC_EUR",
-		//             "side": "BUY",
-		//             "time": "2019-09-27T15:05:32.063Z",
-		//             "type": "MARKET"
-		//         },
-		//         "trades": [
-		//             {
-		//                 "fee": {
-		//                     "fee_amount": "0.0014",
-		//                     "fee_currency": "BTC",
-		//                     "fee_percentage": "0.1",
-		//                     "fee_group_id": "default",
-		//                     "fee_type": "TAKER",
-		//                     "running_trading_volume": "0.0"
-		//                 },
-		//                 "trade": {
-		//                     "trade_id": "fdff2bcc-37d6-4a2d-92a5-46e09c868664",
-		//                     "order_id": "36bb2437-7402-4794-bf26-4bdf03526439",
-		//                     "account_id": "a4c699f6-338d-4a26-941f-8f9853bfc4b9",
-		//                     "amount": "1.4",
-		//                     "side": "BUY",
-		//                     "instrument_code": "BTC_EUR",
-		//                     "price": "7341.4",
-		//                     "time": "2019-09-27T15:05:32.564Z",
-		//                     "sequence": 48670
-		//                 }
-		//             }
-		//         ]
-		//     }
-		//
-		ch <- this.ParseOrder(response)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOrderBody(ch, id, optionalArgs...)
 	return ch
+}
+func (this *OnetradingCore) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes156312 := (<-this.LoadMarkets())
+		PanicOnError(retRes156312)
+	}
+	var request map[string]any = map[string]any{
+		"order_id": id,
+	}
+
+	response := (<-this.PrivateGetAccountOrdersOrderId(this.Extend(request, params)))
+	PanicOnError(response)
+
+	//
+	//     {
+	//         "order": {
+	//             "order_id": "36bb2437-7402-4794-bf26-4bdf03526439",
+	//             "account_id": "a4c699f6-338d-4a26-941f-8f9853bfc4b9",
+	//             "time_last_updated": "2019-09-27T15:05:35.096Z",
+	//             "sequence": 48782,
+	//             "price": "7349.2",
+	//             "filled_amount": "100.0",
+	//             "status": "FILLED_FULLY",
+	//             "amount": "100.0",
+	//             "instrument_code": "BTC_EUR",
+	//             "side": "BUY",
+	//             "time": "2019-09-27T15:05:32.063Z",
+	//             "type": "MARKET"
+	//         },
+	//         "trades": [
+	//             {
+	//                 "fee": {
+	//                     "fee_amount": "0.0014",
+	//                     "fee_currency": "BTC",
+	//                     "fee_percentage": "0.1",
+	//                     "fee_group_id": "default",
+	//                     "fee_type": "TAKER",
+	//                     "running_trading_volume": "0.0"
+	//                 },
+	//                 "trade": {
+	//                     "trade_id": "fdff2bcc-37d6-4a2d-92a5-46e09c868664",
+	//                     "order_id": "36bb2437-7402-4794-bf26-4bdf03526439",
+	//                     "account_id": "a4c699f6-338d-4a26-941f-8f9853bfc4b9",
+	//                     "amount": "1.4",
+	//                     "side": "BUY",
+	//                     "instrument_code": "BTC_EUR",
+	//                     "price": "7341.4",
+	//                     "time": "2019-09-27T15:05:32.564Z",
+	//                     "sequence": 48670
+	//                 }
+	//             }
+	//         ]
+	//     }
+	//
+	ch <- this.ParseOrder(response)
+	return nil
 }
 
 /**
@@ -1885,134 +1881,136 @@ func (this *OnetradingCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
  * @description fetch all unfilled currently open orders
  * @see https://docs.onetrading.com/rest/trading/get-orders
  * @param {string} symbol unified market symbol
- * @param {int} [since] the earliest time in ms to fetch open orders for
+ * @param {int} [since] the earliest time in ms to fetch open orders for, the maximum window between since and until is 30 days
  * @param {int} [limit] the maximum number of  open orders structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.until] timestamp in ms of the latest entry to fetch
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *OnetradingCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes163112 := (<-this.LoadMarkets())
-			PanicOnError(retRes163112)
-		}
-		var request any = map[string]any{}
-		var market any = nil
-		if IsTrue(!IsEqual(symbol, nil)) {
-			market = this.Market(symbol)
-			AddElementToObject(request, "instrument_code", GetValue(market, "id"))
-		}
-		if IsTrue(!IsEqual(since, nil)) {
-			var to any = this.SafeString(params, "to")
-			if IsTrue(IsEqual(to, nil)) {
-				panic(ArgumentsRequired(Add(this.Id, " fetchOpenOrders() requires a \"to\" iso8601 string param with the since argument is specified, max range is 100 days")))
-			}
-			AddElementToObject(request, "from", this.Iso8601(since))
-		}
-		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "max_page_size", limit)
-		}
-
-		response := (<-this.PrivateGetAccountOrders(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "order_history": [
-		//             {
-		//                 "order": {
-		//                     "trigger_price": "12089.88",
-		//                     "order_id": "d453ca12-c650-46dd-9dee-66910d96bfc0",
-		//                     "account_id": "ef3a5f4c-cfcd-415e-ba89-5a9abf47b28a",
-		//                     "instrument_code": "BTC_USDT",
-		//                     "time": "2019-08-23T10:02:31.663Z",
-		//                     "side": "SELL",
-		//                     "price": "10159.76",
-		//                     "average_price": "10159.76",
-		//                     "amount": "0.2",
-		//                     "filled_amount": "0.2",
-		//                     "type": "STOP",
-		//                     "sequence": 8,
-		//                     "status": "FILLED_FULLY"
-		//                 },
-		//                 "trades": [
-		//                     {
-		//                         "fee": {
-		//                             "fee_amount": "0.4188869",
-		//                             "fee_currency": "USDT",
-		//                             "fee_percentage": "0.1",
-		//                             "fee_group_id": "default",
-		//                             "fee_type": "TAKER",
-		//                             "running_trading_volume": "0.0"
-		//                         },
-		//                         "trade": {
-		//                             "trade_id": "ec82896f-fd1b-4cbb-89df-a9da85ccbb4b",
-		//                             "order_id": "d453ca12-c650-46dd-9dee-66910d96bfc0",
-		//                             "account_id": "ef3a5f4c-cfcd-415e-ba89-5a9abf47b28a",
-		//                             "amount": "0.2",
-		//                             "side": "SELL",
-		//                             "instrument_code": "BTC_USDT",
-		//                             "price": "10159.76",
-		//                             "time": "2019-08-23T10:02:32.663Z",
-		//                             "sequence": 9
-		//                         }
-		//                     }
-		//                 ]
-		//             },
-		//             {
-		//                 "order": {
-		//                     "order_id": "5151a99e-f414-418f-8cf1-2568d0a63ea5",
-		//                     "account_id": "ef3a5f4c-cfcd-415e-ba89-5a9abf47b28a",
-		//                     "instrument_code": "BTC_USDT",
-		//                     "time": "2019-08-23T10:01:36.773Z",
-		//                     "side": "SELL",
-		//                     "price": "12289.88",
-		//                     "amount": "0.5",
-		//                     "filled_amount": "0.0",
-		//                     "type": "LIMIT",
-		//                     "sequence": 7,
-		//                     "status": "OPEN"
-		//                 },
-		//                 "trades": []
-		//             },
-		//             {
-		//                 "order": {
-		//                     "order_id": "ac80d857-75e1-4733-9070-fd4288395fdc",
-		//                     "account_id": "ef3a5f4c-cfcd-415e-ba89-5a9abf47b28a",
-		//                     "instrument_code": "BTC_USDT",
-		//                     "time": "2019-08-23T10:01:25.031Z",
-		//                     "side": "SELL",
-		//                     "price": "11089.88",
-		//                     "amount": "0.1",
-		//                     "filled_amount": "0.0",
-		//                     "type": "LIMIT",
-		//                     "sequence": 6,
-		//                     "status": "OPEN"
-		//                 },
-		//                 "trades": []
-		//             }
-		//         ],
-		//         "max_page_size": 100
-		//     }
-		//
-		var orderHistory any = this.SafeList(response, "order_history", []any{})
-
-		ch <- this.ParseOrders(orderHistory, market, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOpenOrdersBody(ch, optionalArgs...)
 	return ch
+}
+func (this *OnetradingCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes162712 := (<-this.LoadMarkets())
+		PanicOnError(retRes162712)
+	}
+	var request map[string]any = map[string]any{}
+	var market any = nil
+	if IsTrue(!IsEqual(symbol, nil)) {
+		market = this.Market(symbol)
+		AddElementToObject(request, "instrument_code", GetValue(market, "id"))
+	}
+	if IsTrue(!IsEqual(since, nil)) {
+		AddElementToObject(request, "from", this.Iso8601(since))
+	}
+	var until any = this.SafeInteger(params, "until")
+	if IsTrue(!IsEqual(until, nil)) {
+		params = this.Omit(params, "until")
+		AddElementToObject(request, "to", this.Iso8601(until))
+	}
+	if IsTrue(!IsEqual(limit, nil)) {
+		AddElementToObject(request, "max_page_size", limit)
+	}
+
+	response := (<-this.PrivateGetAccountOrders(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "order_history": [
+	//             {
+	//                 "order": {
+	//                     "trigger_price": "12089.88",
+	//                     "order_id": "d453ca12-c650-46dd-9dee-66910d96bfc0",
+	//                     "account_id": "ef3a5f4c-cfcd-415e-ba89-5a9abf47b28a",
+	//                     "instrument_code": "BTC_USDT",
+	//                     "time": "2019-08-23T10:02:31.663Z",
+	//                     "side": "SELL",
+	//                     "price": "10159.76",
+	//                     "average_price": "10159.76",
+	//                     "amount": "0.2",
+	//                     "filled_amount": "0.2",
+	//                     "type": "STOP",
+	//                     "sequence": 8,
+	//                     "status": "FILLED_FULLY"
+	//                 },
+	//                 "trades": [
+	//                     {
+	//                         "fee": {
+	//                             "fee_amount": "0.4188869",
+	//                             "fee_currency": "USDT",
+	//                             "fee_percentage": "0.1",
+	//                             "fee_group_id": "default",
+	//                             "fee_type": "TAKER",
+	//                             "running_trading_volume": "0.0"
+	//                         },
+	//                         "trade": {
+	//                             "trade_id": "ec82896f-fd1b-4cbb-89df-a9da85ccbb4b",
+	//                             "order_id": "d453ca12-c650-46dd-9dee-66910d96bfc0",
+	//                             "account_id": "ef3a5f4c-cfcd-415e-ba89-5a9abf47b28a",
+	//                             "amount": "0.2",
+	//                             "side": "SELL",
+	//                             "instrument_code": "BTC_USDT",
+	//                             "price": "10159.76",
+	//                             "time": "2019-08-23T10:02:32.663Z",
+	//                             "sequence": 9
+	//                         }
+	//                     }
+	//                 ]
+	//             },
+	//             {
+	//                 "order": {
+	//                     "order_id": "5151a99e-f414-418f-8cf1-2568d0a63ea5",
+	//                     "account_id": "ef3a5f4c-cfcd-415e-ba89-5a9abf47b28a",
+	//                     "instrument_code": "BTC_USDT",
+	//                     "time": "2019-08-23T10:01:36.773Z",
+	//                     "side": "SELL",
+	//                     "price": "12289.88",
+	//                     "amount": "0.5",
+	//                     "filled_amount": "0.0",
+	//                     "type": "LIMIT",
+	//                     "sequence": 7,
+	//                     "status": "OPEN"
+	//                 },
+	//                 "trades": []
+	//             },
+	//             {
+	//                 "order": {
+	//                     "order_id": "ac80d857-75e1-4733-9070-fd4288395fdc",
+	//                     "account_id": "ef3a5f4c-cfcd-415e-ba89-5a9abf47b28a",
+	//                     "instrument_code": "BTC_USDT",
+	//                     "time": "2019-08-23T10:01:25.031Z",
+	//                     "side": "SELL",
+	//                     "price": "11089.88",
+	//                     "amount": "0.1",
+	//                     "filled_amount": "0.0",
+	//                     "type": "LIMIT",
+	//                     "sequence": 6,
+	//                     "status": "OPEN"
+	//                 },
+	//                 "trades": []
+	//             }
+	//         ],
+	//         "max_page_size": 100
+	//     }
+	//
+	var orderHistory any = this.SafeList(response, "order_history", []any{})
+
+	ch <- this.ParseOrders(orderHistory, market, since, limit)
+	return nil
 }
 
 /**
@@ -2021,35 +2019,36 @@ func (this *OnetradingCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
  * @description fetches information on multiple closed orders made by the user
  * @see https://docs.onetrading.com/rest/trading/get-orders
  * @param {string} symbol unified market symbol of the market orders were made in
- * @param {int} [since] the earliest time in ms to fetch orders for
+ * @param {int} [since] the earliest time in ms to fetch orders for, the maximum window between since and until is 30 days
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.until] timestamp in ms of the latest entry to fetch
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *OnetradingCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		var request any = map[string]any{
-			"with_cancelled_and_rejected": true,
-		}
-
-		retRes175715 := (<-this.FetchOpenOrders(symbol, since, limit, this.Extend(request, params)))
-		PanicOnError(retRes175715)
-		ch <- retRes175715
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchClosedOrdersBody(ch, optionalArgs...)
 	return ch
+}
+func (this *OnetradingCore) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	var request map[string]any = map[string]any{
+		"with_cancelled_and_rejected": true,
+	}
+
+	retRes175515 := (<-this.FetchOpenOrders(symbol, since, limit, this.Extend(request, params)))
+	PanicOnError(retRes175515)
+	ch <- retRes175515
+	return nil
 }
 
 /**
@@ -2065,73 +2064,73 @@ func (this *OnetradingCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *OnetradingCore) FetchOrderTrades(id any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes177412 := (<-this.LoadMarkets())
-			PanicOnError(retRes177412)
-		}
-		var request any = map[string]any{
-			"order_id": id,
-		}
-		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "max_page_size", limit)
-		}
-
-		response := (<-this.PrivateGetAccountOrdersOrderIdTrades(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "trade_history": [
-		//             {
-		//                 "trade": {
-		//                     "trade_id": "2b42efcd-d5b7-4a56-8e12-b69ffd68c5ef",
-		//                     "order_id": "66756a10-3e86-48f4-9678-b634c4b135b2",
-		//                     "account_id": "c2d0076a-c20d-41f8-9e9a-1a1d028b2b58",
-		//                     "amount": "1234.5678",
-		//                     "side": "BUY",
-		//                     "instrument_code": "BTC_EUR",
-		//                     "price": "1234.5678",
-		//                     "time": "2019-08-24T14:15:22Z",
-		//                     "price_tick_sequence": 0,
-		//                     "sequence": 123456789
-		//                 },
-		//                 "fee": {
-		//                     "fee_amount": "1234.5678",
-		//                     "fee_percentage": "1234.5678",
-		//                     "fee_group_id": "default",
-		//                     "running_trading_volume": "1234.5678",
-		//                     "fee_currency": "BTC",
-		//                     "fee_type": "TAKER"
-		//                 }
-		//             }
-		//         ],
-		//         "max_page_size": 0,
-		//         "cursor": "string"
-		//     }
-		//
-		var tradeHistory any = this.SafeValue(response, "trade_history", []any{})
-		var market any = nil
-		if IsTrue(!IsEqual(symbol, nil)) {
-			market = this.Market(symbol)
-		}
-
-		ch <- this.ParseTrades(tradeHistory, market, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOrderTradesBody(ch, id, optionalArgs...)
 	return ch
+}
+func (this *OnetradingCore) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes177212 := (<-this.LoadMarkets())
+		PanicOnError(retRes177212)
+	}
+	var request map[string]any = map[string]any{
+		"order_id": id,
+	}
+	if IsTrue(!IsEqual(limit, nil)) {
+		AddElementToObject(request, "max_page_size", limit)
+	}
+
+	response := (<-this.PrivateGetAccountOrdersOrderIdTrades(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "trade_history": [
+	//             {
+	//                 "trade": {
+	//                     "trade_id": "2b42efcd-d5b7-4a56-8e12-b69ffd68c5ef",
+	//                     "order_id": "66756a10-3e86-48f4-9678-b634c4b135b2",
+	//                     "account_id": "c2d0076a-c20d-41f8-9e9a-1a1d028b2b58",
+	//                     "amount": "1234.5678",
+	//                     "side": "BUY",
+	//                     "instrument_code": "BTC_EUR",
+	//                     "price": "1234.5678",
+	//                     "time": "2019-08-24T14:15:22Z",
+	//                     "price_tick_sequence": 0,
+	//                     "sequence": 123456789
+	//                 },
+	//                 "fee": {
+	//                     "fee_amount": "1234.5678",
+	//                     "fee_percentage": "1234.5678",
+	//                     "fee_group_id": "default",
+	//                     "running_trading_volume": "1234.5678",
+	//                     "fee_currency": "BTC",
+	//                     "fee_type": "TAKER"
+	//                 }
+	//             }
+	//         ],
+	//         "max_page_size": 0,
+	//         "cursor": "string"
+	//     }
+	//
+	var tradeHistory any = this.SafeValue(response, "trade_history", []any{})
+	var market any = nil
+	if IsTrue(!IsEqual(symbol, nil)) {
+		market = this.Market(symbol)
+	}
+
+	ch <- this.ParseTrades(tradeHistory, market, since, limit)
+	return nil
 }
 
 /**
@@ -2140,85 +2139,87 @@ func (this *OnetradingCore) FetchOrderTrades(id any, optionalArgs ...any) <-chan
  * @description fetch all trades made by the user
  * @see https://docs.onetrading.com/rest/trading/get-trades
  * @param {string} symbol unified market symbol
- * @param {int} [since] the earliest time in ms to fetch trades for
+ * @param {int} [since] the earliest time in ms to fetch trades for, the maximum window between since and until is 30 days, when until is omitted the exchange defaults to 7 days after since
  * @param {int} [limit] the maximum number of trades structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.until] timestamp in ms of the latest entry to fetch
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *OnetradingCore) FetchMyTrades(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes183612 := (<-this.LoadMarkets())
-			PanicOnError(retRes183612)
-		}
-		var request any = map[string]any{}
-		var market any = nil
-		if IsTrue(!IsEqual(symbol, nil)) {
-			market = this.Market(symbol)
-			AddElementToObject(request, "instrument_code", GetValue(market, "id"))
-		}
-		if IsTrue(!IsEqual(since, nil)) {
-			var to any = this.SafeString(params, "to")
-			if IsTrue(IsEqual(to, nil)) {
-				panic(ArgumentsRequired(Add(this.Id, " fetchMyTrades() requires a \"to\" iso8601 string param with the since argument is specified, max range is 100 days")))
-			}
-			AddElementToObject(request, "from", this.Iso8601(since))
-		}
-		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "max_page_size", limit)
-		}
-
-		response := (<-this.PrivateGetAccountTrades(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "trade_history": [
-		//             {
-		//                 "trade": {
-		//                     "trade_id": "2b42efcd-d5b7-4a56-8e12-b69ffd68c5ef",
-		//                     "order_id": "66756a10-3e86-48f4-9678-b634c4b135b2",
-		//                     "account_id": "c2d0076a-c20d-41f8-9e9a-1a1d028b2b58",
-		//                     "amount": "1234.5678",
-		//                     "side": "BUY",
-		//                     "instrument_code": "BTC_EUR",
-		//                     "price": "1234.5678",
-		//                     "time": "2019-08-24T14:15:22Z",
-		//                     "price_tick_sequence": 0,
-		//                     "sequence": 123456789
-		//                 },
-		//                 "fee": {
-		//                     "fee_amount": "1234.5678",
-		//                     "fee_percentage": "1234.5678",
-		//                     "fee_group_id": "default",
-		//                     "running_trading_volume": "1234.5678",
-		//                     "fee_currency": "BTC",
-		//                     "fee_type": "TAKER"
-		//                 }
-		//             }
-		//         ],
-		//         "max_page_size": 0,
-		//         "cursor": "string"
-		//     }
-		//
-		var tradeHistory any = this.SafeList(response, "trade_history", []any{})
-
-		ch <- this.ParseTrades(tradeHistory, market, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchMyTradesBody(ch, optionalArgs...)
 	return ch
+}
+func (this *OnetradingCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes183512 := (<-this.LoadMarkets())
+		PanicOnError(retRes183512)
+	}
+	var request map[string]any = map[string]any{}
+	var market any = nil
+	if IsTrue(!IsEqual(symbol, nil)) {
+		market = this.Market(symbol)
+		AddElementToObject(request, "instrument_code", GetValue(market, "id"))
+	}
+	if IsTrue(!IsEqual(since, nil)) {
+		AddElementToObject(request, "from", this.Iso8601(since))
+	}
+	var until any = this.SafeInteger(params, "until")
+	if IsTrue(!IsEqual(until, nil)) {
+		params = this.Omit(params, "until")
+		AddElementToObject(request, "to", this.Iso8601(until))
+	}
+	if IsTrue(!IsEqual(limit, nil)) {
+		AddElementToObject(request, "max_page_size", limit)
+	}
+
+	response := (<-this.PrivateGetAccountTrades(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "trade_history": [
+	//             {
+	//                 "trade": {
+	//                     "trade_id": "2b42efcd-d5b7-4a56-8e12-b69ffd68c5ef",
+	//                     "order_id": "66756a10-3e86-48f4-9678-b634c4b135b2",
+	//                     "account_id": "c2d0076a-c20d-41f8-9e9a-1a1d028b2b58",
+	//                     "amount": "1234.5678",
+	//                     "side": "BUY",
+	//                     "instrument_code": "BTC_EUR",
+	//                     "price": "1234.5678",
+	//                     "time": "2019-08-24T14:15:22Z",
+	//                     "price_tick_sequence": 0,
+	//                     "sequence": 123456789
+	//                 },
+	//                 "fee": {
+	//                     "fee_amount": "1234.5678",
+	//                     "fee_percentage": "1234.5678",
+	//                     "fee_group_id": "default",
+	//                     "running_trading_volume": "1234.5678",
+	//                     "fee_currency": "BTC",
+	//                     "fee_type": "TAKER"
+	//                 }
+	//             }
+	//         ],
+	//         "max_page_size": 0,
+	//         "cursor": "string"
+	//     }
+	//
+	var tradeHistory any = this.SafeList(response, "trade_history", []any{})
+
+	ch <- this.ParseTrades(tradeHistory, market, since, limit)
+	return nil
 }
 func (this *OnetradingCore) Sign(path any, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
@@ -2234,7 +2235,7 @@ func (this *OnetradingCore) Sign(path any, optionalArgs ...any) any {
 	var url any = Add(Add(Add(Add(GetValue(GetValue(this.Urls, "api"), api), "/"), this.Version), "/"), this.ImplodeParams(path, params))
 	var query any = this.Omit(params, this.ExtractParams(path))
 	if IsTrue(IsEqual(api, "public")) {
-		if IsTrue(GetArrayLength(ObjectKeys(query))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 			url = Add(url, Add("?", this.Urlencode(query)))
 		}
 	} else if IsTrue(IsEqual(api, "private")) {
@@ -2247,7 +2248,7 @@ func (this *OnetradingCore) Sign(path any, optionalArgs ...any) any {
 			body = this.Json(query)
 			AddElementToObject(headers, "Content-Type", "application/json")
 		} else {
-			if IsTrue(GetArrayLength(ObjectKeys(query))) {
+			if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 				url = Add(url, Add("?", this.Urlencode(query)))
 			}
 		}

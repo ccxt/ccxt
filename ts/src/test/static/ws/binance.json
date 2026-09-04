@@ -3,6 +3,83 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "watchBidsAsks": [
+            {
+                "description": "spot bids asks",
+                "input": [
+                    [
+                        "BTC/USDT"
+                    ]
+                ],
+                "url": "wss://stream.binance.com:9443/ws/0",
+                "messages": [
+                    {
+                        "result": null,
+                        "id": 1
+                    },
+                    {
+                        "u": 98494969448,
+                        "s": "BTCUSDT",
+                        "b": "63704.00000000",
+                        "B": "4.77471000",
+                        "a": "63704.01000000",
+                        "A": "11.33198000"
+                    },
+                    {
+                        "u": 98494969449,
+                        "s": "BTCUSDT",
+                        "b": "63704.00000000",
+                        "B": "4.77462000",
+                        "a": "63704.01000000",
+                        "A": "11.33198000"
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "method": "SUBSCRIBE",
+                        "params": [
+                            "btcusdt@bookTicker"
+                        ],
+                        "id": 1
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "BTC/USDT": {
+                            "symbol": "BTC/USDT",
+                            "timestamp": null,
+                            "datetime": null,
+                            "high": null,
+                            "low": null,
+                            "bid": 63704,
+                            "bidVolume": 4.77471,
+                            "ask": 63704.01,
+                            "askVolume": 11.33198,
+                            "vwap": null,
+                            "open": null,
+                            "close": null,
+                            "last": null,
+                            "previousClose": null,
+                            "change": null,
+                            "percentage": null,
+                            "average": null,
+                            "baseVolume": null,
+                            "quoteVolume": null,
+                            "info": {
+                                "u": 98494969448,
+                                "s": "BTCUSDT",
+                                "b": "63704.00000000",
+                                "B": "4.77471000",
+                                "a": "63704.01000000",
+                                "A": "11.33198000"
+                            },
+                            "indexPrice": null,
+                            "markPrice": null
+                        }
+                    }
+                ]
+            }
+        ],
         "watchTicker": [
             {
                 "description": "linear swap ticker",

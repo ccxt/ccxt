@@ -6,35 +6,43 @@ import ccxt "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 func TestSleep() <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		exchange := ccxt.NewExchange().(*ccxt.Exchange)
-		exchange.DerivedExchange = exchange
-		exchange.InitParent(map[string]any{
-			"id": "sampleexchange",
-		}, map[string]any{}, exchange)
-		var start any = exchange.Milliseconds()
-		var sleepAmount any = 100 // milliseconds
-
-		retRes134 := (<-exchange.Sleep(sleepAmount))
-		ccxt.PanicOnError(retRes134)
-		var end any = exchange.Milliseconds()
-		var elapsed any = ccxt.Subtract(end, start)
-		// Allow a small margin of error due to execution time and timer jitter
-		// (some runtimes, e.g. .NET ccxt.Task.Delay, may return a few ms early)
-		var marginOfError any = 20
-		var minElapsed any = ccxt.Subtract(sleepAmount, marginOfError)
-		var maxElapsed any = ccxt.Add(sleepAmount, marginOfError)
-		var elapsedBiggerThanSleep any = ccxt.IsGreaterThanOrEqual(elapsed, minElapsed)
-		var elapsedLessThanMax any = ccxt.IsLessThanOrEqual(elapsed, maxElapsed)
-		assert(elapsedBiggerThanSleep, ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add("Elapsed time ", ccxt.ToString(elapsed)), "ms is less than minimum "), ccxt.ToString(minElapsed)), "ms (sleep amount "), ccxt.ToString(sleepAmount)), "ms)"))
-		assert(elapsedLessThanMax, ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add("Elapsed time ", ccxt.ToString(elapsed)), "ms exceeds sleep amount "), ccxt.ToString(maxElapsed)), "ms"))
-
-		ch <- true
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go testSleepBody(ch)
 	return ch
+}
+func testSleepBody(ch chan any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	exchange := ccxt.NewExchange().(*ccxt.Exchange)
+	exchange.DerivedExchange = exchange
+	exchange.InitParent(map[string]any{
+		"id": "sampleexchange",
+	}, map[string]any{}, exchange)
+	var start any = exchange.Milliseconds()
+	var sleepAmount any = 100 // milliseconds
+
+	retRes134 := (<-exchange.Sleep(sleepAmount))
+	ccxt.PanicOnError(retRes134)
+	var end any = exchange.Milliseconds()
+	var elapsed any = ccxt.Subtract(end, start)
+	// Allow a small margin of error due to execution time and timer jitter
+	// (some runtimes, e.g. .NET ccxt.Task.Delay, may return a few ms early)
+	var marginOfError any = 20
+	var minElapsed any = ccxt.Subtract(sleepAmount, marginOfError)
+	// The ceiling is deliberately far looser than the floor. sleep () promises
+	// a MINIMUM delay in every language, never a maximum: the OS is free to
+	// reschedule late, so a busy machine or a parallel CI runner overshoots by
+	// tens of ms with nothing wrong. The old symmetric +20ms left ~18ms of
+	// headroom on a 102ms measured sleep and failed whenever the box was under
+	// load. Keep a ceiling only to catch a sleep that is genuinely broken — a
+	// seconds/milliseconds mix-up, or one that never returns.
+	var maxOvershoot any = 2000
+	var maxElapsed any = ccxt.Add(sleepAmount, maxOvershoot)
+	var elapsedBiggerThanSleep bool = ccxt.IsGreaterThanOrEqual(elapsed, minElapsed)
+	var elapsedLessThanMax bool = ccxt.IsLessThanOrEqual(elapsed, maxElapsed)
+	assert(elapsedBiggerThanSleep, ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add("Elapsed time ", ccxt.ToString(elapsed)), "ms is less than minimum "), ccxt.ToString(minElapsed)), "ms (sleep amount "), ccxt.ToString(sleepAmount)), "ms)"))
+	assert(elapsedLessThanMax, ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add("Elapsed time ", ccxt.ToString(elapsed)), "ms exceeds sleep amount "), ccxt.ToString(maxElapsed)), "ms"))
+
+	ch <- true
+	return nil
 }

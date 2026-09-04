@@ -2,6 +2,524 @@
     "exchange": "tokocrypto",
     "skipKeys": [],
     "methods": {
+        "fetchMarkets": [
+            {
+                "description": "spot markets, margin flag read from marginTradingEnable (1 on BTC/USDT, 0 on BTC/IDR)",
+                "method": "fetchMarkets",
+                "input": [],
+                "httpResponse": {
+                    "code": 0,
+                    "msg": "Success",
+                    "data": {
+                        "list": [
+                            {
+                                "type": 1,
+                                "symbol": "BTC_IDR",
+                                "baseAsset": "BTC",
+                                "basePrecision": 8,
+                                "quoteAsset": "IDR",
+                                "quotePrecision": 2,
+                                "filters": [
+                                    {
+                                        "filterType": "PRICE_FILTER",
+                                        "minPrice": "1.00",
+                                        "maxPrice": "30028768800.00",
+                                        "tickSize": "1.00",
+                                        "applyToMarket": false
+                                    },
+                                    {
+                                        "filterType": "LOT_SIZE",
+                                        "minQty": "0.00001000",
+                                        "maxQty": "3.00000000",
+                                        "stepSize": "0.00001000",
+                                        "applyToMarket": false
+                                    },
+                                    {
+                                        "filterType": "ICEBERG_PARTS",
+                                        "applyToMarket": false,
+                                        "limit": "100"
+                                    },
+                                    {
+                                        "filterType": "MARKET_LOT_SIZE",
+                                        "minQty": "0.00000000",
+                                        "maxQty": "0.51740108",
+                                        "stepSize": "0.00000000",
+                                        "applyToMarket": false
+                                    },
+                                    {
+                                        "filterType": "TRAILING_DELTA",
+                                        "applyToMarket": false
+                                    },
+                                    {
+                                        "filterType": "PERCENT_PRICE_BY_SIDE",
+                                        "bidMultiplierUp": 1.15,
+                                        "bidMultiplierDown": 0.5,
+                                        "askMultiplierUp": 2,
+                                        "askMultiplierDown": 0.85,
+                                        "avgPriceMins": "5",
+                                        "applyToMarket": false
+                                    },
+                                    {
+                                        "filterType": "NOTIONAL",
+                                        "avgPriceMins": "5",
+                                        "minNotional": "20000.00",
+                                        "maxNotional": "9000000000.00",
+                                        "applyToMarket": false
+                                    },
+                                    {
+                                        "filterType": "MAX_NUM_ORDERS",
+                                        "applyToMarket": false
+                                    },
+                                    {
+                                        "filterType": "MAX_NUM_ORDER_LISTS",
+                                        "applyToMarket": false
+                                    },
+                                    {
+                                        "filterType": "MAX_NUM_ALGO_ORDERS",
+                                        "applyToMarket": false,
+                                        "maxNumAlgoOrders": "5"
+                                    },
+                                    {
+                                        "filterType": "MAX_NUM_ORDER_AMENDS",
+                                        "applyToMarket": false
+                                    }
+                                ],
+                                "orderTypes": [
+                                    "LIMIT",
+                                    "LIMIT_MAKER",
+                                    "MARKET",
+                                    "STOP_LOSS",
+                                    "STOP_LOSS_LIMIT",
+                                    "TAKE_PROFIT",
+                                    "TAKE_PROFIT_LIMIT"
+                                ],
+                                "icebergEnable": 1,
+                                "ocoEnable": 1,
+                                "spotTradingEnable": 1,
+                                "marginTradingEnable": 0,
+                                "permissions": [
+                                    "SPOT"
+                                ],
+                                "defaultSelfTradePreventionMode": "EXPIRE_MAKER",
+                                "allowedSelfTradePreventionModes": [
+                                    "EXPIRE_TAKER",
+                                    "EXPIRE_MAKER",
+                                    "EXPIRE_BOTH",
+                                    "DECREMENT",
+                                    "TRANSFER"
+                                ]
+                            },
+                            {
+                                "type": 1,
+                                "symbol": "BTC_USDT",
+                                "baseAsset": "BTC",
+                                "basePrecision": 8,
+                                "quoteAsset": "USDT",
+                                "quotePrecision": 8,
+                                "filters": [
+                                    {
+                                        "filterType": "PRICE_FILTER",
+                                        "minPrice": "0.01000000",
+                                        "maxPrice": "1000000.00000000",
+                                        "tickSize": "0.01000000",
+                                        "applyToMarket": false
+                                    },
+                                    {
+                                        "filterType": "LOT_SIZE",
+                                        "minQty": "0.00001000",
+                                        "maxQty": "9000.00000000",
+                                        "stepSize": "0.00001000",
+                                        "applyToMarket": false
+                                    },
+                                    {
+                                        "filterType": "ICEBERG_PARTS",
+                                        "applyToMarket": false,
+                                        "limit": "100"
+                                    },
+                                    {
+                                        "filterType": "MARKET_LOT_SIZE",
+                                        "minQty": "0.00000000",
+                                        "maxQty": "112.79051355",
+                                        "stepSize": "0.00000000",
+                                        "applyToMarket": false
+                                    },
+                                    {
+                                        "filterType": "TRAILING_DELTA",
+                                        "applyToMarket": false
+                                    },
+                                    {
+                                        "filterType": "PERCENT_PRICE_BY_SIDE",
+                                        "bidMultiplierUp": 1.2,
+                                        "bidMultiplierDown": 0.5,
+                                        "askMultiplierUp": 2,
+                                        "askMultiplierDown": 0.8,
+                                        "avgPriceMins": "5",
+                                        "applyToMarket": false
+                                    },
+                                    {
+                                        "filterType": "NOTIONAL",
+                                        "avgPriceMins": "5",
+                                        "minNotional": "5.00000000",
+                                        "maxNotional": "9000000.00000000",
+                                        "applyToMarket": false
+                                    },
+                                    {
+                                        "filterType": "MAX_NUM_ORDERS",
+                                        "applyToMarket": false
+                                    },
+                                    {
+                                        "filterType": "MAX_NUM_ORDER_LISTS",
+                                        "applyToMarket": false
+                                    },
+                                    {
+                                        "filterType": "MAX_NUM_ALGO_ORDERS",
+                                        "applyToMarket": false,
+                                        "maxNumAlgoOrders": "5"
+                                    },
+                                    {
+                                        "filterType": "MAX_NUM_ORDER_AMENDS",
+                                        "applyToMarket": false
+                                    }
+                                ],
+                                "orderTypes": [
+                                    "LIMIT",
+                                    "LIMIT_MAKER",
+                                    "MARKET",
+                                    "STOP_LOSS",
+                                    "STOP_LOSS_LIMIT",
+                                    "TAKE_PROFIT",
+                                    "TAKE_PROFIT_LIMIT"
+                                ],
+                                "icebergEnable": 1,
+                                "ocoEnable": 1,
+                                "spotTradingEnable": 1,
+                                "marginTradingEnable": 1,
+                                "permissions": [
+                                    "SPOT",
+                                    "MARGIN"
+                                ],
+                                "defaultSelfTradePreventionMode": "EXPIRE_MAKER",
+                                "allowedSelfTradePreventionModes": [
+                                    "EXPIRE_TAKER",
+                                    "EXPIRE_MAKER",
+                                    "EXPIRE_BOTH",
+                                    "DECREMENT",
+                                    "TRANSFER"
+                                ]
+                            }
+                        ]
+                    },
+                    "timestamp": 1787491824326
+                },
+                "parsedResponse": [
+                    {
+                        "id": "BTC_IDR",
+                        "lowercaseId": "btc_idr",
+                        "symbol": "BTC/IDR",
+                        "base": "BTC",
+                        "quote": "IDR",
+                        "settle": null,
+                        "baseId": "BTC",
+                        "quoteId": "IDR",
+                        "settleId": null,
+                        "type": "spot",
+                        "spot": true,
+                        "margin": false,
+                        "swap": false,
+                        "future": false,
+                        "option": false,
+                        "active": true,
+                        "contract": false,
+                        "linear": null,
+                        "inverse": null,
+                        "contractSize": null,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 1e-05,
+                            "price": "1.00",
+                            "base": 1e-08,
+                            "quote": 0.01
+                        },
+                        "limits": {
+                            "leverage": {
+                                "min": null,
+                                "max": null
+                            },
+                            "amount": {
+                                "min": 1e-05,
+                                "max": 3
+                            },
+                            "price": {
+                                "min": 1,
+                                "max": 30028768800
+                            },
+                            "cost": {
+                                "min": null,
+                                "max": null
+                            },
+                            "market": {
+                                "min": 0,
+                                "max": 0.51740108
+                            }
+                        },
+                        "created": null,
+                        "info": {
+                            "type": 1,
+                            "symbol": "BTC_IDR",
+                            "baseAsset": "BTC",
+                            "basePrecision": 8,
+                            "quoteAsset": "IDR",
+                            "quotePrecision": 2,
+                            "filters": [
+                                {
+                                    "filterType": "PRICE_FILTER",
+                                    "minPrice": "1.00",
+                                    "maxPrice": "30028768800.00",
+                                    "tickSize": "1.00",
+                                    "applyToMarket": false
+                                },
+                                {
+                                    "filterType": "LOT_SIZE",
+                                    "minQty": "0.00001000",
+                                    "maxQty": "3.00000000",
+                                    "stepSize": "0.00001000",
+                                    "applyToMarket": false
+                                },
+                                {
+                                    "filterType": "ICEBERG_PARTS",
+                                    "applyToMarket": false,
+                                    "limit": "100"
+                                },
+                                {
+                                    "filterType": "MARKET_LOT_SIZE",
+                                    "minQty": "0.00000000",
+                                    "maxQty": "0.51740108",
+                                    "stepSize": "0.00000000",
+                                    "applyToMarket": false
+                                },
+                                {
+                                    "filterType": "TRAILING_DELTA",
+                                    "applyToMarket": false
+                                },
+                                {
+                                    "filterType": "PERCENT_PRICE_BY_SIDE",
+                                    "bidMultiplierUp": 1.15,
+                                    "bidMultiplierDown": 0.5,
+                                    "askMultiplierUp": 2,
+                                    "askMultiplierDown": 0.85,
+                                    "avgPriceMins": "5",
+                                    "applyToMarket": false
+                                },
+                                {
+                                    "filterType": "NOTIONAL",
+                                    "avgPriceMins": "5",
+                                    "minNotional": "20000.00",
+                                    "maxNotional": "9000000000.00",
+                                    "applyToMarket": false
+                                },
+                                {
+                                    "filterType": "MAX_NUM_ORDERS",
+                                    "applyToMarket": false
+                                },
+                                {
+                                    "filterType": "MAX_NUM_ORDER_LISTS",
+                                    "applyToMarket": false
+                                },
+                                {
+                                    "filterType": "MAX_NUM_ALGO_ORDERS",
+                                    "applyToMarket": false,
+                                    "maxNumAlgoOrders": "5"
+                                },
+                                {
+                                    "filterType": "MAX_NUM_ORDER_AMENDS",
+                                    "applyToMarket": false
+                                }
+                            ],
+                            "orderTypes": [
+                                "LIMIT",
+                                "LIMIT_MAKER",
+                                "MARKET",
+                                "STOP_LOSS",
+                                "STOP_LOSS_LIMIT",
+                                "TAKE_PROFIT",
+                                "TAKE_PROFIT_LIMIT"
+                            ],
+                            "icebergEnable": 1,
+                            "ocoEnable": 1,
+                            "spotTradingEnable": 1,
+                            "marginTradingEnable": 0,
+                            "permissions": [
+                                "SPOT"
+                            ],
+                            "defaultSelfTradePreventionMode": "EXPIRE_MAKER",
+                            "allowedSelfTradePreventionModes": [
+                                "EXPIRE_TAKER",
+                                "EXPIRE_MAKER",
+                                "EXPIRE_BOTH",
+                                "DECREMENT",
+                                "TRANSFER"
+                            ]
+                        }
+                    },
+                    {
+                        "id": "BTC_USDT",
+                        "lowercaseId": "btc_usdt",
+                        "symbol": "BTC/USDT",
+                        "base": "BTC",
+                        "quote": "USDT",
+                        "settle": null,
+                        "baseId": "BTC",
+                        "quoteId": "USDT",
+                        "settleId": null,
+                        "type": "spot",
+                        "spot": true,
+                        "margin": true,
+                        "swap": false,
+                        "future": false,
+                        "option": false,
+                        "active": true,
+                        "contract": false,
+                        "linear": null,
+                        "inverse": null,
+                        "contractSize": null,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 1e-05,
+                            "price": "0.01000000",
+                            "base": 1e-08,
+                            "quote": 1e-08
+                        },
+                        "limits": {
+                            "leverage": {
+                                "min": null,
+                                "max": null
+                            },
+                            "amount": {
+                                "min": 1e-05,
+                                "max": 9000
+                            },
+                            "price": {
+                                "min": 0.01,
+                                "max": 1000000
+                            },
+                            "cost": {
+                                "min": null,
+                                "max": null
+                            },
+                            "market": {
+                                "min": 0,
+                                "max": 112.79051355
+                            }
+                        },
+                        "created": null,
+                        "info": {
+                            "type": 1,
+                            "symbol": "BTC_USDT",
+                            "baseAsset": "BTC",
+                            "basePrecision": 8,
+                            "quoteAsset": "USDT",
+                            "quotePrecision": 8,
+                            "filters": [
+                                {
+                                    "filterType": "PRICE_FILTER",
+                                    "minPrice": "0.01000000",
+                                    "maxPrice": "1000000.00000000",
+                                    "tickSize": "0.01000000",
+                                    "applyToMarket": false
+                                },
+                                {
+                                    "filterType": "LOT_SIZE",
+                                    "minQty": "0.00001000",
+                                    "maxQty": "9000.00000000",
+                                    "stepSize": "0.00001000",
+                                    "applyToMarket": false
+                                },
+                                {
+                                    "filterType": "ICEBERG_PARTS",
+                                    "applyToMarket": false,
+                                    "limit": "100"
+                                },
+                                {
+                                    "filterType": "MARKET_LOT_SIZE",
+                                    "minQty": "0.00000000",
+                                    "maxQty": "112.79051355",
+                                    "stepSize": "0.00000000",
+                                    "applyToMarket": false
+                                },
+                                {
+                                    "filterType": "TRAILING_DELTA",
+                                    "applyToMarket": false
+                                },
+                                {
+                                    "filterType": "PERCENT_PRICE_BY_SIDE",
+                                    "bidMultiplierUp": 1.2,
+                                    "bidMultiplierDown": 0.5,
+                                    "askMultiplierUp": 2,
+                                    "askMultiplierDown": 0.8,
+                                    "avgPriceMins": "5",
+                                    "applyToMarket": false
+                                },
+                                {
+                                    "filterType": "NOTIONAL",
+                                    "avgPriceMins": "5",
+                                    "minNotional": "5.00000000",
+                                    "maxNotional": "9000000.00000000",
+                                    "applyToMarket": false
+                                },
+                                {
+                                    "filterType": "MAX_NUM_ORDERS",
+                                    "applyToMarket": false
+                                },
+                                {
+                                    "filterType": "MAX_NUM_ORDER_LISTS",
+                                    "applyToMarket": false
+                                },
+                                {
+                                    "filterType": "MAX_NUM_ALGO_ORDERS",
+                                    "applyToMarket": false,
+                                    "maxNumAlgoOrders": "5"
+                                },
+                                {
+                                    "filterType": "MAX_NUM_ORDER_AMENDS",
+                                    "applyToMarket": false
+                                }
+                            ],
+                            "orderTypes": [
+                                "LIMIT",
+                                "LIMIT_MAKER",
+                                "MARKET",
+                                "STOP_LOSS",
+                                "STOP_LOSS_LIMIT",
+                                "TAKE_PROFIT",
+                                "TAKE_PROFIT_LIMIT"
+                            ],
+                            "icebergEnable": 1,
+                            "ocoEnable": 1,
+                            "spotTradingEnable": 1,
+                            "marginTradingEnable": 1,
+                            "permissions": [
+                                "SPOT",
+                                "MARGIN"
+                            ],
+                            "defaultSelfTradePreventionMode": "EXPIRE_MAKER",
+                            "allowedSelfTradePreventionModes": [
+                                "EXPIRE_TAKER",
+                                "EXPIRE_MAKER",
+                                "EXPIRE_BOTH",
+                                "DECREMENT",
+                                "TRANSFER"
+                            ]
+                        }
+                    }
+                ]
+            }
+        ],
         "fetchTrades": [
             {
                 "description": "public spot trades",
@@ -48,6 +566,331 @@
                         "fees": []
                     }
                 ]
+            },
+            {
+                "description": "public trades on a type-1 market quoted in IDR, served by the binance host",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/IDR",
+                    null,
+                    1
+                ],
+                "httpResponse": [
+                    {
+                        "id": 899732,
+                        "price": "1362602579.00",
+                        "qty": "0.00119000",
+                        "quoteQty": "1621497.06",
+                        "time": 1787316719435,
+                        "isBuyerMaker": true,
+                        "isBestMatch": true
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": 899732,
+                            "price": "1362602579.00",
+                            "qty": "0.00119000",
+                            "quoteQty": "1621497.06",
+                            "time": 1787316719435,
+                            "isBuyerMaker": true,
+                            "isBestMatch": true
+                        },
+                        "timestamp": 1787316719435,
+                        "datetime": "2026-08-21T12:51:59.435Z",
+                        "symbol": "BTC/IDR",
+                        "id": "899732",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": "taker",
+                        "price": 1362602579,
+                        "amount": 0.00119,
+                        "cost": 1621497.06,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    }
+                ]
+            },
+            {
+                "description": "public trades on a type-3 market, served by open/v1 agg-trades with the data.list envelope",
+                "method": "fetchTrades",
+                "input": [
+                    "ALCH/IDR",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "msg": "Success",
+                    "data": {
+                        "list": [
+                            {
+                                "a": 14434,
+                                "p": "500.00",
+                                "q": "42.00000000",
+                                "f": 15579,
+                                "l": 15579,
+                                "T": 1787301873244,
+                                "m": false
+                            }
+                        ]
+                    },
+                    "timestamp": 1787318103624
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "a": 14434,
+                            "p": "500.00",
+                            "q": "42.00000000",
+                            "f": 15579,
+                            "l": 15579,
+                            "T": 1787301873244,
+                            "m": false
+                        },
+                        "timestamp": 1787301873244,
+                        "datetime": "2026-08-21T08:44:33.244Z",
+                        "symbol": "ALCH/IDR",
+                        "id": "14434",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": "taker",
+                        "price": 500,
+                        "amount": 42,
+                        "cost": 21000,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    }
+                ]
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "symbol type 1 orderbook quoted in IDR, bare binance host payload",
+                "method": "fetchOrderBook",
+                "input": [
+                    "BTC/IDR",
+                    5
+                ],
+                "httpResponse": {
+                    "lastUpdateId": 246126979,
+                    "bids": [
+                        [
+                            "1421496253.00",
+                            "0.04232000"
+                        ],
+                        [
+                            "1421293935.00",
+                            "0.07769000"
+                        ],
+                        [
+                            "1421265191.00",
+                            "0.00020000"
+                        ],
+                        [
+                            "1421063582.00",
+                            "0.00249000"
+                        ],
+                        [
+                            "1421063581.00",
+                            "0.03535000"
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            "1422922291.00",
+                            "0.03799000"
+                        ],
+                        [
+                            "1422955217.00",
+                            "0.02624000"
+                        ],
+                        [
+                            "1422999998.00",
+                            "0.12722000"
+                        ],
+                        [
+                            "1422999999.00",
+                            "0.00124000"
+                        ],
+                        [
+                            "1423671940.00",
+                            "0.00020000"
+                        ]
+                    ]
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/IDR",
+                    "bids": [
+                        [
+                            1421496253,
+                            0.04232
+                        ],
+                        [
+                            1421293935,
+                            0.07769
+                        ],
+                        [
+                            1421265191,
+                            0.0002
+                        ],
+                        [
+                            1421063582,
+                            0.00249
+                        ],
+                        [
+                            1421063581,
+                            0.03535
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            1422922291,
+                            0.03799
+                        ],
+                        [
+                            1422955217,
+                            0.02624
+                        ],
+                        [
+                            1422999998,
+                            0.12722
+                        ],
+                        [
+                            1422999999,
+                            0.00124
+                        ],
+                        [
+                            1423671940,
+                            0.0002
+                        ]
+                    ],
+                    "timestamp": null,
+                    "datetime": null,
+                    "nonce": 246126979
+                }
+            },
+            {
+                "description": "symbol type 3 orderbook, wrapped in the open/v1 data envelope",
+                "method": "fetchOrderBook",
+                "input": [
+                    "ALCH/IDR",
+                    5
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "msg": "Success",
+                    "data": {
+                        "lastUpdateId": 3302168707,
+                        "E": 1787823497575,
+                        "T": 1787823497553,
+                        "symbol": "ALCHIDR",
+                        "bids": [
+                            [
+                                "524.00",
+                                "3595.39000000"
+                            ],
+                            [
+                                "521.00",
+                                "3524.34000000"
+                            ],
+                            [
+                                "518.00",
+                                "3537.70000000"
+                            ],
+                            [
+                                "515.00",
+                                "3083.75000000"
+                            ],
+                            [
+                                "512.00",
+                                "3628.75000000"
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                "534.00",
+                                "3978.64000000"
+                            ],
+                            [
+                                "537.00",
+                                "1812.07000000"
+                            ],
+                            [
+                                "540.00",
+                                "4046.55000000"
+                            ],
+                            [
+                                "543.00",
+                                "3966.66000000"
+                            ],
+                            [
+                                "548.00",
+                                "6936.48000000"
+                            ]
+                        ]
+                    },
+                    "timestamp": 1787823500203
+                },
+                "parsedResponse": {
+                    "symbol": "ALCH/IDR",
+                    "bids": [
+                        [
+                            524,
+                            3595.39
+                        ],
+                        [
+                            521,
+                            3524.34
+                        ],
+                        [
+                            518,
+                            3537.7
+                        ],
+                        [
+                            515,
+                            3083.75
+                        ],
+                        [
+                            512,
+                            3628.75
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            534,
+                            3978.64
+                        ],
+                        [
+                            537,
+                            1812.07
+                        ],
+                        [
+                            540,
+                            4046.55
+                        ],
+                        [
+                            543,
+                            3966.66
+                        ],
+                        [
+                            548,
+                            6936.48
+                        ]
+                    ],
+                    "timestamp": 1787823500203,
+                    "datetime": "2026-08-27T09:38:20.203Z",
+                    "nonce": 3302168707
+                }
             }
         ],
         "fetchOHLCV": [
@@ -88,13 +931,13 @@
                 ]
             },
             {
-                "description": "non-USDT quoted spot ohlcv, wrapped in a data.list envelope",
+                "description": "symbol type 3 spot ohlcv wrapped in the legacy data.list envelope, the same candles hand-wrapped to pin the fallback branch",
                 "method": "fetchOHLCV",
                 "input": [
-                    "BTC/IDR",
+                    "ALCH/IDR",
                     "1h",
                     null,
-                    1
+                    2
                 ],
                 "httpResponse": {
                     "code": 0,
@@ -102,31 +945,116 @@
                     "data": {
                         "list": [
                             [
-                                1710327600000,
-                                "1160256010.00000000",
-                                "1163442950.00000000",
-                                "1159238680.00000000",
-                                "1162414210.00000000",
-                                "4.28959000",
-                                1710331199999,
-                                "4979902400.96809090",
-                                19577,
-                                "2.24362000",
-                                "2606706274.88880000",
+                                1787817600000,
+                                "521.00",
+                                "537.00",
+                                "521.00",
+                                "537.00",
+                                "1188.29000000",
+                                1787821199999,
+                                "632572.93",
+                                9,
+                                "1027.29000000",
+                                "548331.93",
+                                "0"
+                            ],
+                            [
+                                1787821200000,
+                                "537.00",
+                                "537.00",
+                                "537.00",
+                                "537.00",
+                                "2168.89000000",
+                                1787824799999,
+                                "1164693.93",
+                                2,
+                                "2168.89000000",
+                                "1164693.93",
                                 "0"
                             ]
                         ]
                     },
-                    "timestamp": 1710327662491
+                    "timestamp": 1787823483365
                 },
                 "parsedResponse": [
                     [
-                        1710327600000,
-                        1160256010,
-                        1163442950,
-                        1159238680,
-                        1162414210,
-                        4.28959
+                        1787817600000,
+                        521,
+                        537,
+                        521,
+                        537,
+                        1188.29
+                    ],
+                    [
+                        1787821200000,
+                        537,
+                        537,
+                        537,
+                        537,
+                        2168.89
+                    ]
+                ]
+            },
+            {
+                "description": "symbol type 3 spot ohlcv, candles served directly under data",
+                "method": "fetchOHLCV",
+                "input": [
+                    "ALCH/IDR",
+                    "1h",
+                    null,
+                    2
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "msg": "Success",
+                    "data": [
+                        [
+                            1787817600000,
+                            "521.00",
+                            "537.00",
+                            "521.00",
+                            "537.00",
+                            "1188.29000000",
+                            1787821199999,
+                            "632572.93",
+                            9,
+                            "1027.29000000",
+                            "548331.93",
+                            "0"
+                        ],
+                        [
+                            1787821200000,
+                            "537.00",
+                            "537.00",
+                            "537.00",
+                            "537.00",
+                            "2168.89000000",
+                            1787824799999,
+                            "1164693.93",
+                            2,
+                            "2168.89000000",
+                            "1164693.93",
+                            "0"
+                        ]
+                    ],
+                    "timestamp": 1787823483365
+                },
+                "parsedResponse": [
+                    [
+                        1787817600000,
+                        521,
+                        537,
+                        521,
+                        537,
+                        1188.29
+                    ],
+                    [
+                        1787821200000,
+                        537,
+                        537,
+                        537,
+                        537,
+                        2168.89
                     ]
                 ]
             }

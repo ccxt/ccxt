@@ -280,11 +280,16 @@ function create_dynamic_class ($exchangeId, $originalClass, $args) {
                 public $fetch_result = null;
                 public function fetch($url, $method = "GET", $headers = null, $body = null) {
                     return Async\async (function() use ($url, $method, $headers, $body){
-                        if ($this->fetch_result !== null) {
-                            return $this->fetch_result;
-                        }
-                        return  Async\await(parent::fetch($url, $method, $headers, $body));
+                        return $this->do_fetch($url, $method, $headers, $body);
                     })();
+                }
+                // the inner async layers call do_fetch directly (no extra fiber); overriding it
+                // here keeps the mock on that path too, and public fetch() above still routes here
+                protected function do_fetch($url, $method = "GET", $headers = null, $body = null) {
+                    if ($this->fetch_result !== null) {
+                        return $this->fetch_result;
+                    }
+                    return parent::do_fetch($url, $method, $headers, $body);
                 }
             }
         }';
@@ -453,6 +458,22 @@ function ws_client_has_pending_futures($exchange, $url) {
     // injector polls this instead of relying on a fixed head-start sleep
     $client = $exchange->client($url);
     return count($client->futures) > 0;
+}
+
+$ws_completed_tests = array();
+
+function mark_ws_test_completed($exchange, $url) {
+    // the watch side of a static ws test flags completion here so the frame
+    // injector's rejection loop knows it can stop
+    global $ws_completed_tests;
+    $client = $exchange->client($url);
+    $ws_completed_tests[spl_object_id($client)] = true;
+}
+
+function is_ws_test_completed($exchange, $url) {
+    global $ws_completed_tests;
+    $client = $exchange->client($url);
+    return isset($ws_completed_tests[spl_object_id($client)]);
 }
 
 function reject_pending_ws_futures($exchange, $url) {

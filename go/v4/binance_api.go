@@ -2612,7 +2612,7 @@ func (this *BinanceCore) FapiPublicGetTickerPrice(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPublicGetTickerPrice", args...)
 }
 
-// FapiPublicGetTickerBookTicker returns a channel that yields a JSON array.
+// FapiPublicGetTickerBookTicker returns a channel that yields a JSON object or a JSON array.
 func (this *BinanceCore) FapiPublicGetTickerBookTicker(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPublicGetTickerBookTicker", args...)
 }

@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.73'
+__version__ = '4.5.77'
 
 # -----------------------------------------------------------------------------
 
@@ -95,6 +95,7 @@ from ccxt.async_support.blofin import blofin                                    
 from ccxt.async_support.btcbox import btcbox                                    # noqa: F401
 from ccxt.async_support.btcmarkets import btcmarkets                            # noqa: F401
 from ccxt.async_support.btcturk import btcturk                                  # noqa: F401
+from ccxt.async_support.btse import btse                                        # noqa: F401
 from ccxt.async_support.bullish import bullish                                  # noqa: F401
 from ccxt.async_support.bybit import bybit                                      # noqa: F401
 from ccxt.async_support.bybiteu import bybiteu                                  # noqa: F401
@@ -156,6 +157,7 @@ from ccxt.async_support.paradex import paradex                                  
 from ccxt.async_support.paymium import paymium                                  # noqa: F401
 from ccxt.async_support.phemex import phemex                                    # noqa: F401
 from ccxt.async_support.poloniex import poloniex                                # noqa: F401
+from ccxt.async_support.revolutx import revolutx                                # noqa: F401
 from ccxt.async_support.tokocrypto import tokocrypto                            # noqa: F401
 from ccxt.async_support.toobit import toobit                                    # noqa: F401
 from ccxt.async_support.upbit import upbit                                      # noqa: F401
@@ -199,6 +201,7 @@ exchanges = [
     'btcbox',
     'btcmarkets',
     'btcturk',
+    'btse',
     'bullish',
     'bybit',
     'bybiteu',
@@ -260,6 +263,7 @@ exchanges = [
     'paymium',
     'phemex',
     'poloniex',
+    'revolutx',
     'tokocrypto',
     'toobit',
     'upbit',

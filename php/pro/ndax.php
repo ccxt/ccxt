@@ -315,7 +315,7 @@ class ndax extends \ccxt\async\ndax {
                 );
                 $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe, array());
                 $length = count($stored);
-                if ($length && ($parsed[0] === $stored[$length - 1][0])) {
+                if (($length > 0) && ($parsed[0] === $stored[$length - 1][0])) {
                     $previous = $stored[$length - 1];
                     $high = $parsed[1];
                     if ($parsed[1] === null) {
@@ -341,7 +341,7 @@ class ndax extends \ccxt\async\ndax {
                         $updates[$marketId][$timeframe] = true;
                     }
                 } else {
-                    if ($length && ($this->parse_to_int($parsed[0]) < $this->parse_to_int($stored[$length - 1][0]))) {
+                    if (($length > 0) && ($this->parse_to_int($parsed[0]) < $this->parse_to_int($stored[$length - 1][0]))) {
                         continue;
                     } else {
                         $stored[] = $parsed;

@@ -634,11 +634,11 @@ export default class lighter extends Exchange {
 
     async handleBuilderFeeApproval (accountIndex: number, apiKeyIndex: number) {
         const buildFee = this.safeBool (this.options, 'builderFee', true);
-        if (!buildFee) {
+        if (buildFee !== true) {
             return false;
         }
         const approvedBuilderFee = this.safeBool (this.options, 'approvedBuilderFee', false);
-        if (approvedBuilderFee) {
+        if (approvedBuilderFee === true) {
             return true;
         }
         try {
@@ -769,7 +769,7 @@ export default class lighter extends Exchange {
         const takeProfit = this.safeValue (params, 'takeProfit');
         const hasStopLoss = (stopLoss !== undefined);
         const hasTakeProfit = (takeProfit !== undefined);
-        const isConditional = (stopLossPrice || takeProfitPrice);
+        const isConditional = ((stopLossPrice !== undefined) || (takeProfitPrice !== undefined));
         const isMarketOrder = (orderType === 'MARKET');
         const timeInForce = this.safeStringLower (params, 'timeInForce', 'gtt');
         const postOnly = this.isPostOnly (isMarketOrder, undefined, params);
@@ -833,7 +833,7 @@ export default class lighter extends Exchange {
         request['order_expiry'] = orderExpiry;
         request['order_type'] = orderTypeNum;
         request['time_in_force'] = timeInForceNum;
-        request['reduce_only'] = (reduceOnly) ? 1 : 0;
+        request['reduce_only'] = (reduceOnly === true) ? 1 : 0;
         request['client_order_index'] = clientOrderId;
         request['base_amount'] = this.parseToInt (Precise.stringMul (amountStr, amountScale));
         request['avg_execution_price'] = this.parseToInt (Precise.stringMul (priceStr, priceScale));
@@ -3381,7 +3381,7 @@ export default class lighter extends Exchange {
                 'Authorization': this.createAuth (params),
             };
         }
-        if (Object.keys (params).length) {
+        if (Object.keys (params).length > 0) {
             if (method === 'POST') {
                 headers = {
                     'Content-Type': 'multipart/form-data',
@@ -3395,7 +3395,7 @@ export default class lighter extends Exchange {
     }
 
     override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
-        if (!response) {
+        if ((response === undefined) || (response === null)) {
             return undefined; // fallback to default error handler
         }
         //

@@ -7,8 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.xt import ImplicitAPI
 import hashlib
 import math
-from ccxt.base.types import Any, Currencies, Currency, DepositAddress, Int, LedgerEntry, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderSide, OrderType, Position, Str, Strings, Tickers, FundingRate, OpenInterest, TradingFeeInterface, TradingFees, Transaction, TransferEntry
-from typing import List
+from ccxt.base.types import Currencies, Currency, DepositAddress, Int, LedgerEntry, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderSide, OrderType, Position, Str, Strings, Tickers, FundingRate, OpenInterest, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -29,7 +28,7 @@ from ccxt.base.precise import Precise
 
 class xt(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(xt, self).describe(), {
             'id': 'xt',
             'name': 'XT',
@@ -58,7 +57,7 @@ class xt(Exchange, ImplicitAPI):
                 'createMarketBuyOrderWithCost': True,
                 'createMarketSellOrderWithCost': False,
                 'createOrder': True,
-                'createPostOnlyOrder': False,
+                'createPostOnlyOrder': True,
                 'createReduceOnlyOrder': True,
                 'editOrder': True,
                 'fetchAccounts': False,
@@ -1030,7 +1029,7 @@ class xt(Exchange, ImplicitAPI):
                 })
         return result
 
-    def fetch_markets(self, params={}) -> List[Market]:
+    def fetch_markets(self, params={}) -> list[Market]:
         """
         retrieves data on all markets for xt
 
@@ -1040,7 +1039,7 @@ class xt(Exchange, ImplicitAPI):
         :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        if self.options['adjustForTimeDifference']:
+        if self.options['adjustForTimeDifference'] is True:
             self.load_time_difference()
         promisesUnresolved = [
             self.fetch_spot_markets(params),
@@ -1051,7 +1050,7 @@ class xt(Exchange, ImplicitAPI):
         swapAndFutureMarkets = promises[1]
         return self.array_concat(spotMarkets, swapAndFutureMarkets)
 
-    def fetch_spot_markets(self, params: Any = {}) -> List[Market]:
+    def fetch_spot_markets(self, params: object = {}) -> list[Market]:
         response = self.publicSpotGetSymbol(params)
         #
         #     {
@@ -1176,7 +1175,7 @@ class xt(Exchange, ImplicitAPI):
         swapAndFutureMarkets = self.array_concat(self.safe_list(markets[0], 'result', []), self.safe_list(markets[1], 'result', []))
         return self.parse_markets(swapAndFutureMarkets)
 
-    def parse_markets(self, markets: Any):
+    def parse_markets(self, markets: object):
         result = []
         for i in range(0, len(markets)):
             result.append(self.parse_market(markets[i]))
@@ -1372,7 +1371,7 @@ class xt(Exchange, ImplicitAPI):
         if contract:
             isActive = self.safe_bool(market, 'isOpenApi', False)
         else:
-            if (state == 'ONLINE') and (self.safe_bool(market, 'tradingEnabled')) and (self.safe_bool(market, 'openapiEnabled')):
+            if (state == 'ONLINE') and (self.safe_bool(market, 'tradingEnabled') is True) and (self.safe_bool(market, 'openapiEnabled') is True):
                 isActive = True
         return self.safe_market_structure({
             'id': id,
@@ -1461,7 +1460,7 @@ class xt(Exchange, ImplicitAPI):
             duration = self.parse_timeframe(timeframe) * 1000
             request['startTime'] = int(math.ceil(since / duration)) * duration
         if limit is not None:
-            if market['spot']:
+            if market['spot'] is True:
                 limit = min(limit, 1000)  # spot max limit
             else:
                 limit = min(limit, 1500)  # derivatives max limit
@@ -1473,9 +1472,9 @@ class xt(Exchange, ImplicitAPI):
         if until is not None:
             request['endTime'] = until
         response = None
-        if market['linear']:
+        if market['linear'] is True:
             response = self.publicLinearGetFutureMarketV1PublicQKline(self.extend(request, params))
-        elif market['inverse']:
+        elif market['inverse'] is True:
             response = self.publicInverseGetFutureMarketV1PublicQKline(self.extend(request, params))
         else:
             response = self.publicSpotGetKline(self.extend(request, params))
@@ -1523,7 +1522,7 @@ class xt(Exchange, ImplicitAPI):
         ohlcvs = self.safe_list(response, 'result', [])
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #
         # spot
         #
@@ -1552,7 +1551,7 @@ class xt(Exchange, ImplicitAPI):
         #     }
         #
         isInverse = self.safe_bool(market, 'inverse')
-        volumeIndex = 'v' if (isInverse) else 'a'
+        volumeIndex = 'v' if (isInverse is True) else 'a'
         return [
             self.safe_integer(ohlcv, 't'),
             self.safe_number(ohlcv, 'o'),
@@ -1581,7 +1580,7 @@ class xt(Exchange, ImplicitAPI):
             'symbol': market['id'],
         }
         response = None
-        if market['spot']:
+        if market['spot'] is True:
             if limit is not None:
                 request['limit'] = min(limit, 500)
             response = self.publicSpotGetDepth(self.extend(request, params))
@@ -1590,9 +1589,9 @@ class xt(Exchange, ImplicitAPI):
                 request['level'] = min(limit, 50)
             else:
                 request['level'] = 50
-            if market['linear']:
+            if market['linear'] is True:
                 response = self.publicLinearGetFutureMarketV1PublicQDepth(self.extend(request, params))
-            elif market['inverse']:
+            elif market['inverse'] is True:
                 response = self.publicInverseGetFutureMarketV1PublicQDepth(self.extend(request, params))
         #
         # spot
@@ -1642,7 +1641,7 @@ class xt(Exchange, ImplicitAPI):
         #
         orderBook = self.safe_dict(response, 'result', {})
         timestamp = self.safe_integer_2(orderBook, 'timestamp', 't')
-        if market['spot']:
+        if market['spot'] is True:
             ob = self.parse_order_book(orderBook, symbol, timestamp)
             ob['nonce'] = self.safe_integer(orderBook, 'lastUpdateId')
             return ob
@@ -1668,9 +1667,9 @@ class xt(Exchange, ImplicitAPI):
             'symbol': market['id'],
         }
         response = None
-        if market['linear']:
+        if market['linear'] is True:
             response = self.publicLinearGetFutureMarketV1PublicQAggTicker(self.extend(request, params))
-        elif market['inverse']:
+        elif market['inverse'] is True:
             response = self.publicInverseGetFutureMarketV1PublicQAggTicker(self.extend(request, params))
         else:
             response = self.publicSpotGetTicker24h(self.extend(request, params))
@@ -1721,7 +1720,7 @@ class xt(Exchange, ImplicitAPI):
         #     }
         #
         ticker = self.safe_value(response, 'result')
-        if market['spot']:
+        if market['spot'] is True:
             return self.parse_ticker(ticker[0], market)
         return self.parse_ticker(ticker, market)
 
@@ -1895,7 +1894,7 @@ class xt(Exchange, ImplicitAPI):
                 result[symbol] = ticker
         return self.filter_by_array(result, 'symbol', symbols)
 
-    def parse_ticker(self, ticker: Any, market: Market = None):
+    def parse_ticker(self, ticker: object, market: Market = None):
         #
         # spot: fetchTicker, fetchTickers
         #
@@ -1995,16 +1994,16 @@ class xt(Exchange, ImplicitAPI):
             'symbol': market['id'],
         }
         response = None
-        if market['spot']:
+        if market['spot'] is True:
             if limit is not None:
                 request['limit'] = min(limit, 1000)
             response = self.publicSpotGetTradeRecent(self.extend(request, params))
         else:
             if limit is not None:
                 request['num'] = min(limit, 1000)
-            if market['linear']:
+            if market['linear'] is True:
                 response = self.publicLinearGetFutureMarketV1PublicQDeal(self.extend(request, params))
-            elif market['inverse']:
+            elif market['inverse'] is True:
                 response = self.publicInverseGetFutureMarketV1PublicQDeal(self.extend(request, params))
         #
         # spot
@@ -2149,7 +2148,7 @@ class xt(Exchange, ImplicitAPI):
         trades = self.safe_list(data, 'items', [])
         return self.parse_trades(trades, market, since, limit)
 
-    def parse_trade(self, trade: Any, market: Market = None):
+    def parse_trade(self, trade: object, market: Market = None):
         #
         # spot: fetchTrades
         #
@@ -2389,7 +2388,7 @@ class xt(Exchange, ImplicitAPI):
             balances = self.safe_list(data, 'assets', [])
         return self.parse_balance(balances)
 
-    def parse_balance(self, response: Any):
+    def parse_balance(self, response: object):
         #
         # spot
         #
@@ -2449,7 +2448,7 @@ class xt(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if not market['spot']:
+        if market['spot'] is not True:
             raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot orders only')
         return self.create_order(symbol, 'market', 'buy', cost, 1, params)
 
@@ -2469,7 +2468,8 @@ class xt(Exchange, ImplicitAPI):
         :param float amount: how much you want to trade in units of the base currency
         :param float [price]: the price to fulfill the order, in units of the quote currency, can be ignored in market orders
         :param dict params: extra parameters specific to the exchange API endpoint
-        :param str [params.timeInForce]: 'GTC', 'IOC', 'FOK' or 'GTX'
+        :param str [params.timeInForce]: 'GTC', 'IOC', 'FOK', 'PO' or 'GTX'
+        :param bool [params.postOnly]: True or False whether the order is post-only, mapped to timeInForce GTX
         :param str [params.entrustType]: 'TAKE_PROFIT', 'STOP', 'TAKE_PROFIT_MARKET', 'STOP_MARKET', 'TRAILING_STOP_MARKET', required if stopPrice is defined, currently isn't functioning on xt's side
         :param str [params.triggerPriceType]: 'INDEX_PRICE', 'MARK_PRICE', 'LATEST_PRICE', required if stopPrice is defined
         :param float [params.triggerPrice]: price to trigger a stop order
@@ -2486,7 +2486,7 @@ class xt(Exchange, ImplicitAPI):
             self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
-        if market['spot']:
+        if market['spot'] is True:
             isTrailing = ('trailingPercent' in params) or ('trailingAmount' in params) or ('trailingTriggerPrice' in params)
             if isTrailing:
                 # do not silently place a regular spot order when a trailing order was requested
@@ -2495,7 +2495,7 @@ class xt(Exchange, ImplicitAPI):
         else:
             return self.create_contract_order(symbol, type, side, amount, price, params)
 
-    def create_spot_order(self, symbol: str, type: OrderType, side: Any, amount: Any, price: Num = None, params={}):
+    def create_spot_order(self, symbol: str, type: OrderType, side: object, amount: object, price: Num = None, params={}):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
@@ -2515,7 +2515,7 @@ class xt(Exchange, ImplicitAPI):
                 cost = self.safe_string(params, 'cost')
                 params = self.omit(params, 'cost')
                 createMarketBuyOrderRequiresPrice = self.safe_bool(self.options, 'createMarketBuyOrderRequiresPrice', True)
-                if createMarketBuyOrderRequiresPrice:
+                if createMarketBuyOrderRequiresPrice is True:
                     if price is None and (cost is None):
                         raise InvalidOrder(self.id + ' createOrder() requires a price argument or cost in params for market buy orders on spot markets to calculate the total amount to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to False and pass in the cost to spend into the amount parameter')
                     else:
@@ -2533,6 +2533,11 @@ class xt(Exchange, ImplicitAPI):
         else:
             timeInForce = self.safe_string_upper(params, 'timeInForce', 'GTC')
             request['price'] = self.price_to_precision(symbol, price)
+        postOnly = None
+        postOnly, params = self.handle_post_only(type == 'market', timeInForce == 'GTX', params)
+        if postOnly is True:
+            timeInForce = 'GTX'
+        params = self.omit(params, ['timeInForce', 'postOnly'])
         if (side == 'sell') or (type == 'limit'):
             request['quantity'] = self.amount_to_precision(symbol, amount)
         request['timeInForce'] = timeInForce
@@ -2550,7 +2555,7 @@ class xt(Exchange, ImplicitAPI):
         order = self.safe_dict(response, 'result', {})
         return self.parse_order(order, market)
 
-    def create_contract_order(self, symbol: str, type: Any, side: Any, amount: Any, price: Num = None, params={}):
+    def create_contract_order(self, symbol: str, type: object, side: object, amount: object, price: Num = None, params={}):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
@@ -2559,14 +2564,19 @@ class xt(Exchange, ImplicitAPI):
             'origQty': self.amount_to_precision(symbol, amount),
         }
         timeInForce = self.safe_string_upper(params, 'timeInForce')
+        postOnly = None
+        postOnly, params = self.handle_post_only(type == 'market', timeInForce == 'GTX', params)
+        if postOnly is True:
+            timeInForce = 'GTX'
+        params = self.omit(params, ['timeInForce', 'postOnly'])
         if timeInForce is not None:
             request['timeInForce'] = timeInForce
         reduceOnly = self.safe_bool(params, 'reduceOnly', False)
         if side == 'buy':
-            requestType = 'SHORT' if (reduceOnly) else 'LONG'
+            requestType = 'SHORT' if (reduceOnly is True) else 'LONG'
             request['positionSide'] = requestType
         else:
-            requestType = 'LONG' if (reduceOnly) else 'SHORT'
+            requestType = 'LONG' if (reduceOnly is True) else 'SHORT'
             request['positionSide'] = requestType
         response = {}
         triggerPrice = self.safe_number_2(params, 'triggerPrice', 'stopPrice')
@@ -2579,7 +2589,7 @@ class xt(Exchange, ImplicitAPI):
         isStopLoss = (stopLoss is not None)
         isTakeProfit = (takeProfit is not None)
         isTrailing = (trailingPercent is not None) or (trailingAmount is not None)
-        if isTrailing and not market['swap']:
+        if isTrailing and (market['swap'] is not True):
             raise NotSupported(self.id + ' createOrder() trailing orders are only supported on swap markets')
         if (trailingTriggerPrice is not None) and not isTrailing:
             # do not silently place a regular order when a trailing activation price was requested
@@ -2602,21 +2612,21 @@ class xt(Exchange, ImplicitAPI):
             if trailingTriggerPrice is not None:
                 request['activationPrice'] = self.price_to_precision(symbol, trailingTriggerPrice)
             params = self.omit(params, ['trailingPercent', 'trailingAmount', 'trailingTriggerPrice'])
-            if market['linear']:
+            if market['linear'] is True:
                 response = self.privateLinearPostFutureTradeV1EntrustCreateTrack(self.extend(request, params))
-            elif market['inverse']:
+            elif market['inverse'] is True:
                 response = self.privateInversePostFutureTradeV1EntrustCreateTrack(self.extend(request, params))
         elif isTrigger:
-            request['timeInForce'] = self.safe_string_upper(params, 'timeInForce', 'GTC')
+            request['timeInForce'] = 'GTC' if (timeInForce is None) else timeInForce
             request['triggerPriceType'] = self.safe_string(params, 'triggerPriceType', 'LATEST_PRICE')
             request['orderSide'] = side.upper()
             request['stopPrice'] = self.price_to_precision(symbol, triggerPrice)
             entrustType = 'STOP_MARKET' if (type == 'market') else 'STOP'
             request['entrustType'] = entrustType
             params = self.omit(params, 'triggerPrice')
-            if market['linear']:
+            if market['linear'] is True:
                 response = self.privateLinearPostFutureTradeV1EntrustCreatePlan(self.extend(request, params))
-            elif market['inverse']:
+            elif market['inverse'] is True:
                 response = self.privateInversePostFutureTradeV1EntrustCreatePlan(self.extend(request, params))
         elif isStopLoss or isTakeProfit:
             if isStopLoss:
@@ -2624,16 +2634,16 @@ class xt(Exchange, ImplicitAPI):
             else:
                 request['triggerProfitPrice'] = self.price_to_precision(symbol, takeProfit)
             params = self.omit(params, ['stopLoss', 'takeProfit'])
-            if market['linear']:
+            if market['linear'] is True:
                 response = self.privateLinearPostFutureTradeV1EntrustCreateProfit(self.extend(request, params))
-            elif market['inverse']:
+            elif market['inverse'] is True:
                 response = self.privateInversePostFutureTradeV1EntrustCreateProfit(self.extend(request, params))
         else:
             request['orderSide'] = side.upper()
             request['orderType'] = type.upper()
-            if market['linear']:
+            if market['linear'] is True:
                 response = self.privateLinearPostFutureTradeV1OrderCreate(self.extend(request, params))
-            elif market['inverse']:
+            elif market['inverse'] is True:
                 response = self.privateInversePostFutureTradeV1OrderCreate(self.extend(request, params))
         #
         #     {
@@ -2677,31 +2687,31 @@ class xt(Exchange, ImplicitAPI):
         trigger = self.safe_bool_2(params, 'trigger', 'stop')
         stopLossTakeProfit = self.safe_bool(params, 'stopLossTakeProfit')
         trailing = self.safe_bool(params, 'trailing')
-        if trailing:
+        if trailing is True:
             isContract = (subType is not None) or (type == 'swap') or (type == 'future')
             if not isContract:
                 raise NotSupported(self.id + ' fetchOrder() trailing orders are only supported on swap and future markets')
-        if trigger:
+        if trigger is True:
             request['entrustId'] = id
-        elif stopLossTakeProfit:
+        elif stopLossTakeProfit is True:
             request['profitId'] = id
-        elif trailing:
+        elif trailing is True:
             request['trackId'] = id
         else:
             request['orderId'] = id
-        if trigger:
+        if trigger is True:
             params = self.omit(params, ['trigger', 'stop'])
             if subType == 'inverse':
                 response = self.privateInverseGetFutureTradeV1EntrustPlanDetail(self.extend(request, params))
             else:
                 response = self.privateLinearGetFutureTradeV1EntrustPlanDetail(self.extend(request, params))
-        elif stopLossTakeProfit:
+        elif stopLossTakeProfit is True:
             params = self.omit(params, 'stopLossTakeProfit')
             if subType == 'inverse':
                 response = self.privateInverseGetFutureTradeV1EntrustProfitDetail(self.extend(request, params))
             else:
                 response = self.privateLinearGetFutureTradeV1EntrustProfitDetail(self.extend(request, params))
-        elif trailing:
+        elif trailing is True:
             params = self.omit(params, 'trailing')
             if subType == 'inverse':
                 response = self.privateInverseGetFutureTradeV1EntrustTrackDetail(self.extend(request, params))
@@ -2868,17 +2878,17 @@ class xt(Exchange, ImplicitAPI):
         subType, params = self.handle_sub_type_and_params('fetchOrders', market, params)
         trigger = self.safe_bool_2(params, 'trigger', 'stop')
         trailing = self.safe_bool(params, 'trailing')
-        if trailing:
+        if trailing is True:
             isContract = (subType is not None) or (type == 'swap') or (type == 'future')
             if not isContract:
                 raise NotSupported(self.id + ' fetchOrders() trailing orders are only supported on swap and future markets')
-        if trigger:
+        if trigger is True:
             params = self.omit(params, ['trigger', 'stop'])
             if subType == 'inverse':
                 response = self.privateInverseGetFutureTradeV1EntrustPlanListHistory(self.extend(request, params))
             else:
                 response = self.privateLinearGetFutureTradeV1EntrustPlanListHistory(self.extend(request, params))
-        elif trailing:
+        elif trailing is True:
             params = self.omit(params, 'trailing')
             if subType == 'inverse':
                 response = self.privateInverseGetFutureTradeV1EntrustTrackListHistory(self.extend(request, params))
@@ -3008,7 +3018,7 @@ class xt(Exchange, ImplicitAPI):
         orders = self.safe_list(data, 'items', [])
         return self.parse_orders(orders, market, since, limit)
 
-    def fetch_orders_by_status(self, status: Any, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_orders_by_status(self, status: object, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         if self.markets is None:
             self.load_markets()
         request = {}
@@ -3028,7 +3038,7 @@ class xt(Exchange, ImplicitAPI):
         trigger = self.safe_bool_2(params, 'stop', 'trigger')
         stopLossTakeProfit = self.safe_bool(params, 'stopLossTakeProfit')
         trailing = self.safe_bool(params, 'trailing')
-        if trailing:
+        if trailing is True:
             isContract = (subType is not None) or (type == 'swap') or (type == 'future')
             if not isContract:
                 raise NotSupported(self.id + ' fetchOrdersByStatus() trailing orders are only supported on swap and future markets')
@@ -3037,40 +3047,40 @@ class xt(Exchange, ImplicitAPI):
             # filter runs, so the limit is only applied locally after filtering
             request = self.omit(request, ['state', 'size'])
         elif status == 'open':
-            if trigger or stopLossTakeProfit:
+            if (trigger is True) or (stopLossTakeProfit is True):
                 request['state'] = 'NOT_TRIGGERED'
             elif type == 'swap':
                 request['state'] = 'UNFINISHED'  # NEW & PARTIALLY_FILLED
         elif status == 'closed':
-            if trigger or stopLossTakeProfit:
+            if (trigger is True) or (stopLossTakeProfit is True):
                 request['state'] = 'TRIGGERED'
             else:
                 request['state'] = 'FILLED'
         elif status == 'canceled':
-            if trigger or stopLossTakeProfit:
+            if (trigger is True) or (stopLossTakeProfit is True):
                 request['state'] = 'USER_REVOCATION'
             else:
                 request['state'] = 'CANCELED'
         else:
             request['state'] = status
-        if trigger or stopLossTakeProfit or (subType is not None) or (type == 'swap') or (type == 'future'):
+        if (trigger is True) or (stopLossTakeProfit is True) or (subType is not None) or (type == 'swap') or (type == 'future'):
             if since is not None:
                 request['startTime'] = since
-            if (limit is not None) and not trailing:
+            if (limit is not None) and (trailing is not True):
                 request['size'] = limit
-        if trigger:
+        if trigger is True:
             params = self.omit(params, ['stop', 'trigger'])
             if subType == 'inverse':
                 response = self.privateInverseGetFutureTradeV1EntrustPlanList(self.extend(request, params))
             else:
                 response = self.privateLinearGetFutureTradeV1EntrustPlanList(self.extend(request, params))
-        elif stopLossTakeProfit:
+        elif stopLossTakeProfit is True:
             params = self.omit(params, 'stopLossTakeProfit')
             if subType == 'inverse':
                 response = self.privateInverseGetFutureTradeV1EntrustProfitList(self.extend(request, params))
             else:
                 response = self.privateLinearGetFutureTradeV1EntrustProfitList(self.extend(request, params))
-        elif trailing:
+        elif trailing is True:
             params = self.omit(params, 'trailing')
             if status == 'open':
                 if subType == 'inverse':
@@ -3285,7 +3295,7 @@ class xt(Exchange, ImplicitAPI):
             orders = self.safe_list(resultDict, 'items', [])
         else:
             orders = self.safe_list(response, 'result', [])
-        if trailing:
+        if trailing is True:
             # the track endpoints do not support a server-side state filter
             # and return entries in every state, so filter by status first,
             # otherwise since/limit could cut off matching rows
@@ -3294,7 +3304,7 @@ class xt(Exchange, ImplicitAPI):
             return self.filter_by_since_limit(filteredOrders, since, limit)
         return self.parse_orders(orders, market, since, limit)
 
-    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -3315,7 +3325,7 @@ class xt(Exchange, ImplicitAPI):
         """
         return self.fetch_orders_by_status('open', symbol, since, limit, params)
 
-    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple closed orders made by the user
 
@@ -3336,7 +3346,7 @@ class xt(Exchange, ImplicitAPI):
         """
         return self.fetch_orders_by_status('closed', symbol, since, limit, params)
 
-    def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple canceled orders made by the user
 
@@ -3389,31 +3399,31 @@ class xt(Exchange, ImplicitAPI):
         trigger = self.safe_bool_2(params, 'trigger', 'stop')
         stopLossTakeProfit = self.safe_bool(params, 'stopLossTakeProfit')
         trailing = self.safe_bool(params, 'trailing')
-        if trailing:
+        if trailing is True:
             isContract = (subType is not None) or (type == 'swap') or (type == 'future')
             if not isContract:
                 raise NotSupported(self.id + ' cancelOrder() trailing orders are only supported on swap and future markets')
-        if trigger:
+        if trigger is True:
             request['entrustId'] = id
-        elif stopLossTakeProfit:
+        elif stopLossTakeProfit is True:
             request['profitId'] = id
-        elif trailing:
+        elif trailing is True:
             request['trackId'] = id
         else:
             request['orderId'] = id
-        if trigger:
+        if trigger is True:
             params = self.omit(params, ['trigger', 'stop'])
             if subType == 'inverse':
                 response = self.privateInversePostFutureTradeV1EntrustCancelPlan(self.extend(request, params))
             else:
                 response = self.privateLinearPostFutureTradeV1EntrustCancelPlan(self.extend(request, params))
-        elif stopLossTakeProfit:
+        elif stopLossTakeProfit is True:
             params = self.omit(params, 'stopLossTakeProfit')
             if subType == 'inverse':
                 response = self.privateInversePostFutureTradeV1EntrustCancelProfitStop(self.extend(request, params))
             else:
                 response = self.privateLinearPostFutureTradeV1EntrustCancelProfitStop(self.extend(request, params))
-        elif trailing:
+        elif trailing is True:
             params = self.omit(params, 'trailing')
             if subType == 'inverse':
                 response = self.privateInversePostFutureTradeV1EntrustCancelTrack(self.extend(request, params))
@@ -3482,23 +3492,23 @@ class xt(Exchange, ImplicitAPI):
         trigger = self.safe_bool_2(params, 'trigger', 'stop')
         stopLossTakeProfit = self.safe_bool(params, 'stopLossTakeProfit')
         trailing = self.safe_bool(params, 'trailing')
-        if trailing:
+        if trailing is True:
             isContract = (subType is not None) or (type == 'swap') or (type == 'future')
             if not isContract:
                 raise NotSupported(self.id + ' cancelAllOrders() trailing orders are only supported on swap and future markets')
-        if trigger:
+        if trigger is True:
             params = self.omit(params, ['trigger', 'stop'])
             if subType == 'inverse':
                 response = self.privateInversePostFutureTradeV1EntrustCancelAllPlan(self.extend(request, params))
             else:
                 response = self.privateLinearPostFutureTradeV1EntrustCancelAllPlan(self.extend(request, params))
-        elif stopLossTakeProfit:
+        elif stopLossTakeProfit is True:
             params = self.omit(params, 'stopLossTakeProfit')
             if subType == 'inverse':
                 response = self.privateInversePostFutureTradeV1EntrustCancelAllProfitStop(self.extend(request, params))
             else:
                 response = self.privateLinearPostFutureTradeV1EntrustCancelAllProfitStop(self.extend(request, params))
-        elif trailing:
+        elif trailing is True:
             params = self.omit(params, 'trailing')
             if subType == 'inverse':
                 response = self.privateInversePostFutureTradeV1EntrustCancelAllTrack(self.extend(request, params))
@@ -3537,7 +3547,7 @@ class xt(Exchange, ImplicitAPI):
             self.safe_order(response),
         ]
 
-    def cancel_orders(self, ids: List[str], symbol: Str = None, params={}) -> List[Order]:
+    def cancel_orders(self, ids: list[str], symbol: Str = None, params={}) -> list[Order]:
         """
         cancel multiple orders
 
@@ -3712,6 +3722,13 @@ class xt(Exchange, ImplicitAPI):
         filledQuantity = self.safe_number(order, 'executedQty')
         filled = filledQuantity if (marketType == 'spot') else Precise.string_mul(self.number_to_string(filledQuantity), self.number_to_string(market['contractSize']))
         lastUpdatedTimestamp = self.safe_integer(order, 'updatedTime')
+        timeInForce = self.safe_string(order, 'timeInForce')
+        postOnly = None
+        if timeInForce is not None:
+            if timeInForce == 'GTX':
+                # GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
+                timeInForce = 'PO'
+            postOnly = (timeInForce == 'PO')
         side = self.safe_string_lower_2(order, 'side', 'orderSide')
         if side is None:
             # the stop loss and take profit entries carry only the position
@@ -3734,8 +3751,8 @@ class xt(Exchange, ImplicitAPI):
             'lastUpdateTimestamp': lastUpdatedTimestamp,
             'symbol': symbol,
             'type': self.safe_string_lower_2(order, 'type', 'orderType'),
-            'timeInForce': self.safe_string(order, 'timeInForce'),
-            'postOnly': None,
+            'timeInForce': timeInForce,
+            'postOnly': postOnly,
             'side': side,
             'price': self.safe_number(order, 'price'),
             'triggerPrice': self.safe_number(order, 'stopPrice'),
@@ -3774,7 +3791,7 @@ class xt(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LedgerEntry]:
+    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[LedgerEntry]:
         """
         fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
@@ -3834,7 +3851,7 @@ class xt(Exchange, ImplicitAPI):
         ledger = self.safe_list(data, 'items', [])
         return self.parse_ledger(ledger, currency, since, limit)
 
-    def parse_ledger_entry(self, item: Any, currency: Currency = None) -> LedgerEntry:
+    def parse_ledger_entry(self, item: object, currency: Currency = None) -> LedgerEntry:
         #
         #     {
         #         "id": "207260567109387524",
@@ -3873,7 +3890,7 @@ class xt(Exchange, ImplicitAPI):
             },
         }, currency)
 
-    def parse_ledger_entry_type(self, type: Any):
+    def parse_ledger_entry_type(self, type: object):
         ledgerType = {
             'EXCHANGE': 'transfer',
             'CLOSE_POSITION': 'trade',
@@ -3923,7 +3940,7 @@ class xt(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result', {})
         return self.parse_deposit_address(result, currency)
 
-    def parse_deposit_address(self, depositAddress: Any, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositAddress: object, currency: Currency = None) -> DepositAddress:
         #
         #     {
         #         "address": "0x7f7173cf29d3846d20ca5a3aec1120b93dbd157a",
@@ -4200,7 +4217,7 @@ class xt(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if not (market['contract']):
+        if market['contract'] is not True:
             raise NotSupported(self.id + ' setLeverage() supports contract markets only')
         request = {
             'symbol': market['id'],
@@ -4252,7 +4269,7 @@ class xt(Exchange, ImplicitAPI):
         """
         return self.modify_margin_helper(symbol, amount, 'SUB', params)
 
-    def modify_margin_helper(self, symbol: str, amount: Any, addOrReduce: Any, params={}) -> MarginModification:
+    def modify_margin_helper(self, symbol: str, amount: object, addOrReduce: object, params={}) -> MarginModification:
         positionSide = self.safe_string(params, 'positionSide')
         methodName = 'addMargin' if (addOrReduce == 'ADD') else 'reduceMargin'
         self.check_required_argument(methodName, positionSide, 'positionSide', ['LONG', 'SHORT'])
@@ -4282,7 +4299,7 @@ class xt(Exchange, ImplicitAPI):
         #
         return self.parse_margin_modification(response, market)
 
-    def parse_margin_modification(self, data: Any, market: Market = None) -> MarginModification:
+    def parse_margin_modification(self, data: object, market: Market = None) -> MarginModification:
         return {
             'info': data,
             'type': None,
@@ -4343,7 +4360,7 @@ class xt(Exchange, ImplicitAPI):
         symbols = self.market_symbols(symbols)
         return self.parse_leverage_tiers(data, symbols, 'symbol')
 
-    def parse_leverage_tiers(self, response: Any, symbols: Strings = None, marketIdKey: Str = None) -> LeverageTiers:
+    def parse_leverage_tiers(self, response: object, symbols: Strings = None, marketIdKey: Str = None) -> LeverageTiers:
         #
         #     {
         #         "symbol": "rad_usdt",
@@ -4374,7 +4391,7 @@ class xt(Exchange, ImplicitAPI):
                 result[symbol] = self.parse_market_leverage_tiers(response[i], market)
         return result
 
-    def fetch_market_leverage_tiers(self, symbol: str, params={}) -> List[LeverageTier]:
+    def fetch_market_leverage_tiers(self, symbol: str, params={}) -> list[LeverageTier]:
         """
         retrieve information on the maximum leverage for different trade sizes of a single market
 
@@ -4422,7 +4439,7 @@ class xt(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'result', {})
         return self.parse_market_leverage_tiers(data, market)
 
-    def parse_market_leverage_tiers(self, info: Any, market: Market = None) -> List[LeverageTier]:
+    def parse_market_leverage_tiers(self, info: object, market: Market = None) -> list[LeverageTier]:
         #
         #     {
         #         "symbol": "rad_usdt",
@@ -4481,7 +4498,7 @@ class xt(Exchange, ImplicitAPI):
         if paginate:
             return self.fetch_paginated_call_cursor('fetchFundingRateHistory', symbol, since, limit, params, 'id', 'id', 1, 200)
         market = self.market(symbol)
-        if not market['swap']:
+        if market['swap'] is not True:
             raise NotSupported(self.id + ' fetchFundingRateHistory() supports swap contracts only')
         request = {
             'symbol': market['id'],
@@ -4560,7 +4577,7 @@ class xt(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if not market['swap']:
+        if market['swap'] is not True:
             raise NotSupported(self.id + ' fetchFundingRate() supports swap contracts only')
         request = {
             'symbol': market['id'],
@@ -4588,7 +4605,7 @@ class xt(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result', {})
         return self.parse_funding_rate(result, market)
 
-    def parse_funding_rate(self, contract: Any, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
         #
         #     {
         #         "symbol": "btc_usdt",
@@ -4636,7 +4653,7 @@ class xt(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        if not market['swap']:
+        if market['swap'] is not True:
             raise NotSupported(self.id + ' fetchOpenInterest() supports swap contracts only')
         request = {
             'symbol': market['id'],
@@ -4664,7 +4681,7 @@ class xt(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result', {})
         return self.parse_open_interest(result, market)
 
-    def parse_open_interest(self, interest: Any, market: Market = None) -> OpenInterest:
+    def parse_open_interest(self, interest: object, market: Market = None) -> OpenInterest:
         #
         #     {
         #         "symbol": "btc_usdt",
@@ -4697,7 +4714,7 @@ class xt(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        if not market['contract']:
+        if market['contract'] is not True:
             raise NotSupported(self.id + ' fetchTradingFee() supports contract markets only')
         subType = None
         subType, params = self.handle_sub_type_and_params('fetchTradingFee', market, params)
@@ -4760,7 +4777,7 @@ class xt(Exchange, ImplicitAPI):
             symbol = symbols[i]
             market = self.market(symbol)
             matchesSubType = market['inverse'] if (isInverse) else market['linear']
-            if market['contract'] and matchesSubType:
+            if (market['contract'] is True) and (matchesSubType is True):
                 result[symbol] = self.parse_trading_fee(fee, market)
         return result
 
@@ -4790,7 +4807,7 @@ class xt(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if not market['swap']:
+        if market['swap'] is not True:
             raise NotSupported(self.id + ' fetchFundingHistory() supports swap contracts only')
         request = {
             'symbol': market['id'],
@@ -4836,7 +4853,7 @@ class xt(Exchange, ImplicitAPI):
         sorted = self.sort_by(result, 'timestamp')
         return self.filter_by_since_limit(sorted, since, limit)
 
-    def parse_funding_history(self, contract: Any, market: Market = None):
+    def parse_funding_history(self, contract: object, market: Market = None):
         #
         #     {
         #         "id": "210804044057280512",
@@ -4862,7 +4879,7 @@ class xt(Exchange, ImplicitAPI):
             'amount': self.safe_number(contract, 'cast'),
         }
 
-    def index_position_break_list(self, breakList: List[dict]) -> dict:
+    def index_position_break_list(self, breakList: list[dict]) -> dict:
         """
  @ignore
         :param dict[] breakList: the "result" array of a position/break-list response
@@ -4975,7 +4992,7 @@ class xt(Exchange, ImplicitAPI):
                 return self.parse_position(merged, marketInner)
         raise NullResponse(self.id + ' fetchPosition() could not find a position for ' + symbol)
 
-    def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
+    def fetch_positions(self, symbols: Strings = None, params={}) -> list[Position]:
         """
         fetch all open positions
 
@@ -5051,7 +5068,7 @@ class xt(Exchange, ImplicitAPI):
             result.append(self.parse_position(merged, marketInner))
         return self.filter_by_array_positions(result, 'symbol', symbols, False)
 
-    def fetch_positions_history(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> List[Position]:
+    def fetch_positions_history(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> list[Position]:
         """
         fetches historical closed positions
 
@@ -5124,7 +5141,7 @@ class xt(Exchange, ImplicitAPI):
         positions = self.parse_positions(items, symbols)
         return self.filter_by_since_limit(positions, since, limit)
 
-    def parse_position(self, position: Any, market: Market = None):
+    def parse_position(self, position: object, market: Market = None):
         #
         # position/list
         #
@@ -5261,7 +5278,7 @@ class xt(Exchange, ImplicitAPI):
         #
         return self.parse_transfer(response, currency)
 
-    def parse_transfer(self, transfer: Any, currency: Currency = None):
+    def parse_transfer(self, transfer: object, currency: Currency = None):
         return {
             'info': transfer,
             'id': self.safe_string(transfer, 'result'),
@@ -5291,7 +5308,7 @@ class xt(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if market['spot']:
+        if market['spot'] is True:
             raise NotSupported(self.id + ' setMarginMode() supports contract markets only')
         marginMode = marginMode.lower()
         if marginMode != 'isolated' and marginMode != 'cross':
@@ -5364,7 +5381,7 @@ class xt(Exchange, ImplicitAPI):
             request['orderId'] = id
             request['price'] = self.price_to_precision(symbol, price)
         response = None
-        if market['swap']:
+        if market['swap'] is True:
             if isStopLoss:
                 request['triggerStopPrice'] = self.price_to_precision(symbol, stopLoss)
             elif takeProfit is not None:
@@ -5414,10 +5431,10 @@ class xt(Exchange, ImplicitAPI):
             #         }
             #     }
             #
-        result = response if (market['swap']) else self.safe_dict(response, 'result', {})
+        result = response if (market['swap'] is True) else self.safe_dict(response, 'result', {})
         return self.parse_order(result, market)
 
-    def handle_errors(self, code: int, reason: str, url: Any, method: Any, headers: Any, body: Any, response: Any, requestHeaders: Any, requestBody: Any):
+    def handle_errors(self, code: int, reason: str, url: object, method: object, headers: object, body: object, response: object, requestHeaders: object, requestBody: object):
         #
         # spot: error
         #
@@ -5483,7 +5500,7 @@ class xt(Exchange, ImplicitAPI):
             raise ExchangeError(feedback)
         return None
 
-    def sign(self, path: Any, api: Any = [], method='GET', params={}, headers: dict = None, body: Any = None):
+    def sign(self, path: object, api: object = [], method='GET', params={}, headers: dict = None, body: object = None):
         signed = api[0] == 'private'
         endpoint = api[1]
         request = '/' + self.implode_params(path, params)
@@ -5525,7 +5542,7 @@ class xt(Exchange, ImplicitAPI):
             if (endpoint == 'spot') or (endpoint == 'user'):
                 payloadString = 'xt-validate-algorithms=HmacSHA256&xt-validate-appkey=' + self.apiKey + '&xt-validate-recvwindow=' + recvWindow + '&xt-validate-t' + 'imestamp=' + timestamp
                 if isUndefinedBody:
-                    if urlencoded:
+                    if urlencoded != '':
                         url += '?' + urlencoded
                         payloadString += '#' + method + '#' + payload + '#' + self.rawencode(self.keysort(query))
                     else:
@@ -5537,7 +5554,7 @@ class xt(Exchange, ImplicitAPI):
             else:
                 payloadString = 'xt-validate-appkey=' + self.apiKey + '&xt-validate-t' + 'imestamp=' + timestamp  # we can't glue timestamp, breaks in php
                 if method == 'GET':
-                    if urlencoded:
+                    if urlencoded != '':
                         url += '?' + urlencoded
                         payloadString += '#' + payload + '#' + urlencoded
                     else:
@@ -5549,6 +5566,6 @@ class xt(Exchange, ImplicitAPI):
             headers['xt-validate-timestamp'] = timestamp
             headers['xt-validate-signature'] = signature
         else:
-            if urlencoded:
+            if urlencoded != '':
                 url += '?' + urlencoded
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

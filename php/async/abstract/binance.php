@@ -3134,10 +3134,10 @@ abstract class binance extends \ccxt\async\Exchange {
         return $this->request('ticker/price', 'fapiPublic', 'GET', $params, null, null, array("cost" => 1, "noSymbol" => 2));
     }
     /**
-     * @return \React\Promise\PromiseInterface<list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
      */
     public function fapipublic_get_ticker_bookticker($params = array()) {
-        return $this->request('ticker/bookTicker', 'fapiPublic', 'GET', $params, null, null, array("cost" => 1, "noSymbol" => 2));
+        return $this->request('ticker/bookTicker', 'fapiPublic', 'GET', $params, null, null, array("cost" => 2, "noSymbol" => 5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -7982,10 +7982,10 @@ abstract class binance extends \ccxt\async\Exchange {
         return $this->request('ticker/price', 'fapiPublic', 'GET', $params, null, null, array("cost" => 1, "noSymbol" => 2));
     }
     /**
-     * @return \React\Promise\PromiseInterface<list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
      */
     public function fapiPublicGetTickerBookTicker($params = array()) {
-        return $this->request('ticker/bookTicker', 'fapiPublic', 'GET', $params, null, null, array("cost" => 1, "noSymbol" => 2));
+        return $this->request('ticker/bookTicker', 'fapiPublic', 'GET', $params, null, null, array("cost" => 2, "noSymbol" => 5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>

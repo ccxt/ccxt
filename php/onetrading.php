@@ -351,7 +351,7 @@ class onetrading extends Exchange {
                         'marginMode' => false,
                         'limit' => 100,
                         'daysBack' => 100000, // todo
-                        'untilDays' => 100000, // todo
+                        'untilDays' => 30, // days between start-end
                         'symbolRequired' => false,
                     ),
                     'fetchOrder' => array(
@@ -363,6 +363,7 @@ class onetrading extends Exchange {
                     'fetchOpenOrders' => array(
                         'marginMode' => false,
                         'limit' => 100,
+                        'untilDays' => 30, // days between start-end
                         'trigger' => false,
                         'trailing' => false,
                         'symbolRequired' => false,
@@ -373,7 +374,7 @@ class onetrading extends Exchange {
                         'limit' => 100,
                         'daysBack' => 100000, // todo
                         'daysBackCanceled' => 1 / 12, // todo
-                        'untilDays' => 100000, // todo
+                        'untilDays' => 30, // days between start-end
                         'trigger' => false,
                         'trailing' => false,
                         'symbolRequired' => false,
@@ -675,7 +676,7 @@ class onetrading extends Exchange {
         for ($i = 0; $i < count($symbols); $i++) {
             $symbol = $symbols[$i];
             $market = $this->market($symbol);
-            $tierObject = ($market['spot']) ? $firstSpotTier : $firstFuturesTier;
+            $tierObject = ($market['spot'] === true) ? $firstSpotTier : $firstFuturesTier;
             $result[$symbol] = array(
                 'info' => $spotFees,
                 'symbol' => $symbol,
@@ -743,8 +744,8 @@ class onetrading extends Exchange {
         for ($i = 0; $i < count($symbols); $i++) {
             $symbol = $symbols[$i];
             $market = $this->market($symbol);
-            $makerFee = ($market['spot']) ? $spotMakerFee : $futuresMakerFee;
-            $takerFee = ($market['spot']) ? $spotTakerFee : $futuresTakerFee;
+            $makerFee = ($market['spot'] === true) ? $spotMakerFee : $futuresMakerFee;
+            $takerFee = ($market['spot'] === true) ? $spotTakerFee : $futuresTakerFee;
             $result[$symbol] = array(
                 'info' => $response,
                 'symbol' => $symbol,
@@ -1239,16 +1240,17 @@ class onetrading extends Exchange {
 
     public function parse_order_status(?string $status) {
         $statuses = array(
-            'FILLED' => 'open',
+            'OPEN' => 'open',
+            'BOOKED' => 'open',
+            'FILL' => 'open',
+            'MOVED' => 'open',
             'FILLED_FULLY' => 'closed',
             'FILLED_CLOSED' => 'canceled',
             'FILLED_REJECTED' => 'rejected',
-            'OPEN' => 'open',
-            'REJECTED' => 'rejected',
-            'CLOSED' => 'canceled',
-            'FAILED' => 'failed',
-            'STOP_TRIGGERED' => 'triggered',
-            'DONE' => 'closed',
+            'CANCELLED' => 'canceled',
+            'INSUFFICIENT_FUNDS' => 'rejected',
+            'INSUFFICIENT_LIQUIDITY' => 'rejected',
+            'RISK_FAILED_OVER_MAX_POSITION' => 'rejected',
         );
         return $this->safe_string($statuses, $status, $status);
     }
@@ -1324,8 +1326,7 @@ class onetrading extends Exchange {
         $id = $this->safe_string($rawOrder, 'order_id');
         $clientOrderId = $this->safe_string($rawOrder, 'client_id');
         $timestamp = $this->parse8601($this->safe_string($rawOrder, 'time'));
-        $rawStatus = $this->parse_order_status($this->safe_string($rawOrder, 'status'));
-        $status = $this->parse_order_status($rawStatus);
+        $status = $this->parse_order_status($this->safe_string($rawOrder, 'status'));
         $marketId = $this->safe_string($rawOrder, 'instrument_code');
         $symbol = $this->safe_symbol($marketId, $market, '_');
         $price = $this->safe_string($rawOrder, 'price');
@@ -1344,7 +1345,7 @@ class onetrading extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
             'symbol' => $symbol,
-            'type' => $this->parse_order_type($type),
+            'type' => $type,
             'timeInForce' => $timeInForce,
             'postOnly' => $postOnly,
             'side' => $side,
@@ -1361,19 +1362,13 @@ class onetrading extends Exchange {
         ), $market);
     }
 
-    public function parse_order_type(?string $type) {
-        $types = array(
-            'booked' => 'limit',
-        );
-        return $this->safe_string($types, $type, $type);
-    }
-
     public function parse_time_in_force(?string $timeInForce) {
         $timeInForces = array(
             'GOOD_TILL_CANCELLED' => 'GTC',
             'GOOD_TILL_TIME' => 'GTT',
             'IMMEDIATE_OR_CANCELLED' => 'IOC',
             'FILL_OR_KILL' => 'FOK',
+            'POST_ONLY' => 'PO',
         );
         return $this->safe_string($timeInForces, $timeInForce, $timeInForce);
     }
@@ -1618,9 +1613,10 @@ class onetrading extends Exchange {
          * @see https://docs.onetrading.com/rest/trading/get-orders
          *
          * @param {string} $symbol unified $market $symbol
-         * @param {int} [$since] the earliest time in ms $to fetch open orders for
-         * @param {int} [$limit] the maximum number of  open orders structures $to retrieve
-         * @param {array} [$params] extra parameters specific $to the exchange API endpoint
+         * @param {int} [$since] the earliest time in ms to fetch open orders for, the maximum window between $since and $until is 30 days
+         * @param {int} [$limit] the maximum number of  open orders structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] timestamp in ms of the latest entry to fetch
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         if ($this->markets === null) {
@@ -1628,11 +1624,11 @@ class onetrading extends Exchange {
         }
         $request = array(
             // 'from' => $this->iso8601($since),
-            // 'to' => $this->iso8601($this->milliseconds()), // max range is 100 days
+            // 'to' => $this->iso8601($this->milliseconds()), // max range is 30 days
             // 'instrument_code' => $market['id'],
             // 'with_cancelled_and_rejected' => false, // default is false, orders which have been cancelled by the user before being filled or rejected by the system, additionally, all inactive filled orders which would return with "with_just_filled_inactive"
             // 'with_just_filled_inactive' => false, // orders which have been filled and are no longer open, use of "with_cancelled_and_rejected" extends "with_just_filled_inactive" and in case both are specified the latter is ignored
-            // 'with_just_orders' => false, // do not return any trades corresponding $to the orders, it may be significantly faster and should be used if user is not interesting in trade information
+            // 'with_just_orders' => false, // do not return any trades corresponding to the orders, it may be significantly faster and should be used if user is not interesting in trade information
             // 'max_page_size' => 100,
             // 'cursor' => 'string', // pointer specifying the position from which the next pages should be returned
         );
@@ -1642,11 +1638,12 @@ class onetrading extends Exchange {
             $request['instrument_code'] = $market['id'];
         }
         if ($since !== null) {
-            $to = $this->safe_string($params, 'to');
-            if ($to === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a "to" iso8601 string param with the $since argument is specified, max range is 100 days');
-            }
             $request['from'] = $this->iso8601($since);
+        }
+        $until = $this->safe_integer($params, 'until');
+        if ($until !== null) {
+            $params = $this->omit($params, 'until');
+            $request['to'] = $this->iso8601($until);
         }
         if ($limit !== null) {
             $request['max_page_size'] = $limit;
@@ -1742,9 +1739,10 @@ class onetrading extends Exchange {
          * @see https://docs.onetrading.com/rest/trading/get-orders
          *
          * @param {string} $symbol unified market $symbol of the market orders were made in
-         * @param {int} [$since] the earliest time in ms to fetch orders for
+         * @param {int} [$since] the earliest time in ms to fetch orders for, the maximum window between $since and until is 30 days
          * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] timestamp in ms of the latest entry to fetch
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $request = array(
@@ -1823,9 +1821,10 @@ class onetrading extends Exchange {
          * @see https://docs.onetrading.com/rest/trading/get-trades
          *
          * @param {string} $symbol unified $market $symbol
-         * @param {int} [$since] the earliest time in ms $to fetch trades for
-         * @param {int} [$limit] the maximum number of trades structures $to retrieve
-         * @param {array} [$params] extra parameters specific $to the exchange API endpoint
+         * @param {int} [$since] the earliest time in ms to fetch trades for, the maximum window between $since and $until is 30 days, when $until is omitted the exchange defaults to 7 days after $since
+         * @param {int} [$limit] the maximum number of trades structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] timestamp in ms of the latest entry to fetch
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
         if ($this->markets === null) {
@@ -1833,7 +1832,7 @@ class onetrading extends Exchange {
         }
         $request = array(
             // 'from' => $this->iso8601($since),
-            // 'to' => $this->iso8601($this->milliseconds()), // max range is 100 days
+            // 'to' => $this->iso8601($this->milliseconds()), // max range is 30 days
             // 'instrument_code' => $market['id'],
             // 'max_page_size' => 100,
             // 'cursor' => 'string', // pointer specifying the position from which the next pages should be returned
@@ -1844,11 +1843,12 @@ class onetrading extends Exchange {
             $request['instrument_code'] = $market['id'];
         }
         if ($since !== null) {
-            $to = $this->safe_string($params, 'to');
-            if ($to === null) {
-                throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a "to" iso8601 string param with the $since argument is specified, max range is 100 days');
-            }
             $request['from'] = $this->iso8601($since);
+        }
+        $until = $this->safe_integer($params, 'until');
+        if ($until !== null) {
+            $params = $this->omit($params, 'until');
+            $request['to'] = $this->iso8601($until);
         }
         if ($limit !== null) {
             $request['max_page_size'] = $limit;
@@ -1892,7 +1892,7 @@ class onetrading extends Exchange {
         $url = $this->urls['api'][$api] . '/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {
-            if ($query) {
+            if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
         } elseif ($api === 'private') {
@@ -1905,7 +1905,7 @@ class onetrading extends Exchange {
                 $body = $this->json($query);
                 $headers['Content-Type'] = 'application/json';
             } else {
-                if ($query) {
+                if (count($query) > 0) {
                     $url .= '?' . $this->urlencode($query);
                 }
             }

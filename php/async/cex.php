@@ -375,7 +375,8 @@ class cex extends Exchange {
     public function parse_currency(array $rawCurrency): array {
         $id = $this->safe_string($rawCurrency, 'currency');
         $code = $this->safe_currency_code($id);
-        $type = $this->safe_bool($rawCurrency, 'fiat') ? 'fiat' : 'crypto';
+        $isFiat = ($this->safe_bool($rawCurrency, 'fiat') === true);
+        $type = $isFiat ? 'fiat' : 'crypto';
         $currencyPrecision = $this->parse_number($this->parse_precision($this->safe_string($rawCurrency, 'precision')));
         $networks = array();
         $rawNetworks = $this->safe_dict($rawCurrency, 'blockchains', array());
@@ -1743,7 +1744,7 @@ class cex extends Exchange {
             $transfer = Async\await($this->transfer_between_main_and_sub_account($code, $amount, $fromAccount, $toAccount, $params));
         }
         $fillResponseFromRequest = $this->handle_option('transfer', 'fillResponseFromRequest', true);
-        if ($fillResponseFromRequest) {
+        if ($fillResponseFromRequest === true) {
             $transfer['fromAccount'] = $fromAccount;
             $transfer['toAccount'] = $toAccount;
         }
@@ -1923,7 +1924,7 @@ class cex extends Exchange {
         $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {
             if ($method === 'GET') {
-                if ($query) {
+                if (count($query) > 0) {
                     $url .= '?' . $this->urlencode($query);
                 }
             } else {

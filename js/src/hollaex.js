@@ -1592,7 +1592,7 @@ export default class hollaex extends Exchange {
         //
         const wallet = this.safeValue(response, 'wallet', []);
         const addresses = (network === undefined) ? wallet : this.filterBy(wallet, 'network', network);
-        return this.parseDepositAddresses(addresses, codes);
+        return this.parseDepositAddresses(addresses, codes, false);
     }
     /**
      * @method
@@ -1824,13 +1824,13 @@ export default class hollaex extends Exchange {
         let status = this.safeValue(transaction, 'status');
         const dismissed = this.safeValue(transaction, 'dismissed');
         const rejected = this.safeValue(transaction, 'rejected');
-        if (status) {
+        if (status === true) {
             status = 'ok';
         }
-        else if (dismissed) {
+        else if (dismissed === true) {
             status = 'canceled';
         }
-        else if (rejected) {
+        else if (rejected === true) {
             status = 'failed';
         }
         else {
@@ -1959,7 +1959,7 @@ export default class hollaex extends Exchange {
             'networks': {},
         };
         const allowWithdrawal = this.safeValue(fee, 'allow_withdrawal');
-        if (allowWithdrawal) {
+        if (allowWithdrawal === true) {
             result['withdraw'] = { 'fee': this.safeNumber(fee, 'withdrawal_fee'), 'percentage': false };
         }
         const withdrawalFees = this.safeValue(fee, 'withdrawal_fees');
@@ -2038,7 +2038,7 @@ export default class hollaex extends Exchange {
         const query = this.omit(params, this.extractParams(path));
         path = '/' + this.version + '/' + this.implodeParams(path, params);
         if ((method === 'GET') || (method === 'DELETE')) {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 path += '?' + this.urlencode(query);
             }
         }
@@ -2055,7 +2055,7 @@ export default class hollaex extends Exchange {
             };
             if (method === 'POST') {
                 headers['Content-type'] = 'application/json';
-                if (Object.keys(query).length) {
+                if (Object.keys(query).length > 0) {
                     body = this.json(query);
                     auth += body;
                 }

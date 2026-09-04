@@ -622,36 +622,6 @@ abstract class htx extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
-    public function status_public_spot_get_api_v2_summary_json($params = array()) {
-        return $this->request('api/v2/summary.json', array('status', 'public', 'spot'), 'GET', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
-     */
-    public function status_public_future_inverse_get_api_v2_summary_json($params = array()) {
-        return $this->request('api/v2/summary.json', array('status', 'public', 'future', 'inverse'), 'GET', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
-     */
-    public function status_public_future_linear_get_api_v2_summary_json($params = array()) {
-        return $this->request('api/v2/summary.json', array('status', 'public', 'future', 'linear'), 'GET', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
-     */
-    public function status_public_swap_inverse_get_api_v2_summary_json($params = array()) {
-        return $this->request('api/v2/summary.json', array('status', 'public', 'swap', 'inverse'), 'GET', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
-     */
-    public function status_public_swap_linear_get_api_v2_summary_json($params = array()) {
-        return $this->request('api/v2/summary.json', array('status', 'public', 'swap', 'linear'), 'GET', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
-     */
     public function spot_public_get_v2_market_status($params = array()) {
         return $this->request('v2/market-status', array('spot', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -3408,36 +3378,6 @@ abstract class htx extends \ccxt\async\Exchange {
      */
     public function privatePostSubuserTransfer($params = array()) {
         return $this->request('subuser/transfer', 'private', 'POST', $params, null, null, array("cost" => 10));
-    }
-    /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
-     */
-    public function statusPublicSpotGetApiV2SummaryJson($params = array()) {
-        return $this->request('api/v2/summary.json', array('status', 'public', 'spot'), 'GET', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
-     */
-    public function statusPublicFutureInverseGetApiV2SummaryJson($params = array()) {
-        return $this->request('api/v2/summary.json', array('status', 'public', 'future', 'inverse'), 'GET', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
-     */
-    public function statusPublicFutureLinearGetApiV2SummaryJson($params = array()) {
-        return $this->request('api/v2/summary.json', array('status', 'public', 'future', 'linear'), 'GET', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
-     */
-    public function statusPublicSwapInverseGetApiV2SummaryJson($params = array()) {
-        return $this->request('api/v2/summary.json', array('status', 'public', 'swap', 'inverse'), 'GET', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
-     */
-    public function statusPublicSwapLinearGetApiV2SummaryJson($params = array()) {
-        return $this->request('api/v2/summary.json', array('status', 'public', 'swap', 'linear'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>

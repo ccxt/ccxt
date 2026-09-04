@@ -1248,7 +1248,7 @@ export default class poloniex extends poloniexRest {
     }
 
     override handleMessage (client: Client, message: any) {
-        if (this.handleErrorMessage (client, message)) {
+        if (this.handleErrorMessage (client, message) === true) {
             return;
         }
         const type = this.safeString (message, 'channel');
@@ -1367,7 +1367,7 @@ export default class poloniex extends poloniexRest {
         const data = this.safeValue (message, 'data');
         const success = this.safeValue (data, 'success');
         const messageHash = 'authenticated';
-        if (success) {
+        if (success === true) {
             client.resolve (message, messageHash);
         } else {
             const error = new AuthenticationError (this.id + ' ' + this.json (message));

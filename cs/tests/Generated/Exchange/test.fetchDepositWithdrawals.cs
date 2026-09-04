@@ -9,8 +9,8 @@ public partial class testMainClass : BaseTest
 {
     async static public Task<object> testFetchDepositWithdrawals(BaseExchange exchange, object skippedProperties, object code)
     {
-        object method = "fetchTransactions";
-        object transactions = await ((dynamic)exchange).fetchTransactions(code);
+        string method = "fetchTransactions";
+        object transactions = await invokeExchangeDynamically(exchange, "fetchTransactions", code);
         testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, transactions, code);
         object now = exchange.milliseconds();
         for (object i = 0; isLessThan(i, getArrayLength(transactions)); postFixIncrement(ref i))

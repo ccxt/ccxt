@@ -123,10 +123,7 @@ func (this *Onetrading) FetchTicker(symbol string, options ...FetchTickerOptions
 		opt(&opts)
 	}
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params *map[string]any = opts.Params
 	res := <-this.Core.FetchTicker(symbol, params)
 	if IsError(res) {
 		return Ticker{}, CreateReturnError(res)
@@ -151,15 +148,9 @@ func (this *Onetrading) FetchTickers(options ...FetchTickersOptions) (Tickers, e
 		opt(&opts)
 	}
 
-	var symbols any = nil
-	if opts.Symbols != nil {
-		symbols = *opts.Symbols
-	}
+	var symbols *[]string = opts.Symbols
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params *map[string]any = opts.Params
 	res := <-this.Core.FetchTickers(symbols, params)
 	if IsError(res) {
 		return Tickers{}, CreateReturnError(res)
@@ -185,15 +176,9 @@ func (this *Onetrading) FetchOrderBook(symbol string, options ...FetchOrderBookO
 		opt(&opts)
 	}
 
-	var limit any = nil
-	if opts.Limit != nil {
-		limit = *opts.Limit
-	}
+	var limit *int64 = opts.Limit
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params *map[string]any = opts.Params
 	res := <-this.Core.FetchOrderBook(symbol, limit, params)
 	if IsError(res) {
 		return OrderBook{}, CreateReturnError(res)
@@ -221,25 +206,13 @@ func (this *Onetrading) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) 
 		opt(&opts)
 	}
 
-	var timeframe any = nil
-	if opts.Timeframe != nil {
-		timeframe = *opts.Timeframe
-	}
+	var timeframe *string = opts.Timeframe
 
-	var since any = nil
-	if opts.Since != nil {
-		since = *opts.Since
-	}
+	var since *int64 = opts.Since
 
-	var limit any = nil
-	if opts.Limit != nil {
-		limit = *opts.Limit
-	}
+	var limit *int64 = opts.Limit
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params *map[string]any = opts.Params
 	res := <-this.Core.FetchOHLCV(symbol, timeframe, since, limit, params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
@@ -285,15 +258,9 @@ func (this *Onetrading) CreateOrder(symbol string, typeVar string, side string, 
 		opt(&opts)
 	}
 
-	var price any = nil
-	if opts.Price != nil {
-		price = *opts.Price
-	}
+	var price *float64 = opts.Price
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params *map[string]any = opts.Params
 	res := <-this.Core.CreateOrder(symbol, typeVar, side, amount, price, params)
 	if IsError(res) {
 		return Order{}, CreateReturnError(res)
@@ -320,15 +287,9 @@ func (this *Onetrading) CancelOrder(id string, options ...CancelOrderOptions) (O
 		opt(&opts)
 	}
 
-	var symbol any = nil
-	if opts.Symbol != nil {
-		symbol = *opts.Symbol
-	}
+	var symbol *string = opts.Symbol
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params *map[string]any = opts.Params
 	res := <-this.Core.CancelOrder(id, symbol, params)
 	if IsError(res) {
 		return Order{}, CreateReturnError(res)
@@ -353,15 +314,9 @@ func (this *Onetrading) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Or
 		opt(&opts)
 	}
 
-	var symbol any = nil
-	if opts.Symbol != nil {
-		symbol = *opts.Symbol
-	}
+	var symbol *string = opts.Symbol
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params *map[string]any = opts.Params
 	res := <-this.Core.CancelAllOrders(symbol, params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
@@ -387,15 +342,9 @@ func (this *Onetrading) CancelOrders(ids []string, options ...CancelOrdersOption
 		opt(&opts)
 	}
 
-	var symbol any = nil
-	if opts.Symbol != nil {
-		symbol = *opts.Symbol
-	}
+	var symbol *string = opts.Symbol
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params *map[string]any = opts.Params
 	res := <-this.Core.CancelOrders(ids, symbol, params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
@@ -421,15 +370,9 @@ func (this *Onetrading) FetchOrder(id string, options ...FetchOrderOptions) (Ord
 		opt(&opts)
 	}
 
-	var symbol any = nil
-	if opts.Symbol != nil {
-		symbol = *opts.Symbol
-	}
+	var symbol *string = opts.Symbol
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params *map[string]any = opts.Params
 	res := <-this.Core.FetchOrder(id, symbol, params)
 	if IsError(res) {
 		return Order{}, CreateReturnError(res)
@@ -443,9 +386,10 @@ func (this *Onetrading) FetchOrder(id string, options ...FetchOrderOptions) (Ord
  * @description fetch all unfilled currently open orders
  * @see https://docs.onetrading.com/rest/trading/get-orders
  * @param {string} symbol unified market symbol
- * @param {int} [since] the earliest time in ms to fetch open orders for
+ * @param {int} [since] the earliest time in ms to fetch open orders for, the maximum window between since and until is 30 days
  * @param {int} [limit] the maximum number of  open orders structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.until] timestamp in ms of the latest entry to fetch
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Onetrading) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, error) {
@@ -456,25 +400,13 @@ func (this *Onetrading) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Or
 		opt(&opts)
 	}
 
-	var symbol any = nil
-	if opts.Symbol != nil {
-		symbol = *opts.Symbol
-	}
+	var symbol *string = opts.Symbol
 
-	var since any = nil
-	if opts.Since != nil {
-		since = *opts.Since
-	}
+	var since *int64 = opts.Since
 
-	var limit any = nil
-	if opts.Limit != nil {
-		limit = *opts.Limit
-	}
+	var limit *int64 = opts.Limit
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params *map[string]any = opts.Params
 	res := <-this.Core.FetchOpenOrders(symbol, since, limit, params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
@@ -488,9 +420,10 @@ func (this *Onetrading) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Or
  * @description fetches information on multiple closed orders made by the user
  * @see https://docs.onetrading.com/rest/trading/get-orders
  * @param {string} symbol unified market symbol of the market orders were made in
- * @param {int} [since] the earliest time in ms to fetch orders for
+ * @param {int} [since] the earliest time in ms to fetch orders for, the maximum window between since and until is 30 days
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.until] timestamp in ms of the latest entry to fetch
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Onetrading) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Order, error) {
@@ -501,25 +434,13 @@ func (this *Onetrading) FetchClosedOrders(options ...FetchClosedOrdersOptions) (
 		opt(&opts)
 	}
 
-	var symbol any = nil
-	if opts.Symbol != nil {
-		symbol = *opts.Symbol
-	}
+	var symbol *string = opts.Symbol
 
-	var since any = nil
-	if opts.Since != nil {
-		since = *opts.Since
-	}
+	var since *int64 = opts.Since
 
-	var limit any = nil
-	if opts.Limit != nil {
-		limit = *opts.Limit
-	}
+	var limit *int64 = opts.Limit
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params *map[string]any = opts.Params
 	res := <-this.Core.FetchClosedOrders(symbol, since, limit, params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
@@ -547,25 +468,13 @@ func (this *Onetrading) FetchOrderTrades(id string, options ...FetchOrderTradesO
 		opt(&opts)
 	}
 
-	var symbol any = nil
-	if opts.Symbol != nil {
-		symbol = *opts.Symbol
-	}
+	var symbol *string = opts.Symbol
 
-	var since any = nil
-	if opts.Since != nil {
-		since = *opts.Since
-	}
+	var since *int64 = opts.Since
 
-	var limit any = nil
-	if opts.Limit != nil {
-		limit = *opts.Limit
-	}
+	var limit *int64 = opts.Limit
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params *map[string]any = opts.Params
 	res := <-this.Core.FetchOrderTrades(id, symbol, since, limit, params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
@@ -579,9 +488,10 @@ func (this *Onetrading) FetchOrderTrades(id string, options ...FetchOrderTradesO
  * @description fetch all trades made by the user
  * @see https://docs.onetrading.com/rest/trading/get-trades
  * @param {string} symbol unified market symbol
- * @param {int} [since] the earliest time in ms to fetch trades for
+ * @param {int} [since] the earliest time in ms to fetch trades for, the maximum window between since and until is 30 days, when until is omitted the exchange defaults to 7 days after since
  * @param {int} [limit] the maximum number of trades structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.until] timestamp in ms of the latest entry to fetch
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *Onetrading) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, error) {
@@ -592,25 +502,13 @@ func (this *Onetrading) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade,
 		opt(&opts)
 	}
 
-	var symbol any = nil
-	if opts.Symbol != nil {
-		symbol = *opts.Symbol
-	}
+	var symbol *string = opts.Symbol
 
-	var since any = nil
-	if opts.Since != nil {
-		since = *opts.Since
-	}
+	var since *int64 = opts.Since
 
-	var limit any = nil
-	if opts.Limit != nil {
-		limit = *opts.Limit
-	}
+	var limit *int64 = opts.Limit
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params *map[string]any = opts.Params
 	res := <-this.Core.FetchMyTrades(symbol, since, limit, params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
@@ -725,7 +623,7 @@ func (this *Onetrading) EditOrders(orders []OrderRequest, options ...EditOrdersO
 func (this *Onetrading) FetchAccounts(params ...any) ([]Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
 }
-func (this *Onetrading) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
+func (this *Onetrading) FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks, error) {
 	return this.exchangeTyped.FetchAllGreeks(options...)
 }
 func (this *Onetrading) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error) {
@@ -764,7 +662,7 @@ func (this *Onetrading) FetchDepositAddress(code string, options ...FetchDeposit
 func (this *Onetrading) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
 	return this.exchangeTyped.FetchDepositAddresses(options...)
 }
-func (this *Onetrading) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
+func (this *Onetrading) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error) {
 	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
 }
 func (this *Onetrading) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {

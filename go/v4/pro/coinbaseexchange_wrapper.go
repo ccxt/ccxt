@@ -37,10 +37,7 @@ func (this *Coinbaseexchange) WatchTicker(symbol string, options ...ccxt.WatchTi
 		opt(&opts)
 	}
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params = opts.Params
 	res := <-this.Core.WatchTicker(symbol, params)
 	if ccxt.IsError(res) {
 		return ccxt.Ticker{}, ccxt.CreateReturnError(res)
@@ -65,15 +62,9 @@ func (this *Coinbaseexchange) WatchTickers(options ...ccxt.WatchTickersOptions) 
 		opt(&opts)
 	}
 
-	var symbols any = nil
-	if opts.Symbols != nil {
-		symbols = *opts.Symbols
-	}
+	var symbols = opts.Symbols
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params = opts.Params
 	res := <-this.Core.WatchTickers(symbols, params)
 	if ccxt.IsError(res) {
 		return ccxt.Tickers{}, ccxt.CreateReturnError(res)
@@ -99,20 +90,11 @@ func (this *Coinbaseexchange) WatchTrades(symbol string, options ...ccxt.WatchTr
 		opt(&opts)
 	}
 
-	var since any = nil
-	if opts.Since != nil {
-		since = *opts.Since
-	}
+	var since = opts.Since
 
-	var limit any = nil
-	if opts.Limit != nil {
-		limit = *opts.Limit
-	}
+	var limit = opts.Limit
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params = opts.Params
 	res := <-this.Core.WatchTrades(symbol, since, limit, params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
@@ -138,20 +120,11 @@ func (this *Coinbaseexchange) WatchTradesForSymbols(symbols []string, options ..
 		opt(&opts)
 	}
 
-	var since any = nil
-	if opts.Since != nil {
-		since = *opts.Since
-	}
+	var since = opts.Since
 
-	var limit any = nil
-	if opts.Limit != nil {
-		limit = *opts.Limit
-	}
+	var limit = opts.Limit
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params = opts.Params
 	res := <-this.Core.WatchTradesForSymbols(symbols, since, limit, params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
@@ -177,25 +150,13 @@ func (this *Coinbaseexchange) WatchMyTrades(options ...ccxt.WatchMyTradesOptions
 		opt(&opts)
 	}
 
-	var symbol any = nil
-	if opts.Symbol != nil {
-		symbol = *opts.Symbol
-	}
+	var symbol = opts.Symbol
 
-	var since any = nil
-	if opts.Since != nil {
-		since = *opts.Since
-	}
+	var since = opts.Since
 
-	var limit any = nil
-	if opts.Limit != nil {
-		limit = *opts.Limit
-	}
+	var limit = opts.Limit
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params = opts.Params
 	res := <-this.Core.WatchMyTrades(symbol, since, limit, params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
@@ -221,20 +182,11 @@ func (this *Coinbaseexchange) WatchMyTradesForSymbols(symbols []string, options 
 		opt(&opts)
 	}
 
-	var since any = nil
-	if opts.Since != nil {
-		since = *opts.Since
-	}
+	var since = opts.Since
 
-	var limit any = nil
-	if opts.Limit != nil {
-		limit = *opts.Limit
-	}
+	var limit = opts.Limit
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params = opts.Params
 	res := <-this.Core.WatchMyTradesForSymbols(symbols, since, limit, params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
@@ -260,20 +212,11 @@ func (this *Coinbaseexchange) WatchOrdersForSymbols(symbols []string, options ..
 		opt(&opts)
 	}
 
-	var since any = nil
-	if opts.Since != nil {
-		since = *opts.Since
-	}
+	var since = opts.Since
 
-	var limit any = nil
-	if opts.Limit != nil {
-		limit = *opts.Limit
-	}
+	var limit = opts.Limit
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params = opts.Params
 	res := <-this.Core.WatchOrdersForSymbols(symbols, since, limit, params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
@@ -299,25 +242,13 @@ func (this *Coinbaseexchange) WatchOrders(options ...ccxt.WatchOrdersOptions) ([
 		opt(&opts)
 	}
 
-	var symbol any = nil
-	if opts.Symbol != nil {
-		symbol = *opts.Symbol
-	}
+	var symbol = opts.Symbol
 
-	var since any = nil
-	if opts.Since != nil {
-		since = *opts.Since
-	}
+	var since = opts.Since
 
-	var limit any = nil
-	if opts.Limit != nil {
-		limit = *opts.Limit
-	}
+	var limit = opts.Limit
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params = opts.Params
 	res := <-this.Core.WatchOrders(symbol, since, limit, params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
@@ -342,15 +273,9 @@ func (this *Coinbaseexchange) WatchOrderBookForSymbols(symbols []string, options
 		opt(&opts)
 	}
 
-	var limit any = nil
-	if opts.Limit != nil {
-		limit = *opts.Limit
-	}
+	var limit = opts.Limit
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params = opts.Params
 	res := <-this.Core.WatchOrderBookForSymbols(symbols, limit, params)
 	if ccxt.IsError(res) {
 		return ccxt.OrderBook{}, ccxt.CreateReturnError(res)
@@ -375,15 +300,9 @@ func (this *Coinbaseexchange) WatchOrderBook(symbol string, options ...ccxt.Watc
 		opt(&opts)
 	}
 
-	var limit any = nil
-	if opts.Limit != nil {
-		limit = *opts.Limit
-	}
+	var limit = opts.Limit
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params = opts.Params
 	res := <-this.Core.WatchOrderBook(symbol, limit, params)
 	if ccxt.IsError(res) {
 		return ccxt.OrderBook{}, ccxt.CreateReturnError(res)
@@ -510,7 +429,7 @@ func (this *Coinbaseexchange) EditOrders(orders []ccxt.OrderRequest, options ...
 func (this *Coinbaseexchange) FetchAccounts(params ...any) ([]ccxt.Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
 }
-func (this *Coinbaseexchange) FetchAllGreeks(options ...ccxt.FetchAllGreeksOptions) ([]ccxt.Greeks, error) {
+func (this *Coinbaseexchange) FetchAllGreeks(options ...ccxt.FetchAllGreeksOptions) (ccxt.AllGreeks, error) {
 	return this.exchangeTyped.FetchAllGreeks(options...)
 }
 func (this *Coinbaseexchange) FetchBalance(params ...any) (ccxt.Balances, error) {
@@ -558,7 +477,7 @@ func (this *Coinbaseexchange) FetchDepositAddress(code string, options ...ccxt.F
 func (this *Coinbaseexchange) FetchDepositAddresses(options ...ccxt.FetchDepositAddressesOptions) ([]ccxt.DepositAddress, error) {
 	return this.exchangeTyped.FetchDepositAddresses(options...)
 }
-func (this *Coinbaseexchange) FetchDepositAddressesByNetwork(code string, options ...ccxt.FetchDepositAddressesByNetworkOptions) ([]ccxt.DepositAddress, error) {
+func (this *Coinbaseexchange) FetchDepositAddressesByNetwork(code string, options ...ccxt.FetchDepositAddressesByNetworkOptions) (ccxt.DepositAddresses, error) {
 	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
 }
 func (this *Coinbaseexchange) FetchDeposits(options ...ccxt.FetchDepositsOptions) ([]ccxt.Transaction, error) {

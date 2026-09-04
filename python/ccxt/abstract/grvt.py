@@ -1,7 +1,6 @@
 from ccxt.base.types import Entry
-from typing import Any as PythonAny, Dict
+_Dict = dict[str, object]
 
-_Dict = Dict[str, PythonAny]
 
 class ImplicitAPI:
     privateedge_post_auth_api_key_login = privateEdgePostAuthApiKeyLogin = Entry[_Dict]('auth/api_key/login', 'privateEdge', 'POST', {'cost': 100})

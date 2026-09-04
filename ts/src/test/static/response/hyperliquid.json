@@ -2804,10 +2804,20 @@
                     }
                 },
                 "parsedResponse": {
-                    "status": "ok",
-                    "response": {
-                        "type": "default"
-                    }
+                    "info": {
+                        "status": "ok",
+                        "response": {
+                            "type": "default"
+                        }
+                    },
+                    "id": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "currency": "USDC",
+                    "amount": null,
+                    "fromAccount": null,
+                    "toAccount": null,
+                    "status": "ok"
                 }
             },
             {
@@ -2826,10 +2836,20 @@
                     }
                 },
                 "parsedResponse": {
-                    "status": "ok",
-                    "response": {
-                        "type": "default"
-                    }
+                    "info": {
+                        "status": "ok",
+                        "response": {
+                            "type": "default"
+                        }
+                    },
+                    "id": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "currency": "USDC",
+                    "amount": null,
+                    "fromAccount": null,
+                    "toAccount": null,
+                    "status": "ok"
                 }
             }
         ]

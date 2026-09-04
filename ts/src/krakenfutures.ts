@@ -78,6 +78,7 @@ export default class krakenfutures extends Exchange {
                 'fetchOrders': true,
                 'fetchPositions': true,
                 'fetchPremiumIndexOHLCV': false,
+                'fetchTicker': 'emulated',
                 'fetchTickers': true,
                 'fetchTrades': true,
                 'fetchTradingFee': 'emulated',
@@ -496,6 +497,8 @@ export default class krakenfutures extends Exchange {
                 'linear': linear,
                 'inverse': inverse,
                 'contractSize': this.safeNumber (market, 'contractSize'),
+                'taker': this.safeNumber (this.fees['trading'], 'taker'),
+                'maker': this.safeNumber (this.fees['trading'], 'maker'),
                 'maintenanceMarginRate': undefined,
                 'expiry': expiry,
                 'expiryDatetime': this.iso8601 (expiry),
@@ -686,10 +689,10 @@ export default class krakenfutures extends Exchange {
         let baseVolume: Str = undefined;
         let quoteVolume: Str = undefined;
         const isIndex = this.safeBool (market, 'index', false);
-        if (!isIndex) {
-            if (market['linear']) {
+        if (isIndex !== true) {
+            if (market['linear'] === true) {
                 baseVolume = volume;
-            } else if (market['inverse']) {
+            } else if (market['inverse'] === true) {
                 quoteVolume = volume;
             }
         }
@@ -1134,7 +1137,7 @@ export default class krakenfutures extends Exchange {
         let cost: Str = undefined;
         const linear = this.safeBool (market, 'linear');
         if ((amount !== undefined) && (price !== undefined) && (market !== undefined)) {
-            if (linear) {
+            if (linear === true) {
                 cost = Precise.stringMul (amount, price); // in quote
             } else {
                 cost = Precise.stringDiv (amount, price); // in base
@@ -1163,9 +1166,15 @@ export default class krakenfutures extends Exchange {
         let fee: FeeString = undefined;
         if ((takerOrMaker !== undefined) && (cost !== undefined)) {
             const feeRate = this.safeString (market, takerOrMaker);
+            // fees are charged in the settlement currency: the quote currency
+            // for linear contracts, the base currency for inverse contracts
+            let feeCurrency = this.safeString (market, 'settle');
+            if (feeCurrency === undefined) {
+                feeCurrency = this.safeString (market, 'quote');
+            }
             fee = {
                 'cost': Precise.stringMul (cost, feeRate),
-                'currency': this.safeString (market, 'quote'),
+                'currency': feeCurrency,
                 'rate': feeRate,
             };
         }
@@ -1180,7 +1189,7 @@ export default class krakenfutures extends Exchange {
             'side': side,
             'takerOrMaker': takerOrMaker,
             'price': price,
-            'amount': linear ? amount : undefined,
+            'amount': (linear === true) ? amount : undefined,
             'cost': cost,
             'fee': fee,
         });
@@ -1242,7 +1251,7 @@ export default class krakenfutures extends Exchange {
                 request['stopPrice'] = this.priceToPrecision (symbol, takeProfitTriggerPrice);
             }
         }
-        if (reduceOnly) {
+        if (reduceOnly === true) {
             request['reduceOnly'] = true;
         }
         request['orderType'] = type;
@@ -1722,7 +1731,7 @@ export default class krakenfutures extends Exchange {
         }
         const isTrigger = this.safeBool2 (params, 'trigger', 'stop', false);
         let response: Dict;
-        if (isTrigger) {
+        if (isTrigger === true) {
             params = this.omit (params, [ 'trigger', 'stop' ]);
             response = await this.historyGetTriggers (this.extend (request, params));
         } else {
@@ -1783,7 +1792,7 @@ export default class krakenfutures extends Exchange {
         }
         let response: Dict;
         const isTrigger = this.safeBool2 (params, 'trigger', 'stop', false);
-        if (isTrigger) {
+        if (isTrigger === true) {
             params = this.omit (params, [ 'trigger', 'stop' ]);
             response = await this.historyGetTriggers (this.extend (request, params));
         } else {
@@ -2245,7 +2254,7 @@ export default class krakenfutures extends Exchange {
         let statusId: Str = undefined;
         let price: Str = undefined;
         let trades: Trade[] = [];
-        if (orderEventsLength) {
+        if (orderEventsLength > 0) {
             const executions: Dict[] = [];
             for (let i = 0; i < orderEvents.length; i++) {
                 const item = orderEvents[i];
@@ -2336,7 +2345,7 @@ export default class krakenfutures extends Exchange {
         if ((filled !== undefined) && (market !== undefined)) {
             const whichPrice = (average !== undefined) ? average : price;
             if (whichPrice !== undefined) {
-                if (market['linear']) {
+                if (market['linear'] === true) {
                     cost = Precise.stringMul (filled, whichPrice); // in quote
                 } else {
                     cost = Precise.stringDiv (filled, whichPrice); // in base
@@ -2952,7 +2961,7 @@ export default class krakenfutures extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (!market['swap']) {
+        if (market['swap'] !== true) {
             throw new BadRequest (this.id + ' fetchFundingRateHistory() supports swap contracts only');
         }
         const request: Dict = {
@@ -3032,7 +3041,7 @@ export default class krakenfutures extends Exchange {
         // longer call .length on a non-list value
         const positions = this.safeList (response, 'openPositions');
         if (positions === undefined) {
-            throw new ExchangeError (this.id + ' fetchPositions() returned a response without an "openPositions" list');
+            throw new ExchangeNotAvailable (this.id + ' fetchPositions() returned a response without an "openPositions" list');
         }
         for (let i = 0; i < positions.length; i++) {
             const position = this.parsePosition (positions[i]);
@@ -3049,6 +3058,7 @@ export default class krakenfutures extends Exchange {
         //        "price": "0.7533",
         //        "fillTime": "2022-03-03T22:51:16.566Z",
         //        "size": "230",
+        //        "unrealizedPnl": "-607250.006654067",
         //        "unrealizedFunding": "-0.001878596918214635"
         //    }
         //
@@ -3059,6 +3069,7 @@ export default class krakenfutures extends Exchange {
         //        "price":"0.4921",
         //        "fillTime":"2023-02-22T11:37:16.685Z",
         //        "size":"1",
+        //        "unrealizedPnl":"12.34",
         //        "unrealizedFunding":"-8.155240068885155E-8",
         //        "pnlCurrency":"USD",
         //        "maxFixedLeverage":"1.0"
@@ -3084,7 +3095,7 @@ export default class krakenfutures extends Exchange {
             'entryPrice': this.safeNumber (position, 'price'),
             'notional': undefined,
             'leverage': leverage,
-            'unrealizedPnl': undefined,
+            'unrealizedPnl': this.safeNumber (position, 'unrealizedPnl'),
             'contracts': this.safeNumber (position, 'size'),
             'contractSize': this.safeNumber (market, 'contractSize'),
             'marginRatio': undefined,
@@ -3269,7 +3280,7 @@ export default class krakenfutures extends Exchange {
             const market = this.market (account);
             const marketId = market['id'];
             const splitId = (marketId as string).split ('_');
-            if (market['inverse']) {
+            if (market['inverse'] === true) {
                 return 'fi_' + this.safeString (splitId, 1);
             } else {
                 return 'fv_' + this.safeString (splitId, 1);
@@ -3492,7 +3503,7 @@ export default class krakenfutures extends Exchange {
         if (path === 'batchorder') {
             postData = 'json=' + this.json (params);
             body = postData;
-        } else if (Object.keys (params).length) {
+        } else if (Object.keys (params).length > 0) {
             if ('orderIds' in params) {
                 postData = this.urlencodeWithArrayRepeat (params);
             } else {
