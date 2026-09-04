@@ -1490,6 +1490,10 @@ public partial class BaseExchange
         {
             result["symbol"] = typed.symbol;
         }
+        else
+        {
+            result["symbol"] = null;
+        }
         if (typed.rank != null)
         {
             result["rank"] = typed.rank;
@@ -1544,13 +1548,25 @@ public partial class BaseExchange
         {
             result["id"] = typed.id;
         }
+        else
+        {
+            result["id"] = null;
+        }
         if (typed.type != null)
         {
             result["type"] = typed.type;
         }
+        else
+        {
+            result["type"] = null;
+        }
         if (typed.code != null)
         {
             result["code"] = typed.code;
+        }
+        else
+        {
+            result["code"] = null;
         }
         if (typed.name != null)
         {
@@ -1624,13 +1640,25 @@ public partial class BaseExchange
         {
             result["free"] = typed.free;
         }
+        else
+        {
+            result["free"] = null;
+        }
         if (typed.used != null)
         {
             result["used"] = typed.used;
         }
+        else
+        {
+            result["used"] = null;
+        }
         if (typed.total != null)
         {
             result["total"] = typed.total;
+        }
+        else
+        {
+            result["total"] = null;
         }
         if (typed.debt != null)
         {
@@ -1822,29 +1850,57 @@ public partial class BaseExchange
         {
             result["id"] = typed.id;
         }
+        else
+        {
+            result["id"] = null;
+        }
         if (typed.fromCurrency != null)
         {
             result["fromCurrency"] = typed.fromCurrency;
+        }
+        else
+        {
+            result["fromCurrency"] = null;
         }
         if (typed.fromAmount != null)
         {
             result["fromAmount"] = typed.fromAmount;
         }
+        else
+        {
+            result["fromAmount"] = null;
+        }
         if (typed.toCurrency != null)
         {
             result["toCurrency"] = typed.toCurrency;
+        }
+        else
+        {
+            result["toCurrency"] = null;
         }
         if (typed.toAmount != null)
         {
             result["toAmount"] = typed.toAmount;
         }
+        else
+        {
+            result["toAmount"] = null;
+        }
         if (typed.price != null)
         {
             result["price"] = typed.price;
         }
+        else
+        {
+            result["price"] = null;
+        }
         if (typed.fee != null)
         {
             result["fee"] = typed.fee;
+        }
+        else
+        {
+            result["fee"] = null;
         }
         return result;
     }
@@ -1879,6 +1935,10 @@ public partial class BaseExchange
         if (typed.rate != null)
         {
             result["rate"] = typed.rate;
+        }
+        else
+        {
+            result["rate"] = null;
         }
         if (typed.period != null)
         {
@@ -2006,13 +2066,25 @@ public partial class BaseExchange
         {
             result["id"] = typed.id;
         }
+        else
+        {
+            result["id"] = null;
+        }
         if (typed.code != null)
         {
             result["code"] = typed.code;
         }
+        else
+        {
+            result["code"] = null;
+        }
         if (typed.precision != null)
         {
             result["precision"] = typed.precision;
+        }
+        else
+        {
+            result["precision"] = null;
         }
         if (typed.name != null)
         {
@@ -2034,6 +2106,10 @@ public partial class BaseExchange
         {
             result["withdraw"] = typed.withdraw;
         }
+        else
+        {
+            result["withdraw"] = null;
+        }
         if (typed.numericId != null)
         {
             result["numericId"] = typed.numericId;
@@ -2049,6 +2125,10 @@ public partial class BaseExchange
         if (typed.limits != null)
         {
             result["limits"] = FromCurrencyLimits(typed.limits);
+        }
+        else
+        {
+            result["limits"] = null;
         }
         if (typed.networks != null)
         {
@@ -2134,6 +2214,10 @@ public partial class BaseExchange
         {
             result["currency"] = typed.currency;
         }
+        else
+        {
+            result["currency"] = null;
+        }
         if (typed.network != null)
         {
             result["network"] = typed.network;
@@ -2141,6 +2225,10 @@ public partial class BaseExchange
         if (typed.address != null)
         {
             result["address"] = typed.address;
+        }
+        else
+        {
+            result["address"] = null;
         }
         if (typed.tag != null)
         {
@@ -2344,9 +2432,17 @@ public partial class BaseExchange
         {
             result["cost"] = typed.cost;
         }
+        else
+        {
+            result["cost"] = null;
+        }
         if (typed.currency != null)
         {
             result["currency"] = typed.currency;
+        }
+        else
+        {
+            result["currency"] = null;
         }
         return result;
     }
@@ -2382,6 +2478,10 @@ public partial class BaseExchange
         {
             result["id"] = typed.id;
         }
+        else
+        {
+            result["id"] = null;
+        }
         if (typed.timestamp != null)
         {
             result["timestamp"] = typed.timestamp;
@@ -2398,13 +2498,25 @@ public partial class BaseExchange
         {
             result["amount"] = typed.amount;
         }
+        else
+        {
+            result["amount"] = null;
+        }
         if (typed.code != null)
         {
             result["code"] = typed.code;
         }
+        else
+        {
+            result["code"] = null;
+        }
         if (typed.symbol != null)
         {
             result["symbol"] = typed.symbol;
+        }
+        else
+        {
+            result["symbol"] = null;
         }
         if (typed.rate != null)
         {
@@ -2447,6 +2559,10 @@ public partial class BaseExchange
         if (typed.symbol != null)
         {
             result["symbol"] = typed.symbol;
+        }
+        else
+        {
+            result["symbol"] = null;
         }
         if (typed.datetime != null)
         {
@@ -2546,6 +2662,10 @@ public partial class BaseExchange
         {
             result["symbol"] = typed.symbol;
         }
+        else
+        {
+            result["symbol"] = null;
+        }
         if (typed.datetime != null)
         {
             result["datetime"] = typed.datetime;
@@ -2557,6 +2677,10 @@ public partial class BaseExchange
         if (typed.fundingRate != null)
         {
             result["fundingRate"] = typed.fundingRate;
+        }
+        else
+        {
+            result["fundingRate"] = null;
         }
         if (typed.markPrice != null)
         {
@@ -2678,6 +2802,10 @@ public partial class BaseExchange
         {
             result["symbol"] = typed.symbol;
         }
+        else
+        {
+            result["symbol"] = null;
+        }
         if (typed.timestamp != null)
         {
             result["timestamp"] = typed.timestamp;
@@ -2690,21 +2818,41 @@ public partial class BaseExchange
         {
             result["delta"] = typed.delta;
         }
+        else
+        {
+            result["delta"] = null;
+        }
         if (typed.gamma != null)
         {
             result["gamma"] = typed.gamma;
+        }
+        else
+        {
+            result["gamma"] = null;
         }
         if (typed.theta != null)
         {
             result["theta"] = typed.theta;
         }
+        else
+        {
+            result["theta"] = null;
+        }
         if (typed.vega != null)
         {
             result["vega"] = typed.vega;
         }
+        else
+        {
+            result["vega"] = null;
+        }
         if (typed.rho != null)
         {
             result["rho"] = typed.rho;
+        }
+        else
+        {
+            result["rho"] = null;
         }
         if (typed.vanna != null)
         {
@@ -2722,41 +2870,81 @@ public partial class BaseExchange
         {
             result["bidSize"] = typed.bidSize;
         }
+        else
+        {
+            result["bidSize"] = null;
+        }
         if (typed.askSize != null)
         {
             result["askSize"] = typed.askSize;
+        }
+        else
+        {
+            result["askSize"] = null;
         }
         if (typed.bidImpliedVolatility != null)
         {
             result["bidImpliedVolatility"] = typed.bidImpliedVolatility;
         }
+        else
+        {
+            result["bidImpliedVolatility"] = null;
+        }
         if (typed.askImpliedVolatility != null)
         {
             result["askImpliedVolatility"] = typed.askImpliedVolatility;
+        }
+        else
+        {
+            result["askImpliedVolatility"] = null;
         }
         if (typed.markImpliedVolatility != null)
         {
             result["markImpliedVolatility"] = typed.markImpliedVolatility;
         }
+        else
+        {
+            result["markImpliedVolatility"] = null;
+        }
         if (typed.bidPrice != null)
         {
             result["bidPrice"] = typed.bidPrice;
+        }
+        else
+        {
+            result["bidPrice"] = null;
         }
         if (typed.askPrice != null)
         {
             result["askPrice"] = typed.askPrice;
         }
+        else
+        {
+            result["askPrice"] = null;
+        }
         if (typed.markPrice != null)
         {
             result["markPrice"] = typed.markPrice;
+        }
+        else
+        {
+            result["markPrice"] = null;
         }
         if (typed.lastPrice != null)
         {
             result["lastPrice"] = typed.lastPrice;
         }
+        else
+        {
+            result["lastPrice"] = null;
+        }
         if (typed.underlyingPrice != null)
         {
             result["underlyingPrice"] = typed.underlyingPrice;
+        }
+        else
+        {
+            result["underlyingPrice"] = null;
         }
         return result;
     }
@@ -2788,21 +2976,41 @@ public partial class BaseExchange
         {
             result["symbol"] = typed.symbol;
         }
+        else
+        {
+            result["symbol"] = null;
+        }
         if (typed.baseCurrency != null)
         {
             result["base"] = typed.baseCurrency;
+        }
+        else
+        {
+            result["base"] = null;
         }
         if (typed.baseRate != null)
         {
             result["baseRate"] = typed.baseRate;
         }
+        else
+        {
+            result["baseRate"] = null;
+        }
         if (typed.quote != null)
         {
             result["quote"] = typed.quote;
         }
+        else
+        {
+            result["quote"] = null;
+        }
         if (typed.quoteRate != null)
         {
             result["quoteRate"] = typed.quoteRate;
+        }
+        else
+        {
+            result["quoteRate"] = null;
         }
         if (typed.period != null)
         {
@@ -2888,6 +3096,10 @@ public partial class BaseExchange
         {
             result["symbol"] = typed.symbol;
         }
+        else
+        {
+            result["symbol"] = null;
+        }
         if (typed.timestamp != null)
         {
             result["timestamp"] = typed.timestamp;
@@ -2899,6 +3111,10 @@ public partial class BaseExchange
         if (typed.price != null)
         {
             result["price"] = typed.price;
+        }
+        else
+        {
+            result["price"] = null;
         }
         if (typed.side != null)
         {
@@ -3066,9 +3282,17 @@ public partial class BaseExchange
         {
             result["symbol"] = typed.symbol;
         }
+        else
+        {
+            result["symbol"] = null;
+        }
         if (typed.marginMode != null)
         {
             result["marginMode"] = typed.marginMode;
+        }
+        else
+        {
+            result["marginMode"] = null;
         }
         if (typed.leverage != null)
         {
@@ -3078,9 +3302,17 @@ public partial class BaseExchange
         {
             result["longLeverage"] = typed.longLeverage;
         }
+        else
+        {
+            result["longLeverage"] = null;
+        }
         if (typed.shortLeverage != null)
         {
             result["shortLeverage"] = typed.shortLeverage;
+        }
+        else
+        {
+            result["shortLeverage"] = null;
         }
         return result;
     }
@@ -3297,9 +3529,17 @@ public partial class BaseExchange
         {
             result["symbol"] = typed.symbol;
         }
+        else
+        {
+            result["symbol"] = null;
+        }
         if (typed.price != null)
         {
             result["price"] = typed.price;
+        }
+        else
+        {
+            result["price"] = null;
         }
         if (typed.quoteValue != null)
         {
@@ -3367,6 +3607,10 @@ public partial class BaseExchange
         {
             result["symbol"] = typed.symbol;
         }
+        else
+        {
+            result["symbol"] = null;
+        }
         if (typed.timestamp != null)
         {
             result["timestamp"] = typed.timestamp;
@@ -3382,6 +3626,10 @@ public partial class BaseExchange
         if (typed.longShortRatio != null)
         {
             result["longShortRatio"] = typed.longShortRatio;
+        }
+        else
+        {
+            result["longShortRatio"] = null;
         }
         return result;
     }
@@ -3417,9 +3665,17 @@ public partial class BaseExchange
         {
             result["symbol"] = typed.symbol;
         }
+        else
+        {
+            result["symbol"] = null;
+        }
         if (typed.marginMode != null)
         {
             result["marginMode"] = typed.marginMode;
+        }
+        else
+        {
+            result["marginMode"] = null;
         }
         return result;
     }
@@ -3559,6 +3815,10 @@ public partial class BaseExchange
         {
             result["id"] = typed.id;
         }
+        else
+        {
+            result["id"] = null;
+        }
         if (typed.uppercaseId != null)
         {
             result["uppercaseId"] = typed.uppercaseId;
@@ -3571,73 +3831,145 @@ public partial class BaseExchange
         {
             result["symbol"] = typed.symbol;
         }
+        else
+        {
+            result["symbol"] = null;
+        }
         if (typed.baseCurrency != null)
         {
             result["base"] = typed.baseCurrency;
+        }
+        else
+        {
+            result["base"] = null;
         }
         if (typed.quote != null)
         {
             result["quote"] = typed.quote;
         }
+        else
+        {
+            result["quote"] = null;
+        }
         if (typed.baseId != null)
         {
             result["baseId"] = typed.baseId;
+        }
+        else
+        {
+            result["baseId"] = null;
         }
         if (typed.quoteId != null)
         {
             result["quoteId"] = typed.quoteId;
         }
+        else
+        {
+            result["quoteId"] = null;
+        }
         if (typed.active != null)
         {
             result["active"] = typed.active;
+        }
+        else
+        {
+            result["active"] = null;
         }
         if (typed.type != null)
         {
             result["type"] = typed.type;
         }
+        else
+        {
+            result["type"] = null;
+        }
         if (typed.spot != null)
         {
             result["spot"] = typed.spot;
+        }
+        else
+        {
+            result["spot"] = null;
         }
         if (typed.margin != null)
         {
             result["margin"] = typed.margin;
         }
+        else
+        {
+            result["margin"] = null;
+        }
         if (typed.swap != null)
         {
             result["swap"] = typed.swap;
+        }
+        else
+        {
+            result["swap"] = null;
         }
         if (typed.future != null)
         {
             result["future"] = typed.future;
         }
+        else
+        {
+            result["future"] = null;
+        }
         if (typed.option != null)
         {
             result["option"] = typed.option;
+        }
+        else
+        {
+            result["option"] = null;
         }
         if (typed.contract != null)
         {
             result["contract"] = typed.contract;
         }
+        else
+        {
+            result["contract"] = null;
+        }
         if (typed.settle != null)
         {
             result["settle"] = typed.settle;
+        }
+        else
+        {
+            result["settle"] = null;
         }
         if (typed.settleId != null)
         {
             result["settleId"] = typed.settleId;
         }
+        else
+        {
+            result["settleId"] = null;
+        }
         if (typed.contractSize != null)
         {
             result["contractSize"] = typed.contractSize;
+        }
+        else
+        {
+            result["contractSize"] = null;
         }
         if (typed.linear != null)
         {
             result["linear"] = typed.linear;
         }
+        else
+        {
+            result["linear"] = null;
+        }
         if (typed.inverse != null)
         {
             result["inverse"] = typed.inverse;
+        }
+        else
+        {
+            result["inverse"] = null;
         }
         if (typed.quanto != null)
         {
@@ -3647,17 +3979,33 @@ public partial class BaseExchange
         {
             result["expiry"] = typed.expiry;
         }
+        else
+        {
+            result["expiry"] = null;
+        }
         if (typed.expiryDatetime != null)
         {
             result["expiryDatetime"] = typed.expiryDatetime;
+        }
+        else
+        {
+            result["expiryDatetime"] = null;
         }
         if (typed.strike != null)
         {
             result["strike"] = typed.strike;
         }
+        else
+        {
+            result["strike"] = null;
+        }
         if (typed.optionType != null)
         {
             result["optionType"] = typed.optionType;
+        }
+        else
+        {
+            result["optionType"] = null;
         }
         if (typed.taker != null)
         {
@@ -3671,9 +4019,17 @@ public partial class BaseExchange
         {
             result["created"] = typed.created;
         }
+        else
+        {
+            result["created"] = null;
+        }
         if (typed.precision != null)
         {
             result["precision"] = FromPrecision(typed.precision);
+        }
+        else
+        {
+            result["precision"] = null;
         }
         if (typed.marginModes != null)
         {
@@ -3682,6 +4038,10 @@ public partial class BaseExchange
         if (typed.limits != null)
         {
             result["limits"] = FromLimits(typed.limits);
+        }
+        else
+        {
+            result["limits"] = null;
         }
         if (typed.numericId != null)
         {
@@ -3752,9 +4112,17 @@ public partial class BaseExchange
         {
             result["cross"] = typed.cross;
         }
+        else
+        {
+            result["cross"] = null;
+        }
         if (typed.isolated != null)
         {
             result["isolated"] = typed.isolated;
+        }
+        else
+        {
+            result["isolated"] = null;
         }
         return result;
     }
@@ -3786,9 +4154,17 @@ public partial class BaseExchange
         {
             result["min"] = typed.min;
         }
+        else
+        {
+            result["min"] = null;
+        }
         if (typed.max != null)
         {
             result["max"] = typed.max;
+        }
+        else
+        {
+            result["max"] = null;
         }
         return result;
     }
@@ -3912,6 +4288,10 @@ public partial class BaseExchange
         {
             result["symbol"] = typed.symbol;
         }
+        else
+        {
+            result["symbol"] = null;
+        }
         if (typed.openInterestAmount != null)
         {
             result["openInterestAmount"] = typed.openInterestAmount;
@@ -4008,9 +4388,17 @@ public partial class BaseExchange
         {
             result["currency"] = typed.currency;
         }
+        else
+        {
+            result["currency"] = null;
+        }
         if (typed.symbol != null)
         {
             result["symbol"] = typed.symbol;
+        }
+        else
+        {
+            result["symbol"] = null;
         }
         if (typed.timestamp != null)
         {
@@ -4024,49 +4412,97 @@ public partial class BaseExchange
         {
             result["impliedVolatility"] = typed.impliedVolatility;
         }
+        else
+        {
+            result["impliedVolatility"] = null;
+        }
         if (typed.openInterest != null)
         {
             result["openInterest"] = typed.openInterest;
+        }
+        else
+        {
+            result["openInterest"] = null;
         }
         if (typed.bidPrice != null)
         {
             result["bidPrice"] = typed.bidPrice;
         }
+        else
+        {
+            result["bidPrice"] = null;
+        }
         if (typed.askPrice != null)
         {
             result["askPrice"] = typed.askPrice;
+        }
+        else
+        {
+            result["askPrice"] = null;
         }
         if (typed.midPrice != null)
         {
             result["midPrice"] = typed.midPrice;
         }
+        else
+        {
+            result["midPrice"] = null;
+        }
         if (typed.markPrice != null)
         {
             result["markPrice"] = typed.markPrice;
+        }
+        else
+        {
+            result["markPrice"] = null;
         }
         if (typed.lastPrice != null)
         {
             result["lastPrice"] = typed.lastPrice;
         }
+        else
+        {
+            result["lastPrice"] = null;
+        }
         if (typed.underlyingPrice != null)
         {
             result["underlyingPrice"] = typed.underlyingPrice;
+        }
+        else
+        {
+            result["underlyingPrice"] = null;
         }
         if (typed.change != null)
         {
             result["change"] = typed.change;
         }
+        else
+        {
+            result["change"] = null;
+        }
         if (typed.percentage != null)
         {
             result["percentage"] = typed.percentage;
+        }
+        else
+        {
+            result["percentage"] = null;
         }
         if (typed.baseVolume != null)
         {
             result["baseVolume"] = typed.baseVolume;
         }
+        else
+        {
+            result["baseVolume"] = null;
+        }
         if (typed.quoteVolume != null)
         {
             result["quoteVolume"] = typed.quoteVolume;
+        }
+        else
+        {
+            result["quoteVolume"] = null;
         }
         if (typed.info != null)
         {
@@ -4140,9 +4576,17 @@ public partial class BaseExchange
         {
             result["id"] = typed.id;
         }
+        else
+        {
+            result["id"] = null;
+        }
         if (typed.clientOrderId != null)
         {
             result["clientOrderId"] = typed.clientOrderId;
+        }
+        else
+        {
+            result["clientOrderId"] = null;
         }
         if (typed.hedged != null)
         {
@@ -4172,13 +4616,25 @@ public partial class BaseExchange
         {
             result["timestamp"] = typed.timestamp;
         }
+        else
+        {
+            result["timestamp"] = null;
+        }
         if (typed.datetime != null)
         {
             result["datetime"] = typed.datetime;
         }
+        else
+        {
+            result["datetime"] = null;
+        }
         if (typed.lastTradeTimestamp != null)
         {
             result["lastTradeTimestamp"] = typed.lastTradeTimestamp;
+        }
+        else
+        {
+            result["lastTradeTimestamp"] = null;
         }
         if (typed.lastUpdateTimestamp != null)
         {
@@ -4188,9 +4644,17 @@ public partial class BaseExchange
         {
             result["symbol"] = typed.symbol;
         }
+        else
+        {
+            result["symbol"] = null;
+        }
         if (typed.type != null)
         {
             result["type"] = typed.type;
+        }
+        else
+        {
+            result["type"] = null;
         }
         if (typed.timeInForce != null)
         {
@@ -4200,13 +4664,25 @@ public partial class BaseExchange
         {
             result["side"] = typed.side;
         }
+        else
+        {
+            result["side"] = null;
+        }
         if (typed.price != null)
         {
             result["price"] = typed.price;
         }
+        else
+        {
+            result["price"] = null;
+        }
         if (typed.cost != null)
         {
             result["cost"] = typed.cost;
+        }
+        else
+        {
+            result["cost"] = null;
         }
         if (typed.average != null)
         {
@@ -4216,21 +4692,41 @@ public partial class BaseExchange
         {
             result["amount"] = typed.amount;
         }
+        else
+        {
+            result["amount"] = null;
+        }
         if (typed.filled != null)
         {
             result["filled"] = typed.filled;
+        }
+        else
+        {
+            result["filled"] = null;
         }
         if (typed.remaining != null)
         {
             result["remaining"] = typed.remaining;
         }
+        else
+        {
+            result["remaining"] = null;
+        }
         if (typed.status != null)
         {
             result["status"] = typed.status;
         }
+        else
+        {
+            result["status"] = null;
+        }
         if (typed.fee != null)
         {
             result["fee"] = FromFee(typed.fee);
+        }
+        else
+        {
+            result["fee"] = null;
         }
         if (typed.trades != null)
         {
@@ -4261,9 +4757,17 @@ public partial class BaseExchange
         {
             result["reduceOnly"] = typed.reduceOnly;
         }
+        else
+        {
+            result["reduceOnly"] = null;
+        }
         if (typed.postOnly != null)
         {
             result["postOnly"] = typed.postOnly;
+        }
+        else
+        {
+            result["postOnly"] = null;
         }
         if (typed.fees != null)
         {
@@ -4326,17 +4830,33 @@ public partial class BaseExchange
         {
             result["symbol"] = typed.symbol;
         }
+        else
+        {
+            result["symbol"] = null;
+        }
         if (typed.timestamp != null)
         {
             result["timestamp"] = typed.timestamp;
+        }
+        else
+        {
+            result["timestamp"] = null;
         }
         if (typed.datetime != null)
         {
             result["datetime"] = typed.datetime;
         }
+        else
+        {
+            result["datetime"] = null;
+        }
         if (typed.nonce != null)
         {
             result["nonce"] = typed.nonce;
+        }
+        else
+        {
+            result["nonce"] = null;
         }
         return result;
     }
@@ -4406,6 +4926,10 @@ public partial class BaseExchange
         {
             result["symbol"] = typed.symbol;
         }
+        else
+        {
+            result["symbol"] = null;
+        }
         if (typed.id != null)
         {
             result["id"] = typed.id;
@@ -4433,6 +4957,10 @@ public partial class BaseExchange
         if (typed.side != null)
         {
             result["side"] = typed.side;
+        }
+        else
+        {
+            result["side"] = null;
         }
         if (typed.notional != null)
         {
@@ -4560,6 +5088,10 @@ public partial class BaseExchange
         {
             result["hedged"] = typed.hedged;
         }
+        else
+        {
+            result["hedged"] = null;
+        }
         return result;
     }
 
@@ -4590,9 +5122,17 @@ public partial class BaseExchange
         {
             result["amount"] = typed.amount;
         }
+        else
+        {
+            result["amount"] = null;
+        }
         if (typed.price != null)
         {
             result["price"] = typed.price;
+        }
+        else
+        {
+            result["price"] = null;
         }
         if (typed.cost != null)
         {
@@ -4636,9 +5176,17 @@ public partial class BaseExchange
         {
             result["id"] = typed.id;
         }
+        else
+        {
+            result["id"] = null;
+        }
         if (typed.eventId != null)
         {
             result["event"] = typed.eventId;
+        }
+        else
+        {
+            result["event"] = null;
         }
         if (typed.title != null)
         {
@@ -4788,9 +5336,17 @@ public partial class BaseExchange
         {
             result["id"] = typed.id;
         }
+        else
+        {
+            result["id"] = null;
+        }
         if (typed.market != null)
         {
             result["market"] = typed.market;
+        }
+        else
+        {
+            result["market"] = null;
         }
         if (typed.eventId != null)
         {
@@ -4799,6 +5355,10 @@ public partial class BaseExchange
         if (typed.marketType != null)
         {
             result["marketType"] = typed.marketType;
+        }
+        else
+        {
+            result["marketType"] = null;
         }
         if (typed.executionModel != null)
         {
@@ -4966,6 +5526,10 @@ public partial class BaseExchange
         {
             result["outcome"] = typed.outcome;
         }
+        else
+        {
+            result["outcome"] = null;
+        }
         if (typed.outcomeId != null)
         {
             result["outcomeId"] = typed.outcomeId;
@@ -5008,21 +5572,41 @@ public partial class BaseExchange
         {
             result["id"] = typed.id;
         }
+        else
+        {
+            result["id"] = null;
+        }
         if (typed.clientOrderId != null)
         {
             result["clientOrderId"] = typed.clientOrderId;
+        }
+        else
+        {
+            result["clientOrderId"] = null;
         }
         if (typed.timestamp != null)
         {
             result["timestamp"] = typed.timestamp;
         }
+        else
+        {
+            result["timestamp"] = null;
+        }
         if (typed.datetime != null)
         {
             result["datetime"] = typed.datetime;
         }
+        else
+        {
+            result["datetime"] = null;
+        }
         if (typed.lastTradeTimestamp != null)
         {
             result["lastTradeTimestamp"] = typed.lastTradeTimestamp;
+        }
+        else
+        {
+            result["lastTradeTimestamp"] = null;
         }
         if (typed.lastUpdateTimestamp != null)
         {
@@ -5036,17 +5620,33 @@ public partial class BaseExchange
         {
             result["type"] = typed.type;
         }
+        else
+        {
+            result["type"] = null;
+        }
         if (typed.side != null)
         {
             result["side"] = typed.side;
+        }
+        else
+        {
+            result["side"] = null;
         }
         if (typed.price != null)
         {
             result["price"] = typed.price;
         }
+        else
+        {
+            result["price"] = null;
+        }
         if (typed.cost != null)
         {
             result["cost"] = typed.cost;
+        }
+        else
+        {
+            result["cost"] = null;
         }
         if (typed.average != null)
         {
@@ -5056,21 +5656,41 @@ public partial class BaseExchange
         {
             result["amount"] = typed.amount;
         }
+        else
+        {
+            result["amount"] = null;
+        }
         if (typed.filled != null)
         {
             result["filled"] = typed.filled;
+        }
+        else
+        {
+            result["filled"] = null;
         }
         if (typed.remaining != null)
         {
             result["remaining"] = typed.remaining;
         }
+        else
+        {
+            result["remaining"] = null;
+        }
         if (typed.status != null)
         {
             result["status"] = typed.status;
         }
+        else
+        {
+            result["status"] = null;
+        }
         if (typed.fee != null)
         {
             result["fee"] = FromFee(typed.fee);
+        }
+        else
+        {
+            result["fee"] = null;
         }
         if (typed.trades != null)
         {
@@ -5085,13 +5705,25 @@ public partial class BaseExchange
         {
             result["reduceOnly"] = typed.reduceOnly;
         }
+        else
+        {
+            result["reduceOnly"] = null;
+        }
         if (typed.postOnly != null)
         {
             result["postOnly"] = typed.postOnly;
         }
+        else
+        {
+            result["postOnly"] = null;
+        }
         if (typed.outcome != null)
         {
             result["outcome"] = typed.outcome;
+        }
+        else
+        {
+            result["outcome"] = null;
         }
         if (typed.outcomeId != null)
         {
@@ -5161,17 +5793,33 @@ public partial class BaseExchange
         {
             result["timestamp"] = typed.timestamp;
         }
+        else
+        {
+            result["timestamp"] = null;
+        }
         if (typed.datetime != null)
         {
             result["datetime"] = typed.datetime;
+        }
+        else
+        {
+            result["datetime"] = null;
         }
         if (typed.nonce != null)
         {
             result["nonce"] = typed.nonce;
         }
+        else
+        {
+            result["nonce"] = null;
+        }
         if (typed.outcome != null)
         {
             result["outcome"] = typed.outcome;
+        }
+        else
+        {
+            result["outcome"] = null;
         }
         if (typed.outcomeId != null)
         {
@@ -5210,6 +5858,10 @@ public partial class BaseExchange
         if (typed.outcome != null)
         {
             result["outcome"] = typed.outcome;
+        }
+        else
+        {
+            result["outcome"] = null;
         }
         if (typed.outcomeId != null)
         {
@@ -5324,6 +5976,10 @@ public partial class BaseExchange
         {
             result["side"] = typed.side;
         }
+        else
+        {
+            result["side"] = null;
+        }
         if (typed.notional != null)
         {
             result["notional"] = typed.notional;
@@ -5359,6 +6015,10 @@ public partial class BaseExchange
         if (typed.outcome != null)
         {
             result["outcome"] = typed.outcome;
+        }
+        else
+        {
+            result["outcome"] = null;
         }
         if (typed.outcomeId != null)
         {
@@ -5508,69 +6168,137 @@ public partial class BaseExchange
         {
             result["timestamp"] = typed.timestamp;
         }
+        else
+        {
+            result["timestamp"] = null;
+        }
         if (typed.datetime != null)
         {
             result["datetime"] = typed.datetime;
+        }
+        else
+        {
+            result["datetime"] = null;
         }
         if (typed.high != null)
         {
             result["high"] = typed.high;
         }
+        else
+        {
+            result["high"] = null;
+        }
         if (typed.low != null)
         {
             result["low"] = typed.low;
+        }
+        else
+        {
+            result["low"] = null;
         }
         if (typed.bid != null)
         {
             result["bid"] = typed.bid;
         }
+        else
+        {
+            result["bid"] = null;
+        }
         if (typed.bidVolume != null)
         {
             result["bidVolume"] = typed.bidVolume;
+        }
+        else
+        {
+            result["bidVolume"] = null;
         }
         if (typed.ask != null)
         {
             result["ask"] = typed.ask;
         }
+        else
+        {
+            result["ask"] = null;
+        }
         if (typed.askVolume != null)
         {
             result["askVolume"] = typed.askVolume;
+        }
+        else
+        {
+            result["askVolume"] = null;
         }
         if (typed.open != null)
         {
             result["open"] = typed.open;
         }
+        else
+        {
+            result["open"] = null;
+        }
         if (typed.close != null)
         {
             result["close"] = typed.close;
+        }
+        else
+        {
+            result["close"] = null;
         }
         if (typed.last != null)
         {
             result["last"] = typed.last;
         }
+        else
+        {
+            result["last"] = null;
+        }
         if (typed.change != null)
         {
             result["change"] = typed.change;
+        }
+        else
+        {
+            result["change"] = null;
         }
         if (typed.percentage != null)
         {
             result["percentage"] = typed.percentage;
         }
+        else
+        {
+            result["percentage"] = null;
+        }
         if (typed.average != null)
         {
             result["average"] = typed.average;
+        }
+        else
+        {
+            result["average"] = null;
         }
         if (typed.baseVolume != null)
         {
             result["baseVolume"] = typed.baseVolume;
         }
+        else
+        {
+            result["baseVolume"] = null;
+        }
         if (typed.quoteVolume != null)
         {
             result["quoteVolume"] = typed.quoteVolume;
         }
+        else
+        {
+            result["quoteVolume"] = null;
+        }
         if (typed.outcome != null)
         {
             result["outcome"] = typed.outcome;
+        }
+        else
+        {
+            result["outcome"] = null;
         }
         if (typed.outcomeId != null)
         {
@@ -5664,49 +6392,97 @@ public partial class BaseExchange
         {
             result["amount"] = typed.amount;
         }
+        else
+        {
+            result["amount"] = null;
+        }
         if (typed.price != null)
         {
             result["price"] = typed.price;
+        }
+        else
+        {
+            result["price"] = null;
         }
         if (typed.cost != null)
         {
             result["cost"] = typed.cost;
         }
+        else
+        {
+            result["cost"] = null;
+        }
         if (typed.id != null)
         {
             result["id"] = typed.id;
+        }
+        else
+        {
+            result["id"] = null;
         }
         if (typed.order != null)
         {
             result["order"] = typed.order;
         }
+        else
+        {
+            result["order"] = null;
+        }
         if (typed.timestamp != null)
         {
             result["timestamp"] = typed.timestamp;
+        }
+        else
+        {
+            result["timestamp"] = null;
         }
         if (typed.datetime != null)
         {
             result["datetime"] = typed.datetime;
         }
+        else
+        {
+            result["datetime"] = null;
+        }
         if (typed.type != null)
         {
             result["type"] = typed.type;
+        }
+        else
+        {
+            result["type"] = null;
         }
         if (typed.side != null)
         {
             result["side"] = typed.side;
         }
+        else
+        {
+            result["side"] = null;
+        }
         if (typed.takerOrMaker != null)
         {
             result["takerOrMaker"] = typed.takerOrMaker;
+        }
+        else
+        {
+            result["takerOrMaker"] = null;
         }
         if (typed.fee != null)
         {
             result["fee"] = FromFee(typed.fee);
         }
+        else
+        {
+            result["fee"] = null;
+        }
         if (typed.outcome != null)
         {
             result["outcome"] = typed.outcome;
+        }
+        else
+        {
+            result["outcome"] = null;
         }
         if (typed.outcomeId != null)
         {
@@ -5758,21 +6534,41 @@ public partial class BaseExchange
         {
             result["maker"] = typed.maker;
         }
+        else
+        {
+            result["maker"] = null;
+        }
         if (typed.taker != null)
         {
             result["taker"] = typed.taker;
+        }
+        else
+        {
+            result["taker"] = null;
         }
         if (typed.percentage != null)
         {
             result["percentage"] = typed.percentage;
         }
+        else
+        {
+            result["percentage"] = null;
+        }
         if (typed.tierBased != null)
         {
             result["tierBased"] = typed.tierBased;
         }
+        else
+        {
+            result["tierBased"] = null;
+        }
         if (typed.outcome != null)
         {
             result["outcome"] = typed.outcome;
+        }
+        else
+        {
+            result["outcome"] = null;
         }
         if (typed.outcomeId != null)
         {
@@ -5816,17 +6612,33 @@ public partial class BaseExchange
         {
             result["status"] = typed.status;
         }
+        else
+        {
+            result["status"] = null;
+        }
         if (typed.updated != null)
         {
             result["updated"] = typed.updated;
+        }
+        else
+        {
+            result["updated"] = null;
         }
         if (typed.eta != null)
         {
             result["eta"] = typed.eta;
         }
+        else
+        {
+            result["eta"] = null;
+        }
         if (typed.url != null)
         {
             result["url"] = typed.url;
+        }
+        else
+        {
+            result["url"] = null;
         }
         if (typed.info != null)
         {
@@ -5862,6 +6674,10 @@ public partial class BaseExchange
         {
             result["symbol"] = typed.symbol;
         }
+        else
+        {
+            result["symbol"] = null;
+        }
         if (typed.id != null)
         {
             result["id"] = typed.id;
@@ -5870,73 +6686,145 @@ public partial class BaseExchange
         {
             result["timestamp"] = typed.timestamp;
         }
+        else
+        {
+            result["timestamp"] = null;
+        }
         if (typed.datetime != null)
         {
             result["datetime"] = typed.datetime;
+        }
+        else
+        {
+            result["datetime"] = null;
         }
         if (typed.high != null)
         {
             result["high"] = typed.high;
         }
+        else
+        {
+            result["high"] = null;
+        }
         if (typed.low != null)
         {
             result["low"] = typed.low;
+        }
+        else
+        {
+            result["low"] = null;
         }
         if (typed.bid != null)
         {
             result["bid"] = typed.bid;
         }
+        else
+        {
+            result["bid"] = null;
+        }
         if (typed.bidVolume != null)
         {
             result["bidVolume"] = typed.bidVolume;
+        }
+        else
+        {
+            result["bidVolume"] = null;
         }
         if (typed.ask != null)
         {
             result["ask"] = typed.ask;
         }
+        else
+        {
+            result["ask"] = null;
+        }
         if (typed.askVolume != null)
         {
             result["askVolume"] = typed.askVolume;
+        }
+        else
+        {
+            result["askVolume"] = null;
         }
         if (typed.vwap != null)
         {
             result["vwap"] = typed.vwap;
         }
+        else
+        {
+            result["vwap"] = null;
+        }
         if (typed.open != null)
         {
             result["open"] = typed.open;
+        }
+        else
+        {
+            result["open"] = null;
         }
         if (typed.close != null)
         {
             result["close"] = typed.close;
         }
+        else
+        {
+            result["close"] = null;
+        }
         if (typed.last != null)
         {
             result["last"] = typed.last;
+        }
+        else
+        {
+            result["last"] = null;
         }
         if (typed.previousClose != null)
         {
             result["previousClose"] = typed.previousClose;
         }
+        else
+        {
+            result["previousClose"] = null;
+        }
         if (typed.change != null)
         {
             result["change"] = typed.change;
+        }
+        else
+        {
+            result["change"] = null;
         }
         if (typed.percentage != null)
         {
             result["percentage"] = typed.percentage;
         }
+        else
+        {
+            result["percentage"] = null;
+        }
         if (typed.average != null)
         {
             result["average"] = typed.average;
+        }
+        else
+        {
+            result["average"] = null;
         }
         if (typed.baseVolume != null)
         {
             result["baseVolume"] = typed.baseVolume;
         }
+        else
+        {
+            result["baseVolume"] = null;
+        }
         if (typed.quoteVolume != null)
         {
             result["quoteVolume"] = typed.quoteVolume;
+        }
+        else
+        {
+            result["quoteVolume"] = null;
         }
         if (typed.info != null)
         {
@@ -5946,9 +6834,17 @@ public partial class BaseExchange
         {
             result["indexPrice"] = typed.indexPrice;
         }
+        else
+        {
+            result["indexPrice"] = null;
+        }
         if (typed.markPrice != null)
         {
             result["markPrice"] = typed.markPrice;
+        }
+        else
+        {
+            result["markPrice"] = null;
         }
         return result;
     }
@@ -6018,49 +6914,97 @@ public partial class BaseExchange
         {
             result["amount"] = typed.amount;
         }
+        else
+        {
+            result["amount"] = null;
+        }
         if (typed.price != null)
         {
             result["price"] = typed.price;
+        }
+        else
+        {
+            result["price"] = null;
         }
         if (typed.cost != null)
         {
             result["cost"] = typed.cost;
         }
+        else
+        {
+            result["cost"] = null;
+        }
         if (typed.id != null)
         {
             result["id"] = typed.id;
+        }
+        else
+        {
+            result["id"] = null;
         }
         if (typed.order != null)
         {
             result["order"] = typed.order;
         }
+        else
+        {
+            result["order"] = null;
+        }
         if (typed.timestamp != null)
         {
             result["timestamp"] = typed.timestamp;
+        }
+        else
+        {
+            result["timestamp"] = null;
         }
         if (typed.datetime != null)
         {
             result["datetime"] = typed.datetime;
         }
+        else
+        {
+            result["datetime"] = null;
+        }
         if (typed.symbol != null)
         {
             result["symbol"] = typed.symbol;
+        }
+        else
+        {
+            result["symbol"] = null;
         }
         if (typed.type != null)
         {
             result["type"] = typed.type;
         }
+        else
+        {
+            result["type"] = null;
+        }
         if (typed.side != null)
         {
             result["side"] = typed.side;
+        }
+        else
+        {
+            result["side"] = null;
         }
         if (typed.takerOrMaker != null)
         {
             result["takerOrMaker"] = typed.takerOrMaker;
         }
+        else
+        {
+            result["takerOrMaker"] = null;
+        }
         if (typed.fee != null)
         {
             result["fee"] = FromFee(typed.fee);
+        }
+        else
+        {
+            result["fee"] = null;
         }
         if (typed.fees != null)
         {
@@ -6109,21 +7053,41 @@ public partial class BaseExchange
         {
             result["symbol"] = typed.symbol;
         }
+        else
+        {
+            result["symbol"] = null;
+        }
         if (typed.maker != null)
         {
             result["maker"] = typed.maker;
+        }
+        else
+        {
+            result["maker"] = null;
         }
         if (typed.taker != null)
         {
             result["taker"] = typed.taker;
         }
+        else
+        {
+            result["taker"] = null;
+        }
         if (typed.percentage != null)
         {
             result["percentage"] = typed.percentage;
         }
+        else
+        {
+            result["percentage"] = null;
+        }
         if (typed.tierBased != null)
         {
             result["tierBased"] = typed.tierBased;
+        }
+        else
+        {
+            result["tierBased"] = null;
         }
         if (typed.tiers != null)
         {
@@ -6205,77 +7169,153 @@ public partial class BaseExchange
         {
             result["id"] = typed.id;
         }
+        else
+        {
+            result["id"] = null;
+        }
         if (typed.txid != null)
         {
             result["txid"] = typed.txid;
+        }
+        else
+        {
+            result["txid"] = null;
         }
         if (typed.address != null)
         {
             result["address"] = typed.address;
         }
+        else
+        {
+            result["address"] = null;
+        }
         if (typed.addressFrom != null)
         {
             result["addressFrom"] = typed.addressFrom;
+        }
+        else
+        {
+            result["addressFrom"] = null;
         }
         if (typed.addressTo != null)
         {
             result["addressTo"] = typed.addressTo;
         }
+        else
+        {
+            result["addressTo"] = null;
+        }
         if (typed.tag != null)
         {
             result["tag"] = typed.tag;
+        }
+        else
+        {
+            result["tag"] = null;
         }
         if (typed.tagFrom != null)
         {
             result["tagFrom"] = typed.tagFrom;
         }
+        else
+        {
+            result["tagFrom"] = null;
+        }
         if (typed.tagTo != null)
         {
             result["tagTo"] = typed.tagTo;
+        }
+        else
+        {
+            result["tagTo"] = null;
         }
         if (typed.type != null)
         {
             result["type"] = typed.type;
         }
+        else
+        {
+            result["type"] = null;
+        }
         if (typed.currency != null)
         {
             result["currency"] = typed.currency;
+        }
+        else
+        {
+            result["currency"] = null;
         }
         if (typed.network != null)
         {
             result["network"] = typed.network;
         }
+        else
+        {
+            result["network"] = null;
+        }
         if (typed.comment != null)
         {
             result["comment"] = typed.comment;
+        }
+        else
+        {
+            result["comment"] = null;
         }
         if (typed.amount != null)
         {
             result["amount"] = typed.amount;
         }
+        else
+        {
+            result["amount"] = null;
+        }
         if (typed.status != null)
         {
             result["status"] = typed.status;
+        }
+        else
+        {
+            result["status"] = null;
         }
         if (typed.updated != null)
         {
             result["updated"] = typed.updated;
         }
+        else
+        {
+            result["updated"] = null;
+        }
         if (typed.timestamp != null)
         {
             result["timestamp"] = typed.timestamp;
+        }
+        else
+        {
+            result["timestamp"] = null;
         }
         if (typed.datetime != null)
         {
             result["datetime"] = typed.datetime;
         }
+        else
+        {
+            result["datetime"] = null;
+        }
         if (typed.fee != null)
         {
             result["fee"] = FromFee(typed.fee);
         }
+        else
+        {
+            result["fee"] = null;
+        }
         if (typed.@internal != null)
         {
             result["internal"] = typed.@internal;
+        }
+        else
+        {
+            result["internal"] = null;
         }
         if (typed.tokenSide != null)
         {

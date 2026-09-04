@@ -21,7 +21,16 @@ class Helper
         Dictionary<string, object> result = null;
         foreach (var pair in data)
         {
-            if (known.Contains(pair.Key) || pair.Key == "info")
+            if (pair.Key == "info")
+            {
+                // GetInfo keeps a dict (and re-wraps a list); a scalar `info` (independentreserve
+                // stores the market id string) has nowhere else to go, so keep it here
+                if (pair.Value == null || pair.Value is IDictionary<string, object> || pair.Value is IList<object>)
+                {
+                    continue;
+                }
+            }
+            else if (known.Contains(pair.Key))
             {
                 continue;
             }

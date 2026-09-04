@@ -314,6 +314,41 @@ def nullable(decl):
         return True
     return not re.match(r'^(bool|double|float|int|long|Int64|Int32|decimal)$', decl)
 
+# ---------------------------------------------- mandatory keys from types.ts
+# A key declared without `?` in ts/src/base/types.ts (Precision.amount, MinMax.min, ...)
+# is present in every other port even when its value is undefined: safeMarketStructure /
+# safeCurrencyStructure write it explicitly and the structure validators count it
+# (test.market.ts: `precision should have "amount" and "price" keys at least`). The
+# struct field is still null, so the reverse helper has to write the key back as null
+# instead of dropping it, or the typed round-trip changes the key set.
+TYPES_TS = 'ts/src/base/types.ts'
+MANDATORY = {}   # struct name -> set of unified keys declared non-optional
+try:
+    ts_src = open(TYPES_TS).read()
+    # csharpSpecs maps each C# struct to its TS interface ('ts': 'MarketInterface' or a
+    # nested member such as 'MarketInterface.limits')
+    spec_src = open('build/typeEmitters/csharpSpecs.ts').read()
+    ts_of = dict(re.findall(r"'n': '(\w+)', 'file': '[^']+', 'ts': '([\w.]+)'", spec_src))
+    def ts_members(name):
+        if '.' in name:
+            owner, member = name.split('.', 1)
+            body = re.search(r'export interface %s \{(.*?)\n\}' % owner, ts_src, re.S)
+            if not body:
+                return ''
+            nested = re.search(r'\n\s+%s\??: \{(.*?)\n\s+\};' % member, body.group(1), re.S)
+            return nested.group(1) if nested else ''
+        body = re.search(r'export interface %s(?: extends [^{]+)? \{(.*?)\n\}' % name, ts_src, re.S)
+        return body.group(1) if body else ''
+    for cs_name, ts_name in ts_of.items():
+        keys = set()
+        for line in ts_members(ts_name).split('\n'):
+            m = re.match(r'\s*(\w+)(\?)?\s*:', line)
+            if m and not m.group(2):
+                keys.add(m.group(1))
+        MANDATORY[cs_name] = keys
+except FileNotFoundError:
+    pass
+
 # --------------------------------------------------------------------- output
 out = []
 out.append('namespace ccxt;')
@@ -460,6 +495,12 @@ for t in emit_from:
             for b in body:
                 out.append('            ' + b)
             out.append('        }')
+            if kind in ('scalar', 'struct') and key in MANDATORY.get(t, ()):
+                # non-optional in types.ts: the key exists in every port, value or not
+                out.append('        else')
+                out.append('        {')
+                out.append('            result["%s"] = null;' % key)
+                out.append('        }')
         else:
             for b in body:
                 out.append('        ' + b)
