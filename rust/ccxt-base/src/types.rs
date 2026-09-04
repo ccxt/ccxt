@@ -1128,6 +1128,60 @@ impl IsolatedBorrowRate {
     }
 }
 
+/// One leg of a [`DepositWithdrawFee`] — the fee for a deposit or a withdrawal,
+/// and whether it is a percentage of the amount (vs. a flat fee). Mirrors the
+/// TS `DepositWithdrawFeeNetwork` interface.
+#[derive(Debug, Clone, Copy, Default, PartialEq)]
+pub struct DepositWithdrawFeeLeg {
+    pub fee:        Option<f64>,
+    pub percentage: Option<bool>,
+}
+
+impl DepositWithdrawFeeLeg {
+    fn from_value(v: &Value) -> Self {
+        use crate::value::{safe_number, safe_bool};
+        DepositWithdrawFeeLeg { fee: safe_number(v, "fee", None), percentage: safe_bool(v, "percentage", None) }
+    }
+}
+
+/// Unified deposit/withdraw fee for one currency (`fetchDepositWithdrawFee`,
+/// and each value of `fetchDepositWithdrawFees`). Mirrors the TS
+/// `DepositWithdrawFee` interface: a currency-level `withdraw`/`deposit` pair
+/// plus the same pair per network under `networks`.
+#[derive(Debug, Clone, Default)]
+pub struct DepositWithdrawFee {
+    pub withdraw: DepositWithdrawFeeLeg,
+    pub deposit:  DepositWithdrawFeeLeg,
+    pub networks: HashMap<String, DepositWithdrawFeeNetwork>,
+    pub raw:      Value,
+}
+
+/// Per-network `withdraw`/`deposit` legs inside [`DepositWithdrawFee::networks`].
+#[derive(Debug, Clone, Copy, Default, PartialEq)]
+pub struct DepositWithdrawFeeNetwork {
+    pub withdraw: DepositWithdrawFeeLeg,
+    pub deposit:  DepositWithdrawFeeLeg,
+}
+
+impl DepositWithdrawFee {
+    pub fn from_value(v: Value) -> Self {
+        let sub = |parent: &Value, key: &str| crate::value::get_value(parent, &Value::Str(key.to_string()));
+        let mut d = DepositWithdrawFee::default();
+        d.withdraw = DepositWithdrawFeeLeg::from_value(&sub(&v, "withdraw"));
+        d.deposit  = DepositWithdrawFeeLeg::from_value(&sub(&v, "deposit"));
+        if let Value::Dict(networks) = sub(&v, "networks") {
+            for (id, net) in networks.iter() {
+                d.networks.insert(id.clone(), DepositWithdrawFeeNetwork {
+                    withdraw: DepositWithdrawFeeLeg::from_value(&sub(net, "withdraw")),
+                    deposit:  DepositWithdrawFeeLeg::from_value(&sub(net, "deposit")),
+                });
+            }
+        }
+        d.raw = v;
+        d
+    }
+}
+
 // -----------------------------------------------------------------------------
 // Collection aliases (mirror the plural names used in Go's exchange_types.go)
 // -----------------------------------------------------------------------------
@@ -1149,6 +1203,10 @@ pub type IsolatedBorrowRates = HashMap<String, IsolatedBorrowRate>;
 pub type LastPrices          = HashMap<String, LastPrice>;
 /// `fetchOptionChain` — symbol → [`OptionContract`].
 pub type OptionChain         = HashMap<String, OptionContract>;
+/// `fetchLeverageTiers` — symbol → its ladder of [`LeverageTier`]s.
+pub type LeverageTiers       = HashMap<String, Vec<LeverageTier>>;
+/// `fetchDepositWithdrawFees` — currency code → [`DepositWithdrawFee`].
+pub type DepositWithdrawFees = HashMap<String, DepositWithdrawFee>;
 
 /// Walk a `Value::Dict` of `<key> → Value` and decode each value with
 /// the supplied `from_value` constructor. Returns an empty map on a
@@ -1174,7 +1232,7 @@ pub fn vec_from_value<T>(v: &Value, decode: fn(Value) -> T) -> Vec<T> {
 
 #[cfg(test)]
 mod from_value_tests {
-    use super::{Market, Order, OrderBook, MarginModification, Conversion, IsolatedBorrowRate, BorrowRate, PositionModeInfo, LastPrice};
+    use super::{Market, Order, OrderBook, MarginModification, Conversion, IsolatedBorrowRate, BorrowRate, PositionModeInfo, LastPrice, LeverageTier, DepositWithdrawFee};
     use crate::Value;
     use crate::value::HashMap;
 
@@ -1293,6 +1351,29 @@ mod from_value_tests {
         let wrong = BorrowRate::from_value(v);
         assert_eq!(wrong.currency, None);
         assert_eq!(wrong.rate, None);
+    }
+
+    #[test]
+    fn leverage_tiers_map_of_vec_and_deposit_withdraw_fee_nesting() {
+        let tier = |n: f64| dict(&[("tier", Value::Float(n)), ("maxLeverage", Value::Int(20))]);
+        let tiers = dict(&[("BTC/USDT:USDT", Value::Array(vec![tier(1.0), tier(2.0)]))]);
+        let decoded = super::dict_from_value(&tiers, |row| super::vec_from_value(&row, LeverageTier::from_value));
+        assert_eq!(decoded["BTC/USDT:USDT"].len(), 2);
+        assert_eq!(decoded["BTC/USDT:USDT"][1].tier, Some(2.0));
+        assert_eq!(decoded["BTC/USDT:USDT"][1].max_leverage, Some(20.0));
+        let fee = DepositWithdrawFee::from_value(dict(&[
+            ("withdraw", dict(&[("fee", Value::Float(0.0005)), ("percentage", Value::Bool(false))])),
+            ("deposit", dict(&[("fee", Value::Null), ("percentage", Value::Null)])),
+            ("networks", dict(&[("BTC", dict(&[
+                ("withdraw", dict(&[("fee", Value::Str("0.0004".into())), ("percentage", Value::Bool(false))])),
+                ("deposit", dict(&[("fee", Value::Int(0)), ("percentage", Value::Null)])),
+            ]))])),
+        ]));
+        assert_eq!(fee.withdraw.fee, Some(0.0005));
+        assert_eq!(fee.withdraw.percentage, Some(false));
+        assert_eq!(fee.deposit.fee, None);
+        assert_eq!(fee.networks["BTC"].withdraw.fee, Some(0.0004));
+        assert_eq!(fee.networks["BTC"].deposit.fee, Some(0.0));
     }
 
     #[test]

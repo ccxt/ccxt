@@ -95,6 +95,7 @@ const KNOWN_STRUCT_TYPES = new Map<string, string>([
     // `core::option::Option`, so the Rust struct is `OptionContract`.
     ['Option', 'OptionContract'],
     ['LastPrice', 'LastPrice'],
+    ['DepositWithdrawFee', 'DepositWithdrawFee'],
 ]);
 
 // Plural CCXT collection types — these are `pub type X = HashMap<String, T>;`
@@ -114,6 +115,13 @@ const KNOWN_MAP_TYPES = new Map<string, string>([
     ['IsolatedBorrowRates', 'IsolatedBorrowRate'],
     ['LastPrices', 'LastPrice'],
     ['OptionChain', 'OptionContract'],
+    ['DepositWithdrawFees', 'DepositWithdrawFee'],
+]);
+
+// Collection types whose entries are LISTS of a struct —
+// `pub type X = HashMap<String, Vec<T>>;` in `types.rs` (TS: `Dictionary<T[]>`).
+const KNOWN_MAP_OF_VEC_TYPES = new Map<string, string>([
+    ['LeverageTiers', 'LeverageTier'],
 ]);
 
 // Combined lookup for "is this a name we can produce a decoder for?".
@@ -125,6 +133,10 @@ function knownReturnType(name: string): { rustType: string, decode: (v: string) 
     const mapElem = KNOWN_MAP_TYPES.get(name);
     if (mapElem) {
         return { rustType: name, decode: v => `dict_from_value(&${v}, ${mapElem}::from_value)` };
+    }
+    const mapVecElem = KNOWN_MAP_OF_VEC_TYPES.get(name);
+    if (mapVecElem) {
+        return { rustType: name, decode: v => `dict_from_value(&${v}, |row| vec_from_value(&row, ${mapVecElem}::from_value))` };
     }
     return null;
 }

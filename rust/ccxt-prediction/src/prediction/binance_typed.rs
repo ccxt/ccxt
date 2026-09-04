@@ -299,6 +299,12 @@ impl Binance {
         Ok(dict_from_value(&v, IsolatedBorrowRate::from_value))
     }
 
+    /// Typed wrapper around `fetchLeverageTiers`.
+    pub async fn fetch_leverage_tiers(&mut self, symbols: Option<Vec<String>>, params: impl Into<Params>) -> crate::Result<LeverageTiers> {
+        let v = crate::runtime::call_typed(self.core_mut().fetch_leverage_tiers(&[match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(Value::Str).collect())), None => Value::Null }, params.into().into_value()])).await?;
+        Ok(dict_from_value(&v, |row| vec_from_value(&row, LeverageTier::from_value)))
+    }
+
     /// Typed wrapper around `fetchFundingRates`.
     pub async fn fetch_funding_rates(&mut self, symbols: Option<Vec<String>>, params: impl Into<Params>) -> crate::Result<FundingRates> {
         let v = crate::runtime::call_typed(self.core_mut().fetch_funding_rates(&[match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(Value::Str).collect())), None => Value::Null }, params.into().into_value()])).await?;
@@ -453,6 +459,18 @@ impl Binance {
     pub async fn fetch_status(&mut self, params: impl Into<Params>) -> crate::Result<Status> {
         let v = crate::runtime::call_typed(self.core_mut().fetch_status(&[params.into().into_value()])).await?;
         Ok(Status::from_value(v))
+    }
+
+    /// Typed wrapper around `fetchDepositWithdrawFees`.
+    pub async fn fetch_deposit_withdraw_fees(&mut self, codes: Option<Vec<String>>, params: impl Into<Params>) -> crate::Result<DepositWithdrawFees> {
+        let v = crate::runtime::call_typed(self.core_mut().fetch_deposit_withdraw_fees(&[match codes { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(Value::Str).collect())), None => Value::Null }, params.into().into_value()])).await?;
+        Ok(dict_from_value(&v, DepositWithdrawFee::from_value))
+    }
+
+    /// Typed wrapper around `fetchDepositWithdrawFee`.
+    pub async fn fetch_deposit_withdraw_fee(&mut self, code: &str, params: impl Into<Params>) -> crate::Result<DepositWithdrawFee> {
+        let v = crate::runtime::call_typed(self.core_mut().fetch_deposit_withdraw_fee(Value::Str(code.to_string()), &[params.into().into_value()])).await?;
+        Ok(DepositWithdrawFee::from_value(v))
     }
 
     /// Typed wrapper around `fetchCrossBorrowRate`.
