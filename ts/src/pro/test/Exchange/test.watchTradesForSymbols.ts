@@ -2,7 +2,7 @@
 import assert from 'assert';
 import testTrade from '../../../test/Exchange/base/test.trade.js';
 import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js';
-import { Exchange, Str, Trade } from '../../../../ccxt.js';
+import { Exchange, Trade } from '../../../../ccxt.js';
 
 async function testWatchTradesForSymbols (exchange: Exchange, skippedProperties: object, symbols: string[]) {
     const method = 'watchTradesForSymbols';
