@@ -1389,7 +1389,7 @@ func (this *CoinsphCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ..
 	//         ]
 	//     ]
 	//
-	var ohlcvs any = this.ToArray(response)
+	var ohlcvs []any = this.ToArray(response)
 
 	ch <- this.ParseOHLCVs(ohlcvs, market, timeframe, since, limit)
 	return nil
@@ -2351,7 +2351,7 @@ func (this *CoinsphCore) fetchTradingFeesBody(ch chan any, optionalArgs ...any) 
 	//     ]
 	//
 	var result map[string]any = map[string]any{}
-	var fees any = this.ToArray(response)
+	var fees []any = this.ToArray(response)
 	for i := 0; IsLessThan(i, GetArrayLength(fees)); i++ {
 		var fee any = this.ParseTradingFee(GetValue(fees, i))
 		var symbol any = GetValue(fee, "symbol")
@@ -2807,7 +2807,7 @@ func (this *CoinsphCore) UrlEncodeQuery(optionalArgs ...any) any {
 			encodedArrayParams = Add(encodedArrayParams, encodedArrayParam)
 		}
 	}
-	var encodedQuery any = this.Urlencode(query)
+	var encodedQuery string = this.Urlencode(query)
 	if IsTrue(!IsEqual(GetArrayLength(encodedQuery), 0)) {
 		return Add(Add(encodedQuery, "&"), encodedArrayParams)
 	} else {

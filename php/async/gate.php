@@ -1861,7 +1861,7 @@ class gate extends Exchange {
         return $result;
     }
 
-    public function fetch_option_underlyings() {
+    public function fetch_option_underlyings(): PromiseInterface {
         return Async\async(self::do_fetch_option_underlyings(...))();
     }
 
@@ -3473,23 +3473,18 @@ class gate extends Exchange {
         for ($i = 0; $i < count($data); $i++) {
             $entry = $data[$i];
             if ($isolated) {
-                $marketId = $this->safe_string($entry, 'currency_pair');
-                $symbolInner = $this->safe_symbol($marketId, null, '_', 'margin');
                 $base = $this->safe_value($entry, 'base', array());
                 $quote = $this->safe_value($entry, 'quote', array());
                 $baseCode = $this->safe_currency_code($this->safe_string($base, 'currency'));
                 $quoteCode = $this->safe_currency_code($this->safe_string($quote, 'currency'));
-                $subResult = array();
-                $subResult[$baseCode] = $this->parse_balance_helper($base);
-                $subResult[$quoteCode] = $this->parse_balance_helper($quote);
-                $result[$symbolInner] = $this->safe_balance($subResult);
+                $result = $this->merge_balance_account($result, $baseCode, $this->parse_balance_helper($base));
+                $result = $this->merge_balance_account($result, $quoteCode, $this->parse_balance_helper($quote));
             } else {
                 $code = $this->safe_currency_code($this->safe_string($entry, 'currency'));
                 $result[$code] = $this->parse_balance_helper($entry);
             }
         }
-        $returnResult = $isolated ? $result : $this->safe_balance($result);
-        return $returnResult;
+        return $this->safe_balance($result);
     }
 
     public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -3575,7 +3570,7 @@ class gate extends Exchange {
         return $this->parse_ohlcvs($this->to_array($response), $market, $timeframe, $since, $limit);
     }
 
-    public function fetch_option_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_option_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_option_ohlcv(...))($symbol, $timeframe, $since, $limit, $params);
     }
 
@@ -7384,7 +7379,7 @@ class gate extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function modify_margin_helper(string $symbol, mixed $amount, $params = array()) {
+    public function modify_margin_helper(string $symbol, mixed $amount, $params = array()): PromiseInterface {
         return Async\async(self::do_modify_margin_helper(...))($symbol, $amount, $params);
     }
 
@@ -7641,7 +7636,7 @@ class gate extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 
-    public function fetch_my_settlement_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_settlement_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_my_settlement_history(...))($symbol, $since, $limit, $params);
     }
 

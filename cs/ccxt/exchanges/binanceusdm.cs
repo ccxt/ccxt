@@ -43,17 +43,17 @@ public partial class binanceusdm : binance
         });
     }
 
-    public async virtual Task<object> transferIn(string code, object amount, object parameters = null)
+    public async virtual Task<ccxt.TransferEntry> TransferIn(string code, object amount, object parameters = null)
     {
         // transfer from spot wallet to usdm futures wallet
         parameters ??= new Dictionary<string, object>();
-        return await this.futuresTransfer(code, amount, 1, parameters);
+        return ccxt.BaseExchange.ToTransferEntry(await this.futuresTransfer(code, amount, 1, parameters));
     }
 
-    public async virtual Task<object> transferOut(string code, object amount, object parameters = null)
+    public async virtual Task<ccxt.TransferEntry> TransferOut(string code, object amount, object parameters = null)
     {
         // transfer from usdm futures wallet to spot wallet
         parameters ??= new Dictionary<string, object>();
-        return await this.futuresTransfer(code, amount, 2, parameters);
+        return ccxt.BaseExchange.ToTransferEntry(await this.futuresTransfer(code, amount, 2, parameters));
     }
 }

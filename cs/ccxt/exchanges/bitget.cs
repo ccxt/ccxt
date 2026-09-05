@@ -3170,7 +3170,7 @@ public partial class bitget : Exchange
             bool accountIsUTa = false;
             try
             {
-                await this.privateUtaGetV3AccountSettings(parameters);
+                await this.privateUtaGetV3AccountSettings();
                 accountIsUTa = true;
             } catch(Exception e)
             {
@@ -3190,7 +3190,7 @@ public partial class bitget : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    public async override Task<object> fetchTime(object parameters = null)
+    public async override Task<Int64> FetchTime(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicCommonGetV2PublicTime(parameters);
@@ -3205,7 +3205,7 @@ public partial class bitget : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        return this.safeInteger(data, "serverTime");
+        return ccxt.BaseExchange.ToInt64Value(this.safeInteger(data, "serverTime"));
     }
 
     /**
@@ -3220,7 +3220,7 @@ public partial class bitget : Exchange
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object[]} an array of objects representing market data
      */
-    public async override Task<object> fetchMarkets(object parameters = null)
+    public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(getValue(this.options, "adjustForTimeDifference"), true)))
@@ -3233,12 +3233,12 @@ public partial class bitget : Exchange
         parameters = ((IList<object>)utaparametersVariable)[1];
         if (isTrue(isEqual(uta, true)))
         {
-            return await this.fetchUtaMarkets(parameters);
+            return await this.FetchUtaMarkets(parameters);
         }
-        return await this.fetchDefaultMarkets(parameters);
+        return await this.FetchDefaultMarkets(parameters);
     }
 
-    public async virtual Task<object> fetchDefaultMarkets(object parameters)
+    public async virtual Task<List<ccxt.MarketInterface>> FetchDefaultMarkets(object parameters)
     {
         object types = null;
         object fetchMarketsOptions = this.safeDict(this.options, "fetchMarkets");
@@ -3532,10 +3532,10 @@ public partial class bitget : Exchange
                 { "info", market },
             }));
         }
-        return result;
+        return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
 
-    public async virtual Task<object> fetchUtaMarkets(object parameters)
+    public async virtual Task<List<ccxt.MarketInterface>> FetchUtaMarkets(object parameters)
     {
         object subTypes = new List<object>() {"SPOT", "USDT-FUTURES", "COIN-FUTURES", "USDC-FUTURES"};
         object promises = new List<object>() {};
@@ -3794,7 +3794,7 @@ public partial class bitget : Exchange
                 { "info", market },
             }));
         }
-        return result;
+        return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
 
     /**
@@ -4163,13 +4163,15 @@ public partial class bitget : Exchange
      * @name bitget#fetchDeposits
      * @description fetch all deposits made to an account
      * @see https://www.bitget.com/api-doc/spot/account/Get-Deposit-Record
+     * @see https://www.bitget.com/api-doc/uta/account/deposit/Get-Deposit-Records
      * @param {string} code unified currency code
-     * @param {int} [since] the earliest time in ms to fetch deposits for
+     * @param {int} [since] the earliest time in ms to fetch deposits for, the window between since and until must not exceed 30 days for uta accounts
      * @param {int} [limit] the maximum number of deposits structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] end time in milliseconds
-     * @param {string} [params.idLessThan] return records with id less than the provided value
+     * @param {string} [params.idLessThan] *non-uta only* return records with id less than the provided value
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async override Task<List<ccxt.Transaction>> FetchDeposits(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
@@ -4180,17 +4182,31 @@ public partial class bitget : Exchange
         {
             await this.loadMarkets();
         }
+        object uta = null;
+        var utaparametersVariable = await this.handleUTAAndParams(parameters, "fetchDeposits", false);
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
         object paginate = false;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchDeposits", "paginate");
         paginate = ((IList<object>)paginateparametersVariable)[0];
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
+            if (isTrue(isEqual(uta, true)))
+            {
+                return ccxt.BaseExchange.ToTransactionList(await this.fetchPaginatedCallCursor("fetchDeposits", null, sinceVar, limit, parameters, "orderId", "cursor", null, 100));
+            }
             return ccxt.BaseExchange.ToTransactionList(await this.fetchPaginatedCallCursor("fetchDeposits", null, sinceVar, limit, parameters, "idLessThan", "idLessThan", null, 100));
         }
         if (isTrue(isEqual(sinceVar, null)))
         {
-            sinceVar = subtract(this.milliseconds(), 7776000000); // 90 days
+            if (isTrue(isEqual(uta, true)))
+            {
+                sinceVar = subtract(this.milliseconds(), 2592000000); // uta allows a window of 30 days at most
+            } else
+            {
+                sinceVar = subtract(this.milliseconds(), 7776000000); // 90 days
+            }
         }
         object request = new Dictionary<string, object>() {
             { "startTime", sinceVar },
@@ -4209,7 +4225,14 @@ public partial class bitget : Exchange
         var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
         request = ((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
-        object response = await this.privateSpotGetV2SpotWalletDepositRecords(this.extend(request, parameters));
+        object response = null;
+        if (isTrue(isEqual(uta, true)))
+        {
+            response = await this.privateUtaGetV3AccountDepositRecords(this.extend(request, parameters));
+        } else
+        {
+            response = await this.privateSpotGetV2SpotWalletDepositRecords(this.extend(request, parameters));
+        }
         //
         //     {
         //         "code": "00000",
@@ -4233,6 +4256,31 @@ public partial class bitget : Exchange
         //         ]
         //     }
         //
+        // uta
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1787918939871,
+        //         "data": [
+        //             {
+        //                 "orderId": "1477183242218870001",
+        //                 "recordId": "0999e9fc8dfa7d65e5a9e3d7b9c9c9cf7c283621442dd0be6feb502b89545e95",
+        //                 "coin": "USDT",
+        //                 "type": "deposit",
+        //                 "size": "30",
+        //                 "status": "success",
+        //                 "toAddress": "TKtjsywjRu4HechtABGJBVhkDJtwYcMVfc",
+        //                 "dest": "on_chain",
+        //                 "chain": "TRC20",
+        //                 "createdTime": "1787913850359",
+        //                 "updatedTime": "1787913880178",
+        //                 "fromAddress": "TFcWfiw5p5DDZ6vi6Bktf7yK1asRYLpN33",
+        //                 "clientOid": null
+        //             }
+        //         ]
+        //     }
+        //
         object rawTransactions = this.safeList(response, "data", new List<object>() {});
         return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(rawTransactions, null, sinceVar, limit));
     }
@@ -4242,12 +4290,14 @@ public partial class bitget : Exchange
      * @name bitget#withdraw
      * @description make a withdrawal
      * @see https://www.bitget.com/api-doc/spot/account/Wallet-Withdrawal
+     * @see https://www.bitget.com/api-doc/uta/account/withdrawal/
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
      * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.chain] the blockchain network the withdrawal is taking place on
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
@@ -4266,6 +4316,10 @@ public partial class bitget : Exchange
         {
             await this.loadMarkets();
         }
+        object uta = null;
+        var utaparametersVariable = await this.handleUTAAndParams(parameters, "withdraw", false);
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
         object currency = this.currency(code);
         object networkId = this.networkCodeToId(networkCode, code);
         object request = new Dictionary<string, object>() {
@@ -4279,7 +4333,14 @@ public partial class bitget : Exchange
         {
             ((IDictionary<string,object>)request)["tag"] = tag;
         }
-        object response = await this.privateSpotPostV2SpotWalletWithdrawal(this.extend(request, parameters));
+        object response = null;
+        if (isTrue(isEqual(uta, true)))
+        {
+            response = await this.privateUtaPostV3AccountWithdrawal(this.extend(request, parameters));
+        } else
+        {
+            response = await this.privateSpotPostV2SpotWalletWithdrawal(this.extend(request, parameters));
+        }
         //
         //     {
         //          "code":"00000",
@@ -4313,13 +4374,15 @@ public partial class bitget : Exchange
      * @name bitget#fetchWithdrawals
      * @description fetch all withdrawals made from an account
      * @see https://www.bitget.com/api-doc/spot/account/Get-Withdraw-Record
+     * @see https://www.bitget.com/api-doc/uta/account/withdrawal/Get-Withdrawal-Records
      * @param {string} code unified currency code
-     * @param {int} [since] the earliest time in ms to fetch withdrawals for
+     * @param {int} [since] the earliest time in ms to fetch withdrawals for, the window between since and until must not exceed 30 days for uta accounts
      * @param {int} [limit] the maximum number of withdrawals structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] end time in milliseconds
-     * @param {string} [params.idLessThan] return records with id less than the provided value
+     * @param {string} [params.idLessThan] *non-uta only* return records with id less than the provided value
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async override Task<List<ccxt.Transaction>> FetchWithdrawals(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
@@ -4330,12 +4393,20 @@ public partial class bitget : Exchange
         {
             await this.loadMarkets();
         }
+        object uta = null;
+        var utaparametersVariable = await this.handleUTAAndParams(parameters, "fetchWithdrawals", false);
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
         object paginate = false;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchWithdrawals", "paginate");
         paginate = ((IList<object>)paginateparametersVariable)[0];
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
+            if (isTrue(isEqual(uta, true)))
+            {
+                return ccxt.BaseExchange.ToTransactionList(await this.fetchPaginatedCallCursor("fetchWithdrawals", null, sinceVar, limit, parameters, "orderId", "cursor", null, 100));
+            }
             return ccxt.BaseExchange.ToTransactionList(await this.fetchPaginatedCallCursor("fetchWithdrawals", null, sinceVar, limit, parameters, "idLessThan", "idLessThan", null, 100));
         }
         object currency = null;
@@ -4345,7 +4416,13 @@ public partial class bitget : Exchange
         }
         if (isTrue(isEqual(sinceVar, null)))
         {
-            sinceVar = subtract(this.milliseconds(), 7776000000); // 90 days
+            if (isTrue(isEqual(uta, true)))
+            {
+                sinceVar = subtract(this.milliseconds(), 2592000000); // uta allows a window of 30 days at most
+            } else
+            {
+                sinceVar = subtract(this.milliseconds(), 7776000000); // 90 days
+            }
         }
         object request = new Dictionary<string, object>() {
             { "startTime", sinceVar },
@@ -4362,7 +4439,14 @@ public partial class bitget : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        object response = await this.privateSpotGetV2SpotWalletWithdrawalRecords(this.extend(request, parameters));
+        object response = null;
+        if (isTrue(isEqual(uta, true)))
+        {
+            response = await this.privateUtaGetV3AccountWithdrawalRecords(this.extend(request, parameters));
+        } else
+        {
+            response = await this.privateSpotGetV2SpotWalletWithdrawalRecords(this.extend(request, parameters));
+        }
         //
         //     {
         //         "code": "00000",
@@ -4385,6 +4469,33 @@ public partial class bitget : Exchange
         //                 "fromAddress": null,
         //                 "cTime": "1694131668281",
         //                 "uTime": "1694131680247"
+        //             }
+        //         ]
+        //     }
+        //
+        // uta
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1787918941219,
+        //         "data": [
+        //             {
+        //                 "orderId": "1477203433330230002",
+        //                 "recordId": "855182adcdbf968e6c0854de1d9ef04f9542ae27337f87ccbe2f6d1e995ec01b",
+        //                 "coin": "USDT",
+        //                 "type": "withdraw",
+        //                 "size": "30",
+        //                 "status": "success",
+        //                 "toAddress": "TFcWfiw5p5DDZ6vi6Bktf7yK1asRYLpN33",
+        //                 "dest": "on_chain",
+        //                 "chain": "TRC20",
+        //                 "createdTime": "1787918664295",
+        //                 "updatedTime": "1787918826202",
+        //                 "fromAddress": "TU8P3KLsV7YhkUvF9nWxjigMqv2c2mqNC9",
+        //                 "fee": "-1.5",
+        //                 "confirm": "5",
+        //                 "clientOid": null
         //             }
         //         ]
         //     }
@@ -4433,12 +4544,29 @@ public partial class bitget : Exchange
         //         "uTime": "1694131680247"
         //     }
         //
+        // fetchDeposits & fetchWithdrawals uta rows use the same fields, except
+        //
+        //     {
+        //         "recordId": "63dbe57f0f0a5f6d3e74ff1b07e4c4f5332b96fec74c14190a52e0cea1726364",
+        //         "createdTime": "1787913850359",
+        //         "updatedTime": "1787913880178"
+        //     }
+        //
         object currencyId = this.safeString(transaction, "coin");
         object code = this.safeCurrencyCode(currencyId, currency);
-        object timestamp = this.safeInteger(transaction, "cTime");
+        object timestamp = this.safeInteger2(transaction, "cTime", "createdTime");
         object networkId = this.safeString(transaction, "chain");
         object status = this.safeString(transaction, "status");
         object tag = this.safeString(transaction, "tag");
+        object txid = this.safeString(transaction, "tradeId");
+        if (isTrue(isEqual(txid, null)))
+        {
+            object dest = this.safeString(transaction, "dest");
+            if (isTrue(isEqual(dest, "on_chain")))
+            {
+                txid = this.safeString(transaction, "recordId"); // uta on-chain rows expose the tx hash as recordId
+            }
+        }
         object feeCostString = this.safeString(transaction, "fee");
         object feeCostAbsString = null;
         if (isTrue(!isEqual(feeCostString, null)))
@@ -4458,7 +4586,7 @@ public partial class bitget : Exchange
         return new Dictionary<string, object>() {
             { "id", this.safeString(transaction, "orderId") },
             { "info", transaction },
-            { "txid", this.safeString(transaction, "tradeId") },
+            { "txid", txid },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "network", this.networkIdToCode(networkId, code) },
@@ -4466,10 +4594,10 @@ public partial class bitget : Exchange
             { "address", this.safeString(transaction, "toAddress") },
             { "addressTo", this.safeString(transaction, "toAddress") },
             { "amount", this.parseNumber(amountString) },
-            { "type", this.safeString(transaction, "type") },
+            { "type", this.parseTransactionType(this.safeString(transaction, "type")) },
             { "currency", code },
             { "status", this.parseTransactionStatus(status) },
-            { "updated", this.safeInteger(transaction, "uTime") },
+            { "updated", this.safeInteger2(transaction, "uTime", "updatedTime") },
             { "tagFrom", null },
             { "tag", tag },
             { "tagTo", tag },
@@ -4479,13 +4607,24 @@ public partial class bitget : Exchange
         };
     }
 
+    public virtual object parseTransactionType(object type)
+    {
+        // the wire says withdraw, and a unified transaction says withdrawal
+        object types = new Dictionary<string, object>() {
+            { "withdraw", "withdrawal" },
+        };
+        return this.safeString(types, ((string)type), type);
+    }
+
     public virtual object parseTransactionStatus(object status)
     {
         object statuses = new Dictionary<string, object>() {
             { "success", "ok" },
             { "Pending", "pending" },
+            { "pending", "pending" },
             { "pending_review", "pending" },
             { "pending_review_fail", "failed" },
+            { "fail", "failed" },
             { "reject", "failed" },
         };
         return this.safeString(statuses, ((string)status), status);
@@ -4496,8 +4635,10 @@ public partial class bitget : Exchange
      * @name bitget#fetchDepositAddress
      * @description fetch the deposit address for a currency associated with this account
      * @see https://www.bitget.com/api-doc/spot/account/Get-Deposit-Address
+     * @see https://www.bitget.com/api-doc/uta/account/deposit/Get-Deposit-Address
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     public async override Task<ccxt.DepositAddress> FetchDepositAddress(string code, object parameters = null)
@@ -4507,6 +4648,10 @@ public partial class bitget : Exchange
         {
             await this.loadMarkets();
         }
+        object uta = null;
+        var utaparametersVariable = await this.handleUTAAndParams(parameters, "fetchDepositAddress", false);
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
         object networkCode = null;
         var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
         networkCode = ((IList<object>)networkCodeparametersVariable)[0];
@@ -4519,7 +4664,14 @@ public partial class bitget : Exchange
         {
             ((IDictionary<string,object>)request)["chain"] = this.networkCodeToId(networkCode, code);
         }
-        object response = await this.privateSpotGetV2SpotWalletDepositAddress(this.extend(request, parameters));
+        object response = null;
+        if (isTrue(isEqual(uta, true)))
+        {
+            response = await this.privateUtaGetV3AccountDepositAddress(this.extend(request, parameters));
+        } else
+        {
+            response = await this.privateSpotGetV2SpotWalletDepositAddress(this.extend(request, parameters));
+        }
         //
         //     {
         //         "code": "00000",
@@ -4579,7 +4731,7 @@ public partial class bitget : Exchange
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -4644,7 +4796,7 @@ public partial class bitget : Exchange
         object bidsKey = ((bool) isTrue((isEqual(uta, true)))) ? "b" : "bids";
         object asksKey = ((bool) isTrue((isEqual(uta, true)))) ? "a" : "asks";
         object timestamp = this.safeInteger(data, "ts");
-        return this.parseOrderBook(data, getValue(market, "symbol"), timestamp, bidsKey, asksKey);
+        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(data, getValue(market, "symbol"), timestamp, bidsKey, asksKey));
     }
 
     public override object parseTicker(object ticker, object market = null)
@@ -5015,7 +5167,7 @@ public partial class bitget : Exchange
      * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> FetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -5184,7 +5336,7 @@ public partial class bitget : Exchange
         //     }
         //
         object data = this.safeList(response, "data", new List<object>() {});
-        return this.parseTickers(data, symbols);
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(data, symbols));
     }
 
     public override object parseTrade(object trade, object market = null)
@@ -5586,7 +5738,7 @@ public partial class bitget : Exchange
      * @param {boolean} [params.margin] set to true for spot margin
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    public async override Task<object> fetchTradingFees(object parameters = null)
+    public async override Task<ccxt.TradingFees> FetchTradingFees(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -5707,7 +5859,7 @@ public partial class bitget : Exchange
             object fee = this.parseTradingFee(entry, market);
             ((IDictionary<string,object>)result)[(string)symbol] = fee;
         }
-        return result;
+        return ccxt.BaseExchange.ToTradingFees(result);
     }
 
     public virtual object parseTradingFee(object data, object market = null)
@@ -6003,7 +6155,7 @@ public partial class bitget : Exchange
      * @param {string} [params.type] 'funding' to fetch the uta funding-account assets (uta only, classic accounts route funding through 'spot')
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public async override Task<object> fetchBalance(object parameters = null)
+    public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -6037,7 +6189,7 @@ public partial class bitget : Exchange
                 object results = this.safeDict(response, "data", new Dictionary<string, object>() {});
                 assets = this.safeList(results, "assets", new List<object>() {});
             }
-            return this.parseUtaBalance(assets);
+            return ccxt.BaseExchange.ToBalances(this.parseUtaBalance(assets));
         } else if (isTrue(isTrue((isEqual(marketType, "swap"))) || isTrue((isEqual(marketType, "future")))))
         {
             object productType = null;
@@ -6152,7 +6304,7 @@ public partial class bitget : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new List<object>() {});
-        return this.parseBalance(data);
+        return ccxt.BaseExchange.ToBalances(this.parseBalance(data));
     }
 
     public virtual object parseUtaBalance(object balance)
@@ -8059,7 +8211,7 @@ public partial class bitget : Exchange
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} an array of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelOrders(object ids, string symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> CancelOrders(object ids, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -8077,7 +8229,7 @@ public partial class bitget : Exchange
         parameters = ((IList<object>)utaparametersVariable)[1];
         if (isTrue(isEqual(uta, true)))
         {
-            return ccxt.BaseExchange.FromOrderList(await this.CancelUtaOrders(ids,((string)symbol), parameters));
+            return await this.CancelUtaOrders(ids,((string)symbol), parameters);
         }
         object marginMode = null;
         var marginModeparametersVariable = this.handleMarginModeAndParams("cancelOrders", parameters);
@@ -8153,7 +8305,7 @@ public partial class bitget : Exchange
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
         object orders = this.safeList(data, "successList", new List<object>() {});
-        return this.parseOrders(orders, market);
+        return ccxt.BaseExchange.ToOrderList(this.parseOrders(orders, market));
     }
 
     /**
@@ -8581,6 +8733,9 @@ public partial class bitget : Exchange
                 if (isTrue(!isEqual(marginMode, null)))
                 {
                     productType = "MARGIN";
+                } else
+                {
+                    productType = "SPOT";
                 }
             }
             ((IDictionary<string,object>)request)["category"] = productType;
@@ -10757,7 +10912,7 @@ public partial class bitget : Exchange
      * @param {string} [params.method] either (default) 'publicMixGetV2MixMarketTickers' or 'publicMixGetV2MixMarketCurrentFundRate'
      * @returns {object} a dictionary of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
      */
-    public async override Task<object> fetchFundingRates(object symbols = null, object parameters = null)
+    public async override Task<ccxt.FundingRates> FetchFundingRates(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -10839,7 +10994,7 @@ public partial class bitget : Exchange
         }
         symbols = this.marketSymbols(symbols);
         object data = this.safeList(response, "data", new List<object>() {});
-        return this.parseFundingRates(data, symbols);
+        return ccxt.BaseExchange.ToFundingRates(this.parseFundingRates(data, symbols));
     }
 
     /**
@@ -10852,7 +11007,7 @@ public partial class bitget : Exchange
      * @param {string} [params.productType] 'USDT-FUTURES' (default), 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public async override Task<object> fetchFundingIntervals(object symbols = null, object parameters = null)
+    public async override Task<ccxt.FundingRates> FetchFundingIntervals(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -10862,7 +11017,7 @@ public partial class bitget : Exchange
         parameters = this.extend(new Dictionary<string, object>() {
             { "method", "publicMixGetV2MixMarketCurrentFundRate" },
         }, parameters);
-        return await this.fetchFundingRates(symbols, parameters);
+        return await this.FetchFundingRates(symbols, parameters);
     }
 
     public override object parseFundingRate(object contract, object market = null)
@@ -11300,7 +11455,7 @@ public partial class bitget : Exchange
      * @param {boolean} [params.posSide] required for uta isolated margin, long or short
      * @returns {object} response from the exchange
      */
-    public async override Task<object> setLeverage(object leverage, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetLeverage(object leverage, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -11347,7 +11502,7 @@ public partial class bitget : Exchange
             ((IDictionary<string,object>)request)["productType"] = productType;
             response = await this.privateMixPostV2MixAccountSetLeverage(this.extend(request, parameters));
         }
-        return response;
+        return ccxt.BaseExchange.ToDict(response);
     }
 
     /**
@@ -11360,7 +11515,7 @@ public partial class bitget : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public async override Task<object> setMarginMode(string marginMode, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetMarginMode(string marginMode, string symbol = null, object parameters = null)
     {
         object marginModeVar = marginMode;
         parameters ??= new Dictionary<string, object>();
@@ -11407,7 +11562,7 @@ public partial class bitget : Exchange
         //         }
         //     }
         //
-        return response;
+        return ccxt.BaseExchange.ToDict(response);
     }
 
     /**
@@ -11423,7 +11578,7 @@ public partial class bitget : Exchange
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} response from the exchange
      */
-    public async override Task<object> setPositionMode(object hedged, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetPositionMode(object hedged, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -11456,7 +11611,7 @@ public partial class bitget : Exchange
             ((IDictionary<string,object>)request)["productType"] = productType;
             response = await this.privateMixPostV2MixAccountSetPositionMode(this.extend(request, parameters));
         }
-        return response;
+        return ccxt.BaseExchange.ToDict(response);
     }
 
     /**
@@ -11636,7 +11791,7 @@ public partial class bitget : Exchange
      * @param {string} [params.clientOid] custom id
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public async override Task<object> transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
+    public async override Task<ccxt.TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -11686,7 +11841,7 @@ public partial class bitget : Exchange
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
         ((IDictionary<string,object>)data)["ts"] = this.safeInteger(response, "requestTime");
-        return this.parseTransfer(data, currency);
+        return ccxt.BaseExchange.ToTransferEntry(this.parseTransfer(data, currency));
     }
 
     public override object parseTransfer(object transfer, object currency = null)
@@ -11819,7 +11974,7 @@ public partial class bitget : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public async override Task<object> fetchDepositWithdrawFees(object codes = null, object parameters = null)
+    public async override Task<ccxt.DepositWithdrawFees> FetchDepositWithdrawFees(object codes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -11857,7 +12012,7 @@ public partial class bitget : Exchange
         //     }
         //
         object data = this.safeList(response, "data", new List<object>() {});
-        return this.parseDepositWithdrawFees(data, codes, "coin");
+        return ccxt.BaseExchange.ToDepositWithdrawFees(this.parseDepositWithdrawFees(data, codes, "coin"));
     }
 
     /**

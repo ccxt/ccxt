@@ -885,7 +885,7 @@ func (this *Dydx) EditOrderWithClientOrderId(clientOrderId string, symbol string
 func (this *Dydx) EditOrders(orders []OrderRequest, options ...EditOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.EditOrders(orders, options...)
 }
-func (this *Dydx) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
+func (this *Dydx) FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks, error) {
 	return this.exchangeTyped.FetchAllGreeks(options...)
 }
 func (this *Dydx) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error) {
@@ -927,7 +927,7 @@ func (this *Dydx) FetchDepositAddress(code string, options ...FetchDepositAddres
 func (this *Dydx) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
 	return this.exchangeTyped.FetchDepositAddresses(options...)
 }
-func (this *Dydx) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
+func (this *Dydx) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error) {
 	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
 }
 func (this *Dydx) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (DepositWithdrawFee, error) {

@@ -197,7 +197,7 @@ func (this *Independentreserve) EditOrders(orders []ccxt.OrderRequest, options .
 func (this *Independentreserve) FetchAccounts(params ...any) ([]ccxt.Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
 }
-func (this *Independentreserve) FetchAllGreeks(options ...ccxt.FetchAllGreeksOptions) ([]ccxt.Greeks, error) {
+func (this *Independentreserve) FetchAllGreeks(options ...ccxt.FetchAllGreeksOptions) (ccxt.AllGreeks, error) {
 	return this.exchangeTyped.FetchAllGreeks(options...)
 }
 func (this *Independentreserve) FetchBalance(params ...any) (ccxt.Balances, error) {
@@ -245,7 +245,7 @@ func (this *Independentreserve) FetchDepositAddress(code string, options ...ccxt
 func (this *Independentreserve) FetchDepositAddresses(options ...ccxt.FetchDepositAddressesOptions) ([]ccxt.DepositAddress, error) {
 	return this.exchangeTyped.FetchDepositAddresses(options...)
 }
-func (this *Independentreserve) FetchDepositAddressesByNetwork(code string, options ...ccxt.FetchDepositAddressesByNetworkOptions) ([]ccxt.DepositAddress, error) {
+func (this *Independentreserve) FetchDepositAddressesByNetwork(code string, options ...ccxt.FetchDepositAddressesByNetworkOptions) (ccxt.DepositAddresses, error) {
 	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
 }
 func (this *Independentreserve) FetchDeposits(options ...ccxt.FetchDepositsOptions) ([]ccxt.Transaction, error) {

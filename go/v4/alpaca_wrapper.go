@@ -132,6 +132,8 @@ func (this *Alpaca) FetchOrderBook(symbol string, options ...FetchOrderBookOptio
  * @param {int} [limit] the maximum amount of candles to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @param {int} [params.paginationCalls] the maximum number of requests while following next_page_token, default 10 — when the cap is reached the result is silently truncated to the pages already fetched, so raise it for long ranges, 10 requests cover roughly 30 days of 1h candles
  * @param {string} [params.loc] crypto location, default: us
  * @param {string} [params.method] method, default: marketPublicGetV1beta3CryptoLocBars
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
@@ -856,7 +858,7 @@ func (this *Alpaca) EditOrders(orders []OrderRequest, options ...EditOrdersOptio
 func (this *Alpaca) FetchAccounts(params ...any) ([]Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
 }
-func (this *Alpaca) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
+func (this *Alpaca) FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks, error) {
 	return this.exchangeTyped.FetchAllGreeks(options...)
 }
 func (this *Alpaca) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error) {
@@ -895,7 +897,7 @@ func (this *Alpaca) FetchCurrencies(params ...any) (Currencies, error) {
 func (this *Alpaca) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
 	return this.exchangeTyped.FetchDepositAddresses(options...)
 }
-func (this *Alpaca) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
+func (this *Alpaca) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error) {
 	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
 }
 func (this *Alpaca) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (DepositWithdrawFee, error) {

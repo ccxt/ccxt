@@ -160,7 +160,7 @@ func (this *Htx) FetchMarkets(params ...any) ([]MarketInterface, error) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
-func (this *Htx) FetchMarketsByTypeAndSubType(typeVar string, subType string, options ...FetchMarketsByTypeAndSubTypeOptions) ([]map[string]any, error) {
+func (this *Htx) FetchMarketsByTypeAndSubType(typeVar string, subType string, options ...FetchMarketsByTypeAndSubTypeOptions) ([]MarketInterface, error) {
 
 	opts := FetchMarketsByTypeAndSubTypeOptionsStruct{}
 
@@ -173,7 +173,7 @@ func (this *Htx) FetchMarketsByTypeAndSubType(typeVar string, subType string, op
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
-	return NewMapArray(res), nil
+	return NewMarketInterfaceArray(res), nil
 }
 
 /**
@@ -486,7 +486,7 @@ func (this *Htx) FetchAccounts(params ...any) ([]Account, error) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
  */
-func (this *Htx) FetchAccountIdByType(typeVar string, options ...FetchAccountIdByTypeOptions) (map[string]any, error) {
+func (this *Htx) FetchAccountIdByType(typeVar string, options ...FetchAccountIdByTypeOptions) (string, error) {
 
 	opts := FetchAccountIdByTypeOptionsStruct{}
 
@@ -501,9 +501,9 @@ func (this *Htx) FetchAccountIdByType(typeVar string, options ...FetchAccountIdB
 	var params *map[string]any = opts.Params
 	res := <-this.Core.FetchAccountIdByType(typeVar, marginMode, symbol, params)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return "", CreateReturnError(res)
 	}
-	return res.(map[string]any), nil
+	return res.(string), nil
 }
 
 /**
@@ -1164,7 +1164,7 @@ func (this *Htx) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersA
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
  */
-func (this *Htx) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
+func (this *Htx) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error) {
 
 	opts := FetchDepositAddressesByNetworkOptionsStruct{}
 
@@ -1175,9 +1175,9 @@ func (this *Htx) FetchDepositAddressesByNetwork(code string, options ...FetchDep
 	var params *map[string]any = opts.Params
 	res := <-this.Core.FetchDepositAddressesByNetwork(code, params)
 	if IsError(res) {
-		return nil, CreateReturnError(res)
+		return DepositAddresses{}, CreateReturnError(res)
 	}
-	return NewDepositAddressArray(res), nil
+	return NewDepositAddresses(res), nil
 }
 
 /**
@@ -1204,7 +1204,7 @@ func (this *Htx) FetchDepositAddress(code string, options ...FetchDepositAddress
 	}
 	return NewDepositAddress(res), nil
 }
-func (this *Htx) FetchWithdrawAddresses(code string, options ...FetchWithdrawAddressesOptions) ([]map[string]any, error) {
+func (this *Htx) FetchWithdrawAddresses(code string, options ...FetchWithdrawAddressesOptions) ([]DepositAddress, error) {
 
 	opts := FetchWithdrawAddressesOptionsStruct{}
 
@@ -1221,7 +1221,7 @@ func (this *Htx) FetchWithdrawAddresses(code string, options ...FetchWithdrawAdd
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
-	return NewMapArray(res), nil
+	return NewDepositAddressArray(res), nil
 }
 
 /**
@@ -2065,7 +2065,7 @@ func (this *Htx) EditOrderWithClientOrderId(clientOrderId string, symbol string,
 func (this *Htx) EditOrders(orders []OrderRequest, options ...EditOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.EditOrders(orders, options...)
 }
-func (this *Htx) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
+func (this *Htx) FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks, error) {
 	return this.exchangeTyped.FetchAllGreeks(options...)
 }
 func (this *Htx) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error) {

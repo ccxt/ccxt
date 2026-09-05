@@ -443,6 +443,7 @@ class bingx extends Exchange {
                                 'uid' => array( 'cost' => 1 ),
                                 'apiKey/query' => array( 'cost' => 2 ),
                                 'account/apiPermissions' => array( 'cost' => 5 ),
+                                'account/apiRestrictions' => array( 'cost' => 5 ),
                                 'allAccountBalance' => array( 'cost' => 2 ),
                             ),
                             'post' => array(
@@ -729,6 +730,9 @@ class bingx extends Exchange {
                 'defaultForInverse' => array(
                     'extends' => 'defaultForLinear',
                     'createOrders' => null,
+                    'fetchOHLCV' => array(
+                        'limit' => 1000,
+                    ),
                     'fetchMyTrades' => array(
                         'limit' => 1000,
                         'daysBack' => null,
@@ -996,7 +1000,7 @@ class bingx extends Exchange {
         return $this->parse_markets($markets);
     }
 
-    public function fetch_inverse_swap_markets(mixed $params) {
+    public function fetch_inverse_swap_markets(mixed $params): array {
         $response = $this->cswapV1PublicGetMarketContracts($params);
         //
         //     {
@@ -1060,6 +1064,8 @@ class bingx extends Exchange {
             $isActive = true; // $swap active
         } elseif (($this->safe_bool($market, 'apiStateSell') === true) && ($this->safe_bool($market, 'apiStateBuy') === true) && ($this->safe_string($market, 'status') === '1')) {
             $isActive = true; // $spot active
+        } elseif ($checkIsInverse && ($this->safe_string($market, 'status') === '1')) {
+            $isActive = true; // inverse $swap active
         }
         $isInverse = ($spot) ? null : $checkIsInverse;
         $isLinear = ($spot) ? null : $checkIsLinear;
@@ -1162,7 +1168,7 @@ class bingx extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
          * @param {string} $timeframe the length of time each candle represents
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [$limit] the maximum amount of candles to fetch
+         * @param {int} [$limit] the maximum amount of candles to fetch (max 1000 for inverse swaps, 1440 otherwise)
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
@@ -1171,26 +1177,31 @@ class bingx extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
+        $market = $this->market($symbol);
+        $maxLimit = ($market['inverse'] === true) ? 1000 : 1440;
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate', false);
         if ($paginate) {
-            return $this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, 1440);
+            return $this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, $maxLimit);
         }
-        $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
         );
         $request['interval'] = $this->safe_string($this->timeframes, $timeframe, $timeframe);
+        $requestLimit = ($limit === null) ? 500 : min($limit, $maxLimit);
         if ($since !== null) {
             $request['startTime'] = max($since - 1, 0);
         }
         if ($limit !== null) {
-            $request['limit'] = $limit;
+            $request['limit'] = $requestLimit;
         }
         $until = $this->safe_integer_2($params, 'until', 'endTime');
         if ($until !== null) {
             $params = $this->omit($params, array( 'until' ));
             $request['endTime'] = $until;
+        } elseif (($market['inverse'] === true) && ($since !== null)) {
+            $duration = $this->parse_timeframe($timeframe) * 1000;
+            $request['endTime'] = $this->sum($since, $duration * $requestLimit);
         }
         if ($market['spot'] === true) {
             // bingx spot klines are anchored to UTC+8 by default, unlike the swap klines and other exchanges
@@ -1790,9 +1801,9 @@ class bingx extends Exchange {
          *
          * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/Get%20Funding%20Rate%20History
          *
-         * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
+         * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for, inverse (Coin-M) markets are not supported
          * @param {int} [$since] timestamp in ms of the earliest funding rate to fetch
-         * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~ to fetch
+         * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~ to fetch (max 1000)
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest funding rate to fetch
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
@@ -1804,12 +1815,15 @@ class bingx extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
+        $market = $this->market($symbol);
+        if ($market['inverse'] === true) {
+            throw new NotSupported($this->id . ' fetchFundingRateHistory() is not supported for inverse swap markets');
+        }
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
         if ($paginate) {
             return $this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $params);
         }
-        $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
         );
@@ -1817,13 +1831,9 @@ class bingx extends Exchange {
             $request['startTime'] = $since;
         }
         if ($limit !== null) {
-            $request['limit'] = $limit;
+            $request['limit'] = min($limit, 1000); // api maximum 1000
         }
-        $until = $this->safe_integer_2($params, 'until', 'startTime');
-        if ($until !== null) {
-            $params = $this->omit($params, array( 'until' ));
-            $request['startTime'] = $until;
-        }
+        list($request, $params) = $this->handle_until_option('endTime', $request, $params);
         $response = $this->swapV2PublicGetQuoteFundingRate($this->extend($request, $params));
         //
         //    {
@@ -3885,7 +3895,7 @@ class bingx extends Exchange {
                     $feeCurrencyCode = $market['quote'];
                 }
             } else {
-                $feeCurrencyCode = $market['quote'];
+                $feeCurrencyCode = ($market['inverse'] === true) ? $market['settle'] : $market['quote'];
             }
         }
         $stopLoss = $this->safe_value($order, 'stopLoss');
@@ -4420,6 +4430,7 @@ class bingx extends Exchange {
          * @param {number} $timeout time in milliseconds, 0 represents cancel the timer
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->type] spot or swap market
+         * @param {string} [$params->subType] 'linear' or 'inverse' (default is 'linear'), 'inverse' is not supported
          * @return {array} the api result
          */
         if ($this->markets === null) {
@@ -4432,6 +4443,11 @@ class bingx extends Exchange {
         );
         $type = null;
         list($type, $params) = $this->handle_market_type_and_params('cancelAllOrdersAfter', null, $params);
+        $subType = null;
+        list($subType, $params) = $this->handle_sub_type_and_params('cancelAllOrdersAfter', null, $params);
+        if (($type === 'swap') && ($subType === 'inverse')) {
+            throw new NotSupported($this->id . ' cancelAllOrdersAfter() is not supported for inverse swap markets');
+        }
         if ($type === 'spot') {
             $response = $this->spotV1PrivatePostTradeCancelAllAfter($this->extend($request, $params));
         } elseif ($type === 'swap') {
@@ -5200,17 +5216,23 @@ class bingx extends Exchange {
             'amount' => $this->currency_to_precision($code, $amount),
         );
         $response = $this->apiAssetV1PrivatePostTransfer($this->extend($request, $params));
+        $data = $this->safe_dict($response, 'data', array());
+        $timestamp = $this->safe_integer($response, 'timestamp');
         //
         //     {
-        //         "tranId" => 1933130865269936128,
-        //         "transferId" => "1051450703949464903736"
+        //         "code" => "0",
+        //         "timestamp" => "1752202170686",
+        //         "data" => {
+        //             "tranId" => "1943502883135819776",
+        //             "transferId" => "1051461075875997081703"
+        //         }
         //     }
         //
         return array(
             'info' => $response,
-            'id' => $this->safe_string($response, 'transferId'),
-            'timestamp' => null,
-            'datetime' => null,
+            'id' => $this->safe_string_2($data, 'transferId', 'tranId'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
             'currency' => $code,
             'amount' => $amount,
             'fromAccount' => $fromAccount,
@@ -5411,7 +5433,7 @@ class bingx extends Exchange {
         $currencyId = $this->safe_string($depositAddress, 'coin');
         $currency = $this->safe_currency($currencyId, $currency);
         $code = $currency['code'];
-        $address = $this->safe_string($depositAddress, 'addressWithPrefix');
+        $address = $this->safe_string_2($depositAddress, 'addressWithPrefix', 'address');
         $networkId = $this->safe_string($depositAddress, 'network');
         $networkCode = $this->network_id_to_code($networkId, $code);
         // despite its name the addressWithPrefix field sometimes arrives without
@@ -5443,6 +5465,7 @@ class bingx extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch deposits for
          * @param {int} [$limit] the maximum number of deposits structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] the latest time in ms to fetch deposits for
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
         if ($this->markets === null) {
@@ -5459,8 +5482,9 @@ class bingx extends Exchange {
             $request['startTime'] = $since;
         }
         if ($limit !== null) {
-            $request['limit'] = $limit; // default 1000
+            $request['limit'] = min($limit, 1000); // api maximum 1000
         }
+        list($request, $params) = $this->handle_until_option('endTime', $request, $params);
         $response = $this->spotV3PrivateGetCapitalDepositHisrec($this->extend($request, $params));
         //
         //    array(
@@ -5492,6 +5516,7 @@ class bingx extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch withdrawals for
          * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] the latest time in ms to fetch withdrawals for
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
         if ($this->markets === null) {
@@ -5508,8 +5533,9 @@ class bingx extends Exchange {
             $request['startTime'] = $since;
         }
         if ($limit !== null) {
-            $request['limit'] = $limit; // default 1000
+            $request['limit'] = min($limit, 1000); // api maximum 1000
         }
+        list($request, $params) = $this->handle_until_option('endTime', $request, $params);
         $response = $this->spotV3PrivateGetCapitalWithdrawHistory($this->extend($request, $params));
         //
         //    array(
@@ -6228,7 +6254,7 @@ class bingx extends Exchange {
          *
          * @param {string} [$symbol] unified CCXT $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch $liquidations for
-         * @param {int} [$limit] the maximum number of liquidation structures to retrieve
+         * @param {int} [$limit] the maximum number of liquidation structures to retrieve (max 100)
          * @param {array} [$params] exchange specific parameters for the bingx api endpoint
          * @param {int} [$params->until] timestamp in ms of the latest liquidation
          * @return {array} an array of ~@link https://docs.ccxt.com/?id=liquidation-structure liquidation structures~
@@ -6249,7 +6275,7 @@ class bingx extends Exchange {
             $request['startTime'] = $since;
         }
         if ($limit !== null) {
-            $request['limit'] = $limit;
+            $request['limit'] = min($limit, 100); // api maximum 100
         }
         $subType = null;
         list($subType, $params) = $this->handle_sub_type_and_params('fetchMyLiquidations', $market, $params);
@@ -7012,7 +7038,8 @@ class bingx extends Exchange {
             $version = $section[2];
             $access = $section[3];
         }
-        if ($path !== 'account/apiPermissions') {
+        $flatAccountPaths = array( 'account/apiPermissions', 'account/apiRestrictions' );
+        if (!$this->in_array($path, $flatAccountPaths)) {
             if ($type === 'spot' && $version === 'v3') {
                 $url .= '/api';
             } else {

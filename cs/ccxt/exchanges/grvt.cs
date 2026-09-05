@@ -824,7 +824,7 @@ public partial class grvt : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public async override Task<object> fetchMarkets(object parameters = null)
+    public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object marketsPromise = this.publicMarketPostFullV1AllInstruments(parameters);
@@ -862,7 +862,7 @@ public partial class grvt : Exchange
         object results = await promiseAll(promises);
         object response = getValue(results, 0);
         object result = this.safeList(response, "result", new List<object>() {});
-        return this.parseMarkets(result);
+        return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(result));
     }
 
     public override object parseMarket(object market)
@@ -1161,7 +1161,7 @@ public partial class grvt : Exchange
      * @param {string} [params.loc] crypto location, default: us
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
@@ -1200,7 +1200,7 @@ public partial class grvt : Exchange
         object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object timestamp = this.parse8601(this.safeString(result, "event_time"));
         object marketId = this.safeString(result, "instrument");
-        return this.parseOrderBook(result, this.safeSymbol(marketId), timestamp, "bids", "asks", "price", "size");
+        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(result, this.safeSymbol(marketId), timestamp, "bids", "asks", "price", "size"));
     }
 
     /**
@@ -1531,10 +1531,13 @@ public partial class grvt : Exchange
         //
         object marketId = this.safeString(rawItem, "instrument");
         object ts = this.safeIntegerProduct(rawItem, "funding_time", 0.000001);
+        // the api documents funding_rate in percentage points, and a unified
+        // fundingRate is a fraction, with the Manual's examples reading 0.000072
+        object rate = this.safeString(rawItem, "funding_rate");
         return new Dictionary<string, object>() {
             { "info", rawItem },
             { "symbol", this.safeSymbol(marketId, market) },
-            { "fundingRate", this.safeNumber(rawItem, "funding_rate") },
+            { "fundingRate", this.parseNumber(Precise.stringDiv(rate, "100")) },
             { "timestamp", ts },
             { "datetime", this.iso8601(ts) },
         };
@@ -1561,7 +1564,7 @@ public partial class grvt : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public async override Task<object> fetchBalance(object parameters = null)
+    public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarketsAndSignIn();
@@ -1598,7 +1601,7 @@ public partial class grvt : Exchange
         //    }
         //
         object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
-        return this.parseBalance(result);
+        return ccxt.BaseExchange.ToBalances(this.parseBalance(result));
     }
 
     public override object parseBalance(object response)
@@ -2064,7 +2067,7 @@ public partial class grvt : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public async override Task<object> transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
+    public async override Task<ccxt.TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
     {
         object fromAccountVar = fromAccount;
         object toAccountVar = toAccount;
@@ -2124,7 +2127,7 @@ public partial class grvt : Exchange
         // }
         //
         object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
-        return this.parseTransfer(result, currency);
+        return ccxt.BaseExchange.ToTransferEntry(this.parseTransfer(result, currency));
     }
 
     public override object parseTransfer(object transfer, object currency = null)
@@ -2806,7 +2809,7 @@ public partial class grvt : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    public async override Task<object> fetchLeverages(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Leverages> FetchLeverages(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarketsAndSignIn();
@@ -2826,7 +2829,7 @@ public partial class grvt : Exchange
         //            },
         //
         object results = this.safeList(response, "results", new List<object>() {});
-        return this.parseLeverages(results, symbols);
+        return ccxt.BaseExchange.ToLeverages(this.parseLeverages(results, symbols));
     }
 
     /**
@@ -2839,7 +2842,7 @@ public partial class grvt : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public async override Task<object> setLeverage(object leverage, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetLeverage(object leverage, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -2859,7 +2862,7 @@ public partial class grvt : Exchange
         //        "success": true
         //    }
         //
-        return this.parseLeverage(response, market);
+        return ccxt.BaseExchange.ToDict(this.parseLeverage(response, market));
     }
 
     public override object parseLeverage(object leverage, object market = null)
@@ -2902,7 +2905,7 @@ public partial class grvt : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
-    public async override Task<object> fetchMarginModes(object symbols = null, object parameters = null)
+    public async override Task<ccxt.MarginModes> FetchMarginModes(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarketsAndSignIn();
@@ -2922,7 +2925,7 @@ public partial class grvt : Exchange
         //            },
         //
         object results = this.safeList(response, "results", new List<object>() {});
-        return this.parseLeverages(results, symbols);
+        return ccxt.BaseExchange.ToMarginModes(this.parseLeverages(results, symbols));
     }
 
     public override object parseMarginMode(object marginMode, object market = null)

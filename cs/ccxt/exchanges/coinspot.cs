@@ -620,7 +620,7 @@ public partial class coinspot : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public async override Task<object> fetchBalance(object parameters = null)
+    public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -652,7 +652,7 @@ public partial class coinspot : Exchange
         //         ]
         //     }
         //
-        return this.parseBalance(response);
+        return ccxt.BaseExchange.ToBalances(this.parseBalance(response));
     }
 
     /**
@@ -665,7 +665,7 @@ public partial class coinspot : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -677,7 +677,7 @@ public partial class coinspot : Exchange
             { "cointype", getValue(market, "id") },
         };
         object orderbook = await this.privatePostOrders(this.extend(request, parameters));
-        return this.parseOrderBook(orderbook, getValue(market, "symbol"), null, "buyorders", "sellorders", "rate", "amount");
+        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(orderbook, getValue(market, "symbol"), null, "buyorders", "sellorders", "rate", "amount"));
     }
 
     public override object parseTicker(object ticker, object market = null)
@@ -763,7 +763,7 @@ public partial class coinspot : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> FetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -802,7 +802,7 @@ public partial class coinspot : Exchange
                 ((IDictionary<string,object>)result)[(string)symbol] = this.parseTicker(ticker, market);
             }
         }
-        return this.filterByArrayTickers(result, "symbol", symbols);
+        return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(result, "symbol", symbols));
     }
 
     /**

@@ -761,7 +761,7 @@ func (this *PolymarketCore) fetchRawEventsBySearchBody(ch chan any, queries any,
 func (this *PolymarketCore) TagToSlug(tag any) any {
 	var lower string = ccxt.ToLower(tag)
 	var allowed string = "abcdefghijklmnopqrstuvwxyz0123456789"
-	var chars any = this.StringToCharsArray(lower)
+	var chars []string = this.StringToCharsArray(lower)
 	var slug any = ""
 	var pendingSep bool = false
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(chars)); i++ {
@@ -1778,7 +1778,7 @@ func (this *PolymarketCore) fetchOHLCVBody(ch chan any, outcome any, optionalArg
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(bucketKeys)); i++ {
 		ccxt.AppendToArray(&unsortedCandles, ccxt.GetValue(buckets, ccxt.GetValue(bucketKeys, i)))
 	}
-	var candles any = this.SortBy(unsortedCandles, 0)
+	var candles []any = this.SortBy(unsortedCandles, 0)
 	var candlesLength int = ccxt.GetArrayLength(candles)
 	if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(limit, nil))) && ccxt.IsTrue((ccxt.IsGreaterThan(candlesLength, limit)))) {
 
@@ -2283,7 +2283,7 @@ func (this *PolymarketCore) fetchPositionsBody(ch chan any, optionalArgs ...any)
 	_ = outcomes
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	var outcomesLength any = 0
+	var outcomesLength int = 0
 	if ccxt.IsTrue(!ccxt.IsEqual(outcomes, nil)) {
 		outcomesLength = ccxt.GetArrayLength(outcomes)
 
@@ -2799,7 +2799,7 @@ func (this *PolymarketCore) BuildClobOrderBody(outcome any, typeVar any, side an
 			if ccxt.IsTrue(ccxt.IsEqual(builderFeeEnabled, true)) {
 				feeRate = this.SafeInteger(this.Options, "feeRate", 0)
 			}
-			var feeHex any = this.IntToBase16(feeRate)
+			var feeHex string = this.IntToBase16(feeRate)
 			feeHex = ccxt.PadStart(feeHex, 24, "0")
 			var addressHex any = builderHex
 			addressHex = ccxt.PadStart(addressHex, 40, "0")
@@ -3073,11 +3073,11 @@ func (this *PolymarketCore) SignClobOrder(message any, exchangeAddress any, doma
 	// innerSig(65) || appDomainSep(32) || contentsHash(32) || contentsType || uint16_BE(len)
 	// orderTypeString.length is used inline (not via a `const n = str.length;` statement) so the
 	// php transpiler emits strlen() — the standalone statement form wrongly becomes count() (array)
-	var ctLenHex any = this.IntToBase16(ccxt.GetLength(orderTypeString))
+	var ctLenHex string = this.IntToBase16(ccxt.GetLength(orderTypeString))
 	// assign before padStart so the PHP transpiler's str_pad regex (which only matches a
 	// simple identifier) picks it up instead of leaking a padStart() function call
-	var lenHex any = ccxt.PadStart(ctLenHex, 4, "0")
-	var orderTypeStringHex any = this.BinaryToBase16(this.Encode(orderTypeString))
+	var lenHex string = ccxt.PadStart(ctLenHex, 4, "0")
+	var orderTypeStringHex string = this.BinaryToBase16(this.Encode(orderTypeString))
 	var wrappedSignature any = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add("0x", innerSig), this.Remove0xPrefix(appDomainSep)), this.Remove0xPrefix(contentsHash)), orderTypeStringHex), lenHex)
 	// lowercase for byte-stable output across languages (intToBase16/binaryToBase16 emit
 	// uppercase hex in some targets); the signature is case-insensitive bytes
@@ -3659,8 +3659,8 @@ func (this *PolymarketCore) Sign(path any, optionalArgs ...any) any {
 			var normalizedSecret any = secret
 			normalizedSecret = ccxt.Replace(normalizedSecret, "-", "+")
 			normalizedSecret = ccxt.Replace(normalizedSecret, "_", "/")
-			var secretBytes any = this.Base64ToBinary(normalizedSecret)
-			var signature any = this.Hmac(this.Encode(auth), secretBytes, ccxt.Sha256, "base64")
+			var secretBytes []byte = this.Base64ToBinary(normalizedSecret)
+			var signature string = this.Hmac(this.Encode(auth), secretBytes, ccxt.Sha256, "base64")
 			// url-safe base64, preserving '=' padding (matches the reference client)
 			signature = ccxt.Replace(signature, "+", "-")
 			signature = ccxt.Replace(signature, "/", "_")
@@ -3688,8 +3688,8 @@ func (this *PolymarketCore) EthChecksumAddress(address any) any {
 	// case-sensitively and stores addresses checksummed, so every address we send must be checksummed
 	var cleaned string = ccxt.ToLower(this.Remove0xPrefix(address))
 	var hashHex any = this.Hash(this.Encode(cleaned), ccxt.Keccak, "hex")
-	var addrChars any = this.StringToCharsArray(cleaned)
-	var hashChars any = this.StringToCharsArray(hashHex)
+	var addrChars []string = this.StringToCharsArray(cleaned)
+	var hashChars []string = this.StringToCharsArray(hashHex)
 	var upperNibbles string = "89abcdef"
 	var result any = ""
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(addrChars)); i++ {
@@ -3703,12 +3703,12 @@ func (this *PolymarketCore) EthChecksumAddress(address any) any {
 	return ccxt.Add("0x", result)
 }
 func (this *PolymarketCore) SignHash(hash any, privateKey any) any {
-	var signature any = ccxt.Ecdsa(ccxt.Slice(hash, ccxt.OpNeg(64), nil), ccxt.Slice(privateKey, ccxt.OpNeg(64), nil), ccxt.Secp256k1, nil)
+	var signature map[string]any = ccxt.Ecdsa(ccxt.Slice(hash, ccxt.OpNeg(64), nil), ccxt.Slice(privateKey, ccxt.OpNeg(64), nil), ccxt.Secp256k1, nil)
 	// assign before padStart so the PHP str_pad regex matches (it only handles a bare identifier)
 	var rRaw any = ccxt.GetValue(signature, "r")
 	var sRaw any = ccxt.GetValue(signature, "s")
-	var r any = ccxt.PadStart(rRaw, 64, "0")
-	var s any = ccxt.PadStart(sRaw, 64, "0")
+	var r string = ccxt.PadStart(rRaw, 64, "0")
+	var s string = ccxt.PadStart(sRaw, 64, "0")
 	return map[string]any{
 		"r": ccxt.Add("0x", r),
 		"s": ccxt.Add("0x", s),
@@ -4183,7 +4183,7 @@ func (this *PolymarketCore) watchTickerBody(ch chan any, outcome any, optionalAr
 	var asks any = ccxt.GetValue(orderbook, "asks")
 	var bestBid any = nil
 	var bestBidVolume any = nil
-	var bidsLength any = 0
+	var bidsLength int = 0
 	if ccxt.IsTrue(!ccxt.IsEqual(bids, nil)) {
 		bidsLength = ccxt.GetArrayLength(bids)
 	}
@@ -4193,7 +4193,7 @@ func (this *PolymarketCore) watchTickerBody(ch chan any, outcome any, optionalAr
 	}
 	var bestAsk any = nil
 	var bestAskVolume any = nil
-	var asksLength any = 0
+	var asksLength int = 0
 	if ccxt.IsTrue(!ccxt.IsEqual(asks, nil)) {
 		asksLength = ccxt.GetArrayLength(asks)
 	}

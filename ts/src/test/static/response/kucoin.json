@@ -3616,14 +3616,12 @@
                     },
                     "timestamp": null,
                     "datetime": null,
-                    "LTC/USDT": {
-                        "LTC":{"free":0,"used":0,"total":0,"debt":0},
-                        "USDT":{"free":5,"used":0,"total":5,"debt":0},
-                        "free":{"LTC":0,"USDT":5},
-                        "used":{"LTC":0,"USDT":0},
-                        "total":{"LTC":0,"USDT":5},
-                        "debt":{"LTC":0,"USDT":0}
-                    }
+                    "LTC":{"free":0,"used":0,"total":0,"debt":0},
+                    "USDT":{"free":5,"used":0,"total":5,"debt":0},
+                    "free":{"LTC":0,"USDT":5},
+                    "used":{"LTC":0,"USDT":0},
+                    "total":{"LTC":0,"USDT":5},
+                    "debt":{"LTC":0,"USDT":0}
                 }
             }
         ],

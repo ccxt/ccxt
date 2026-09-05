@@ -7,7 +7,7 @@ import { Precise } from './base/Precise.js';
 import Exchange from './abstract/paradex.js';
 import { ExchangeError, PermissionDenied, AuthenticationError, BadRequest, ArgumentsRequired, OperationRejected, InvalidOrder } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Str, Num, Dict, Int, Market, OrderType, OrderSide, Order, OrderBook, Strings, Ticker, Tickers, Trade, Balances, Currency, Transaction, OHLCV, Position, int, MarginMode, Leverage, Greeks, FundingRateHistory, FundingHistory, Liquidation, TradingFeeInterface, TradingFees, TransferEntry, OrderRequest, Bool, List, NullableDict, Status, Endpoint } from './base/types.js';
+import type { Str, Num, Dict, Int, Market, OrderType, OrderSide, Order, OrderBook, Strings, Ticker, Tickers, Trade, Balances, Currency, Transaction, OHLCV, Position, int, MarginMode, Leverage, Greeks, FundingRateHistory, FundingHistory, Liquidation, TradingFeeInterface, TradingFees, TransferEntry, OrderRequest, Bool, List, NullableDict, Status, Endpoint, AllGreeks } from './base/types.js';
 import { ecdsa } from './base/functions/crypto.js';
 //  ---------------------------------------------------------------------------
 
@@ -2456,11 +2456,11 @@ export default class paradex extends Exchange {
             'info': position,
             'id': this.safeString (position, 'id'),
             'symbol': symbol,
-            'entryPrice': this.safeString (position, 'average_entry_price'),
+            'entryPrice': this.safeNumber (position, 'average_entry_price'),
             'markPrice': undefined,
             'notional': undefined,
-            'collateral': this.safeString (position, 'cost'),
-            'unrealizedPnl': this.safeString (position, 'unrealized_pnl'),
+            'collateral': this.safeNumber (position, 'cost'),
+            'unrealizedPnl': this.safeNumber (position, 'unrealized_pnl'),
             'side': side,
             'contracts': this.parseNumber (quantity),
             'contractSize': undefined,
@@ -3060,9 +3060,9 @@ export default class paradex extends Exchange {
      * @see https://docs.paradex.trade/api/prod/markets/get-markets-summary
      * @param {string[]} [symbols] unified symbols of the markets to fetch greeks for, all markets are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
+     * @returns {object} a dictionary of [greeks structures]{@link https://docs.ccxt.com/?id=greeks-structure} indexed by market symbol
      */
-    override async fetchAllGreeks (symbols: Strings = undefined, params = {}): Promise<Greeks[]> {
+    override async fetchAllGreeks (symbols: Strings = undefined, params = {}): Promise<AllGreeks> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

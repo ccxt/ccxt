@@ -390,7 +390,7 @@ public partial class independentreserve : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public async override Task<object> fetchMarkets(object parameters = null)
+    public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object baseCurrenciesPromise = this.publicGetGetValidPrimaryCurrencyCodes(parameters);
@@ -474,7 +474,7 @@ public partial class independentreserve : Exchange
                 });
             }
         }
-        return result;
+        return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
 
     public override object parseBalance(object response)
@@ -505,7 +505,7 @@ public partial class independentreserve : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public async override Task<object> fetchBalance(object parameters = null)
+    public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -513,7 +513,7 @@ public partial class independentreserve : Exchange
             await this.loadMarkets();
         }
         object response = await this.privatePostGetAccounts(parameters);
-        return this.parseBalance(response);
+        return ccxt.BaseExchange.ToBalances(this.parseBalance(response));
     }
 
     /**
@@ -525,7 +525,7 @@ public partial class independentreserve : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -539,7 +539,7 @@ public partial class independentreserve : Exchange
         };
         object response = await this.publicGetGetOrderBook(this.extend(request, parameters));
         object timestamp = this.parse8601(this.safeString(response, "CreatedTimestampUtc"));
-        return this.parseOrderBook(response, getValue(market, "symbol"), timestamp, "BuyOrders", "SellOrders", "Price", "Volume");
+        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, getValue(market, "symbol"), timestamp, "BuyOrders", "SellOrders", "Price", "Volume"));
     }
 
     public override object parseTicker(object ticker, object market = null)
@@ -998,7 +998,7 @@ public partial class independentreserve : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    public async override Task<object> fetchTradingFees(object parameters = null)
+    public async override Task<ccxt.TradingFees> FetchTradingFees(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1047,7 +1047,7 @@ public partial class independentreserve : Exchange
                 { "tierBased", true },
             };
         }
-        return result;
+        return ccxt.BaseExchange.ToTradingFees(result);
     }
 
     /**

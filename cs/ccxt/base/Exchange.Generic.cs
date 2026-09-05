@@ -93,13 +93,21 @@ public partial class BaseExchange
     {
         // var targetA = (List<object>)aa;
         var targetA = new List<object>() { };
-        if (aa.GetType() == typeof(List<object>))
+        if (aa is List<object> plain)
         {
-            targetA = (List<object>)aa;
+            targetA = plain;
         }
-        else
+        else if (aa is dict asDict)
         {
-            targetA = ((dict)aa).Values.ToList();
+            targetA = asDict.Values.ToList();
+        }
+        else if (aa is System.Collections.IEnumerable rows)
+        {
+            // a typed core's List<Dictionary<string, object>> (dydx FetchTransactionsHelper)
+            foreach (var row in rows)
+            {
+                targetA.Add(row);
+            }
         }
         var outList = new List<object>();
         foreach (object elem in targetA)

@@ -1895,8 +1895,8 @@ public class BinanceCore extends BinanceApi
                             put( "noSymbol", 2 );
                         }} );
                         put( "ticker/bookTicker", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                            put( "noSymbol", 2 );
+                            put( "cost", 2 );
+                            put( "noSymbol", 5 );
                         }} );
                         put( "openInterest", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
@@ -5621,22 +5621,18 @@ public class BinanceCore extends BinanceApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(assets)); i++)
             {
                 Object asset = Helpers.GetValue(assets, i);
-                Object marketId = this.safeString(asset, "symbol");
-                Object symbol = this.safeSymbol(marketId, null, null, "spot");
                 Object base = this.safeDict(asset, "baseAsset", new java.util.HashMap<String, Object>() {{}});
                 Object quote = this.safeDict(asset, "quoteAsset", new java.util.HashMap<String, Object>() {{}});
                 Object baseCode = this.safeCurrencyCode(this.safeString(base, "asset"));
                 Object quoteCode = this.safeCurrencyCode(this.safeString(quote, "asset"));
-                Object subResult = new java.util.HashMap<String, Object>() {{}};
                 if (Helpers.isTrue(!Helpers.isEqual(baseCode, null)))
                 {
-                    Helpers.addElementToObject(subResult, baseCode, this.parseBalanceHelper(base));
+                    result = this.mergeBalanceAccount(result, baseCode, this.parseBalanceHelper(base));
                 }
                 if (Helpers.isTrue(!Helpers.isEqual(quoteCode, null)))
                 {
-                    Helpers.addElementToObject(subResult, quoteCode, this.parseBalanceHelper(quote));
+                    result = this.mergeBalanceAccount(result, quoteCode, this.parseBalanceHelper(quote));
                 }
-                Helpers.addElementToObject(result, symbol, this.safeBalance(subResult));
             }
         } else if (Helpers.isTrue(Helpers.isEqual(type, "savings")))
         {
@@ -5703,7 +5699,7 @@ public class BinanceCore extends BinanceApi
         }
         Helpers.addElementToObject(result, "timestamp", timestamp);
         Helpers.addElementToObject(result, "datetime", this.iso8601(timestamp));
-        return ((Helpers.isTrue(isolated))) ? result : this.safeBalance(result);
+        return this.safeBalance(result);
     }
 
     /**
@@ -6462,19 +6458,27 @@ public class BinanceCore extends BinanceApi
             var subTypeparametersVariable = this.handleSubTypeAndParams("fetchBidsAsks", market, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
+            Object request = new java.util.HashMap<String, Object>() {{}};
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(symbols, null))) && Helpers.isTrue((Helpers.isTrue(this.isLinear(type, subType)) || Helpers.isTrue(this.isInverse(type, subType))))))
+            {
+                Object symbolsLength = Helpers.getArrayLength(symbols);
+                if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 1)))
+                {
+                    Helpers.addElementToObject(request, "symbol", this.marketId(Helpers.GetValue(symbols, 0)));
+                }
+            }
             Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(type, "option")))
             {
                 response = (this.eapiPublicGetTicker(parameters)).join();
             } else if (Helpers.isTrue(this.isLinear(type, subType)))
             {
-                response = (this.fapiPublicGetTickerBookTicker(parameters)).join();
+                response = (this.fapiPublicGetTickerBookTicker(this.extend(request, parameters))).join();
             } else if (Helpers.isTrue(this.isInverse(type, subType)))
             {
-                response = (this.dapiPublicGetTickerBookTicker(parameters)).join();
+                response = (this.dapiPublicGetTickerBookTicker(this.extend(request, parameters))).join();
             } else if (Helpers.isTrue(Helpers.isEqual(type, "spot")))
             {
-                Object request = new java.util.HashMap<String, Object>() {{}};
                 if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
                 {
                     Helpers.addElementToObject(request, "symbols", this.json(this.marketIds(symbols)));
@@ -6483,6 +6487,10 @@ public class BinanceCore extends BinanceApi
             } else
             {
                 throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchBidsAsks() does not support "), type), " markets yet")) ;
+            }
+            if (!Helpers.isTrue(Helpers.isArray(response)))
+            {
+                response = new java.util.ArrayList<Object>(java.util.Arrays.asList(response));
             }
             return this.parseTickers(response, symbols);
         });
@@ -17837,7 +17845,7 @@ final Object finalMarket = market;
      * @see https://developers.binance.com/docs/derivatives/option/market-data/Option-Mark-Price
      * @param {string[]} [symbols] unified symbols of the markets to fetch greeks for, all markets are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
+     * @returns {object} a dictionary of [greeks structures]{@link https://docs.ccxt.com/?id=greeks-structure} indexed by market symbol
      */
     public java.util.concurrent.CompletableFuture<Object> fetchAllGreeks(Object... optionalArgs)
     {

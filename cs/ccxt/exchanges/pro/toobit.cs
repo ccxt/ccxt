@@ -301,7 +301,7 @@ public partial class toobit : ccxt.toobit
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         ((IDictionary<string,object>)parameters)["callerMethodName"] = "watchOHLCV";
-        object result = await this.watchOHLCVForSymbols(new List<object>() {new List<object>() {symbol, timeframeVar}}, since, limit, parameters);
+        object result = ccxt.BaseExchange.FromOHLCVDict(await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbol, timeframeVar}}, since, limit, parameters));
         return ccxt.BaseExchange.ToOHLCVList(getValue(getValue(result, symbol), timeframeVar));
     }
 
@@ -317,7 +317,7 @@ public partial class toobit : ccxt.toobit
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<object> watchOHLCVForSymbols(object symbolsAndTimeframes, object since = null, object limit = null, object parameters = null)
+    public async override Task<Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>>> WatchOHLCVForSymbols(object symbolsAndTimeframes, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -361,7 +361,7 @@ public partial class toobit : ccxt.toobit
             limit = callDynamically(stored, "getLimit", new object[] {symbol, limit});
         }
         object filtered = this.filterBySinceLimit(stored, since, limit, 0, true);
-        return this.createOHLCVObject(symbol, timeframe, filtered);
+        return ccxt.BaseExchange.ToOHLCVDict(this.createOHLCVObject(symbol, timeframe, filtered));
     }
 
     public virtual void handleOHLCV(WebSocketClient client, object message)
@@ -460,7 +460,7 @@ public partial class toobit : ccxt.toobit
             await this.loadMarkets();
         }
         symbolVar = this.symbol(symbolVar);
-        object tickers = await this.watchTickers(new List<object>() {symbolVar}, parameters);
+        object tickers = ccxt.BaseExchange.FromTickers(await this.WatchTickers(new List<object>() {symbolVar}, parameters));
         return ccxt.BaseExchange.ToTicker(getValue(tickers, symbolVar));
     }
 
@@ -474,7 +474,7 @@ public partial class toobit : ccxt.toobit
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> watchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -504,9 +504,9 @@ public partial class toobit : ccxt.toobit
         {
             object result = new Dictionary<string, object>() {};
             ((IDictionary<string,object>)result)[(string)getValue(ticker, "symbol")] = ticker;
-            return result;
+            return ccxt.BaseExchange.ToTickers(result);
         }
-        return this.filterByArray(this.tickers, "symbol", symbols);
+        return ccxt.BaseExchange.ToTickers(this.filterByArray(this.tickers, "symbol", symbols));
     }
 
     public virtual void handleTickers(WebSocketClient client, object message)
@@ -877,9 +877,7 @@ public partial class toobit : ccxt.toobit
 
     public async virtual Task loadBalanceSnapshot(WebSocketClient client, object messageHash, object marketType)
     {
-        object response = await this.fetchBalance(new Dictionary<string, object>() {
-            { "type", marketType },
-        });
+        object response = ccxt.BaseExchange.FromBalances(await this.FetchBalance(new Dictionary<string, object>() { { "type", marketType }, }));
         object type = ((bool) isTrue((isEqual(marketType, "spot")))) ? "spot" : "contract";
         ((IDictionary<string,object>)this.balance)[(string)type] = this.extend(response, this.safeDict(this.balance, type, new Dictionary<string, object>() {}));
         // don't remove the future from the .futures cache
@@ -1140,6 +1138,7 @@ public partial class toobit : ccxt.toobit
             await this.loadMarkets();
         }
         await this.authenticate();
+        string type = "swap"; // the only account type that carries positions here
         object messageHash = "";
         if (!isTrue(this.isEmpty(symbols)))
         {
@@ -1150,14 +1149,14 @@ public partial class toobit : ccxt.toobit
             }
             messageHash = add("::", String.Join(",", ((IList<object>)symbols).ToArray()));
         }
+        messageHash = add(add(type, ":positions"), messageHash);
         object url = this.getUserStreamUrl();
         var client = this.client(url);
-        await this.authenticate(url);
-        this.setPositionsCache(client as WebSocketClient, symbols);
-        object cache = this.positions;
+        this.setPositionsCache(client as WebSocketClient, type, symbols);
+        object cache = this.safeValue(this.positions, type);
         if (isTrue(isEqual(cache, null)))
         {
-            object snapshot = await client.future("fetchPositionsSnapshot");
+            object snapshot = await client.future(add(type, ":fetchPositionsSnapshot"));
             return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(snapshot, symbols, since, limit, true));
         }
         object newPositions = await this.watch(url, messageHash, null, messageHash);
@@ -1199,7 +1198,7 @@ public partial class toobit : ccxt.toobit
         object parameters = new Dictionary<string, object>() {
             { "type", type },
         };
-        object positions = await this.FetchPositions(null, parameters);
+        object positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositions(null, parameters));
         ((IDictionary<string,object>)this.positions)[(string)type] = new ArrayCacheBySymbolBySide();
         object cache = getValue(this.positions, type);
         for (object i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
@@ -1242,8 +1241,7 @@ public partial class toobit : ccxt.toobit
         //     }
         // ]
         //
-        List<object> subscriptions = new List<object>(((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Keys);
-        object accountType = getValue(subscriptions, 0);
+        string accountType = "swap";
         if (isTrue(isEqual(this.positions, null)))
         {
             this.positions = new Dictionary<string, object>() {};
@@ -1253,10 +1251,16 @@ public partial class toobit : ccxt.toobit
             ((IDictionary<string,object>)this.positions)[(string)accountType] = new ArrayCacheBySymbolBySide();
         }
         object cache = getValue(this.positions, accountType);
-        object newPositions = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(message)); postFixIncrement(ref i))
+        // handleMessage's fallback dispatches one item at a time
+        object rawPositions = message;
+        if (!isTrue(((message is IList<object>) || (message.GetType().IsGenericType && message.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
-            object rawPosition = getValue(message, i);
+            rawPositions = new List<object>() {message};
+        }
+        object newPositions = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(rawPositions)); postFixIncrement(ref i))
+        {
+            object rawPosition = getValue(rawPositions, i);
             object position = this.parseWsPosition(rawPosition);
             object timestamp = this.safeInteger(rawPosition, "E");
             ((IDictionary<string,object>)position)["timestamp"] = timestamp;
@@ -1264,6 +1268,10 @@ public partial class toobit : ccxt.toobit
             ((IList<object>)newPositions).Add(position);
             callDynamically(cache, "append", new object[] {position});
         }
+        // no local may be named `positions` in this method: build/transpile.ts
+        // appends `$` to every local name wherever it appears, string literals
+        // included, so a local `positions` rewrites the hash prefix below to
+        // ':$positions::' and find_message_hashes () matches nothing in PHP
         object messageHashes = this.findMessageHashes(client as WebSocketClient, add(accountType, ":positions::"));
         for (object i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
         {
@@ -1271,10 +1279,10 @@ public partial class toobit : ccxt.toobit
             List<object> parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
             object symbolsString = getValue(parts, 1);
             List<object> symbols = ((string)symbolsString).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
-            object positions = this.filterByArray(newPositions, "symbol", symbols, false);
-            if (!isTrue(this.isEmpty(positions)))
+            object filtered = this.filterByArray(newPositions, "symbol", symbols, false);
+            if (!isTrue(this.isEmpty(filtered)))
             {
-                callDynamically(client as WebSocketClient, "resolve", new object[] {positions, messageHash});
+                callDynamically(client as WebSocketClient, "resolve", new object[] {filtered, messageHash});
             }
         }
         callDynamically(client as WebSocketClient, "resolve", new object[] {newPositions, add(accountType, ":positions")});
@@ -1311,42 +1319,65 @@ public partial class toobit : ccxt.toobit
         });
     }
 
-    public async virtual Task<object> authenticate(object parameters = null)
+    public async virtual Task authenticate(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        var client = this.client(this.getUserStreamUrl());
-        string messageHash = "authenticated";
-        var future = client.reusableFuture(messageHash);
-        object authenticated = this.safeValue(((WebSocketClient)client).subscriptions, messageHash);
-        if (isTrue(isEqual(authenticated, null)))
+        Int64 time = this.milliseconds();
+        object lastAuthenticatedTime = this.safeInteger(getValue(this.options, "ws"), "lastAuthenticatedTime", 0);
+        object listenKeyRefreshRate = this.safeInteger(getValue(this.options, "ws"), "listenKeyRefreshRate", 1200000);
+        object delay = this.sum(listenKeyRefreshRate, 10000);
+        if (isTrue(isGreaterThan(subtract(time, lastAuthenticatedTime), delay)))
         {
             this.checkRequiredCredentials();
-            Int64 time = this.milliseconds();
-            object lastAuthenticatedTime = this.safeInteger(getValue(this.options, "ws"), "lastAuthenticatedTime", 0);
-            object listenKeyRefreshRate = this.safeInteger(getValue(this.options, "ws"), "listenKeyRefreshRate", 1200000);
-            object delay = this.sum(listenKeyRefreshRate, 10000);
-            if (isTrue(isGreaterThan(subtract(time, lastAuthenticatedTime), delay)))
+            // single-flight leader election on a never-dialed client, see
+            // https://github.com/ccxt/ccxt/issues/29393. the election used to
+            // run on this.client (this.getUserStreamUrl ()), but that url
+            // embeds the listenKey it is about to mint, so the client the
+            // flight registers on is not the client the next caller looks at:
+            // the cold call elected on .../ws/undefined and every later call
+            // landed on .../ws/<key> with an empty subscriptions map, found
+            // the key still fresh, skipped the fetch and hung on a future
+            // nobody resolves. client.futures is the registry: client.future ()
+            // is the atomic check-and-insert and client.resolve () /
+            // ((WebSocketClient)client).reject () settle and remove the entry under the same lock
+            // in every port
+            string messageHash = "authenticate";
+            var client = this.client("authenticationFlights");
+            if (isTrue(inOp(client.futures, messageHash)))
             {
-                try
-                {
-                    ((IDictionary<string,object>)((WebSocketClient)client).subscriptions)[(string)messageHash] = true;
-                    object response = await this.privatePostApiV1UserDataStream(parameters);
-                    ((IDictionary<string,object>)getValue(this.options, "ws"))["listenKey"] = this.safeString(response, "listenKey");
-                    ((IDictionary<string,object>)getValue(this.options, "ws"))["lastAuthenticatedTime"] = time;
-                    (future as Future).resolve(true);
-                    this.delay(listenKeyRefreshRate,  this.keepAliveListenKey, new object[] { parameters});
-                } catch(Exception e)
-                {
-                    var err = new AuthenticationError(add(add(this.id, " "), this.exceptionMessage(e)));
-                    ((WebSocketClient)client).reject(err, messageHash);
-                    if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
-                    {
-                        ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
-                    }
-                }
+                // a flight is already in progress - wake when the leader
+                // settles it: the listenKey is then in the bucket
+                await client.future(messageHash);
+                return;
             }
+            // reusableFuture (), not future () - the two match in
+            // js/py/php/cs/java, but go's Client.Future () yields a channel
+            // that the trailing suspension point below would panic on
+            var future = client.reusableFuture(messageHash);
+            try
+            {
+                object response = await this.privatePostApiV1UserDataStream(parameters);
+                object listenKey = this.safeString(response, "listenKey");
+                if (isTrue(isEqual(listenKey, null)))
+                {
+                    throw new AuthenticationError ((string)add(this.id, " authenticate() received an empty listenKey")) ;
+                }
+                ((IDictionary<string,object>)getValue(this.options, "ws"))["listenKey"] = listenKey;
+                ((IDictionary<string,object>)getValue(this.options, "ws"))["lastAuthenticatedTime"] = time;
+                this.delay(listenKeyRefreshRate,  this.keepAliveListenKey, new object[] { parameters});
+                // settle the flight: client.resolve () removes the future from
+                // client.futures and wakes every waiter
+                callDynamically(client as WebSocketClient, "resolve", new object[] {listenKey, messageHash});
+            } catch(Exception e)
+            {
+                // reject the flight - waiters throw and the next caller re-leads.
+                // no rethrow here, the trailing suspension point rethrows to this
+                // caller AND attaches the handler an alone leader needs
+                var err = new AuthenticationError(add(add(this.id, " "), this.exceptionMessage(e)));
+                ((WebSocketClient)client).reject(err, messageHash);
+            }
+            await future;
         }
-        return await (future as Exchange.Future);
     }
 
     public async virtual Task keepAliveListenKey(object parameters = null)

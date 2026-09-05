@@ -1266,6 +1266,7 @@ func (this *ToobitCore) watchPositionsBody(ch chan any, optionalArgs ...any) any
 
 	retRes10268 := (<-this.Authenticate())
 	ccxt.PanicOnError(retRes10268)
+	var typeVar string = "swap" // the only account type that carries positions here
 	var messageHash any = ""
 	if !ccxt.IsTrue(this.IsEmpty(symbols)) {
 		symbols = this.MarketSymbols(symbols)
@@ -1274,16 +1275,14 @@ func (this *ToobitCore) watchPositionsBody(ch chan any, optionalArgs ...any) any
 		}
 		messageHash = ccxt.Add("::", ccxt.Join(symbols, ","))
 	}
+	messageHash = ccxt.Add(ccxt.Add(typeVar, ":positions"), messageHash)
 	var url any = this.GetUserStreamUrl()
 	var client any = this.Client(url)
-
-	retRes10378 := (<-this.Authenticate(url))
-	ccxt.PanicOnError(retRes10378)
-	this.SetPositionsCache(client, symbols)
-	var cache any = this.Positions
+	this.SetPositionsCache(client, typeVar, symbols)
+	var cache any = this.SafeValue(this.Positions, typeVar)
 	if ccxt.IsTrue(ccxt.IsEqual(cache, nil)) {
 
-		snapshot := (<-client.(ccxt.ClientInterface).Future("fetchPositionsSnapshot"))
+		snapshot := (<-client.(ccxt.ClientInterface).Future(ccxt.Add(typeVar, ":fetchPositionsSnapshot")))
 		ccxt.PanicOnError(snapshot)
 
 		ch <- this.FilterBySymbolsSinceLimit(snapshot, symbols, since, limit, true)
@@ -1376,8 +1375,7 @@ func (this *ToobitCore) HandlePositions(client any, message any) {
 	//     }
 	// ]
 	//
-	var subscriptions []string = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetSubscriptions())
-	var accountType any = ccxt.GetValue(subscriptions, 0)
+	var accountType string = "swap"
 	if ccxt.IsTrue(ccxt.IsEqual(this.Positions, nil)) {
 		this.Positions = map[string]any{}
 	}
@@ -1385,9 +1383,14 @@ func (this *ToobitCore) HandlePositions(client any, message any) {
 		ccxt.AddElementToObject(this.Positions, accountType, ccxt.NewArrayCacheBySymbolBySide())
 	}
 	var cache any = ccxt.GetValue(this.Positions, accountType)
+	// handleMessage's fallback dispatches one item at a time
+	var rawPositions any = message
+	if !ccxt.IsTrue(ccxt.IsArray(message)) {
+		rawPositions = []any{message}
+	}
 	var newPositions any = []any{}
-	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(message)); i++ {
-		var rawPosition any = ccxt.GetValue(message, i)
+	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(rawPositions)); i++ {
+		var rawPosition any = ccxt.GetValue(rawPositions, i)
 		var position any = this.ParseWsPosition(rawPosition)
 		var timestamp any = this.SafeInteger(rawPosition, "E")
 		ccxt.AddElementToObject(position, "timestamp", timestamp)
@@ -1395,15 +1398,19 @@ func (this *ToobitCore) HandlePositions(client any, message any) {
 		ccxt.AppendToArray(&newPositions, position)
 		cache.(ccxt.Appender).Append(position)
 	}
+	// no local may be named `positions` in this method: build/transpile.ts
+	// appends `$` to every local name wherever it appears, string literals
+	// included, so a local `positions` rewrites the hash prefix below to
+	// ':$positions::' and find_message_hashes () matches nothing in PHP
 	var messageHashes any = this.FindMessageHashes(ccxt.AsClient(client), ccxt.Add(accountType, ":positions::"))
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(messageHashes)); i++ {
 		var messageHash any = ccxt.GetValue(messageHashes, i)
 		var parts []string = ccxt.Split(messageHash, "::")
 		var symbolsString any = ccxt.GetValue(parts, 1)
 		var symbols []string = ccxt.Split(symbolsString, ",")
-		var positions any = this.FilterByArray(newPositions, "symbol", symbols, false)
-		if !ccxt.IsTrue(this.IsEmpty(positions)) {
-			client.(ccxt.ClientInterface).Resolve(positions, messageHash)
+		var filtered any = this.FilterByArray(newPositions, "symbol", symbols, false)
+		if !ccxt.IsTrue(this.IsEmpty(filtered)) {
+			client.(ccxt.ClientInterface).Resolve(filtered, messageHash)
 		}
 	}
 	client.(ccxt.ClientInterface).Resolve(newPositions, ccxt.Add(accountType, ":positions"))
@@ -1449,55 +1456,80 @@ func (this *ToobitCore) authenticateBody(ch chan any, optionalArgs ...any) any {
 	defer ccxt.ReturnPanicError(ch)
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var client any = this.Client(this.GetUserStreamUrl())
-	var messageHash string = "authenticated"
-	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
-	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
-	if ccxt.IsTrue(ccxt.IsEqual(authenticated, nil)) {
+	var time int64 = this.Milliseconds()
+	var lastAuthenticatedTime any = this.SafeInteger(ccxt.GetValue(this.Options, "ws"), "lastAuthenticatedTime", 0)
+	var listenKeyRefreshRate any = this.SafeInteger(ccxt.GetValue(this.Options, "ws"), "listenKeyRefreshRate", 1200000)
+	var delay any = this.Sum(listenKeyRefreshRate, 10000)
+	if ccxt.IsTrue(ccxt.IsGreaterThan(ccxt.Subtract(time, lastAuthenticatedTime), delay)) {
 		this.CheckRequiredCredentials()
-		var time int64 = this.Milliseconds()
-		var lastAuthenticatedTime any = this.SafeInteger(ccxt.GetValue(this.Options, "ws"), "lastAuthenticatedTime", 0)
-		var listenKeyRefreshRate any = this.SafeInteger(ccxt.GetValue(this.Options, "ws"), "listenKeyRefreshRate", 1200000)
-		var delay any = this.Sum(listenKeyRefreshRate, 10000)
-		if ccxt.IsTrue(ccxt.IsGreaterThan(ccxt.Subtract(time, lastAuthenticatedTime), delay)) {
+		// single-flight leader election on a never-dialed client, see
+		// https://github.com/ccxt/ccxt/issues/29393. the election used to
+		// run on this.client (this.getUserStreamUrl ()), but that url
+		// embeds the listenKey it is about to mint, so the client the
+		// flight registers on is not the client the next caller looks at:
+		// the cold call elected on .../ws/undefined and every later call
+		// landed on .../ws/<key> with an empty subscriptions map, found
+		// the key still fresh, skipped the fetch and hung on a future
+		// nobody resolves. client.futures is the registry: client.future ()
+		// is the atomic check-and-insert and client.resolve () /
+		// client.reject () settle and remove the entry under the same lock
+		// in every port
+		var messageHash string = "authenticate"
+		var client any = this.Client("authenticationFlights")
+		if ccxt.IsTrue(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
+			// a flight is already in progress - wake when the leader
+			// settles it: the listenKey is then in the bucket
 
-			{
-				func(this *ToobitCore) (ret_ any) {
-					defer func() {
-						if e := recover(); e != nil {
-							if e == "break" {
-								return
-							}
-							ret_ = func(this *ToobitCore) any {
-								// catch block:
-								err := ccxt.AuthenticationError(ccxt.Add(ccxt.Add(this.Id, " "), this.ExceptionMessage(e)))
-								client.(ccxt.ClientInterface).Reject(err, messageHash)
-								if ccxt.IsTrue(ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)) {
-									ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
-								}
-								return nil
-							}(this)
-						}
-					}()
-					// try block:
-					ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash, true)
+			retRes121016 := (<-client.(ccxt.ClientInterface).Future(messageHash))
+			ccxt.PanicOnError(retRes121016)
 
-					response := (<-this.PrivatePostApiV1UserDataStream(params))
-					ccxt.PanicOnError(response)
-					ccxt.AddElementToObject(ccxt.GetValue(this.Options, "ws"), "listenKey", this.SafeString(response, "listenKey"))
-					ccxt.AddElementToObject(ccxt.GetValue(this.Options, "ws"), "lastAuthenticatedTime", time)
-					future.(*ccxt.Future).Resolve(true)
-					this.Delay(listenKeyRefreshRate, this.KeepAliveListenKey, params)
-					return nil
-				}(this)
-
-			}
+			return nil
 		}
-	}
+		// reusableFuture (), not future () - the two match in
+		// js/py/php/cs/java, but go's ccxt.Client.Future () yields a channel
+		// that the trailing suspension point below would panic on
+		var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
 
-	retRes120515 := <-future.(*ccxt.Future).Await()
-	ccxt.PanicOnError(retRes120515)
-	ch <- retRes120515
+		{
+			func(this *ToobitCore) (ret_ any) {
+				defer func() {
+					if e := recover(); e != nil {
+						if e == "break" {
+							return
+						}
+						ret_ = func(this *ToobitCore) any {
+							// catch block:
+							// reject the flight - waiters throw and the next caller re-leads.
+							// no rethrow here, the trailing suspension point rethrows to this
+							// caller AND attaches the handler an alone leader needs
+							err := ccxt.AuthenticationError(ccxt.Add(ccxt.Add(this.Id, " "), this.ExceptionMessage(e)))
+							client.(ccxt.ClientInterface).Reject(err, messageHash)
+							return nil
+						}(this)
+					}
+				}()
+				// try block:
+
+				response := (<-this.PrivatePostApiV1UserDataStream(params))
+				ccxt.PanicOnError(response)
+				var listenKey any = this.SafeString(response, "listenKey")
+				if ccxt.IsTrue(ccxt.IsEqual(listenKey, nil)) {
+					panic(ccxt.AuthenticationError(ccxt.Add(this.Id, " authenticate() received an empty listenKey")))
+				}
+				ccxt.AddElementToObject(ccxt.GetValue(this.Options, "ws"), "listenKey", listenKey)
+				ccxt.AddElementToObject(ccxt.GetValue(this.Options, "ws"), "lastAuthenticatedTime", time)
+				this.Delay(listenKeyRefreshRate, this.KeepAliveListenKey, params)
+				// settle the flight: client.resolve () removes the future from
+				// client.futures and wakes every waiter
+				client.(ccxt.ClientInterface).Resolve(listenKey, messageHash)
+				return nil
+			}(this)
+
+		}
+
+		retRes123812 := <-future.(*ccxt.Future).Await()
+		ccxt.PanicOnError(retRes123812)
+	}
 	return nil
 }
 func (this *ToobitCore) KeepAliveListenKey(optionalArgs ...any) <-chan any {

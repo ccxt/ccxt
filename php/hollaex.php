@@ -1614,7 +1614,7 @@ class hollaex extends Exchange {
         //
         $wallet = $this->safe_value($response, 'wallet', array());
         $addresses = ($network === null) ? $wallet : $this->filter_by($wallet, 'network', $network);
-        return $this->parse_deposit_addresses($addresses, $codes);
+        return $this->parse_deposit_addresses($addresses, $codes, false);
     }
 
     public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -1680,7 +1680,7 @@ class hollaex extends Exchange {
         return $this->parse_transactions($data, $currency, $since, $limit);
     }
 
-    public function fetch_withdrawal(string $id, ?string $code = null, $params = array()) {
+    public function fetch_withdrawal(string $id, ?string $code = null, $params = array()): array {
         /**
          * fetch $data on a $currency withdrawal via the withdrawal $id
          *

@@ -2770,7 +2770,7 @@ class deribit(Exchange, ImplicitAPI):
         result = self.safe_list(response, 'result')
         return self.parse_positions(result, symbols)
 
-    async def fetch_volatility_history(self, code: str, params={}):
+    async def fetch_volatility_history(self, code: str, params={}) -> list[dict]:
         """
         fetch the historical volatility of an option market based on an underlying asset
 
@@ -3134,7 +3134,8 @@ class deribit(Exchange, ImplicitAPI):
         eachItemDuration = '1h'
         if paginate:
             # fix for: https://github.com/ccxt/ccxt/issues/25040
-            return await self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, eachItemDuration, self.extend(params, {'isDeribitPaginationCall': True}), maxEntriesPerRequest)
+            paginationParams = self.extend(params, {'isDeribitPaginationCall': True})
+            return await self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, eachItemDuration, paginationParams, maxEntriesPerRequest)
         duration = self.parse_timeframe(eachItemDuration) * 1000
         time = self.milliseconds()
         month = 30 * 24 * 60 * 60 * 1000

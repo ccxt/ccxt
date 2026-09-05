@@ -1482,9 +1482,15 @@ class toobit(Exchange, ImplicitAPI):
         return self.filter_by_array(results, 'symbol', symbols)
 
     def parse_bid_ask_custom(self, ticker: object):
+        # 's' is the exchange id and 't' a millisecond integer, the pair parseTicker
+        # reads through safeMarket and safeInteger. The caller filters on a unified symbol.
+        marketId = self.safe_string(ticker, 's')
+        market = self.safe_market(marketId)
+        timestamp = self.safe_integer(ticker, 't')
         return {
-            'timestamp': self.safe_string(ticker, 't'),
-            'symbol': self.safe_string(ticker, 's'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': market['symbol'],
             'bid': self.safe_number(ticker, 'b'),
             'bidVolume': self.safe_number(ticker, 'bq'),
             'ask': self.safe_number(ticker, 'a'),
@@ -2607,7 +2613,7 @@ class toobit(Exchange, ImplicitAPI):
         """
         return self.fetch_deposits_or_withdrawals_helper('withdrawals', code, since, limit, params)
 
-    def fetch_deposits_or_withdrawals_helper(self, type: object, code: object, since: object, limit: object, params={}):
+    def fetch_deposits_or_withdrawals_helper(self, type: object, code: object, since: object, limit: object, params={}) -> list[Transaction]:
         if self.markets is None:
             self.load_markets()
         currency = None

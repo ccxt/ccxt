@@ -1316,7 +1316,7 @@ func (this *DeriveCore) ParseTrades(trades any, optionalArgs ...any) any {
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	var tradesArray any = this.ToArray(trades)
+	var tradesArray []any = this.ToArray(trades)
 	var result any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(tradesArray)); i++ {
 		var rawTrade any = GetValue(tradesArray, i)
@@ -1464,7 +1464,7 @@ func (this *DeriveCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs ..
 			"datetime":    this.Iso8601(timestamp),
 		})
 	}
-	var sorted any = this.SortBy(rates, "timestamp")
+	var sorted []any = this.SortBy(rates, "timestamp")
 
 	ch <- this.FilterBySymbolSinceLimit(sorted, GetValue(market, "symbol"), since, limit)
 	return nil
@@ -1541,8 +1541,8 @@ func (this *DeriveCore) HashOrderMessage(order any) any {
 	var accountHash any = this.Hash(this.EthAbiEncode([]any{"bytes32", "uint256", "uint256", "address", "bytes32", "uint256", "address", "address"}, order), keccak, "binary")
 	var sandboxMode any = this.SafeBool(this.Options, "sandboxMode", false)
 	var DOMAIN_SEPARATOR any = Ternary(IsTrue((IsEqual(sandboxMode, true))), "9bcf4dc06df5d8bf23af818d5716491b995020f377d3b7b64c29ed14e3dd1105", "d96e5f90797da7ec8dc4e276260c7f3f87fedf68775fbe1ef116e996fc60441b")
-	var binaryDomainSeparator any = this.Base16ToBinary(DOMAIN_SEPARATOR)
-	var prefix any = this.Base16ToBinary("1901")
+	var binaryDomainSeparator []byte = this.Base16ToBinary(DOMAIN_SEPARATOR)
+	var prefix []byte = this.Base16ToBinary("1901")
 	return this.Hash(this.BinaryConcat(prefix, binaryDomainSeparator, accountHash), keccak, "hex")
 }
 func (this *DeriveCore) SignOrder(order any, privateKey any) any {
@@ -1550,19 +1550,19 @@ func (this *DeriveCore) SignOrder(order any, privateKey any) any {
 	return this.SignHash(Slice(hashOrder, OpNeg(64), nil), Slice(privateKey, OpNeg(64), nil))
 }
 func (this *DeriveCore) HashMessage(message any) any {
-	var binaryMessage any = this.Encode(message)
-	var binaryMessageLength any = this.BinaryLength(binaryMessage)
-	var x19 any = this.Base16ToBinary("19")
-	var newline any = this.Base16ToBinary("0a")
-	var prefix any = this.BinaryConcat(x19, this.Encode("Ethereum Signed Message:"), newline, this.Encode(this.NumberToString(binaryMessageLength)))
+	var binaryMessage string = this.Encode(message)
+	var binaryMessageLength int = this.BinaryLength(binaryMessage)
+	var x19 []byte = this.Base16ToBinary("19")
+	var newline []byte = this.Base16ToBinary("0a")
+	var prefix []byte = this.BinaryConcat(x19, this.Encode("Ethereum Signed Message:"), newline, this.Encode(this.NumberToString(binaryMessageLength)))
 	return Add("0x", this.Hash(this.BinaryConcat(prefix, binaryMessage), keccak, "hex"))
 }
 func (this *DeriveCore) SignHash(hash any, privateKey any) any {
 	this.CheckRequiredCredentials()
-	var signature any = Ecdsa(Slice(hash, OpNeg(64), nil), Slice(privateKey, OpNeg(64), nil), secp256k1, nil)
+	var signature map[string]any = Ecdsa(Slice(hash, OpNeg(64), nil), Slice(privateKey, OpNeg(64), nil), secp256k1, nil)
 	var r any = GetValue(signature, "r")
 	var s any = GetValue(signature, "s")
-	var v any = this.IntToBase16(this.Sum(27, GetValue(signature, "v")))
+	var v string = this.IntToBase16(this.Sum(27, GetValue(signature, "v")))
 	return Add(Add(Add("0x", PadStart(r, 64, "0")), PadStart(s, 64, "0")), v)
 }
 func (this *DeriveCore) SignMessage(message any, privateKey any) any {
@@ -1625,10 +1625,11 @@ func (this *DeriveCore) createOrderBody(ch chan any, symbol any, typeVar any, si
 	var postOnly any = this.SafeBool(params, "postOnly")
 	var orderType string = ToLower(typeVar)
 	var orderSide string = ToLower(side)
+	var orderSideIsBuy bool = (IsEqual(orderSide, "buy")) // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
 	var nonce int64 = this.Milliseconds()
 	// Order signature expiry must be between 2592000 and 7776000 sec from now
 	var signatureExpiry any = this.SafeInteger(params, "signature_expiry_sec", Add(this.Seconds(), 7776000))
-	var ACTION_TYPEHASH any = this.Base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17")
+	var ACTION_TYPEHASH []byte = this.Base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17")
 	var sandboxMode any = this.SafeBool(this.Options, "sandboxMode", false)
 	var TRADE_MODULE_ADDRESS any = Ternary(IsTrue((IsEqual(sandboxMode, true))), "0x87F2863866D85E3192a35A73b388BD625D83f2be", "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b")
 	var priceString any = this.NumberToString(price)
@@ -1641,7 +1642,7 @@ func (this *DeriveCore) createOrderBody(ch chan any, symbol any, typeVar any, si
 	}
 	var maxFeeString any = this.NumberToString(maxFee)
 	var amountString any = this.NumberToString(amount)
-	var tradeModuleDataHash any = this.Hash(this.EthAbiEncode([]any{"address", "uint", "int", "int", "uint", "uint", "bool"}, []any{GetValue(GetValue(market, "info"), "base_asset_address"), this.ParseToNumeric(GetValue(GetValue(market, "info"), "base_asset_sub_id")), this.ConvertToBigInt(this.ParseUnits(priceString)), this.ConvertToBigInt(this.ParseUnits(this.AmountToPrecision(symbol, amountString))), this.ConvertToBigInt(this.ParseUnits(maxFeeString)), subaccountId, IsEqual(orderSide, "buy")}), keccak, "binary")
+	var tradeModuleDataHash any = this.Hash(this.EthAbiEncode([]any{"address", "uint", "int", "int", "uint", "uint", "bool"}, []any{GetValue(GetValue(market, "info"), "base_asset_address"), this.ParseToNumeric(GetValue(GetValue(market, "info"), "base_asset_sub_id")), this.ConvertToBigInt(this.ParseUnits(priceString)), this.ConvertToBigInt(this.ParseUnits(this.AmountToPrecision(symbol, amountString))), this.ConvertToBigInt(this.ParseUnits(maxFeeString)), subaccountId, orderSideIsBuy}), keccak, "binary")
 	var deriveWalletAddress any = nil
 	deriveWalletAddressparamsVariable := this.HandleDeriveWalletAddress("createOrder", params)
 	deriveWalletAddress = GetValue(deriveWalletAddressparamsVariable, 0)
@@ -1811,8 +1812,8 @@ func (this *DeriveCore) editOrderBody(ch chan any, id any, symbol any, typeVar a
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes143012 := (<-this.LoadMarkets())
-		PanicOnError(retRes143012)
+		retRes143112 := (<-this.LoadMarkets())
+		PanicOnError(retRes143112)
 	}
 	var market any = this.Market(symbol)
 	var subaccountId any = nil
@@ -1824,16 +1825,17 @@ func (this *DeriveCore) editOrderBody(ch chan any, id any, symbol any, typeVar a
 	var postOnly any = this.SafeBool(params, "postOnly")
 	var orderType string = ToLower(typeVar)
 	var orderSide string = ToLower(side)
+	var orderSideIsBuy bool = (IsEqual(orderSide, "buy")) // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
 	var nonce int64 = this.Milliseconds()
 	var signatureExpiry any = this.SafeNumber(params, "signature_expiry_sec", Add(this.Seconds(), 7776000))
 	// TODO: subaccount id / trade module address
-	var ACTION_TYPEHASH any = this.Base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17")
+	var ACTION_TYPEHASH []byte = this.Base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17")
 	var sandboxMode any = this.SafeBool(this.Options, "sandboxMode", false)
 	var TRADE_MODULE_ADDRESS any = Ternary(IsTrue((IsEqual(sandboxMode, true))), "0x87F2863866D85E3192a35A73b388BD625D83f2be", "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b")
 	var priceString any = this.NumberToString(price)
 	var maxFeeString any = this.SafeString(params, "max_fee", "0")
 	var amountString any = this.NumberToString(amount)
-	var tradeModuleDataHash any = this.Hash(this.EthAbiEncode([]any{"address", "uint", "int", "int", "uint", "uint", "bool"}, []any{GetValue(GetValue(market, "info"), "base_asset_address"), this.ParseToNumeric(GetValue(GetValue(market, "info"), "base_asset_sub_id")), this.ConvertToBigInt(this.ParseUnits(priceString)), this.ConvertToBigInt(this.ParseUnits(this.AmountToPrecision(symbol, amountString))), this.ConvertToBigInt(this.ParseUnits(maxFeeString)), subaccountId, IsEqual(orderSide, "buy")}), keccak, "binary")
+	var tradeModuleDataHash any = this.Hash(this.EthAbiEncode([]any{"address", "uint", "int", "int", "uint", "uint", "bool"}, []any{GetValue(GetValue(market, "info"), "base_asset_address"), this.ParseToNumeric(GetValue(GetValue(market, "info"), "base_asset_sub_id")), this.ConvertToBigInt(this.ParseUnits(priceString)), this.ConvertToBigInt(this.ParseUnits(this.AmountToPrecision(symbol, amountString))), this.ConvertToBigInt(this.ParseUnits(maxFeeString)), subaccountId, orderSideIsBuy}), keccak, "binary")
 	var deriveWalletAddress any = nil
 	deriveWalletAddressparamsVariable := this.HandleDeriveWalletAddress("editOrder", params)
 	deriveWalletAddress = GetValue(deriveWalletAddressparamsVariable, 0)
@@ -1983,8 +1985,8 @@ func (this *DeriveCore) cancelOrderBody(ch chan any, id any, optionalArgs ...any
 	}
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes160012 := (<-this.LoadMarkets())
-		PanicOnError(retRes160012)
+		retRes160212 := (<-this.LoadMarkets())
+		PanicOnError(retRes160212)
 	}
 	var market any = this.Market(symbol)
 	var isTrigger any = this.SafeBool2(params, "trigger", "stop", false)
@@ -2099,8 +2101,8 @@ func (this *DeriveCore) cancelAllOrdersBody(ch chan any, optionalArgs ...any) an
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes169112 := (<-this.LoadMarkets())
-		PanicOnError(retRes169112)
+		retRes169312 := (<-this.LoadMarkets())
+		PanicOnError(retRes169312)
 	}
 	var market any = nil
 	if IsTrue(!IsEqual(symbol, nil)) {
@@ -2176,8 +2178,8 @@ func (this *DeriveCore) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes174112 := (<-this.LoadMarkets())
-		PanicOnError(retRes174112)
+		retRes174312 := (<-this.LoadMarkets())
+		PanicOnError(retRes174312)
 	}
 	var paginate any = false
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOrders", "paginate")
@@ -2185,9 +2187,9 @@ func (this *DeriveCore) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	params = GetValue(paginateparamsVariable, 1)
 	if IsTrue(paginate) {
 
-		retRes174619 := (<-this.FetchPaginatedCallIncremental("fetchOrders", symbol, since, limit, params, "page", 500))
-		PanicOnError(retRes174619)
-		ch <- retRes174619
+		retRes174819 := (<-this.FetchPaginatedCallIncremental("fetchOrders", symbol, since, limit, params, "page", 500))
+		PanicOnError(retRes174819)
+		ch <- retRes174819
 		return nil
 	}
 	var isTrigger any = this.SafeBool2(params, "trigger", "stop", false)
@@ -2307,16 +2309,16 @@ func (this *DeriveCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) an
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes184112 := (<-this.LoadMarkets())
-		PanicOnError(retRes184112)
+		retRes184312 := (<-this.LoadMarkets())
+		PanicOnError(retRes184312)
 	}
 	var extendedParams map[string]any = this.Extend(params, map[string]any{
 		"status": "open",
 	})
 
-	retRes184415 := (<-this.FetchOrders(symbol, since, limit, extendedParams))
-	PanicOnError(retRes184415)
-	ch <- retRes184415
+	retRes184615 := (<-this.FetchOrders(symbol, since, limit, extendedParams))
+	PanicOnError(retRes184615)
+	ch <- retRes184615
 	return nil
 }
 
@@ -2350,16 +2352,16 @@ func (this *DeriveCore) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes186112 := (<-this.LoadMarkets())
-		PanicOnError(retRes186112)
+		retRes186312 := (<-this.LoadMarkets())
+		PanicOnError(retRes186312)
 	}
 	var extendedParams map[string]any = this.Extend(params, map[string]any{
 		"status": "filled",
 	})
 
-	retRes186415 := (<-this.FetchOrders(symbol, since, limit, extendedParams))
-	PanicOnError(retRes186415)
-	ch <- retRes186415
+	retRes186615 := (<-this.FetchOrders(symbol, since, limit, extendedParams))
+	PanicOnError(retRes186615)
+	ch <- retRes186615
 	return nil
 }
 
@@ -2393,16 +2395,16 @@ func (this *DeriveCore) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes188112 := (<-this.LoadMarkets())
-		PanicOnError(retRes188112)
+		retRes188312 := (<-this.LoadMarkets())
+		PanicOnError(retRes188312)
 	}
 	var extendedParams map[string]any = this.Extend(params, map[string]any{
 		"status": "cancelled",
 	})
 
-	retRes188415 := (<-this.FetchOrders(symbol, since, limit, extendedParams))
-	PanicOnError(retRes188415)
-	ch <- retRes188415
+	retRes188615 := (<-this.FetchOrders(symbol, since, limit, extendedParams))
+	PanicOnError(retRes188615)
+	ch <- retRes188615
 	return nil
 }
 func (this *DeriveCore) ParseTimeInForce(timeInForce any) any {
@@ -2585,8 +2587,8 @@ func (this *DeriveCore) fetchOrderTradesBody(ch chan any, id any, optionalArgs .
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes205112 := (<-this.LoadMarkets())
-		PanicOnError(retRes205112)
+		retRes205312 := (<-this.LoadMarkets())
+		PanicOnError(retRes205312)
 	}
 	var subaccountId any = nil
 	subaccountIdparamsVariable := this.HandleDeriveSubaccountId("fetchOrderTrades", params)
@@ -2684,8 +2686,8 @@ func (this *DeriveCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes212712 := (<-this.LoadMarkets())
-		PanicOnError(retRes212712)
+		retRes212912 := (<-this.LoadMarkets())
+		PanicOnError(retRes212912)
 	}
 	var paginate any = false
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
@@ -2693,9 +2695,9 @@ func (this *DeriveCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any 
 	params = GetValue(paginateparamsVariable, 1)
 	if IsTrue(paginate) {
 
-		retRes213219 := (<-this.FetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, params, "page", 500))
-		PanicOnError(retRes213219)
-		ch <- retRes213219
+		retRes213419 := (<-this.FetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, params, "page", 500))
+		PanicOnError(retRes213419)
+		ch <- retRes213419
 		return nil
 	}
 	var subaccountId any = nil
@@ -2796,8 +2798,8 @@ func (this *DeriveCore) fetchPositionsBody(ch chan any, optionalArgs ...any) any
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes221212 := (<-this.LoadMarkets())
-		PanicOnError(retRes221212)
+		retRes221412 := (<-this.LoadMarkets())
+		PanicOnError(retRes221412)
 	}
 	var subaccountId any = nil
 	subaccountIdparamsVariable := this.HandleDeriveSubaccountId("fetchPositions", params)
@@ -2909,9 +2911,9 @@ func (this *DeriveCore) ParsePosition(position any, optionalArgs ...any) any {
 		"timestamp":                   timestamp,
 		"datetime":                    this.Iso8601(timestamp),
 		"lastUpdateTimestamp":         nil,
-		"initialMargin":               this.SafeString(position, "initial_margin"),
+		"initialMargin":               this.SafeNumber(position, "initial_margin"),
 		"initialMarginPercentage":     nil,
-		"maintenanceMargin":           this.SafeString(position, "maintenance_margin"),
+		"maintenanceMargin":           this.SafeNumber(position, "maintenance_margin"),
 		"maintenanceMarginPercentage": nil,
 		"entryPrice":                  nil,
 		"notional":                    this.ParseNumber(notional),
@@ -2963,8 +2965,8 @@ func (this *DeriveCore) fetchFundingHistoryBody(ch chan any, optionalArgs ...any
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes235512 := (<-this.LoadMarkets())
-		PanicOnError(retRes235512)
+		retRes235712 := (<-this.LoadMarkets())
+		PanicOnError(retRes235712)
 	}
 	var paginate any = false
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingHistory", "paginate")
@@ -2972,9 +2974,9 @@ func (this *DeriveCore) fetchFundingHistoryBody(ch chan any, optionalArgs ...any
 	params = GetValue(paginateparamsVariable, 1)
 	if IsTrue(paginate) {
 
-		retRes236019 := (<-this.FetchPaginatedCallIncremental("fetchFundingHistory", symbol, since, limit, params, "page", 500))
-		PanicOnError(retRes236019)
-		ch <- retRes236019
+		retRes236219 := (<-this.FetchPaginatedCallIncremental("fetchFundingHistory", symbol, since, limit, params, "page", 500))
+		PanicOnError(retRes236219)
+		ch <- retRes236219
 		return nil
 	}
 	var subaccountId any = nil
@@ -3093,8 +3095,8 @@ func (this *DeriveCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes245912 := (<-this.LoadMarkets())
-		PanicOnError(retRes245912)
+		retRes246112 := (<-this.LoadMarkets())
+		PanicOnError(retRes246112)
 	}
 	var deriveWalletAddress any = nil
 	deriveWalletAddressparamsVariable := this.HandleDeriveWalletAddress("fetchBalance", params)
@@ -3215,8 +3217,8 @@ func (this *DeriveCore) fetchDepositsBody(ch chan any, optionalArgs ...any) any 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes255912 := (<-this.LoadMarkets())
-		PanicOnError(retRes255912)
+		retRes256112 := (<-this.LoadMarkets())
+		PanicOnError(retRes256112)
 	}
 	var subaccountId any = nil
 	subaccountIdparamsVariable := this.HandleDeriveSubaccountId("fetchDeposits", params)
@@ -3287,8 +3289,8 @@ func (this *DeriveCore) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) a
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes260812 := (<-this.LoadMarkets())
-		PanicOnError(retRes260812)
+		retRes261012 := (<-this.LoadMarkets())
+		PanicOnError(retRes261012)
 	}
 	var subaccountId any = nil
 	subaccountIdparamsVariable := this.HandleDeriveSubaccountId("fetchWithdrawals", params)

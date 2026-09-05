@@ -276,7 +276,7 @@ func (this *BinanceCore) GetWsUrl(typeVar any, category any) any {
 		// only rewrite when the URL ends with exactly "/ws"
 		// this avoids matching "/wss", "/ws-api", "/ws-fapi/v1", etc.
 		if ccxt.IsTrue(ccxt.EndsWith(baseUrl, "/ws")) {
-			var prefix any = ccxt.Slice(baseUrl, 0, ccxt.Subtract(ccxt.GetLength(baseUrl), 3))
+			var prefix string = ccxt.Slice(baseUrl, 0, ccxt.Subtract(ccxt.GetLength(baseUrl), 3))
 			return ccxt.Add(ccxt.Add(ccxt.Add(prefix, "/"), category), "/ws")
 		}
 		return baseUrl
@@ -3413,7 +3413,7 @@ func (this *BinanceCore) SignParams(optionalArgs ...any) any {
 		"apiKey":    this.ApiKey,
 	}, params)
 	extendedParams = this.Keysort(extendedParams)
-	var query any = this.Rawencode(extendedParams)
+	var query string = this.Rawencode(extendedParams)
 	var signature any = nil
 	if ccxt.IsTrue(ccxt.IsGreaterThan(ccxt.GetIndexOf(this.Secret, "PRIVATE KEY"), ccxt.OpNeg(1))) {
 		if ccxt.IsTrue(ccxt.IsGreaterThan(ccxt.GetLength(this.Secret), 120)) {
@@ -3983,7 +3983,7 @@ func (this *BinanceCore) keepAliveListenKeyBody(ch chan any, optionalArgs ...any
 		"lastAuthenticatedTime": time,
 	}))
 	// whether or not to schedule another listenKey keepAlive request
-	var clients any = ccxt.ObjectValues(this.Clients)
+	var clients []any = ccxt.ObjectValues(this.Clients)
 	var refreshRateKey any = ccxt.Ternary(ccxt.IsTrue(isStock), "stockListenKeyRefreshRate", "listenKeyRefreshRate")
 	var listenKeyRefreshRate any = this.SafeInteger(this.Options, refreshRateKey, 1200000)
 	var delayParams any = params

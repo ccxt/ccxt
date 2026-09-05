@@ -70,7 +70,7 @@ public partial class bitmex : ccxt.bitmex
             await this.loadMarkets();
         }
         symbolVar = this.symbol(symbolVar);
-        object tickers = await this.watchTickers(new List<object>() {symbolVar}, parameters);
+        object tickers = ccxt.BaseExchange.FromTickers(await this.WatchTickers(new List<object>() {symbolVar}, parameters));
         return ccxt.BaseExchange.ToTicker(getValue(tickers, symbolVar));
     }
 
@@ -83,7 +83,7 @@ public partial class bitmex : ccxt.bitmex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> watchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -120,9 +120,9 @@ public partial class bitmex : ccxt.bitmex
         {
             object result = new Dictionary<string, object>() {};
             ((IDictionary<string,object>)result)[(string)getValue(ticker, "symbol")] = ticker;
-            return result;
+            return ccxt.BaseExchange.ToTickers(result);
         }
-        return this.filterByArray(this.tickers, "symbol", symbols);
+        return ccxt.BaseExchange.ToTickers(this.filterByArray(this.tickers, "symbol", symbols));
     }
 
     public virtual object handleTicker(WebSocketClient client, object message)

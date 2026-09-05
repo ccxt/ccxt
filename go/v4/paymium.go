@@ -594,7 +594,7 @@ func (this *PaymiumCore) fetchDepositAddressesBody(ch chan any, optionalArgs ...
 	//         }
 	//     ]
 	//
-	ch <- this.ParseDepositAddresses(response, codes)
+	ch <- this.ParseDepositAddresses(response, codes, false)
 	return nil
 }
 func (this *PaymiumCore) ParseDepositAddress(depositAddress any, optionalArgs ...any) any {
@@ -875,7 +875,7 @@ func (this *PaymiumCore) Sign(path any, optionalArgs ...any) any {
 			}
 		} else {
 			if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
-				var queryString any = this.Urlencode(query)
+				var queryString string = this.Urlencode(query)
 				auth = Add(auth, queryString)
 				url = Add(url, Add("?", queryString))
 			}

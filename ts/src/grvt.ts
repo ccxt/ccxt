@@ -1286,10 +1286,13 @@ export default class grvt extends Exchange {
         //
         const marketId = this.safeString (rawItem, 'instrument');
         const ts = this.safeIntegerProduct (rawItem, 'funding_time', 0.000001);
+        // the api documents funding_rate in percentage points, and a unified
+        // fundingRate is a fraction, with the Manual's examples reading 0.000072
+        const rate = this.safeString (rawItem, 'funding_rate');
         return {
             'info': rawItem,
             'symbol': this.safeSymbol (marketId, market),
-            'fundingRate': this.safeNumber (rawItem, 'funding_rate'),
+            'fundingRate': this.parseNumber (Precise.stringDiv (rate, '100')),
             'timestamp': ts,
             'datetime': this.iso8601 (ts),
         };

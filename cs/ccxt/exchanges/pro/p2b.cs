@@ -62,7 +62,7 @@ public partial class p2b : ccxt.p2b
     /**
      * @ignore
      * @method
-     * @description Connects to a websocket channel
+     * @description connects to a websocket channel
      * @param {string} name name of the channel
      * @param {string} messageHash string to look up in handler
      * @param {string[]|float[]} request endpoint parameters
@@ -165,7 +165,7 @@ public partial class p2b : ccxt.p2b
      * @param {object} [params.method] 'state' (default) or 'price'
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> watchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -193,7 +193,7 @@ public partial class p2b : ccxt.p2b
             { "id", this.milliseconds() },
         };
         await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
-        return this.filterByArray(this.tickers, "symbol", symbols);
+        return ccxt.BaseExchange.ToTickers(this.filterByArray(this.tickers, "symbol", symbols));
     }
 
     /**

@@ -362,7 +362,7 @@ public partial class coinbase : ccxt.coinbase
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> watchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -380,9 +380,9 @@ public partial class coinbase : ccxt.coinbase
             object tickers = new Dictionary<string, object>() {};
             object symbol = getValue(ticker, "symbol");
             ((IDictionary<string,object>)tickers)[(string)symbol] = ticker;
-            return tickers;
+            return ccxt.BaseExchange.ToTickers(tickers);
         }
-        return this.tickers;
+        return ccxt.BaseExchange.ToTickers(this.tickers);
     }
 
     /**

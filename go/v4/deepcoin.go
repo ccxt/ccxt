@@ -819,7 +819,7 @@ func (this *DeepcoinCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs .
 		retRes65112 := (<-this.LoadMarkets())
 		PanicOnError(retRes65112)
 	}
-	var maxLimit any = 300
+	var maxLimit int = 300
 	var paginate any = false
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCV", "paginate", false)
 	paginate = GetValue(paginateparamsVariable, 0)
@@ -2110,7 +2110,7 @@ func (this *DeepcoinCore) CreateTriggerOrderRequest(symbol any, typeVar any, sid
 	marginModeparamsVariable := this.HandleMarginModeAndParams("createOrder", params, marginMode)
 	marginMode = GetValue(marginModeparamsVariable, 0)
 	params = GetValue(marginModeparamsVariable, 1)
-	var isCrossMargin any = 1
+	var isCrossMargin int = 1
 	if IsTrue(IsEqual(marginMode, "isolated")) {
 		isCrossMargin = 0
 	}
@@ -2870,7 +2870,7 @@ func (this *DeepcoinCore) cancelAllOrdersBody(ch chan any, optionalArgs ...any) 
 	}
 	var productGroup any = this.GetProductGroupFromMarket(market)
 	var marginMode any = this.SafeString(params, "marginMode")
-	var encodedMarginMode any = 1
+	var encodedMarginMode int = 1
 	if IsTrue(!IsEqual(marginMode, nil)) {
 		params = this.Omit(params, "marginMode")
 		if IsTrue(IsEqual(marginMode, "isolated")) {
@@ -3320,7 +3320,7 @@ func (this *DeepcoinCore) ParsePosition(position any, optionalArgs ...any) any {
 		"id":                          this.SafeString(position, "posId"),
 		"timestamp":                   timestamp,
 		"datetime":                    this.Iso8601(timestamp),
-		"contracts":                   this.SafeString(position, "pos"),
+		"contracts":                   this.SafeNumber(position, "pos"),
 		"contractSize":                nil,
 		"side":                        this.SafeString(position, "posSide"),
 		"notional":                    nil,
@@ -3328,7 +3328,7 @@ func (this *DeepcoinCore) ParsePosition(position any, optionalArgs ...any) any {
 		"unrealizedPnl":               nil,
 		"realizedPnl":                 nil,
 		"collateral":                  nil,
-		"entryPrice":                  this.SafeString(position, "avgPx"),
+		"entryPrice":                  this.SafeNumber(position, "avgPx"),
 		"markPrice":                   nil,
 		"liquidationPrice":            this.SafeString(position, "liqPx"),
 		"marginMode":                  this.SafeString(position, "mgnMode"),
@@ -3910,7 +3910,7 @@ func (this *DeepcoinCore) Sign(path any, optionalArgs ...any) any {
 	_ = body
 	var requestPath any = path
 	if IsTrue(IsEqual(method, "GET")) {
-		var query any = this.Urlencode(params)
+		var query string = this.Urlencode(params)
 		if IsTrue(IsGreaterThan(GetArrayLength(query), 0)) {
 			requestPath = Add(requestPath, Add("?", query))
 		}

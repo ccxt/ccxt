@@ -614,6 +614,7 @@ class tokocrypto extends tokocrypto$1["default"] {
                     '3211': errors.InvalidOrder, // {"code":3211,"msg":"The total volume must be greater than 10","timestamp":1662739358179}
                     '3207': errors.InvalidOrder, // {"code":3207,"msg":"The price cannot be lower than 12.18","timestamp":1662739502856}
                     '3218': errors.OrderNotFound, // {"code":3218,"msg":"Order does not exist","timestamp":1662739749275}
+                    '1106': errors.BadRequest, // {"code":1106,"msg":"Incorrect Page number"} — an order book limit outside the 5, 10, 20, 50, 100, 500, 1000 ladder
                 },
                 'broad': {
                     'has no operation privilege': errors.PermissionDenied,
@@ -813,7 +814,6 @@ class tokocrypto extends tokocrypto$1["default"] {
                 'margin': (marginTradingEnable === '1'),
                 'swap': false,
                 'future': false,
-                'delivery': false,
                 'option': false,
                 'active': active,
                 'contract': false,
@@ -893,7 +893,7 @@ class tokocrypto extends tokocrypto$1["default"] {
      * @see https://www.tokocrypto.com/apidocs/#order-book
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @param {string} symbol unified symbol of the market to fetch the order book for
-     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {int} [limit] the maximum amount of order book entries to return, symbol type 3 markets accept 5, 10, 20, 50, 100, 500 or 1000 only
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
@@ -902,18 +902,18 @@ class tokocrypto extends tokocrypto$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const request = {};
+        const request = {
+            'symbol': this.getMarketIdByType(market),
+        };
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 5000, see https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md#order-book
         }
         let response;
-        if (market['quote'] === 'USDT') {
-            request['symbol'] = this.safeString(market, 'baseId', '') + this.safeString(market, 'quoteId', '');
-            response = await this.binanceGetDepth(this.extend(request, params));
+        if (this.isNativeMarket(market)) {
+            response = await this.publicGetOpenV1MarketDepth(this.extend(request, params));
         }
         else {
-            request['symbol'] = market['id'];
-            response = await this.publicGetOpenV1MarketDepth(this.extend(request, params));
+            response = await this.binanceGetDepth(this.extend(request, params));
         }
         //
         // future
@@ -1123,10 +1123,8 @@ class tokocrypto extends tokocrypto$1["default"] {
         // the venue routes market data by the symbol type reported by fetchMarkets,
         // not by the quote currency: type 1 markets are served by the binance host
         // with the underscore-less id, every other type by open/v1 with the raw id
-        const marketInfo = this.safeDict(market, 'info', {});
-        const symbolType = this.safeString(marketInfo, 'type');
-        if (symbolType !== '1') {
-            request['symbol'] = market['id'];
+        request['symbol'] = this.getMarketIdByType(market);
+        if (this.isNativeMarket(market)) {
             if (limit !== undefined) {
                 request['limit'] = limit;
             }
@@ -1157,7 +1155,6 @@ class tokocrypto extends tokocrypto$1["default"] {
             const list = this.safeList(data, 'list', []);
             return this.parseTrades(list, market, since, limit);
         }
-        request['symbol'] = this.safeString(market, 'baseId', '') + this.safeString(market, 'quoteId', '');
         if (limit !== undefined) {
             request['limit'] = limit; // default = 500, maximum = 1000
         }
@@ -1313,6 +1310,9 @@ class tokocrypto extends tokocrypto$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
+        // the binance backed host is the only source of 24hr statistics, so the
+        // result omits the native markets instead of raising for them, unlike
+        // the single symbol fetchTicker
         const response = await this.binanceGetTicker24hr(params);
         if (!Array.isArray(response)) {
             // a user-supplied symbol param makes the endpoint answer a single
@@ -1322,11 +1322,36 @@ class tokocrypto extends tokocrypto$1["default"] {
         }
         return this.parseTickers(response, symbols);
     }
+    /**
+     * @ignore
+     * @method
+     * @name tokocrypto#isNativeMarket
+     * @description whether a market is served by the tokocrypto native endpoints instead of the binance backed host
+     * @param {object} market a unified market structure
+     * @returns {boolean} true when the symbol type of the market is known and is not 1
+     */
+    isNativeMarket(market) {
+        const marketInfo = this.safeDict(market, 'info', {});
+        const symbolType = this.safeString(marketInfo, 'type');
+        // a market with an unknown symbol type falls back to the binance backed
+        // host, the route that answers with data for every symbol type 1 market
+        // and errors out loudly for the others, whereas open/v1 would answer an
+        // empty list for them
+        return (symbolType !== undefined) && (symbolType !== '1');
+    }
+    /**
+     * @ignore
+     * @method
+     * @name tokocrypto#getMarketIdByType
+     * @description the market id spelling expected by the host that serves the market
+     * @param {object} market a unified market structure
+     * @returns {string} the raw market id for native markets, the id without the underscore separator otherwise
+     */
     getMarketIdByType(market) {
-        if (market['quote'] === 'USDT') {
-            return market['baseId'] + market['quoteId'];
+        if (this.isNativeMarket(market)) {
+            return this.safeString(market, 'id');
         }
-        return market['id'];
+        return this.safeString(market, 'baseId', '') + this.safeString(market, 'quoteId', '');
     }
     /**
      * @method
@@ -1342,8 +1367,11 @@ class tokocrypto extends tokocrypto$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
+        if (this.isNativeMarket(market)) {
+            throw new errors.NotSupported(this.id + ' fetchTicker() does not support ' + symbol + ' yet, the venue serves 24hr ticker statistics only for its binance backed markets');
+        }
         const request = {
-            'symbol': this.safeString(market, 'baseId', '') + this.safeString(market, 'quoteId', ''),
+            'symbol': this.getMarketIdByType(market),
         };
         const response = await this.binanceGetTicker24hr(this.extend(request, params));
         if (Array.isArray(response)) {
@@ -1457,11 +1485,11 @@ class tokocrypto extends tokocrypto$1["default"] {
             request['endTime'] = until;
         }
         let response = undefined;
-        if (market['quote'] === 'USDT') {
-            response = await this.binanceGetKlines(this.extend(request, params));
+        if (this.isNativeMarket(market)) {
+            response = await this.publicGetOpenV1MarketKlines(this.extend(request, params));
         }
         else {
-            response = await this.publicGetOpenV1MarketKlines(this.extend(request, params));
+            response = await this.binanceGetKlines(this.extend(request, params));
         }
         //
         // binanceGetKlines
@@ -1473,6 +1501,17 @@ class tokocrypto extends tokocrypto$1["default"] {
         //     ]
         //
         // publicGetOpenV1MarketKlines
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "Success",
+        //         "data": [
+        //             [1787817600000,"521.00","537.00","521.00","537.00","1188.29000000",1787821199999,"632572.93",9,"1027.29000000","548331.93","0"],
+        //         ],
+        //         "timestamp": 1787822924930
+        //     }
+        //
+        // publicGetOpenV1MarketKlines, legacy envelope
         //
         //     {
         //         "code": 0,
@@ -1490,8 +1529,14 @@ class tokocrypto extends tokocrypto$1["default"] {
             data = response;
         }
         else {
-            const responseData = this.safeDict(response, 'data', {});
-            data = this.safeList(responseData, 'list', []);
+            const dataList = this.safeList(response, 'data');
+            if (dataList !== undefined) {
+                data = dataList;
+            }
+            else {
+                const dataDict = this.safeDict(response, 'data', {});
+                data = this.safeList(dataDict, 'list', []);
+            }
         }
         return this.parseOHLCVs(data, market, timeframe, since, limit);
     }

@@ -874,7 +874,7 @@ class binance extends binance$1["default"] {
                         'premiumIndex': { 'cost': 1 },
                         'ticker/24hr': { 'cost': 1, 'noSymbol': 40 },
                         'ticker/price': { 'cost': 1, 'noSymbol': 2 },
-                        'ticker/bookTicker': { 'cost': 1, 'noSymbol': 2 },
+                        'ticker/bookTicker': { 'cost': 2, 'noSymbol': 5 },
                         'openInterest': { 'cost': 1 },
                         'indexInfo': { 'cost': 1 },
                         'assetIndex': { 'cost': 1, 'noSymbol': 10 },
@@ -3950,7 +3950,7 @@ class binance extends binance$1["default"] {
         return account;
     }
     parseBalanceCustom(response, type = undefined, marginMode = undefined, isPortfolioMargin = false) {
-        const result = {
+        let result = {
             'info': response,
         };
         let timestamp = undefined;
@@ -4014,20 +4014,16 @@ class binance extends binance$1["default"] {
             const assets = this.safeList(response, 'assets', []);
             for (let i = 0; i < assets.length; i++) {
                 const asset = assets[i];
-                const marketId = this.safeString(asset, 'symbol');
-                const symbol = this.safeSymbol(marketId, undefined, undefined, 'spot');
                 const base = this.safeDict(asset, 'baseAsset', {});
                 const quote = this.safeDict(asset, 'quoteAsset', {});
                 const baseCode = this.safeCurrencyCode(this.safeString(base, 'asset'));
                 const quoteCode = this.safeCurrencyCode(this.safeString(quote, 'asset'));
-                const subResult = {};
                 if (baseCode !== undefined) {
-                    subResult[baseCode] = this.parseBalanceHelper(base);
+                    result = this.mergeBalanceAccount(result, baseCode, this.parseBalanceHelper(base));
                 }
                 if (quoteCode !== undefined) {
-                    subResult[quoteCode] = this.parseBalanceHelper(quote);
+                    result = this.mergeBalanceAccount(result, quoteCode, this.parseBalanceHelper(quote));
                 }
-                result[symbol] = this.safeBalance(subResult);
             }
         }
         else if (type === 'savings') {
@@ -4086,7 +4082,7 @@ class binance extends binance$1["default"] {
         }
         result['timestamp'] = timestamp;
         result['datetime'] = this.iso8601(timestamp);
-        return isolated ? result : this.safeBalance(result);
+        return this.safeBalance(result);
     }
     /**
      * @method
@@ -4762,18 +4758,24 @@ class binance extends binance$1["default"] {
         [type, params] = this.handleMarketTypeAndParams('fetchBidsAsks', market, params);
         let subType = undefined;
         [subType, params] = this.handleSubTypeAndParams('fetchBidsAsks', market, params);
+        const request = {};
+        if ((symbols !== undefined) && (this.isLinear(type, subType) || this.isInverse(type, subType))) {
+            const symbolsLength = symbols.length;
+            if (symbolsLength === 1) {
+                request['symbol'] = this.marketId(symbols[0]);
+            }
+        }
         let response = undefined;
         if (type === 'option') {
             response = await this.eapiPublicGetTicker(params);
         }
         else if (this.isLinear(type, subType)) {
-            response = await this.fapiPublicGetTickerBookTicker(params);
+            response = await this.fapiPublicGetTickerBookTicker(this.extend(request, params));
         }
         else if (this.isInverse(type, subType)) {
-            response = await this.dapiPublicGetTickerBookTicker(params);
+            response = await this.dapiPublicGetTickerBookTicker(this.extend(request, params));
         }
         else if (type === 'spot') {
-            const request = {};
             if (symbols !== undefined) {
                 request['symbols'] = this.json(this.marketIds(symbols));
             }
@@ -4781,6 +4783,9 @@ class binance extends binance$1["default"] {
         }
         else {
             throw new errors.NotSupported(this.id + ' fetchBidsAsks() does not support ' + type + ' markets yet');
+        }
+        if (!Array.isArray(response)) {
+            response = [response];
         }
         return this.parseTickers(response, symbols);
     }
@@ -14751,7 +14756,7 @@ class binance extends binance$1["default"] {
      * @see https://developers.binance.com/docs/derivatives/option/market-data/Option-Mark-Price
      * @param {string[]} [symbols] unified symbols of the markets to fetch greeks for, all markets are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
+     * @returns {object} a dictionary of [greeks structures]{@link https://docs.ccxt.com/?id=greeks-structure} indexed by market symbol
      */
     async fetchAllGreeks(symbols = undefined, params = {}) {
         if (this.markets === undefined) {

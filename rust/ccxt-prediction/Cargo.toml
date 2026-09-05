@@ -1,0 +1,34 @@
+[package]
+name = "ccxt-prediction"
+version = "4.5.75"
+edition = "2021"
+description = "CCXT – CryptoCurrency eXchange Trading Library (Rust) – typed prediction-market API"
+license = "MIT"
+repository = "https://github.com/ccxt/ccxt"
+homepage = "https://ccxt.com"
+documentation = "https://docs.rs/ccxt-prediction"
+readme = "README.md"
+keywords = ["cryptocurrency", "prediction-market", "trading", "ccxt", "kalshi"]
+categories = ["api-bindings", "asynchronous", "finance"]
+
+[lib]
+name = "ccxt_prediction"
+path = "src/lib.rs"
+
+[dependencies]
+# The untyped engine. The per-venue typed wrappers wrap its prediction Cores
+# (ccxt_base::prediction::<id>) and base method surface. This crate re-exports
+# ccxt-base at its root, so `ccxt_prediction::Value` / `::types::…` resolve
+# alongside the typed wrappers (`ccxt_prediction::Kalshi`).
+ccxt-base = { path = "../ccxt-base", version = "4.5.75", features = ["transpiled-base"] }
+
+tokio = { version = "1", features = ["full"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["preserve_order", "float_roundtrip"] }
+rust_decimal = { version = "1", features = ["serde-str"] }
+num-bigint = "0.4"
+num-traits = "0.2"
+chrono = { version = "0.4", features = ["serde"] }
+async-trait = "0.1"
+futures = "0.3"
+indexmap = { version = "2", features = ["serde"] }

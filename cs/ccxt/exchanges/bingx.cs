@@ -742,6 +742,9 @@ public partial class bingx : Exchange
                                 { "account/apiPermissions", new Dictionary<string, object>() {
                                     { "cost", 5 },
                                 } },
+                                { "account/apiRestrictions", new Dictionary<string, object>() {
+                                    { "cost", 5 },
+                                } },
                                 { "allAccountBalance", new Dictionary<string, object>() {
                                     { "cost", 2 },
                                 } },
@@ -1100,6 +1103,9 @@ public partial class bingx : Exchange
                 { "defaultForInverse", new Dictionary<string, object>() {
                     { "extends", "defaultForLinear" },
                     { "createOrders", null },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 1000 },
+                    } },
                     { "fetchMyTrades", new Dictionary<string, object>() {
                         { "limit", 1000 },
                         { "daysBack", null },
@@ -1161,7 +1167,7 @@ public partial class bingx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the bingx server
      */
-    public async override Task<object> fetchTime(object parameters = null)
+    public async override Task<Int64> FetchTime(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.swapV2PublicGetServerTime(parameters);
@@ -1175,7 +1181,7 @@ public partial class bingx : Exchange
         //    }
         //
         object data = this.safeDict(response, "data");
-        return this.safeInteger(data, "serverTime");
+        return ccxt.BaseExchange.ToInt64Value(this.safeInteger(data, "serverTime"));
     }
 
     /**
@@ -1304,7 +1310,7 @@ public partial class bingx : Exchange
         });
     }
 
-    public async virtual Task<object> fetchSpotMarkets(object parameters)
+    public async virtual Task<List<ccxt.MarketInterface>> FetchSpotMarkets(object parameters)
     {
         object response = await this.spotV1PublicGetCommonSymbols(parameters);
         //
@@ -1336,10 +1342,10 @@ public partial class bingx : Exchange
         //
         object data = this.safeDict(response, "data");
         object markets = this.safeList(data, "symbols", new List<object>() {});
-        return this.parseMarkets(markets);
+        return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(markets));
     }
 
-    public async virtual Task<object> fetchSwapMarkets(object parameters)
+    public async virtual Task<List<ccxt.MarketInterface>> FetchSwapMarkets(object parameters)
     {
         object response = await this.swapV2PublicGetQuoteContracts(parameters);
         //
@@ -1374,10 +1380,10 @@ public partial class bingx : Exchange
         //    }
         //
         object markets = this.safeList(response, "data", new List<object>() {});
-        return this.parseMarkets(markets);
+        return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(markets));
     }
 
-    public async virtual Task<object> fetchInverseSwapMarkets(object parameters)
+    public async virtual Task<List<ccxt.MarketInterface>> FetchInverseSwapMarkets(object parameters)
     {
         object response = await this.cswapV1PublicGetMarketContracts(parameters);
         //
@@ -1399,7 +1405,7 @@ public partial class bingx : Exchange
         //     }
         //
         object markets = this.safeList(response, "data", new List<object>() {});
-        return this.parseMarkets(markets);
+        return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(markets));
     }
 
     public override object parseMarket(object market)
@@ -1449,6 +1455,9 @@ public partial class bingx : Exchange
         } else if (isTrue(isTrue(isTrue((isEqual(this.safeBool(market, "apiStateSell"), true))) && isTrue((isEqual(this.safeBool(market, "apiStateBuy"), true)))) && isTrue((isEqual(this.safeString(market, "status"), "1")))))
         {
             isActive = true; // spot active
+        } else if (isTrue(isTrue(checkIsInverse) && isTrue((isEqual(this.safeString(market, "status"), "1")))))
+        {
+            isActive = true; // inverse swap active
         }
         object isInverse = ((bool) isTrue((spot))) ? null : checkIsInverse;
         object isLinear = ((bool) isTrue((spot))) ? null : checkIsLinear;
@@ -1526,22 +1535,22 @@ public partial class bingx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public async override Task<object> fetchMarkets(object parameters = null)
+    public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object requests = new List<object> {this.fetchSwapMarkets(parameters)};
+        object requests = new List<object> {this.FetchSwapMarkets(parameters)};
         object isSandbox = this.safeBool(this.options, "sandboxMode", false);
         if (isTrue(!isEqual(isSandbox, true)))
         {
-            ((IList<object>)requests).Add(this.fetchInverseSwapMarkets(parameters));
-            ((IList<object>)requests).Add(this.fetchSpotMarkets(parameters)); // sandbox is swap only
+            ((IList<object>)requests).Add(this.FetchInverseSwapMarkets(parameters));
+            ((IList<object>)requests).Add(this.FetchSpotMarkets(parameters)); // sandbox is swap only
         }
         object promises = await promiseAll(requests);
         object linearSwapMarkets = this.safeList(promises, 0, new List<object>() {});
         object inverseSwapMarkets = this.safeList(promises, 1, new List<object>() {});
         object spotMarkets = this.safeList(promises, 2, new List<object>() {});
         object swapMarkets = this.arrayConcat(linearSwapMarkets, inverseSwapMarkets);
-        return this.arrayConcat(spotMarkets, swapMarkets);
+        return ccxt.BaseExchange.ToMarketInterfaceList(this.arrayConcat(spotMarkets, swapMarkets));
     }
 
     /**
@@ -1555,7 +1564,7 @@ public partial class bingx : Exchange
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
-     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch (max 1000 for inverse swaps, 1440 otherwise)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
@@ -1570,32 +1579,38 @@ public partial class bingx : Exchange
         {
             await this.loadMarkets();
         }
+        object market = this.market(symbol);
+        object maxLimit = ((bool) isTrue((isEqual(getValue(market, "inverse"), true)))) ? 1000 : 1440;
         object paginate = false;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
         paginate = ((IList<object>)paginateparametersVariable)[0];
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
-            return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframeVar, parameters, 1440));
+            return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframeVar, parameters, maxLimit));
         }
-        object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
         ((IDictionary<string,object>)request)["interval"] = this.safeString(this.timeframes, timeframeVar, timeframeVar);
+        object requestLimit = ((bool) isTrue((isEqual(limit, null)))) ? 500 : mathMin(limit, maxLimit);
         if (isTrue(!isEqual(since, null)))
         {
             ((IDictionary<string,object>)request)["startTime"] = mathMax(subtract(since, 1), 0);
         }
         if (isTrue(!isEqual(limit, null)))
         {
-            ((IDictionary<string,object>)request)["limit"] = limit;
+            ((IDictionary<string,object>)request)["limit"] = requestLimit;
         }
         object until = this.safeInteger2(parameters, "until", "endTime");
         if (isTrue(!isEqual(until, null)))
         {
             parameters = this.omit(parameters, new List<object>() {"until"});
             ((IDictionary<string,object>)request)["endTime"] = until;
+        } else if (isTrue(isTrue((isEqual(getValue(market, "inverse"), true))) && isTrue((!isEqual(since, null)))))
+        {
+            object duration = multiply(this.parseTimeframe(timeframeVar), 1000);
+            ((IDictionary<string,object>)request)["endTime"] = this.sum(since, multiply(duration, requestLimit));
         }
         object response = null;
         if (isTrue(isEqual(getValue(market, "spot"), true)))
@@ -1995,7 +2010,7 @@ public partial class bingx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2107,7 +2122,7 @@ public partial class bingx : Exchange
         object timestamp = this.safeInteger2(orderbook, "T", "ts");
         object result = this.parseOrderBook(orderbook, getValue(market, "symbol"), timestamp, "bids", "asks", 0, 1);
         ((IDictionary<string,object>)result)["nonce"] = nonce;
-        return result;
+        return ccxt.BaseExchange.ToOrderBook(result);
     }
 
     /**
@@ -2178,7 +2193,7 @@ public partial class bingx : Exchange
      * @param {string} [params.subType] "linear" or "inverse" (default is linear)
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public async override Task<object> fetchFundingRates(object symbols = null, object parameters = null)
+    public async override Task<ccxt.FundingRates> FetchFundingRates(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2200,7 +2215,7 @@ public partial class bingx : Exchange
             response = await this.swapV2PublicGetQuotePremiumIndex(parameters);
         }
         object data = this.safeList(response, "data", new List<object>() {});
-        return this.parseFundingRates(data, symbols);
+        return ccxt.BaseExchange.ToFundingRates(this.parseFundingRates(data, symbols));
     }
 
     public override object parseFundingRate(object contract, object market = null)
@@ -2243,9 +2258,9 @@ public partial class bingx : Exchange
      * @name bingx#fetchFundingRateHistory
      * @description fetches historical funding rate prices
      * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/Get%20Funding%20Rate%20History
-     * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+     * @param {string} symbol unified symbol of the market to fetch the funding rate history for, inverse (Coin-M) markets are not supported
      * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
-     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
+     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch (max 1000)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest funding rate to fetch
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
@@ -2262,6 +2277,11 @@ public partial class bingx : Exchange
         {
             await this.loadMarkets();
         }
+        object market = this.market(symbol);
+        if (isTrue(isEqual(getValue(market, "inverse"), true)))
+        {
+            throw new NotSupported ((string)add(this.id, " fetchFundingRateHistory() is not supported for inverse swap markets")) ;
+        }
         object paginate = false;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
         paginate = ((IList<object>)paginateparametersVariable)[0];
@@ -2270,7 +2290,6 @@ public partial class bingx : Exchange
         {
             return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", parameters));
         }
-        object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
@@ -2280,14 +2299,11 @@ public partial class bingx : Exchange
         }
         if (isTrue(!isEqual(limit, null)))
         {
-            ((IDictionary<string,object>)request)["limit"] = limit;
+            ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 1000); // api maximum 1000
         }
-        object until = this.safeInteger2(parameters, "until", "startTime");
-        if (isTrue(!isEqual(until, null)))
-        {
-            parameters = this.omit(parameters, new List<object>() {"until"});
-            ((IDictionary<string,object>)request)["startTime"] = until;
-        }
+        var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
+        request = ((IList<object>)requestparametersVariable)[0];
+        parameters = ((IList<object>)requestparametersVariable)[1];
         object response = await this.swapV2PublicGetQuoteFundingRate(this.extend(request, parameters));
         //
         //    {
@@ -2617,7 +2633,7 @@ public partial class bingx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> FetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2686,7 +2702,7 @@ public partial class bingx : Exchange
         //     }
         //
         object tickers = this.safeList(response, "data");
-        return this.parseTickers(tickers, symbols);
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, symbols));
     }
 
     /**
@@ -2739,7 +2755,7 @@ public partial class bingx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> fetchMarkPrices(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> FetchMarkPrices(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2798,7 +2814,7 @@ public partial class bingx : Exchange
         //     }
         //
         object tickers = this.safeList(response, "data");
-        return this.parseTickers(tickers, symbols);
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, symbols));
     }
 
     public override object parseTicker(object ticker, object market = null)
@@ -2920,7 +2936,7 @@ public partial class bingx : Exchange
      * @param {string} [params.type] the type of balance to fetch (spot, swap, funding) default is `spot`
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public async override Task<object> fetchBalance(object parameters = null)
+    public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2958,7 +2974,7 @@ public partial class bingx : Exchange
                 response = await this.swapV3PrivateGetUserBalance(marketTypeQuery);
             }
         }
-        return this.parseBalance(response);
+        return ccxt.BaseExchange.ToBalances(this.parseBalance(response));
     }
 
     public override object parseBalance(object response)
@@ -4354,7 +4370,7 @@ public partial class bingx : Exchange
                 }
             } else
             {
-                feeCurrencyCode = getValue(market, "quote");
+                feeCurrencyCode = ((bool) isTrue((isEqual(getValue(market, "inverse"), true)))) ? getValue(market, "settle") : getValue(market, "quote");
             }
         }
         object stopLoss = this.safeValue(order, "stopLoss");
@@ -4694,7 +4710,7 @@ public partial class bingx : Exchange
      * @param {string[]} [params.clientOrderIds] client order ids
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelOrders(object ids, string symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> CancelOrders(object ids, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -4743,7 +4759,7 @@ public partial class bingx : Exchange
         }
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object success = this.safeList2(data, "success", "orders", new List<object>() {});
-        return this.parseOrders(success);
+        return ccxt.BaseExchange.ToOrderList(this.parseOrders(success));
     }
 
     /**
@@ -4755,9 +4771,10 @@ public partial class bingx : Exchange
      * @param {number} timeout time in milliseconds, 0 represents cancel the timer
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.type] spot or swap market
+     * @param {string} [params.subType] 'linear' or 'inverse' (default is 'linear'), 'inverse' is not supported
      * @returns {object} the api result
      */
-    public async override Task<object> cancelAllOrdersAfter(object timeout, object parameters = null)
+    public async override Task<Dictionary<string, object>> CancelAllOrdersAfter(object timeout, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -4774,6 +4791,14 @@ public partial class bingx : Exchange
         var typeparametersVariable = this.handleMarketTypeAndParams("cancelAllOrdersAfter", null, parameters);
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
+        object subType = null;
+        var subTypeparametersVariable = this.handleSubTypeAndParams("cancelAllOrdersAfter", null, parameters);
+        subType = ((IList<object>)subTypeparametersVariable)[0];
+        parameters = ((IList<object>)subTypeparametersVariable)[1];
+        if (isTrue(isTrue((isEqual(type, "swap"))) && isTrue((isEqual(subType, "inverse")))))
+        {
+            throw new NotSupported ((string)add(this.id, " cancelAllOrdersAfter() is not supported for inverse swap markets")) ;
+        }
         if (isTrue(isEqual(type, "spot")))
         {
             response = await this.spotV1PrivatePostTradeCancelAllAfter(this.extend(request, parameters));
@@ -4795,7 +4820,7 @@ public partial class bingx : Exchange
         //         }
         //     }
         //
-        return response;
+        return ccxt.BaseExchange.ToDict(response);
     }
 
     /**
@@ -5319,7 +5344,7 @@ public partial class bingx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public async override Task<object> transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
+    public async override Task<ccxt.TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -5361,23 +5386,19 @@ public partial class bingx : Exchange
             { "amount", this.currencyToPrecision(code, amount) },
         };
         object response = await this.apiAssetV1PrivatePostTransfer(this.extend(request, parameters));
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object timestamp = this.safeInteger(response, "timestamp");
         //
         //     {
-        //         "tranId": 1933130865269936128,
-        //         "transferId": "1051450703949464903736"
+        //         "code": "0",
+        //         "timestamp": "1752202170686",
+        //         "data": {
+        //             "tranId": "1943502883135819776",
+        //             "transferId": "1051461075875997081703"
+        //         }
         //     }
         //
-        return new Dictionary<string, object>() {
-            { "info", response },
-            { "id", this.safeString(response, "transferId") },
-            { "timestamp", null },
-            { "datetime", null },
-            { "currency", code },
-            { "amount", amount },
-            { "fromAccount", fromAccount },
-            { "toAccount", toAccount },
-            { "status", null },
-        };
+        return ccxt.BaseExchange.ToTransferEntry(new Dictionary<string, object>() {             { "info", response },             { "id", this.safeString2(data, "transferId", "tranId") },             { "timestamp", timestamp },             { "datetime", this.iso8601(timestamp) },             { "currency", code },             { "amount", amount },             { "fromAccount", fromAccount },             { "toAccount", toAccount },             { "status", null },         });
     }
 
     /**
@@ -5508,7 +5529,7 @@ public partial class bingx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary [address structures]{@link https://docs.ccxt.com/?id=address-structure}, indexed by the network
      */
-    public async override Task<object> fetchDepositAddressesByNetwork(string code, object parameters = null)
+    public async override Task<ccxt.DepositAddresses> FetchDepositAddressesByNetwork(string code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -5545,7 +5566,7 @@ public partial class bingx : Exchange
         //
         object data = this.safeList(this.safeDict(response, "data"), "data");
         object parsed = this.parseDepositAddresses(data, new List<object>() {getValue(currency, "code")}, false);
-        return this.indexBy(parsed, "network");
+        return ccxt.BaseExchange.ToDepositAddresses(this.indexBy(parsed, "network"));
     }
 
     /**
@@ -5563,7 +5584,7 @@ public partial class bingx : Exchange
         parameters ??= new Dictionary<string, object>();
         object network = this.safeString(parameters, "network");
         parameters = this.omit(parameters, new List<object>() {"network"});
-        object addressStructures = await this.fetchDepositAddressesByNetwork(((string)code), parameters);
+        object addressStructures = ccxt.BaseExchange.FromDepositAddresses(await this.FetchDepositAddressesByNetwork(((string)code), parameters));
         if (isTrue(!isEqual(network, null)))
         {
             return ccxt.BaseExchange.ToDepositAddress(this.safeDict(addressStructures, network));
@@ -5598,7 +5619,7 @@ public partial class bingx : Exchange
         object currencyId = this.safeString(depositAddress, "coin");
         currency = this.safeCurrency(currencyId, currency);
         object code = getValue(currency, "code");
-        object address = this.safeString(depositAddress, "addressWithPrefix");
+        object address = this.safeString2(depositAddress, "addressWithPrefix", "address");
         object networkId = this.safeString(depositAddress, "network");
         object networkCode = this.networkIdToCode(networkId, code);
         // despite its name the addressWithPrefix field sometimes arrives without
@@ -5631,6 +5652,7 @@ public partial class bingx : Exchange
      * @param {int} [since] the earliest time in ms to fetch deposits for
      * @param {int} [limit] the maximum number of deposits structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch deposits for
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async override Task<List<ccxt.Transaction>> FetchDeposits(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
@@ -5653,8 +5675,11 @@ public partial class bingx : Exchange
         }
         if (isTrue(!isEqual(limit, null)))
         {
-            ((IDictionary<string,object>)request)["limit"] = limit; // default 1000
+            ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 1000); // api maximum 1000
         }
+        var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
+        request = ((IList<object>)requestparametersVariable)[0];
+        parameters = ((IList<object>)requestparametersVariable)[1];
         object response = await this.spotV3PrivateGetCapitalDepositHisrec(this.extend(request, parameters));
         //
         //    [
@@ -5685,6 +5710,7 @@ public partial class bingx : Exchange
      * @param {int} [since] the earliest time in ms to fetch withdrawals for
      * @param {int} [limit] the maximum number of withdrawals structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch withdrawals for
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async override Task<List<ccxt.Transaction>> FetchWithdrawals(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
@@ -5707,8 +5733,11 @@ public partial class bingx : Exchange
         }
         if (isTrue(!isEqual(limit, null)))
         {
-            ((IDictionary<string,object>)request)["limit"] = limit; // default 1000
+            ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 1000); // api maximum 1000
         }
+        var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
+        request = ((IList<object>)requestparametersVariable)[0];
+        parameters = ((IList<object>)requestparametersVariable)[1];
         object response = await this.spotV3PrivateGetCapitalWithdrawHistory(this.extend(request, parameters));
         //
         //    [
@@ -5865,7 +5894,7 @@ public partial class bingx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public async override Task<object> setMarginMode(string marginMode, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetMarginMode(string marginMode, string symbol = null, object parameters = null)
     {
         object marginModeVar = marginMode;
         parameters ??= new Dictionary<string, object>();
@@ -5901,10 +5930,10 @@ public partial class bingx : Exchange
         parameters = ((IList<object>)subTypeparametersVariable)[1];
         if (isTrue(isEqual(subType, "inverse")))
         {
-            return await this.cswapV1PrivatePostTradeMarginType(this.extend(request, parameters));
+            return ccxt.BaseExchange.ToDict(await this.cswapV1PrivatePostTradeMarginType(this.extend(request, parameters)));
         } else
         {
-            return await this.swapV2PrivatePostTradeMarginType(this.extend(request, parameters));
+            return ccxt.BaseExchange.ToDict(await this.swapV2PrivatePostTradeMarginType(this.extend(request, parameters)));
         }
     }
 
@@ -6080,7 +6109,7 @@ public partial class bingx : Exchange
      * @param {string} [params.side] hedged: ['long' or 'short']. one way: ['both']
      * @returns {object} response from the exchange
      */
-    public async override Task<object> setLeverage(object leverage, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetLeverage(object leverage, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -6102,10 +6131,10 @@ public partial class bingx : Exchange
         };
         if (isTrue(isEqual(getValue(market, "inverse"), true)))
         {
-            return await this.cswapV1PrivatePostTradeLeverage(this.extend(request, parameters));
+            return ccxt.BaseExchange.ToDict(await this.cswapV1PrivatePostTradeLeverage(this.extend(request, parameters)));
         } else
         {
-            return await this.swapV2PrivatePostTradeLeverage(this.extend(request, parameters));
+            return ccxt.BaseExchange.ToDict(await this.swapV2PrivatePostTradeLeverage(this.extend(request, parameters)));
         }
     }
 
@@ -6252,7 +6281,7 @@ public partial class bingx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public async override Task<object> fetchDepositWithdrawFees(object codes = null, object parameters = null)
+    public async override Task<ccxt.DepositWithdrawFees> FetchDepositWithdrawFees(object codes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -6271,7 +6300,7 @@ public partial class bingx : Exchange
                 ((IDictionary<string,object>)depositWithdrawFees)[(string)code] = this.parseDepositWithdrawFee(entry);
             }
         }
-        return depositWithdrawFees;
+        return ccxt.BaseExchange.ToDepositWithdrawFees(depositWithdrawFees);
     }
 
     /**
@@ -6378,7 +6407,7 @@ public partial class bingx : Exchange
      * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Query%20force%20orders
      * @param {string} [symbol] unified CCXT market symbol
      * @param {int} [since] the earliest time in ms to fetch liquidations for
-     * @param {int} [limit] the maximum number of liquidation structures to retrieve
+     * @param {int} [limit] the maximum number of liquidation structures to retrieve (max 100)
      * @param {object} [params] exchange specific parameters for the bingx api endpoint
      * @param {int} [params.until] timestamp in ms of the latest liquidation
      * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
@@ -6408,7 +6437,7 @@ public partial class bingx : Exchange
         }
         if (isTrue(!isEqual(limit, null)))
         {
-            ((IDictionary<string,object>)request)["limit"] = limit;
+            ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 100); // api maximum 100
         }
         object subType = null;
         var subTypeparametersVariable = this.handleSubTypeAndParams("fetchMyLiquidations", market, parameters);
@@ -6681,7 +6710,7 @@ public partial class bingx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public async override Task<object> setPositionMode(object hedged, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetPositionMode(object hedged, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object market = null;
@@ -6717,7 +6746,7 @@ public partial class bingx : Exchange
         //         data: { dualSidePosition: 'false' }
         //     }
         //
-        return await this.swapV1PrivatePostPositionSideDual(this.extend(request, parameters));
+        return ccxt.BaseExchange.ToDict(await this.swapV1PrivatePostPositionSideDual(this.extend(request, parameters)));
     }
 
     /**
@@ -7087,7 +7116,8 @@ public partial class bingx : Exchange
             version = getValue(section, 2);
             access = getValue(section, 3);
         }
-        if (isTrue(!isEqual(path, "account/apiPermissions")))
+        object flatAccountPaths = new List<object>() {"account/apiPermissions", "account/apiRestrictions"};
+        if (!isTrue(this.inArray(path, flatAccountPaths)))
         {
             if (isTrue(isTrue(isEqual(type, "spot")) && isTrue(isEqual(version, "v3"))))
             {

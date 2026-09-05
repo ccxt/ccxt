@@ -338,12 +338,12 @@ public partial class p2b : Exchange
     /**
      * @method
      * @name p2b#fetchMarkets
-     * @description retrieves data on all markets for bigone
+     * @description retrieves data on all markets for p2b
      * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#markets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public async override Task<object> fetchMarkets(object parameters = null)
+    public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetMarkets(parameters);
@@ -377,7 +377,7 @@ public partial class p2b : Exchange
         //    }
         //
         object markets = this.safeList(response, "result", new List<object>() {});
-        return this.parseMarkets(markets);
+        return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(markets));
     }
 
     public override object parseMarket(object market)
@@ -445,12 +445,12 @@ public partial class p2b : Exchange
      * @method
      * @name p2b#fetchTickers
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-     * @see https://futures-docs.poloniex.com/#get-real-time-ticker-of-all-symbols
+     * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#tickers
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> FetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -484,7 +484,7 @@ public partial class p2b : Exchange
         //    }
         //
         object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
-        return this.parseTickers(result, symbols);
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(result, symbols));
     }
 
     /**
@@ -609,7 +609,7 @@ public partial class p2b : Exchange
      * @param {string} [params.interval] 0 (default), 0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -652,7 +652,7 @@ public partial class p2b : Exchange
         //
         object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
         object timestamp = this.safeIntegerProduct(response, "current_time", 1000);
-        return this.parseOrderBook(result, getValue(market, "symbol"), timestamp, "bids", "asks", 0, 1);
+        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(result, getValue(market, "symbol"), timestamp, "bids", "asks", 0, 1));
     }
 
     /**
@@ -866,7 +866,7 @@ public partial class p2b : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public async override Task<object> fetchBalance(object parameters = null)
+    public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -892,7 +892,7 @@ public partial class p2b : Exchange
         //    }
         //
         object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
-        return this.parseBalance(result);
+        return ccxt.BaseExchange.ToBalances(this.parseBalance(result));
     }
 
     public override object parseBalance(object response)
@@ -1256,7 +1256,7 @@ public partial class p2b : Exchange
     /**
      * @method
      * @name p2b#fetchClosedOrders
-     * @description fetches information on multiple closed orders made by the user, the time between since and params["untnil"] cannot be longer than 24 hours
+     * @description fetches information on multiple closed orders made by the user, the time between since and params["until"] cannot be longer than 24 hours
      * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#orders-history-by-market
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for, default = params["until"] - 86400000

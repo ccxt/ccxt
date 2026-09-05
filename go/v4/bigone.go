@@ -805,7 +805,7 @@ func (this *BigoneCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			"info":    market,
 		}))
 	}
-	var contractMarkets any = this.ToArray(contractResponse)
+	var contractMarkets []any = this.ToArray(contractResponse)
 	for i := 0; IsLessThan(i, GetArrayLength(contractMarkets)); i++ {
 		var market any = GetValue(contractMarkets, i)
 		var baseId any = this.SafeString(market, "baseCurrency")
@@ -2338,7 +2338,7 @@ func (this *BigoneCore) Sign(path any, optionalArgs ...any) any {
 			"sub":   this.ApiKey,
 			"nonce": nonce,
 		}
-		var token any = Jwt(request, this.Encode(this.Secret), sha256)
+		var token string = Jwt(request, this.Encode(this.Secret), sha256)
 		AddElementToObject(headers, "Authorization", Add("Bearer ", token))
 		if IsTrue(IsEqual(method, "GET")) {
 			if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {

@@ -774,7 +774,7 @@ func (this *ApexCore) ParseMarket(market any) any {
 	var settleId any = this.SafeString(market, "settleAssetId")
 	var settle any = this.SafeCurrencyCode(settleId)
 	var symbol any = Add(Add(Add(Add(baseId, "/"), quote), ":"), settle)
-	var expiry any = 0
+	var expiry int = 0
 	var takerFee any = this.ParseNumber("0.0002")
 	var makerFee any = this.ParseNumber("0.0005")
 	return this.SafeMarketStructure(map[string]any{
@@ -1377,7 +1377,7 @@ func (this *ApexCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 			"datetime":    this.Iso8601(timestamp),
 		})
 	}
-	var sorted any = this.SortBy(rates, "timestamp")
+	var sorted []any = this.SortBy(rates, "timestamp")
 
 	ch <- this.FilterBySymbolSinceLimit(sorted, symbol, since, limit)
 	return nil
@@ -2475,7 +2475,7 @@ func (this *ApexCore) ParsePosition(position any, optionalArgs ...any) any {
 		"info":                        position,
 		"id":                          this.SafeString(position, "id"),
 		"symbol":                      symbol,
-		"entryPrice":                  this.SafeString(position, "entryPrice"),
+		"entryPrice":                  this.SafeNumber(position, "entryPrice"),
 		"markPrice":                   nil,
 		"notional":                    nil,
 		"collateral":                  nil,

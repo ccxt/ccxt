@@ -1806,7 +1806,7 @@ func (this *WoofiproCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs 
 			"datetime":    this.Iso8601(timestamp),
 		})
 	}
-	var sorted any = this.SortBy(rates, "timestamp")
+	var sorted []any = this.SortBy(rates, "timestamp")
 
 	ch <- this.FilterBySymbolSinceLimit(sorted, symbol, since, limit)
 	return nil
@@ -3794,10 +3794,10 @@ func (this *WoofiproCore) HashMessage(message any) any {
 	return Add("0x", this.Hash(message, keccak, "hex"))
 }
 func (this *WoofiproCore) SignHash(hash any, privateKey any) any {
-	var signature any = Ecdsa(Slice(hash, OpNeg(64), nil), Slice(privateKey, OpNeg(64), nil), secp256k1, nil)
+	var signature map[string]any = Ecdsa(Slice(hash, OpNeg(64), nil), Slice(privateKey, OpNeg(64), nil), secp256k1, nil)
 	var r any = GetValue(signature, "r")
 	var s any = GetValue(signature, "s")
-	var v any = this.IntToBase16(this.Sum(27, GetValue(signature, "v")))
+	var v string = this.IntToBase16(this.Sum(27, GetValue(signature, "v")))
 	return Add(Add(Add("0x", PadStart(r, 64, "0")), PadStart(s, 64, "0")), v)
 }
 func (this *WoofiproCore) SignMessage(message any, privateKey any) any {
@@ -4597,7 +4597,7 @@ func (this *WoofiproCore) Sign(path any, optionalArgs ...any) any {
 			var parts []string = Split(secret, "ed25519:")
 			secret = GetValue(parts, 1)
 		}
-		var signature any = Eddsa(this.Encode(auth), this.Base58ToBinary(secret), ed25519)
+		var signature string = Eddsa(this.Encode(auth), this.Base58ToBinary(secret), ed25519)
 		AddElementToObject(headers, "orderly-signature", this.UrlencodeBase64(this.Base64ToBinary(signature)))
 	}
 	return map[string]any{

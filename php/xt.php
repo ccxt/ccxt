@@ -1101,7 +1101,7 @@ class xt extends Exchange {
         return $this->parse_markets($symbols);
     }
 
-    public function fetch_swap_and_future_markets($params = array()) {
+    public function fetch_swap_and_future_markets($params = array()): array {
         $markets = array( $this->publicLinearGetFutureMarketV1PublicSymbolList($params), $this->publicInverseGetFutureMarketV1PublicSymbolList($params) );
         //
         //     {
@@ -2575,7 +2575,7 @@ class xt extends Exchange {
         }
     }
 
-    public function create_spot_order(string $symbol, string $type, mixed $side, mixed $amount, ?float $price = null, $params = array()) {
+    public function create_spot_order(string $symbol, string $type, mixed $side, mixed $amount, ?float $price = null, $params = array()): array {
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -2644,7 +2644,7 @@ class xt extends Exchange {
         return $this->parse_order($order, $market);
     }
 
-    public function create_contract_order(string $symbol, mixed $type, mixed $side, mixed $amount, ?float $price = null, $params = array()) {
+    public function create_contract_order(string $symbol, mixed $type, mixed $side, mixed $amount, ?float $price = null, $params = array()): array {
         if ($this->markets === null) {
             $this->load_markets();
         }

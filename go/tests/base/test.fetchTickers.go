@@ -49,7 +49,7 @@ func fetchTickersHelperTestBody(ch chan any, exchange ccxt.ICoreExchange, skippe
 	response := (<-exchange.(ccxt.IFetchTickers).FetchTickers(argSymbols, argParams))
 	PanicOnError(response)
 	AssertDictionaryResponse(exchange, method, response, exchange.Json(argSymbols))
-	var values any = ObjectValues(response)
+	var values []any = ObjectValues(response)
 	var checkedSymbol any = nil
 	if IsTrue(IsTrue(!IsEqual(argSymbols, nil)) && IsTrue(IsEqual(GetArrayLength(argSymbols), 1))) {
 		checkedSymbol = GetValue(argSymbols, 0)
@@ -92,7 +92,7 @@ func fetchTickersHelperTestBody(ch chan any, exchange ccxt.ICoreExchange, skippe
 	return nil
 }
 func FetchTickersAmountsTest(exchange ccxt.ICoreExchange, skippedProperties any, tickers any) {
-	var tickersValues any = ObjectValues(tickers)
+	var tickersValues []any = ObjectValues(tickers)
 	if !IsTrue((InOp(skippedProperties, "checkActiveSymbols"))) {
 		//
 		// ensure all "active" symbols have tickers
@@ -100,7 +100,7 @@ func FetchTickersAmountsTest(exchange ccxt.ICoreExchange, skippedProperties any,
 		var nonInactiveMarkets any = GetActiveMarkets(exchange)
 		var notInactiveSymbolsLength int = GetArrayLength(nonInactiveMarkets)
 		var obtainedTickersLength int = GetArrayLength(tickersValues)
-		var minRatio any = 0.99 // 1.0 - 0.01 = 0.99, hardcoded to avoid C# transpiler type casting issues
+		var minRatio float64 = 0.99 // 1.0 - 0.01 = 0.99, hardcoded to avoid C# transpiler type casting issues
 		Assert(IsGreaterThanOrEqual(obtainedTickersLength, Multiply(notInactiveSymbolsLength, minRatio)), Add(Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), "fetchTickers"), " must return tickers for all active markets. but returned: "), ToString(obtainedTickersLength)), " tickers, "), ToString(notInactiveSymbolsLength)), " active markets"))
 		//
 		// ensure tickers length is less than markets length

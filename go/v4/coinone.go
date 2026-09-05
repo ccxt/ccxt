@@ -1657,7 +1657,7 @@ func (this *CoinoneCore) Sign(path any, optionalArgs ...any) any {
 			"access_token": this.ApiKey,
 			"nonce":        nonce,
 		}, params))
-		var payload any = this.StringToBase64(json)
+		var payload string = this.StringToBase64(json)
 		body = payload
 		var secret string = ToUpper(this.Secret)
 		var signature string = this.Hmac(this.Encode(payload), this.Encode(secret), sha512)

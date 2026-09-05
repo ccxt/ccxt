@@ -1328,7 +1328,7 @@ func (this *Woofipro) EditOrders(orders []OrderRequest, options ...EditOrdersOpt
 func (this *Woofipro) FetchAccounts(params ...any) ([]Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
 }
-func (this *Woofipro) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
+func (this *Woofipro) FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks, error) {
 	return this.exchangeTyped.FetchAllGreeks(options...)
 }
 func (this *Woofipro) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error) {
@@ -1367,7 +1367,7 @@ func (this *Woofipro) FetchDepositAddress(code string, options ...FetchDepositAd
 func (this *Woofipro) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
 	return this.exchangeTyped.FetchDepositAddresses(options...)
 }
-func (this *Woofipro) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
+func (this *Woofipro) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error) {
 	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
 }
 func (this *Woofipro) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (DepositWithdrawFee, error) {

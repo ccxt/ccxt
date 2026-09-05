@@ -672,6 +672,7 @@ public partial class tokocrypto : Exchange
                     { "3211", typeof(InvalidOrder) },
                     { "3207", typeof(InvalidOrder) },
                     { "3218", typeof(OrderNotFound) },
+                    { "1106", typeof(BadRequest) },
                 } },
                 { "broad", new Dictionary<string, object>() {
                     { "has no operation privilege", typeof(PermissionDenied) },
@@ -772,7 +773,7 @@ public partial class tokocrypto : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    public async override Task<object> fetchTime(object parameters = null)
+    public async override Task<Int64> FetchTime(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetOpenV1CommonTime(parameters);
@@ -784,7 +785,7 @@ public partial class tokocrypto : Exchange
         //     "timestamp": 1737378074159
         // }
         //
-        return this.safeInteger(response, "timestamp");
+        return ccxt.BaseExchange.ToInt64Value(this.safeInteger(response, "timestamp"));
     }
 
     /**
@@ -795,7 +796,7 @@ public partial class tokocrypto : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public async override Task<object> fetchMarkets(object parameters = null)
+    public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetOpenV1CommonSymbols(parameters);
@@ -883,7 +884,6 @@ public partial class tokocrypto : Exchange
                 { "margin", (isEqual(marginTradingEnable, "1")) },
                 { "swap", false },
                 { "future", false },
-                { "delivery", false },
                 { "option", false },
                 { "active", active },
                 { "contract", false },
@@ -959,7 +959,7 @@ public partial class tokocrypto : Exchange
             }
             ((IList<object>)result).Add(entry);
         }
-        return result;
+        return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
 
     /**
@@ -968,11 +968,11 @@ public partial class tokocrypto : Exchange
      * @see https://www.tokocrypto.com/apidocs/#order-book
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @param {string} symbol unified symbol of the market to fetch the order book for
-     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {int} [limit] the maximum amount of order book entries to return, symbol type 3 markets accept 5, 10, 20, 50, 100, 500 or 1000 only
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -980,20 +980,20 @@ public partial class tokocrypto : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {};
+        object request = new Dictionary<string, object>() {
+            { "symbol", this.getMarketIdByType(market) },
+        };
         if (isTrue(!isEqual(limit, null)))
         {
             ((IDictionary<string,object>)request)["limit"] = limit; // default 100, max 5000, see https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md#order-book
         }
         object response = null;
-        if (isTrue(isEqual(getValue(market, "quote"), "USDT")))
+        if (isTrue(this.isNativeMarket(market)))
         {
-            ((IDictionary<string,object>)request)["symbol"] = add(this.safeString(market, "baseId", ""), this.safeString(market, "quoteId", ""));
-            response = await this.binanceGetDepth(this.extend(request, parameters));
+            response = await this.publicGetOpenV1MarketDepth(this.extend(request, parameters));
         } else
         {
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
-            response = await this.publicGetOpenV1MarketDepth(this.extend(request, parameters));
+            response = await this.binanceGetDepth(this.extend(request, parameters));
         }
         //
         // future
@@ -1028,7 +1028,7 @@ public partial class tokocrypto : Exchange
         object timestamp = this.safeInteger2(response, "T", "timestamp");
         object orderbook = this.parseOrderBook(data, symbol, timestamp);
         ((IDictionary<string,object>)orderbook)["nonce"] = this.safeInteger(data, "lastUpdateId");
-        return orderbook;
+        return ccxt.BaseExchange.ToOrderBook(orderbook);
     }
 
     public override object parseTrade(object trade, object market = null)
@@ -1209,11 +1209,9 @@ public partial class tokocrypto : Exchange
         // the venue routes market data by the symbol type reported by fetchMarkets,
         // not by the quote currency: type 1 markets are served by the binance host
         // with the underscore-less id, every other type by open/v1 with the raw id
-        object marketInfo = this.safeDict(market, "info", new Dictionary<string, object>() {});
-        object symbolType = this.safeString(marketInfo, "type");
-        if (isTrue(!isEqual(symbolType, "1")))
+        ((IDictionary<string,object>)request)["symbol"] = this.getMarketIdByType(market);
+        if (isTrue(this.isNativeMarket(market)))
         {
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
             if (isTrue(!isEqual(limit, null)))
             {
                 ((IDictionary<string,object>)request)["limit"] = limit;
@@ -1245,7 +1243,6 @@ public partial class tokocrypto : Exchange
             object list = this.safeList(data, "list", new List<object>() {});
             return ccxt.BaseExchange.ToTradeList(this.parseTrades(list, market, since, limit));
         }
-        ((IDictionary<string,object>)request)["symbol"] = add(this.safeString(market, "baseId", ""), this.safeString(market, "quoteId", ""));
         if (isTrue(!isEqual(limit, null)))
         {
             ((IDictionary<string,object>)request)["limit"] = limit; // default = 500, maximum = 1000
@@ -1403,31 +1400,61 @@ public partial class tokocrypto : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> FetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
+        // the binance backed host is the only source of 24hr statistics, so the
+        // result omits the native markets instead of raising for them, unlike
+        // the single symbol fetchTicker
         object response = await this.binanceGetTicker24hr(parameters);
         if (!isTrue(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             // a user-supplied symbol param makes the endpoint answer a single
             // ticker object, the unified fetchTickers contract returns a
             // symbol-keyed dict either way
-            return this.parseTickers(new List<object>() {response}, symbols);
+            return ccxt.BaseExchange.ToTickers(this.parseTickers(new List<object>() {response}, symbols));
         }
-        return this.parseTickers(response, symbols);
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(response, symbols));
     }
 
+    /**
+     * @ignore
+     * @method
+     * @name tokocrypto#isNativeMarket
+     * @description whether a market is served by the tokocrypto native endpoints instead of the binance backed host
+     * @param {object} market a unified market structure
+     * @returns {boolean} true when the symbol type of the market is known and is not 1
+     */
+    public virtual object isNativeMarket(object market)
+    {
+        object marketInfo = this.safeDict(market, "info", new Dictionary<string, object>() {});
+        object symbolType = this.safeString(marketInfo, "type");
+        // a market with an unknown symbol type falls back to the binance backed
+        // host, the route that answers with data for every symbol type 1 market
+        // and errors out loudly for the others, whereas open/v1 would answer an
+        // empty list for them
+        return isTrue((!isEqual(symbolType, null))) && isTrue((!isEqual(symbolType, "1")));
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name tokocrypto#getMarketIdByType
+     * @description the market id spelling expected by the host that serves the market
+     * @param {object} market a unified market structure
+     * @returns {string} the raw market id for native markets, the id without the underscore separator otherwise
+     */
     public virtual object getMarketIdByType(object market)
     {
-        if (isTrue(isEqual(getValue(market, "quote"), "USDT")))
+        if (isTrue(this.isNativeMarket(market)))
         {
-            return add(getValue(market, "baseId"), getValue(market, "quoteId"));
+            return this.safeString(market, "id");
         }
-        return getValue(market, "id");
+        return add(this.safeString(market, "baseId", ""), this.safeString(market, "quoteId", ""));
     }
 
     /**
@@ -1447,8 +1474,12 @@ public partial class tokocrypto : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
+        if (isTrue(this.isNativeMarket(market)))
+        {
+            throw new NotSupported ((string)add(add(add(this.id, " fetchTicker() does not support "), symbol), " yet, the venue serves 24hr ticker statistics only for its binance backed markets")) ;
+        }
         object request = new Dictionary<string, object>() {
-            { "symbol", add(this.safeString(market, "baseId", ""), this.safeString(market, "quoteId", "")) },
+            { "symbol", this.getMarketIdByType(market) },
         };
         object response = await this.binanceGetTicker24hr(this.extend(request, parameters));
         if (isTrue(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
@@ -1572,12 +1603,12 @@ public partial class tokocrypto : Exchange
             ((IDictionary<string,object>)request)["endTime"] = until;
         }
         object response = null;
-        if (isTrue(isEqual(getValue(market, "quote"), "USDT")))
-        {
-            response = await this.binanceGetKlines(this.extend(request, parameters));
-        } else
+        if (isTrue(this.isNativeMarket(market)))
         {
             response = await this.publicGetOpenV1MarketKlines(this.extend(request, parameters));
+        } else
+        {
+            response = await this.binanceGetKlines(this.extend(request, parameters));
         }
         //
         // binanceGetKlines
@@ -1589,6 +1620,17 @@ public partial class tokocrypto : Exchange
         //     ]
         //
         // publicGetOpenV1MarketKlines
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "Success",
+        //         "data": [
+        //             [1787817600000,"521.00","537.00","521.00","537.00","1188.29000000",1787821199999,"632572.93",9,"1027.29000000","548331.93","0"],
+        //         ],
+        //         "timestamp": 1787822924930
+        //     }
+        //
+        // publicGetOpenV1MarketKlines, legacy envelope
         //
         //     {
         //         "code": 0,
@@ -1607,8 +1649,15 @@ public partial class tokocrypto : Exchange
             data = response;
         } else
         {
-            object responseData = this.safeDict(response, "data", new Dictionary<string, object>() {});
-            data = this.safeList(responseData, "list", new List<object>() {});
+            object dataList = this.safeList(response, "data");
+            if (isTrue(!isEqual(dataList, null)))
+            {
+                data = dataList;
+            } else
+            {
+                object dataDict = this.safeDict(response, "data", new Dictionary<string, object>() {});
+                data = this.safeList(dataDict, "list", new List<object>() {});
+            }
         }
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(data, market, timeframeVar, since, limitVar));
     }
@@ -1624,7 +1673,7 @@ public partial class tokocrypto : Exchange
      * @param {string[]|undefined} [params.symbols] unified market symbols, only used in isolated margin mode
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public async override Task<object> fetchBalance(object parameters = null)
+    public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1661,7 +1710,7 @@ public partial class tokocrypto : Exchange
         //         "timestamp":1659666786943
         //     }
         //
-        return this.parseBalanceCustom(response, type, marginMode);
+        return ccxt.BaseExchange.ToBalances(this.parseBalanceCustom(response, type, marginMode));
     }
 
     public virtual object parseBalanceCustom(object response, object type = null, object marginMode = null)

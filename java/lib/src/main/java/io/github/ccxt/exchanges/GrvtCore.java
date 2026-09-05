@@ -1617,10 +1617,13 @@ public class GrvtCore extends GrvtApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object marketId = this.safeString(rawItem, "instrument");
         Object ts = this.safeIntegerProduct(rawItem, "funding_time", 0.000001);
+        // the api documents funding_rate in percentage points, and a unified
+        // fundingRate is a fraction, with the Manual's examples reading 0.000072
+        Object rate = this.safeString(rawItem, "funding_rate");
         return new java.util.HashMap<String, Object>() {{
             put( "info", rawItem );
             put( "symbol", GrvtCore.this.safeSymbol(marketId, market) );
-            put( "fundingRate", GrvtCore.this.safeNumber(rawItem, "funding_rate") );
+            put( "fundingRate", GrvtCore.this.parseNumber(Precise.stringDiv(rate, "100")) );
             put( "timestamp", ts );
             put( "datetime", GrvtCore.this.iso8601(ts) );
         }};

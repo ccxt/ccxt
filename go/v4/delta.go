@@ -3873,7 +3873,7 @@ func (this *DeltaCore) fetchSettlementHistoryBody(ch chan any, optionalArgs ...a
 	//
 	var result any = this.SafeList(response, "result", []any{})
 	var settlements any = this.ParseSettlements(result, market)
-	var sorted any = this.SortBy(settlements, "timestamp")
+	var sorted []any = this.SortBy(settlements, "timestamp")
 
 	ch <- this.FilterBySymbolSinceLimit(sorted, this.SafeString(market, "symbol"), since, limit)
 	return nil

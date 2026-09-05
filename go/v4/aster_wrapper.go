@@ -1293,7 +1293,7 @@ func (this *Aster) EditOrders(orders []OrderRequest, options ...EditOrdersOption
 func (this *Aster) FetchAccounts(params ...any) ([]Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
 }
-func (this *Aster) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
+func (this *Aster) FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks, error) {
 	return this.exchangeTyped.FetchAllGreeks(options...)
 }
 func (this *Aster) FetchBorrowInterest(options ...FetchBorrowInterestOptions) ([]BorrowInterest, error) {
@@ -1332,7 +1332,7 @@ func (this *Aster) FetchDepositAddress(code string, options ...FetchDepositAddre
 func (this *Aster) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
 	return this.exchangeTyped.FetchDepositAddresses(options...)
 }
-func (this *Aster) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
+func (this *Aster) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error) {
 	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
 }
 func (this *Aster) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {

@@ -608,7 +608,7 @@ func (this *Kraken) EditOrders(orders []ccxt.OrderRequest, options ...ccxt.EditO
 func (this *Kraken) FetchAccounts(params ...any) ([]ccxt.Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
 }
-func (this *Kraken) FetchAllGreeks(options ...ccxt.FetchAllGreeksOptions) ([]ccxt.Greeks, error) {
+func (this *Kraken) FetchAllGreeks(options ...ccxt.FetchAllGreeksOptions) (ccxt.AllGreeks, error) {
 	return this.exchangeTyped.FetchAllGreeks(options...)
 }
 func (this *Kraken) FetchBalance(params ...any) (ccxt.Balances, error) {
@@ -656,7 +656,7 @@ func (this *Kraken) FetchDepositAddress(code string, options ...ccxt.FetchDeposi
 func (this *Kraken) FetchDepositAddresses(options ...ccxt.FetchDepositAddressesOptions) ([]ccxt.DepositAddress, error) {
 	return this.exchangeTyped.FetchDepositAddresses(options...)
 }
-func (this *Kraken) FetchDepositAddressesByNetwork(code string, options ...ccxt.FetchDepositAddressesByNetworkOptions) ([]ccxt.DepositAddress, error) {
+func (this *Kraken) FetchDepositAddressesByNetwork(code string, options ...ccxt.FetchDepositAddressesByNetworkOptions) (ccxt.DepositAddresses, error) {
 	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
 }
 func (this *Kraken) FetchDeposits(options ...ccxt.FetchDepositsOptions) ([]ccxt.Transaction, error) {

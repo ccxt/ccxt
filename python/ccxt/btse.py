@@ -1482,7 +1482,10 @@ class btse(Exchange, ImplicitAPI):
         nextFundingTimestamp = self.safe_integer_omit_zero(contract, 'nextFundingTime')
         fundingIntervalMinutes = self.safe_integer(contract, 'fundingIntervalMinutes')
         interval = None
-        if fundingIntervalMinutes is not None:
+        # a wire value of zero minutes reaches self, and zero hours is not an
+        # interval: a caller annualising a rate divides by it. anything under an
+        # hour rounds to the same string, and the vocabulary has no minutes
+        if (fundingIntervalMinutes is not None) and (fundingIntervalMinutes >= 60):
             hours = self.parse_to_int(fundingIntervalMinutes / 60)
             interval = str(hours) + 'h'
         return {
@@ -2213,7 +2216,7 @@ class btse(Exchange, ImplicitAPI):
         }
         return self.safe_string(priceTypes, priceType, priceType)
 
-    def fetch_open_order(self, id: str, symbol: Str = None, params={}):
+    def fetch_open_order(self, id: str, symbol: Str = None, params={}) -> Order:
         """
         fetches information on an open order made by the user
 

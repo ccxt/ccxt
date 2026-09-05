@@ -34,14 +34,14 @@ import PredictionExchange from './src/base/PredictionExchange.js'
 import { Precise }   from './src/base/Precise.js'
 import * as functions from './src/base/functions.js'
 import * as errors   from './src/base/errors.js'
-import type { Int, int, Str, Strings, Num, Bool, IndexType, NullableIndexType, OrderSide, OrderType, MarketType, SubType, Dict, NullableDict, List, NullableList, Fee, FeeString, OHLCV, OHLCVC, safeInputType, Market, Currency, Dictionary, Endpoint, NestedDictionary, MinMax, FeeInterface, FeeStringInterface, TradingFeeInterface, MarketInterface, Precision, PredictionEvent, PredictionOutcome, PredictionMarket, PredictionSettlement, PredictionFees, PredictionOrder, PredictionTrade, PredictionPosition, PredictionTicker, PredictionOrderBook, PredictionTickers, PredictionTradingFee, PredictionOpenInterest, PredictionOrderRequest, fetchEventsParams, Trade, Order, OrderBook, Ticker, Transaction, Tickers, CurrencyInterface, Balance, BalanceAccount, Account, PartialBalances, Balances, DepositAddress, WithdrawalResponse, FundingRate, FundingRates, Position, BorrowInterest, LeverageTier, LedgerEntry, DepositWithdrawFeeNetwork, DepositWithdrawFee, DepositWithdrawFees, TransferEntry, CrossBorrowRate, IsolatedBorrowRate, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, CancellationRequest, FundingHistory, MarketMarginModes, MarginMode, Greeks, Conversion, Option, LastPrice, Leverage, MarginModification, MarginLoan, Leverages, LastPrices, Currencies, TradingFees, MarginModes, OptionChain, IsolatedBorrowRates, CrossBorrowRates, LeverageTiers, LongShortRatio, OrderBooks, OpenInterests, ConstructorArgs, ADL, Status, PositionModeInfo } from './src/base/types.js'
+import type { Int, int, Str, Strings, Num, Bool, IndexType, NullableIndexType, OrderSide, OrderType, MarketType, SubType, Dict, NullableDict, List, NullableList, Fee, FeeString, OHLCV, OHLCVC, safeInputType, Market, Currency, Dictionary, Endpoint, NestedDictionary, MinMax, FeeInterface, FeeStringInterface, TradingFeeInterface, MarketInterface, Precision, PredictionEvent, PredictionOutcome, PredictionMarket, PredictionSettlement, PredictionFees, PredictionOrder, PredictionTrade, PredictionPosition, PredictionTicker, PredictionOrderBook, PredictionTickers, PredictionTradingFee, PredictionOpenInterest, PredictionOrderRequest, fetchEventsParams, Trade, Order, OrderBook, Ticker, Transaction, Tickers, CurrencyInterface, Balance, BalanceAccount, Account, PartialBalances, Balances, DepositAddress, DepositAddresses, WithdrawalResponse, FundingRate, FundingRates, Position, BorrowInterest, LeverageTier, LedgerEntry, DepositWithdrawFeeNetwork, DepositWithdrawFee, DepositWithdrawFees, TransferEntry, CrossBorrowRate, IsolatedBorrowRate, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, CancellationRequest, FundingHistory, MarketMarginModes, MarginMode, Greeks, AllGreeks, Conversion, Option, LastPrice, Leverage, MarginModification, MarginLoan, Leverages, LastPrices, Currencies, TradingFees, MarginModes, OptionChain, IsolatedBorrowRates, CrossBorrowRates, LeverageTiers, LongShortRatio, OrderBooks, OpenInterests, ConstructorArgs, ADL, Status, PositionModeInfo } from './src/base/types.js'
 import {BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, MarketClosed, ManualInteractionNeeded, RestrictedLocation, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, InvalidProxySettings, ExchangeClosedByUser, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, ChecksumError, RequestTimeout, BadResponse, NullResponse, CancelPending, UnsubscribeError}  from './src/base/errors.js'
 
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.5.76';
+const version = '4.5.77';
 
 //-----------------------------------------------------------------------------
 
@@ -138,6 +138,7 @@ import paradex from  './src/paradex.js'
 import paymium from  './src/paymium.js'
 import phemex from  './src/phemex.js'
 import poloniex from  './src/poloniex.js'
+import revolutx from  './src/revolutx.js'
 import tokocrypto from  './src/tokocrypto.js'
 import toobit from  './src/toobit.js'
 import upbit from  './src/upbit.js'
@@ -330,6 +331,7 @@ const exchanges = {
     'paymium':                paymium,
     'phemex':                 phemex,
     'poloniex':               poloniex,
+    'revolutx':               revolutx,
     'tokocrypto':             tokocrypto,
     'toobit':                 toobit,
     'upbit':                  upbit,
@@ -557,6 +559,7 @@ export {
     PartialBalances,
     Balances,
     DepositAddress,
+    DepositAddresses,
     WithdrawalResponse,
     FundingRate,
     FundingRates,
@@ -580,6 +583,7 @@ export {
     FundingHistory,
     MarginMode,
     Greeks,
+    AllGreeks,
     Conversion,
     Option,
     LastPrice,
@@ -692,6 +696,7 @@ export {
     paymium,
     phemex,
     poloniex,
+    revolutx,
     tokocrypto,
     toobit,
     upbit,

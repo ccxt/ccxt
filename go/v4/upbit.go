@@ -888,7 +888,7 @@ func (this *UpbitCore) fetchOrderBooksBody(ch chan any, optionalArgs ...any) any
 	//                               "bid_size": 0.4650305 }    ] }   ]
 	//
 	var result map[string]any = map[string]any{}
-	var orderbooks any = this.ToArray(response)
+	var orderbooks []any = this.ToArray(response)
 	for i := 0; IsLessThan(i, GetArrayLength(orderbooks)); i++ {
 		var orderbook any = GetValue(orderbooks, i)
 		var marketId any = this.SafeString(orderbook, "market")
@@ -1040,7 +1040,7 @@ func (this *UpbitCore) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 				AppendToArray(&quoteIds, quoteId)
 			}
 		}
-		var sortedQuoteIds any = this.Sort(quoteIds) // market iteration order differs per language
+		var sortedQuoteIds []any = this.Sort(quoteIds) // market iteration order differs per language
 		var quoteCurrencies any = ""
 		for i := 0; IsLessThan(i, GetArrayLength(sortedQuoteIds)); i++ {
 			if IsTrue(!IsEqual(quoteCurrencies, "")) {
@@ -1533,7 +1533,7 @@ func (this *UpbitCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...a
 	//         }
 	//     ]
 	//
-	var ohlcvs any = this.ToArray(response)
+	var ohlcvs []any = this.ToArray(response)
 
 	ch <- this.ParseOHLCVs(ohlcvs, market, timeframe, since, limit)
 	return nil
@@ -2795,7 +2795,7 @@ func (this *UpbitCore) fetchDepositAddressesBody(ch chan any, optionalArgs ...an
 	//         }
 	//     ]
 	//
-	ch <- this.ParseDepositAddresses(response, codes)
+	ch <- this.ParseDepositAddresses(response, codes, false)
 	return nil
 }
 func (this *UpbitCore) ParseDepositAddress(depositAddress any, optionalArgs ...any) any {
@@ -3059,7 +3059,7 @@ func (this *UpbitCore) Sign(path any, optionalArgs ...any) any {
 			AddElementToObject(request, "query_hash", hash)
 			AddElementToObject(request, "query_hash_alg", "SHA512")
 		}
-		var token any = Jwt(request, this.Encode(this.Secret), sha256)
+		var token string = Jwt(request, this.Encode(this.Secret), sha256)
 		AddElementToObject(headers, "Authorization", Add("Bearer ", token))
 	}
 	return map[string]any{

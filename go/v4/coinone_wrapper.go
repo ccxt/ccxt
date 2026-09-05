@@ -474,7 +474,7 @@ func (this *Coinone) EditOrders(orders []OrderRequest, options ...EditOrdersOpti
 func (this *Coinone) FetchAccounts(params ...any) ([]Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
 }
-func (this *Coinone) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
+func (this *Coinone) FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks, error) {
 	return this.exchangeTyped.FetchAllGreeks(options...)
 }
 func (this *Coinone) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error) {
@@ -513,7 +513,7 @@ func (this *Coinone) FetchCrossBorrowRates(params ...any) (CrossBorrowRates, err
 func (this *Coinone) FetchDepositAddress(code string, options ...FetchDepositAddressOptions) (DepositAddress, error) {
 	return this.exchangeTyped.FetchDepositAddress(code, options...)
 }
-func (this *Coinone) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
+func (this *Coinone) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error) {
 	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
 }
 func (this *Coinone) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {

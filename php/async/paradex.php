@@ -2573,11 +2573,11 @@ class paradex extends Exchange {
             'info' => $position,
             'id' => $this->safe_string($position, 'id'),
             'symbol' => $symbol,
-            'entryPrice' => $this->safe_string($position, 'average_entry_price'),
+            'entryPrice' => $this->safe_number($position, 'average_entry_price'),
             'markPrice' => null,
             'notional' => null,
-            'collateral' => $this->safe_string($position, 'cost'),
-            'unrealizedPnl' => $this->safe_string($position, 'unrealized_pnl'),
+            'collateral' => $this->safe_number($position, 'cost'),
+            'unrealizedPnl' => $this->safe_number($position, 'unrealized_pnl'),
             'side' => $side,
             'contracts' => $this->parse_number($quantity),
             'contractSize' => null,
@@ -3218,7 +3218,7 @@ class paradex extends Exchange {
          *
          * @param {string[]} [$symbols] unified $symbols of the markets to fetch greeks for, all markets are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/?id=greeks-structure greeks structure~
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=greeks-structure greeks structures~ indexed by market symbol
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());

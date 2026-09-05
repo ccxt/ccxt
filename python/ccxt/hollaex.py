@@ -1557,7 +1557,7 @@ class hollaex(Exchange, ImplicitAPI):
         #
         wallet = self.safe_value(response, 'wallet', [])
         addresses = wallet if (network is None) else self.filter_by(wallet, 'network', network)
-        return self.parse_deposit_addresses(addresses, codes)
+        return self.parse_deposit_addresses(addresses, codes, False)
 
     def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
@@ -1617,7 +1617,7 @@ class hollaex(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_transactions(data, currency, since, limit)
 
-    def fetch_withdrawal(self, id: str, code: Str = None, params={}):
+    def fetch_withdrawal(self, id: str, code: Str = None, params={}) -> Transaction:
         """
         fetch data on a currency withdrawal via the withdrawal id
 

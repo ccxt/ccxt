@@ -85,7 +85,7 @@ func (this *ExtendedCore) watchOrderBookBody(ch chan any, symbol any, optionalAr
 	var market any = this.Market(symbol)
 	symbol = ccxt.GetValue(market, "symbol")
 	var messageHash any = ccxt.Add("orderbook:", symbol)
-	var query any = this.Urlencode(params)
+	var query string = this.Urlencode(params)
 	var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "/orderbooks/"), ccxt.GetValue(market, "id"))
 	if ccxt.IsTrue(ccxt.IsGreaterThan(ccxt.GetArrayLength(query), 0)) {
 		url = ccxt.Add(url, ccxt.Add("?", query))
@@ -657,7 +657,7 @@ func (this *ExtendedCore) watchFundingRateBody(ch chan any, symbol any, optional
 	var market any = this.Market(symbol)
 	symbol = ccxt.GetValue(market, "symbol")
 	var messageHash any = ccxt.Add("fundingRate:", symbol)
-	var query any = this.Urlencode(params)
+	var query string = this.Urlencode(params)
 	var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "/funding/"), ccxt.GetValue(market, "id"))
 	if ccxt.IsTrue(ccxt.IsGreaterThan(ccxt.GetArrayLength(query), 0)) {
 		url = ccxt.Add(url, ccxt.Add("?", query))
@@ -748,7 +748,7 @@ func (this *ExtendedCore) watchMarkPriceBody(ch chan any, symbol any, optionalAr
 	var market any = this.Market(symbol)
 	symbol = ccxt.GetValue(market, "symbol")
 	var messageHash any = ccxt.Add("markPrice:", symbol)
-	var query any = this.Urlencode(params)
+	var query string = this.Urlencode(params)
 	var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "/prices/mark/"), ccxt.GetValue(market, "id"))
 	if ccxt.IsTrue(ccxt.IsGreaterThan(ccxt.GetArrayLength(query), 0)) {
 		url = ccxt.Add(url, ccxt.Add("?", query))
@@ -829,7 +829,7 @@ func (this *ExtendedCore) watchTradesBody(ch chan any, symbol any, optionalArgs 
 	var market any = this.Market(symbol)
 	symbol = ccxt.GetValue(market, "symbol")
 	var messageHash any = ccxt.Add("trades:", symbol)
-	var query any = this.Urlencode(params)
+	var query string = this.Urlencode(params)
 	var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "/publicTrades/"), ccxt.GetValue(market, "id"))
 	if ccxt.IsTrue(ccxt.IsGreaterThan(ccxt.GetArrayLength(query), 0)) {
 		url = ccxt.Add(url, ccxt.Add("?", query))
@@ -946,7 +946,7 @@ func (this *ExtendedCore) watchOHLCVBody(ch chan any, symbol any, optionalArgs .
 	params = this.Omit(params, []any{"candleType", "price"})
 	var interval any = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add("ohlcv:", symbol), ":"), timeframe), ":"), candleType)
-	var query any = this.Urlencode(this.Extend(map[string]any{
+	var query string = this.Urlencode(this.Extend(map[string]any{
 		"interval": interval,
 	}, params))
 	var url any = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "/candles/"), ccxt.GetValue(market, "id")), "/"), candleType), "?"), query)

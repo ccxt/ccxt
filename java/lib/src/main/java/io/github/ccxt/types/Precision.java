@@ -9,6 +9,8 @@ public final class Precision {
     public Double amount;
     public Double price;
     public Double cost;
+    public Double base;
+    public Double quote;
 
     @SuppressWarnings("unchecked")
     public Precision(Object raw) {
@@ -16,5 +18,7 @@ public final class Precision {
         this.amount = TypeHelper.safeFloat(data, "amount");
         this.price = TypeHelper.safeFloat(data, "price");
         this.cost = TypeHelper.safeFloat(data, "cost");
+        this.base = TypeHelper.safeFloat(data, "base");
+        this.quote = TypeHelper.safeFloat(data, "quote");
     }
 }

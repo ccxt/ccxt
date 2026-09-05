@@ -199,7 +199,7 @@ public partial class weex : ccxt.weex
             await this.loadMarkets();
         }
         symbolVar = this.symbol(symbolVar);
-        object tickers = await this.watchTickers(new List<object>() {symbolVar}, parameters);
+        object tickers = ccxt.BaseExchange.FromTickers(await this.WatchTickers(new List<object>() {symbolVar}, parameters));
         return ccxt.BaseExchange.ToTicker(getValue(tickers, symbolVar));
     }
 
@@ -213,7 +213,7 @@ public partial class weex : ccxt.weex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> watchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -240,9 +240,9 @@ public partial class weex : ccxt.weex
         {
             object result = new Dictionary<string, object>() {};
             ((IDictionary<string,object>)result)[(string)getValue(newTicker, "symbol")] = newTicker;
-            return result;
+            return ccxt.BaseExchange.ToTickers(result);
         }
-        return this.filterByArray(this.tickers, "symbol", symbols);
+        return ccxt.BaseExchange.ToTickers(this.filterByArray(this.tickers, "symbol", symbols));
     }
 
     /**
@@ -622,7 +622,7 @@ public partial class weex : ccxt.weex
         Dictionary<string, object> extendedParams = this.extend(parameters, new Dictionary<string, object>() {
             { "callerMethodName", "watchOHLCV" },
         });
-        object result = await this.watchOHLCVForSymbols(new List<object>() {new List<object>() {symbol, timeframeVar}}, since, limit, extendedParams);
+        object result = ccxt.BaseExchange.FromOHLCVDict(await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbol, timeframeVar}}, since, limit, extendedParams));
         return ccxt.BaseExchange.ToOHLCVList(getValue(getValue(result, symbol), timeframeVar));
     }
 
@@ -638,7 +638,7 @@ public partial class weex : ccxt.weex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<object> watchOHLCVForSymbols(object symbolsAndTimeframes, object since = null, object limit = null, object parameters = null)
+    public async override Task<Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>>> WatchOHLCVForSymbols(object symbolsAndTimeframes, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -686,7 +686,7 @@ public partial class weex : ccxt.weex
             limit = callDynamically(stored, "getLimit", new object[] {symbol, limit});
         }
         object filtered = this.filterBySinceLimit(stored, since, limit, 0, true);
-        return this.createOHLCVObject(symbol, timeframe, filtered);
+        return ccxt.BaseExchange.ToOHLCVDict(this.createOHLCVObject(symbol, timeframe, filtered));
     }
 
     /**
@@ -1811,7 +1811,7 @@ public partial class weex : ccxt.weex
         object parameters = new Dictionary<string, object>() {
             { "type", type },
         };
-        object response = await this.fetchBalance(parameters);
+        object response = ccxt.BaseExchange.FromBalances(await this.FetchBalance(parameters));
         ((IDictionary<string,object>)this.balance)[(string)type] = this.extend(response, this.safeValue(this.balance, type, new Dictionary<string, object>() {}));
         // don't remove the future from the .futures cache
         if (isTrue(inOp(client.futures, messageHash)))
@@ -1981,7 +1981,7 @@ public partial class weex : ccxt.weex
 
     public async virtual Task loadPositionsSnapshot(WebSocketClient client, object messageHash, object parameters)
     {
-        object positions = await this.FetchPositions(null, parameters);
+        object positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositions(null, parameters));
         this.positions = new ArrayCacheBySymbolById();
         object cache = this.positions;
         for (object i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))

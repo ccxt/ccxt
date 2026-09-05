@@ -5754,9 +5754,9 @@ public class BinanceusdmApi extends BinanceCore
      * Calls the fapiPublicGetTickerBookTicker endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON array
+     * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  fapiPublicGetTickerBookTicker (Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object>  fapiPublicGetTickerBookTicker (Object... optionalArgs)
     {
         return this.callAsync ("fapiPublicGetTickerBookTicker", optionalArgs);
     }

@@ -1678,10 +1678,10 @@ func (this *ParadexCore) HashMessage(message any) any {
 	return Add("0x", this.Hash(message, keccak, "hex"))
 }
 func (this *ParadexCore) SignHash(hash any, privateKey any) any {
-	var signature any = Ecdsa(Slice(hash, OpNeg(64), nil), Slice(privateKey, OpNeg(64), nil), secp256k1, nil)
+	var signature map[string]any = Ecdsa(Slice(hash, OpNeg(64), nil), Slice(privateKey, OpNeg(64), nil), secp256k1, nil)
 	var r any = GetValue(signature, "r")
 	var s any = GetValue(signature, "s")
-	var v any = this.IntToBase16(this.Sum(27, GetValue(signature, "v")))
+	var v string = this.IntToBase16(this.Sum(27, GetValue(signature, "v")))
 	return Add(Add(Add("0x", PadStart(r, 64, "0")), PadStart(s, 64, "0")), v)
 }
 func (this *ParadexCore) SignMessage(message any, privateKey any) any {
@@ -3239,11 +3239,11 @@ func (this *ParadexCore) ParsePosition(position any, optionalArgs ...any) any {
 		"info":                        position,
 		"id":                          this.SafeString(position, "id"),
 		"symbol":                      symbol,
-		"entryPrice":                  this.SafeString(position, "average_entry_price"),
+		"entryPrice":                  this.SafeNumber(position, "average_entry_price"),
 		"markPrice":                   nil,
 		"notional":                    nil,
-		"collateral":                  this.SafeString(position, "cost"),
-		"unrealizedPnl":               this.SafeString(position, "unrealized_pnl"),
+		"collateral":                  this.SafeNumber(position, "cost"),
+		"unrealizedPnl":               this.SafeNumber(position, "unrealized_pnl"),
 		"side":                        side,
 		"contracts":                   this.ParseNumber(quantity),
 		"contractSize":                nil,
@@ -4055,7 +4055,7 @@ func (this *ParadexCore) fetchGreeksBody(ch chan any, symbol any, optionalArgs .
  * @see https://docs.paradex.trade/api/prod/markets/get-markets-summary
  * @param {string[]} [symbols] unified symbols of the markets to fetch greeks for, all markets are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
+ * @returns {object} a dictionary of [greeks structures]{@link https://docs.ccxt.com/?id=greeks-structure} indexed by market symbol
  */
 func (this *ParadexCore) FetchAllGreeks(optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
@@ -4390,7 +4390,7 @@ func (this *ParadexCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs .
 			"datetime":    datetime,
 		})
 	}
-	var sorted any = this.SortBy(rates, "timestamp")
+	var sorted []any = this.SortBy(rates, "timestamp")
 
 	ch <- this.FilterBySymbolSinceLimit(sorted, GetValue(market, "symbol"), since, limit)
 	return nil

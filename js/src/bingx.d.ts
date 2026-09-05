@@ -1,5 +1,5 @@
 import Exchange from './abstract/bingx.js';
-import type { LeverageTier, TransferEntry, Int, OrderSide, OHLCV, FundingRateHistory, Order, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, CurrencyInterface, Position, Dict, NullableDict, Leverage, MarginMode, Num, MarginModification, Currencies, int, TradingFeeInterface, FundingRate, FundingRates, DepositAddress, FundingHistory, DepositWithdrawFees, PositionModeInfo } from './base/types.js';
+import type { LeverageTier, TransferEntry, Int, OrderSide, OHLCV, FundingRateHistory, Order, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, CurrencyInterface, Position, Dict, NullableDict, Leverage, MarginMode, Num, MarginModification, Currencies, int, TradingFeeInterface, FundingRate, FundingRates, DepositAddress, FundingHistory, DepositWithdrawFees, PositionModeInfo, DepositAddresses } from './base/types.js';
 /**
  * @class bingx
  * @augments Exchange
@@ -51,7 +51,7 @@ export default class bingx extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
-     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch (max 1000 for inverse swaps, 1440 otherwise)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
@@ -115,9 +115,9 @@ export default class bingx extends Exchange {
      * @name bingx#fetchFundingRateHistory
      * @description fetches historical funding rate prices
      * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/Get%20Funding%20Rate%20History
-     * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+     * @param {string} symbol unified symbol of the market to fetch the funding rate history for, inverse (Coin-M) markets are not supported
      * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
-     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
+     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch (max 1000)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest funding rate to fetch
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
@@ -400,6 +400,7 @@ export default class bingx extends Exchange {
      * @param {number} timeout time in milliseconds, 0 represents cancel the timer
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.type] spot or swap market
+     * @param {string} [params.subType] 'linear' or 'inverse' (default is 'linear'), 'inverse' is not supported
      * @returns {object} the api result
      */
     cancelAllOrdersAfter(timeout: Int, params?: {}): Promise<Dict>;
@@ -541,7 +542,7 @@ export default class bingx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary [address structures]{@link https://docs.ccxt.com/?id=address-structure}, indexed by the network
      */
-    fetchDepositAddressesByNetwork(code: string, params?: {}): Promise<DepositAddress[]>;
+    fetchDepositAddressesByNetwork(code: string, params?: {}): Promise<DepositAddresses>;
     /**
      * @method
      * @name bingx#fetchDepositAddress
@@ -563,6 +564,7 @@ export default class bingx extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch deposits for
      * @param {int} [limit] the maximum number of deposits structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch deposits for
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
@@ -575,6 +577,7 @@ export default class bingx extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch withdrawals for
      * @param {int} [limit] the maximum number of withdrawals structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch withdrawals for
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
@@ -682,7 +685,7 @@ export default class bingx extends Exchange {
      * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Query%20force%20orders
      * @param {string} [symbol] unified CCXT market symbol
      * @param {int} [since] the earliest time in ms to fetch liquidations for
-     * @param {int} [limit] the maximum number of liquidation structures to retrieve
+     * @param {int} [limit] the maximum number of liquidation structures to retrieve (max 100)
      * @param {object} [params] exchange specific parameters for the bingx api endpoint
      * @param {int} [params.until] timestamp in ms of the latest liquidation
      * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}

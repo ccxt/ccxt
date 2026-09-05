@@ -1796,7 +1796,10 @@ public class BtseCore extends BtseApi
         Object nextFundingTimestamp = this.safeIntegerOmitZero(contract, "nextFundingTime");
         Object fundingIntervalMinutes = this.safeInteger(contract, "fundingIntervalMinutes");
         Object interval = null;
-        if (Helpers.isTrue(!Helpers.isEqual(fundingIntervalMinutes, null)))
+        // a wire value of zero minutes reaches this, and zero hours is not an
+        // interval: a caller annualising a rate divides by it. anything under an
+        // hour rounds to the same string, and the vocabulary has no minutes
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(fundingIntervalMinutes, null))) && Helpers.isTrue((Helpers.isGreaterThanOrEqual(fundingIntervalMinutes, 60)))))
         {
             Object hours = this.parseToInt(Helpers.divide(fundingIntervalMinutes, 60));
             interval = Helpers.add(String.valueOf(hours), "h");

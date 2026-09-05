@@ -1095,7 +1095,7 @@ func (this *Bydfi) EditOrderWithClientOrderId(clientOrderId string, symbol strin
 func (this *Bydfi) FetchAccounts(params ...any) ([]Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
 }
-func (this *Bydfi) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
+func (this *Bydfi) FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks, error) {
 	return this.exchangeTyped.FetchAllGreeks(options...)
 }
 func (this *Bydfi) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error) {
@@ -1137,7 +1137,7 @@ func (this *Bydfi) FetchDepositAddress(code string, options ...FetchDepositAddre
 func (this *Bydfi) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
 	return this.exchangeTyped.FetchDepositAddresses(options...)
 }
-func (this *Bydfi) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
+func (this *Bydfi) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error) {
 	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
 }
 func (this *Bydfi) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {

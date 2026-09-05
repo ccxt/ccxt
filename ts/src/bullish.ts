@@ -2787,7 +2787,7 @@ export default class bullish extends Exchange {
      * @param {string} params.tradingAccountId the trading account id
      * @returns {object[]} an array of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
      */
-    async fetchBorrowRateHistory (code: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchBorrowRateHistory (code: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Dict[]> {
         await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
         const tradingAccountId = await this.loadAccount (params);
         const currency = this.currency (code);

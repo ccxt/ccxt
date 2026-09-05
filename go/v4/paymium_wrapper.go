@@ -400,7 +400,7 @@ func (this *Paymium) EditOrders(orders []OrderRequest, options ...EditOrdersOpti
 func (this *Paymium) FetchAccounts(params ...any) ([]Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
 }
-func (this *Paymium) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
+func (this *Paymium) FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks, error) {
 	return this.exchangeTyped.FetchAllGreeks(options...)
 }
 func (this *Paymium) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error) {
@@ -439,7 +439,7 @@ func (this *Paymium) FetchCrossBorrowRates(params ...any) (CrossBorrowRates, err
 func (this *Paymium) FetchCurrencies(params ...any) (Currencies, error) {
 	return this.exchangeTyped.FetchCurrencies(params...)
 }
-func (this *Paymium) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
+func (this *Paymium) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error) {
 	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
 }
 func (this *Paymium) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {

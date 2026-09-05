@@ -64,7 +64,7 @@ func (this *Tokocrypto) FetchMarkets(params ...any) ([]MarketInterface, error) {
  * @see https://www.tokocrypto.com/apidocs/#order-book
  * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
  * @param {string} symbol unified symbol of the market to fetch the order book for
- * @param {int} [limit] the maximum amount of order book entries to return
+ * @param {int} [limit] the maximum amount of order book entries to return, symbol type 3 markets accept 5, 10, 20, 50, 100, 500 or 1000 only
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
@@ -708,7 +708,7 @@ func (this *Tokocrypto) EditOrders(orders []OrderRequest, options ...EditOrdersO
 func (this *Tokocrypto) FetchAccounts(params ...any) ([]Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
 }
-func (this *Tokocrypto) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
+func (this *Tokocrypto) FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks, error) {
 	return this.exchangeTyped.FetchAllGreeks(options...)
 }
 func (this *Tokocrypto) FetchBorrowInterest(options ...FetchBorrowInterestOptions) ([]BorrowInterest, error) {
@@ -744,7 +744,7 @@ func (this *Tokocrypto) FetchCurrencies(params ...any) (Currencies, error) {
 func (this *Tokocrypto) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
 	return this.exchangeTyped.FetchDepositAddresses(options...)
 }
-func (this *Tokocrypto) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
+func (this *Tokocrypto) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error) {
 	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
 }
 func (this *Tokocrypto) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {

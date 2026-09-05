@@ -3025,7 +3025,7 @@ class deribit extends Exchange {
         return $this->parse_positions($result, $symbols);
     }
 
-    public function fetch_volatility_history(string $code, $params = array()) {
+    public function fetch_volatility_history(string $code, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_volatility_history(...))($code, $params);
     }
 
@@ -3440,7 +3440,8 @@ class deribit extends Exchange {
         $eachItemDuration = '1h';
         if ($paginate) {
             // fix for => https://github.com/ccxt/ccxt/issues/25040
-            return Async\await($this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, $eachItemDuration, $this->extend($params, array( 'isDeribitPaginationCall' => true )), $maxEntriesPerRequest));
+            $paginationParams = $this->extend($params, array( 'isDeribitPaginationCall' => true ));
+            return Async\await($this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, $eachItemDuration, $paginationParams, $maxEntriesPerRequest));
         }
         $duration = $this->parse_timeframe($eachItemDuration) * 1000;
         $time = $this->milliseconds();

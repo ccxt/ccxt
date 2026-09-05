@@ -42,7 +42,7 @@ type IExchange interface {
 	FetchLongShortRatioHistory(options ...FetchLongShortRatioHistoryOptions) ([]LongShortRatio, error)
 	FetchMarginAdjustmentHistory(options ...FetchMarginAdjustmentHistoryOptions) ([]MarginModification, error)
 	SetMarginMode(marginMode string, options ...SetMarginModeOptions) (map[string]any, error)
-	FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error)
+	FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error)
 	FetchOpenInterestHistory(symbol string, options ...FetchOpenInterestHistoryOptions) ([]OpenInterest, error)
 	FetchOpenInterests(options ...FetchOpenInterestsOptions) (OpenInterests, error)
 	FetchPaymentMethods(params ...any) (map[string]any, error)
@@ -75,7 +75,7 @@ type IExchange interface {
 	FetchMyLiquidations(options ...FetchMyLiquidationsOptions) ([]Liquidation, error)
 	FetchLiquidations(symbol string, options ...FetchLiquidationsOptions) ([]Liquidation, error)
 	FetchGreeks(symbol string, options ...FetchGreeksOptions) (Greeks, error)
-	FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error)
+	FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks, error)
 	FetchOptionChain(code string, options ...FetchOptionChainOptions) (OptionChain, error)
 	FetchOption(symbol string, options ...FetchOptionOptions) (Option, error)
 	FetchConvertQuote(fromCode string, toCode string, options ...FetchConvertQuoteOptions) (Conversion, error)
@@ -498,6 +498,9 @@ func CreateExchange(exchangeId string, options map[string]any) IExchange {
 		return itf
 	case "poloniex":
 		itf := NewPoloniex(options)
+		return itf
+	case "revolutx":
+		itf := NewRevolutx(options)
 		return itf
 	case "tokocrypto":
 		itf := NewTokocrypto(options)

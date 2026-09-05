@@ -434,7 +434,7 @@ public partial class poloniex : ccxt.poloniex
             await this.loadMarkets();
         }
         symbolVar = this.symbol(symbolVar);
-        object tickers = await this.watchTickers(new List<object>() {symbolVar}, parameters);
+        object tickers = ccxt.BaseExchange.FromTickers(await this.WatchTickers(new List<object>() {symbolVar}, parameters));
         return ccxt.BaseExchange.ToTicker(this.safeValue(tickers, symbolVar));
     }
 
@@ -447,7 +447,7 @@ public partial class poloniex : ccxt.poloniex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> watchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -459,9 +459,9 @@ public partial class poloniex : ccxt.poloniex
         object newTickers = await this.subscribe(name, name, false, symbols, parameters);
         if (isTrue(this.newUpdates))
         {
-            return newTickers;
+            return ccxt.BaseExchange.ToTickers(newTickers);
         }
-        return this.filterByArray(this.tickers, "symbol", symbols);
+        return ccxt.BaseExchange.ToTickers(this.filterByArray(this.tickers, "symbol", symbols));
     }
 
     /**

@@ -394,7 +394,7 @@ public partial class xt : ccxt.xt
      * @param {string} [params.method] 'agg_tickers' (contract only) or 'tickers', default = 'tickers' - the endpoint that will be streamed
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
      */
-    public async override Task<object> watchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -412,9 +412,9 @@ public partial class xt : ccxt.xt
         object tickers = await this.subscribe(name, "public", "watchTickers", market, symbols, parameters);
         if (isTrue(this.newUpdates))
         {
-            return tickers;
+            return ccxt.BaseExchange.ToTickers(tickers);
         }
-        return this.filterByArray(this.tickers, "symbol", symbols);
+        return ccxt.BaseExchange.ToTickers(this.filterByArray(this.tickers, "symbol", symbols));
     }
 
     /**
@@ -861,7 +861,7 @@ public partial class xt : ccxt.xt
 
     public async virtual Task loadPositionsSnapshot(WebSocketClient client, object messageHash)
     {
-        object positions = await this.FetchPositions();
+        object positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositions());
         this.positions = new ArrayCacheBySymbolBySide();
         object cache = this.positions;
         for (object i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))

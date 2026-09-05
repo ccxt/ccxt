@@ -834,8 +834,8 @@ func (this *BybitCore) ParseWsBidAsk(orderbook any, optionalArgs ...any) any {
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
 	var timestamp any = this.SafeInteger(orderbook, "timestamp")
-	var bids any = this.SortBy(this.Aggregate(ccxt.GetValue(orderbook, "bids")), 0)
-	var asks any = this.SortBy(this.Aggregate(ccxt.GetValue(orderbook, "asks")), 0)
+	var bids []any = this.SortBy(this.Aggregate(ccxt.GetValue(orderbook, "bids")), 0)
+	var asks []any = this.SortBy(this.Aggregate(ccxt.GetValue(orderbook, "asks")), 0)
 	var bestBid any = this.SafeList(bids, 0, []any{})
 	var bestAsk any = this.SafeList(asks, 0, []any{})
 	return this.SafeTicker(map[string]any{
@@ -2341,7 +2341,7 @@ func (this *BybitCore) ParseWsLiquidation(liquidation any, optionalArgs ...any) 
 		"contracts":    this.SafeNumber2(liquidation, "size", "v"),
 		"contractSize": this.SafeNumber(market, "contractSize"),
 		"price":        this.SafeNumber2(liquidation, "price", "p"),
-		"side":         this.SafeStringLower(liquidation, "side", "S"),
+		"side":         this.SafeStringLower2(liquidation, "side", "S"),
 		"baseValue":    nil,
 		"quoteValue":   nil,
 		"timestamp":    timestamp,

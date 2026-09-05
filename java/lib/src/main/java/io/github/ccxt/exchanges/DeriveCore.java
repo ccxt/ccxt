@@ -1609,6 +1609,7 @@ public class DeriveCore extends DeriveApi
             Object postOnly = this.safeBool(parameters, "postOnly");
             Object orderType = ((String)type).toLowerCase();
             Object orderSide = ((String)((String)side)).toLowerCase();
+            Object orderSideIsBuy = (Helpers.isEqual(orderSide, "buy")); // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
             Object nonce = this.milliseconds();
             // Order signature expiry must be between 2592000 and 7776000 sec from now
             Object signatureExpiry = this.safeInteger(parameters, "signature_expiry_sec", Helpers.add(this.seconds(), 7776000));
@@ -1626,7 +1627,7 @@ public class DeriveCore extends DeriveApi
             }
             Object maxFeeString = this.numberToString(maxFee);
             Object amountString = this.numberToString(amount);
-            Object tradeModuleDataHash = this.hash(this.ethAbiEncode(new java.util.ArrayList<Object>(java.util.Arrays.asList("address", "uint", "int", "int", "uint", "uint", "bool")), new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(Helpers.GetValue(market, "info"), "base_asset_address"), this.parseToNumeric(Helpers.GetValue(Helpers.GetValue(market, "info"), "base_asset_sub_id")), this.convertToBigInt(((String)this.parseUnits(priceString))), this.convertToBigInt(((String)this.parseUnits(((String)this.amountToPrecision(symbol, amountString))))), this.convertToBigInt(((String)this.parseUnits(maxFeeString))), subaccountId, Helpers.isEqual(orderSide, "buy")))), keccak(), "binary");
+            Object tradeModuleDataHash = this.hash(this.ethAbiEncode(new java.util.ArrayList<Object>(java.util.Arrays.asList("address", "uint", "int", "int", "uint", "uint", "bool")), new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(Helpers.GetValue(market, "info"), "base_asset_address"), this.parseToNumeric(Helpers.GetValue(Helpers.GetValue(market, "info"), "base_asset_sub_id")), this.convertToBigInt(((String)this.parseUnits(priceString))), this.convertToBigInt(((String)this.parseUnits(((String)this.amountToPrecision(symbol, amountString))))), this.convertToBigInt(((String)this.parseUnits(maxFeeString))), subaccountId, orderSideIsBuy))), keccak(), "binary");
             Object deriveWalletAddress = null;
             var deriveWalletAddressparametersVariable = this.handleDeriveWalletAddress("createOrder", parameters);
             deriveWalletAddress = ((java.util.List<Object>) deriveWalletAddressparametersVariable).get(0);
@@ -1810,6 +1811,7 @@ public class DeriveCore extends DeriveApi
             Object postOnly = this.safeBool(parameters, "postOnly");
             Object orderType = ((String)type).toLowerCase();
             Object orderSide = ((String)((String)side)).toLowerCase();
+            Object orderSideIsBuy = (Helpers.isEqual(orderSide, "buy")); // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
             Object nonce = this.milliseconds();
             Object signatureExpiry = this.safeNumber(parameters, "signature_expiry_sec", Helpers.add(this.seconds(), 7776000));
             // TODO: subaccount id / trade module address
@@ -1819,7 +1821,7 @@ public class DeriveCore extends DeriveApi
             Object priceString = ((String)this.numberToString(price));
             Object maxFeeString = this.safeString(parameters, "max_fee", "0");
             Object amountString = this.numberToString(amount);
-            Object tradeModuleDataHash = this.hash(this.ethAbiEncode(new java.util.ArrayList<Object>(java.util.Arrays.asList("address", "uint", "int", "int", "uint", "uint", "bool")), new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(Helpers.GetValue(market, "info"), "base_asset_address"), this.parseToNumeric(Helpers.GetValue(Helpers.GetValue(market, "info"), "base_asset_sub_id")), this.convertToBigInt(((String)this.parseUnits(priceString))), this.convertToBigInt(((String)this.parseUnits(((String)this.amountToPrecision(symbol, amountString))))), this.convertToBigInt(((String)this.parseUnits(maxFeeString))), subaccountId, Helpers.isEqual(orderSide, "buy")))), keccak(), "binary");
+            Object tradeModuleDataHash = this.hash(this.ethAbiEncode(new java.util.ArrayList<Object>(java.util.Arrays.asList("address", "uint", "int", "int", "uint", "uint", "bool")), new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(Helpers.GetValue(market, "info"), "base_asset_address"), this.parseToNumeric(Helpers.GetValue(Helpers.GetValue(market, "info"), "base_asset_sub_id")), this.convertToBigInt(((String)this.parseUnits(priceString))), this.convertToBigInt(((String)this.parseUnits(((String)this.amountToPrecision(symbol, amountString))))), this.convertToBigInt(((String)this.parseUnits(maxFeeString))), subaccountId, orderSideIsBuy))), keccak(), "binary");
             Object deriveWalletAddress = null;
             var deriveWalletAddressparametersVariable = this.handleDeriveWalletAddress("editOrder", parameters);
             deriveWalletAddress = ((java.util.List<Object>) deriveWalletAddressparametersVariable).get(0);
@@ -2856,9 +2858,9 @@ public class DeriveCore extends DeriveApi
             put( "timestamp", timestamp );
             put( "datetime", DeriveCore.this.iso8601(timestamp) );
             put( "lastUpdateTimestamp", null );
-            put( "initialMargin", DeriveCore.this.safeString(position, "initial_margin") );
+            put( "initialMargin", DeriveCore.this.safeNumber(position, "initial_margin") );
             put( "initialMarginPercentage", null );
-            put( "maintenanceMargin", DeriveCore.this.safeString(position, "maintenance_margin") );
+            put( "maintenanceMargin", DeriveCore.this.safeNumber(position, "maintenance_margin") );
             put( "maintenanceMarginPercentage", null );
             put( "entryPrice", null );
             put( "notional", DeriveCore.this.parseNumber(notional) );

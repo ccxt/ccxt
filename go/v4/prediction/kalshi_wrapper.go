@@ -833,7 +833,7 @@ func (this *Kalshi) CreateOrders(orders []ccxt.PredictionOrderRequest, options .
 func (this *Kalshi) FetchAccounts(params ...any) ([]ccxt.Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
 }
-func (this *Kalshi) FetchAllGreeks(options ...ccxt.FetchAllGreeksOptions) ([]ccxt.Greeks, error) {
+func (this *Kalshi) FetchAllGreeks(options ...ccxt.FetchAllGreeksOptions) (ccxt.AllGreeks, error) {
 	return this.exchangeTyped.FetchAllGreeks(options...)
 }
 func (this *Kalshi) FetchBorrowInterest(options ...ccxt.FetchBorrowInterestOptions) ([]ccxt.BorrowInterest, error) {
@@ -869,7 +869,7 @@ func (this *Kalshi) FetchDepositAddress(code string, options ...ccxt.FetchDeposi
 func (this *Kalshi) FetchDepositAddresses(options ...ccxt.FetchDepositAddressesOptions) ([]ccxt.DepositAddress, error) {
 	return this.exchangeTyped.FetchDepositAddresses(options...)
 }
-func (this *Kalshi) FetchDepositAddressesByNetwork(code string, options ...ccxt.FetchDepositAddressesByNetworkOptions) ([]ccxt.DepositAddress, error) {
+func (this *Kalshi) FetchDepositAddressesByNetwork(code string, options ...ccxt.FetchDepositAddressesByNetworkOptions) (ccxt.DepositAddresses, error) {
 	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
 }
 func (this *Kalshi) FetchDeposits(options ...ccxt.FetchDepositsOptions) ([]ccxt.Transaction, error) {

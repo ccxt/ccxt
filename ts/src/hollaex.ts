@@ -1620,7 +1620,7 @@ export default class hollaex extends Exchange {
         //
         const wallet = this.safeValue (response, 'wallet', []);
         const addresses = (network === undefined) ? wallet : this.filterBy (wallet, 'network', network);
-        return this.parseDepositAddresses (addresses, codes) as DepositAddress[];
+        return this.parseDepositAddresses (addresses, codes, false) as DepositAddress[];
     }
 
     /**
@@ -1696,7 +1696,7 @@ export default class hollaex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async fetchWithdrawal (id: string, code: Str = undefined, params = {}) {
+    async fetchWithdrawal (id: string, code: Str = undefined, params = {}): Promise<Transaction> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

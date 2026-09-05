@@ -3354,7 +3354,7 @@ export default class gate extends Exchange {
         //         "leverage": "2"
         //     }
         //
-        const result = {
+        let result = {
             'info': response,
         };
         const isolated = marginMode === 'margin' && type === 'spot';
@@ -3376,24 +3376,19 @@ export default class gate extends Exchange {
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             if (isolated) {
-                const marketId = this.safeString(entry, 'currency_pair');
-                const symbolInner = this.safeSymbol(marketId, undefined, '_', 'margin');
                 const base = this.safeValue(entry, 'base', {});
                 const quote = this.safeValue(entry, 'quote', {});
                 const baseCode = this.safeCurrencyCode(this.safeString(base, 'currency'));
                 const quoteCode = this.safeCurrencyCode(this.safeString(quote, 'currency'));
-                const subResult = {};
-                subResult[baseCode] = this.parseBalanceHelper(base);
-                subResult[quoteCode] = this.parseBalanceHelper(quote);
-                result[symbolInner] = this.safeBalance(subResult);
+                result = this.mergeBalanceAccount(result, baseCode, this.parseBalanceHelper(base));
+                result = this.mergeBalanceAccount(result, quoteCode, this.parseBalanceHelper(quote));
             }
             else {
                 const code = this.safeCurrencyCode(this.safeString(entry, 'currency'));
                 result[code] = this.parseBalanceHelper(entry);
             }
         }
-        const returnResult = isolated ? result : this.safeBalance(result);
-        return returnResult;
+        return this.safeBalance(result);
     }
     /**
      * @method

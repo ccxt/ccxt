@@ -1543,7 +1543,10 @@ export default class btse extends Exchange {
         const nextFundingTimestamp = this.safeIntegerOmitZero (contract, 'nextFundingTime');
         const fundingIntervalMinutes = this.safeInteger (contract, 'fundingIntervalMinutes');
         let interval = undefined;
-        if (fundingIntervalMinutes !== undefined) {
+        // a wire value of zero minutes reaches this, and zero hours is not an
+        // interval: a caller annualising a rate divides by it. anything under an
+        // hour rounds to the same string, and the vocabulary has no minutes
+        if ((fundingIntervalMinutes !== undefined) && (fundingIntervalMinutes >= 60)) {
             const hours = this.parseToInt (fundingIntervalMinutes / 60);
             interval = hours.toString () + 'h';
         }
@@ -2357,7 +2360,7 @@ export default class btse extends Exchange {
      * @param {bool} [params.includeCancelled] *contract markets only* if true, cancelled orders are included in the lookup
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOpenOrder (id: string, symbol: Str = undefined, params = {}) {
+    async fetchOpenOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         await this.loadMarkets ();
         const request: Dict = {};
         const clientOrderId = this.safeString (params, 'clientOrderId');

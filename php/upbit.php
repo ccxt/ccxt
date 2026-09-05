@@ -1589,7 +1589,7 @@ class upbit extends Exchange {
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
-    public function fetch_deposit(string $id, ?string $code = null, $params = array()) {
+    public function fetch_deposit(string $id, ?string $code = null, $params = array()): array {
         /**
          * fetch information on a deposit
          *
@@ -1680,7 +1680,7 @@ class upbit extends Exchange {
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
-    public function fetch_withdrawal(string $id, ?string $code = null, $params = array()) {
+    public function fetch_withdrawal(string $id, ?string $code = null, $params = array()): array {
         /**
          * fetch data on a $currency withdrawal via the withdrawal $id
          *
@@ -2243,7 +2243,7 @@ class upbit extends Exchange {
         //         }
         //     )
         //
-        return $this->parse_deposit_addresses($response, $codes);
+        return $this->parse_deposit_addresses($response, $codes, false);
     }
 
     public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {

@@ -425,7 +425,7 @@ func (this *Lbank) EditOrders(orders []ccxt.OrderRequest, options ...ccxt.EditOr
 func (this *Lbank) FetchAccounts(params ...any) ([]ccxt.Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
 }
-func (this *Lbank) FetchAllGreeks(options ...ccxt.FetchAllGreeksOptions) ([]ccxt.Greeks, error) {
+func (this *Lbank) FetchAllGreeks(options ...ccxt.FetchAllGreeksOptions) (ccxt.AllGreeks, error) {
 	return this.exchangeTyped.FetchAllGreeks(options...)
 }
 func (this *Lbank) FetchBalance(params ...any) (ccxt.Balances, error) {
@@ -473,7 +473,7 @@ func (this *Lbank) FetchDepositAddress(code string, options ...ccxt.FetchDeposit
 func (this *Lbank) FetchDepositAddresses(options ...ccxt.FetchDepositAddressesOptions) ([]ccxt.DepositAddress, error) {
 	return this.exchangeTyped.FetchDepositAddresses(options...)
 }
-func (this *Lbank) FetchDepositAddressesByNetwork(code string, options ...ccxt.FetchDepositAddressesByNetworkOptions) ([]ccxt.DepositAddress, error) {
+func (this *Lbank) FetchDepositAddressesByNetwork(code string, options ...ccxt.FetchDepositAddressesByNetworkOptions) (ccxt.DepositAddresses, error) {
 	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
 }
 func (this *Lbank) FetchDeposits(options ...ccxt.FetchDepositsOptions) ([]ccxt.Transaction, error) {

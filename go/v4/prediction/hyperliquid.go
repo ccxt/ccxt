@@ -218,8 +218,8 @@ func (this *HyperliquidCore) ParseOutcomeDescription(description any) any {
 		var part any = ccxt.GetValue(parts, i)
 		var colonIndex int = ccxt.GetIndexOf(part, ":")
 		if ccxt.IsTrue(ccxt.IsGreaterThan(colonIndex, ccxt.OpNeg(1))) {
-			var key any = ccxt.Slice(part, 0, colonIndex)
-			var value any = ccxt.Slice(part, ccxt.Add(colonIndex, 1), nil)
+			var key string = ccxt.Slice(part, 0, colonIndex)
+			var value string = ccxt.Slice(part, ccxt.Add(colonIndex, 1), nil)
 			ccxt.AddElementToObject(result, key, value)
 		}
 	}
@@ -299,7 +299,7 @@ func (this *HyperliquidCore) BuildOutcomeParentSymbol(desc any, outcomeId any, o
 				var thresholdParts []string = ccxt.Split(thresholdsRaw, ",")
 				var thresholds any = []any{}
 				for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(thresholdParts)); i++ {
-					var trimmed any = ccxt.Trim(ccxt.GetValue(thresholdParts, i))
+					var trimmed string = ccxt.Trim(ccxt.GetValue(thresholdParts, i))
 					if ccxt.IsTrue(ccxt.IsGreaterThan(ccxt.GetLength(trimmed), 0)) {
 						ccxt.AppendToArray(&thresholds, trimmed)
 					}
@@ -509,7 +509,7 @@ func (this *HyperliquidCore) ParseOutcomeMarket(outcomeInfo any, outcomeId any, 
 	var yesLabel any = this.SafeStringUpper(this.SafeDict(sideSpecs, 0, map[string]any{}), "name", "YES")
 	var noLabel any = this.SafeStringUpper(this.SafeDict(sideSpecs, 1, map[string]any{}), "name", "NO")
 	var quoteCurrency any = this.SafeString(this.Options, "outcomeQuoteCurrency", "USDH")
-	var szDecimals any = 4 // outcomes use 4 decimal places
+	var szDecimals int = 4 // outcomes use 4 decimal places
 	var active bool = true
 	var outcomePrecision map[string]any = map[string]any{
 		"amount": this.ParseNumber(this.ParsePrecision(ccxt.ToString(szDecimals))),
@@ -1312,7 +1312,7 @@ func (this *HyperliquidCore) ResolveOutcomeInput(outcomeInput any) any {
 		ccxt.AppendToArray(&candidates, ccxt.Add("#", ccxt.Slice(outcomeInput, 1, nil)))
 	}
 	var digitChars string = "0123456789"
-	var inputChars any = this.StringToCharsArray(outcomeInput)
+	var inputChars []string = this.StringToCharsArray(outcomeInput)
 	var inputCharsLength int = ccxt.GetArrayLength(inputChars)
 	var isNumericInput bool = ccxt.IsGreaterThan(inputCharsLength, 0)
 	for di := 0; ccxt.IsLessThan(di, ccxt.GetArrayLength(inputChars)); di++ {
@@ -1405,7 +1405,7 @@ func (this *HyperliquidCore) createOrderBody(ch chan any, outcome any, typeVar a
 	if ccxt.IsTrue(ccxt.IsEqual(postOnly, true)) {
 		defaultTif = "Alo"
 	}
-	var tif any = this.Capitalize(this.SafeStringLower(params, "timeInForce", defaultTif)) // eslint-disable-line
+	var tif string = this.Capitalize(this.SafeStringLower(params, "timeInForce", defaultTif)) // eslint-disable-line
 	if ccxt.IsTrue(ccxt.IsEqual(price, nil)) {
 		if ccxt.IsTrue(isMarket) {
 			panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " createOrder() requires a reference price for market orders on outcome markets in between 0 and 1. The exchange uses this reference price together with the configured slippage to derive the execution price.")))
@@ -1808,7 +1808,7 @@ func (this *HyperliquidCore) fetchOrdersBody(ch chan any, optionalArgs ...any) a
 			}
 		}
 	}
-	var dedupedValues any = ccxt.ObjectValues(deduped)
+	var dedupedValues []any = ccxt.ObjectValues(deduped)
 	var parsed any = this.ParsePredictionOrders(dedupedValues, nil, since)
 	var outcomeHandle any = nil
 	if ccxt.IsTrue(!ccxt.IsEqual(outcome, nil)) {
@@ -2235,7 +2235,7 @@ func (this *HyperliquidCore) fetchEventsBody(ch chan any, optionalArgs ...any) a
 
 	marketsDict := (<-this.LoadMarkets())
 	ccxt.PanicOnError(marketsDict)
-	var marketValues any = this.ToArray(marketsDict)
+	var marketValues []any = this.ToArray(marketsDict)
 	// Group markets by parentSymbol
 	var groupMap map[string]any = map[string]any{}
 	if ccxt.IsTrue(ccxt.IsEqual(queries, nil)) {
@@ -2391,7 +2391,7 @@ func (this *HyperliquidCore) AmountToPrecision(outcome any, amount any) any {
 	var market any = this.Market(outcome)
 	var prec any = this.SafeNumber(this.SafeDict(market, "precision", map[string]any{}), "amount", 0.0001)
 	// Convert precision to decimal places
-	var decimals any = 4
+	var decimals int = 4
 	if ccxt.IsTrue(ccxt.IsEqual(prec, nil)) {
 		panic(ccxt.ExchangeError(ccxt.Add(this.Id, " amountToPrecision() missing prec")))
 	}
@@ -2403,7 +2403,7 @@ func (this *HyperliquidCore) AmountToPrecision(outcome any, amount any) any {
 func (this *HyperliquidCore) PriceToPrecision(outcome any, price any) any {
 	var market any = this.Market(outcome)
 	var prec any = this.SafeNumber(this.SafeDict(market, "precision", map[string]any{}), "price", 0.0001)
-	var decimals any = 4
+	var decimals int = 4
 	if ccxt.IsTrue(ccxt.IsEqual(prec, nil)) {
 		panic(ccxt.ExchangeError(ccxt.Add(this.Id, " priceToPrecision() missing prec")))
 	}
@@ -2416,13 +2416,13 @@ func (this *HyperliquidCore) HashMessage(message any) any {
 	return ccxt.Add("0x", this.Hash(message, ccxt.Keccak, "hex"))
 }
 func (this *HyperliquidCore) SignHash(hash any, privateKey any) any {
-	var signature any = ccxt.Ecdsa(ccxt.Slice(hash, ccxt.OpNeg(64), nil), ccxt.Slice(privateKey, ccxt.OpNeg(64), nil), ccxt.Secp256k1, nil)
+	var signature map[string]any = ccxt.Ecdsa(ccxt.Slice(hash, ccxt.OpNeg(64), nil), ccxt.Slice(privateKey, ccxt.OpNeg(64), nil), ccxt.Secp256k1, nil)
 	// assign to a bare local before padStart — `expr['key'].padStart()` leaks an undefined
 	// padStart() call in the PHP transpiler (it only rewrites padStart on a bare identifier)
 	var rRaw any = ccxt.GetValue(signature, "r")
 	var sRaw any = ccxt.GetValue(signature, "s")
-	var r any = ccxt.PadStart(rRaw, 64, "0")
-	var s any = ccxt.PadStart(sRaw, 64, "0")
+	var r string = ccxt.PadStart(rRaw, 64, "0")
+	var s string = ccxt.PadStart(sRaw, 64, "0")
 	return map[string]any{
 		"r": ccxt.Add("0x", r),
 		"s": ccxt.Add("0x", s),
@@ -2443,7 +2443,7 @@ func (this *HyperliquidCore) ConstructPhantomAgent(hash any, optionalArgs ...any
 }
 func (this *HyperliquidCore) ActionHash(action any, vaultAddress any, nonce any) any {
 	var dataBinary any = this.Packb(action)
-	var dataHex any = this.BinaryToBase16(dataBinary)
+	var dataHex string = this.BinaryToBase16(dataBinary)
 	var data any = dataHex
 	data = ccxt.Add(data, ccxt.Add("00000", this.IntToBase16(nonce)))
 	if ccxt.IsTrue(ccxt.IsEqual(vaultAddress, nil)) {
@@ -2482,7 +2482,7 @@ func (this *HyperliquidCore) SignL1Action(action any, nonce any, optionalArgs ..
 }
 func (this *HyperliquidCore) SignUserSignedAction(messageTypes any, message any) any {
 	var zeroAddress any = this.SafeString(this.Options, "zeroAddress")
-	var chainId any = 421614
+	var chainId int = 421614
 	var domain map[string]any = map[string]any{
 		"chainId":           chainId,
 		"name":              "HyperliquidSignTransaction",

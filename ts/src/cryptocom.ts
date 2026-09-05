@@ -6,7 +6,7 @@ import Exchange from './abstract/cryptocom.js';
 import { Precise } from './base/Precise.js';
 import { AuthenticationError, ArgumentsRequired, ExchangeError, InsufficientFunds, DDoSProtection, InvalidNonce, PermissionDenied, BadRequest, BadSymbol, NotSupported, AccountNotEnabled, OnMaintenance, InvalidOrder, RequestTimeout, OrderNotFound, RateLimitExceeded } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, Str, Ticker, OrderRequest, Balances, Transaction, OrderBook, Tickers, Strings, Currency, CurrencyInterface, Currencies, List, Market, Num, Fee, Bool, Account, CancellationRequest, Dict, int, TradingFeeInterface, TradingFees, LedgerEntry, DepositAddress, Position, FundingRate, NullableDict, DepositWithdrawFees, Endpoint } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, Str, Ticker, OrderRequest, Balances, Transaction, OrderBook, Tickers, Strings, Currency, CurrencyInterface, Currencies, List, Market, Num, Fee, Bool, Account, CancellationRequest, Dict, int, TradingFeeInterface, TradingFees, LedgerEntry, DepositAddress, Position, FundingRate, NullableDict, DepositWithdrawFees, Endpoint, DepositAddresses } from './base/types.js';
 
 /**
  * @class cryptocom
@@ -2086,7 +2086,7 @@ export default class cryptocom extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
      */
-    override async fetchDepositAddressesByNetwork (code: string, params = {}): Promise<DepositAddress[]> {
+    override async fetchDepositAddressesByNetwork (code: string, params = {}): Promise<DepositAddresses> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2140,7 +2140,7 @@ export default class cryptocom extends Exchange {
                 };
             }
         }
-        return result as DepositAddress[];
+        return result as DepositAddresses;
     }
 
     /**
@@ -3379,8 +3379,8 @@ export default class cryptocom extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'hedged': undefined,
-            'side': Precise.stringGt (amount, '0') ? 'buy' : 'sell',
-            'contracts': Precise.stringAbs (amount),
+            'side': Precise.stringGt (amount, '0') ? 'long' : 'short',
+            'contracts': this.parseNumber (Precise.stringAbs (amount)),
             'contractSize': market['contractSize'],
             'entryPrice': undefined,
             'markPrice': undefined,

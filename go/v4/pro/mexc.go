@@ -2282,7 +2282,7 @@ func (this *MexcCore) unWatchTradesBody(ch chan any, symbol any, optionalArgs ..
 func (this *MexcCore) HandleUnsubscriptions(client any, messageHashes any) {
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(messageHashes)); i++ {
 		var messageHash any = ccxt.GetValue(messageHashes, i)
-		var subMessageHash any = ccxt.Replace(messageHash, "unsubscribe:", "")
+		var subMessageHash string = ccxt.Replace(messageHash, "unsubscribe:", "")
 		this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
 		if ccxt.IsTrue(ccxt.IsGreaterThanOrEqual(ccxt.GetIndexOf(messageHash, "ticker"), 0)) {
 			var symbol any = ccxt.Replace(messageHash, "unsubscribe:ticker:", "")

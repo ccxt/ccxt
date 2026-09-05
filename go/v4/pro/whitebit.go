@@ -1208,7 +1208,7 @@ func (this *WhitebitCore) authenticateBody(ch chan any, optionalArgs ...any) any
 	// handleAuthenticate () resolves the handshake future with 1, so 1 is
 	// the authorized sentinel authenticate () has always returned - every
 	// path below hands back that same value
-	var authorized any = 1
+	var authorized int = 1
 	// single-flight leader election, see
 	// https://github.com/ccxt/ccxt/issues/29393: the handshake is gated on
 	// subscriptions['authenticated'], which watch () only registers once
@@ -1411,7 +1411,7 @@ func (this *WhitebitCore) HandleSubscriptionStatus(client any, message any, id a
 	// not every method stores its subscription
 	// as an object so we can't do indeById here
 	var subs any = client.(ccxt.ClientInterface).GetSubscriptions()
-	var values any = ccxt.ObjectValues(subs)
+	var values []any = ccxt.ObjectValues(subs)
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(values)); i++ {
 		var subscription any = ccxt.GetValue(values, i)
 		if ccxt.IsTrue(!ccxt.IsEqual(subscription, true)) {

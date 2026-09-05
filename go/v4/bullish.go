@@ -977,7 +977,7 @@ func (this *BullishCore) ParseMarket(market any) any {
 			expiryDatetime = this.SafeString(market, "expiryDatetime")
 			var idParts []string = Split(id, "-")
 			var datePart any = this.SafeString(idParts, 2)
-			var dateYmd any = Slice(datePart, 2, nil)
+			var dateYmd string = Slice(datePart, 2, nil)
 			symbol = Add(symbol, Add("-", dateYmd))
 			if IsTrue(IsEqual(typeVar, "future")) {
 				future = true
@@ -1150,7 +1150,7 @@ func (this *BullishCore) fetchTradesBody(ch chan any, symbol any, optionalArgs .
 		retRes95812 := (<-this.LoadMarkets())
 		PanicOnError(retRes95812)
 	}
-	var maxLimit any = 100
+	var maxLimit int = 100
 	var paginate any = false
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchTrades", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
@@ -1697,7 +1697,7 @@ func (this *BullishCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ..
 		PanicOnError(retRes134712)
 	}
 	var market any = this.Market(symbol)
-	var maxLimit any = 100
+	var maxLimit int = 100
 	var paginate any = false
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
@@ -1749,7 +1749,7 @@ func (this *BullishCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ..
 	//         }, ...
 	//     ]
 	//
-	var ohlcvs any = this.ToArray(response)
+	var ohlcvs []any = this.ToArray(response)
 
 	ch <- this.ParseOHLCVs(ohlcvs, market, timeframe, since, limit)
 	return nil
@@ -1795,7 +1795,7 @@ func (this *BullishCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs .
 		retRes142312 := (<-this.LoadMarkets())
 		PanicOnError(retRes142312)
 	}
-	var maxLimit any = 100
+	var maxLimit int = 100
 	var paginate any = false
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
@@ -1835,7 +1835,7 @@ func (this *BullishCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs .
 	//     ]
 	//
 	var rates any = []any{}
-	var result any = this.ToArray(response)
+	var result []any = this.ToArray(response)
 	for i := 0; IsLessThan(i, GetArrayLength(result)); i++ {
 		var entry any = GetValue(result, i)
 		var datetime any = this.SafeString(entry, "updatedAtDatetime")
@@ -1847,7 +1847,7 @@ func (this *BullishCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs .
 			"datetime":    datetime,
 		})
 	}
-	var sorted any = this.SortBy(rates, "timestamp")
+	var sorted []any = this.SortBy(rates, "timestamp")
 
 	ch <- this.FilterBySymbolSinceLimit(sorted, GetValue(market, "symbol"), since, limit)
 	return nil
@@ -2016,7 +2016,7 @@ func (this *BullishCore) HandleSinceAndUntil(optionalArgs ...any) any {
 	return params
 }
 func (this *BullishCore) GetClosestLimit(limit any) any {
-	var pageSize any = 5
+	var pageSize int = 5
 	if IsTrue(IsTrue((IsGreaterThan(limit, 5))) && IsTrue((IsLessThan(limit, 26)))) {
 		pageSize = 25
 	} else if IsTrue(IsTrue((IsGreaterThan(limit, 25))) && IsTrue((IsLessThan(limit, 51)))) {
@@ -2907,7 +2907,7 @@ func (this *BullishCore) loadAccountBody(ch chan any, optionalArgs ...any) any {
 
 		response := (<-this.PrivateGetV1AccountsTradingAccounts(params))
 		PanicOnError(response)
-		var accounts any = this.ToArray(response)
+		var accounts []any = this.ToArray(response)
 		for i := 0; IsLessThan(i, GetArrayLength(accounts)); i++ {
 			var account any = GetValue(accounts, i)
 			var name any = this.SafeString(account, "tradingAccountName")
@@ -3081,7 +3081,7 @@ func (this *BullishCore) fetchDepositAddressBody(ch chan any, code any, optional
 	//         }
 	//     ]
 	//
-	var safeResponse any = this.ToArray(response)
+	var safeResponse []any = this.ToArray(response)
 	var length int = GetArrayLength(safeResponse)
 	var data any = this.SafeDict(safeResponse, 0, map[string]any{})
 	var network any = nil
@@ -3384,7 +3384,7 @@ func (this *BullishCore) fetchTransfersBody(ch chan any, optionalArgs ...any) an
 
 	tradingAccountId := (<-this.LoadAccount(params))
 	PanicOnError(tradingAccountId)
-	var maxLimit any = 100
+	var maxLimit int = 100
 	var paginate any = false
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchTransfers", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
@@ -3831,7 +3831,7 @@ func (this *BullishCore) Sign(path any, optionalArgs ...any) any {
 		}
 	}
 	if IsTrue(IsEqual(method, "GET")) {
-		var query any = this.Urlencode(request)
+		var query string = this.Urlencode(request)
 		if IsTrue(IsGreaterThan(GetArrayLength(query), 0)) {
 			url = Add(url, Add("?", query))
 		}

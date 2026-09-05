@@ -116,7 +116,7 @@ public partial class aster : ccxt.aster
             await this.loadMarkets();
         }
         symbolVar = this.safeSymbol(symbolVar);
-        object tickers = await this.watchTickers(new List<object>() {symbolVar}, parameters);
+        object tickers = ccxt.BaseExchange.FromTickers(await this.WatchTickers(new List<object>() {symbolVar}, parameters));
         return ccxt.BaseExchange.ToTicker(getValue(tickers, symbolVar));
     }
 
@@ -155,7 +155,7 @@ public partial class aster : ccxt.aster
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> watchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -198,9 +198,9 @@ public partial class aster : ccxt.aster
         {
             object result = new Dictionary<string, object>() {};
             ((IDictionary<string,object>)result)[(string)getValue(newTicker, "symbol")] = newTicker;
-            return result;
+            return ccxt.BaseExchange.ToTickers(result);
         }
-        return this.filterByArray(this.tickers, "symbol", symbols);
+        return ccxt.BaseExchange.ToTickers(this.filterByArray(this.tickers, "symbol", symbols));
     }
 
     /**
@@ -277,7 +277,7 @@ public partial class aster : ccxt.aster
             await this.loadMarkets();
         }
         symbolVar = this.safeSymbol(symbolVar);
-        object tickers = await this.watchMarkPrices(new List<object>() {symbolVar}, parameters);
+        object tickers = ccxt.BaseExchange.FromTickers(await this.WatchMarkPrices(new List<object>() {symbolVar}, parameters));
         return ccxt.BaseExchange.ToTicker(getValue(tickers, symbolVar));
     }
 
@@ -310,7 +310,7 @@ public partial class aster : ccxt.aster
      * @param {boolean} [params.use1sFreq] *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> watchMarkPrices(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchMarkPrices(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -355,9 +355,9 @@ public partial class aster : ccxt.aster
         {
             object result = new Dictionary<string, object>() {};
             ((IDictionary<string,object>)result)[(string)getValue(newTicker, "symbol")] = newTicker;
-            return result;
+            return ccxt.BaseExchange.ToTickers(result);
         }
-        return this.filterByArray(this.tickers, "symbol", symbols);
+        return ccxt.BaseExchange.ToTickers(this.filterByArray(this.tickers, "symbol", symbols));
     }
 
     /**
@@ -1208,7 +1208,7 @@ public partial class aster : ccxt.aster
             await this.loadMarkets();
         }
         symbolVar = this.safeSymbol(symbolVar);
-        object result = await this.watchOHLCVForSymbols(new List<object>() {new List<object>() {symbolVar, timeframeVar}}, since, limit, parameters);
+        object result = ccxt.BaseExchange.FromOHLCVDict(await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbolVar, timeframeVar}}, since, limit, parameters));
         return ccxt.BaseExchange.ToOHLCVList(getValue(getValue(result, symbolVar), timeframeVar));
     }
 
@@ -1243,7 +1243,7 @@ public partial class aster : ccxt.aster
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<object> watchOHLCVForSymbols(object symbolsAndTimeframes, object since = null, object limit = null, object parameters = null)
+    public async override Task<Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>>> WatchOHLCVForSymbols(object symbolsAndTimeframes, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1295,7 +1295,7 @@ public partial class aster : ccxt.aster
             limit = callDynamically(stored, "getLimit", new object[] {symbol, limit});
         }
         object filtered = this.filterBySinceLimit(stored, since, limit, 0, true);
-        return this.createOHLCVObject(symbol, timeframe, filtered);
+        return ccxt.BaseExchange.ToOHLCVDict(this.createOHLCVObject(symbol, timeframe, filtered));
     }
 
     /**
@@ -1597,7 +1597,7 @@ public partial class aster : ccxt.aster
         object parameters = new Dictionary<string, object>() {
             { "type", type },
         };
-        object response = await this.fetchBalance(parameters);
+        object response = ccxt.BaseExchange.FromBalances(await this.FetchBalance(parameters));
         ((IDictionary<string,object>)this.balance)[(string)type] = this.extend(response, this.safeValue(this.balance, type, new Dictionary<string, object>() {}));
         // don't remove the future from the .futures cache
         if (isTrue(inOp(client.futures, messageHash)))
@@ -1770,7 +1770,7 @@ public partial class aster : ccxt.aster
 
     public async virtual Task loadPositionsSnapshot(WebSocketClient client, object messageHash)
     {
-        object positions = await this.FetchPositions();
+        object positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositions());
         this.positions = new ArrayCacheBySymbolBySide();
         object cache = this.positions;
         for (object i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))

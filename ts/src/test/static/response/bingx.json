@@ -1028,9 +1028,9 @@
                             "transferId": "1051461075875997081703"
                         }
                     },
-                    "id": null,
-                    "timestamp": null,
-                    "datetime": null,
+                    "id": "1051461075875997081703",
+                    "timestamp": 1752202170686,
+                    "datetime": "2025-07-11T02:49:30.686Z",
                     "currency": "LTC",
                     "amount": 0.05,
                     "fromAccount": "swap",
@@ -1064,9 +1064,9 @@
                             "transferId": "1051461077440303243364"
                         }
                     },
-                    "id": null,
-                    "timestamp": null,
-                    "datetime": null,
+                    "id": "1051461077440303243364",
+                    "timestamp": 1752202545982,
+                    "datetime": "2025-07-11T02:55:45.982Z",
                     "currency": "USDT",
                     "amount": 10,
                     "fromAccount": "spot",
@@ -3731,6 +3731,42 @@
         ],
         "fetchDepositAddressesByNetwork": [
             {
+                "description": "usdt address without addressWithPrefix",
+                "method": "fetchDepositAddressesByNetwork",
+                "input": [
+                  "USDT"
+                ],
+                "httpResponse": {
+                  "code": "0",
+                  "timestamp": "1730886872514",
+                  "data": {
+                    "data": [
+                      {
+                        "coinId": "780",
+                        "coin": "USDT",
+                        "network": "TRC20",
+                        "address": "TabPi4x2hCN6DBKqAL86vdMRD7HxzcBnRf"
+                      }
+                    ],
+                    "total": "1"
+                  }
+                },
+                "parsedResponse": {
+                  "TRC20": {
+                    "info": {
+                      "coinId": "780",
+                      "coin": "USDT",
+                      "network": "TRC20",
+                      "address": "TabPi4x2hCN6DBKqAL86vdMRD7HxzcBnRf"
+                    },
+                    "currency": "USDT",
+                    "network": "TRC20",
+                    "address": "TabPi4x2hCN6DBKqAL86vdMRD7HxzcBnRf",
+                    "tag": null
+                  }
+                }
+            },
+            {
                 "description": "usdt addresses with prefix",
                 "method": "fetchDepositAddressesByNetwork",
                 "input": [
@@ -4198,6 +4234,142 @@
             }
         ],
         "fetchOrder": [
+            {
+                "description": "fetch inverse swap order fee currency",
+                "method": "fetchOrder",
+                "input": [
+                  "1816342420721254400",
+                  "SOL/USD:SOL"
+                ],
+                "httpResponse": {
+                  "code": 0,
+                  "msg": "",
+                  "data": {
+                    "order": {
+                      "symbol": "SOL-USD",
+                      "orderId": "1816342420721254400",
+                      "side": "BUY",
+                      "positionSide": "Long",
+                      "type": "LIMIT",
+                      "quantity": 1,
+                      "origQty": "",
+                      "price": "150",
+                      "executedQty": "1",
+                      "avgPrice": "150.000",
+                      "cumQuote": "",
+                      "stopPrice": "",
+                      "profit": "0.0000",
+                      "commission": "-0.00005475",
+                      "status": "FILLED",
+                      "time": 1721884753767,
+                      "updateTime": 1721884753786,
+                      "clientOrderId": "",
+                      "leverage": "",
+                      "takeProfit": {
+                        "type": "",
+                        "quantity": 0,
+                        "stopPrice": 0,
+                        "price": 0,
+                        "workingType": "MARK_PRICE",
+                        "stopGuaranteed": ""
+                      },
+                      "stopLoss": {
+                        "type": "",
+                        "quantity": 0,
+                        "stopPrice": 0,
+                        "price": 0,
+                        "workingType": "MARK_PRICE",
+                        "stopGuaranteed": ""
+                      },
+                      "advanceAttr": 0,
+                      "positionID": 0,
+                      "takeProfitEntrustPrice": 0,
+                      "stopLossEntrustPrice": 0,
+                      "orderType": "",
+                      "workingType": "MARK_PRICE"
+                    }
+                  }
+                },
+                "parsedResponse": {
+                  "info": {
+                    "symbol": "SOL-USD",
+                    "orderId": "1816342420721254400",
+                    "side": "BUY",
+                    "positionSide": "Long",
+                    "type": "LIMIT",
+                    "quantity": 1,
+                    "origQty": "",
+                    "price": "150",
+                    "executedQty": "1",
+                    "avgPrice": "150.000",
+                    "cumQuote": "",
+                    "stopPrice": "",
+                    "profit": "0.0000",
+                    "commission": "-0.00005475",
+                    "status": "FILLED",
+                    "time": 1721884753767,
+                    "updateTime": 1721884753786,
+                    "clientOrderId": "",
+                    "leverage": "",
+                    "takeProfit": {
+                      "type": "",
+                      "quantity": 0,
+                      "stopPrice": 0,
+                      "price": 0,
+                      "workingType": "MARK_PRICE",
+                      "stopGuaranteed": ""
+                    },
+                    "stopLoss": {
+                      "type": "",
+                      "quantity": 0,
+                      "stopPrice": 0,
+                      "price": 0,
+                      "workingType": "MARK_PRICE",
+                      "stopGuaranteed": ""
+                    },
+                    "advanceAttr": 0,
+                    "positionID": 0,
+                    "takeProfitEntrustPrice": 0,
+                    "stopLossEntrustPrice": 0,
+                    "orderType": "",
+                    "workingType": "MARK_PRICE"
+                  },
+                  "id": "1816342420721254400",
+                  "clientOrderId": null,
+                  "symbol": "SOL/USD:SOL",
+                  "timestamp": 1721884753767,
+                  "datetime": "2024-07-25T05:19:13.767Z",
+                  "lastTradeTimestamp": 1721884753786,
+                  "lastUpdateTimestamp": 1721884753786,
+                  "type": "limit",
+                  "timeInForce": null,
+                  "postOnly": null,
+                  "side": "buy",
+                  "price": 150,
+                  "triggerPrice": null,
+                  "stopLossPrice": null,
+                  "takeProfitPrice": null,
+                  "average": 150,
+                  "cost": 0.006666666666666666,
+                  "amount": 1,
+                  "filled": 1,
+                  "remaining": 0,
+                  "status": "closed",
+                  "fee": {
+                    "currency": "SOL",
+                    "cost": "0.00005475"
+                  },
+                  "trades": [],
+                  "reduceOnly": null,
+                  "fees": [
+                    {
+                      "currency": "SOL",
+                      "cost": 0.00005475
+                    }
+                  ],
+                  "stopPrice": null
+                }
+            },
             {
                 "description": "fetch swap order",
                 "method": "fetchOrder",

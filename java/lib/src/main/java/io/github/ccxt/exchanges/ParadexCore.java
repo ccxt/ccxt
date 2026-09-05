@@ -3082,11 +3082,11 @@ public class ParadexCore extends ParadexApi
             put( "info", position );
             put( "id", ParadexCore.this.safeString(position, "id") );
             put( "symbol", symbol );
-            put( "entryPrice", ParadexCore.this.safeString(position, "average_entry_price") );
+            put( "entryPrice", ParadexCore.this.safeNumber(position, "average_entry_price") );
             put( "markPrice", null );
             put( "notional", null );
-            put( "collateral", ParadexCore.this.safeString(position, "cost") );
-            put( "unrealizedPnl", ParadexCore.this.safeString(position, "unrealized_pnl") );
+            put( "collateral", ParadexCore.this.safeNumber(position, "cost") );
+            put( "unrealizedPnl", ParadexCore.this.safeNumber(position, "unrealized_pnl") );
             put( "side", finalSide );
             put( "contracts", ParadexCore.this.parseNumber(finalQuantity) );
             put( "contractSize", null );
@@ -3828,7 +3828,7 @@ public class ParadexCore extends ParadexApi
      * @see https://docs.paradex.trade/api/prod/markets/get-markets-summary
      * @param {string[]} [symbols] unified symbols of the markets to fetch greeks for, all markets are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
+     * @returns {object} a dictionary of [greeks structures]{@link https://docs.ccxt.com/?id=greeks-structure} indexed by market symbol
      */
     public java.util.concurrent.CompletableFuture<Object> fetchAllGreeks(Object... optionalArgs)
     {

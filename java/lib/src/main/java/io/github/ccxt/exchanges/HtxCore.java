@@ -4289,7 +4289,7 @@ public class HtxCore extends HtxApi
             Object symbol = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
             Object accounts = (this.loadAccounts()).join();
-            Object accountId = this.safeValue2(parameters, "accountId", "account-id");
+            Object accountId = this.safeString2(parameters, "accountId", "account-id");
             if (Helpers.isTrue(!Helpers.isEqual(accountId, null)))
             {
                 return accountId;
@@ -4788,7 +4788,6 @@ public class HtxCore extends HtxApi
                     for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
                     {
                         Object entry = Helpers.GetValue(data, i);
-                        Object symbol = this.safeSymbol(this.safeString(entry, "symbol"));
                         Object balances = this.safeValue(entry, "list");
                         Object subResult = new java.util.HashMap<String, Object>() {{}};
                         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(balances)); j++)
@@ -4801,8 +4800,14 @@ public class HtxCore extends HtxApi
                                 Helpers.addElementToObject(subResult, code, this.parseMarginBalanceHelper(balance, code, subResult));
                             }
                         }
-                        Helpers.addElementToObject(result, symbol, this.safeBalance(subResult));
+                        Object subCodes = Helpers.objectKeys(subResult);
+                        for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(subCodes)); j++)
+                        {
+                            Object subCode = Helpers.GetValue(subCodes, j);
+                            result = this.mergeBalanceAccount(result, subCode, Helpers.GetValue(subResult, subCode));
+                        }
                     }
+                    result = this.safeBalance(result);
                 } else
                 {
                     Object balances = this.safeValue(data, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));

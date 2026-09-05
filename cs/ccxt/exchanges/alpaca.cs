@@ -538,7 +538,7 @@ public partial class alpaca : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    public async override Task<object> fetchTime(object parameters = null)
+    public async override Task<Int64> FetchTime(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.traderPrivateGetV2Clock(parameters);
@@ -572,7 +572,7 @@ public partial class alpaca : Exchange
         }
         object jetlag = slice(timestamp, jetlagStrStart, jetlagStrEnd);
         object iso = subtract(this.parseToInt(this.parse8601(localTime)), multiply(multiply(this.parseToNumeric(jetlag), 3600), 1000));
-        return iso;
+        return ccxt.BaseExchange.ToInt64Value(iso);
     }
 
     /**
@@ -583,7 +583,7 @@ public partial class alpaca : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public async override Task<object> fetchMarkets(object parameters = null)
+    public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object request = new Dictionary<string, object>() {
@@ -613,7 +613,7 @@ public partial class alpaca : Exchange
         //         }
         //     ]
         //
-        return this.parseMarkets(assets);
+        return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(assets));
     }
 
     public override object parseMarket(object asset)
@@ -821,7 +821,7 @@ public partial class alpaca : Exchange
      * @param {string} [params.loc] crypto location, default: us
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -876,7 +876,7 @@ public partial class alpaca : Exchange
         object orderbooks = this.safeDict(response, "orderbooks", new Dictionary<string, object>() {});
         object rawOrderbook = this.safeDict(orderbooks, id, new Dictionary<string, object>() {});
         object timestamp = this.parse8601(this.safeString(rawOrderbook, "t"));
-        return this.parseOrderBook(rawOrderbook, getValue(market, "symbol"), timestamp, "b", "a", "p", "s");
+        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(rawOrderbook, getValue(market, "symbol"), timestamp, "b", "a", "p", "s"));
     }
 
     /**
@@ -891,6 +891,8 @@ public partial class alpaca : Exchange
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @param {int} [params.paginationCalls] the maximum number of requests while following next_page_token, default 10 — when the cap is reached the result is silently truncated to the pages already fetched, so raise it for long ranges, 10 requests cover roughly 30 days of 1h candles
      * @param {string} [params.loc] crypto location, default: us
      * @param {string} [params.method] method, default: marketPublicGetV1beta3CryptoLocBars
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
@@ -908,6 +910,14 @@ public partial class alpaca : Exchange
         object marketId = getValue(market, "id");
         object loc = this.safeString(parameters, "loc", "us");
         object method = this.safeString(parameters, "method", "marketPublicGetV1beta3CryptoLocBars");
+        object paginate = false;
+        var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
+        paginate = ((IList<object>)paginateparametersVariable)[0];
+        parameters = ((IList<object>)paginateparametersVariable)[1];
+        object paginationCalls = 10;
+        var paginationCallsparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "paginationCalls", 10);
+        paginationCalls = ((IList<object>)paginationCallsparametersVariable)[0];
+        parameters = ((IList<object>)paginationCallsparametersVariable)[1];
         object request = new Dictionary<string, object>() {
             { "symbols", marketId },
             { "loc", loc },
@@ -963,6 +973,30 @@ public partial class alpaca : Exchange
             //
             object bars = this.safeDict(response, "bars", new Dictionary<string, object>() {});
             ohlcvs = this.safeList(bars, marketId, new List<object>() {});
+            if (isTrue(paginate))
+            {
+                // the endpoint answers with a server-sized page plus a next_page_token regardless of the requested limit
+                object pageToken = this.safeString(response, "next_page_token");
+                for (object i = 1; isLessThan(i, paginationCalls); postFixIncrement(ref i))
+                {
+                    int ohlcvsLength = getArrayLength(ohlcvs);
+                    if (isTrue(isTrue((isEqual(pageToken, null))) || isTrue((isTrue((!isEqual(limit, null))) && isTrue((isGreaterThanOrEqual(ohlcvsLength, limit)))))))
+                    {
+                        break;
+                    }
+                    ((IDictionary<string,object>)request)["page_token"] = pageToken;
+                    response = await this.marketPublicGetV1beta3CryptoLocBars(this.extend(request, parameters));
+                    bars = this.safeDict(response, "bars", new Dictionary<string, object>() {});
+                    object page = this.safeList(bars, marketId, new List<object>() {});
+                    int pageLength = getArrayLength(page);
+                    if (isTrue(isEqual(pageLength, 0)))
+                    {
+                        break;
+                    }
+                    ohlcvs = this.arrayConcat(ohlcvs, page);
+                    pageToken = this.safeString(response, "next_page_token");
+                }
+            }
         } else if (isTrue(isEqual(method, "marketPublicGetV1beta3CryptoLocLatestBars")))
         {
             object response = await this.marketPublicGetV1beta3CryptoLocLatestBars(this.extend(request, parameters));
@@ -1030,7 +1064,7 @@ public partial class alpaca : Exchange
             await this.loadMarkets();
         }
         symbolVar = this.symbol(symbolVar);
-        object tickers = await this.fetchTickers(new List<object>() {symbolVar}, parameters);
+        object tickers = ccxt.BaseExchange.FromTickers(await this.FetchTickers(new List<object>() {symbolVar}, parameters));
         return ccxt.BaseExchange.ToTicker(this.safeDict(tickers, symbolVar));
     }
 
@@ -1044,7 +1078,7 @@ public partial class alpaca : Exchange
      * @param {string} [params.loc] crypto location, default: us
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> FetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1155,7 +1189,7 @@ public partial class alpaca : Exchange
             }, market);
             ((IList<object>)results).Add(ticker);
         }
-        return this.filterByArray(results, "symbol", symbols);
+        return ccxt.BaseExchange.ToTickers(this.filterByArray(results, "symbol", symbols));
     }
 
     public virtual object generateClientOrderId(object parameters)
@@ -1970,7 +2004,7 @@ public partial class alpaca : Exchange
         ((IDictionary<string,object>)this.options)["sandboxMode"] = enable;
     }
 
-    public async virtual Task<object> fetchTransactionsHelper(object type, object code, object since, object limit, object parameters)
+    public async virtual Task<List<ccxt.Transaction>> FetchTransactionsHelper(object type, object code, object since, object limit, object parameters)
     {
         if (isTrue(isEqual(this.markets, null)))
         {
@@ -2020,7 +2054,7 @@ public partial class alpaca : Exchange
                     ((IList<object>)filtered).Add(entry);
                 }
             }
-            return this.parseTransactions(filtered, currency, since, limit, parameters);
+            return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(filtered, currency, since, limit, parameters));
         }
         object response = await this.traderPrivateGetV2WalletsTransfers(parameters);
         //
@@ -2058,7 +2092,7 @@ public partial class alpaca : Exchange
                 ((IList<object>)results).Add(entry);
             }
         }
-        return this.parseTransactions(results, currency, since, limit, parameters);
+        return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(results, currency, since, limit, parameters));
     }
 
     /**
@@ -2075,7 +2109,7 @@ public partial class alpaca : Exchange
     public async override Task<List<ccxt.Transaction>> FetchDepositsWithdrawals(object code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return ccxt.BaseExchange.ToTransactionList(await this.fetchTransactionsHelper("BOTH", code, since, limit, parameters));
+        return await this.FetchTransactionsHelper("BOTH", code, since, limit, parameters);
     }
 
     /**
@@ -2092,7 +2126,7 @@ public partial class alpaca : Exchange
     public async override Task<List<ccxt.Transaction>> FetchDeposits(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return ccxt.BaseExchange.ToTransactionList(await this.fetchTransactionsHelper("INCOMING", code, since, limit, parameters));
+        return await this.FetchTransactionsHelper("INCOMING", code, since, limit, parameters);
     }
 
     /**
@@ -2109,7 +2143,7 @@ public partial class alpaca : Exchange
     public async override Task<List<ccxt.Transaction>> FetchWithdrawals(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return ccxt.BaseExchange.ToTransactionList(await this.fetchTransactionsHelper("OUTGOING", code, since, limit, parameters));
+        return await this.FetchTransactionsHelper("OUTGOING", code, since, limit, parameters);
     }
 
     public override object parseTransaction(object transaction, object currency = null)
@@ -2259,7 +2293,7 @@ public partial class alpaca : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public async override Task<object> fetchBalance(object parameters = null)
+    public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2315,7 +2349,7 @@ public partial class alpaca : Exchange
         //         "pending_reg_taf_fees": "0"
         //     }
         //
-        return this.parseBalance(response);
+        return ccxt.BaseExchange.ToBalances(this.parseBalance(response));
     }
 
     public override object parseBalance(object response)

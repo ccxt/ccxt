@@ -436,7 +436,7 @@ public partial class bybit : ccxt.bybit
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> watchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -462,9 +462,9 @@ public partial class bybit : ccxt.bybit
         {
             object result = new Dictionary<string, object>() {};
             ((IDictionary<string,object>)result)[(string)getValue(ticker, "symbol")] = ticker;
-            return result;
+            return ccxt.BaseExchange.ToTickers(result);
         }
-        return this.filterByArray(this.tickers, "symbol", symbols);
+        return ccxt.BaseExchange.ToTickers(this.filterByArray(this.tickers, "symbol", symbols));
     }
 
     /**
@@ -746,7 +746,7 @@ public partial class bybit : ccxt.bybit
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         ((IDictionary<string,object>)parameters)["callerMethodName"] = "watchOHLCV";
-        object result = await this.watchOHLCVForSymbols(new List<object>() {new List<object>() {symbol, timeframeVar}}, since, limit, parameters);
+        object result = ccxt.BaseExchange.FromOHLCVDict(await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbol, timeframeVar}}, since, limit, parameters));
         return ccxt.BaseExchange.ToOHLCVList(getValue(getValue(result, symbol), timeframeVar));
     }
 
@@ -762,7 +762,7 @@ public partial class bybit : ccxt.bybit
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<object> watchOHLCVForSymbols(object symbolsAndTimeframes, object since = null, object limit = null, object parameters = null)
+    public async override Task<Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>>> WatchOHLCVForSymbols(object symbolsAndTimeframes, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -794,7 +794,7 @@ public partial class bybit : ccxt.bybit
             limit = callDynamically(stored, "getLimit", new object[] {symbol, limit});
         }
         object filtered = this.filterBySinceLimit(stored, since, limit, 0, true);
-        return this.createOHLCVObject(symbol, timeframe, filtered);
+        return ccxt.BaseExchange.ToOHLCVDict(this.createOHLCVObject(symbol, timeframe, filtered));
     }
 
     /**
@@ -2031,7 +2031,7 @@ public partial class bybit : ccxt.bybit
             { "contracts", this.safeNumber2(liquidation, "size", "v") },
             { "contractSize", this.safeNumber(market, "contractSize") },
             { "price", this.safeNumber2(liquidation, "price", "p") },
-            { "side", this.safeStringLower(liquidation, "side", "S") },
+            { "side", this.safeStringLower2(liquidation, "side", "S") },
             { "baseValue", null },
             { "quoteValue", null },
             { "timestamp", timestamp },

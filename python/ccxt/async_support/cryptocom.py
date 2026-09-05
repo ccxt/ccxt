@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.cryptocom import ImplicitAPI
 import hashlib
 import math
-from ccxt.base.types import Account, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, TradingFees, DepositWithdrawFees, Transaction
+from ccxt.base.types import Account, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, DepositAddresses, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, TradingFees, DepositWithdrawFees, Transaction
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -1965,7 +1965,7 @@ class cryptocom(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result')
         return self.parse_transaction(result, currency)
 
-    async def fetch_deposit_addresses_by_network(self, code: str, params={}) -> list[DepositAddress]:
+    async def fetch_deposit_addresses_by_network(self, code: str, params={}) -> DepositAddresses:
         """
         fetch a dictionary of addresses for a currency, indexed by network
 
@@ -3180,8 +3180,8 @@ class cryptocom(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'hedged': None,
-            'side': 'buy' if Precise.string_gt(amount, '0') else 'sell',
-            'contracts': Precise.string_abs(amount),
+            'side': 'long' if Precise.string_gt(amount, '0') else 'short',
+            'contracts': self.parse_number(Precise.string_abs(amount)),
             'contractSize': market['contractSize'],
             'entryPrice': None,
             'markPrice': None,

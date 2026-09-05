@@ -1330,6 +1330,7 @@
                 "maker": "undef",
                 "active": "undef",
                 "contractSize": "undef",
+                "marginModes": "parseMarket does not emit marginModes.cross/isolated",
                 "precisionAmountAbnormal": "abnormal precision"
             },
             "fetchCurrencies": {
@@ -2139,6 +2140,21 @@
             }
         }
     },
+    "revolutx": {
+        "skipMethods": {
+            "fetchCurrencies": {
+                "withdraw": "RevX API does not support withdrawals",
+                "deposit": "RevX API does not support deposits",
+                "activeMajorCurrencies": "RevX API does not provide deposit/withdrawal flags"
+            },
+            "ticker": {
+                "compareOHLC": "open is derived from last - priceChange, can fall outside 24h low/high range"
+            },
+            "fetchTickers": {
+                "compareOHLC": "open is derived from last - priceChange, can fall outside 24h low/high range"
+            }
+        }
+    },
     "tradeogre": {
         "skip": "flaky",
         "skipWs": "down",
@@ -2471,7 +2487,8 @@
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "messed",
-                "contractSize": "not provided"
+                "contractSize": "not provided",
+                "marginModes": "parseMarket does not emit marginModes.cross/isolated"
             },
             "fetchOrderBook": {
                 "timestamp": "not provided",

@@ -3987,7 +3987,7 @@ class aster extends Exchange {
         );
     }
 
-    public function fetch_account_positions(?array $symbols = null, $params = array()) {
+    public function fetch_account_positions(?array $symbols = null, $params = array()): array {
         /**
          * @ignore
          * fetch account positions

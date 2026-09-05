@@ -409,7 +409,7 @@ export default class deepcoin extends Exchange {
         return result;
     }
 
-    async fetchMarketsByType (type: any, params = {}) {
+    async fetchMarketsByType (type: any, params = {}): Promise<Market[]> {
         const request: Dict = {
             'instType': this.convertToInstrumentType (type),
         };
@@ -2642,7 +2642,7 @@ export default class deepcoin extends Exchange {
             'id': this.safeString (position, 'posId'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'contracts': this.safeString (position, 'pos'),
+            'contracts': this.safeNumber (position, 'pos'),
             'contractSize': undefined,
             'side': this.safeString (position, 'posSide'),
             'notional': undefined,
@@ -2650,7 +2650,7 @@ export default class deepcoin extends Exchange {
             'unrealizedPnl': undefined,
             'realizedPnl': undefined,
             'collateral': undefined,
-            'entryPrice': this.safeString (position, 'avgPx'),
+            'entryPrice': this.safeNumber (position, 'avgPx'),
             'markPrice': undefined,
             'liquidationPrice': this.safeString (position, 'liqPx'),
             'marginMode': this.safeString (position, 'mgnMode'),

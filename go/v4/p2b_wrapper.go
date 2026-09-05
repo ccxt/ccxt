@@ -29,7 +29,7 @@ func NewP2bFromCore(core *P2bCore) *P2b {
 /**
  * @method
  * @name p2b#fetchMarkets
- * @description retrieves data on all markets for bigone
+ * @description retrieves data on all markets for p2b
  * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#markets
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
@@ -46,7 +46,7 @@ func (this *P2b) FetchMarkets(params ...any) ([]MarketInterface, error) {
  * @method
  * @name p2b#fetchTickers
  * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
- * @see https://futures-docs.poloniex.com/#get-real-time-ticker-of-all-symbols
+ * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#tickers
  * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -380,7 +380,7 @@ func (this *P2b) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, error)
 /**
  * @method
  * @name p2b#fetchClosedOrders
- * @description fetches information on multiple closed orders made by the user, the time between since and params["untnil"] cannot be longer than 24 hours
+ * @description fetches information on multiple closed orders made by the user, the time between since and params["until"] cannot be longer than 24 hours
  * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#orders-history-by-market
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for, default = params["until"] - 86400000
@@ -527,7 +527,7 @@ func (this *P2b) EditOrders(orders []OrderRequest, options ...EditOrdersOptions)
 func (this *P2b) FetchAccounts(params ...any) ([]Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
 }
-func (this *P2b) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
+func (this *P2b) FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks, error) {
 	return this.exchangeTyped.FetchAllGreeks(options...)
 }
 func (this *P2b) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error) {
@@ -569,7 +569,7 @@ func (this *P2b) FetchDepositAddress(code string, options ...FetchDepositAddress
 func (this *P2b) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
 	return this.exchangeTyped.FetchDepositAddresses(options...)
 }
-func (this *P2b) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
+func (this *P2b) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error) {
 	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
 }
 func (this *P2b) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {

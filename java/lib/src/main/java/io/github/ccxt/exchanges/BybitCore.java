@@ -3143,7 +3143,7 @@ public class BybitCore extends BybitApi
                             put( "max", BybitCore.this.safeNumber(priceFilter, "maxPrice") );
                         }} );
                         put( "cost", new java.util.HashMap<String, Object>() {{
-                            put( "min", null );
+                            put( "min", ((Helpers.isTrue(linear))) ? BybitCore.this.safeNumber(lotSizeFilter, "minNotionalValue") : null );
                             put( "max", null );
                         }} );
                     }} );
@@ -10601,7 +10601,7 @@ public class BybitCore extends BybitApi
      * @param {string[]} [symbols] unified symbols of the markets to fetch greeks for, all markets are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.baseCoin] the baseCoin of the symbol, default is BTC
-     * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
+     * @returns {object} a dictionary of [greeks structures]{@link https://docs.ccxt.com/?id=greeks-structure} indexed by market symbol
      */
     public java.util.concurrent.CompletableFuture<Object> fetchAllGreeks(Object... optionalArgs)
     {

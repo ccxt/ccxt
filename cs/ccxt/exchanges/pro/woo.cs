@@ -310,7 +310,7 @@ public partial class woo : ccxt.woo
             object defaultLimit = this.safeInteger(this.options, "watchOrderBookLimit", 1000);
             object limit = this.safeInteger(subscription, "limit", defaultLimit);
             object parameters = this.safeValue(subscription, "params");
-            object snapshot = await this.fetchRestOrderBookSafe(symbol, limit, parameters);
+            object snapshot = ccxt.BaseExchange.FromOrderBook(await this.FetchRestOrderBookSafe(symbol, limit, parameters));
             if (isTrue(isEqual(this.safeValue(this.orderbooks, symbol), null)))
             {
                 // if the orderbook is dropped before the snapshot is received
@@ -507,7 +507,7 @@ public partial class woo : ccxt.woo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> watchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -523,7 +523,7 @@ public partial class woo : ccxt.woo
         };
         Dictionary<string, object> message = this.extend(request, parameters);
         object tickers = await this.watchPublic(topic, message);
-        return this.filterByArray(tickers, "symbol", symbols);
+        return ccxt.BaseExchange.ToTickers(this.filterByArray(tickers, "symbol", symbols));
     }
 
     /**
@@ -1510,7 +1510,7 @@ public partial class woo : ccxt.woo
 
     public async virtual Task loadPositionsSnapshot(WebSocketClient client, object messageHash)
     {
-        object positions = await this.FetchPositions();
+        object positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositions());
         this.positions = new ArrayCacheBySymbolBySide();
         object cache = this.positions;
         for (object i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))

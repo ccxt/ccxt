@@ -229,7 +229,7 @@ func (this *Bitstamp) EditOrders(orders []ccxt.OrderRequest, options ...ccxt.Edi
 func (this *Bitstamp) FetchAccounts(params ...any) ([]ccxt.Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
 }
-func (this *Bitstamp) FetchAllGreeks(options ...ccxt.FetchAllGreeksOptions) ([]ccxt.Greeks, error) {
+func (this *Bitstamp) FetchAllGreeks(options ...ccxt.FetchAllGreeksOptions) (ccxt.AllGreeks, error) {
 	return this.exchangeTyped.FetchAllGreeks(options...)
 }
 func (this *Bitstamp) FetchBalance(params ...any) (ccxt.Balances, error) {
@@ -277,7 +277,7 @@ func (this *Bitstamp) FetchDepositAddress(code string, options ...ccxt.FetchDepo
 func (this *Bitstamp) FetchDepositAddresses(options ...ccxt.FetchDepositAddressesOptions) ([]ccxt.DepositAddress, error) {
 	return this.exchangeTyped.FetchDepositAddresses(options...)
 }
-func (this *Bitstamp) FetchDepositAddressesByNetwork(code string, options ...ccxt.FetchDepositAddressesByNetworkOptions) ([]ccxt.DepositAddress, error) {
+func (this *Bitstamp) FetchDepositAddressesByNetwork(code string, options ...ccxt.FetchDepositAddressesByNetworkOptions) (ccxt.DepositAddresses, error) {
 	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
 }
 func (this *Bitstamp) FetchDeposits(options ...ccxt.FetchDepositsOptions) ([]ccxt.Transaction, error) {

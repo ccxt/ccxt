@@ -1527,9 +1527,15 @@ export default class toobit extends Exchange {
     }
 
     parseBidAskCustom (ticker: any) {
+        // 's' is the exchange id and 't' a millisecond integer, the pair parseTicker
+        // reads through safeMarket and safeInteger. The caller filters on a unified symbol.
+        const marketId = this.safeString (ticker, 's');
+        const market = this.safeMarket (marketId);
+        const timestamp = this.safeInteger (ticker, 't');
         return {
-            'timestamp': this.safeString (ticker, 't'),
-            'symbol': this.safeString (ticker, 's'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
             'bid': this.safeNumber (ticker, 'b'),
             'bidVolume': this.safeNumber (ticker, 'bq'),
             'ask': this.safeNumber (ticker, 'a'),
@@ -2766,7 +2772,7 @@ export default class toobit extends Exchange {
         return await this.fetchDepositsOrWithdrawalsHelper ('withdrawals', code, since, limit, params);
     }
 
-    async fetchDepositsOrWithdrawalsHelper (type: any, code: any, since: any, limit: any, params = {}) {
+    async fetchDepositsOrWithdrawalsHelper (type: any, code: any, since: any, limit: any, params = {}): Promise<Transaction[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

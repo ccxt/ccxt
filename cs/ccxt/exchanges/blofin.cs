@@ -641,12 +641,12 @@ public partial class blofin : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public async override Task<object> fetchMarkets(object parameters = null)
+    public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetMarketInstruments(parameters);
         object data = this.safeList(response, "data", new List<object>() {});
-        return this.parseMarkets(data);
+        return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(data));
     }
 
     public override object parseMarket(object market)
@@ -746,7 +746,7 @@ public partial class blofin : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
@@ -788,7 +788,7 @@ public partial class blofin : Exchange
         object data = this.safeList(response, "data", new List<object>() {});
         object first = this.safeDict(data, 0, new Dictionary<string, object>() {});
         object timestamp = this.safeInteger(first, "ts");
-        return this.parseOrderBook(first, symbol, timestamp);
+        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(first, symbol, timestamp));
     }
 
     public override object parseTicker(object ticker, object market = null)
@@ -911,7 +911,7 @@ public partial class blofin : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> FetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -921,7 +921,7 @@ public partial class blofin : Exchange
         symbols = this.marketSymbols(symbols);
         object response = await this.publicGetMarketTickers(parameters);
         object tickers = this.safeList(response, "data", new List<object>() {});
-        return this.parseTickers(tickers, symbols);
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, symbols));
     }
 
     public override object parseTrade(object trade, object market = null)
@@ -1440,7 +1440,7 @@ public partial class blofin : Exchange
      * @param {string} [params.accountType] the type of account to fetch the balance for, either 'funding' or 'futures'  or 'copy_trading' or 'earn'
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public async override Task<object> fetchBalance(object parameters = null)
+    public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1463,7 +1463,7 @@ public partial class blofin : Exchange
         {
             response = await this.privateGetAccountBalance(this.extend(request, parameters));
         }
-        return this.parseBalanceByType(response);
+        return ccxt.BaseExchange.ToBalances(this.parseBalanceByType(response));
     }
 
     public virtual object createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
@@ -1895,7 +1895,7 @@ public partial class blofin : Exchange
         object query = this.omit(parameters, new List<object>() {"orderId", "clientOrderId", "stop", "trigger", "tpsl"});
         if (isTrue(isEqual(isTpsl, true)))
         {
-            object tpslResponse = await this.cancelOrders(new List<object>() {id},((string)symbol), parameters);
+            object tpslResponse = ccxt.BaseExchange.FromOrderList(await this.CancelOrders(new List<object>() {id},((string)symbol), parameters));
             object first = this.safeDict(tpslResponse, 0);
             return ccxt.BaseExchange.ToOrder(first);
         } else if (isTrue(isEqual(isTrigger, true)))
@@ -2428,7 +2428,7 @@ public partial class blofin : Exchange
      * @param {boolean} [params.trigger] whether the order is a stop/trigger order
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelOrders(object ids, string symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> CancelOrders(object ids, string symbol = null, object parameters = null)
     {
         // TODO : the original endpoint signature differs, according to that you can skip individual symbol and assign ids in batch. At this moment, `params` is not being used too.
         parameters ??= new Dictionary<string, object>();
@@ -2498,7 +2498,7 @@ public partial class blofin : Exchange
             response = await this.privatePostTradeCancelBatchOrders(request); // * dont extend with params, otherwise ARRAY will be turned into OBJECT
         }
         object ordersData = this.safeList(response, "data", new List<object>() {});
-        return this.parseOrders(ordersData, market, null, null, parameters);
+        return ccxt.BaseExchange.ToOrderList(this.parseOrders(ordersData, market, null, null, parameters));
     }
 
     /**
@@ -2513,7 +2513,7 @@ public partial class blofin : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public async override Task<object> transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
+    public async override Task<ccxt.TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2532,7 +2532,7 @@ public partial class blofin : Exchange
         };
         object response = await this.privatePostAssetTransfer(this.extend(request, parameters));
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return this.parseTransfer(data, currency);
+        return ccxt.BaseExchange.ToTransferEntry(this.parseTransfer(data, currency));
     }
 
     public override object parseTransfer(object transfer, object currency = null)
@@ -2843,7 +2843,7 @@ public partial class blofin : Exchange
      * @param {string} [params.marginMode] 'cross' or 'isolated'
      * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    public async override Task<object> fetchLeverages(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Leverages> FetchLeverages(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2900,7 +2900,7 @@ public partial class blofin : Exchange
         //     }
         //
         object leverages = this.safeList(response, "data", new List<object>() {});
-        return this.parseLeverages(leverages, symbols, "instId");
+        return ccxt.BaseExchange.ToLeverages(this.parseLeverages(leverages, symbols, "instId"));
     }
 
     /**
@@ -2978,7 +2978,7 @@ public partial class blofin : Exchange
      * @param {string} [params.positionSide] 'long' or 'short' - required for hedged mode in isolated margin
      * @returns {object} response from the exchange
      */
-    public async override Task<object> setLeverage(object leverage, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetLeverage(object leverage, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -3010,7 +3010,7 @@ public partial class blofin : Exchange
             { "instId", getValue(market, "id") },
         };
         object response = await this.privatePostAccountSetLeverage(this.extend(request, parameters));
-        return response;
+        return ccxt.BaseExchange.ToDict(response);
     }
 
     /**
@@ -3167,7 +3167,7 @@ public partial class blofin : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public async override Task<object> setMarginMode(string marginMode, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetMarginMode(string marginMode, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredArgument("setMarginMode", marginMode, "marginMode", new List<object>() {"cross", "isolated"});
@@ -3194,7 +3194,7 @@ public partial class blofin : Exchange
         //     }
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return this.parseMarginMode(data, market);  // Dict, not MarginMode: this override has no explicit return annotation, so the Go/C#/Java wrappers infer it — MarginMode would emit MarginMode instead of the map[string]any required by IExchange.SetMarginMode
+        return ccxt.BaseExchange.ToDict(this.parseMarginMode(data, market));  // Dict, not MarginMode: this override has no explicit return annotation, so the Go/C#/Java wrappers infer it — MarginMode would emit MarginMode instead of the map[string]any required by IExchange.SetMarginMode
     }
 
     /**
@@ -3234,7 +3234,7 @@ public partial class blofin : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public async override Task<object> setPositionMode(object hedged, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetPositionMode(object hedged, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object request = new Dictionary<string, object>() {
@@ -3249,7 +3249,7 @@ public partial class blofin : Exchange
         //         }
         //     }
         //
-        return await this.privatePostAccountSetPositionMode(this.extend(request, parameters));
+        return ccxt.BaseExchange.ToDict(await this.privatePostAccountSetPositionMode(this.extend(request, parameters)));
     }
 
     /**

@@ -3186,10 +3186,10 @@ class okx extends okx$1["default"] {
         const triggerPrice = this.safeValueN(params, ['triggerPrice', 'stopPrice', 'triggerPx']);
         const timeInForce = this.safeString(params, 'timeInForce', 'GTC');
         // const takeProfitPrice = this.safeValue2 (params, 'takeProfitPrice', 'tpTriggerPx');
-        const tpOrdPx = this.safeValue(params, 'tpOrdPx', price);
+        const tpOrdPx = this.safeNumber(params, 'tpOrdPx', price);
         const tpTriggerPxType = this.safeString(params, 'tpTriggerPxType', 'last');
         // const stopLossPrice = this.safeValue2 (params, 'stopLossPrice', 'slTriggerPx');
-        const slOrdPx = this.safeValue(params, 'slOrdPx', price);
+        const slOrdPx = this.safeNumber(params, 'slOrdPx', price);
         const slTriggerPxType = this.safeString(params, 'slTriggerPxType', 'last');
         const clientOrderId = this.safeString2(params, 'clOrdId', 'clientOrderId');
         const stopLoss = this.safeValue(params, 'stopLoss');
@@ -3201,7 +3201,7 @@ class okx extends okx$1["default"] {
         const trailingPrice = this.safeString2(params, 'trailingPrice', 'callbackSpread');
         const isTrailingPriceOrder = trailingPrice !== undefined;
         const trigger = (triggerPrice !== undefined) || (type === 'trigger');
-        const isReduceOnly = (this.safeValue(params, 'reduceOnly', false) === true) || (closeFraction !== undefined);
+        const isReduceOnly = (this.safeBool(params, 'reduceOnly', false) === true) || (closeFraction !== undefined);
         const defaultMarginMode = this.safeString2(this.options, 'defaultMarginMode', 'marginMode', 'cross');
         let marginMode = this.safeString2(params, 'marginMode', 'tdMode'); // cross or isolated, tdMode not omitted so as to be extended into the request
         let margin = false;
@@ -3618,11 +3618,11 @@ class okx extends okx$1["default"] {
                 request['ordId'] = id;
             }
         }
-        let stopLossTriggerPrice = this.safeValue2(params, 'stopLossPrice', 'newSlTriggerPx');
-        let stopLossPrice = this.safeValue(params, 'newSlOrdPx');
+        let stopLossTriggerPrice = this.safeNumber2(params, 'stopLossPrice', 'newSlTriggerPx');
+        let stopLossPrice = this.safeNumber(params, 'newSlOrdPx');
         const stopLossTriggerPriceType = this.safeString(params, 'newSlTriggerPxType', 'last');
-        let takeProfitTriggerPrice = this.safeValue2(params, 'takeProfitPrice', 'newTpTriggerPx');
-        let takeProfitPrice = this.safeValue(params, 'newTpOrdPx');
+        let takeProfitTriggerPrice = this.safeNumber2(params, 'takeProfitPrice', 'newTpTriggerPx');
+        let takeProfitPrice = this.safeNumber(params, 'newTpOrdPx');
         const takeProfitTriggerPriceType = this.safeString(params, 'newTpTriggerPxType', 'last');
         const stopLoss = this.safeValue(params, 'stopLoss');
         const takeProfit = this.safeValue(params, 'takeProfit');
@@ -3661,16 +3661,16 @@ class okx extends okx$1["default"] {
                 request['newTpTriggerPxType'] = takeProfitTriggerPriceType;
             }
             if (hasStopLoss) {
-                stopLossTriggerPrice = this.safeValue(stopLoss, 'triggerPrice');
-                stopLossPrice = this.safeValue(stopLoss, 'price');
+                stopLossTriggerPrice = this.safeNumber(stopLoss, 'triggerPrice');
+                stopLossPrice = this.safeNumber(stopLoss, 'price');
                 const stopLossType = this.safeString(stopLoss, 'type');
                 request['newSlTriggerPx'] = this.priceToPrecision(symbol, stopLossTriggerPrice);
                 request['newSlOrdPx'] = (stopLossType === 'market') ? '-1' : this.priceToPrecision(symbol, stopLossPrice);
                 request['newSlTriggerPxType'] = stopLossTriggerPriceType;
             }
             if (hasTakeProfit) {
-                takeProfitTriggerPrice = this.safeValue(takeProfit, 'triggerPrice');
-                takeProfitPrice = this.safeValue(takeProfit, 'price');
+                takeProfitTriggerPrice = this.safeNumber(takeProfit, 'triggerPrice');
+                takeProfitPrice = this.safeNumber(takeProfit, 'price');
                 const takeProfitType = this.safeString(takeProfit, 'type');
                 request['newTpOrdKind'] = (takeProfitType === 'limit') ? takeProfitType : 'condition';
                 request['newTpTriggerPx'] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
@@ -3802,7 +3802,7 @@ class okx extends okx$1["default"] {
         const query = this.omit(params, ['clOrdId', 'clientOrderId']);
         const response = await this.privatePostTradeCancelOrder(this.extend(request, query));
         // {"code":"0","data":[{"clOrdId":"","ordId":"317251910906576896","sCode":"0","sMsg":""}],"msg":""}
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         const order = this.safeDict(data, 0);
         return this.parseOrder(order, market);
     }
@@ -3844,7 +3844,7 @@ class okx extends okx$1["default"] {
         }
         const market = this.market(symbol);
         const request = [];
-        const options = this.safeValue(this.options, 'cancelOrders', {});
+        const options = this.safeDict(this.options, 'cancelOrders', {});
         const defaultMethod = this.safeString(options, 'method', 'privatePostTradeCancelBatchOrders');
         let method = this.safeString(params, 'method', defaultMethod);
         const clientOrderIds = this.parseIds(this.safeValue2(params, 'clOrdId', 'clientOrderId'));
@@ -3933,7 +3933,10 @@ class okx extends okx$1["default"] {
         //     }
         //
         const ordersData = this.safeList(response, 'data', []);
-        return this.parseOrders(ordersData, market, undefined, undefined, params);
+        // the request-only keys must not be merged onto every parsed order: a clientOrderId[]
+        // request would otherwise come back as a list under the unified string field
+        const orderParams = this.omit(params, ['clOrdId', 'clientOrderId', 'algoId', 'stop', 'trigger', 'trailing', 'method']);
+        return this.parseOrders(ordersData, market, undefined, undefined, orderParams);
     }
     /**
      * @method
@@ -4383,7 +4386,7 @@ class okx extends okx$1["default"] {
             // 'instType': // spot, swap, futures, margin
         };
         const clientOrderId = this.safeString2(params, 'clOrdId', 'clientOrderId');
-        const options = this.safeValue(this.options, 'fetchOrder', {});
+        const options = this.safeDict(this.options, 'fetchOrder', {});
         const defaultMethod = this.safeString(options, 'method', 'privateGetTradeOrder');
         let method = this.safeString(params, 'method', defaultMethod);
         const trigger = this.safeValue2(params, 'stop', 'trigger');
@@ -4509,7 +4512,7 @@ class okx extends okx$1["default"] {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         const order = this.safeDict(data, 0);
         return this.parseOrder(order, market);
     }
@@ -4558,8 +4561,8 @@ class okx extends okx$1["default"] {
         if (limit !== undefined) {
             request['limit'] = Math.min(limit, maxLimit); // default 100, max 100
         }
-        const options = this.safeValue(this.options, 'fetchOpenOrders', {});
-        const algoOrderTypes = this.safeValue(this.options, 'algoOrderTypes', {});
+        const options = this.safeDict(this.options, 'fetchOpenOrders', {});
+        const algoOrderTypes = this.safeDict(this.options, 'algoOrderTypes', {});
         const defaultMethod = this.safeString(options, 'method', 'privateGetTradeOrdersPending');
         let method = this.safeString(params, 'method', defaultMethod);
         const ordType = this.safeString(params, 'ordType');
@@ -4726,8 +4729,8 @@ class okx extends okx$1["default"] {
             request['limit'] = limit; // default 100, max 100
         }
         request['state'] = 'canceled';
-        const options = this.safeValue(this.options, 'fetchCanceledOrders', {});
-        const algoOrderTypes = this.safeValue(this.options, 'algoOrderTypes', {});
+        const options = this.safeDict(this.options, 'fetchCanceledOrders', {});
+        const algoOrderTypes = this.safeDict(this.options, 'algoOrderTypes', {});
         const defaultMethod = this.safeString(options, 'method', 'privateGetTradeOrdersHistory');
         let method = this.safeString(params, 'method', defaultMethod);
         const ordType = this.safeString(params, 'ordType');
@@ -5402,16 +5405,16 @@ class okx extends okx$1["default"] {
         const address = this.safeString(depositAddress, 'addr');
         let tag = this.safeStringN(depositAddress, ['tag', 'pmtId', 'memo']);
         if (tag === undefined) {
-            const addrEx = this.safeValue(depositAddress, 'addrEx', {});
+            const addrEx = this.safeDict(depositAddress, 'addrEx', {});
             tag = this.safeString(addrEx, 'comment');
         }
         const currencyId = this.safeString(depositAddress, 'ccy');
         currency = this.safeCurrency(currencyId, currency);
         const code = currency['code'];
         const chain = this.safeString(depositAddress, 'chain');
-        const networks = this.safeValue(currency, 'networks', {});
+        const networks = this.safeDict(currency, 'networks', {});
         const networksById = this.indexBy(networks, 'id');
-        let networkData = (chain === undefined) ? undefined : this.safeValue(networksById, chain);
+        let networkData = (chain === undefined) ? undefined : this.safeDict(networksById, chain);
         // inconsistent naming responses from exchange
         // with respect to network naming provided in currency info vs address chain-names and ids
         //
@@ -5454,7 +5457,7 @@ class okx extends okx$1["default"] {
         //     },
         //
         if (chain === 'USDT-Polygon') {
-            networkData = this.safeValue2(networksById, 'USDT-Polygon-Bridge', 'USDT-Polygon');
+            networkData = this.safeDict2(networksById, 'USDT-Polygon-Bridge', 'USDT-Polygon');
         }
         const network = this.safeString(networkData, 'network');
         const networkCode = this.networkIdToCode(network, code);
@@ -5719,7 +5722,7 @@ class okx extends okx$1["default"] {
             request['ccy'] = currency['id'];
         }
         const response = await this.privateGetAssetDepositHistory(this.extend(request, params));
-        const data = this.safeValue(response, 'data');
+        const data = this.safeList(response, 'data');
         const deposit = this.safeDict(data, 0, {});
         return this.parseTransaction(deposit, currency);
     }
@@ -8275,7 +8278,7 @@ class okx extends okx$1["default"] {
             const currencyId = this.safeString(feeInfo, 'ccy');
             const code = this.safeCurrencyCode(currencyId);
             if ((code !== undefined) && ((codes === undefined) || (this.inArray(code, codes)))) {
-                const depositWithdrawFee = this.safeValue(depositWithdrawFees, code);
+                const depositWithdrawFee = this.safeDict(depositWithdrawFees, code);
                 if (depositWithdrawFee === undefined) {
                     depositWithdrawFees[code] = this.depositWithdrawFee({});
                 }
@@ -8287,7 +8290,7 @@ class okx extends okx$1["default"] {
                     continue;
                 }
                 const chainSplit = chain.split('-');
-                const networkId = this.safeValue(chainSplit, 1);
+                const networkId = this.safeString(chainSplit, 1);
                 const withdrawFee = this.safeNumber(feeInfo, 'fee');
                 const withdrawResult = {
                     'fee': withdrawFee,
@@ -8527,7 +8530,7 @@ class okx extends okx$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} params.uly Underlying, either uly or instFamily is required
      * @param {string} params.instFamily Instrument family, either uly or instFamily is required
-     * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
+     * @returns {object} a dictionary of [greeks structures]{@link https://docs.ccxt.com/?id=greeks-structure} indexed by market symbol
      */
     async fetchAllGreeks(symbols = undefined, params = {}) {
         if (this.markets === undefined) {

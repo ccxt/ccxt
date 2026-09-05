@@ -8,7 +8,7 @@ from ccxt.abstract.binance import ImplicitAPI
 import asyncio
 import hashlib
 import json
-from ccxt.base.types import ADL, Balances, BorrowInterest, Conversion, CrossBorrowRate, Currencies, Currency, CurrencyInterface, DepositAddress, Greeks, Int, IsolatedBorrowRate, IsolatedBorrowRates, LedgerEntry, Leverage, Leverages, LeverageTier, LeverageTiers, LongShortRatio, MarginMode, MarginModes, MarginModification, MarginLoan, Market, Num, Option, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, PositionModeInfo, Status, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, Trade, TradingFeeInterface, TradingFees, DepositWithdrawFees, Transaction, MarketInterface, TransferEntry
+from ccxt.base.types import ADL, Balances, BorrowInterest, Conversion, CrossBorrowRate, Currencies, Currency, CurrencyInterface, DepositAddress, Greeks, AllGreeks, Int, IsolatedBorrowRate, IsolatedBorrowRates, LedgerEntry, Leverage, Leverages, LeverageTier, LeverageTiers, LongShortRatio, MarginMode, MarginModes, MarginModification, MarginLoan, Market, Num, Option, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, PositionModeInfo, Status, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, Trade, TradingFeeInterface, TradingFees, DepositWithdrawFees, Transaction, MarketInterface, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -896,7 +896,7 @@ class binance(Exchange, ImplicitAPI):
                         'premiumIndex': {'cost': 1},
                         'ticker/24hr': {'cost': 1, 'noSymbol': 40},
                         'ticker/price': {'cost': 1, 'noSymbol': 2},
-                        'ticker/bookTicker': {'cost': 1, 'noSymbol': 2},
+                        'ticker/bookTicker': {'cost': 2, 'noSymbol': 5},
                         'openInterest': {'cost': 1},
                         'indexInfo': {'cost': 1},
                         'assetIndex': {'cost': 1, 'noSymbol': 10},
@@ -3931,18 +3931,14 @@ class binance(Exchange, ImplicitAPI):
             assets = self.safe_list(response, 'assets', [])
             for i in range(0, len(assets)):
                 asset = assets[i]
-                marketId = self.safe_string(asset, 'symbol')
-                symbol = self.safe_symbol(marketId, None, None, 'spot')
                 base = self.safe_dict(asset, 'baseAsset', {})
                 quote = self.safe_dict(asset, 'quoteAsset', {})
                 baseCode = self.safe_currency_code(self.safe_string(base, 'asset'))
                 quoteCode = self.safe_currency_code(self.safe_string(quote, 'asset'))
-                subResult = {}
                 if baseCode is not None:
-                    subResult[baseCode] = self.parse_balance_helper(base)
+                    result = self.merge_balance_account(result, baseCode, self.parse_balance_helper(base))
                 if quoteCode is not None:
-                    subResult[quoteCode] = self.parse_balance_helper(quote)
-                result[symbol] = self.safe_balance(subResult)
+                    result = self.merge_balance_account(result, quoteCode, self.parse_balance_helper(quote))
         elif type == 'savings':
             positionAmountVos = self.safe_list(response, 'positionAmountVos', [])
             for i in range(0, len(positionAmountVos)):
@@ -3988,7 +3984,7 @@ class binance(Exchange, ImplicitAPI):
                     result[code] = account
         result['timestamp'] = timestamp
         result['datetime'] = self.iso8601(timestamp)
-        return result if isolated else self.safe_balance(result)
+        return self.safe_balance(result)
 
     async def fetch_balance(self, params={}) -> Balances:
         """
@@ -4621,20 +4617,26 @@ class binance(Exchange, ImplicitAPI):
         type, params = self.handle_market_type_and_params('fetchBidsAsks', market, params)
         subType = None
         subType, params = self.handle_sub_type_and_params('fetchBidsAsks', market, params)
+        request = {}
+        if (symbols is not None) and (self.is_linear(type, subType) or self.is_inverse(type, subType)):
+            symbolsLength = len(symbols)
+            if symbolsLength == 1:
+                request['symbol'] = self.market_id(symbols[0])
         response = None
         if type == 'option':
             response = await self.eapiPublicGetTicker(params)
         elif self.is_linear(type, subType):
-            response = await self.fapiPublicGetTickerBookTicker(params)
+            response = await self.fapiPublicGetTickerBookTicker(self.extend(request, params))
         elif self.is_inverse(type, subType):
-            response = await self.dapiPublicGetTickerBookTicker(params)
+            response = await self.dapiPublicGetTickerBookTicker(self.extend(request, params))
         elif type == 'spot':
-            request = {}
             if symbols is not None:
                 request['symbols'] = self.json(self.market_ids(symbols))
             response = await self.publicGetTickerBookTicker(self.extend(request, params))
         else:
             raise NotSupported(self.id + ' fetchBidsAsks() does not support ' + type + ' markets yet')
+        if not isinstance(response, list):
+            response = [response]
         return self.parse_tickers(response, symbols)
 
     async def fetch_last_prices(self, symbols: Strings = None, params={}):
@@ -5494,7 +5496,7 @@ class binance(Exchange, ImplicitAPI):
             responseList = self.to_array(response)
         return self.parse_trades(responseList, market, since, limit)
 
-    async def edit_spot_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num, price: Num = None, params={}):
+    async def edit_spot_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num, price: Num = None, params={}) -> Order:
         """
  @ignore
         edit a trade order
@@ -5698,7 +5700,7 @@ class binance(Exchange, ImplicitAPI):
         params = self.omit(params, ['clientOrderId', 'newClientOrderId'])
         return request
 
-    async def edit_contract_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num, price: Num = None, params={}):
+    async def edit_contract_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num, price: Num = None, params={}) -> Order:
         """
         edit a trade order
 
@@ -8653,7 +8655,7 @@ class binance(Exchange, ImplicitAPI):
                 responseList = self.to_array(response)
         return self.parse_trades(responseList, market, since, limit)
 
-    async def fetch_my_dust_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_my_dust_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         fetch all dust trades made by the user
 
@@ -10167,7 +10169,7 @@ class binance(Exchange, ImplicitAPI):
             return result
         raise NotSupported(self.id + ' fetchTradingFees() is not supported for ' + type + ' markets')
 
-    async def futures_transfer(self, code: str, amount: object, type: object, params={}):
+    async def futures_transfer(self, code: str, amount: object, type: object, params={}) -> TransferEntry:
         """
  @ignore
         transfer between futures account
@@ -11104,7 +11106,7 @@ class binance(Exchange, ImplicitAPI):
         #
         return self.parse_option_position(self.safe_dict(response, 0, {}), market)
 
-    async def fetch_option_positions(self, symbols: Strings = None, params={}):
+    async def fetch_option_positions(self, symbols: Strings = None, params={}) -> list[Position]:
         """
         fetch data on open options positions
 
@@ -11253,7 +11255,7 @@ class binance(Exchange, ImplicitAPI):
         else:
             raise NotSupported(self.id + '.options["fetchPositions"]["method"] or params["method"] = "' + defaultMethod + '" is invalid, please choose between "account", "positionRisk" and "option"')
 
-    async def fetch_account_positions(self, symbols: Strings = None, params={}):
+    async def fetch_account_positions(self, symbols: Strings = None, params={}) -> list[Position]:
         """
  @ignore
         fetch account positions
@@ -11877,7 +11879,7 @@ class binance(Exchange, ImplicitAPI):
         sorted = self.sort_by(settlements, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
-    async def fetch_my_settlement_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_my_settlement_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[dict]:
         """
         fetches historical settlement records of the user
 
@@ -12684,7 +12686,7 @@ class binance(Exchange, ImplicitAPI):
         #
         return self.parse_isolated_borrow_rates(response)
 
-    async def fetch_borrow_rate_history(self, code: str, since: Int = None, limit: Int = None, params={}):
+    async def fetch_borrow_rate_history(self, code: str, since: Int = None, limit: Int = None, params={}) -> list[dict]:
         """
         retrieves a history of a currencies borrow interest rate at specific time slots
 
@@ -12783,7 +12785,7 @@ class binance(Exchange, ImplicitAPI):
             'datetime': None,
         }
 
-    async def create_gift_code(self, code: str, amount: object, params={}):
+    async def create_gift_code(self, code: str, amount: object, params={}) -> dict:
         """
         create gift code
 
@@ -13586,7 +13588,7 @@ class binance(Exchange, ImplicitAPI):
         #
         return self.parse_greeks(self.safe_dict(response, 0, {}), market)
 
-    async def fetch_all_greeks(self, symbols: Strings = None, params={}) -> list[Greeks]:
+    async def fetch_all_greeks(self, symbols: Strings = None, params={}) -> AllGreeks:
         """
         fetches all option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
 
@@ -13594,7 +13596,7 @@ class binance(Exchange, ImplicitAPI):
 
         :param str[] [symbols]: unified symbols of the markets to fetch greeks for, all markets are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `greeks structure <https://docs.ccxt.com/?id=greeks-structure>`
+        :returns dict: a dictionary of `greeks structures <https://docs.ccxt.com/?id=greeks-structure>` indexed by market symbol
         """
         if self.markets is None:
             await self.load_markets()

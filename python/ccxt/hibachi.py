@@ -2095,7 +2095,7 @@ class hibachi(Exchange, ImplicitAPI):
             result.append(self.parse_settlement(settlements[i], market))
         return result
 
-    def fetch_my_settlement_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_my_settlement_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[dict]:
         """
         fetches historical settlement records of the user
 

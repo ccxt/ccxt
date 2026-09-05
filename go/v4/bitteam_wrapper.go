@@ -632,7 +632,7 @@ func (this *Bitteam) EditOrders(orders []OrderRequest, options ...EditOrdersOpti
 func (this *Bitteam) FetchAccounts(params ...any) ([]Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
 }
-func (this *Bitteam) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
+func (this *Bitteam) FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks, error) {
 	return this.exchangeTyped.FetchAllGreeks(options...)
 }
 func (this *Bitteam) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error) {
@@ -671,7 +671,7 @@ func (this *Bitteam) FetchDepositAddress(code string, options ...FetchDepositAdd
 func (this *Bitteam) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
 	return this.exchangeTyped.FetchDepositAddresses(options...)
 }
-func (this *Bitteam) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
+func (this *Bitteam) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error) {
 	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
 }
 func (this *Bitteam) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {

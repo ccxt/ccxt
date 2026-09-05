@@ -1231,7 +1231,7 @@ func (this *Pacifica) EditOrders(orders []OrderRequest, options ...EditOrdersOpt
 func (this *Pacifica) FetchAccounts(params ...any) ([]Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
 }
-func (this *Pacifica) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
+func (this *Pacifica) FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks, error) {
 	return this.exchangeTyped.FetchAllGreeks(options...)
 }
 func (this *Pacifica) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error) {
@@ -1270,7 +1270,7 @@ func (this *Pacifica) FetchDepositAddress(code string, options ...FetchDepositAd
 func (this *Pacifica) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
 	return this.exchangeTyped.FetchDepositAddresses(options...)
 }
-func (this *Pacifica) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
+func (this *Pacifica) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error) {
 	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
 }
 func (this *Pacifica) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {

@@ -425,8 +425,8 @@ func (this *IndependentreserveCore) fetchMarketsBody(ch chan any, optionalArgs .
 	//     }
 	//
 	var result any = []any{}
-	var baseCurrencyIds any = this.ToArray(baseCurrencies)
-	var quoteCurrencyIds any = this.ToArray(quoteCurrencies)
+	var baseCurrencyIds []any = this.ToArray(baseCurrencies)
+	var quoteCurrencyIds []any = this.ToArray(quoteCurrencies)
 	for i := 0; IsLessThan(i, GetArrayLength(baseCurrencyIds)); i++ {
 		var baseId any = GetValue(baseCurrencyIds, i)
 		var base any = this.SafeCurrencyCode(baseId)
@@ -1130,7 +1130,7 @@ func (this *IndependentreserveCore) fetchTradingFeesBody(ch chan any, optionalAr
 	//     ]
 	//
 	var fees map[string]any = map[string]any{}
-	var rows any = this.ToArray(response)
+	var rows []any = this.ToArray(response)
 	for i := 0; IsLessThan(i, GetArrayLength(rows)); i++ {
 		var fee any = GetValue(rows, i)
 		var currencyId any = this.SafeString(fee, "CurrencyCode")
@@ -1493,7 +1493,7 @@ func (this *IndependentreserveCore) Sign(path any, optionalArgs ...any) any {
 			var value string = ToString(GetValue(params, key))
 			AppendToArray(&auth, Add(Add(key, "="), value))
 		}
-		var message any = Join(auth, ",")
+		var message string = Join(auth, ",")
 		var signature string = this.Hmac(this.Encode(message), this.Encode(this.Secret), sha256)
 		var query map[string]any = map[string]any{}
 		AddElementToObject(query, "apiKey", this.ApiKey)

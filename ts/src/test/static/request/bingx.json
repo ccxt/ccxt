@@ -8,6 +8,15 @@
     ],
     "outputType": "urlencoded",
     "methods": {
+        "accountV1PrivateGetAccountApiRestrictions": [
+            {
+                "description": "fetch API key restrictions",
+                "method": "accountV1PrivateGetAccountApiRestrictions",
+                "url": "https://open-api.bingx.com/openApi/v1/account/apiRestrictions?timestamp=1769192577322&signature=cb79b63f775ebb592910f320f38c5e2bbf36a8eaac8619e948b017710fb9e1d2",
+                "input": [],
+                "output": null
+            }
+        ],
         "fetchFundingHistory": [
             {
                 "description": "fetchFundingHistory",
@@ -983,6 +992,18 @@
                 ]
             },
             {
+                "description": "Swap cancel all orders after omits subtype",
+                "method": "cancelAllOrdersAfter",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/cancelAllAfter?timeOut=100&type=ACTIVATE&timestamp=1699071702130&signature=aec79b5f9cba90954cc6a34801e466e7e3c1a6945733600fff8cadd10fb0bbec",
+                "input": [
+                    100000,
+                    {
+                        "type": "swap",
+                        "subType": "linear"
+                    }
+                ]
+            },
+            {
                 "description": "Swap close cancel all orders after",
                 "method": "cancelAllOrdersAfter",
                 "url": "https://open-api.bingx.com/openApi/swap/v2/trade/cancelAllAfter?timeOut=0&type=CLOSE&timestamp=1699071702130&signature=581d72f82f5c1c7d133bd0556f0513ae5f22445207a9e49babf5d13d70a421b4",
@@ -1285,6 +1306,19 @@
                 "method": "fetchDeposits",
                 "url": "https://open-api.bingx.com/openApi/api/v3/capital/deposit/hisrec?timestamp=1699458296035&signature=10ada6f50500dd8090dfb7ecb8c03d093a7278b66be5568f03ad7e0dc4c3b371",
                 "input": []
+            },
+            {
+                "description": "Fetch deposits with time range and capped limit",
+                "method": "fetchDeposits",
+                "url": "https://open-api.bingx.com/openApi/api/v3/capital/deposit/hisrec?endTime=1721961000000&limit=1000&startTime=1721356200000&timestamp=1699458296035&signature=10ada6f50500dd8090dfb7ecb8c03d093a7278b66be5568f03ad7e0dc4c3b371",
+                "input": [
+                    null,
+                    1721356200000,
+                    1500,
+                    {
+                        "until": 1721961000000
+                    }
+                ]
             }
         ],
         "fetchWithdrawals": [
@@ -1293,6 +1327,19 @@
                 "method": "fetchWithdrawals",
                 "url": "https://open-api.bingx.com/openApi/api/v3/capital/withdraw/history?timestamp=1699460637810&signature=b11060a953c0a537fba24da3346f55d0a05196748704bc34f40fcfbf0b0a4ea6",
                 "input": []
+            },
+            {
+                "description": "Fetch withdrawals with time range and capped limit",
+                "method": "fetchWithdrawals",
+                "url": "https://open-api.bingx.com/openApi/api/v3/capital/withdraw/history?endTime=1721961000000&limit=1000&startTime=1721356200000&timestamp=1699460637810&signature=b11060a953c0a537fba24da3346f55d0a05196748704bc34f40fcfbf0b0a4ea6",
+                "input": [
+                    null,
+                    1721356200000,
+                    1500,
+                    {
+                        "until": 1721961000000
+                    }
+                ]
             }
         ],
         "transfer": [
@@ -1751,11 +1798,33 @@
                 ]
             },
             {
+                "description": "spot ohlcv caps limit",
+                "method": "fetchOHLCV",
+                "url": "https://open-api.bingx.com/openApi/spot/v1/market/kline?interval=1m&limit=1440&symbol=BTC-USDT&timeZone=0&timestamp=1709992986762",
+                "input": [
+                    "BTC/USDT",
+                    "1m",
+                    null,
+                    1500
+                ]
+            },
+            {
                 "description": "swap ohlcv",
                 "method": "fetchOHLCV",
                 "url": "https://open-api.bingx.com/openApi/swap/v3/quote/klines?interval=1m&symbol=BTC-USDT&timestamp=1709992987069",
                 "input": [
                     "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "swap ohlcv caps limit",
+                "method": "fetchOHLCV",
+                "url": "https://open-api.bingx.com/openApi/swap/v3/quote/klines?interval=1m&limit=1440&symbol=BTC-USDT&timestamp=1709992987069",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1m",
+                    null,
+                    1500
                 ]
             },
             {
@@ -1768,6 +1837,27 @@
                   null,
                   3
                 ]
+            },
+            {
+                "description": "inverse swap ohlcv bounds since and caps limit",
+                "method": "fetchOHLCV",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/market/klines?endTime=1720132800000&interval=1m&limit=1000&startTime=1720072799999&symbol=BTC-USD&timestamp=1720124710777",
+                "input": [
+                  "BTC/USD:BTC",
+                  "1m",
+                  1720072800000,
+                  1500
+                ]
+            },
+            {
+                "description": "inverse swap ohlcv bounds since with default limit",
+                "method": "fetchOHLCV",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/market/klines?endTime=1720102800000&interval=1m&startTime=1720072799999&symbol=BTC-USD&timestamp=1720124710777",
+                "input": [
+                  "BTC/USD:BTC",
+                  "1m",
+                  1720072800000
+                ]
             }
         ],
         "fetchFundingRateHistory": [
@@ -1777,6 +1867,19 @@
                 "url": "https://open-api.bingx.com/openApi/swap/v2/quote/fundingRate?symbol=BTC-USDT&timestamp=1709992987329",
                 "input": [
                     "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "funding rate history with since, capped limit, and until",
+                "method": "fetchFundingRateHistory",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/quote/fundingRate?endTime=1721961000000&limit=1000&startTime=1721356200000&symbol=BTC-USDT&timestamp=1709992987329",
+                "input": [
+                    "BTC/USDT:USDT",
+                    1721356200000,
+                    1500,
+                    {
+                        "until": 1721961000000
+                    }
                 ]
             }
         ],
@@ -1837,6 +1940,32 @@
                 "url": "https://open-api.bingx.com/openApi/cswap/v1/trade/forceOrders?autoCloseType=LIQUIDATION&symbol=SOL-USD&timestamp=1721280070629&signature=32b7e26877af1f0ed4f3936811cb38f68bc27eac5e44b63022de5a92123f6b7f",
                 "input": [
                   "SOL/USD:SOL"
+                ]
+            },
+            {
+                "description": "Linear swap fetch my liquidations caps limit",
+                "method": "fetchMyLiquidations",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/forceOrders?autoCloseType=LIQUIDATION&endTime=1721961000000&limit=100&startTime=1721356200000&symbol=BTC-USDT&timestamp=1721280070629&signature=32b7e26877af1f0ed4f3936811cb38f68bc27eac5e44b63022de5a92123f6b7f",
+                "input": [
+                  "BTC/USDT:USDT",
+                  1721356200000,
+                  150,
+                  {
+                    "until": 1721961000000
+                  }
+                ]
+            },
+            {
+                "description": "Inverse swap fetch my liquidations caps limit",
+                "method": "fetchMyLiquidations",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/trade/forceOrders?autoCloseType=LIQUIDATION&endTime=1721961000000&limit=100&startTime=1721356200000&symbol=SOL-USD&timestamp=1721280070629&signature=32b7e26877af1f0ed4f3936811cb38f68bc27eac5e44b63022de5a92123f6b7f",
+                "input": [
+                  "SOL/USD:SOL",
+                  1721356200000,
+                  150,
+                  {
+                    "until": 1721961000000
+                  }
                 ]
             }
         ],

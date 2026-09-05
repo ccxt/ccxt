@@ -136,6 +136,21 @@
                         "until": 1787990400000
                     }
                 ]
+            },
+            {
+                "description": "fetchOHLCV with paginate, the pagination controls stay out of the query and the first request carries no page_token",
+                "method": "fetchOHLCV",
+                "url": "https://data.alpaca.markets/v1beta3/crypto/us/bars?symbols=BTC%2FUSD&limit=5&timeframe=1H",
+                "input": [
+                    "BTC/USD",
+                    "1h",
+                    null,
+                    5,
+                    {
+                        "paginate": true,
+                        "paginationCalls": 2
+                    }
+                ]
             }
         ],
         "fetchTicker": [

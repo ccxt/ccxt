@@ -1602,7 +1602,10 @@ class btse extends Exchange {
         $nextFundingTimestamp = $this->safe_integer_omit_zero($contract, 'nextFundingTime');
         $fundingIntervalMinutes = $this->safe_integer($contract, 'fundingIntervalMinutes');
         $interval = null;
-        if ($fundingIntervalMinutes !== null) {
+        // a wire value of zero minutes reaches this, and zero $hours is not an
+        // $interval => a caller annualising a rate divides by it. anything under an
+        // hour rounds to the same string, and the vocabulary has no minutes
+        if (($fundingIntervalMinutes !== null) && ($fundingIntervalMinutes >= 60)) {
             $hours = $this->parse_to_int($fundingIntervalMinutes / 60);
             $interval = (string) $hours . 'h';
         }
@@ -2426,7 +2429,7 @@ class btse extends Exchange {
         return $this->safe_string($priceTypes, $priceType, $priceType);
     }
 
-    public function fetch_open_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_open_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_open_order(...))($id, $symbol, $params);
     }
 

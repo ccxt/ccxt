@@ -648,7 +648,7 @@ public partial class derive : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    public async override Task<object> fetchTime(object parameters = null)
+    public async override Task<Int64> FetchTime(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicPostGetTime(parameters);
@@ -658,7 +658,7 @@ public partial class derive : Exchange
         //     "id": "f1c03d21-f886-4c5a-9a9d-33dd06f180f0"
         // }
         //
-        return this.safeInteger(response, "result");
+        return ccxt.BaseExchange.ToInt64Value(this.safeInteger(response, "result"));
     }
 
     /**
@@ -761,12 +761,12 @@ public partial class derive : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public async override Task<object> fetchMarkets(object parameters = null)
+    public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object spotMarketsPromise = this.fetchSpotMarkets(parameters);
-        object swapMarketsPromise = this.fetchSwapMarkets(parameters);
-        object optionMarketsPromise = this.fetchOptionMarkets(parameters);
+        object spotMarketsPromise = this.FetchSpotMarkets(parameters);
+        object swapMarketsPromise = this.FetchSwapMarkets(parameters);
+        object optionMarketsPromise = this.FetchOptionMarkets(parameters);
         var spotMarketsswapMarketsoptionMarketsVariable = await promiseAll(new List<object>() {spotMarketsPromise, swapMarketsPromise, optionMarketsPromise});
         var spotMarkets = ((IList<object>) spotMarketsswapMarketsoptionMarketsVariable)[0];
         var swapMarkets = ((IList<object>) spotMarketsswapMarketsoptionMarketsVariable)[1];
@@ -818,10 +818,10 @@ public partial class derive : Exchange
         //
         object result = this.arrayConcat(spotMarkets, swapMarkets);
         result = this.arrayConcat(result, optionMarkets);
-        return result;
+        return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
 
-    public async virtual Task<object> fetchSpotMarkets(object parameters = null)
+    public async virtual Task<List<ccxt.MarketInterface>> FetchSpotMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object request = new Dictionary<string, object>() {
@@ -831,10 +831,10 @@ public partial class derive : Exchange
         object response = await this.publicPostGetAllInstruments(this.extend(request, parameters));
         object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object data = this.safeList(result, "instruments", new List<object>() {});
-        return this.parseMarkets(data);
+        return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(data));
     }
 
-    public async virtual Task<object> fetchSwapMarkets(object parameters = null)
+    public async virtual Task<List<ccxt.MarketInterface>> FetchSwapMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object request = new Dictionary<string, object>() {
@@ -844,10 +844,10 @@ public partial class derive : Exchange
         object response = await this.publicPostGetAllInstruments(this.extend(request, parameters));
         object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object data = this.safeList(result, "instruments", new List<object>() {});
-        return this.parseMarkets(data);
+        return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(data));
     }
 
-    public async virtual Task<object> fetchOptionMarkets(object parameters = null)
+    public async virtual Task<List<ccxt.MarketInterface>> FetchOptionMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object request = new Dictionary<string, object>() {
@@ -857,7 +857,7 @@ public partial class derive : Exchange
         object response = await this.publicPostGetAllInstruments(this.extend(request, parameters));
         object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object data = this.safeList(result, "instruments", new List<object>() {});
-        return this.parseMarkets(data);
+        return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(data));
     }
 
     public override object parseMarket(object market)
@@ -1519,6 +1519,7 @@ public partial class derive : Exchange
         object postOnly = this.safeBool(parameters, "postOnly");
         string orderType = ((string)type).ToLower();
         string orderSide = ((string)((string)side)).ToLower();
+        bool orderSideIsBuy = (isEqual(orderSide, "buy")); // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
         Int64 nonce = this.milliseconds();
         // Order signature expiry must be between 2592000 and 7776000 sec from now
         object signatureExpiry = this.safeInteger(parameters, "signature_expiry_sec", add(this.seconds(), 7776000));
@@ -1536,7 +1537,7 @@ public partial class derive : Exchange
         }
         object maxFeeString = this.numberToString(maxFee);
         object amountString = this.numberToString(amount);
-        object tradeModuleDataHash = this.hash(this.ethAbiEncode(new List<object>() {"address", "uint", "int", "int", "uint", "uint", "bool"}, new List<object>() {getValue(getValue(market, "info"), "base_asset_address"), this.parseToNumeric(getValue(getValue(market, "info"), "base_asset_sub_id")), this.convertToBigInt(((string)this.parseUnits(priceString))), this.convertToBigInt(((string)this.parseUnits(((string)this.amountToPrecision(symbol, amountString))))), this.convertToBigInt(((string)this.parseUnits(maxFeeString))), subaccountId, isEqual(orderSide, "buy")}), keccak, "binary");
+        object tradeModuleDataHash = this.hash(this.ethAbiEncode(new List<object>() {"address", "uint", "int", "int", "uint", "uint", "bool"}, new List<object>() {getValue(getValue(market, "info"), "base_asset_address"), this.parseToNumeric(getValue(getValue(market, "info"), "base_asset_sub_id")), this.convertToBigInt(((string)this.parseUnits(priceString))), this.convertToBigInt(((string)this.parseUnits(((string)this.amountToPrecision(symbol, amountString))))), this.convertToBigInt(((string)this.parseUnits(maxFeeString))), subaccountId, orderSideIsBuy}), keccak, "binary");
         object deriveWalletAddress = null;
         var deriveWalletAddressparametersVariable = this.handleDeriveWalletAddress("createOrder", parameters);
         deriveWalletAddress = ((IList<object>)deriveWalletAddressparametersVariable)[0];
@@ -1711,6 +1712,7 @@ public partial class derive : Exchange
         object postOnly = this.safeBool(parameters, "postOnly");
         string orderType = ((string)type).ToLower();
         string orderSide = ((string)((string)side)).ToLower();
+        bool orderSideIsBuy = (isEqual(orderSide, "buy")); // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
         Int64 nonce = this.milliseconds();
         object signatureExpiry = this.safeNumber(parameters, "signature_expiry_sec", add(this.seconds(), 7776000));
         // TODO: subaccount id / trade module address
@@ -1720,7 +1722,7 @@ public partial class derive : Exchange
         object priceString = ((string)this.numberToString(price));
         object maxFeeString = this.safeString(parameters, "max_fee", "0");
         object amountString = this.numberToString(amount);
-        object tradeModuleDataHash = this.hash(this.ethAbiEncode(new List<object>() {"address", "uint", "int", "int", "uint", "uint", "bool"}, new List<object>() {getValue(getValue(market, "info"), "base_asset_address"), this.parseToNumeric(getValue(getValue(market, "info"), "base_asset_sub_id")), this.convertToBigInt(((string)this.parseUnits(priceString))), this.convertToBigInt(((string)this.parseUnits(((string)this.amountToPrecision(symbol, amountString))))), this.convertToBigInt(((string)this.parseUnits(maxFeeString))), subaccountId, isEqual(orderSide, "buy")}), keccak, "binary");
+        object tradeModuleDataHash = this.hash(this.ethAbiEncode(new List<object>() {"address", "uint", "int", "int", "uint", "uint", "bool"}, new List<object>() {getValue(getValue(market, "info"), "base_asset_address"), this.parseToNumeric(getValue(getValue(market, "info"), "base_asset_sub_id")), this.convertToBigInt(((string)this.parseUnits(priceString))), this.convertToBigInt(((string)this.parseUnits(((string)this.amountToPrecision(symbol, amountString))))), this.convertToBigInt(((string)this.parseUnits(maxFeeString))), subaccountId, orderSideIsBuy}), keccak, "binary");
         object deriveWalletAddress = null;
         var deriveWalletAddressparametersVariable = this.handleDeriveWalletAddress("editOrder", parameters);
         deriveWalletAddress = ((IList<object>)deriveWalletAddressparametersVariable)[0];
@@ -2667,9 +2669,9 @@ public partial class derive : Exchange
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "lastUpdateTimestamp", null },
-            { "initialMargin", this.safeString(position, "initial_margin") },
+            { "initialMargin", this.safeNumber(position, "initial_margin") },
             { "initialMarginPercentage", null },
-            { "maintenanceMargin", this.safeString(position, "maintenance_margin") },
+            { "maintenanceMargin", this.safeNumber(position, "maintenance_margin") },
             { "maintenanceMarginPercentage", null },
             { "entryPrice", null },
             { "notional", this.parseNumber(notional) },
@@ -2821,7 +2823,7 @@ public partial class derive : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public async override Task<object> fetchBalance(object parameters = null)
+    public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2885,7 +2887,7 @@ public partial class derive : Exchange
         // }
         //
         object result = this.safeList(response, "result");
-        return this.parseBalance(result);
+        return ccxt.BaseExchange.ToBalances(this.parseBalance(result));
     }
 
     public override object parseBalance(object response)

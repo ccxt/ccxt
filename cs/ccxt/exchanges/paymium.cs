@@ -234,7 +234,7 @@ public partial class paymium : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public async override Task<object> fetchBalance(object parameters = null)
+    public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -242,7 +242,7 @@ public partial class paymium : Exchange
             await this.loadMarkets();
         }
         object response = await this.privateGetUser(parameters);
-        return this.parseBalance(response);
+        return ccxt.BaseExchange.ToBalances(this.parseBalance(response));
     }
 
     /**
@@ -255,7 +255,7 @@ public partial class paymium : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -267,7 +267,7 @@ public partial class paymium : Exchange
             { "currency", getValue(market, "id") },
         };
         object response = await this.publicGetDataCurrencyDepth(this.extend(request, parameters));
-        return this.parseOrderBook(response, getValue(market, "symbol"), null, "bids", "asks", "price", "amount");
+        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, getValue(market, "symbol"), null, "bids", "asks", "price", "amount"));
     }
 
     public override object parseTicker(object ticker, object market = null)
@@ -500,7 +500,7 @@ public partial class paymium : Exchange
         //         }
         //     ]
         //
-        return ccxt.BaseExchange.ToDepositAddressList(this.parseDepositAddresses(response, codes));
+        return ccxt.BaseExchange.ToDepositAddressList(this.parseDepositAddresses(response, codes, false));
     }
 
     public override object parseDepositAddress(object depositAddress, object currency = null)
@@ -591,7 +591,7 @@ public partial class paymium : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public async override Task<object> transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
+    public async override Task<ccxt.TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -645,7 +645,7 @@ public partial class paymium : Exchange
         //         ]
         //     }
         //
-        return this.parseTransfer(response, currency);
+        return ccxt.BaseExchange.ToTransferEntry(this.parseTransfer(response, currency));
     }
 
     public override object parseTransfer(object transfer, object currency = null)

@@ -3612,7 +3612,7 @@ func (this *PoloniexCore) fetchTransactionsHelperBody(ch chan any, optionalArgs 
 
 	retRes28928 := (<-this.LoadMarkets())
 	PanicOnError(retRes28928)
-	var year any = 31104000 // 60 * 60 * 24 * 30 * 12 = one year of history, why not
+	var year int = 31104000 // 60 * 60 * 24 * 30 * 12 = one year of history, why not
 	var now int64 = this.Seconds()
 	var start any = Ternary(IsTrue((!IsEqual(since, nil))), this.ParseToInt(Divide(since, 1000)), Subtract(now, Multiply(10, year)))
 	var request map[string]any = map[string]any{
@@ -4232,7 +4232,9 @@ func (this *PoloniexCore) ParseLeverage(leverage any, optionalArgs ...any) any {
 	for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
 		var entry any = GetValue(data, i)
 		marketId = this.SafeString(entry, "symbol")
-		marginMode = this.SafeString(entry, "mgnMode")
+		// mgnMode arrives upper case; parseOrder and parsePosition read the
+		// same field with safeStringLower
+		marginMode = this.SafeStringLower(entry, "mgnMode")
 		var lever any = this.SafeInteger(entry, "lever")
 		var posSide any = this.SafeString(entry, "posSide")
 		if IsTrue(IsEqual(posSide, "LONG")) {
@@ -4361,8 +4363,8 @@ func (this *PoloniexCore) fetchPositionsBody(ch chan any, optionalArgs ...any) a
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	retRes34758 := (<-this.LoadMarkets())
-	PanicOnError(retRes34758)
+	retRes34778 := (<-this.LoadMarkets())
+	PanicOnError(retRes34778)
 	symbols = this.MarketSymbols(symbols)
 
 	response := (<-this.SwapPrivateGetV3TradePositionOpens(params))
@@ -4491,8 +4493,8 @@ func (this *PoloniexCore) modifyMarginHelperBody(ch chan any, symbol any, amount
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes35908 := (<-this.LoadMarkets())
-	PanicOnError(retRes35908)
+	retRes35928 := (<-this.LoadMarkets())
+	PanicOnError(retRes35928)
 	var market any = this.Market(symbol)
 	amount = this.AmountToPrecision(symbol, amount)
 	var request map[string]any = map[string]any{
@@ -4569,9 +4571,9 @@ func (this *PoloniexCore) reduceMarginBody(ch chan any, symbol any, amount any, 
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes365215 := (<-this.ModifyMarginHelper(symbol, OpNeg(amount), "reduce", params))
-	PanicOnError(retRes365215)
-	ch <- retRes365215
+	retRes365415 := (<-this.ModifyMarginHelper(symbol, OpNeg(amount), "reduce", params))
+	PanicOnError(retRes365415)
+	ch <- retRes365415
 	return nil
 }
 
@@ -4595,9 +4597,9 @@ func (this *PoloniexCore) addMarginBody(ch chan any, symbol any, amount any, opt
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes366515 := (<-this.ModifyMarginHelper(symbol, amount, "add", params))
-	PanicOnError(retRes366515)
-	ch <- retRes366515
+	retRes366715 := (<-this.ModifyMarginHelper(symbol, amount, "add", params))
+	PanicOnError(retRes366715)
+	ch <- retRes366715
 	return nil
 }
 func (this *PoloniexCore) Nonce() any {

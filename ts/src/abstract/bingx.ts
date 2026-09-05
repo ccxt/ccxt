@@ -160,6 +160,7 @@ interface Exchange {
     accountV1PrivateGetUid (params?: {}): Promise<Dict>;
     accountV1PrivateGetApiKeyQuery (params?: {}): Promise<Dict>;
     accountV1PrivateGetAccountApiPermissions (params?: {}): Promise<Dict>;
+    accountV1PrivateGetAccountApiRestrictions (params?: {}): Promise<Dict>;
     accountV1PrivateGetAllAccountBalance (params?: {}): Promise<Dict>;
     accountV1PrivatePostInnerTransferAuthorizeSubAccount (params?: {}): Promise<Dict>;
     accountTransferV1PrivateGetSubAccountAssetTransferHistory (params?: {}): Promise<Dict>;
