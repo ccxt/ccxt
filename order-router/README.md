@@ -402,6 +402,25 @@ within 10 seconds by an mtime poll, or instantly with `systemctl reload order-ro
 killing a key never costs a restart, which at discovery scale would rebuild the whole book cache
 and degrade `/route` for minutes.
 
+#### Retiring the shared key
+
+`ORDER_ROUTER_API_KEY` is a migration bridge: it is loaded as a synthetic `k_legacy` record so the
+old and new schemes work at once. It has no row in `api_keys` — the projector cannot select it, and
+so cannot revoke it either. To retire it without a restart, write the tombstone into the key file:
+
+```bash
+# on the box, against ORDER_ROUTER_KEYS_FILE
+jq '.keys += [{"id":"k_legacy","keyUuid":"","userId":"","name":"legacy-shared-key",
+  "hash":"'"$(printf 0%.0s {1..64})"'","last4":"","note":"retired","rateLimitMax":null,
+  "wsMaxConnections":null,"createdAt":"'"$(date -Is)"'","createdBy":"operator",
+  "revokedAt":"'"$(date -Is)"'","lastUsedAt":null}]' /opt/order-router/keys.json > /tmp/keys.json
+mv /tmp/keys.json /opt/order-router/keys.json
+```
+
+The router drops the key on its next 10-second poll, and the projector carries the tombstone across
+its own rewrites rather than erasing it. Unsetting the variable in `/opt/order-router/env` is the
+other half — do both, or the next restart brings the key back.
+
 **Why unsalted SHA-256 and no KDF.** This looks wrong to password-storage instincts and isn't. The
 secret is 256 CSPRNG bits, not a human-chosen password, so the offline-guessing attack a KDF
 defends against does not exist; bcrypt would cost milliseconds against a ~300µs route computation.

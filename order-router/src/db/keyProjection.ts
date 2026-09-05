@@ -1,6 +1,6 @@
 import type { Logger } from 'pino';
 import type { Pool } from './pool.js';
-import { readKeyFile, writeKeyFile, type ApiKeyRecord, type KeyFile } from '../api/keyStore.js';
+import { LEGACY_KEY_ID, readKeyFile, writeKeyFile, type ApiKeyRecord, type KeyFile } from '../api/keyStore.js';
 
 // Projects api_keys from Postgres into the snapshot file the router reads.
 //
@@ -76,20 +76,43 @@ export async function projectKeys (pool: Pool, path: string, logger: Logger): Pr
     // left in place, which is the same silent-and-stale posture a Postgres outage gets.
     if (rows.length === 0) {
         const current = readKeyFile(path);
-        if (current.keys.length > 0) {
+        //  A file holding nothing but a tombstone is not a populated snapshot: there is no
+        //  credential in it to protect, so the guard below must not fire on one.
+        const live = current.keys.filter((r) => r.revokedAt === null);
+        if (live.length > 0) {
             const { rows: totals } = await pool.query<{ total: string }>(
                 'SELECT count(*) AS total FROM api_keys',
             );
             const total = Number(totals[0]?.total ?? 0);
             if (total === 0) {
                 logger.error(
-                    { path, previousKeys: current.keys.length },
+                    { path, previousKeys: live.length },
                     'refusing to project an empty key set: api_keys holds no rows at all, which is a '
                     + 'lost or wrong database rather than a revocation — the previous snapshot is kept',
                 );
-                return { keys: current.keys.length, changed: false, refused: true };
+                return { keys: live.length, changed: false, refused: true };
             }
         }
+    }
+
+    // Carry a k_legacy TOMBSTONE across the rewrite.
+    //
+    // The legacy shared key (ORDER_ROUTER_API_KEY) is a synthetic record built from the
+    // environment, not a row in api_keys — so this query can never produce it, and the store's
+    // tombstone check (`revokedAt !== null` on a k_legacy record) had no way to ever see data.
+    // The documented way to retire the shared key without a restart is to put that tombstone in
+    // the file, and the projector, which rewrites the whole file every few seconds, erased it
+    // again before the router's next poll. Retiring the shared key was therefore impossible
+    // exactly as documented, while the comment in the store claimed it worked.
+    //
+    // Only the tombstone is preserved, and only for k_legacy: it is a "this id is dead" marker,
+    // not a credential, and the projection stays the source of truth for everything else.
+    const previous = readKeyFile(path);
+    const tombstone = previous.keys.find(
+        (r) => r.id === LEGACY_KEY_ID && r.revokedAt !== null,
+    );
+    if (tombstone !== undefined) {
+        file.keys.push(tombstone);
     }
 
     const changed = writeKeyFile(path, file);

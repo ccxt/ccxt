@@ -149,6 +149,12 @@ export class ApiKeyStore {
         // and new schemes are valid simultaneously and no client has to change in lockstep with a
         // deploy. A revoked k_legacy row in the file kills it on the next 10s poll — which is what
         // lets the shared key be retired WITHOUT the restart this whole design exists to avoid.
+        //
+        // That row cannot come from the projection: k_legacy is synthetic, built from the
+        // environment, and has no row in api_keys for the projector to select. It is written by
+        // hand (see README § Retiring the shared key), and projectKeys carries it across its
+        // rewrites — without which the projector erased the tombstone within seconds and this
+        // paragraph described something that could not happen.
         // The literals below are what an unset variable looks like after shell or compose
         // interpolation; accepting one as a credential would make a misconfiguration authenticate.
         const envRaw = process.env['ORDER_ROUTER_API_KEY'];

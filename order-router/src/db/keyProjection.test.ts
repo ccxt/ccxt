@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import pino from 'pino';
 import { projectKeys } from './keyProjection.js';
-import { ApiKeyStore, generateKey, hashKey, readKeyFile } from '../api/keyStore.js';
+import { ApiKeyStore, generateKey, hashKey, readKeyFile, writeKeyFile } from '../api/keyStore.js';
 
 const silent = pino({ level: 'silent' });
 
@@ -184,4 +184,55 @@ test('per-key limits survive the round trip', async () => {
     const found = store.lookup(key)!;
     assert.equal(found.rateLimitMax, 25);
     assert.equal(found.wsMaxConnections, 3);
+});
+
+test('a k_legacy tombstone survives the projection, so the shared key can actually be retired', async () => {
+    // The legacy shared key is synthetic — built from ORDER_ROUTER_API_KEY, never a row in
+    // api_keys — so the projection query cannot produce it and the store's tombstone check had no
+    // way to ever see data. The documented retirement path is to put the tombstone in the file;
+    // the projector rewrote the whole file every few seconds and erased it before the router's
+    // next poll, so the shared key could not be retired without a restart. The keyStore comment
+    // said it could.
+    const path = tmpFile();
+    const key = generateKey();
+    const pool = fakePool(() => ({ rows: [row({ hash: hashKey(key) })] }));
+    await projectKeys(pool as never, path, silent);
+
+    // What an operator writes to retire the shared key.
+    const withTombstone = readKeyFile(path);
+    withTombstone.keys.push({
+        id: 'k_legacy', keyUuid: '', userId: '', name: 'legacy-shared-key', hash: 'x'.repeat(64),
+        last4: '', note: 'retired', rateLimitMax: null, wsMaxConnections: null,
+        createdAt: new Date().toISOString(), createdBy: 'operator',
+        revokedAt: new Date().toISOString(), lastUsedAt: null,
+    });
+    writeKeyFile(path, withTombstone);
+
+    await projectKeys(pool as never, path, silent);
+    const after = readKeyFile(path);
+    const carried = after.keys.find((r) => r.id === 'k_legacy');
+    assert.ok(carried, 'the tombstone must survive the next projection');
+    assert.notEqual(carried!.revokedAt, null);
+    // And it is carried as a marker, not as a credential the store would load.
+    assert.equal(after.keys.filter((r) => r.revokedAt === null).length, 1, 'the live set is unchanged');
+
+    const store = new ApiKeyStore(path, silent);
+    store.load();
+    assert.ok(store.lookup(key), 'the ordinary key still authenticates');
+    assert.equal(store.activeCount(), 1, 'a tombstone is not an active key');
+});
+
+test('a file holding only a tombstone does not look like a populated snapshot', async () => {
+    // The empty-projection guard refuses to overwrite a file that still holds keys. A tombstone is
+    // not a key: if it counted, a database that legitimately has no keys yet could never be
+    // projected once the shared key had been retired.
+    const path = tmpFile();
+    writeKeyFile(path, { version: 1, keys: [ {
+        id: 'k_legacy', keyUuid: '', userId: '', name: 'legacy-shared-key', hash: 'x'.repeat(64),
+        last4: '', note: 'retired', rateLimitMax: null, wsMaxConnections: null,
+        createdAt: new Date().toISOString(), createdBy: 'operator',
+        revokedAt: new Date().toISOString(), lastUsedAt: null,
+    } ] });
+    const result = await projectKeys(fakePool(() => ({ rows: [] }), 0) as never, path, silent);
+    assert.notEqual(result.refused, true, 'a tombstone-only file is not a snapshot worth protecting');
 });
