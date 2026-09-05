@@ -124,6 +124,31 @@ inline std::vector<std::pair<std::string, std::string>> parsePairs (const std::s
 inline bool sameAnyImpl (const std::any& expected, const std::any& actual,
                          const std::vector<std::string>& skipKeys, std::string& why);
 
+// Value categories, matching the JS type distinctions the request fixtures encode.
+enum class Kind { Undefined, Boolean, Number, String, List, Dict, Other };
+
+inline Kind kindOf (const std::any& v) {
+    if (!v.has_value ())     return Kind::Undefined;
+    if (ccxt::isBoolean (v)) return Kind::Boolean;
+    if (ccxt::isNum (v))     return Kind::Number;
+    if (ccxt::isStr (v))     return Kind::String;
+    if (ccxt::isList (v))    return Kind::List;
+    if (ccxt::isDict (v))    return Kind::Dict;
+    return Kind::Other;
+}
+
+inline std::string kindName (const std::any& v) {
+    switch (kindOf (v)) {
+    case Kind::Undefined: return "undefined";
+    case Kind::Boolean:   return "boolean";
+    case Kind::Number:    return "number";
+    case Kind::String:    return "string";
+    case Kind::List:      return "list";
+    case Kind::Dict:      return "dict";
+    default:              return "other";
+    }
+}
+
 inline bool skippedKey (const std::string& key, const std::vector<std::string>& skipKeys) {
     for (const auto& s : skipKeys) {
         if (key == s) {
@@ -172,6 +197,24 @@ inline bool sameAnyImpl (const std::any& expected, const std::any& actual,
                               skipKeys, why)) {
                 return false;
             }
+        }
+        return true;
+    }
+    // Leaves must agree on TYPE as well as text. Comparing via str() alone accepted a
+    // JSON number where the fixture has a quoted string (0.1 vs "0.1") and a boolean
+    // where it has "true" -- the request would have changed shape on the wire while the
+    // test still passed. The TS harness compares primitives strictly; this mirrors that,
+    // except that all C++ numeric storage types collapse to one Number category, since
+    // int vs double here is a detail of std::any, not of the request.
+    if (kindOf (expected) != kindOf (actual)) {
+        why = "type mismatch: " + kindName (expected) + " " + str (expected)
+            + " != " + kindName (actual) + " " + str (actual);
+        return false;
+    }
+    if (kindOf (expected) == Kind::Number) {
+        if (ccxt::toDouble (expected) != ccxt::toDouble (actual)) {
+            why = str (expected) + " != " + str (actual);
+            return false;
         }
         return true;
     }
@@ -294,6 +337,34 @@ inline bool sameRequest (const std::string& expectedUrl, const std::string& actu
 inline bool sameAny (const std::any& expected, const std::any& actual,
                      const std::vector<std::string>& skipKeys, std::string& why) {
     return sameAnyImpl (expected, actual, skipKeys, why);
+}
+
+// Regression cover for the comparator itself. A comparator that silently accepts a
+// changed type makes every request test meaningless, so it is checked before the
+// fixtures run rather than trusted.
+inline bool selfTestComparator () {
+    const std::vector<std::string> noSkips;
+    std::string why;
+    struct Case { const char* name; const char* expected; const char* actual; bool shouldMatch; };
+    const Case cases[] = {
+        { "quoted number vs JSON number", "[{\"quantity\":\"0.1\"}]", "[{\"quantity\":0.1}]", false },
+        { "quoted bool vs JSON bool",     "[{\"reduceOnly\":\"true\"}]", "[{\"reduceOnly\":true}]", false },
+        { "identical",                    "[{\"quantity\":\"0.1\"}]", "[{\"quantity\":\"0.1\"}]", true },
+        { "reordered keys",               "[{\"a\":\"1\",\"b\":\"2\"}]", "[{\"b\":\"2\",\"a\":\"1\"}]", true },
+        { "number equal across storage",  "[{\"n\":1}]", "[{\"n\":1.0}]", true },
+    };
+    bool ok = true;
+    for (const auto& c : cases) {
+        why.clear ();
+        const bool matched = sameScalarOrJson (c.expected, c.actual, noSkips, why);
+        if (matched != c.shouldMatch) {
+            std::cout << "[TEST_FAILURE][COMPARATOR] " << c.name << ": expected "
+                      << (c.shouldMatch ? "match" : "mismatch") << ", got "
+                      << (matched ? "match" : "mismatch") << std::endl;
+            ok = false;
+        }
+    }
+    return ok;
 }
 
 } // namespace statictests
