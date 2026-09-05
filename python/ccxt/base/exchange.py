@@ -1426,16 +1426,27 @@ class BaseExchange(object):
 
     @staticmethod
     def hash(request, algorithm='md5', digest='hex'):
+        # fast paths for the common algorithms; hashlib.new() fallback for the rest.
         if algorithm == 'keccak':
             from ccxt.static_dependencies import keccak
             binary = bytes(keccak.SHA3(request))
+        elif algorithm == 'md5':
+            binary = hashlib.md5(request).digest()
+        elif algorithm == 'sha1':
+            binary = hashlib.sha1(request).digest()
+        elif algorithm == 'sha256':
+            binary = hashlib.sha256(request).digest()
+        elif algorithm == 'sha384':
+            binary = hashlib.sha384(request).digest()
+        elif algorithm == 'sha512':
+            binary = hashlib.sha512(request).digest()
         else:
-            h = hashlib.new(algorithm, request)
-            binary = h.digest()
-        if digest == 'base64':
-            return Exchange.binary_to_base64(binary)
-        elif digest == 'hex':
+            # Fallback for less common algorithms
+            binary = hashlib.new(algorithm, request).digest()
+        if digest == 'hex':
             return Exchange.binary_to_base16(binary)
+        elif digest == 'base64':
+            return Exchange.binary_to_base64(binary)
         return binary
 
     @staticmethod
