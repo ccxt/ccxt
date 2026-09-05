@@ -683,7 +683,7 @@ public partial class krakenfutures : Exchange
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
-        object response = await ((Task<object>)callDynamically(this, "publicGetTickersSymbol", new object[] { this.extend(request, parameters) }));
+        object response = await this.publicGetTickersSymbol(this.extend(request, parameters));
         //
         //    {
         //        "result": "success",
