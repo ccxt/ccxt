@@ -2,6 +2,7 @@
 // ----------------------------------------------------------------------------
 
 import { sha256 } from '@noble/hashes/sha2.js';
+import { jwt } from './base/functions/rsa.js';
 import Exchange from './abstract/coinbaseinternational.js';
 import { ExchangeError, ArgumentsRequired, BadRequest, InvalidOrder, PermissionDenied, DuplicateOrderId, AuthenticationError, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
@@ -120,13 +121,15 @@ export default class coinbaseinternational extends Exchange {
                 'logo': 'https://github.com/ccxt/ccxt/assets/43336371/866ae638-6ab5-4ebf-ab2c-cdcce9545625',
                 'api': {
                     'rest': 'https://api.international.coinbase.com/api',
+                    'v2': 'https://drb.coinbase.com/api/v2',
                 },
                 'test': {
                     'rest': 'https://api-n5e1.coinbase.com/api',
                 },
                 'www': 'https://international.coinbase.com',
                 'doc': [
-                    'https://docs.cloud.coinbase.com/intx/docs',
+                    'https://docs.cdp.coinbase.com/coinbase-app/advanced-trade-apis/guides/derivatives/technical',
+                    'https://docs.deribit.com',
                 ],
                 'fees': [
                     'https://help.coinbase.com/en/international-exchange/trading-deposits-withdrawals/international-exchange-fees',
@@ -136,9 +139,36 @@ export default class coinbaseinternational extends Exchange {
             'requiredCredentials': {
                 'apiKey': true,
                 'secret': true,
-                'password': true,
             },
             'api': {
+                'v2': {
+                    'public': {
+                        'post': {
+                            'auth': { 'cost': 1 } as Endpoint<Dict>,
+                            'get_instruments': { 'cost': 1 } as Endpoint<Dict>,
+                            'get_order_book': { 'cost': 1 } as Endpoint<Dict>,
+                            'ticker': { 'cost': 1 } as Endpoint<Dict>,
+                            'get_tradingview_chart_data': { 'cost': 1 } as Endpoint<Dict>,
+                            'subscribe': { 'cost': 1 } as Endpoint<Dict>,
+                            'set_heartbeat': { 'cost': 1 } as Endpoint<Dict>,
+                        },
+                    },
+                    'private': {
+                        'post': {
+                            'buy': { 'cost': 1 } as Endpoint<Dict>,
+                            'sell': { 'cost': 1 } as Endpoint<Dict>,
+                            'edit': { 'cost': 1 } as Endpoint<Dict>,
+                            'cancel': { 'cost': 1 } as Endpoint<Dict>,
+                            'cancel_all': { 'cost': 1 } as Endpoint<Dict>,
+                            'get_order_state': { 'cost': 1 } as Endpoint<Dict>,
+                            'get_open_orders_by_instrument': { 'cost': 1 } as Endpoint<Dict>,
+                            'get_user_trades_by_instrument': { 'cost': 1 } as Endpoint<Dict>,
+                            'get_positions': { 'cost': 1 } as Endpoint<Dict>,
+                            'get_account_summary': { 'cost': 1 } as Endpoint<Dict>,
+                            'change_margin_model': { 'cost': 1 } as Endpoint<Dict>,
+                        },
+                    },
+                },
                 'v1': {
                     'public': {
                         'get': {
@@ -2369,8 +2399,70 @@ export default class coinbaseinternational extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
+    createAuthToken (seconds: Int, useEddsa = false) {
+        const nonce = this.randomBytes (16);
+        let audience = 'retail_rest_api_proxy';
+        let issuer = 'coinbase-cloud';
+        if (useEddsa) {
+            audience = 'cdp_service';
+            issuer = 'cdp';
+        }
+        const request: Dict = {
+            'aud': [ audience ],
+            'iss': issuer,
+            'nbf': seconds,
+            'exp': (seconds as number) + 120,
+            'sub': this.apiKey,
+            'iat': seconds,
+        };
+        if (useEddsa) {
+            const byteArray = this.base64ToBinary (this.secret);
+            const seed = this.arraySlice (byteArray, 0, 32);
+            const token = jwt (request, seed, sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'EdDSA' });
+            return token;
+        }
+        const secret = this.encode (this.secret);
+        const token = jwt (request, secret, sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'ES256' });
+        return token;
+    }
+
     override sign (path: any, api: any = [], method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const version = api[0];
+        if (version === 'v2') {
+            const access = api[1];
+            const rpcMethod = access + '/' + path;
+            if ((access === 'public') && (path === 'auth')) {
+                this.checkRequiredCredentials ();
+                const seconds = this.seconds ();
+                const useV2CloudApiKey = this.safeBool (this.options, 'v2CloudAPiKey', false);
+                const secretEndsWithEquals = this.secret.endsWith ('=');
+                let useEddsa = false;
+                if ((this.secret.length === 88) || useV2CloudApiKey || secretEndsWithEquals) {
+                    useEddsa = true;
+                }
+                params = this.extend ({
+                    'grant_type': 'coinbase_cdp',
+                    'token': this.createAuthToken (seconds, useEddsa),
+                }, params);
+            } else if (access === 'private') {
+                if (this.token === '') {
+                    throw new AuthenticationError (this.id + ' requires a Deribit access token; call public/auth and set exchange.token before private requests');
+                }
+                headers = {
+                    'Authorization': 'Bearer ' + this.token,
+                };
+            }
+            const request = {
+                'jsonrpc': '2.0',
+                'id': this.nonce (),
+                'method': rpcMethod,
+                'params': params,
+            };
+            body = this.json (request);
+            headers = this.extend ({ 'Content-Type': 'application/json' }, headers);
+            const url = this.urls['api']['v2'];
+            return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        }
         const signed = api[1] === 'private';
         let fullPath = '/' + version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
