@@ -30,7 +30,6 @@ SOFTWARE.
 
 namespace ccxt;
 
-use MessagePack\MessagePack;
 use kornrunner\Keccak;
 use Web3\Contracts\TypedDataEncoder;
 use StarkNet\Crypto\Curve;
@@ -1953,7 +1952,44 @@ class BaseExchange {
     }
 
     public function packb($data) {
-        return MessagePack::pack($data);
+        // minimal MessagePack serializer (str/int/float64/bool/nil/array/map)
+        // mirrors the previously vendored rybakit/msgpack defaults FORCE_STR | DETECT_ARR_MAP | FORCE_FLOAT64
+        if (is_int($data)) {
+            if ($data >= 0) {
+                if ($data <= 0x7f) return chr($data);
+                if ($data <= 0xff) return "\xcc" . chr($data);
+                if ($data <= 0xffff) return "\xcd" . pack('n', $data);
+                if ($data <= 0xffffffff) return "\xce" . pack('N', $data);
+                return "\xcf" . pack('J', $data);
+            }
+            if ($data >= -0x20) return chr((0xe0 | $data) & 0xff);
+            if ($data >= -0x80) return "\xd0" . chr($data & 0xff);
+            if ($data >= -0x8000) return "\xd1" . pack('n', $data & 0xffff);
+            if ($data >= -0x80000000) return "\xd2" . pack('N', $data & 0xffffffff);
+            return "\xd3" . pack('J', $data);
+        }
+        if (is_string($data)) {
+            $length = strlen($data);
+            if ($length < 32) return chr(0xa0 | $length) . $data;
+            if ($length <= 0xff) return "\xd9" . chr($length) . $data;
+            if ($length <= 0xffff) return "\xda" . pack('n', $length) . $data;
+            return "\xdb" . pack('N', $length) . $data;
+        }
+        if (is_array($data)) {
+            $count = count($data);
+            if (array_values($data) === $data) { // list (also covers [])
+                $out = ($count < 16) ? chr(0x90 | $count) : (($count <= 0xffff) ? "\xdc" . pack('n', $count) : "\xdd" . pack('N', $count));
+                foreach ($data as $value) $out .= $this->packb($value);
+                return $out;
+            }
+            $out = ($count < 16) ? chr(0x80 | $count) : (($count <= 0xffff) ? "\xde" . pack('n', $count) : "\xdf" . pack('N', $count));
+            foreach ($data as $key => $value) $out .= $this->packb($key) . $this->packb($value);
+            return $out;
+        }
+        if ($data === null) return "\xc0";
+        if (is_bool($data)) return $data ? "\xc3" : "\xc2";
+        if (is_float($data)) return "\xcb" . pack('E', $data);
+        throw new Exception('packb: unsupported type ' . get_debug_type($data));
     }
 
     public function throttle($cost = null) {
