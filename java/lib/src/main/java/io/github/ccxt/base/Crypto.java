@@ -40,9 +40,18 @@ import java.util.Map;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
 
+import org.bouncycastle.asn1.x9.X9ECParameters;
+import org.bouncycastle.asn1.x9.X9IntegerConverter;
+import org.bouncycastle.crypto.digests.SHA256Digest;
+import org.bouncycastle.crypto.ec.CustomNamedCurves;
+import org.bouncycastle.crypto.params.ECDomainParameters;
+import org.bouncycastle.crypto.params.ECPrivateKeyParameters;
+import org.bouncycastle.crypto.signers.ECDSASigner;
+import org.bouncycastle.crypto.signers.HMacDSAKCalculator;
 import org.bouncycastle.jcajce.provider.digest.Keccak;
-import org.web3j.crypto.*;
-import org.web3j.utils.Numeric;
+import org.bouncycastle.math.ec.ECAlgorithms;
+import org.bouncycastle.math.ec.ECPoint;
+import org.bouncycastle.math.ec.FixedPointCombMultiplier;
 
 /**
  * All methods are public static, parameters are Object where appropriate.
@@ -464,8 +473,8 @@ public final class Crypto {
         }
 
         if (curveName.equals("p256")) {
-            // web3j does not support P-256 compact signatures / recovery id (v)
-            throw new UnsupportedOperationException("web3j-only implementation supports secp256k1 only (p256 not supported)");
+            // P-256 compact signatures / recovery id (v) are not implemented (0 callers in ccxt)
+            throw new UnsupportedOperationException("ecdsa supports secp256k1 only (p256 not supported)");
         }
 
         byte[] msg = toBytes(request);
@@ -484,17 +493,103 @@ public final class Crypto {
             msg = hexToBytes(toString(request));
         }
 
-        ECKeyPair keyPair = ECKeyPair.create(privKey);
+        BigInteger[] sig = secp256k1SignRecoverable(msg, privKey);
 
-        Sign.SignatureData sig = Sign.signMessage(msg, keyPair, false);
-
-        int vOut = sig.getV()[0] & 0xFF;
-        int recoveryV = vOut - 27;
         Map<String, Object> out = new HashMap<>();
-        out.put("r", Numeric.toHexString(sig.getR()).replaceAll("0x", "")   );
-        out.put("s", Numeric.toHexString(sig.getS()).replaceAll("0x", "")   );
-        out.put("v", recoveryV);
+        // web3j emitted Numeric.toHexString(32-byte padded r/s) minus the 0x prefix, i.e. 64 lowercase hex chars
+        out.put("r", leftPadHex(sig[0].toString(16), 64));
+        out.put("s", leftPadHex(sig[1].toString(16), 64));
+        out.put("v", sig[2].intValue());
         return out;
+    }
+
+    // ====================================================
+    // secp256k1 via BouncyCastle lightweight API (replaces org.web3j:crypto)
+    //
+    // web3j's Sign.signMessage(msg, keyPair, false) was exactly:
+    //   ECDSASigner(HMacDSAKCalculator(SHA256Digest))  -> RFC 6979 deterministic k
+    //   ECDSASignature.toCanonicalised()               -> low-s (s <= n/2)
+    //   recId = first i in 0..3 with recover(i, sig, msg) == pubkey
+    // The recId is computed here from the R point directly (parity of R.y, plus 2 when
+    // R.x >= n) and flipped when s is negated for low-s. This is the closed form of the
+    // recovery loop and yields the same value; a recovery round-trip guards it below.
+    // ====================================================
+
+    private static final X9ECParameters SECP256K1_X9 = CustomNamedCurves.getByName("secp256k1");
+    private static final ECDomainParameters SECP256K1 = new ECDomainParameters(
+            SECP256K1_X9.getCurve(), SECP256K1_X9.getG(), SECP256K1_X9.getN(), SECP256K1_X9.getH());
+    private static final BigInteger SECP256K1_HALF_N = SECP256K1.getN().shiftRight(1);
+
+    /** Returns { r, s, recId } with RFC 6979 k, low-s canonical form and recId in 0..3. */
+    public static BigInteger[] secp256k1SignRecoverable(byte[] msgHash, BigInteger privKey) {
+        BigInteger n = SECP256K1.getN();
+        ECDSASigner signer = new ECDSASigner(new HMacDSAKCalculator(new SHA256Digest()));
+        signer.init(true, new ECPrivateKeyParameters(privKey, SECP256K1));
+        BigInteger[] rs = signer.generateSignature(msgHash);
+        BigInteger r = rs[0];
+        BigInteger s = rs[1];
+        if (s.compareTo(SECP256K1_HALF_N) > 0) {
+            s = n.subtract(s);
+        }
+        // recover the public key for each candidate recId; the first match is web3j's choice
+        ECPoint q = secp256k1PublicPoint(privKey);
+        int recId = -1;
+        for (int i = 0; i < 4; i++) {
+            ECPoint k = secp256k1Recover(i, r, s, msgHash);
+            if (k != null && k.equals(q)) {
+                recId = i;
+                break;
+            }
+        }
+        if (recId == -1) {
+            throw new RuntimeException("Could not construct a recoverable key. Are your credentials valid?");
+        }
+        return new BigInteger[] { r, s, BigInteger.valueOf(recId) };
+    }
+
+    /** Q = d * G (mirrors web3j Sign.publicPointFromPrivate incl. the bitLength > n reduction). */
+    static ECPoint secp256k1PublicPoint(BigInteger privKey) {
+        BigInteger n = SECP256K1.getN();
+        if (privKey.bitLength() > n.bitLength()) {
+            privKey = privKey.mod(n);
+        }
+        return new FixedPointCombMultiplier().multiply(SECP256K1.getG(), privKey).normalize();
+    }
+
+    /** Public key as 64 raw bytes (X || Y) — web3j Sign.publicKeyFromPrivate returned this as a BigInteger. */
+    static byte[] secp256k1PublicKeyBytes(BigInteger privKey) {
+        byte[] encoded = secp256k1PublicPoint(privKey).getEncoded(false); // 0x04 || X || Y
+        return java.util.Arrays.copyOfRange(encoded, 1, encoded.length);
+    }
+
+    /** SEC 1 §4.1.6 public key recovery, as in web3j Sign.recoverFromSignature; null when the candidate is invalid. */
+    private static ECPoint secp256k1Recover(int recId, BigInteger r, BigInteger s, byte[] msgHash) {
+        BigInteger n = SECP256K1.getN();
+        BigInteger i = BigInteger.valueOf((long) recId / 2);
+        BigInteger x = r.add(i.multiply(n));
+        BigInteger prime = SECP256K1.getCurve().getField().getCharacteristic(); // == SecP256K1Curve.q
+        if (x.compareTo(prime) >= 0) {
+            return null;
+        }
+        X9IntegerConverter x9 = new X9IntegerConverter();
+        byte[] compEnc = x9.integerToBytes(x, 1 + x9.getByteLength(SECP256K1.getCurve()));
+        compEnc[0] = (byte) ((recId & 1) == 1 ? 0x03 : 0x02);
+        ECPoint R = SECP256K1.getCurve().decodePoint(compEnc);
+        if (!R.multiply(n).isInfinity()) {
+            return null;
+        }
+        BigInteger e = new BigInteger(1, msgHash);
+        BigInteger eInv = BigInteger.ZERO.subtract(e).mod(n);
+        BigInteger rInv = r.modInverse(n);
+        BigInteger srInv = rInv.multiply(s).mod(n);
+        BigInteger eInvrInv = rInv.multiply(eInv).mod(n);
+        return ECAlgorithms.sumOfTwoMultiplies(SECP256K1.getG(), eInvrInv, R, srInv).normalize();
+    }
+
+    /** keccak256(X || Y)[12..32] as 40 lowercase hex chars, no 0x — mirrors web3j Keys.getAddress. */
+    public static String secp256k1EthAddress(BigInteger privKey) {
+        byte[] hash = keccakDigest(secp256k1PublicKeyBytes(privKey));
+        return bytesToHex(java.util.Arrays.copyOfRange(hash, 12, hash.length));
     }
 
     private static String bytesToHex(byte[] bytes) {
@@ -806,11 +901,8 @@ public final class Crypto {
     public static String ethGetAddressFromPrivateKey(Object privateKey) {
         BigInteger priv = toPrivateKeyBigInt(privateKey);
 
-        // Build keypair and derive address
-        ECKeyPair keyPair = ECKeyPair.create(priv);
-
         // Returns 40 hex chars, no 0x, lower-case
-        String addressNoPrefix = Keys.getAddress(keyPair);
+        String addressNoPrefix = secp256k1EthAddress(priv);
 
         return "0x" + addressNoPrefix;
     }
@@ -833,7 +925,9 @@ public final class Crypto {
 
         // Treat everything else as string
         String s = String.valueOf(privateKey).trim();
-        s = Numeric.cleanHexPrefix(s);
+        if (s.startsWith("0x") || s.startsWith("0X")) {
+            s = s.substring(2);
+        }
 
         if (s.isEmpty()) {
             throw new IllegalArgumentException("privateKey is empty");
@@ -847,13 +941,20 @@ public final class Crypto {
         }
 
         // Safe parse (unsigned)
-        return Numeric.toBigIntNoPrefix(s);
+        return new BigInteger(s, 16);
     }
 
     // Optional: if you want checksummed output (EIP-55)
     public static String ethGetChecksumAddressFromPrivateKey(Object privateKey) {
         BigInteger priv = toPrivateKeyBigInt(privateKey);
-        Credentials credentials = Credentials.create(ECKeyPair.create(priv));
-        return Keys.toChecksumAddress(credentials.getAddress()); // already includes 0x
+        String lower = secp256k1EthAddress(priv);
+        // EIP-55: uppercase hex digit i when nibble i of keccak256(lowercase address) >= 8
+        String hash = bytesToHex(keccakDigest(lower.getBytes(StandardCharsets.US_ASCII)));
+        StringBuilder sb = new StringBuilder("0x");
+        for (int i = 0; i < lower.length(); i++) {
+            char c = lower.charAt(i);
+            sb.append(Character.digit(hash.charAt(i), 16) >= 8 ? Character.toUpperCase(c) : c);
+        }
+        return sb.toString();
     }
 }

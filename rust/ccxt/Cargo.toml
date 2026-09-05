@@ -23,13 +23,10 @@ path = "src/lib.rs"
 # `ccxt::exchanges::…`, `ccxt::runtime::…` resolve alongside the typed wrappers.
 ccxt-base = { path = "../ccxt-base", version = "4.5.75", features = ["transpiled-base"] }
 
-tokio = { version = "1", features = ["full"] }
-serde = { version = "1", features = ["derive"] }
-serde_json = { version = "1", features = ["preserve_order", "float_roundtrip"] }
-rust_decimal = { version = "1", features = ["serde-str"] }
-num-bigint = "0.4"
-num-traits = "0.2"
-chrono = { version = "0.4", features = ["serde"] }
+# The generated typed wrappers (`src/exchanges/*_typed.rs`, `typed.rs`, emitted
+# by build/generateRustWrappers.ts) reference exactly one external crate
+# directly: `#[async_trait::async_trait]` on the `TypedExchange` trait. Every
+# other external type (tokio, serde_json, Decimal, IndexMap, chrono, …) is
+# reached through the `ccxt_base::*` re-exports above, so it is not
+# re-declared here.
 async-trait = "0.1"
-futures = "0.3"
-indexmap = { version = "2", features = ["serde"] }

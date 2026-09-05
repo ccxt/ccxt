@@ -22,8 +22,6 @@ import (
 	"time"
 
 	starkfelt "github.com/NethermindEth/juno/core/felt"
-	starkcurve "github.com/NethermindEth/starknet.go/curve"
-	starkutils "github.com/NethermindEth/starknet.go/utils"
 	pb "github.com/ccxt/ccxt/go/v4/protoc"
 	"golang.org/x/net/proxy"
 	"google.golang.org/protobuf/encoding/protojson"
@@ -1457,7 +1455,7 @@ func (this *BaseExchange) ExtendedStarknetSign(a any, b any) any {
 	if msgHash == nil || privateKey == nil {
 		panic(AuthenticationError(Add(this.Id, " extendedStarknetSign() invalid msgHash or privateKey")))
 	}
-	r, s, err := starkcurve.Sign(msgHash, privateKey)
+	r, s, err := starknetSign(msgHash, privateKey)
 	if err != nil {
 		panic(AuthenticationError(Add(this.Id, Add(" extendedStarknetSign() failed: ", err.Error()))))
 	}
@@ -1465,7 +1463,7 @@ func (this *BaseExchange) ExtendedStarknetSign(a any, b any) any {
 }
 
 func (this *BaseExchange) ExtendedStarknetGetSelectorFromName(a any) any {
-	return starkutils.GetSelectorFromName(ToString(a)).String()
+	return starknetGetSelectorFromName(ToString(a)).String()
 }
 
 func (this *BaseExchange) ExtendedStarknetComputePoseidonHashOnElements(a any) any {
@@ -1481,7 +1479,7 @@ func (this *BaseExchange) ExtendedStarknetComputePoseidonHashOnElements(a any) a
 		}
 		felts = append(felts, new(starkfelt.Felt).SetBigInt(bigValue))
 	}
-	hash := starkcurve.PoseidonArray(felts...)
+	hash := starknetPoseidonArray(felts...)
 	return hash.BigInt(new(big.Int)).String()
 }
 
