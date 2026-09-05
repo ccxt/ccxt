@@ -316,6 +316,173 @@
                         "markPrice": null
                     }
                 ]
+            },
+            {
+                "description": "inverse swap miniTicker",
+                "input": [
+                    "BTC/USD:BTC"
+                ],
+                "url": "wss://dstream.binance.com/ws/0",
+                "messages": [
+                    {
+                        "result": null,
+                        "id": 1
+                    },
+                    {
+                        "e": "24hrMiniTicker",
+                        "E": 1788627876898,
+                        "s": "BTCUSD_PERP",
+                        "ps": "BTCUSD",
+                        "c": "80024.2",
+                        "o": "79615.4",
+                        "h": "80172.4",
+                        "l": "79350.1",
+                        "v": "2247374",
+                        "q": "2820.1",
+                        "st": 2
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "method": "SUBSCRIBE",
+                        "params": [
+                            "btcusd_perp@miniTicker"
+                        ],
+                        "id": 1
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "symbol": "BTC/USD:BTC",
+                        "timestamp": 1788627876898,
+                        "datetime": "2026-09-05T17:04:36.898Z",
+                        "high": 80172.4,
+                        "low": 79350.1,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": 79691.28754299493,
+                        "open": 79615.4,
+                        "close": 80024.2,
+                        "last": 80024.2,
+                        "previousClose": null,
+                        "change": 408.8,
+                        "percentage": 0.5134684998128503,
+                        "average": 79819.8,
+                        "baseVolume": 2820.1,
+                        "quoteVolume": 224737400,
+                        "info": {
+                            "e": "24hrMiniTicker",
+                            "E": 1788627876898,
+                            "s": "BTCUSD_PERP",
+                            "ps": "BTCUSD",
+                            "c": "80024.2",
+                            "o": "79615.4",
+                            "h": "80172.4",
+                            "l": "79350.1",
+                            "v": "2247374",
+                            "q": "2820.1",
+                            "st": 2
+                        },
+                        "indexPrice": null,
+                        "markPrice": null
+                    }
+                ]
+            },
+            {
+                "description": "inverse swap ticker",
+                "input": [
+                    "BTC/USD:BTC",
+                    {
+                        "name": "ticker"
+                    }
+                ],
+                "url": "wss://dstream.binance.com/ws/0",
+                "messages": [
+                    {
+                        "result": null,
+                        "id": 1
+                    },
+                    {
+                        "e": "24hrTicker",
+                        "E": 1788548384904,
+                        "s": "BTCUSD_PERP",
+                        "ps": "BTCUSD",
+                        "p": "-1614.7",
+                        "P": "-1.988",
+                        "w": "80435.03631557",
+                        "c": "79603.1",
+                        "Q": "1",
+                        "o": "81217.8",
+                        "h": "82265.9",
+                        "l": "78601.0",
+                        "v": "13210881",
+                        "q": "16424.3",
+                        "O": 1788461940000,
+                        "C": 1788548384896,
+                        "F": 1151701827,
+                        "L": 1152013525,
+                        "n": 311696,
+                        "st": 2
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "method": "SUBSCRIBE",
+                        "params": [
+                            "btcusd_perp@ticker"
+                        ],
+                        "id": 1
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "symbol": "BTC/USD:BTC",
+                        "timestamp": 1788548384896,
+                        "datetime": "2026-09-04T18:59:44.896Z",
+                        "high": 82265.9,
+                        "low": 78601,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": 80435.03631557,
+                        "open": 81217.8,
+                        "close": 79603.1,
+                        "last": 79603.1,
+                        "previousClose": null,
+                        "change": -1614.7,
+                        "percentage": -1.988,
+                        "average": 80410.4,
+                        "baseVolume": 16424.3,
+                        "quoteVolume": 1321089166.9578164,
+                        "info": {
+                            "e": "24hrTicker",
+                            "E": 1788548384904,
+                            "s": "BTCUSD_PERP",
+                            "ps": "BTCUSD",
+                            "p": "-1614.7",
+                            "P": "-1.988",
+                            "w": "80435.03631557",
+                            "c": "79603.1",
+                            "Q": "1",
+                            "o": "81217.8",
+                            "h": "82265.9",
+                            "l": "78601.0",
+                            "v": "13210881",
+                            "q": "16424.3",
+                            "O": 1788461940000,
+                            "C": 1788548384896,
+                            "F": 1151701827,
+                            "L": 1152013525,
+                            "n": 311696,
+                            "st": 2
+                        },
+                        "indexPrice": null,
+                        "markPrice": null
+                    }
+                ]
             }
         ],
         "watchOHLCV": [
